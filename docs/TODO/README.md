@@ -49,7 +49,7 @@ on 2026-08-05 — they are research items until a retrain is deliberately
 wanted, and the queue prefers items a player can feel.
 
 - [ ] 96 — [The character label drives nothing in the world yet (phase 2)](96-the-character-label-drives-nothing-yet.md) — feature · medium · medium
-- [ ] 97 — [Site housekeeping: build hash, issues link, CI warnings](97-site-housekeeping.md) — chore · low · small — closes #14, #13, #12
+- [x] 97 — [Site housekeeping: build hash, issues link, CI warnings](97-site-housekeeping.md) — chore · low · small — closed #14, #13, #12
 
 ## The combat trainer
 

@@ -86,4 +86,23 @@ No gameplay is touched, so the machine gates carry this alone:
 
 ## Outcome
 
-(recorded when the cycle closes)
+**Shipped 2026-08-08**, the first cycle through docs/PROCESS.md. Built by a
+background agent on its own branch; landed after a supervisor review of the
+diff and a re-run of the gates on the merged tree (`npm run build` 3251
+passed / 0 failed, `npm run elite-a` 494 / 0; dist greps show the linked
+hash on every page and `issues/new` in all seven).
+
+One deliberate deviation from this doc's prose: **no Vite `define`
+constant.** The `?` guide's foot is static markup in `play.html`, so no
+TypeScript ever reads the hash — a `transformIndexHtml` plugin fills a
+`<!--BUILD-FOOTER-->` marker on every page instead, and the hash resolves
+per page inside the hook so a long-lived dev server never serves a stale
+one. The chain, the line and the plugin all live in `vite.config.ts`
+(one home held); `test/site-footer.test.ts` pins the chain rung by rung,
+reads the page roster from the config's own rollup inputs, and each of its
+gates was deliberately broken once and went red.
+
+CI actions went `v4 → v7` (current majors verified against the actions'
+releases, not guessed). The warnings' disappearance is checked on the first
+main CI run after this lands; if they persist, that comes back as a new
+item rather than a silent edit here.
