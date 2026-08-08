@@ -51,6 +51,7 @@
   letter-spacing: 1px;
   padding-left: 10px;
   text-decoration: none;
+  white-space: nowrap; /* the build-line beside it squeezed it into wrapping */
 }
 
 #viewer-other:hover { color: var(--hud-green); }
@@ -60,6 +61,7 @@
   font-size: 11px;
   letter-spacing: 1px;
   padding-left: 6px;
+  white-space: nowrap; /* the build-line beside it squeezed it into wrapping */
 }
 
 /* The shared build/issues footer line sits at the end of the control strip,
@@ -70,6 +72,7 @@
   font-size: 11px;
   letter-spacing: 1px;
   padding-left: 10px;
+  white-space: nowrap; /* one line of small print, not a wrapped block */
 }
 #viewer-controls .build-line a { text-decoration: none; }
 
