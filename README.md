@@ -1,3 +1,21 @@
+# Open ~~Source~~ Vibe Code
+
+You can play HARMLESS here: https://harmless.atomic14.com/
+
+This is a bit of an experiment. I have not looked at the code. I have no intention of looking at it. All the work has been done by Claude and other coding agents. In fact, this is the first piece of editing I've done!
+
+The repo is Open Vibe Code (yes, I've invented a new thing!). If you want to contribute, don't open a PR - I won't be accepting any code that way.
+
+Instead create an [issue](https://github.com/atomic14/harmless/issues/new) and describe what you want. Periodically, I'll run Claude (or other coding agent of the day) and have it run through the issues and address them.
+
+I'm not completely sure how this will work yet - it might ask questions and clarifications - or it might just go and implement something. We'll find out!
+
+I owe a great deal of thanks to this website - [Elite on the 6502](https://elite.bbcelite.com) - and quite likely a lot of other information that LLMs have trained on.
+
+And now I'll hand you over to the AI.
+
+---
+
 # HARMLESS
 
 *An unofficial browser tribute to **Elite** (1984) by David Braben and Ian
