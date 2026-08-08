@@ -1,35 +1,23 @@
 // The world step: one slice of time, with nothing on screen.
 //
-// Everything that used to be `updateFlight` and its five phases lived as
-// private methods of game.ts, which meant the simulation could only advance
-// with a HUD, a keyboard and a WebGL context standing behind it. That was the
-// one thing between this project and training its AI against the real engine
-// instead of a parallel simulator — and the simulator is now deleted, so the
-// training scenarios fly these very pieces (src/ai-training/scenario.ts).
-//
-// So the phases moved here, and the fourteen `hud.showMessage` calls inside
-// them became RETURNED EVENTS — the same pattern as combat.ts, ordnance.ts and
-// trumbles.ts: *this decides and reports, the orchestrator applies*. The eleven
-// `sfx.*` calls went the same way and for the same reason: they are
-// `SoundEvent`s now (sounds.ts), so the deepest module in the project no longer
-// imports the browser and no longer depends on `audio.ts` quietly surviving a
-// missing AudioContext. The step draws nothing, makes no noise, reads no clock,
-// touches no DOM and never asks who is calling it. `npm test` steps it under
+// The simulation phases that were private methods of game.ts, so the world can
+// advance headless — the training scenarios fly these very pieces
+// (src/ai-training/scenario.ts). Every `hud.showMessage` and `sfx.*` inside
+// them is a RETURNED EVENT — the same pattern as combat.ts and ordnance.ts:
+// *this decides and reports, the orchestrator applies*. The step draws nothing,
+// makes no noise, reads no clock and touches no DOM. `npm test` steps it under
 // node with no Hud at all.
 //
-// What is NOT here, and why: the consequences that reach outside the sky —
-// paying a bounty, moving your legal status, writing the save, opening the
-// station menu, ending the run. Those are the Game's, and the step asks for
-// them through `StepHost` (below). That interface is the remaining seam, and
-// it is deliberately a list of verbs rather than "the Game": a test implements
-// it in fifteen lines, which is what makes this file testable at all.
+// What is NOT here: the consequences that reach outside the sky — paying a
+// bounty, moving your legal status, writing the save, opening the station menu,
+// ending the run. Those are the Game's, asked for through `StepHost` (below),
+// which is a list of verbs rather than "the Game" so a test can implement it.
 //
-// The order of the phases is load-bearing and unchanged: ships move before
-// they are separated, are separated before they are billed, and the player's
-// systems recharge after everything that could have damaged them. So is the
-// order of every `random()` draw — the world replays byte-identically from a
-// seed, and moving a draw across a branch would silently change every seeded
-// outcome (see game/rng.ts).
+// The order of the phases is load-bearing: ships move before they are
+// separated, are separated before they are billed, and the player's systems
+// recharge after everything that could have damaged them. So is the order of
+// every `random()` draw — the world replays byte-identically from a seed, and
+// moving a draw across a branch would change every seeded outcome (game/rng.ts).
 
 import * as THREE from 'three';
 
@@ -77,12 +65,6 @@ import type { GameState } from './state.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 import { STRANDED_HINT_REPEAT } from '../constants/witchspace.ts';
 
-// WHAT A CANISTER ON THE HULL OR A FLUFFED SLOT COSTS IS NOT HERE. They were
-// `0.06` and `0.9` on the pre-parity normalized scale, named here so that TODO
-// 28 would have a shopping list. They are `IMPACT.canisterOnHull` and
-// `IMPACT.stationScrape` in constants/impact.ts now, stated in the
-// commander's own pool points beside every other non-laser number.
-
 /** the origin, for `lookAt` — scratch that must never be written to */
 const ZERO = new THREE.Vector3();
 
@@ -91,8 +73,7 @@ const ZERO = new THREE.Vector3();
  *
  * A free function over the state, so the flight keys and the step share one
  * rule and `window.__game.massLocked()` keeps working for the harnesses. The
- * three radii are one rule with three answers and live together in
- * constants/torus.ts, beside the drive they exist to cut out.
+ * three radii live together in constants/torus.ts, beside the drive they cut.
  */
 export function massLocked(state: GameState): boolean {
   const { player, world } = state;
@@ -109,10 +90,9 @@ export function massLocked(state: GameState): boolean {
 /**
  * What the step reports for the orchestrator to say out loud, or to count.
  *
- * A union rather than a bare list of strings because the next thing to come out
- * of the step belongs here too, and because it then reads the same as
- * CombatEvent and OrdnanceEvent, which is the point. The Game says the messages,
- * plays the sounds and ignores the rest; a measuring caller does the opposite.
+ * A union, so it reads the same as CombatEvent and OrdnanceEvent. The Game says
+ * the messages, plays the sounds and ignores the rest; a measuring caller does
+ * the opposite.
  */
 export type StepEvent =
   | { kind: 'message'; text: string; seconds: number }
@@ -125,24 +105,20 @@ export type StepEvent =
    * A ship pulled its trigger, and at what.
    *
    * The step is the only place that knows: `fire-resolution.ts` rolls the dice
-   * and the host only ever hears about the HITS, through `applyPlayerDamage`. Shots
-   * that missed are the denominator of every accuracy figure the combat
-   * simulator reports (combat-sim-report.ts), and test/combat-recorder.js could
-   * only get at them by monkey-patching a method that has since moved twice.
+   * and the host only ever hears about the HITS, through `applyPlayerDamage`.
+   * Missed shots are the denominator of every accuracy figure the combat
+   * simulator reports (combat-sim-report.ts).
    */
   | { kind: 'npcFired'; npc: NpcShip; weapon: 'laser' | 'missile'; atPlayer: boolean }
   /**
    * The commander landed something on a ship, and what it cost the ship.
    *
-   * The mirror of `applyPlayerDamage`, and reported rather than asked for
-   * because it is a measurement and not a consequence: a kill still comes
-   * through `destroyNpc` below. The step is again the only place that knows —
-   * `damage-dealt.ts` reads the target's bank either side of the hit, where a
-   * host downstream sees a ship that is either alive or gone.
-   *
-   * The career drops it (there is nothing to do with it); an exercise credits
-   * it to the record, which is where `you.damageBySource` comes from. Without
-   * it, every kill by missile, ram or bomb was reported as zero damage dealt.
+   * The mirror of `applyPlayerDamage`, reported rather than asked for because
+   * it is a measurement, not a consequence: a kill still comes through
+   * `destroyNpc` below. The step is the only place that knows —
+   * `damage-dealt.ts` reads the target's bank either side of the hit. The
+   * career drops it; an exercise credits it to `you.damageBySource`, without
+   * which a kill by missile, ram or bomb reports zero damage dealt.
    */
   | DealtEvent;
 
@@ -153,15 +129,10 @@ const heard = (name: SoundName): StepEvent => ({ kind: 'sound', name });
 /**
  * The consequences the step cannot own, and asks the orchestrator for.
  *
- * Every one of these reaches outside the sky: it pays a bounty, moves your
- * legal status, writes localStorage, opens a screen or ends the run. The rule
- * from ARCHITECTURE.md is that a module may not depend on the shape of its
- * caller — so this is not "the Game", it is the eleven verbs the world step
- * genuinely needs, small enough for a test to implement and stub.
- *
- * These names describe StepHost's vocabulary only. The live-combat
- * instrumentation API is `Game.setCombatObserver`; no recorder replaces these
- * methods or depends on their visibility in Game.
+ * Every one reaches outside the sky: it pays a bounty, moves your legal status,
+ * writes localStorage, opens a screen or ends the run. Not "the Game" but the
+ * verbs the world step needs, small enough for a test to implement and stub.
+ * Live-combat instrumentation is `Game.setCombatObserver`, not these methods.
  */
 export interface StepHost {
   /** is the ship still flying? `Game.mode` is a screen-stack question */
@@ -173,9 +144,9 @@ export interface StepHost {
    * armour once (`gunnery.ts`) and everything else is a stated `IMPACT`
    * (`constants/impact.ts`). The unit is branded, so nothing else can be passed.
    *
-   * `source` is what did it, and the step is the only place that knows: it is a
-   * static fact at each of the five calls below, where downstream it can only
-   * be guessed at from the size of the number. See `DamageSource`.
+   * `source` is what did it — a static fact at each of the five calls below,
+   * where downstream it can only be guessed at from the number. See
+   * `DamageSource`.
    */
   applyPlayerDamage(
     damage: PlayerPoolPoints, from: THREE.Vector3, source: DamageSource): void;
@@ -205,10 +176,9 @@ export interface StepHost {
  * Who is flying, and whether the human has their hands on the controls.
  *
  * The demand is produced OUTSIDE the step — by a keyboard
- * (engine/flight-controls.ts), by the combat computer, or by a harness writing
- * four numbers down. `handsOn` is the only other thing the step needs to know
- * about the input device, and it is a boolean rather than an `Input`: touching
- * the controls drops the docking computer.
+ * (engine/flight-controls.ts), by the combat computer, or by a harness.
+ * `handsOn` is a boolean rather than an `Input`: touching the controls drops
+ * the docking computer.
  */
 export interface PilotInput {
   demand: FlightDemand;
@@ -228,11 +198,9 @@ export class WorldStep {
   /**
    * The sky a fired shot is resolved against — see `fire-resolution.ts`.
    *
-   * Built once from the constructor's own arguments, and reading the STATE
-   * rather than a captured commander or player: both are replaced on respawn and
-   * on a restore, and a held reference would quietly resolve shots against a
-   * commander who no longer exists (the same reason `Combat` takes hers per
-   * call).
+   * Built once, but reading the STATE rather than a captured commander or
+   * player: both are replaced on respawn and restore, and a held reference
+   * would resolve shots against a commander who no longer exists.
    */
   private readonly fire: FireWorld;
 
@@ -251,9 +219,8 @@ export class WorldStep {
       target: {
         get hullId() { return state.commander.shipId; },
         get pos() { return state.player.position; },
-        // The seam's own forwarding, and the one thing the game adds that an
-        // episode has no use for: which of the five sources it was, for the
-        // damage flash and the record (`DamageSource`).
+        // the one thing the game adds that an episode has no use for: which of
+        // the five sources it was, for the damage flash and the record.
         damage: (damage, from) => host.applyPlayerDamage(damage, from, 'laser'),
       },
       ordnance,
@@ -298,9 +265,8 @@ export class WorldStep {
         out.push(heard('torusDropped'));
       } else {
         // ONE LESS THAN THE MULTIPLIER, because `player.update()` above has
-        // already flown the ship its ordinary `speed * dt` this frame. The
-        // total travel is `TORUS_MULTIPLIER` times ordinary flight, which is
-        // what the manual, the briefing and the dust streaks all mean by it.
+        // already flown the ship its ordinary `speed * dt` this frame. Total
+        // travel is `TORUS_MULTIPLIER` times ordinary flight.
         player.position.addScaledVector(
           player.getForward(this.tmp), player.speed * (TORUS_MULTIPLIER - 1) * dt);
       }
@@ -345,14 +311,13 @@ export class WorldStep {
     }
 
     // Snapshot: despawns and destructions below rebuild world.npcs, and the
-    // fleet handed to update() should be consistent for every ship in the
-    // frame rather than shrinking underneath the loop.
+    // fleet handed to update() should be consistent for every ship in the frame
+    // rather than shrinking underneath the loop.
     //
     // `missileInbound` is read here, ONCE, for the same reason: it is the
     // one-in-the-air cap, and asking the ordnance per ship instead would let
     // the first launcher in a frame silence the rest of the gang within that
-    // frame. That is a different program, and `test/missile-cap.test.ts` is
-    // what stops it moving.
+    // frame. `test/missile-cap.test.ts` pins it.
     const view: WorldView = {
       station: world.station,
       dockZ: world.stationDockZ,
@@ -368,11 +333,8 @@ export class WorldStep {
 
       if (npc.state.wantsDespawn) {
         // A ship that JUMPED OUT gets the witch-flash. A ship that DOCKED gets
-        // nothing: it flew into the slot, which is not an event that emits
-        // particles. It used to get a smaller, paler burst from the same
-        // explosion system, and from outside that is indistinguishable from
-        // watching it blow up — reported as exactly that, by someone watching
-        // a trader line up perfectly and then apparently detonate.
+        // nothing: it flew into the slot, which emits no particles. A burst
+        // here is indistinguishable from watching it blow up.
         if (!npc.state.docked) {
           world.effects.explosion(npc.object.position.clone(), 0x9adfff,
             { count: 10, speed: 120, duration: 0.7 });
@@ -384,13 +346,11 @@ export class WorldStep {
 
     // Ships are solid. The geometry lives in collisions.ts; what it costs is
     // decided here, because the price is not symmetric — the player's shields
-    // absorb a ram, two NPCs bumping must not credit the player with anything,
-    // and bouncing off the station is free.
+    // absorb a ram, two NPCs bumping must not credit the player, and bouncing
+    // off the station is free.
     //
     // A RAM costs each side its own stated number of its own points
-    // (`IMPACT.ram`) — there is no conversion between them any more, because
-    // there is no third scale to convert from. Neither meets armour: armour is
-    // a laser's business, and the Constrictor's halving is a player laser's.
+    // (`IMPACT.ram`). Neither meets armour: armour is a laser's business.
     const ramEnergy = npcImpactDamage(IMPACT.ram);
     const ramPlayer = playerImpactDamage(IMPACT.ram);
     for (const npc of playerVsNpcs(
@@ -462,9 +422,8 @@ export class WorldStep {
         out.push(say(
           c.kind === 'capsule' ? 'HOLD FULL — CAPSULE LOST' : 'HOLD FULL — CANISTER LOST', 3));
       } else if (c.kind === 'capsule') {
-        // A person, not stock. See CommanderData.survivors — this was
-        // `cargo[3] += 1` and commodity 3 is Slaves, so rescuing someone made
-        // you a smuggler and the next police scan made you an Offender.
+        // A person, not stock. See CommanderData.survivors — a capsule is not
+        // cargo commodity 3 (Slaves), which would make rescue read as smuggling.
         commander.survivors += 1;
         out.push(say('SURVIVOR ABOARD', 4));
         out.push(heard('survivorScooped'));
@@ -485,10 +444,10 @@ export class WorldStep {
     const { world, player } = this.state;
     for (const e of this.ordnance.step(dt, player.position)) {
       if (e.kind === 'hitNpc') {
-        // A warhead is a DAMAGE number now (`IMPACT.warhead`), not "that ship is
+        // A warhead is a DAMAGE number (`IMPACT.warhead`), not "that ship is
         // gone": it destroys every released hull outright except the handful
-        // whose banks are heavier than it, and those survive one by a sliver. So
-        // the kill is conditional, and only a kill pays a bounty.
+        // whose banks are heavier than it. So the kill is conditional, and only
+        // a kill pays a bounty.
         world.effects.explosion(e.at, 0xff8866);
         const hit = dealToNpc(e.npc, npcImpactDamage(IMPACT.warhead), e.at, 'missile');
         out.push(hit.event);
@@ -696,11 +655,8 @@ export class WorldStep {
 
   /**
    * An NPC asked to fire. `fire-resolution.ts` rolls the dice; this is what a
-   * shot LOOKS and SOUNDS like, which is the half an episode does not have.
-   *
-   * The rule used to be here, and the trainer's copy of it drifted four times
-   * (docs/TODO/64). What is left is presentation and one report: the bolt, the
-   * bang, and `npcFired` for whoever is counting.
+   * shot LOOKS and SOUNDS like, which is the half an episode does not have: the
+   * bolt, the bang, and `npcFired` for whoever is counting.
    */
   private resolveNpcFire(npc: NpcShip, event: FireEvent, out: StepEvent[]): void {
     const { world, player } = this.state;
@@ -718,10 +674,8 @@ export class WorldStep {
     if (shot.at === 'target') {
       out.push(heard('enemyLaser'));
       // The visible bolt: to us on a hit, wide of us on a miss. The scatter is
-      // drawn HERE and after the resolution, deliberately — it is two `random()`
-      // draws that decide nothing, and taking them before the hit roll (or on a
-      // hit, where the old code took none) would move every seeded outcome after
-      // it.
+      // drawn HERE, after the resolution — two `random()` draws that decide
+      // nothing, and taking them earlier would move every seeded outcome after.
       const to = shot.hit
         ? player.position.clone()
         : player.position.clone().add(

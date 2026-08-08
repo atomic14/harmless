@@ -2,15 +2,11 @@
 
 Feature parity against the original game manual (elitehomepage.org),
 Wikipedia's Elite article, and the byte-level algorithm references used for
-the galaxy/market code. Completed items are listed as capability, not as
-history — the build story lives in [DEVLOG.md](DEVLOG.md).
+the galaxy/market code.
 
-Since 2026-08 the ship tables and the laser arithmetic come from a vendored
-analysis pack of the released Elite-A ship files rather than from a
-reconstruction: what is exact, what is a clean recreation and what is ours is
-one table in [ELITE-A.md](ELITE-A.md).
-
-*Current as of 2026-08-02.*
+The ship tables and the laser arithmetic come from a vendored analysis pack of
+the released Elite-A ship files. What is exact, what is a clean recreation and
+what is ours is one table in [ELITE-A.md](ELITE-A.md).
 
 ## Implemented
 
@@ -36,22 +32,25 @@ one table in [ELITE-A.md](ELITE-A.md).
 | Progression | Kills → Harmless … E L I T E; save-on-dock; save export/import. |
 | Console | Elliptical 3D scanner, compass, gauges, missile pylons, the energy readout in four banks (see deviations), S (station in range) and E (ECM detected) indicator lights. |
 | Presentation | Wireframe hidden-line ships, shader sun and planets, phosphor HUD, WebAudio synth, in-game controls guide. Mouse throughout: pointer-lock flight, clickable menus/markets/equipment, click-to-target on the charts. |
-| Ship AI | Pirates and armed traders fly neural policies trained by self-play (see [TRAINING-LOG.md](TRAINING-LOG.md)); scripted AI remains as a runtime toggle. |
+| Ship AI | No neural policy ships: all three pilots are code (`src/game/brains.ts`). Pirates fly `pursuit` (chase onto your six, break into a slashing pass when you turn your nose on them); armed traders and the bought combat computer fly `attack-run` (close, fire through the pass, come round again); `scripted` is the hand-written three-phase attack run kept as the A/B runtime toggle. |
 
 ## Remaining
 
-1. **A player shipyard** — all 15 flyable hulls are imported, resolve, and are
+1. **Gamepad support** — flight is keyboard and mouse (pointer-lock) only;
+   nothing in `src/` reads the Gamepad API (`getGamepads`/`gamepadconnected`).
+   A pad would want axis-mapped pitch/roll and button-bound weapons and views.
+2. **A player shipyard** — all 15 flyable hulls are imported, resolve, and are
    read by live combat through the commander's saved `shipId`; nothing can yet
    change which one you fly. With it come the per-hull flight profiles, the
    Adder start and the per-mount laser redesign. The deferred list, and what a
    purchase would have to do, is in [ELITE-A.md](ELITE-A.md).
-2. **Selecting a blueprint set by system** — all 23 released S.A-S.W sets and
+3. **Selecting a blueprint set by system** — all 23 released S.A-S.W sets and
    all 713 slot assignments are imported; what runs is one deterministic
    recommended build per design plus a role-based override. Choosing the set by
    technology, government and galaxy is a swap of that policy and nothing else.
-3. **Contract variety** — the bulletin board covers cargo, courier and
+4. **Contract variety** — the bulletin board covers cargo, courier and
    bounty work; passenger berths and smuggling runs would widen it.
-4. **Surfacing the living galaxy** — the simulation runs, but the player
+5. **Surfacing the living galaxy** — the simulation runs, but the player
    only sees it as prices, spawns and one news line. Trade-route and danger
    overlays on the charts would make it legible.
 
@@ -72,8 +71,9 @@ one table in [ELITE-A.md](ELITE-A.md).
   (`pirateThreat` in src/game/threat.ts) — cargo, hold size, fitted laser,
   reputation, and regional notoriety from your recent sales. Poor commanders
   meet opportunists in Sidewinders, rich ones meet organised gangs — two
-  ringleaders in Fer-de-Lances, Pythons or Cobras flying the coordinated pack brain,
-  plus hangers-on a tier below them. Rationale: an economic
+  ringleaders in Fer-de-Lances, Pythons or Cobras, plus hangers-on a tier
+  below them, all flying the same `pursuit` dogfighter every other pirate flies
+  (`pirateBrainNameFor` ignores tier and organisation). Rationale: an economic
   motive is explicable to the player and gives them levers (bank the money,
   fly armed, lie low) where a hidden difficulty curve gives them none.
   Threat grows deliberately sub-linearly with the prize so upgrades stay felt.
@@ -90,13 +90,12 @@ one table in [ELITE-A.md](ELITE-A.md).
   than the hold — which is what stops the endgame being a grind, and is the
   reason a famous commander gets hunted flying an empty ship.
 - **Player gunnery is a ray against the hull**, not a cone around a sphere.
-  The original (and this project until now) tested an angular cone sized from
-  the target's *maximum* radius, which makes every ship a ball: an Anaconda
-  was no easier to hit down its long flank than head-on, and shots landed on
-  empty space beside thin hulls. Now the shot is cast at the actual mesh,
-  with a small graze tolerance for beam width. Measured: an Anaconda is
-  1.3° nose-on and 2.5° broadside; a Sidewinder 1.6° across its wings and
-  0.6° vertically.
+  A cone sized from the target's *maximum* radius makes every ship a ball: an
+  Anaconda would be no easier to hit down its long flank than head-on, and
+  shots would land on empty space beside thin hulls. The shot is cast at the
+  actual mesh, with a small graze tolerance for beam width. Measured: an
+  Anaconda is 1.3° nose-on and 2.5° broadside; a Sidewinder 1.6° across its
+  wings and 0.6° vertically.
 - **The player's Cobra is more agile than the 1984 numbers imply**
   (pitch 1.45 rad/s, roll 2.5). NPC fighters pitch at `turnRate × 1.4`, so
   small hulls turn inside you — as they should — but at the original 1.1 they
@@ -104,12 +103,10 @@ one table in [ELITE-A.md](ELITE-A.md).
 - **Jettisoning cargo (Y) buys off pirates.** Not in the original, which had
   no such out. They came for the goods; dumping a proportional share makes
   them break off — turning an unwinnable fight into a decision.
-- **Turn-rate ramp is `1 - exp(-rate·dt)`, not `min(1, rate·dt)`.** The
-  original's frame rate is not something we can know from here, and it does not
-  matter: every rate in this game is per SECOND, not per frame, so the top turn
-  rate is the same at any refresh. Only the ramp toward it was frame-rate
-  dependent, and now it is not. Constants recalibrated so 60Hz is bit-identical
-  to what shipped.
+- **Turn-rate ramp is `1 - exp(-rate·dt)`, not `min(1, rate·dt)`.** Every rate
+  in this game is per SECOND, not per frame, so the top turn rate is the same at
+  any refresh; only the ramp toward it was frame-rate dependent, and now it is
+  not. Constants are calibrated so 60Hz is bit-identical to what shipped.
 - **Stations are drawn four times larger, relative to ships, than the source
   tables place them.** The *hulls* are exact — the Coriolis and the Dodo are
   released vertex tables like every ship — but they are the only objects in the
@@ -123,14 +120,12 @@ one table in [ELITE-A.md](ELITE-A.md).
   at once, which is a docking change and not a geometry one. The Dodo grew with
   it: its slot face is 196 world units out where the old hand-built
   dodecahedron's was 135.
-- **The docking slot stands upright, and always did in the source.** Harmless
-  drew a horizontal 96x20 letterbox for years; the released Coriolis slot is a
-  vertical 20x60 (the Dodo's a 32x64), so the exact hulls turned the letterbox
-  a quarter turn and the roll you hold to fly it turned with them. The approach
-  is no more demanding: the tolerance channel is the same 52x124 rectangle
-  rotated to match, and the roll tolerance is the same 0.65 rad, so over a
-  uniform sample of approach offsets and rolls the fraction that docks is
-  6.68% against the old rule's 6.62%.
+- **The docking slot stands upright, as it does in the source.** The released
+  Coriolis slot is a vertical 20x60 (the Dodo's a 32x64), so the exact hulls
+  carry an upright letterbox and the roll you hold to fly it turns with them.
+  The tolerance channel is a 52x124 rectangle rotated to match, and the roll
+  tolerance is 0.65 rad; over a uniform sample of approach offsets and rolls the
+  fraction that docks is 6.68%.
 - **Asteroids are generated, not tabulated.** The released Asteroid, Boulder and
   Splinter all fix a rock at radius 20; here they are jittered icosahedra with a
   size drawn from their seed between 25 and 70 (`buildAsteroid`), because a
@@ -148,21 +143,18 @@ one table in [ELITE-A.md](ELITE-A.md).
   visible change is that a rock hermit can no longer be shot down.
 - **The console reads energy in four banks, and the ship has one pool.** The
   original's dashboard showed four energy banks and a pilot flew by how many
-  were left; TODO 27 replaced this project's four-point bank with a single
-  255-point pool, and for a while the console went on drawing four segments of
-  nothing in particular. Keeping the four-bank READING was the deliberate
-  choice over drawing energy as a bar like the shields it is now the same size
-  as, because "two banks left, break off" is a decision a player makes at a
-  glance and "0.43" is a number they have to think about — and because the
-  four-bank console is one of the most recognisable things about the 1984
-  screen. So the segments are quarters of one pool, and nothing about the pool
-  changed. `ENERGY_BANKS` in `src/game/systems.ts` is the single place that
-  says four: `LOW_ENERGY` is derived from it, and `energyLow()` is the single
-  place that says where the last bank BEGINS, so the segment the gauge turns
-  red, the ENERGY LOW the step announces and the point at which shields stop
-  recharging are one comparison read three times — inclusive, so there is no
-  value at which the shields are frozen and the console is quiet (TODO 48
-  found one: 64 exactly). The gauge's own segments are built from
+  were left. This project uses a single 255-point pool, but keeps the four-bank
+  READING rather than drawing energy as a bar like the shields it is now the
+  same size as, because "two banks left, break off" is a decision a player makes
+  at a glance where "0.43" is a number they have to think about — and because
+  the four-bank console is one of the most recognisable things about the 1984
+  screen. The segments are quarters of one pool. `ENERGY_BANKS` in
+  `src/game/systems.ts` is the single place that says four: `LOW_ENERGY` is
+  derived from it, and `energyLow()` is the single place that says where the
+  last bank BEGINS, so the segment the gauge turns red, the ENERGY LOW the step
+  announces and the point at which shields stop recharging are one comparison
+  read three times — inclusive, so there is no value at which the shields are
+  frozen and the console is quiet. The gauge's own segments are built from
   `ENERGY_BANKS` rather than written into `play.html`.
 - **The mining laser is still a fitting, not a mount.** The pack gives every
   flyable hull a mining-laser byte and `playerLaserHit()` answers for it, but
@@ -172,17 +164,14 @@ one table in [ELITE-A.md](ELITE-A.md).
 - Fuel priced at 0.4 Cr/LY (the manual's table implies 0.2 Cr/LY).
   The rate is `FUEL_PRICE` in `src/game/shop.ts` — change it there, with every
   other price.
-- A **Combat Computer** (TL9, 2000 Cr) with no 1984 equivalent: it hands
-  your ship to the trained defence policy for as long as you hold a fight.
+- A **Combat Computer** (TL9, 20000 Cr) with no 1984 equivalent: it hands
+  your ship to the `attack-run` defence pilot for as long as you hold a fight.
 - A **combat training simulator** (`T` when docked, free, every station), which
-  the original had no equivalent of at all — it gave you no way to practise, and
-  a game whose opponents are *trained* wants one. Two reasons, and the second is
-  the load-bearing one: a player can learn what a Fer-de-Lance does differently
-  from a Sidewinder without paying for the lesson with a career, and the AI can
-  finally be judged against a human instead of only against other AI. CLAUDE.md
-  records the cost of that gap — generation 1 and 2 won every measurement this
-  project could produce and lost the only one that counted. Every exercise
-  exports a JSON record, and those records are the missing input.
+  the original had no equivalent of. Two reasons, and the second is the
+  load-bearing one: a player can learn what a Fer-de-Lance does differently from
+  a Sidewinder without paying for the lesson with a career, and the AI can be
+  judged against a human instead of only against other AI. Every exercise
+  exports a JSON record.
 
   Its **waves** mode is the furthest from anything in the original, and
   deliberately so: it sends a Thargoid and a Thargon at wave 18, which the
@@ -210,7 +199,7 @@ one table in [ELITE-A.md](ELITE-A.md).
   notes they were never coded). This project is a homage, not a museum
   piece — see the deviations above.
 
-## Non-laser damage is Harmless policy (deliberate deviation, 2026-08)
+## Non-laser damage is Harmless policy (deliberate deviation)
 
 The Elite-A analysis pack tabulates registered LASER hits exhaustively — 15,600
 player-to-NPC rows and 3,900 NPC-to-player rows — and says nothing whatever
@@ -240,18 +229,14 @@ by `test/damage-paths.test.ts` so a re-import cannot leave them stale:
 | missile warhead | 250 | 250 | flattens a full face exactly; above every released bank but five of 260 builds |
 | energy bomb | 255 | — | the top of the byte scale — nothing released survives it |
 
-The ram, the canister and the station scrape are the numbers Harmless has always
-played with, restated in the units they are now spent in. The warhead moved: it
-was an unconditional kill against a ship and 332 pool points against the
-commander, and is 250 either way — so the five heaviest released builds survive
-one at full energy by a sliver, and only an actual kill pays a bounty.
+The warhead is 250 either way, so the five heaviest released builds survive one
+at full energy by a sliver, and only an actual kill pays a bounty.
 
 **NPC-versus-NPC laser fire is a composition, not an invention.** The pack does
 not tabulate that direction, so `npcCrossfireDamage` uses the two source rules
 that each half of it does have — the firing build's own `laserPower << 2` and
 the defending build's own `maxEnergy & 7` — through the same oracle the two
-player-facing directions use. It replaced a flat 0.11 normalized amount that
-made a Thargoid's gun and a Worm's identical.
+player-facing directions use.
 
 **The Constrictor's halving and a station's immunity are properties of a PLAYER
 LASER.** They are fields on the target's profile, read by the player's shot and
@@ -262,7 +247,7 @@ ask, which is the structural version of the same rule.
 The whole inventory — every path, its unit and its owner — is
 `docs/DAMAGE-PATHS.md`.
 
-## Aim assist and the ring sight (deliberate deviation, 2026-07)
+## Aim assist and the ring sight (deliberate deviation)
 
 The 1984 game had a cross and no assist: a shot hit if the target's silhouette
 covered the sight. We keep the ray test that does exactly that, and add an
@@ -272,9 +257,7 @@ nothing by 2400 units so distance shooting still demands precision.
 Why deviate. A Sidewinder at 500 units subtends 1.9 degrees. Holding a mouse
 or a key inside that while both ships manoeuvre is most of why fights read as
 flailing, and it is the half of the combat problem that belongs to the player
-rather than to the AI — the NPCs got their fix in the same change (they now
-fire whenever the geometric gate allows, instead of also needing the trained
-policy's trigger).
+rather than to the AI. NPCs fire whenever the geometric gate allows.
 
 Two things keep it honest rather than a cheat:
 

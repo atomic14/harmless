@@ -26,18 +26,15 @@ export type SaveKind = 'file' | 'dock' | 'fly';
 /**
  * One save, as it is stored: one key, one JSON value, one `setItem`.
  *
- * Both halves in ONE record on purpose. The old scheme wrote the commander to
- * one key and the mid-flight world to another, so a save was two writes that
- * could half-succeed and two keys that could disagree. Here a save either
- * lands or does not.
+ * Both halves in ONE record on purpose, so a save either lands or does not —
+ * never two keys that could disagree.
  *
  * The commander lives INSIDE the world snapshot; `commander` at the top level
- * is only for a record that has no world. Nothing this build writes for itself
- * is in that state — every automatic and named save carries a world — so the
- * one producer left is an IMPORTED FILE whose record named a commander but no
- * world that owns one (`save-transfer.ts`), which is a shape a human with a
- * text editor can hand us and no save of ours can be. `commanderOf` is the one
- * place that knows which is which.
+ * is only for a record that has no world. Nothing this build writes is in that
+ * state — every automatic and named save carries a world — so the one producer
+ * left is an IMPORTED FILE whose record named a commander but no world
+ * (`save-transfer.ts`), a shape a human with a text editor can hand us and no
+ * save of ours can be. `commanderOf` is the one place that knows which is which.
  */
 export interface SaveRecord {
   v: number;
@@ -49,18 +46,15 @@ export interface SaveRecord {
    * `save:auto:<CAREER>:dock` and the flight ring are keyed by.
    * `GameState.career` is a read of this, and `WorldSnapshot` has no opinion.
    *
-   * WHY IT IS NOT CALLED `commander`. That name is taken, one field down, by
-   * this record's `CommanderData` — the character's stats — and the two are
-   * different things a rename pulls apart. `CommanderData.name` is what the
-   * pilot is called TODAY; this is who the save belongs to, fixed when they
-   * were created, because it is half of a STORAGE KEY and a key that moves is a
-   * multi-key write with a half-done state in the middle of it (docs/TODO/44).
-   * So renaming a commander deliberately leaves this alone, and the rename
-   * screen says so on the screen.
+   * NOT called `commander`: that name belongs to this record's `CommanderData`,
+   * one field down. `CommanderData.name` is what the pilot is called TODAY; this
+   * is who the save belongs to, fixed when they were created, because it is half
+   * of a STORAGE KEY and a key that moves is a multi-key write with a half-done
+   * state in the middle (docs/TODO/44). Renaming a commander deliberately leaves
+   * this alone.
    *
-   * "Career" is the word docs/INVARIANTS.md invariant 3 documents the key space under,
-   * which is the whole reason it is still here. It carries no meaning to a
-   * player and nothing a player reads says it (docs/TODO/56).
+   * "Career" is the word docs/INVARIANTS.md invariant 3 documents the key space
+   * under. It carries no meaning to a player and nothing a player reads says it.
    */
   career: string;
   kind: SaveKind;
@@ -237,11 +231,10 @@ export function summariseSave(
     where: `${place} · ${inFlight ? 'IN FLIGHT' : 'DOCKED'}`,
     commanderName: c.name,
     credits: c.credits,
-    // Read straight, not defaulted. These two were `c.combatScore ?? c.kills ?? 0`
-    // and `c.day ?? 0` — and the score fallback was a SECOND HOME for a rule
-    // `repairCommander` already owns, on a commander that has been through it:
-    // the only caller is `saveRows`, over `listSaves()`, and every record on that
-    // path was repaired by `readSave`. Deleted 2026-08-04.
+    // Read straight, not defaulted: the only caller is `saveRows` over
+    // `listSaves()`, and every record on that path was already repaired by
+    // `readSave`, so defaulting here would be a second home for a rule
+    // `repairCommander` owns.
     rating: rating(c.combatScore).toUpperCase(),
     day: c.day,
   };
@@ -253,10 +246,7 @@ export function summariseSave(
  *
  * A named save is called what the player typed. An autosave is called what it
  * IS, because its stored `name` is the commander it belongs to — which the
- * COMMANDER column already says, so printing it twice told you nothing and left
- * "did I make this, or did the game?" to a KIND column that answered neither
- * (`SAVED` is an act, `STATION` is a place) and to a `●` footnote underneath
- * doing the same job a second way (docs/TODO/55).
+ * COMMANDER column already says.
  */
 export function saveLabel(s: Pick<SaveSummary, 'kind' | 'name'>): string {
   if (s.kind === 'file') return s.name;
@@ -275,10 +265,9 @@ export function newestFirst(a: SaveSummary, b: SaveSummary): number {
 // keys the load is about to write, and whether the run being left has anywhere
 // to land. The screen places the sentence; it does not decide it.
 //
-// `ENTER — LOAD` used to say nothing at all, and the act it named is not
-// symmetrical — going back to an earlier save of the commander you are flying
-// throws that commander's progress away, while loading somebody else's leaves
-// them on the shelf exactly as you stand. The screen said neither.
+// The act is not symmetrical: going back to an earlier save of the commander
+// you are flying throws that commander's progress away, while loading somebody
+// else's leaves them on the shelf exactly as you stand.
 
 /** The run in progress, as much of it as the shelf has to describe. */
 export interface LiveRun {

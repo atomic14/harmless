@@ -3,9 +3,8 @@
 // becoming a ram.
 //
 // Two pilots fly these, so they live in ONE place rather than two: the combat
-// computer flying the commander's ship (scripted-co-pilot.ts) and — since a
-// player can now turn his own pilot on the opposition — a pursuit pirate
-// (npc.ts). What is NOT here is the STEERING: the co-pilot points the
+// computer flying the commander's ship (scripted-co-pilot.ts) and a pursuit
+// pirate (npc.ts). What is NOT here is the STEERING: the co-pilot points the
 // commander's yaw-less ship with `pitch-roll-steer.ts` and an NPC arc-slews
 // its quaternion, two different flight models pointed at the same aim. This
 // file decides the aim and the speed; each caller flies them its own way.

@@ -1,22 +1,18 @@
 // One hull per design id, and the one place anything asks for one.
 //
 // `game/ship-identity.ts` says WHAT a ship is; this says what that looks like
-// and how big it is. Keeping the two apart is the point of TODO 23: a caller
-// that reached for a `ShipDef` and compared it to decide what it was hit would
-// make the geometry table the identity table again, so nothing here hands back
-// anything you could usefully compare — it hands back a mesh definition and a
-// radius, both derived from the id.
+// and how big it is. Keeping the two apart (TODO 23) is the point: nothing here
+// hands back anything you could usefully compare to decide what a ship is — it
+// hands back a mesh definition and a radius, both derived from the id.
 //
 // Two answers, because there are two kinds of design. A `elite-a:design:*` id
-// resolves to a released hull at the one conversion (`elite-a-hulls.ts`); a
-// `harmless:design:*` id resolves to one of ours (`harmless-hulls.ts`), which is
-// why the record says which it got rather than pretending they are the same.
+// resolves to a released hull (`elite-a-hulls.ts`); a `harmless:design:*` id
+// resolves to one of ours (`harmless-hulls.ts`), and the record says which.
 //
-// THE RADIUS IS A GAMEPLAY NUMBER, and this is now its only home. It used to be
-// a hand-tuned field on every roster row in `game/ship-specs.ts`; it is the
-// pack's own targetable radius through `sourceGeometryToWorld` instead, which is
-// what makes the ray tests in `game/shot.ts` and the hit cone in `game/gunnery.ts`
-// agree with the released ships rather than with a guess.
+// THE RADIUS IS A GAMEPLAY NUMBER, and this is its only home: the pack's own
+// targetable radius through `sourceGeometryToWorld`, which is what makes the
+// ray tests in `game/shot.ts` and the hit cone in `game/gunnery.ts` agree with
+// the released ships rather than with a guess.
 
 import {
   HARMLESS_OVERLAYS, shipDesign, shipDesignIdOf, type ShipDesignId,
@@ -79,19 +75,17 @@ export function registeredHull(id: ShipDesignId): RegisteredHull {
 /**
  * The two designs the game names directly rather than through the roster.
  *
- * A canister and a missile are objects, not ships, so `ship-specs.ts` has no row
- * for them — but they are released designs with released geometry like anything
- * else, and `game/cargo.ts` and `game/ordnance.ts` have to say which. Here
- * rather than at those call sites so that "a canister is design 4" is written
- * down once and validated against the catalogue as it is written.
+ * A canister and a missile are objects, not ships, so `ship-specs.ts` has no
+ * row for them — but they are released designs with released geometry, and
+ * `game/cargo.ts` and `game/ordnance.ts` have to say which. Written down once
+ * here and validated against the catalogue, rather than at those call sites.
  */
 export const OBJECT_DESIGNS = {
   cargoCanister: shipDesignIdOf(4),
   /**
    * The released escape pod. Harmless has no pod MESH — a capsule is drawn as a
-   * canister with a different colour, the shortcut game/cargo.ts's header owns —
-   * so this id is here for its COMBAT PROFILE: what a pod can absorb before it
-   * breaks up is the pack's, not a guess (see game/cargo.ts).
+   * canister in a different colour — so this id is here for its COMBAT PROFILE:
+   * what a pod can absorb before it breaks up is the pack's (see game/cargo.ts).
    */
   escapePod: shipDesignIdOf(2),
   missile: shipDesignIdOf(15),
@@ -107,10 +101,8 @@ export function requireShipDef(id: ShipDesignId): ShipDef {
 /**
  * What to CALL a design — the released ship name, or the overlay's own.
  *
- * A label, and only a label. It used to be read off `ShipDef.name` at four call
- * sites, which made the mesh the place a ship's name lived; two roster rows
- * sharing a hull then shared a name by accident rather than by identity. Ask
- * here, with the id, and the answer is the design's.
+ * A label, and only a label. Ask here with the id, not off `ShipDef.name`,
+ * so two roster rows sharing a hull do not share a name by accident.
  */
 export function shipDisplayName(id: ShipDesignId): string {
   return registeredHull(id).name;

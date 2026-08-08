@@ -6,24 +6,21 @@
 // (ui/screens.ts) and the HUD (hud/hud.ts) are pure renderers fed from here.
 //
 // The world's own motion is NOT here. `world-step.ts` owns the five phases of
-// flight and steps them with no HUD, no keyboard and no renderer; this file
-// hands it a FlightDemand and applies the events it returns. Neither is the
-// save (`persistence.ts`), the two station transitions (`station.ts`), the two
-// computers that fly the ship for you (`autopilot.ts`), nor — since the
-// command layer went in — the KEY BINDINGS (`controls.ts`). What that leaves
-// behind is orchestration: the frame, the mode machine, the routing, and the
-// consequences the modules report.
+// flight; this file hands it a FlightDemand and applies the events it returns.
+// Neither is the save (`persistence.ts`), the two station transitions
+// (`station.ts`), the two computers that fly the ship for you (`autopilot.ts`),
+// nor the key bindings (`controls.ts`). What that leaves is orchestration: the
+// frame, the mode machine, the routing, and the consequences modules report.
 //
-// The shape repeats deliberately. Each of those modules gets ONE host object
-// literal — `stepHost()`, `persistenceHost()`, `stationHost()` — listing the
-// verbs it may ask of the Game, and returns events the matching `apply*` puts
-// on the HUD. Anything that DRAWS from the seeded rng is a host CALL and never
-// a deferred event, because the order of draws is the world's determinism.
+// The shape repeats deliberately. Each module gets ONE host object literal —
+// `stepHost()`, `persistenceHost()`, `stationHost()` — listing the verbs it may
+// ask of the Game, and returns events the matching `apply*` puts on the HUD.
+// Anything that DRAWS from the seeded rng is a host CALL and never a deferred
+// event, because the order of draws is the world's determinism.
 //
-// Input follows the same split, and it is the one that opens a door: the
-// player, a replay and an AI now reach the game through the same two verbs.
-// `controls.ts` turns an input into `Command`s and `runCommand` below applies
-// them, exactly as `flightDemand`/`PlayerShip.update` already did for flying.
+// Input follows the same split: the player, a replay and an AI reach the game
+// through the same two verbs. `controls.ts` turns an input into `Command`s and
+// `runCommand` below applies them.
 //
 // `__game` exposes a console compatibility view for the autopilot harness
 // (console.ts, game-handles.ts, train/jameson-autopilot.js) and console poking.
@@ -162,11 +159,8 @@ const UP = new THREE.Vector3(0, 1, 0);
 // are public rather than private; they are otherwise internal.
 export class Game {
   /**
-   * The machine this is running on — see engine/shell.ts.
-   *
-   * Seven members, and they are exactly the eleven lines of DOM that used to be
-   * scattered through this file. A desktop port writes another one; nothing
-   * below this line names a browser API.
+   * The machine this is running on — see engine/shell.ts. A desktop port writes
+   * another one; nothing below this line names a browser API.
    */
   private readonly shell: Shell;
   /** what the game is SEEN through: a camera, the beams, and one draw call */
@@ -175,14 +169,12 @@ export class Game {
 
 
   /**
-   * The canonical mutable game model. It deliberately stays public so tests,
-   * console agents and ports have one explicit route to state. The old
-   * `g.commander`/`g.world` conveniences are getters on the console-only
-   * `legacyHandles()` shim; they are not a second writable path.
+   * The canonical mutable game model. Public so tests, console agents and ports
+   * have one explicit route to state; the `legacyHandles()` getters are
+   * console-only, not a second writable path.
    *
-   * Snapshot capture remains a hand-written list because `world` and `player`
-   * need bespoke handling. A test fails if either side misses a GameState
-   * field.
+   * Snapshot capture is a hand-written list because `world` and `player` need
+   * bespoke handling. A test fails if either side misses a GameState field.
    */
   readonly state: GameState = freshState(bootCommander());
 
@@ -194,8 +186,7 @@ export class Game {
 
   /**
    * The screen stack. Single source of truth for which overlay is open, and
-   * for what Escape returns to — it replaced both `mode`'s overlay values and
-   * the one-deep `dataReturn` hack that existed for the system-data screen.
+   * for what Escape returns to.
    */
   readonly screens = new ScreenHost(() => this.showBaseScreen());
 
@@ -239,9 +230,8 @@ export class Game {
   /**
    * Observe live combat without replacing production methods.
    *
-   * The returned disposer only removes this registration, so an old recorder
-   * stopping cannot accidentally detach a newer one. The console compatibility
-   * handle binds this method like every other genuine Game verb.
+   * The returned disposer removes only this registration, so one recorder
+   * stopping cannot detach another.
    */
   setCombatObserver(observer: CombatObserver | null): () => void {
     return this.combatInstrumentation.setObserver(observer);
@@ -431,15 +421,13 @@ export class Game {
     if (outcome.reply !== 'bombFired') return;   // no bomb fitted: no flash either
     this.shell.flashBomb();
     for (const npc of outcome.caught) {
-      // The bomb is a stated `IMPACT` like every other non-laser source, and it
-      // is spent through the same `dealToNpc` — 255 points, above every
-      // released bank, so everything it caught is gone. It used to reach for a
-      // "certainly fatal" number on a scale nothing else in the game spoke.
+      // The bomb is a stated `IMPACT` like every other non-laser source, spent
+      // through the same `dealToNpc` — 255 points, above every released bank,
+      // so everything it caught is gone.
       //
       // The two lines are the same pair as the step's: what it cost the ship,
       // then the kill. The bomb is the one damage path that never touches the
-      // world step, so both have to be handed to a running exercise here — the
-      // wire `destroyNpc` below has needed since the trainer shipped.
+      // world step, so both are handed to a running exercise here.
       const hit = dealToNpc(
         npc, npcImpactDamage(IMPACT.energyBomb), this.state.player.position, 'bomb');
       this.combatSim.playerDealt(hit.event);
@@ -477,7 +465,7 @@ export class Game {
 
     // Which career's autosaves this session writes. It comes off the shelf
     // before anything can write, and NOTHING replaces it afterwards — the
-    // record owns it and `restore()` has no opinion (TODO 43). See state.ts.
+    // record owns it. See state.ts.
     this.state.career = bootCareer(this.state.commander);
     this.state.living.load(this.state.commander.galaxyState);
     // catch the galaxy up if this save has been away a while
@@ -675,10 +663,6 @@ export class Game {
   /**
    * Station space is policed: launching only meets legitimate traffic.
    * Arriving from hyperspace drops pirates along the corridor to the station.
-   */
-  /**
-   * Station space is policed: launching only meets legitimate traffic.
-   * Arriving from hyperspace drops pirates along the corridor to the station.
    *
    * The rules are in population.ts, the placement in spawning.ts. This is the
    * wiring plus the consequences — the arrival bookkeeping that jettisonCargo
@@ -834,12 +818,10 @@ export class Game {
       },
       buildWorld: () => this.buildWorld(),
       enterWitchspace: () => this.enterWitchspace(),
-      // `baseMode`, NOT `mode`. They are the same while the sky is showing and
-      // different the moment a screen is open — and after a death a screen CAN
-      // be open, because the game-over panel offers the commander file. Read
-      // through `mode`, opening it would have found `'saves'`, decided the run
-      // was still alive, and written a checkpoint of the wreck over the station
-      // the player was about to go back to.
+      // `baseMode`, NOT `mode`: after a death a screen CAN be open (the
+      // game-over panel offers the commander file), and reading `mode` would
+      // then find `'saves'` and write a checkpoint of the wreck over the
+      // station the player is about to go back to.
       isDead: () => this.baseMode === 'dead',
       message: (text, seconds) => this.showMessage(text, seconds),
       writeDockSave,
@@ -877,15 +859,14 @@ export class Game {
 
   private die(reason: string): void {
     if (this.mode === 'dead' || this.mode === 'docked') return;
-    // A death in the simulator ends the SIMULATION. The exercise's own StepHost
-    // already redirects this, so no path reaches here with one running — but the
-    // next line deletes the in-flight ring, and that is data loss rather than a
-    // leak, so it is worth being unreachable twice over.
+    // A death in the simulator ends the SIMULATION, not the career. The
+    // exercise's own StepHost already redirects this, so no path reaches here
+    // with one running — but the next line deletes the in-flight ring, so it is
+    // worth being unreachable twice over.
     if (this.combatSim.active) { this.combatSim.quit(); return; }
-    // The in-flight autosaves must not outlive the ship. Without this a reload
-    // resumed the snapshot taken seconds BEFORE the death, cargo and all —
-    // death was optional if you refreshed. The DOCKED checkpoint survives: it
-    // is the way back, and it is what the game-over screen offers.
+    // The in-flight autosaves must not outlive the ship, or a reload would
+    // resume the snapshot from seconds before the death. The DOCKED checkpoint
+    // survives: it is the way back, and what the game-over screen offers.
     this.persistence.forgetFlight();
     sfx.explosion();
     this.state.world.effects.explosion(this.state.player.position.clone(), 0xff8866);
@@ -919,11 +900,9 @@ export class Game {
     // Nothing to come back to — a career that has never docked. Boot as the
     // first launch did.
     this.state.commander = bootCommander();
-    // The loaded commander may name a DIFFERENT galaxy than the one we died
-    // in — jump to galaxy 2, die before docking, and the last save is still
-    // galaxy 1. Without these, `systems` stayed galaxy 2's and every lookup
-    // through `get system()` read the wrong star. restoreSnapshot always did
-    // this; respawn never did.
+    // The loaded commander may name a DIFFERENT galaxy than the one we died in,
+    // so `systems` and the living galaxy are rebuilt from it — otherwise every
+    // `get system()` lookup reads the wrong star.
     this.state.systems = generateGalaxy(this.state.commander.galaxy);
     this.state.living = new LivingGalaxy(this.state.systems);
     this.state.living.load(this.state.commander.galaxyState);
@@ -936,11 +915,11 @@ export class Game {
   // --- contracts (station bulletin board) ----------------------------------
 
   /**
-   * Work on offer here today. Deliberately generous compared to the
-   * original, which gated every mission behind a high combat rating —
-   * a new commander should always have somewhere to be.
+   * Work on offer here today. Deliberately generous compared to the original,
+   * which gated missions behind a high combat rating — a new commander should
+   * always have somewhere to be.
+   * @internal — driven by test/playtest.js
    */
-  /** @internal — driven by test/playtest.js */
   generateContractOffers(): Contract[] {
     return generateContractOffers(this.system, this.state.systems, this.state.commander.day);
   }
@@ -1134,9 +1113,8 @@ export class Game {
    */
   private applyPlayerDamage(
     amount: PlayerPoolPoints, from: THREE.Vector3, source: DamageSource): void {
-    // the co-pilot's own record that the commander is being hit — kept live
-    // end to end so evasive behaviour can read it later; the pursuit does not
-    // change on it yet (scripted-co-pilot.ts).
+    // the co-pilot's own record that the commander is being hit, kept live end
+    // to end so evasive behaviour can read it (scripted-co-pilot.ts)
     this.autopilot.noteUnderFire();
     this.hud.flashDamage();
     this.applyCombat(damagePlayer(this.state, this.combat, amount, from, this.combatScratch));
@@ -1173,10 +1151,8 @@ export class Game {
       this.showMessage(`CARGO LOST: 1${c.unit} ${c.name.toUpperCase()}`, 3);
       sfx.cargoLost();
     } else if (lost.kind === 'equipment') {
-      // Losing ANY fitting hands control back, which is how this behaved
-      // before it moved to systems.ts — narrowing it to `combatComputer` was
-      // an unflagged behaviour change that an audit caught. A hit hard enough
-      // to knock out equipment is a moment the player should be flying.
+      // Losing ANY fitting hands control back: a hit hard enough to knock out
+      // equipment is a moment the player should be flying.
       this.state.session.ccEngaged = false;
       this.showMessage(`${lost.name} DESTROYED`, 4);
       sfx.equipmentDestroyed();
@@ -1225,10 +1201,8 @@ export class Game {
   }
 
   /**
-   * Stranded in witch-space without the fuel to jump clear used to be a
-   * slow, unrecoverable death — the autonomous playtest agent found it by
-   * getting stuck there. GalCop will come for you, at a price: your cargo
-   * pays the salvage fee.
+   * Stranded in witch-space without the fuel to jump clear: GalCop will come
+   * for you, at a price — your cargo pays the salvage fee.
    */
   sendDistressBeacon(): void {
     if (!this.state.session.witchspace) {
@@ -1287,13 +1261,13 @@ export class Game {
 
   // --- per-frame -----------------------------------------------------------
 
-  /** @internal — driven by test/playtest.js */
   /**
    * One simulation step and one frame drawn.
    *
-   * Kept as a single call because the console harnesses drive the game with it
-   * (test/playtest.js, test/gang-trial.js) — the real loop separates them, and
+   * A single call because the console harnesses drive the game with it
+   * (test/playtest.js, test/gang-trial.js); the real loop separates them and
    * steps a FIXED dt however long the frame took.
+   * @internal — driven by test/playtest.js
    */
   update(dt: number, elapsed: number): void {
     this.step(dt, elapsed);
@@ -1336,10 +1310,8 @@ export class Game {
 
   /**
    * Finish every fixed step after its commands and world events have applied.
-   *
-   * The beam used to age in the following draw. Keeping it at the tail of the
-   * step preserves that ordering for a shot fired during this step, while
-   * making display cadence irrelevant to canonical state.
+   * The beam ages at the tail of the step, so a shot fired this step keeps its
+   * ordering while display cadence stays irrelevant to canonical state.
    */
   private finishStep(dt: number): void {
     this.input.endFrame();
@@ -1359,10 +1331,9 @@ export class Game {
    * One frame of flight: produce a demand, advance the world, apply what it
    * reports.
    *
-   * The five phases live in world-step.ts now — they step under node with no
-   * HUD, no keyboard and no renderer, which is the whole point. What is left
-   * here is the two things the world genuinely cannot do for itself: read the
-   * hands at the controls, and say things out loud.
+   * The five phases live in world-step.ts. What is left here is the two things
+   * the world cannot do for itself: read the hands at the controls, and say
+   * things out loud.
    */
   private updateFlight(dt: number, elapsed: number): void {
     const demand = this.pilotDemand(dt);
@@ -1380,12 +1351,10 @@ export class Game {
       this.applyStep(this.worldStep.step(dt, elapsed, pilot));
     }
 
-    // The dust is seen, never simulated — so it is updated out here, from
-    // wherever the step left the ship. It needs our actual velocity to streak:
-    // the torus drive multiplies our travel by `TORUS_MULTIPLIER`, and that is
-    // what smears the stars. Read from the drive rather than written out again,
-    // because a dust cloud that disagrees with the physics is exactly what
-    // "very fast" is being sold with.
+    // The dust is seen, never simulated — updated out here, from wherever the
+    // step left the ship. It needs our actual velocity to streak: the torus
+    // drive multiplies travel by `TORUS_MULTIPLIER`. Read from the drive rather
+    // than written out again, so the streaks cannot disagree with the physics.
     this.dust.update(
       this.state.player.position,
       this.state.player.getForward(this.tmp).multiplyScalar(this.state.player.speed
@@ -1434,7 +1403,7 @@ export class Game {
     if (this.input.mouseFlight) this.input.decayMouse(dt);
     if (!this.state.session.ccEngaged) return hands;
     // WHICH co-pilot is the LIVE BRAINS selection's answer: the scripted attack
-    // run, or the trained defence policy. BOTH now return a FlightDemand — the
+    // run, or the trained defence policy. Both return a FlightDemand — the
     // scripted one banks-to-turn through the commander's own envelope
     // (scripted-co-pilot.ts), the trained one flies at its fitted CC_* caps —
     // so the Game flies either the same way and the HUD reads both.
@@ -1466,15 +1435,9 @@ export class Game {
     this.state.hermitMarket = hermitMarket(this.system);
     this.state.market = this.state.hermitMarket;
 
-    // ONE push. The screen-host migration (c51fcdc) translated this method
-    // line by line: `this.mode = 'market'` became a push, and the
-    // `renderMarket(...)` four lines below it became a second one — but
-    // `open()` already renders, so the hermit trade pushed the same screen
-    // twice and one Escape left the other underneath. `Game.mode` is DERIVED
-    // from the stack, so the ship flew on with `mode === 'market'`: the player
-    // had to press Escape twice, and test/playtest.js — whose flight loops are
-    // all `while (g.mode === 'flight')` — stopped dead 16 km out and reported
-    // a docking failure it had never flown.
+    // ONE push, because `open()` already renders — a second push would stack
+    // the same screen twice and leave one Escape short of flight. `Game.mode`
+    // is DERIVED from the stack.
     this.screens.open('market');
     this.baseMode = 'flight';
     this.state.player.speed = 0;
@@ -1536,19 +1499,13 @@ export class Game {
   /**
    * Every command, as data.
    *
-   * A `Record<Command, ...>` rather than a switch, and the difference is not
-   * style: the compiler now REFUSES a Command with no entry. The switch could
-   * not — a missing case fell through and the key silently did nothing, which
-   * is why a test had to grep this file for `case '...'` to check none was
-   * missing. That test is a type error now.
+   * A `Record<Command, ...>` rather than a switch, so the compiler REFUSES a
+   * Command with no entry — a lookup has no branches and no case can silently
+   * fall through.
    *
-   * It also took the worst cyclomatic complexity in src/ (39, by lizard) down
-   * to nothing, because a lookup has no branches.
-   *
-   * Deliberately one-liners: anything longer than a line belongs in the module
-   * that owns the rule. This is the whole surface a replay, an AI or a test
-   * drives the game through — the same one a pair of hands does, since the
-   * keyboard reaches it only through controls.ts.
+   * Deliberately one-liners: anything longer belongs in the module that owns
+   * the rule. This is the whole surface a replay, an AI or a test drives the
+   * game through — the same one a pair of hands does, via controls.ts.
    */
   private readonly commands: Record<Command, () => void> = {
     // --- global -----------------------------------------------------------
@@ -1701,9 +1658,8 @@ export class Game {
   }
 
 
-  /** @internal — driven by test/playtest.js */
-  /**
-   * `from` is no longer read: the stack remembers where you came from, because
+  /** @internal — driven by test/playtest.js
+   * `from` is no longer read: the stack remembers where you came from, since
    * data is pushed ON TOP of the chart rather than replacing it. Kept in the
    * signature for test/playtest.js.
    */
@@ -1724,10 +1680,8 @@ export class Game {
    * put the game-over panel back.
    *
    * The dead case is here rather than in station.ts because a death is not one
-   * of the station's two transitions. It exists at all because the panel now
-   * offers the commander file, so Escape out of that screen has somewhere to
-   * come back TO; without it the stack popped to a hidden screen and left the
-   * player looking at empty space with one key that did anything.
+   * of the station's two transitions, and the panel offers the commander file,
+   * so Escape out of that screen has somewhere to come back TO.
    */
   private showBaseScreen(): void {
     if (this.baseMode === 'dead') {

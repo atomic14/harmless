@@ -12,37 +12,23 @@
 // WHAT IT IS NOT is `world-step.ts`. Invariant 5 covers deciding and invariant
 // 15 splits deciding from resolving, so `Episode.step` is the trainer's
 // orchestrator standing where the game's step stands — two implementations of
-// one contract, which had quietly diverged four times (docs/TODO/64). Every call
-// below that looks redundant is a debt to that split being paid:
+// one contract. Every call below that looks redundant is a debt to that split:
 // `p.npc.tickClocks(dt)`, the target's `regenerate` inside `fly()`, and
-// `p.npc.chooseWeapon(...)`, which is the one that decides whether a missile
-// leaves the rail. A pirate had carried a rack the whole time and had never once
-// been asked (docs/TODO/62). The first of those was `regenerate` alone until
+// `p.npc.chooseWeapon(...)`, which decides whether a missile leaves the rail.
 // docs/TODO/77 gave the ship one entry point for every clock, so an episode can
 // no longer pay one of those debts and miss another.
 //
-// WHAT A SHOT COSTS IS NO LONGER HERE AT ALL. `resolveNpcShot` below is the
-// trainer's tally over `game/fire-resolution.ts` — the game's own resolver, over
-// this episode's `FireWorld` — so the rack, the hit roll, the damage and the
-// shield face have one home and there is nothing left in this file for them to
-// drift from. The remaining divergence is docs/TODO/73, and it is in the
-// DECIDING half: an episode never hands a brain-flown pirate over to the
-// scripted break-off the way `NpcShip.update` does inside the brain's guard
-// range, so a training pirate never completes a pass.
+// WHAT A SHOT COSTS IS NO LONGER HERE. `resolveNpcShot` below is the trainer's
+// tally over `game/fire-resolution.ts` — the game's own resolver, over this
+// episode's `FireWorld` — so the rack, the hit roll, the damage and the shield
+// face have one home. The remaining divergence is docs/TODO/73, in the DECIDING
+// half: an episode never hands a brain-flown pirate to the scripted break-off
+// the way `NpcShip.update` does inside the brain's guard range, so a training
+// pirate never completes a pass.
 //
-// It used to be a second physics. `ai-training/core.ts` carried its own vector
-// and quaternion maths, its own PRNG, a `CLASSES` table mirroring
-// ship-specs.ts, `LASER`/`NPC_GUN` mirroring gunnery.ts, `COLLISION` mirroring
-// collisions.ts and a `stepShip` mirroring player.ts and npc.ts — about 450
-// lines of the game, written again, kept in step by hand under invariant 5.
-// It cost six training rounds to an NPC gun firing 5.4x too fast, a player
-// model accelerating at 120 against the real 220, and a turn decay that
-// differed by 35% between the two at their respective step rates. Every one of
-// those was invisible while the two files agreed with THEMSELVES.
-//
-// What is deliberately KEPT is the methodology, because that part was good:
-// the win conditions, the escape range, the engagement and tail-time shaping,
-// the opponent pool and the four fitness functions are unchanged.
+// What is deliberately KEPT is the methodology: the win conditions, the escape
+// range, the engagement and tail-time shaping, the opponent pool and the four
+// fitness functions.
 //
 // Erasable-TypeScript only — runs in Node via --experimental-strip-types.
 
@@ -105,12 +91,12 @@ export interface EpisodeShip {
   /**
    * How much of this ship is left, 0..1.
    *
-   * A FRACTION, and it is the ONLY place either side of the fight is normalized
-   * — the AI's observation boundary and the shaped fitness that reads it. Both
-   * ships now hold exact source-scale numbers underneath: a pirate its released
-   * energy bank in `NpcEnergyPoints`, the target the commander's own three
-   * 255-point pools in `PlayerPoolPoints`, each divided by its own maximum here
-   * and nowhere else (TODO 29).
+   * A FRACTION, and the ONLY place either side of the fight is normalized — the
+   * AI's observation boundary and the shaped fitness that reads it. Both ships
+   * hold exact source-scale numbers underneath (a pirate its released energy
+   * bank in `NpcEnergyPoints`, the target the commander's three 255-point pools
+   * in `PlayerPoolPoints`), divided by its own maximum here and nowhere else
+   * (TODO 29).
    */
   readonly hp: number;
   alive: boolean;
@@ -134,48 +120,35 @@ export type Controller =
   | { kind: 'scripted' }
   /**
    * A target that simply leaves: nose away from the nearest pirate, throttle
-   * open. Not clever, and not meant to be — it exists so that "do nothing"
-   * stops being a winning pirate policy. No evolved trader has ever learned to
-   * run (all of them orbit at ~2100 and die), so the pressure to give chase
-   * has to be put into the pool by hand.
+   * open. It exists so that "do nothing" stops being a winning pirate policy —
+   * no evolved trader has learned to run (all orbit at ~2100 and die), so the
+   * pressure to give chase is put into the pool by hand.
    */
   | { kind: 'runner' }
   /**
    * A target that turns hard and barely translates — how a human actually
    * knife-fights. Chris flies at a median of 66 with the pitch pinned near its
-   * cap, and stops dead to bring guns to bear.
-   *
-   * `playerCobraSlow` was meant to cover this and does not: a policy flying it
-   * cruises near its 90 maximum, so `target.speed/400` never drops below about
-   * 0.22 in training. Measured against a stationary target, the g1 attacker
-   * throttles forward on 19% of frames where it manages 85% at speed 300 — it
-   * hangs at ~430 units and pivots instead of making attack runs, which is
-   * exactly what Chris reported flying it: "they now sit still spinning".
+   * cap, and stops dead to bring guns to bear. A policy needs a slow target in
+   * the pool or it cruises near its maximum and never learns to chase one down.
    */
   | { kind: 'holding' }
   /**
-   * A target that TRANSLATES, flat out, and never points at anybody.
+   * A target that TRANSLATES, flat out, and never points at anybody — an
+   * instrument, not a pilot (docs/TODO/66). Every other target is stationary
+   * (`holding`) or leaving (`scripted`/`runner`), so the world had no way to
+   * ask: does an attack run, aimed at where the target was AT THAT INSTANT,
+   * still clear a target that has MOVED by the time the two ships meet?
    *
-   * It exists as an instrument rather than as a pilot, and docs/TODO/66 is the
-   * reason. Every other target here is either stationary (`holding`, 42 mean
-   * speed) or leaving (`scripted` and `runner`, which both settle at ~397
-   * against a pirate's ~240 and are never caught again — 0.01 passes a pirate).
-   * So the training world had no way at all to ask the question that item is
-   * about: does an attack run, whose aim point is committed against where the
-   * target was AT THAT INSTANT, still clear a target that has MOVED by the time
-   * the two ships meet?
-   *
-   * Two properties, and both are what make it a measurement:
+   * Two properties make it a measurement rather than a pilot:
    *
    *   - It never steers at a pirate, so a contact is entirely the pirate's
    *     doing. A target that charges would ram ships that flew perfectly.
-   *   - Its waypoints are rolled around the ORIGIN, not around itself, so it
-   *     sweeps the arena at 400 instead of leaving it. That is the whole
-   *     difference from `scripted`, which random-walks away and takes the fight
-   *     with it.
+   *   - Its waypoints are rolled around the ORIGIN, not itself, so it sweeps the
+   *     arena at 400 instead of leaving it — the whole difference from
+   *     `scripted`, which random-walks away and takes the fight with it.
    *
-   * It is not a claim about how a human flies — Chris's own median is 66, and
-   * `holding` is much closer to that. It is the geometry, isolated.
+   * It is not a claim about how a human flies (`holding` is closer). It is the
+   * geometry, isolated.
    */
   | { kind: 'weaving' };
 
@@ -198,10 +171,7 @@ const WEAVE_MAX_SECONDS = 4;
  *
  * NOT a ship table: every number here is READ from the game, and the ones that
  * are not (playerCobraSlow's ceiling) are the deliberate handicap that hull
- * exists to apply. `CLASSES` in the old simulator was a table of hp, speed,
- * turn rate and radius copied out of ship-specs.ts and player.ts, and the copy
- * drifted — accel 120 against the player's real 220 for long enough to fit
- * every pirate brain shipped before generation 1.
+ * exists to apply.
  *
  * `gun` says which weapon the hull carries when it is armed, and it is the
  * ROLE's gun: a freighter shoots with an NPC's gun, the commander's hull with
@@ -244,18 +214,14 @@ function traderHull(): TargetHull {
 }
 
 /**
- * The commander, as a target — the ship a pirate actually hunts.
+ * The commander, as a target — the ship a pirate actually hunts. Straight from
+ * PLAYER_FLIGHT, so the caps are the same numbers as the ship rather than a
+ * stand-in's rounded copies.
  *
- * Straight from PLAYER_FLIGHT, which fixes a mismatch the parity tests could
- * only report: the simulator gave the player `turnRate * TURN.roll` = 2.4864
- * where player.ts rolls at 2.5, and stored the pitch cap as a rounded quotient
- * (1.036 x 1.4 = 1.4504 against 1.45). Both are now the same number as the
- * ship, because they are read off it.
- *
- * DURABILITY IS NO LONGER A PROPERTY OF THE HULL ROW. Every target flies the
+ * DURABILITY IS NOT A PROPERTY OF THE HULL ROW: every target flies the
  * commander's own three 255-point pools through `game/systems.ts`, so
- * `train/survivability.ts` no longer has to correct a stand-in's hp — the
- * stand-in is the commander (TODO 29).
+ * `train/survivability.ts` corrects no stand-in's hp — the stand-in is the
+ * commander (TODO 29).
  */
 function targetFlightHull(maxSpeed: number, accel: number): TargetHull {
   return {
@@ -275,25 +241,18 @@ function targetFlightHull(maxSpeed: number, accel: number): TargetHull {
 const TARGET_HULLS: Record<TargetHullId, () => TargetHull> = {
   traderCobra: traderHull,
   /**
-   * It exists because every pirate brain up to generation 1 was trained
-   * against traderCobra, a ship 1.8x slower and less than half as agile as the
-   * commander it actually hunts. A pursuit curve fitted to a freighter
-   * overshoots a player on every pass, and the pirate spends the fight
-   * re-acquiring instead of shooting — measured in the game, a Sidewinder is
-   * lined up on the player for 5% of a fight.
+   * The commander's own speed and agility — the thing pirates actually have to
+   * track. A pursuit curve fitted to the 1.8x slower freighter overshoots a
+   * player on every pass, so the pirate spends the fight re-acquiring: measured
+   * in the game, a Sidewinder is lined up on the player for 5% of a fight.
    */
   playerCobra: () => targetFlightHull(PLAYER_FLIGHT.maxSpeed, PLAYER_FLIGHT.accel),
   /**
    * How a human actually flies in a dogfight, from Chris's recorded envelope:
    * median speed 66, pitch held at 1.36 of a possible 1.45. He turns almost on
-   * the spot and stops dead to bring guns to bear.
-   *
-   * It exists because run 10, trained only against targets doing 220 to 400,
-   * simply stops when the target does: 99 units flown in 20 seconds against a
-   * stationary player, where the same brain flies 1145 and closes to 225 if
-   * the player is doing 300. A pursuer that has never seen a slow target has
-   * no policy for one. The ceiling is the handicap; everything else is the
-   * commander's own ship.
+   * the spot and stops dead to bring guns to bear. A pursuer that has never seen
+   * a slow target has no policy for one — the ceiling is the handicap, and
+   * everything else is the commander's own ship.
    */
   playerCobraSlow: () => {
     const h = targetFlightHull(90, 120);
@@ -309,12 +268,7 @@ const TARGET_HULLS: Record<TargetHullId, () => TargetHull> = {
  * tier from its seed and hands each attacker the hull `threat.ts` would give
  * the Nth member of a group at that tier — so the trainer meets the same spread
  * of released builds the sky does, from a tier-0 Sidewinder to a tier-2 Monitor,
- * instead of the two hulls it used to alternate between.
- *
- * It was `SPECS.pirate[5]` and `SPECS.pirate[0]`, indexes into a list that has
- * since grown by seven ships. Two hulls is a narrow world to fit a pursuit
- * curve in, and TODO 29 widened the roster it is drawn from without widening
- * the world the brains saw.
+ * rather than a fixed pair of hulls (TODO 29).
  */
 function pirateSpecFor(seed: number, index: number, count: number): NpcSpec {
   // one rung count, not a third spelling of it: tiers run 0..MAX_TIER
@@ -323,68 +277,33 @@ function pirateSpecFor(seed: number, index: number, count: number): NpcSpec {
 }
 
 /**
- * The record schema an episode's setup and report are written against.
+ * The record schema an episode's setup and report are written against. A bump
+ * means the WORLD changed — recharge (2), then missiles (3), then the target's
+ * E.C.M. answer (4), then fewer launches (5) — so rows of different schema are
+ * not one measurement and nothing should average across a bump. No RECORD FIELD
+ * changes on a bump; the number says which world a row was measured in.
+ * docs/TRAINING-LOG.md has the columns.
  *
- * **2** since docs/TODO/63: the target's pools recharge, and its fit-out carries
- * an energy unit that says how fast. A schema-1 record describes a world where
- * damage was permanent, so its pools-left figure is not the same measurement as
- * a schema-2 one and nothing should average the two.
+ * Two standing decisions:
  *
- * **3** since docs/TODO/62: pirates launch the missiles they have always been
- * carrying. A warhead is 250 of the commander's 765 pool points, so a schema-2
- * record describes a world in which the only thing that could reach her was a
- * laser — the reason `jameson-defend-g1` ends 240 held-out episodes with 99.2%
- * of her pools. Nothing should average a 2 with a 3 either.
+ * **E.C.M. is an ACTION, not a reflex.** As a policy output it is a decision the
+ * search must find and can get wrong, and the bank it spends is visible to it
+ * (`observeDefend` slot 15). A free reflex would hand a selector that rewards
+ * never being hit 250 pool points to bank while it hides (docs/TODO/72). The
+ * head is `DEFEND_OUT_SIZE` and only a defence genome has it.
  *
- * **4** since docs/TODO/72: the target can ANSWER one. It carries an E.C.M. and
- * a policy has an output that presses it, so a schema-3 record describes a world
- * in which the only thing that could kill her was undodgeable — and every death
- * of every defence policy ever measured, 19 of 19 and 4 of 4 and 42 of 42, had a
- * warhead in it. A `died` column across the two schemas is not one measurement.
- *
- * **5** since docs/TODO/75: fewer of them are launched. An episode's fleet is
- * never pruned, so `matesLost > 0` — a launch reason the live game could never
- * satisfy — was unlocking racks here and nowhere else; deleting it took the
- * volume with it. Measured against the shipped brains: the defence probe's own
- * 1,200 held-out fights launch 967 warheads before and **880** after, and a
- * defend phase run against policy pirates instead of the scripted default drops
- * further, 352 → 225 over 800 episodes. A pack episode of 200 differs; the
- * attack phase is byte-identical over 200, because a one-ship fleet never had a
- * mate to lose. So a schema-4 defence figure and a schema-5 one are not the
- * same measurement. No RECORD FIELD changed, and that is deliberately not the
- * test: the field says which WORLD a row was measured in, which is what every
- * bump above it says too. docs/TRAINING-LOG.md has the columns.
- *
- * ## Two decisions this file owes docs/TODO/72, stated here
- *
- * **E.C.M. is an ACTION, not a reflex.** The cheap version — press it whenever
- * one is inbound and the bank can afford it — models a competent human almost
- * exactly and needs no head change. It was rejected because of what the SEARCH
- * would do with it: docs/TODO/65 is about a selector that already rewards never
- * being hit, and handing that search a free 250 pool points a warhead produces a
- * policy that hides while the reflex banks the credit, and calls it an
- * improvement. As an output it is a decision the policy must find and can get
- * wrong, and the bank it spends is visible to it (`observeDefend` slot 15). The
- * cost was confined rather than paid three times over: the head is
- * `DEFEND_OUT_SIZE` and only a defence genome has it, so `pirate-attack-g3` and
- * `pirate-pack-r4-selectonly` are byte-identical.
- *
- * **The one-in-the-air cap stays.** It was a FAIRNESS rule — the player only
- * gets one press, so a gang gets one warhead — and with the counter in the
- * world it becomes a balance lever instead. Leaving it alone is what keeps this
- * schema comparable to 3 on every axis but the answer itself; lifting it would
- * change the threat and the answer in the same measurement and neither number
- * would mean anything.
+ * **The one-in-the-air cap stays.** A FAIRNESS rule — the player gets one press,
+ * so a gang gets one warhead — kept so this schema stays comparable to 3 on
+ * every axis but the answer itself.
  */
 export const EPISODE_SCHEMA = 5;
 
-// --- the target's scale, which is now the commander's ------------------------
+// --- the target's scale, which is the commander's ----------------------------
 //
-// THERE IS NO NORMALIZED SCALE LEFT. The episode's target used to be a
-// stand-in at hp 1.0 taking a 0.1-0.22 roll per hit; it is the commander now,
-// with `game/systems.ts`'s three 255-point pools, hit through the same
-// `applyDamage` the game runs and for the same `npcLaserDamageToPlayer` points.
-// Every damage path in an episode is a runtime combat function:
+// THERE IS NO NORMALIZED SCALE. The episode's target is the commander, with
+// `game/systems.ts`'s three 255-point pools, hit through the same `applyDamage`
+// the game runs and for the same `npcLaserDamageToPlayer` points. Every damage
+// path in an episode is a runtime combat function:
 //
 //   NPC laser -> the target     gunnery.ts  npcLaserDamageToPlayer
 //   NPC laser -> another ship   npc-energy.ts npcCrossfireDamage
@@ -395,41 +314,21 @@ export const EPISODE_SCHEMA = 5;
 //
 // AND THE POOLS COME BACK, by `systems.ts`'s own `regenerate` and no other rule
 // — the same call `world-step.ts` makes for the commander every frame, and the
-// same debt `p.npc.tickClocks(dt)` pays on the pirate side.
-//
-// This block used to say the opposite, and said it deliberately: "the target's
-// pools DO NOT RECHARGE ... an episode with regeneration in it cannot be lost by
-// anyone and carries no gradient at all". The arithmetic behind that is right —
-// a shield face recovers 8.9 points a second and one pirate lands about two —
-// and the conclusion drawn from it was still wrong, because it is an argument
-// about the FITNESS made by changing the WORLD. A commander in a real fight
-// loses a face on a pass and gets it back before the next one; `energyLow` is
-// the console light that says when. An episode where damage was permanent had
-// exactly one surviving strategy, which is never to be hit, and that is a very
-// good description of the policy it produced (docs/TODO/63). Whether pools-left
-// still discriminates between two defenders is a question for the selection
-// rule (docs/TODO/65), and the answer to it is not a second physics.
-//
-// It costs what the old comment says it costs: a gentler episode, and a
-// pools-left figure that now measures recovery as well as avoidance. Every
-// defence and evade number in docs/TRAINING-LOG.md predating 2026-08-04 was
-// measured without it and is INCOMPARABLE with one measured after, which the log
-// says in its own words rather than being silently re-baselined.
+// same debt `p.npc.tickClocks(dt)` pays on the pirate side. An episode where
+// damage was permanent had exactly one surviving strategy, never to be hit,
+// which is a good description of the policy it produced (docs/TODO/63). It costs
+// a gentler episode and a pools-left figure that measures recovery as well as
+// avoidance: every defence and evade number in docs/TRAINING-LOG.md predating
+// 2026-08-04 was measured without recharge and is INCOMPARABLE with one after.
 
 /**
- * The commander's laser, from the commander's hull — one entry per type.
- *
- * It was a single `PLAYER_PULSE` constant, resolved once "because it is a
- * constant of the world the episode models". The hull still is; the GUN never
- * was. A commander who has bought the combat computer has almost certainly
- * bought a better laser than the one he launched with, so a policy fitted at
- * pulse rate is fitted for a ship nobody flying it is in — Chris: "we should
- * give the combat computer a full fit out - ECM, Beam lasers at a minimum -
- * probably more like to have military lasers."
- *
- * It matters more than a damage number. `beam` and `military` reload at 0.09s
- * against pulse's 0.24, so the trigger discipline that pays is a different
- * discipline, and heat is what limits them rather than the clock.
+ * The commander's laser, from the commander's hull — one entry per type. A
+ * commander who has bought the combat computer has almost certainly bought a
+ * better laser than the one he launched with, so a policy must be fittable at
+ * beam/military rate, not just pulse. It matters more than a damage number:
+ * `beam` and `military` reload at 0.09s against pulse's 0.24, so the trigger
+ * discipline that pays is a different discipline and heat, not the clock, limits
+ * them.
  */
 const PLAYER_LASERS: Record<LaserType, ReturnType<typeof playerLaser>> = {
   pulse: playerLaser(COBRA_MK_3_HULL_ID, 'pulse'),
@@ -460,12 +359,10 @@ export interface EpisodeSetup {
     /** part of the fit-out, because it doubles how fast the pools come back */
     energyUnit: boolean;
     /**
-     * ...and the E.C.M., which is the only answer to a warhead there is.
-     *
-     * Beside the laser and the energy unit because it belongs to the same
-     * question — what is this commander FITTED with — and it changes a fight
-     * more than either: a missile is 250 of her 765 pool points and every death
-     * ever measured had one in it (docs/TODO/72).
+     * ...and the E.C.M., which is the only answer to a warhead there is. Beside
+     * the laser and the energy unit because it belongs to the same question —
+     * what is this commander FITTED with — and it changes a fight more than
+     * either: a missile is 250 of her 765 pool points (docs/TODO/72).
      */
     ecm: boolean;
     controller: string;
@@ -535,27 +432,17 @@ export interface EpisodeOptions {
   traderLaser?: LaserType;
   /**
    * Does the target carry an extra energy unit? It DOUBLES the bank's recharge
-   * (`ENERGY_UNIT_MULTIPLIER`), and since the pools recharge at all it is the
-   * one fitting that changes how a fight goes rather than how it opens.
-   *
-   * It sits beside `traderLaser` for the same reason that was added: a commander
-   * who has bought the combat computer is being fitted out, not launched, and a
-   * policy fitted at exactly one recovery rate has learned a disengage-and-heal
-   * discipline that is wrong for the ship it will be flying. Off unless a caller
-   * says otherwise, so every existing episode and archived run means what it did.
+   * (`ENERGY_UNIT_MULTIPLIER`), so it is the one fitting that changes how a
+   * fight goes rather than how it opens: a policy fitted at one recovery rate
+   * has learned a disengage-and-heal discipline wrong for the ship it will fly.
+   * Off unless a caller says otherwise, so every archived run means what it did.
    */
   targetEnergyUnit?: boolean;
   /**
-   * Does the target carry an E.C.M.?
-   *
-   * Off unless a caller says otherwise, so every existing episode and every
-   * archived run still means what it did — the same bargain `traderLaser` and
-   * `targetEnergyUnit` make. `train/defence-fight.ts` turns it on for every
-   * defence fight, and says why there rather than here.
-   *
-   * It only DOES anything for a policy with an E.C.M. head: the equipment
-   * without the output is theatre, which is the reason docs/TODO/62 declined to
-   * fit it.
+   * Does the target carry an E.C.M.? Off unless a caller says otherwise, so
+   * every archived run still means what it did. `train/defence-fight.ts` turns
+   * it on for every defence fight. It only DOES anything for a policy with an
+   * E.C.M. head: the equipment without the output is theatre (docs/TODO/62).
    */
   targetEcm?: boolean;
   /**
@@ -567,12 +454,10 @@ export interface EpisodeOptions {
   targetShipId?: PlayerHullId;
   maxTime?: number;
   /**
-   * How far the target has to get before it is gone for good. Without this the
-   * episode is a box: the trader could neither be lost nor escape, so closing
-   * the distance was worth nothing and only aiming paid. A pirate that never
-   * touched its throttle killed 99% of targets, armed or not — and the trainer
-   * duly evolved pirates that stand still and pivot, which is useless in a game
-   * where the player can simply leave.
+   * How far the target has to get before it is gone for good. Without it the
+   * episode is a box the trader can neither escape nor be lost in, so closing
+   * the distance is worth nothing and only aiming pays — and the trainer evolves
+   * pirates that stand still and pivot, useless where the player can simply leave.
    */
   escapeRange?: number;
 }
@@ -640,7 +525,7 @@ class TargetShip implements EpisodeShip {
   readonly shipId: PlayerHullId;
   /**
    * The commander's own three pools, in `PlayerPoolPoints` — the game's object,
-   * hit by the game's `applyDamage`. It was a single normalized `hp` field.
+   * hit by the game's `applyDamage`.
    */
   readonly sys: ShipSystems;
   /**
@@ -652,16 +537,11 @@ class TargetShip implements EpisodeShip {
   /** every point the pools can hold: both faces and the bank */
   readonly maxPool: number;
   /**
-   * The fit-out `ordnance.ts` reads — which is only ever "is there an E.C.M."
-   * (`EcmFit`).
-   *
-   * This is the seam docs/TODO/72 asked for. `Ordnance.triggerEcm` took a
-   * `CommanderData` and an episode's target has never been one: it is a hull id
-   * and a `ShipSystems`, and giving it a whole commander to satisfy one boolean
-   * would have put a career, a cargo hold and a legal status inside a training
-   * episode. So the RULE was narrowed to what it reads, exactly as
-   * `OrdnanceWorld` and `FireWorld` were, and both worlds hand it the same
-   * shape.
+   * The fit-out `ordnance.ts` reads — only ever "is there an E.C.M." (`EcmFit`).
+   * `Ordnance.triggerEcm` took a `CommanderData` and an episode's target has
+   * never been one, so the RULE was narrowed to what it reads (as `OrdnanceWorld`
+   * and `FireWorld` were) rather than putting a career, a cargo hold and a legal
+   * status inside a training episode to satisfy one boolean (docs/TODO/72).
    */
   readonly equipment: { readonly ecm: boolean };
   alive = true;
@@ -736,19 +616,14 @@ class TargetShip implements EpisodeShip {
    */
   fly(dt: number, demand: FlightDemand): void {
     this.ship.update(dt, demand);
-    // THE WHOLE OF systems.ts's `regenerate`, which is the same call
-    // world-step.ts makes for the commander once a frame: the gun's cooldown and
-    // heat, the energy bank, and both shield faces once the bank is out of its
-    // last quarter. It ran only the gun's two lines and called them "the only
-    // half a target has" — a statement about the code, since nothing stopped a
-    // target having the other half, and it made every hit permanent for as long
-    // as any defence policy has existed (docs/TODO/63).
+    // THE WHOLE OF systems.ts's `regenerate`, the same call world-step.ts makes
+    // for the commander once a frame: the gun's cooldown and heat, the energy
+    // bank, and both shield faces once the bank is out of its last quarter.
+    // Running only the gun's lines made every hit permanent (docs/TODO/63).
     //
     // Here rather than in `Episode.step` because this is where a target's frame
     // is, and every controller in this file — the policy's `step`, the four
-    // scripted pilots' `coast` — comes through it exactly once per step. Moving
-    // it to `Episode.step` would be equally correct, and would put the target's
-    // clock somewhere the target does not own.
+    // scripted pilots' `coast` — comes through it exactly once per step.
     regenerate(this.sys, dt, this.regen);
   }
 
@@ -776,20 +651,10 @@ export class Episode {
   escaped = false;
   /**
    * How many times a pirate has flown into the TARGET — the count, not a
-   * quotient.
-   *
-   * `train/flight-probe.ts` derives its `rams` column by dividing the pirates'
-   * `damageTaken` by `IMPACT.ram.ship`, which is exact only in the one case
-   * that tool flies: a single pirate against an unarmed target, where contact
-   * is the only thing that can hurt it. Add a second pirate and ship-on-ship
-   * contact is in the same total; arm the target and so is its laser. So a
-   * measurement of "how often did something hit the commander" cannot be taken
-   * that way, and `train/ram-probe.ts` — which flies five pirates against a
-   * target that MOVES — needs exactly that number (docs/TODO/66).
-   *
-   * Counted where the ram is billed, so it cannot disagree with the damage.
-   * Multiply by `IMPACT.ram.commander` for the points, which is the figure a
-   * `CombatSimReport` calls `damageBySource.ram`.
+   * quotient. Counted where the ram is billed, so it cannot disagree with the
+   * damage; `train/ram-probe.ts` needs exactly this number and cannot recover it
+   * from `damageTaken`, which folds lasers, rams and ship-on-ship contact into
+   * one total (docs/TODO/66). Multiply by `IMPACT.ram.commander` for the points.
    */
   traderRams = 0;
   /**
@@ -808,10 +673,8 @@ export class Episode {
   readonly engagedTime: number[];
   /**
    * Time each pirate spent ON THE TARGET'S SIX — behind it, and pointed at
-   * it. Chris's ask, and the thing neither generation of brain does: r2
-   * weaves without ever converging, g2 converges by parking. Paying for the
-   * tail position asks for the manoeuvre that is actually threatening, rather
-   * than for damage by whatever route.
+   * it. Paying for the tail position asks for the manoeuvre that is actually
+   * threatening, rather than for damage by whatever route.
    */
   readonly tailTime: number[];
 
@@ -821,15 +684,12 @@ export class Episode {
    * The missiles in this episode's sky — `game/ordnance.ts`, unchanged, over a
    * sky with nothing to draw into.
    *
-   * NOT a second missile model, which is the one thing docs/TODO/62 forbids: the
-   * spawn, the homing, the hostile warhead's own `HOSTILE_MISSILE_LIFE` clock,
-   * the `MISSILE_HIT_RANGE` fuse and the E.C.M. rule are the game's. (This
-   * sentence used to quote "the 25-second life" — `MISSILE_LIFE` is the
-   * PLAYER'S warhead; every missile in an episode is hostile and lives 30.)
-   * All an episode supplies is the `OrdnanceWorld` — its own
-   * fleet, and an `attach` with no scene behind it, which is the same bargain
-   * `headlessShell()` makes for the renderer and `inert-dom.ts` for a painter.
-   * Nothing reads the scene back, so dropping the writes changes no rule.
+   * NOT a second missile model, the one thing docs/TODO/62 forbids: the spawn,
+   * the homing, the hostile warhead's own `HOSTILE_MISSILE_LIFE` clock, the
+   * `MISSILE_HIT_RANGE` fuse and the E.C.M. rule are the game's. All an episode
+   * supplies is the `OrdnanceWorld` — its own fleet, and an `attach` with no
+   * scene behind it, the same bargain `headlessShell()` makes for the renderer
+   * and `inert-dom.ts` for a painter. Nothing reads the scene back.
    */
   private readonly ordnance: Ordnance;
   /**
@@ -862,9 +722,8 @@ export class Episode {
   /**
    * The policy trader's decision clock and held control — `DECISION_INTERVAL`,
    * the SAME 10Hz the combat computer and an armed trader decide at in the
-   * game. She used to decide every physics step (60Hz): fitted at a reaction
-   * speed the game never gives, which is precisely the kind of second world
-   * the trainer exists to not be.
+   * game, not the physics step: deciding at a reaction speed the game never
+   * gives is exactly the second world the trainer exists to not be.
    */
   private traderControl: Control | null = null;
   private traderDecisionTimer = 0;
@@ -983,17 +842,12 @@ export class Episode {
         // is the one thing this file is organised against.
         : p.npc.attack(dt, this.trader.pos, range, true, undefined, this.fleet,
           this.traderVelocity());
-      // WHICH WEAPON leaves the rail is the ship's decision and not the
-      // flight's, and until docs/TODO/62 this call was missing here — so a
-      // training pirate had a full rack, every reason to use it, and no way to
-      // ask. It no longer keeps its own time: `tickClocks` above runs the
-      // reload, so this is a decision and nothing else (docs/TODO/77).
-      //
-      // It used to pass `matesLost(this.fleet)` as well, and that argument was
-      // the one thing an episode answered differently from the game: an episode
-      // never prunes its fleet, so a training pirate unlocked its rack the
-      // moment a wingman died and the same pirate in the same fight in the game
-      // did not. The reason is gone from both (docs/TODO/75).
+      // WHICH WEAPON leaves the rail is the ship's decision, not the flight's
+      // (docs/TODO/62). It keeps no time of its own: `tickClocks` above runs the
+      // reload, so this is a decision and nothing else (docs/TODO/77). It no
+      // longer passes `matesLost` — an episode never prunes its fleet, so that
+      // argument unlocked a rack here that the same fight in the game did not
+      // (docs/TODO/75).
       const fired = p.npc.chooseWeapon(shot, range, this.trader.pos, missileInbound);
       if (fired && this.trader.alive) {
         const e = this.resolveNpcShot(p, fired);
@@ -1057,9 +911,8 @@ export class Episode {
       if (this.opts.traderArmed) {
         if (tCtrl.kind === 'policy') {
           // The gun fires at the ship the brain was OBSERVING when it pulled
-          // the trigger. It used to fire at a fresh nearestPirate(), so on the
-          // frames where the two disagreed the policy aimed at one ship and
-          // shot at another — and was scored on the result.
+          // the trigger, not a fresh nearest — else on frames where the two
+          // disagree the policy aims at one ship and is scored on another.
           if (policyWantsFire && policyThreat) {
             const e = this.fireTraderGun(policyThreat);
             if (e) events.push(e);
@@ -1116,11 +969,8 @@ export class Episode {
   private resolveNpcShot(p: PirateShip, shot: FireEvent): ShotEvent | null {
     const fired = resolveNpcFire(p.npc, shot, this.fire);
     if (fired.weapon === 'missile') {
-      // The round is spent and the warhead is in the sky. It used to be
-      // neither — every FireEvent was resolved here as a laser hit, so a missile
-      // would have arrived instantly, for laser damage, off an inexhaustible
-      // rack (docs/TODO/62). Counted separately from `shotsFired`, which is a
-      // LASER tally.
+      // The round is spent and the warhead is in the sky. Counted separately
+      // from `shotsFired`, which is a LASER tally (docs/TODO/62).
       p.missilesFired += 1;
       return null;
     }
@@ -1175,11 +1025,8 @@ export class Episode {
 
   /**
    * Which face takes it — `game/shield-face.ts`, the same call `Combat.hitPlayer`
-   * makes, and it matters because the commander has two shields and an attacker
-   * on your six is spending a different pool from one head-on.
-   *
-   * It was a dot product here and a quaternion inverse there: the same rule
-   * written twice, agreeing, which is what docs/TODO/64 is about.
+   * makes: the commander has two shields, and an attacker on your six is spending
+   * a different pool from one head-on.
    */
   private hitFromFront(from: THREE.Vector3): boolean {
     return hitFromAhead(
@@ -1209,11 +1056,10 @@ export class Episode {
       t.laserCooldown = reload;
       t.shotsFired += 1;
       if (random() >= npcHitChance(dist)) return { from: t, to: threat, hit: false };
-      // An armed freighter shooting a pirate is a CROSSFIRE hit, and it is worth
-      // exactly what world-step.ts says one is: the firing build's own laser
-      // strength against the target's own defence. The freighter fires the
-      // trader Cobra's released byte, because that is the hull it is standing in
-      // for. It used to be a normalized roll pushed across a conversion.
+      // An armed freighter shooting a pirate is a CROSSFIRE hit, worth exactly
+      // what world-step.ts says one is: the firing build's own laser strength
+      // against the target's own defence. The freighter fires the trader Cobra's
+      // released byte, the hull it is standing in for.
       const damage = npcCrossfireDamage(TRADER_WEAPON_BYTE, threat.npc.energyPolicy);
       t.shotsHit += 1;
       t.damageDealt += damage;
@@ -1365,9 +1211,8 @@ export class Episode {
   /**
    * What the trader's policy sees. Same encoder the game feeds an NPC, and
    * chosen the same way — `observeFor`, off the brain's own input count, so a
-   * genome this file can produce is by construction a genome the game can fly.
-   * It called `observe()` outright, which was right for exactly as long as
-   * every defence policy had fourteen inputs (docs/TODO/71).
+   * genome this file can produce is by construction one the game can fly
+   * (docs/TODO/71).
    *
    * `mates` is null: the target has no fleet, here or in the game.
    */
@@ -1432,13 +1277,9 @@ export class Episode {
 
   /**
    * What this episode WAS: schema, seed, the target's hull and pools, and every
-   * attacker's exact released build.
-   *
-   * It exists because a number without its inputs is not a measurement. Before
-   * TODO 29 an episode reported a kill rate and a shaped fitness and nothing at
-   * all about which ships fought — so two runs a month apart could disagree for
-   * reasons no log could recover. The ids are the catalogue's own
-   * (`ship-identity.ts`), never a name and never a copied stat block.
+   * attacker's exact released build — because a number without its inputs is not
+   * a measurement. The ids are the catalogue's own (`ship-identity.ts`), never a
+   * name and never a copied stat block (TODO 29).
    */
   setup(): EpisodeSetup {
     return {
@@ -1449,9 +1290,8 @@ export class Episode {
       target: {
         shipId: this.trader.shipId,
         hull: this.opts.traderClass ?? 'traderCobra',
-        // WHICH laser, not "the commander has one": every defence episode fires
-        // beam or military (`train/defence-fight.ts`) and this said `pulse`
-        // for all of them, because it was written when there was one.
+        // WHICH laser, not "the commander has one": defence episodes fire beam
+        // or military (`train/defence-fight.ts`).
         laser: this.trader.hull.gun === 'player'
           ? (this.opts.traderLaser ?? 'pulse') : 'npc',
         armed: !!this.opts.traderArmed,
@@ -1521,22 +1361,12 @@ export class Episode {
   /**
    * Share of the target's pools TAKEN OFF HER over the episode, 0..1 — its
    * damage, from its side, and the same question `pirateDamageShare` asks of a
-   * pirate.
-   *
-   * It read `1 - trader.hp`, and while nothing recovered that was the same
-   * number. Since docs/TODO/63 the pools come back, and the two quantities are
-   * not the same at all: measured over `test/ai.test.ts`'s 60 held-out seeds,
-   * the shipped pirate takes 12.0% of the commander's pools and leaves 0.4%
-   * still missing at the end, because a scripted hauler heals the rest back
-   * before the clock runs out. `1 - hp` under recovery answers "how recently was
-   * she hit", which is not what any caller wants: `fitnessAttack` pays 6x this
-   * for a pirate's WORK, `fitnessPack` divides it by the clock to get pressure,
-   * and `evolve.ts` selects attack and pack champions on it.
-   *
-   * The pirate side was always cumulative — `p.damageTaken` over its bank —
-   * precisely because pirates have always regenerated. This is the same choice,
-   * made on the other ship, and it is the observation boundary's own rule: exact
-   * points inside, divided by their own maximum here and nowhere else.
+   * pirate. Cumulative damage, NOT `1 - hp`: since the pools recharge
+   * (docs/TODO/63) the two differ, and `1 - hp` answers "how recently was she
+   * hit", which no caller wants — `fitnessAttack` pays 6x this for a pirate's
+   * WORK, `fitnessPack` divides it by the clock for pressure, and `evolve.ts`
+   * selects attack and pack champions on it. Exact points inside, divided by
+   * their own maximum here and nowhere else.
    */
   targetDamageShare(): number {
     return Math.max(0, Math.min(1, this.trader.damageTaken / this.trader.maxPool));
@@ -1544,24 +1374,13 @@ export class Episode {
 
   /**
    * Share of the WHOLE attacking force's banks that the target took off them,
-   * 0..1 — the same question `targetDamageShare` asks, asked from the other
-   * side of the fight.
-   *
-   * It is `trader.damageDealt`, which is HER gun's work and only that: a ram
-   * bills `hurtSelf`, a pirate flying into a packmate bills both of them, and
-   * neither reaches this. Over the banks SUMMED rather than averaged, so 1.0
-   * means the force is gone and half means half of it is — a quantity ordered
-   * exactly the way a kill count is, with the granularity a kill count throws
-   * away. Measured over `train/evolve.ts`'s 24 validation seeds, the scripted
-   * `holding` pilot reads 59.9% here against a 42.4% kill share, and
-   * `jameson-defend-g1` reads 22.7% against 3.5% — the same argument
-   * `targetDamageShare` makes for replacing the pirates' kill rate, made on the
-   * defender's side (docs/TODO/65).
-   *
-   * `fitnessDefend` divides the same points by ONE attacker's mean bank, which
-   * is a different normalisation on purpose: a shaping weight there means "how
-   * much of an attacker did you break", and can exceed 1. This is a share of
-   * the force, so it cannot.
+   * 0..1 — `targetDamageShare` asked from the other side of the fight. HER gun's
+   * work only: a ram bills `hurtSelf`, a pirate flying into a packmate bills
+   * both of them, and neither reaches this. Over the banks SUMMED rather than
+   * averaged, so 1.0 means the force is gone — ordered like a kill count, with
+   * the granularity a kill count throws away (docs/TODO/65). `fitnessDefend`
+   * normalises the same points by ONE attacker's mean bank, so its weight can
+   * exceed 1; this is a share of the force, so it cannot.
    */
   attackerDamageShare(): number {
     const banks = this.pirates.reduce((sum, p) => sum + p.npc.maxEnergy, 0);
@@ -1588,14 +1407,10 @@ export class Episode {
   }
 
   /**
-   * Shared fitness for a policy pack (all pirates one policy).
-   *
-   * Round 3 (see docs/TRAINING-LOG.md): round 2 learned an all-in alpha
-   * strike that killed fastest but only 70% of the time, because the
-   * survivor bonus and shot penalty together rewarded a single decisive
-   * gamble over sustained pressure. So: reward damage-per-second of
-   * engagement, drop the shot penalty entirely, and shrink the survivor
-   * term so staying alive is worth less than keeping the target under fire.
+   * Shared fitness for a policy pack (all pirates one policy). Rewards
+   * damage-per-second of engagement, drops the shot penalty, and keeps the
+   * survivor term small, so sustained pressure beats a single decisive gamble
+   * (docs/TRAINING-LOG.md, round 3).
    */
   fitnessPack(): number {
     const damage = this.targetDamageShare();
@@ -1624,18 +1439,13 @@ export class Episode {
     const bank = this.pirates.reduce((sum, p) => sum + p.npc.maxEnergy, 0)
       / Math.max(1, this.pirates.length);
     const dealt = this.trader.damageDealt / Math.max(1, bank);
-    // MISSES cost, not shots — a landed shot is already paid for by `dealt`.
-    // The old term was -0.02 per SHOT: Chris flew against a champion fitted
-    // under it and watched it hold the trigger down for the whole fight (796
-    // shots, 5 hits, 90 degrees mean aim error), and the arithmetic agrees —
-    // spraying a full 60s episode cost ~3.6 against the ~12 that surviving it
-    // with shields earned. The price of a miss is set against the measured
-    // worth of a hit: one landed hit earns a mean 0.32 through `dealt`
-    // (range 0.06-0.88 across the hulls and lasers `defenceFight` spawns,
-    // measured 2026-08-05), so at -0.05 a shot pays for itself above ~14%
-    // accuracy, a full-episode spray costs ~9 — more than the survival term —
-    // and the trigger stays worth learning, which -0.1 (break-even ~24%)
-    // risked killing outright.
+    // MISSES cost, not shots — a landed shot is already paid for by `dealt`. The
+    // price of a miss is set against the measured worth of a hit: one landed hit
+    // earns a mean 0.32 through `dealt` (range 0.06-0.88 across the hulls and
+    // lasers `defenceFight` spawns), so at -0.05 a shot pays for itself above
+    // ~14% accuracy and a full-episode spray costs ~9 — more than the survival
+    // term — while the trigger stays worth learning, which -0.1 (break-even
+    // ~24%) risked killing outright.
     const misses = this.trader.shotsFired - this.trader.shotsHit;
     return (
       (this.t / this.maxTime) * 8 +

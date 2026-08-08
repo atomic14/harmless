@@ -20,20 +20,16 @@ Roughly seven lines in ten are portable, and the ONLY number that is a promise
 is the third one: **contaminated is zero**, and the tool exits non-zero if it
 is not.
 
-The portable share GREW through the Elite-A phase rather than shrinking: the
-generated catalogue, the combat oracle, the identities and the roster are all
-pure data and pure rules, so they land on the left-hand side.
+The generated catalogue, the combat oracle, the identities and the roster are
+all pure data and pure rules, so they land on the left-hand side.
 
-The third number is the one to drive down. The gate now follows relative
-runtime imports transitively (while ignoring erased type-only edges), so the
-old `0` is no longer false assurance from checking each file in isolation.
-Every contaminated line includes the dependency chain that reaches a platform
-module and makes `npm run portability` fail. Its first honest run found 16
-files. Console publication, persistence, hostility, flight bindings and the
-canvas corona now point outward through explicit seams instead. `game.ts` is
-declared as the platform composition root: no reusable module imports it (the
-gate asserts that only `main.ts` does), and it constructs the Input, HUD and
-screens that apply the core modules' reported outcomes.
+The third number is the one to drive down. The gate follows relative runtime
+imports transitively (ignoring erased type-only edges), so a file cannot look
+clean in isolation while reaching a platform module through a chain. Every
+contaminated line prints that chain and makes `npm run portability` fail.
+`game.ts` is the platform composition root: no reusable module imports it (the
+gate asserts only `main.ts` does), and it constructs the Input, HUD and screens
+that apply the core modules' reported outcomes.
 
 A test suite will not catch that number regressing. This will.
 
@@ -55,11 +51,7 @@ Everything else is a consequence, and each consequence is testable:
 | nothing knows about its caller | modules compose in any order | done |
 
 The recurring failure this is defending against is **one rule with two homes,
-kept in step by hope**. It produced NPCs firing 5.4x too fast in training, four
-copies of the chart metric, the player's damage model living in a comment, a
-market that rerolled on reload, a galaxy that quietly diverged from itself
-because its save rounded to three decimal places, and the contraband set
-written out FIVE times as the bare literals `[3, 6, 10]`.
+kept in step by hope** — the bug class that ate this codebase.
 
 **The rule for what a module may know (Chris's framing — single
 responsibility, and things should not need to know about each other):** a
@@ -73,21 +65,17 @@ behind it.
 
 **They are all still there, all in `src/game/screens/`** — one `*Context` per
 screen, which `grep -rn 'export interface .*Context' src/game/screens/` will
-count for you rather than this sentence going stale again. The worst is
-`TradeContext` (three callbacks out, including `leaveHermit()`, a screen telling
-the Game to change flight state). An earlier version of this document claimed
-there were none; that claim came from a grep that did not recurse into
-`screens/`, and the version after it typed a number that was wrong within two
-commits. `collisions.ts` also takes a `setPlayerSpeed` callback. The pattern
-that replaced the others, and that these should follow:
+count for you rather than this sentence going stale. The worst is `TradeContext`
+(three callbacks out, including `leaveHermit()`, a screen telling the Game to
+change flight state). `collisions.ts` also takes a `setPlayerSpeed` callback.
+The pattern that replaced the others, and that these should follow:
 
 > **A module decides and reports. The caller applies the consequences.**
 
 `stepTrumbles` returns events and `trumbleMessage` phrases them. `checkJump`
 returns a refusal and the Game decides a refusal is a beep. `Ordnance.arm()`
-returns `'noMissiles'`; it has never heard of a HUD. This is why 20 ordnance
-tests exist that could not be written at all a week ago — there was no way to
-construct one without a Game.
+returns `'noMissiles'`; it has never heard of a HUD. This is why ordnance can be
+unit-tested without constructing a Game at all.
 
 Only `main.ts` imports `game.ts`. That arrow points one way and should stay
 that way; if a module starts wanting the Game, the answer is a return value.
@@ -99,15 +87,14 @@ an NPC's does not.
 
 ### Known gaps against it
 
-- `game.ts` is down from 3244 lines and still the longest file in the project;
+- `game.ts` is the longest file in the project;
   `npm run sizes` prints today's figure and the allowlist entry in
   `tools/sizes.mjs` carries the reason. It is the orchestrator, and what
   is left is mostly orchestration: the fixed-timestep loop, the command
   switch, the docked/flight mode machine, and the consequences the modules
-  report. The
-  rules have moved to the ~30 files around it — and the **world step itself**
-  is now `world-step.ts`: the five phases of flight, with the fourteen
-  `hud.showMessage` calls inside them turned into returned `StepEvent`s. It
+  report. The rules live in the ~30 files around it, and the **world step
+  itself** is `world-step.ts`: the five phases of flight, reporting
+  `StepEvent`s rather than calling a HUD. It
   runs under node with no Hud, no Input and no renderer (`npm test` flies 600
   steps of it and asserts the run replays byte-identically), which is what the
   trainer needs. What it cannot own it asks for through `StepHost` — eleven
@@ -124,7 +111,7 @@ an NPC's does not.
   The save can now be taken and put back under node — `npm test` flies a world,
   captures it through JSON, restores into a fresh state and demands the
   restored world *continues* the run rather than merely resembling it, which is
-  the property all four historical snapshot bugs broke.
+  the property snapshot bugs break.
 - **The rule for what may be an event, and it is not style:** anything that
   DRAWS from the seeded rng must stay a direct call, made where it was made
   before. Deferring a draw moves it across a branch and silently changes every
@@ -132,10 +119,8 @@ an NPC's does not.
   verbs rather than richer return values — `populateSystem`, the Navy mission
   step and the market roll all draw. Messages draw nothing, so messages are
   events.
-- `npc.ts` is the other file `npm run sizes` calls DEBT: it holds behaviour and
-  brain flight, and the flight half wants its own file. The explosions,
-  the ship roster and the brain selection have moved to `effects.ts`,
-  `ship-specs.ts` and `brains.ts`.
+- `npc.ts` is the other file `npm run sizes` calls DEBT: it holds both behaviour
+  and brain flight, and the flight half wants its own file.
 - State is now `Game.state` (`state.ts`) — one object holding the galaxy, the
   commander, the world, the player, the session, the ship systems, the dock
   plan, the markets and the charts. `freshState(commander)` builds it under
@@ -152,17 +137,15 @@ an NPC's does not.
 - **...and so does the rest of the keyboard.** `controls.ts` is the same move
   for the discrete half: a binding TABLE over a two-method `CommandInput`,
   turning taps into `Command`s that `game.ts`'s `runCommand` applies in
-  one-liners. "the player, an AI and a replay are not yet the same interface"
-  was the gap this line used to record; they are now — `commandsFor()` plus
-  `runCommand()` is the whole path, and `{ pressed, held }` is all a driver
-  needs. It is in the purity block, and `npm test` asserts what keys do for
-  the first time (the ⇧ modifiers, one command per frame, the confirmation
-  swallowing everything). The docking computer is the remaining holdout on
-  the flight side — it asks for a HEADING rather than a rate, and still steers
-  on top.
-- **The constructor was the last thing needing a browser, and it is not one
-  now.** `Game` takes a `ShellFactory` (`engine/shell.ts`) rather than a
-  canvas, so `new Game(() => headlessShell())` constructs and STEPS under node.
+  one-liners. The player, an AI and a replay are the same interface —
+  `commandsFor()` plus `runCommand()` is the whole path, and `{ pressed, held }`
+  is all a driver needs. It is in the purity block, and `npm test` asserts what
+  keys do (the ⇧ modifiers, one command per frame, the confirmation swallowing
+  everything). The docking computer is the remaining holdout on the flight side
+  — it asks for a HEADING rather than a rate, and still steers on top.
+- **The constructor needs no browser.** `Game` takes a `ShellFactory`
+  (`engine/shell.ts`) rather than a canvas, so `new Game(() => headlessShell())`
+  constructs and STEPS under node.
   `headlessShell()` is not a stub the tests tolerate — it is the proof the seam
   is real, and several test files build a whole Game on it. `npm test` also
   asserts `game.ts` names no DOM API at all, because TypeScript will not: the
@@ -188,9 +171,11 @@ play.html                 the game — and the ? help panel, whose key rows are
 index.html                the landing page: no game bundle
 viewer.html               the AI combat viewer — every row flies a shipped
                           brain or a stated control, and nothing else
-gallery.html              all 38 released hulls. Its own page since TODO 57:
-                          the two were one page with a `G` between them, so
-                          /viewer opened on the gallery
+gallery.html              all 38 released hulls, on its own page (docs/TODO/57)
+                          rather than sharing /viewer
+encyclopaedia.html        all 256 worlds of galaxy 1: economy, government, tech,
+                          species and a description each. Built with every entry
+                          already in the document, so it reads with no JavaScript
 manual.html / novella.html   the long-form text pages
 src/
   main.ts                   boot: new Game((scene) => browserShell(canvas, scene))
@@ -254,24 +239,35 @@ src/
                             authored opposition into an arena
     population.ts           how busy a system is when you arrive
     encounters.ts           what turns up later: traders, pirate waves, drones
-    npc.ts                  NPC ships: scripted behaviour + trained-brain flight
+    npc.ts                  NPC ships: behaviour matrix + hand-written pilots
+                            (pursuit/attack-run), with a dormant trained-brain socket
     npc-targeting.ts        who hunts whom among the NPCs
     break-off.ts            how close a hostile lets itself get before it turns
                             away, how far it runs out before coming back, and
-                            where a trained pilot hands the flying over — ONE
+                            where the pilot hands the flying over — ONE
                             distance, shared by npc.ts and brains.ts, and
                             breaking off does not hold fire
+    attack-run.ts           the three-phase run as a shipless decision: where
+                            to point the nose and how fast to fly, composed
+                            from break-off/pass-aim/extend-arc/tactics — flown
+                            by npc.ts and by the scripted co-pilot
     pass-aim.ts             where the closing leg AIMS: beside the target, and
                             ahead of it. The miss distance, the lead and the
                             stretch that makes a run pass by what it meant to
     extend-arc.ts           the curve the run-OUT flies, so the turn-around and
                             the run out overlap instead of being sequential
-    tactics.ts              the VOCABULARY: four named ways of flying that one
+    constants/tactics.ts    the VOCABULARY: four named ways of flying that one
                             run, each a set of three of the numbers above, with
                             the sweep that chose them
     tactic-choice.ts        the CHOICE: which of them a hull can physically
                             execute, which one it takes, and what makes a ship
                             change its mind mid-fight
+    separation.ts           keeping wingmen out of each other's way: one vector
+                            out of two positions, bending the closing aim and
+                            steering the pass when a mate is too close
+    pursuit.ts              the pursuit dogfighter's shipless decisions: the
+                            gun-range standoff speed and the break-off, shared
+                            by the combat computer (co-pilot) and the pirates
     ship-specs.ts           the roster: which hull flies which role, and its
                             stats — all of them Harmless's, none copied from
                             the pack
@@ -295,8 +291,9 @@ src/
     damage-dealt.ts         the OTHER direction: the four things you can hurt a
                             ship with, and the one function that spends them and
                             reports what came off its bank
-    brains.ts               the nine trained policies, loaded — and the two
-                            flight numbers that come with each
+    brains.ts               the loader that turns a name into a policy — and
+                            today it imports no weights, so every name resolves
+                            to null and the code pilots fly instead
     brain-names.ts          WHICH policy flies, by name, given a
                             BrainSelection — the rule the ship, the
                             trainer's report and both pickers all read,
@@ -319,13 +316,27 @@ src/
                             plus launchNpcMissile, the one home for "an NPC
                             spent a round", over an OrdnanceWorld a training
                             episode can supply as easily as the World can
+    missile-launch.ts       the pure "when a missile leaves the rail" — the
+                            launch decision that precedes ordnance.ts's flight,
+                            split off gunnery.ts's laser at the seam
     systems.ts              the commander's three 255-point banks, what a hit
                             costs them, how they recharge (Harmless policy on
                             the oracle's tick clock), laser heat, cabin temp
                             and what a hull breach wrecks. The numbers are
                             src/constants/ — pools, recharge, sun, hull-breach
     collisions.ts           who is overlapping whom, and how to separate them
-    combat-computer.ts      the defence brain flying the PLAYER's ship
+    combat-computer.ts      the TRAINED-brain seat of the combat computer,
+                            flying the PLAYER's ship — dormant while no weights
+                            load, so the scripted co-pilot flies instead
+    scripted-co-pilot.ts    the scripted combat computer: a PURSUIT DOGFIGHTER
+                            flying YOUR ship — gets on the target's six and
+                            shoots, and this is what the co-pilot flies today
+    pitch-roll-steer.ts     bank-to-turn: pointing the commander's yaw-less nose
+                            at a place with pitch and roll alone, as stick
+                            commands the same ramp a human's keys feed
+    threat-lock.ts          which threat a defending ship fights: the nearest,
+                            but committed to — one home for the co-pilot, the
+                            armed trader and the training target
     autopilot.ts            is something else flying, and what does it want?
 
     combat-sim.ts           the training exercise: a real fight that costs
@@ -348,6 +359,10 @@ src/
                             simulator leaves it"
 
     law.ts                  contraband, fines, and how far your standing falls
+    character.ts            your reputation for dirty dealing: the name a
+                            disrepute score earns, and how a deed or a quiet
+                            week moves it — the one home, as rating.ts owns the
+                            combat ladder and law.ts your legal standing
     contracts.ts            work on offer, taking it, being paid for it,
                             market pressure and hermit prices
     threat.ts               who is worth robbing: what a pirate can SEE, the
@@ -424,6 +439,10 @@ src/
   galaxy/navigation.ts      chart distances and jump costs — the 1984 metric
   galaxy/living.ts          256 systems trading while you are elsewhere
   galaxy/goatsoup.ts        the original's planet-description grammar
+  galaxy/descriptions.ts    an OPTIONAL second paragraph beside the goat-soup
+                            line — generated offline by a model, committed as
+                            JSON, and a missing entry is normal (docs/TODO/58)
+  galaxy/descriptions/galaxy-1.json   that overlay for galaxy 1
 
   audio.ts                  every sound, behind one guarded AudioContext
   manual.ts                 the manual page's script: both key tables,
@@ -467,11 +486,12 @@ src/
   ai-training/              neural policies + the scenarios they train in
     policy.ts               tiny MLP: what shape a genome is, and running one
     observation.ts          the four encoders and the choice between them —
-                            solo 14, defend 17, pack 18, pack-wide 26
+                            solo 13, defend 29, pack 17, pack-wide 25
     scenario.ts             Episode: pirates vs trader, on the REAL engine —
                             shared by trainer, tournament and viewer
-    brains/*.json           trained weights, committed — EXACTLY the three the
-                            game flies, and `npm test` fails on a fourth
+    brains/*.json           the socket for trained weights — empty today (only
+                            a .gitkeep), and `npm test` holds the directory to
+                            exactly what brains.ts imports (nothing, now)
   viewer/stage.ts           canvas, camera, bloom and starfield: what the two
                             dev pages share, and all they share
   viewer/main.ts            the combat viewer's page: episodes, and the table
@@ -479,6 +499,18 @@ src/
   viewer/gallery-main.ts    the gallery's page, and the gallery's keys
   viewer/gallery.ts         all 38 released designs, labelled, with radii
   viewer/viewer.css         the chrome both dev pages wear
+
+  encyclopaedia/            the 256-world reference page (encyclopaedia.html)
+    main.ts                 the page: chart, filter rail and detail panel,
+                            enhancing a document already complete without it
+    chart.ts                the 256-world map: a canvas, a pan, a zoom, a hit
+                            test — NOT the game's chart, and sharing only the seed
+    entry.ts                one world's data and its markup — `entryHtml()` runs
+                            in Node (the static index) and the browser (the
+                            panel), so there is no SEO copy to drift
+    filters.ts              which worlds the rail shows: pure, a filter and a
+                            list in, a set of slugs out
+    encyclopaedia.css       the page's chrome
 
 test/harness.ts             check(), the counters and the shared fixtures
 test/*.test.ts              invariant + unit tests, one file per subsystem
@@ -508,9 +540,8 @@ train/evolve.ts             neuroevolution trainer
 train/selection.ts          WHAT A CHAMPION IS CHOSEN BY: the outcome per
                             phase, the shaping term and the stated ratio
                             between them — its own file because the rule has
-                            to be assertable (test/selection.test.ts), and it
-                            was two expressions inside a script that trains on
-                            import (docs/TODO/65)
+                            to be assertable (test/selection.test.ts,
+                            docs/TODO/65)
 train/evaluate.ts           held-out tournament — the validation gate
 train/flight-probe.ts       is it flying, or is it a turret? the SHAPE of a
                             brain's fight, not its score — measured by the
@@ -548,6 +579,12 @@ tools/portability.mjs       npm run portability — how much of src would move
 tools/sizes.mjs             npm run sizes — the 400-line ceiling and its
                             allowlist, each entry with a stated reason
 tools/coverage.mjs          npm run coverage — what the tests never touch
+tools/generate-descriptions.ts   npm-run offline generator for galaxy/
+                            descriptions/*.json, via the Message Batches API;
+                            --check is the non-writing drift gate
+tools/system-prompts.ts     builds the extended-description prompt for every
+                            system in a galaxy — reproducible from the seeds
+tools/species-prompts.ts    builds the inhabitant image prompts the same way
 reference/elite-a/          the vendored pack, verbatim, plus its manifest
 docs/                       you are here
 docs/ELITE-A.md             the reference catalogue: its provenance hash, the
@@ -586,9 +623,9 @@ coastlines, sun bearing, station orbit) also derive from the seed, in
 A hull is explicit `vertices`, `edges` and `faces`, the same style as the
 original BBC data and **the same convention: +Z is the nose**. three.js flies
 down **−Z**, so `buildShip()` turns the def by a **half turn about Y** —
-negating x and z. That used to be a Z mirror alone, which is identical for a
-left/right symmetric hull and a mirror image for anything else; eight of the
-38 released designs are asymmetric, so it is a rotation now.
+negating x and z. It must be a rotation, not a Z mirror alone: a mirror is
+identical for a left/right symmetric hull but a mirror image for anything else,
+and eight of the 38 released designs are asymmetric.
 
 The hulls themselves are **generated, not written**. `ships/elite-a-hulls.ts`
 converts the released tables in `game/elite-a/geometry.generated.ts`, and
@@ -633,25 +670,21 @@ returns `'back'`; the host pops the stack.
 
 That split is what makes the rules testable without a browser, and it is the
 answer to the recurring bug in this codebase: **one rule with two homes, kept
-in step by hope.** That single failure mode produced NPCs firing 5.4x faster in
-training than in the game (undetected for six training rounds), four separate
-implementations of the chart distance metric, and the player's damage model
-living in a *comment* in `train/survivability.ts` — the harness every balance
-figure in this project is quoted from. Prefer deleting a duplicate to writing a
-test that two copies still agree.
+in step by hope.** Prefer deleting a duplicate to writing a test that two copies
+still agree.
 
 Screens (`ui/screens.ts`) are pure render functions over DOM, routed by
 `ui/screen-host.ts`; the HUD (`hud/hud.ts`) is a dumb painter fed one state
 object per frame, computed by `hud/hud-model.ts`.
 
 **Still mixed up in game.ts**, and worth knowing before you go looking: laser
-fire, spawning, and the hyperspace *transition*. The flight loop has moved to
-`world-step.ts`, the save to `persistence.ts` and the docking/launch transitions
-to `station.ts`, and all three run headless. Nothing blocks a browser-free
-`Game` any more: the constructor asks for a `ShellFactory`, not a canvas, so
-the renderer and the DOM listeners are `browser-shell.ts`'s and `game.ts` names
-no DOM API at all. The command keys were never part of it either —
-`controls.ts` reads an input interface, not a browser.
+fire, spawning, and the hyperspace *transition*. The flight loop lives in
+`world-step.ts`, the save in `persistence.ts` and the docking/launch transitions
+in `station.ts`, all three headless. Nothing blocks a browser-free `Game`: the
+constructor asks for a `ShellFactory`, not a canvas, so the renderer and the DOM
+listeners are `browser-shell.ts`'s and `game.ts` names no DOM API at all. The
+command keys are not part of it either — `controls.ts` reads an input interface,
+not a browser.
 
 Two intentional oddities inside it:
 
@@ -663,22 +696,35 @@ Two intentional oddities inside it:
   on the local −Z face (`stationDockZ` differs between Coriolis and Dodo),
   plus a roll-alignment test against the slot's long axis.
 
-### 4. NPCs: scripted behaviours with trained brains grafted on
+### 4. NPCs: scripted behaviours, flown by hand-written pilots
 
 `game/npc.ts` has a behaviour matrix (traders arrive/trade/depart, pirates
 hunt in packs, police enforce, hunters stalk offenders, Thargons swarm).
-Two roles fly with **trained neural policies** instead of the scripted
-steering: pirates attacking the player (`pirate-attack-g3`, and
-`pirate-pack-r4-selectonly` for an organised gang) and armed traders defending
-themselves (`jameson-defend-g2`). `game/brain-names.ts` decides which name flies
-for whom and `game/brains.ts` turns that name into weights, so the ship and the
-combat trainer's report cannot disagree; `npm test` reads those files rather than
-a list. `brainFly()` runs the MLP at 10 Hz and integrates its discrete
-keyboard-style controls with the same ramp the player's ship uses. It is public,
-because a training episode flies a candidate genome through it — one flight
-model, one place. Six more policies are in the bundle and none of them fly until
-they are picked: `__game.state.brains.scripted = true` from a console, or the
-LIVE BRAINS row on the combat trainer's setup panel (`T` at any station).
+Every pilot is **hand-written code** — no neural policy ships. `game/brains.ts`
+imports no weights, so every name resolves to null and the `'brain'` flight
+path in `npc.ts` is a dormant socket, never taken today. `game/brain-names.ts`
+decides which named pilot flies for whom, so the ship and the combat trainer's
+report cannot disagree; `npm test` reads those files rather than a list.
+
+Three code pilots, and that is the whole list:
+
+- **`pursuit`** — the shipped opposition. Pirates attacking the player fly the
+  pursuit dogfighter: it chases onto the commander's six and holds there,
+  breaking into the attack run's slashing pass the moment the nose comes onto
+  it (`game/pursuit.ts`, `game/npc.ts`'s `pursue`).
+- **`attack-run`** — the defence slots. The player's combat computer and an
+  armed trader turning to fight both fly the hand-written three-phase run —
+  close, fire through the pass, extend and come round (`game/attack-run.ts`,
+  `game/scripted-co-pilot.ts`).
+- **`scripted`** — the A/B control. It reverts the whole game to the plain
+  three-phase attack run for pirates and defence alike, kept for the LIVE
+  BRAINS row: `__game.state.brains.scripted = true` from a console, or the row
+  on the combat trainer's setup panel (`T` at any station).
+
+The trained line no longer ships (docs/TRAINING-LOG.md runs 20-21 for why:
+three retrains optimised their way out of fighting). `brainFly()` still exists,
+public, as the seat a future candidate genome re-enters through — one flight
+model, one place — but nothing fills it now.
 
 ### 5. Training runs on the game, not on a copy of it
 
@@ -689,29 +735,18 @@ flown from a `FlightDemand`, the guns are `game/gunnery.ts`, the ramming is
 Node runs it with no canvas and no WebGL; the browser viewer replays the same
 episodes.
 
-It used to be a **copy** — `ai-training/core.ts`, ~450 lines with its own
-vec/quat maths, its own PRNG, and tables mirroring ship-specs.ts, gunnery.ts,
-collisions.ts and player.ts — and the contract was "change one, change the
-other". That contract failed three times in ways that took a training round
-each to notice: an NPC gun 5.4x too fast, a player model at accel 120 against
-the real 220, and a turn decay 35% out at the two files' step rates. **A
-combat number now has one home**, so a balance change changes the game and the
-training environment together — which also means it invalidates the shipped
-brains rather than merely desyncing them. Retrain; do not re-copy.
-
 What is genuinely about training stays here: the fitness functions, the
 opponent pool, the escape range, and the observation encoder. The policies'
 observation is ship-frame relative (`policy.ts` docstring), which is what makes
 them position/orientation invariant.
 
-The claim held for the DECISION half of combat and did not hold for the
-RESOLUTION half, which is invariant 15's other side: `world-step.ts` and
-`scenario.ts` were two implementations of "an NPC fired, now what". They had
-diverged on the weapon, the missile rack and shield regeneration, and nothing
-would have said so — 63 closed the regeneration, **62 closed the missiles**, and
-**docs/TODO/64 closed the class**.
+A combat number has one home, so a balance change moves the game and the
+training environment together — which also means it invalidates the shipped
+brains rather than merely desyncing them. Retrain; do not re-copy.
 
-There is now ONE resolver, `game/fire-resolution.ts`, and both callers call it.
+Resolution — "an NPC fired, now what" — is invariant 15's other side, and it
+has one home too (docs/TODO/64): the resolver `game/fire-resolution.ts`, which
+both `world-step.ts` and `scenario.ts` call.
 It owns the four things that decide a fight — spend the round, roll the hit,
 choose the damage, push it into the target — over a `FireWorld` of four members:
 which hull the target is, where it is, what a hit does to it, and what to do with
@@ -741,8 +776,7 @@ completes a pass.
 
 `pirateThreat()` in `game/threat.ts` decides your reception from a **mark**
 — what a pirate can observe (cargo value, contraband, hold size, fitted laser,
-kills, regional notoriety). It returns a count, a *tier* and whether they're *organised* (which flies the
-coordinated pack brain). The tier describes the *group*, not every ship in it:
+kills, regional notoriety). It returns a count, a *tier* and whether they're *organised*. The tier describes the *group*, not every ship in it:
 `memberTier()` gives the first one or two members the full tier and drops the
 rest a rung, so a gang is ringleaders plus hangers-on. `ship-specs.ts` owns the
 hulls (`pirateSpecForTier`), `threat.ts` owns the rule — so the campaign
@@ -753,9 +787,9 @@ the prize, so the player outgrows the galaxy slowly rather than never.
 
 Reputation is deliberately two-sided. It lowers `appeal` (thieves want easy
 cargo, not a fight) but rolls a separate *challenge*: at Dangerous, ~35% of
-receptions are an organised group who came for the name. Folding fame straight
-into the tier instead made 99% of late-game receptions gangs, which erased the
-ladder — it has to roll, not accumulate.
+receptions are an organised group who came for the name. It has to roll, not
+accumulate — folding fame straight into the tier makes almost every late-game
+reception a gang and erases the ladder.
 
 Because it lives in threat.ts, `npm run campaign` scores the same function
 the game uses; it reports the tier mix and whether threat actually tracks

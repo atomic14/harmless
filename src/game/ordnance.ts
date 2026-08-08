@@ -1,27 +1,17 @@
 // Missiles, E.C.M. and the energy bomb — everything that is not the laser.
 //
 // This file owns missiles IN FLIGHT: spawn, homing, E.C.M. defeat, impact. It
-// does NOT decide who launches one — whether an NPC reaches for a missile
-// rather than its laser is `npcMissileEmergency` in `missile-launch.ts`, not
-// gunnery.ts, applied by `NpcShip.chooseWeapon`, which reports the launch in
-// its FireEvent; `launchNpcMissile` below spends the round and puts the warhead
-// in the sky. "Ordnance" and "gunnery" are both
-// period-correct words for the same thing, so this pointer is here because
-// anyone hunting a missile rule starts in this file.
+// does NOT decide who launches one — that is `npcMissileEmergency` in
+// `missile-launch.ts`, applied by `NpcShip.chooseWeapon`; `launchNpcMissile`
+// below spends the round and puts the warhead in the sky. It owns the target
+// lock too, since that is its state and nothing else writes it.
 //
-// One subsystem, previously eight methods scattered through game.ts between
-// docking and the trumbles. It owns the missiles in flight and the target
-// lock, because those are its state and nothing else writes them.
+// The numbers — the seeker's envelope, the E.C.M.'s reach and price, the
+// bomb's radius — are constants/ordnance.ts.
 //
-// The numbers — the seeker's envelope, the E.C.M.'s reach and its price, the
-// bomb's radius — are constants/ordnance.ts, one file for both halves of the
-// weapon, and that is where the reasoning behind each of them lives.
-//
-// Follows the house rule: it decides and reports, the Game applies. A missile
-// reaching its target returns a `hit` for the Game to bill, because
-// destroying a ship pays a bounty, moves your legal status and can scramble
-// the station's Vipers — consequences an ordnance module has no business
-// deciding.
+// House rule: it decides and reports, the Game applies. A missile reaching its
+// target returns a `hit` for the Game to bill, because destroying a ship pays a
+// bounty, moves your legal status and can scramble the station's Vipers.
 
 import * as THREE from 'three';
 import { buildShip } from '../ships/geometry.ts';
@@ -50,13 +40,10 @@ export interface Missile {
 /**
  * What the Game has to act on after a step.
  *
- * A warhead reaching something REPORTS THE IMPACT and no longer carries a
- * number. It used to say `damage: 1.3` — a normalized literal, and the last
- * damage figure in the project written where the thing that spends it could not
- * see the scale — and `killed` was worse: an ordnance module deciding a ship was
- * destroyed, which is a consequence (a bounty, a legal status, a contract tick)
- * and therefore the Game's. What a warhead is worth is `IMPACT.warhead` in
- * constants/impact.ts, and the step spends it like any other hit.
+ * A warhead reaching something REPORTS THE IMPACT and carries no number:
+ * whether a ship is destroyed is a consequence (a bounty, a legal status, a
+ * contract tick) and therefore the Game's. What a warhead is worth is
+ * `IMPACT.warhead` in constants/impact.ts, and the step spends it like any hit.
  */
 export type OrdnanceEvent =
   /** a missile reached an NPC — the Game applies the warhead and bills what follows */
@@ -69,11 +56,8 @@ export type OrdnanceEvent =
   | { kind: 'expired'; at: THREE.Vector3 };
 
 /**
- * What a command did, for the Game to say out loud.
- *
- * This replaced a `message()` callback in a context interface. The callback
- * was the only thing here shaped like its caller: it meant ordnance could not
- * be used, or tested, without something that owned a HUD.
+ * What a command did, for the Game to say out loud. A value rather than a
+ * `message()` callback, so ordnance can be used and tested without a HUD.
  */
 export type OrdnanceReply =
   | 'noMissiles' | 'alreadyLocked' | 'armed' | 'unarmed' | 'locked'
@@ -134,12 +118,9 @@ export function ordnanceMessage(r: OrdnanceReply): { text: string; seconds: numb
  * A sky, as much of one as ordnance needs: somewhere to put a warhead, and the
  * ships there are to lock onto or catch.
  *
- * `World` satisfies it and is the only thing in the game that does. It exists
- * because a TRAINING EPISODE is a sky too — a fleet and a target, with nothing
- * to draw into — and the missile model must not be written a second time for it
- * (docs/TODO/62). Same bargain as `engine/shell.ts`, `game/storage.ts` and
- * `sun.ts`: attaching a mesh to nothing is inert, not broken, because nothing
- * here reads the scene back. A missile's position is its own.
+ * `World` satisfies it; so does a TRAINING EPISODE, so the missile model is not
+ * written twice. Attaching a mesh to nothing is inert, not broken — nothing
+ * here reads the scene back, a missile's position is its own.
  */
 export interface OrdnanceWorld {
   attach(object: THREE.Object3D): void;
@@ -150,14 +131,9 @@ export interface OrdnanceWorld {
 /**
  * An NPC spends a round, and it leaves the rail.
  *
- * ONE HOME for what a missile `FireEvent` MEANS, because there are two
- * resolvers — `world-step.ts` for the game and `ai-training/scenario.ts` for the
- * trainer — and the trainer's had neither half of this: it spent no round and
- * launched no missile (docs/TODO/62). The pair is a rule, not presentation, so
- * neither resolver may own it. It was the first slice of docs/TODO/64, which has
- * since closed the rest: the laser's dice, its damage and the shield face it
- * lands on live in `fire-resolution.ts`, and this is the call its missile branch
- * makes.
+ * ONE HOME for what a missile `FireEvent` MEANS — spend the round, launch the
+ * missile — because two resolvers (`world-step.ts` and `ai-training/
+ * scenario.ts`) call it, and the pair is a rule, not presentation.
  */
 export function launchNpcMissile(npc: NpcShip, ordnance: Ordnance): OrdnanceOutcome {
   npc.state.missiles -= 1;
@@ -167,12 +143,9 @@ export function launchNpcMissile(npc: NpcShip, ordnance: Ordnance): OrdnanceOutc
 /**
  * WHO IS PRESSING IT — everything `triggerEcm` needs to know about the ship.
  *
- * `CommanderData` satisfies it structurally and is the only thing in the GAME
- * that does. It exists because a training episode's target is not a commander —
- * it is a hull id and a `ShipSystems` — and it must still carry the one piece of
- * equipment that answers a warhead (docs/TODO/72). Same bargain as
- * `OrdnanceWorld` above and `FireWorld` in fire-resolution.ts: the narrowest
- * surface the rule reads, implemented by the game and by the trainer.
+ * `CommanderData` satisfies it; so does a training episode's target (a hull id
+ * and a `ShipSystems`), which must still carry the one fitting that answers a
+ * warhead. The narrowest surface the rule reads, as with `OrdnanceWorld`.
  */
 export interface EcmFit {
   readonly equipment: { readonly ecm: boolean };
@@ -181,13 +154,10 @@ export interface EcmFit {
 /**
  * The E.C.M. is pressed: the rule AND the price, in one call.
  *
- * The price was the orchestrator's — `game.ts` read the reply and took
- * `ECM_ENERGY_COST` off the bank — which was fine while there was one
- * orchestrator. There are two (`world-step.ts` and `ai-training/scenario.ts`)
- * and every rule split across them has drifted (docs/TODO/64), so the burst and
- * its price travel together and the caller's job is what it was: say the reply
- * and play the sound. Spent ONLY on `ecmFired` — a refusal costs nothing, which
- * is what makes an autopilot's hopeful press harmless rather than suicidal.
+ * The burst and its price travel together so the two orchestrators
+ * (`world-step.ts` and `ai-training/scenario.ts`) cannot drift; the caller only
+ * says the reply and plays the sound. Spent ONLY on `ecmFired` — a refusal
+ * costs nothing, which makes an autopilot's hopeful press harmless.
  */
 export function fireEcm(
   fit: EcmFit, sys: { energy: number }, ordnance: Ordnance,
@@ -201,16 +171,10 @@ export function fireEcm(
  * Does an AUTOPILOT press it this frame? What the policy asked for, gated on
  * there being a warhead to answer.
  *
- * The twin of the gun gate in `NpcShip.brainFly` — "the brain decides where to
- * be, the gun decides when to shoot" — for the same two reasons. Whether
- * anything is in the sky is the world's fact, not the policy's guess; and the
- * trainer re-decides every step where the combat computer re-decides at 10 Hz,
- * so ungated the two worlds would spend a different number of bursts per
- * warhead — a second physics wearing a button. Gated it is one either way,
- * because a successful burst empties the sky.
- *
- * It does not stop a HUMAN wasting one on an empty sky: that is the player's
- * key and the player's bank to spend. It stops a co-pilot doing it.
+ * The twin of the gun gate in `NpcShip.brainFly` — the world's fact, not the
+ * policy's guess — so the trainer and the 10 Hz combat computer spend the same
+ * number of bursts per warhead rather than a second physics wearing a button.
+ * It does not stop a HUMAN wasting one on an empty sky; it stops a co-pilot.
  */
 export function autopilotEcm(policyWantsIt: boolean, missileInbound: boolean): boolean {
   return policyWantsIt && missileInbound;
@@ -302,8 +266,8 @@ export class Ordnance {
       return outcome('noEcm');
     }
     // `<=`, so the burst can never spend the LAST point: a bank at exactly 0
-    // with the ship still flying is a state nothing else in the model can
-    // reach, and it used to make an absorbed hit read as a kill (TODO 48).
+    // with the ship still flying is a state nothing else in the model reaches,
+    // and it would make an absorbed hit read as a kill.
     if (energy <= ECM_ENERGY_COST) {
       return outcome('noEnergy');
     }
@@ -314,12 +278,10 @@ export class Ordnance {
   /**
    * Is a hostile missile already homing on the player?
    *
-   * `target === null` IS what makes a missile hostile — see the field. Asked by
-   * the world step so an NPC can be told, through its `WorldView`, that the air
-   * is already occupied: one at a time, gang-wide, so a single E.C.M. press
-   * remains a complete answer. It reads the list rather than keeping a count,
-   * because the list is the truth and a counter beside it would be a second
-   * home for the same fact.
+   * `target === null` IS what makes a missile hostile. Asked by the world step
+   * so an NPC can be told, through its `WorldView`, that the air is occupied:
+   * one at a time, gang-wide, so a single E.C.M. press is a complete answer.
+   * Reads the list rather than keeping a count — the list is the truth.
    */
   get missileInbound(): boolean {
     return this.missiles.some((m) => m.target === null);
@@ -327,10 +289,9 @@ export class Ordnance {
 
   /**
    * WHERE the hostile warhead is, or null when the sky is clear — the same
-   * `target === null` test as `missileInbound`, returning the missile instead
-   * of the fact of it. The defence policy observes its bearing
-   * (`observeDefend` slots 24-26); the cap of one hostile missile in the air
-   * is what lets a single position be the whole answer.
+   * `target === null` test as `missileInbound`, returning the missile. The
+   * defence policy observes its bearing (`observeDefend` slots 24-26); the cap
+   * of one hostile missile in the air lets a single position be the answer.
    */
   get hostileMissilePos(): THREE.Vector3 | null {
     const m = this.missiles.find((m) => m.target === null);

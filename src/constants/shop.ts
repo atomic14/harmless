@@ -1,45 +1,28 @@
 // The shop: what things cost.
 //
-// Prices in tenths of a credit (invariant 8). The rules that spend them —
-// what refuelling costs right now, whether you already own a thing, the
-// trade-in arithmetic — are game/shop.ts and game/screens/trade.ts.
-//
-// The catalogue is Harmless's price list, stated as ours: most rows carry
-// the 1984 outfitter's figures, and the ones that do not (the mining laser,
-// the combat computer, the trumble) are this game's own additions.
+// Prices in tenths of a credit (invariant 8). The rules that spend them are
+// game/shop.ts and game/screens/trade.ts. Most rows carry the 1984 outfitter's
+// figures; the mining laser, combat computer and trumble are this game's own.
 
 import { LARGE_BAY_TONNES } from './commander.ts';
 
 /**
- * What refuelling costs, in tenths of a credit per tenth of a LY.
- *
- * It lived as a bare `* 0.4` inside `equipRows` in ui/screens.ts — a pricing
- * rule in the render layer, in a codebase whose own CLAUDE.md says that layer
- * is pure rendering — and had been copied into test/campaign.ts,
- * train/jameson-autopilot.js and docs/GAP-ANALYSIS.md. Four homes, none of
- * them a shop. `test/economy.test.ts` still greps all four clean.
- *
- * Deliberately 2x the 1984 manual's implied 0.2 — see docs/GAP-ANALYSIS.md.
+ * What refuelling costs, in tenths of a credit per tenth of a LY. The single
+ * home for the rule. Deliberately 2x the 1984 manual's implied 0.2 — see
+ * docs/GAP-ANALYSIS.md.
  */
 export const FUEL_PRICE = 0.4;
 
 /**
- * What a pulse laser costs, wherever it is mounted — and therefore what one
- * is worth as a trade-in.
- *
- * The fore pulse laser is the starting gun, so the shop has no row selling
- * one; the three side-mount rows below sell the same gun on another mount at
- * this price, and the laser upgrade path refunds the old gun at what it cost
- * (game/screens/trade.ts, "as per the manual"). Those were four bare 4000s
- * that happened to agree. The Large Cargo Bay is ALSO 4000 and is not this
- * rule — a coincidence of the price list, left as a literal in its row.
+ * What a pulse laser costs, wherever it is mounted — and therefore its trade-in
+ * value: the laser upgrade path refunds the old gun at what it cost. The Large
+ * Cargo Bay is also 4000 but is not this rule, left a literal in its row.
  */
 export const PULSE_LASER_PRICE = 4000;
 
 /**
- * The beam laser's price — named beside `PULSE_LASER_PRICE` because the
- * trade-in reads it too: upgrading beam-to-military refunds what the BEAM
- * cost. `test/trade.test.ts` holds both refunds against the catalogue.
+ * The beam laser's price — named beside `PULSE_LASER_PRICE` because the trade-in
+ * reads it too: upgrading beam-to-military refunds what the beam cost.
  */
 export const BEAM_LASER_PRICE = 10000;
 
@@ -52,11 +35,9 @@ export interface EquipItem {
 }
 
 /**
- * The outfitter's shelf, in the order the screen lists it.
- *
- * The Large Cargo Bay's label interpolates `LARGE_BAY_TONNES` so the shelf
- * cannot advertise a bay the game does not fit (the survey's four-home cargo
- * capacity, unified in `commander.ts`).
+ * The outfitter's shelf, in the order the screen lists it. The Large Cargo Bay
+ * label interpolates `LARGE_BAY_TONNES` so it cannot advertise a bay the game
+ * does not fit.
  */
 export const EQUIPMENT_CATALOGUE: EquipItem[] = [
   { id: 'missile', name: 'Missile', price: 300, minTL: 1 },

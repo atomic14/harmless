@@ -1,22 +1,19 @@
 // What the combat trainer sends at you, and when it stops sending it.
 //
-// The rules half of the training simulator (docs/COMBAT-SIM.md). Two questions
-// live here and nothing else does:
+// The rules half of the training simulator (docs/COMBAT-SIM.md). Two questions:
 //
-//   1. WHO you fight — the seven scenarios, as a table rather than seven code
-//      paths, plus the wave ramp (which ramps twice: the numbers, and then the
-//      fight) and the live "as they come" reception.
+//   1. WHO you fight — the seven scenarios as a table, plus the wave ramp and
+//      the live "as they come" reception.
 //   2. WHETHER the round or the exercise is finished — `nextOpposition()` and
 //      `roundOutcome()`, which is the whole of the three modes.
 //
 // Pure: no DOM, no World, no three.js, no brain files. It describes opposition
 // as data — role, count, tier, which brain, what fit — and the session spawns
-// it. The rng is injectable and defaults to the world's seeded stream, the way
-// encounters.ts, population.ts and contracts.ts do, so a test can drive it.
+// it. The rng is injectable and defaults to the world's seeded stream, so a test
+// can drive it.
 //
-// It owns no hulls. There is exactly one roster (ship-specs.ts) and one rule
-// for who is a ringleader (contracts.ts `memberTier`), and the live game reads
-// both; a second copy here is the bug class this codebase keeps paying for.
+// It owns no hulls: one roster (ship-specs.ts) and one rule for who is a
+// ringleader (contracts.ts `memberTier`), which the live game also reads.
 
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import {
@@ -61,61 +58,48 @@ export const OPPOSITION_ROLES: readonly OppositionRole[] =
 /**
  * Which policy an opponent flies, named rather than loaded.
  *
- * A string, not a `Brain`: this module stays pure and the report needs the
- * NAME anyway — "won against g3, lost against e1" is the whole point of the
- * A/B rig, and a weight matrix does not export. The session resolves the id to
- * the loaded policy.
+ * A string, not a `Brain`: this module stays pure and the report needs the NAME
+ * anyway — "won against g3, lost against e1" is the point of the A/B rig. The
+ * session resolves the id to the loaded policy.
  *
- * `scripted` is the pre-neuroevolution AI, i.e. `window.__scriptedPirates` made
- * a per-opponent choice instead of a global flag. It is the baseline every
- * training run is measured against.
+ * `scripted` is the pre-neuroevolution AI, a per-opponent choice instead of a
+ * global flag, and the baseline every training run is measured against.
  *
- * The union itself is `brain-names.ts`'s `BrainName` — every policy the game
- * loads, plus the scripted AI — because the character lines have to cover
- * exactly the same list and a second copy of it would drift. It used to be one
- * name WIDER than that (`pirate-attack-g1`, offered and then refused on the
- * record); TODO 57 deleted the weights and with them the reason for the gap.
+ * The union is `brain-names.ts`'s `BrainName` — every policy the game loads plus
+ * the scripted AI — because the character lines cover the same list and a second
+ * copy would drift.
  */
 export type BrainId = BrainName;
 
 /**
  * The brains the live game flies, DERIVED — ask the rule, do not restate it.
  *
- * These used to be three literals, and the literals were wrong the moment a
- * career set `state.brains`. They are what `brain-names.ts` answers for the
- * shipped selection, so promoting a candidate moves them without an edit here,
- * and `npm test` still checks that the names brains.ts imports are these.
+ * What `brain-names.ts` answers for the shipped selection, so promoting a
+ * candidate moves them without an edit here, and `npm test` checks that the
+ * names brains.ts imports are these.
  */
 export const SHIPPED_SOLO_BRAIN: BrainId = pirateBrainNameFor(0, false, SHIPPED_BRAINS);
 export const SHIPPED_PACK_BRAIN: BrainId = pirateBrainNameFor(0, true, SHIPPED_BRAINS);
 export const SHIPPED_DEFENCE_BRAIN: BrainId = defenceBrainNameFor(SHIPPED_BRAINS);
 
 /**
- * Every brain the picker may choose, in the order it should be listed: the three
- * the game ships, and then the control.
+ * Every brain the picker may choose, in listed order: the ones the game ships,
+ * then the control.
  *
- * It was eleven, and seven of those were experiments the game loaded and did not
- * fly. `scripted` is the one entry here that is not a shipped policy and it is
- * not a rival to one either — it is the pre-neuroevolution AI, i.e. what the
- * game did BEFORE any of this, which is the comparison every training run in
+ * `scripted` is not a shipped policy and not a rival to one — it is the
+ * pre-neuroevolution AI, the comparison every training run in
  * docs/TRAINING-LOG.md is measured against. A future candidate joins this list
- * by having its weights put back and its name added, which is one row.
+ * by having its weights put back and its name added.
  *
- * There is no candidate today. `pirate-attack-e1` was one, restored to be
- * compared against the shipped solo policy, and TODO 61 deleted it: the job it
- * was a candidate for stopped existing when `d563e3d` made the scripted attack
- * run what ships for solo pirates and gangs alike. The rule it left behind is
- * BOTH PICKERS OR NEITHER — adding it to the career row and not here was a real
- * bug for the two commits it lasted, because the two pickers are separate lists
- * and the candidate could then only be flown from the fenced row that changes
- * the whole career, which is the one thing a scoped A/B must not touch.
+ * There is no candidate today. The rule it left behind is BOTH PICKERS OR
+ * NEITHER: a candidate in the career row but not here can only be flown from the
+ * fenced row that changes the whole career, which is the one thing a scoped A/B
+ * must not touch.
  */
 export const SIM_BRAINS: readonly BrainId[] = [
-  // Two entries, both code, and the shortness IS the record: the trained
-  // pirate policies left the bundle on 2026-08-05, and the trained defence
-  // line followed the same day (docs/TRAINING-LOG.md runs 20-21) — so every
-  // row is a pilot the game can actually load. `attack-run` is the shipped
-  // defence: the co-pilot, and what an armed trader turns and fights with.
+  // Two entries, both code, so every row is a pilot the game can actually load.
+  // `attack-run` is the shipped defence: the co-pilot, and what an armed trader
+  // turns and fights with.
   'attack-run',
   'scripted',
 ];
@@ -124,10 +108,8 @@ export const SIM_BRAINS: readonly BrainId[] = [
  * Which brain this role flies in the LIVE game under this selection, so an
  * exercise measures the game rather than a game we might have built.
  *
- * It does not mirror npc.ts — it asks the same function npc.ts asks
- * (`brain-names.ts`), which is the difference between agreeing and happening to
- * agree. This hardcoded the shipped ids and ignored the selection entirely, so a
- * career flying `state.brains.sharp = 'pro'` was reported as flying g3.
+ * It asks the same function npc.ts asks (`brain-names.ts`), which is the
+ * difference between agreeing and happening to agree.
  *
  * Only pirates reach the pirate rule (organised gangs get the pack policy,
  * everyone else the solo one), an armed trader turns and fights with the defence
@@ -169,10 +151,9 @@ export interface Opposition {
    * Fit FLOORS: at least this much, whatever the hull carries.
    *
    * A second pair rather than a reading of the pair above, because they are
-   * different claims and the picker needs the first one. `missiles: 0` from the
-   * custom picker means an unarmed ship and has to win over a hull that carries
-   * two; the wave ramp's "everyone is carrying a missile now" must NOT take the
-   * Python's second one away. One field cannot mean both.
+   * different claims: `missiles: 0` from the picker means an unarmed ship, and
+   * the wave ramp's "everyone is carrying a missile now" must NOT take a
+   * hull's second one away. One field cannot mean both.
    */
   minMissiles?: number;
   minEcm?: number;
@@ -332,11 +313,8 @@ export const SCENARIOS: readonly Scenario[] = [
     name: 'Lone bounty hunter',
     blurb: 'One bounty hunter, and it came for you.',
     tiered: false,
-    // No hull is named here: the seed picks one out of the roster's `hunter`
-    // list, which TODO 25 widened from two (Fer-de-Lance, Asp Mk II) to nine
-    // when the recovered designs arrived — and TODO 29 dropped the Asp Mk II
-    // from it entirely, because no released build of it can hurt a flyable
-    // hull. Naming the hulls in the blurb is how that went stale once already.
+    // No hull named here: the seed picks one out of the roster's `hunter` list.
+    // Naming hulls in the blurb is how that went stale once already.
     groups: [{ role: 'hunter', count: 1, tier: 1 }],
   },
   {
@@ -493,17 +471,11 @@ export function waveTier(n: number): number {
 
 // --- what a wave adds once the numbers have stopped -------------------------
 //
-// Wave 11 is six professionals in a gang, and until TODO 39 so was wave 40. The
-// argument for stopping the COUNT is still right — a ramp that keeps adding
-// ships makes the score a fact about arithmetic — but "harder" and "bigger" are
-// not the same axis, and only the second one had a ceiling on it.
-//
-// So past wave 11 the wave stops growing and starts CHANGING. Each step below is
-// one stated thing, it is a pure function of the wave number, and it is chosen
-// against the standard CLAUDE.md sets for the AI: it has to make the pilot fly
-// better, not make the fight longer. A wave that is harder because it is more
-// annoying is a failure, and two candidates were dropped on exactly that test —
-// see the note under `WAVE_STEPS`.
+// Past the count/tier ceiling the wave stops growing and starts CHANGING. Each
+// step below is one stated thing, a pure function of the wave number, chosen
+// against CLAUDE.md's standard for the AI: it has to make the pilot fly better,
+// not make the fight longer. A wave that is harder because it is more annoying
+// is a failure.
 
 /** Ships in a wave that are not pirates, taking a pirate's place in the count. */
 export interface WaveEscort {
@@ -536,21 +508,16 @@ export interface WaveStep {
 /**
  * The four steps, in order. Each is argued at its own entry.
  *
- * DROPPED, and why, because the list of what is not here is the more useful
- * half:
+ * DROPPED, because the list of what is not here is the more useful half:
  *
- *   * A HARDER RELEASED BUILD of the same hull — the first axis TODO 39 asked
- *     for, and it is already spent. `role-variants.ts` picks the hardest build
- *     the source ever filed as a pirate, so every pirate in the game is already
- *     flying it: the Sidewinder is `V:17` and not `D:17`, the Krait is `W:19`.
- *     There is nothing above it to escalate TO without either flying a build the
- *     source never filed as a pirate or inventing a number, and the second is
- *     forbidden by the fidelity contract. The axis is real; TODO 29 spent it.
- *   * MORE SHIPS, or a ship the count ramp would not have sent. That is the
- *     ceiling this deliberately does not raise.
- *   * A TIGHTER OPENING — starting the late waves inside their gun. It reads as
- *     being cheated rather than as being outclassed, and it would silently
- *     change what the attack-run count MEANS (combat-sim-opening.ts).
+ *   * A HARDER RELEASED BUILD of the same hull — already spent.
+ *     `role-variants.ts` picks the hardest build the source ever filed as a
+ *     pirate, so every pirate is already flying it; there is nothing above it to
+ *     escalate to without inventing a number, which the fidelity contract forbids.
+ *   * MORE SHIPS — the ceiling this deliberately does not raise.
+ *   * A TIGHTER OPENING — starting the late waves inside their gun reads as being
+ *     cheated, and would change what the attack-run count MEANS
+ *     (combat-sim-opening.ts).
  */
 export const WAVE_STEPS: readonly WaveStep[] = [
   {
@@ -595,11 +562,10 @@ export const WAVE_STEPS: readonly WaveStep[] = [
  * arithmetic. Quoted on the record and on the strip.
  *
  * DERIVED from the two things that decide it: four stated steps, two waves
- * apart. Two waves is the count ramp's own cadence and it is the point of the
- * spacing — you meet a new thing, and then you meet it again knowing it is
- * coming, which is the difference between learning it and being surprised by it
- * twice. Past the fourth step there is nothing left to add that is not simply
- * more ships, and more ships is the axis this ramp exists to have stopped.
+ * apart. Two waves is the count ramp's own cadence — you meet a new thing, then
+ * meet it again knowing it is coming, which is the difference between learning
+ * it and being surprised twice. Past the fourth step there is nothing to add but
+ * more ships, the axis this ramp exists to have stopped.
  */
 export const WAVE_SATURATION = waveOfStage(WAVE_STEPS.length);
 
@@ -658,8 +624,8 @@ export function waveEscalation(n: number): WaveEscalation {
  * Wave `n`, 1-based.
  *
  * Waves 1 to `WAVE_COUNT_SATURATION` are exactly what they always were — the
- * escort is empty and the fit floors are absent, so the group this returns is
- * the same object it returned before the steps existed.
+ * escort is empty and the fit floors absent, so this returns the same group it
+ * did before the steps existed.
  */
 export function waveOpposition(n: number, seed = 0): Opposition[] {
   const count = waveCount(n);

@@ -1,38 +1,24 @@
 // The screen router: which overlay is open, and who gets the keyboard.
 //
-// WHY THIS EXISTS
-//
-// Screen routing was a 232-line switch in game.ts over 13 modes, so adding a
-// screen meant editing four places (the Mode union, the switch, an openX()
-// method, and often the click handler) and every screen's keys lived in the
-// same function as every other screen's. Nothing could be worked on in
-// isolation.
-//
-// THE CONTRACT
-//
 // A screen owns its rendering, its keys and its own state, in one file, behind
 // two required methods. It never sets the mode, never touches the Game, and
 // never reaches for another screen: it returns an OUTCOME and the host acts on
-// it. That is the same discipline NpcShip follows with FireEvent, and it is
-// what makes a screen safe to develop — or review — on its own.
+// it — the same discipline NpcShip follows with FireEvent.
 //
-// FLIGHT IS NOT A SCREEN. The host handles overlays only. Flight is the game
-// running; `Game` keeps it, along with the docked and dead base states. The
-// mode you are in is the top of this stack, or the base state when it is
-// empty.
+// FLIGHT IS NOT A SCREEN. The host handles overlays only; `Game` keeps flight
+// and the docked/dead base states. The mode you are in is the top of this
+// stack, or the base state when it is empty.
 
-// NO PARAMETER PROPERTIES in this file or in any screen. `npm test` runs
-// under node's --experimental-strip-types, which rejects
-// `constructor(private readonly x)` — Vite compiles it happily, so the failure
-// only shows up in the test run. Assign fields explicitly instead; it is the
-// price of screens being unit-testable outside a browser.
+// NO PARAMETER PROPERTIES in this file or in any screen: `npm test` runs under
+// node's --experimental-strip-types, which rejects `constructor(private x)`
+// (Vite compiles it happily, so the failure only shows in the test run).
+// Assign fields explicitly instead.
 
 import type { Input } from '../engine/input.ts';
 
 /**
- * Every overlay in the game. One line per screen — deliberately the only
- * shared edit adding a screen requires, so two people adding two screens
- * conflict on one line rather than on a switch statement.
+ * Every overlay in the game. One line per screen — the only shared edit adding
+ * a screen requires, so two people adding two screens conflict on one line.
  */
 export type ScreenId =
   | 'market' | 'equip' | 'contracts' | 'status' | 'data'
@@ -61,17 +47,11 @@ export interface Screen {
   /**
    * A row was clicked (`data-row`). List screens implement this; the host
    * routes the click here so selection has ONE implementation.
-   *
-   * It used to have two — a key path and a parallel click path in game.ts —
-   * and they drifted: clicking a market row while trading at a rock hermit
-   * re-rendered with the system's name because only the key path knew where
-   * you were.
    */
   select?(row: number): void;
   /**
    * Continuous motion, given the frame's dt. Only screens with held-key
-   * behaviour need it — the charts move a cursor while an arrow is down,
-   * where every other screen acts on discrete taps.
+   * behaviour need it — the charts move a cursor while an arrow is down.
    */
   tick?(dt: number, i: Input): void;
   /**
@@ -86,15 +66,9 @@ export interface Screen {
  * Holds the stack, runs the menu cursor, turns clicks into input, and gives
  * one frame to whichever screen is on top.
  *
- * EVERY `ScreenId` has a registered `Screen`; `test/game.test.ts` builds a Game
- * and opens every id in the union to check it. This class used to carry a
- * second shape for the ids that had
- * not migrated yet — a nullable screen in the stack, a `handled` getter, and an
- * `update()` that could return "not mine, you deal with it" — and every one of
- * those has been unreachable since the last overlay moved. Opening an id with
- * nothing registered now throws, because the only way to reach it is to add a
- * `ScreenId` and forget the registration, and a screen that silently does
- * nothing is the worse failure.
+ * EVERY `ScreenId` has a registered `Screen`; `test/game.test.ts` opens every
+ * id in the union to check it. Opening an id with nothing registered throws —
+ * a screen that silently does nothing is the worse failure.
  */
 export class ScreenHost {
   private readonly registry = new Map<ScreenId, Screen>();
@@ -107,9 +81,7 @@ export class ScreenHost {
    * menu, or the flight view. Called whenever the last screen closes.
    *
    * The host cannot know what the base state looks like, and the Game cannot
-   * know when a screen decided to close, so the two meet here. Without it a
-   * migrated screen popped correctly and left its own text on the display:
-   * mode said `docked`, the screen still said MARKET.
+   * know when a screen decided to close, so the two meet here.
    *
    * It must only paint. Touching the stack from here would recurse.
    */
@@ -149,10 +121,9 @@ export class ScreenHost {
   }
 
   /**
-   * Replace the whole stack with one screen.
-   *
-   * For the places that jump sideways rather than deeper — opening the chart
-   * from the docked menu should not leave a trail to walk back through.
+   * Replace the whole stack with one screen — for the places that jump
+   * sideways rather than deeper (opening the chart from the docked menu should
+   * not leave a trail to walk back through).
    */
   replace(id: ScreenId): void {
     this.stack.length = 0;
@@ -168,9 +139,7 @@ export class ScreenHost {
     this.stack.pop();
     this.menuSelected = 0;
     const top = this.top;
-    // An uncovered screen repaints itself. This used to fall back to a
-    // `repaintLegacy` callback into the Game for screens that had not
-    // migrated; all of them have, and the parameter was already a no-op.
+    // An uncovered screen repaints itself.
     if (!top) this.showBase();
     else top.screen.render();
     return this.stack.length > 0;
@@ -255,8 +224,7 @@ export class ScreenHost {
   click(target: unknown, i: Input, event?: unknown): boolean {
     // `unknown` in, DOM types cast HERE, because this is the UI layer and the
     // Game is not: game.ts forwards what the shell handed it without naming a
-    // single browser type. That is the last thing that kept the orchestrator
-    // out of the portable bucket.
+    // single browser type, keeping the orchestrator out of the portable bucket.
     const el = target as HTMLElement;
     const e = event as MouseEvent | undefined;
     const key = el.dataset.key;

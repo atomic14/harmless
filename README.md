@@ -6,9 +6,12 @@ E L I T E.*
 
 Authentic wireframe ships, the
 original byte-accurate procedural galaxy (Lave is system 7, as it should
-be), modern shader-driven suns and planets — and ship AI in two flavours: a
-scripted three-phase attack run for the pirates that hunt you, and a
-neuroevolution self-play policy for the traders that fight back.
+be), modern shader-driven suns and planets — and two hand-written ship-AI
+pilots: a pursuit dogfighter that chases the pirates onto your six, and a
+three-phase attack run for the traders that fight back and the combat
+computer you can buy. Nothing neural ships; the neuroevolution trainer still
+lives in `train/`, but its trained policies were retired (see the
+[training log](docs/TRAINING-LOG.md)).
 
 ![Approaching a Coriolis station with the docking aid live](docs/images/station-docking.jpg)
 
@@ -18,10 +21,10 @@ neuroevolution self-play policy for the traders that fight back.
 
 *Every planet is generated from the 1984 seeds — Diso's violet coastlines
 above, "Population: 4.1 Billion (Black Furry Felines)", exactly as the
-original's data tables intend. Below: three trained pirates converging in
+original's data tables intend. Below: three pirates converging in
 the [combat viewer](docs/TRAINING-LOG.md).*
 
-![Trained pirates converging on a trader in the combat viewer](docs/images/combat-viewer.jpg)
+![Three pirates converging on a trader in the combat viewer](docs/images/combat-viewer.jpg)
 
 **Docs index:**
 [Development log](docs/DEVLOG.md) ·
@@ -46,7 +49,7 @@ npm run dev     # http://localhost:5173         (landing page)
                 # http://localhost:5173/gallery  (all 38 released hulls)
                 # /manual · /novella             (manual and story)
 npm run build   # lint + tests (via prebuild), then production build to dist/
-npm run train -- attack --gens 400   # retrain the pirate AI (Node ≥ 22.6; see train/README.md)
+npm run train -- attack --gens 400   # breed a pirate policy for research — nothing trained ships; see train/README.md (Node ≥ 22.6)
 npm run evaluate                     # held-out tournament for the current brains
 npm test                             # invariant + simulation tests (no framework)
 npm run elite-a                      # the reference-catalogue alignment gate (<1s)
@@ -93,8 +96,9 @@ live site deploys from Cloudflare Pages (build `npm run build`, output
 `dist`) — and since npm runs `prebuild` before `build`, a commit that fails
 lint or tests fails the deploy build rather than shipping.
 
-> Retraining overwrites the committed neural weights in `src/ai-training/brains/`
-> that the game imports — `git checkout src/ai-training/brains` restores them.
+> `src/ai-training/brains/` ships empty (only a `.gitkeep`, no weight files),
+> and the game imports none — it flies hand-written code pilots. Retraining
+> writes candidate weights there for research; nothing loads them.
 
 You start docked at Lave Station with 100.0 Cr, a full tank and 3 missiles.
 
@@ -191,9 +195,9 @@ tier, how they fly and fit, per group — plus a fit-out override for your own
 ship. ENTER launches; **L** re-opens the last report; **ESC** or **Q** ends the
 exercise. The panel is grouped — the fight, who flies what, your ship — with
 **LIVE BRAINS (COMMANDER)** fenced off at the foot, because that one is still set
-when you undock. A brain is picked by how it flies — `CLOSES IN`, `HANGS BACK`,
-`HOLDS OFF` — with the weights file behind the name for anyone reading the
-training log.
+when you undock. A brain is picked by how it flies — `FLIES ATTACK RUNS`,
+`MAKES ATTACK RUNS`, `GETS ON YOUR SIX` — with the pilot behind the name for
+anyone reading the training log.
 
 **Waves** escalates twice. First the numbers — one ship becomes six, an
 opportunist becomes an organised gang — and at wave 11 they stop, deliberately,
@@ -210,13 +214,14 @@ leaves behind, and nothing in the career reads it.
 
 A row over a list says where in it you are (`5/12`) and **HOME/END** go to
 either end without walking there. Selecting a brain row prints what that brain
-does in a fight, with the measured number that shows it — the shipped pirate
-closes to a median 234 units at speed 216, the TODO 29 candidate hangs at 754
-at speed 104 and snipes — so choosing one is a choice rather than a filename.
-Every figure comes from `train/flight-probe.ts` or the evaluation tournament,
-both archived under `train/logs/`.
+does in a fight, with the measured number that shows it — the attack-run pilot
+lands 58% of its shots at ~5 runs a minute and sits 31.8s on a hauler's six —
+so choosing one is a choice about behaviour rather than a filename. The shipped
+`pursuit` pirate post-dates the evaluation tournament, so it is unprobed there.
+The figures that exist come from `train/flight-probe.ts` or the evaluation
+tournament, both archived under `train/logs/`.
 
-It is the real game: real flight model, real trained brains, real guns. But
+It is the real game: real flight model, real brains, real guns. But
 **nothing that happens in it leaves it** — no kills, no combat rating, no
 credits, no legal status, no save write, and death ends the exercise rather
 than the career. The single exception is stated as one: the furthest wave a
@@ -303,7 +308,7 @@ detected — as on the original's dashboard.
 - **Pirates as businesses** — what waits for you on the way in depends on
   what you're visibly worth. An empty Cobra draws a couple of opportunists in
   Sidewinders; a full hold draws professionals; a fat, notorious one draws an
-  organised gang flying a coordinated attack policy. A gang isn't five
+  organised gang. A gang isn't five
   Fer-de-Lances, though — it's two ringleaders plus hangers-on in whatever
   they could afford, which is why they can be common without being hopeless. Only
   what a pirate can *see* counts — cargo, hold size, fitted laser, your
@@ -334,11 +339,14 @@ detected — as on the original's dashboard.
   ore and asking no questions; derelict generation ships drift between the
   stars; and someone will sell you a Trumble for 2 credits, which is one of
   the worst decisions available to you.
-- **Two kinds of ship AI** — pirates fly a scripted three-phase attack run,
-  because the policies self-play kept finding were turrets that hung in space
-  and sniped; armed traders and the combat computer you can buy fly a neural
-  policy trained by self-play (docs/TRAINING-LOG.md). Watch either fight in
-  the combat viewer.
+- **Two hand-written ship AIs** — pirates fly `pursuit`, the dogfighter that
+  chases onto your six and holds there, breaking into a slashing attack run the
+  moment you turn your nose onto it; armed traders and the combat computer you
+  can buy fly `attack-run`, the three-phase run (close, fire through the pass,
+  swing out and come round again). Both are code, not neural nets: the policies
+  self-play kept finding were turrets that hung in space and sniped, so the
+  trained line was retired in 2026-08 (docs/TRAINING-LOG.md keeps every figure).
+  Watch either fight in the combat viewer.
 
 ## Architecture
 
@@ -371,16 +379,18 @@ detected — as on the original's dashboard.
   audio from the original game — this repo contains no assets from Elite.
 - `src/ai-training/` + `train/` — render-free combat simulator, tiny MLP policies
   (1.9k params, keyboard-style discrete actions) and a neuroevolution
-  self-play trainer. `src/ai-training/brains/` holds exactly the three policies
-  the game can load — a solo pirate, an organised gang and an armed trader — and
-  the tests fail if a fourth appears. Only the armed trader's flies by default,
-  and it is also the combat computer you can buy; the two pirate policies fly
-  under a playtest override or in the combat trainer. Everything else this
-  project trained is
-  written up in `docs/TRAINING-LOG.md` rather than shipped. The combat viewer
-  (`/viewer`) replays matchups with the real wireframe ships, and every row in
-  it flies one of those three or a stated control.
-  See `docs/AI-TRAINING.md` and `docs/TRAINING-LOG.md`.
+  self-play trainer. `src/ai-training/brains/` ships empty (only a `.gitkeep`):
+  the game flies three hand-written code pilots — `pursuit` (the dogfighter
+  every pirate uses), `attack-run` (the three-phase run the armed trader and the
+  purchasable combat computer fly) and `scripted` (an A/B control that reverts
+  the whole game to the attack run). The trained line — two pirate policies and
+  the `jameson-defend` defence policy — was deleted 2026-08-05 after three
+  retrains optimised their way out of fighting; `docs/TRAINING-LOG.md` keeps
+  every figure, and `train/evolve.ts` can still breed a candidate for research.
+  A test asserts the weights directory matches what `brains.ts` imports, which
+  today is nothing. The combat viewer (`/viewer`) replays matchups with the real
+  wireframe ships, and every row in it flies one of those code pilots or a
+  stated control. See `docs/AI-TRAINING.md` and `docs/TRAINING-LOG.md`.
 - Rendering: three.js + UnrealBloom for the phosphor glow.
 
 ## Acknowledgements & legal
@@ -399,13 +409,13 @@ from a vendored analysis pack of the released ship files
 [docs/GAP-ANALYSIS.md](docs/GAP-ANALYSIS.md) tracks feature-by-feature parity
 with the original manual, and almost all of it is implemented — including the
 things this section used to list as outstanding: side laser mounts, mouse
-flight, the two-level living galaxy, the purchasable combat computer, and pack
-training (now at round 11).
+flight, the two-level living galaxy, and the purchasable combat computer.
 
-Remaining: gamepad support, a player shipyard (all 15 flyable hulls are
+Remaining: gamepad support, and a player shipyard (all 15 flyable hulls are
 imported and resolve; nothing can yet change which one you fly — see the
-deferred list in [docs/ELITE-A.md](docs/ELITE-A.md)), and a decision on
-whether the coordinated pack brain should be every gang's default.
+deferred list in [docs/ELITE-A.md](docs/ELITE-A.md)). Pirates already fly the
+`pursuit` dogfighter by default, solo and in a gang alike; the trained pack
+brain that once flew the gangs was retired with the rest of the neural line.
 
 Combat balance is **not settled**, and this file quotes no figure for it on
 purpose: the damage model moved to the released game's own arithmetic in

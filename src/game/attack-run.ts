@@ -1,15 +1,13 @@
 // The three-phase attack run — close, pass, extend — as a shipless decision:
 // where to point the nose, and how fast to fly.
 //
-// The RULES were already one-home and pure: the phase machine and throttle
-// curve (break-off.ts), the lead and pass-width arithmetic (pass-aim.ts), the
-// run-out curve (extend-arc.ts), the tactic profiles (constants/tactics.ts).
-// What lived in `NpcShip.attack` was the vector composition that turns those
-// numbers into an aim point, and that composition is behaviour too: written
-// out a second time for the commander's scripted co-pilot it would drift from
-// the run every pirate flies, which is exactly the fight the co-pilot is
-// supposed to replicate. So the composition moved here, and npc.ts and the
-// co-pilot both call it.
+// The rules it builds on are each one-home and pure: the phase machine and
+// throttle curve (break-off.ts), the lead and pass-width arithmetic
+// (pass-aim.ts), the run-out curve (extend-arc.ts), the tactic profiles
+// (constants/tactics.ts). This file is the vector composition that turns those
+// numbers into an aim point — behaviour too, so it lives in ONE place: npc.ts
+// (every pirate) and the commander's scripted co-pilot both call it, and a
+// second copy would drift from the run the co-pilot is meant to replicate.
 //
 // What is deliberately NOT here: wingman separation (a gang concern, composed
 // on top by npc.ts), the trigger (the NPC gun and the commander's laser are
@@ -54,19 +52,9 @@ const tmpAim = new THREE.Vector3();
  * STEPPING TO.
  *
  * It is the part of the ship's own heading that is not along the line of
- * sight, normalized: "keep going the way you are going, only more so." A
- * correction rather than a preference.
- *
- * IT USED TO BE THE SHIP'S LOCAL +X, deprojected the same way. That puts the
- * aim point to one side of the SHIP regardless of which side of the target it
- * is actually passing — half the time the far side, reachable only through
- * the hull it is trying to miss — and it runs away: steering toward a point
- * defined by your own +X rotates +X, so the ship chases its own right hand
- * (docs/TODO/66 measured an intended 110-unit miss delivered as 75, with 29%
- * of a Python's merges inside 70 units). Taking the side off the HEADING
- * makes the loop negative feedback: a ship wide of the line turns in, one
- * inside it turns out, neither crosses the target. Same 60 episodes, contact
- * per episode 0.10 -> 0.00.
+ * sight, normalized: "keep going the way you are going, only more so." Taking
+ * the side off the HEADING makes the loop negative feedback — a ship wide of
+ * the line turns in, one inside it turns out, neither crosses the target.
  *
  * `passSide` is the tie-break and only the tie-break: a ship pointed dead at
  * its target has no side yet, and that is when the coin is tossed. Derived

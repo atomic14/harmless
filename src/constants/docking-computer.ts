@@ -8,21 +8,16 @@
 
 /**
  * How close to the station the docking computer will take the job, in world
- * units.
- *
- * Far enough to be useful from the end of the torus run, near enough that it
- * is an approach aid rather than a taxi across the system. The same number as
- * the player's `LASER_RANGE` and NOT the same rule — a coincidence of scale,
- * like `BREAK_OFF_RANGE` and the commander's `ACCEL` at 220.
+ * units. Far enough to be useful from the end of the torus run, near enough to
+ * be an approach aid rather than a taxi across the system. Equal to the
+ * player's `LASER_RANGE` by coincidence of scale, not by rule.
  */
 export const DOCK_COMPUTER_RANGE = 3500;
 
 /**
  * How fast it turns the ship onto the planned heading, in radians a second.
- *
- * Well under the commander's own `TURN.pitch` of 2.0: the computer flies like
- * a cautious pilot, not a snap-turn, and the roll has to settle before the
- * letterbox — `planDocking` already slows the run in for the same reason.
+ * Well under the commander's own `TURN.pitch` of 2.0: it flies like a cautious
+ * pilot, and the roll has to settle before the letterbox.
  */
 export const DC_TURN_RATE = 1.2;
 

@@ -7,27 +7,27 @@
 //   ShipDesignId         which hull is on screen — geometry hangs off this
 //   NpcCombatProfileId   which exact S.A-S.W build of that design this one is
 //
-// They are STRINGS, and namespaced ones, for two reasons. A save file that
-// reads `"elite-a:variant:B:10"` says what it means years later, where a bare
-// `10` does not; and the two Harmless inventions — the derelict generation ship
-// and the rock hermit — carry `harmless:` ids that can never be mistaken for a
-// recovered Elite-A design. That separation is a requirement, not a courtesy:
-// the generation ship is ours and must not be presented as source data.
+// They are STRINGS, and namespaced, for two reasons. A save reading
+// `"elite-a:variant:B:10"` says what it means years later, where a bare `10`
+// does not; and the two Harmless inventions carry `harmless:` ids that can
+// never be mistaken for a recovered Elite-A design. That separation is a
+// requirement: the generation ship is ours and must not be presented as source
+// data.
 //
-// WHAT GOES IN A SAVE IS AN ID. Never an expanded record, never a geometry
-// object, never a copied stat block. An id resolves to exactly one immutable
-// record here; a record copied into a save is a second home for a rule that the
-// catalogue already owns, and it goes stale the day the pack is re-imported.
+// WHAT GOES IN A SAVE IS AN ID. Never an expanded record, geometry object, or
+// copied stat block. An id resolves to exactly one immutable record here; a
+// record copied into a save is a second home for a rule the catalogue owns, and
+// goes stale the day the pack is re-imported.
 //
 // And identity is never INFERRED. Comparing `spec.def === COBRA_MK3` or reading
 // a mesh's name to work out what a ship is makes the geometry table the
 // identity table, so a shared or replaced hull silently changes what a ship IS.
 // The roster states its ids (ship-specs.ts) and everything else asks here.
 //
-// This file is data lookup and validation. There is no combat arithmetic in it
-// — that is `elite-a/combat-math.ts` — and no selection policy: which variant a
-// system offers is a future blueprint loader's business, and the only choice
-// made here is the deterministic recommended one the current roster flies.
+// This file is data lookup and validation. No combat arithmetic (that is
+// `elite-a/combat-math.ts`) and no selection policy: which variant a system
+// offers is a future blueprint loader's business, and the only choice made here
+// is the deterministic recommended one the current roster flies.
 
 import {
   eliteADesign, eliteADesignIds, eliteAPlayerHull, eliteAPlayerHullIds,
@@ -119,11 +119,8 @@ const OVERLAY_BY_PROFILE = new Map(OVERLAYS.map((o) => [o.profileId, o]));
 /**
  * The hull every career starts in: the Cobra Mk III.
  *
- * This phase does not offer a shipyard, so it is what `newCommander()` puts you
- * in and the anchor every Harmless number is calibrated against
- * (docs/DAMAGE-PATHS.md). It used to be a migration target as well — the hull a
- * save with no recorded one was given — and that is gone (2026-08-04): a save
- * that does not say what it is flying is not a save this build reads.
+ * This phase offers no shipyard, so it is what `newCommander()` puts you in and
+ * the anchor every Harmless number is calibrated against (docs/DAMAGE-PATHS.md).
  */
 export const COBRA_MK_3_HULL_ID: PlayerHullId = `${PLAYER_PREFIX}7`;
 
@@ -254,16 +251,11 @@ export function recommendedProfileIdFor(designId: ShipDesignId): NpcCombatProfil
 /**
  * The identity a saved ship comes back with. Both ids, or the save is refused.
  *
- * THERE IS NO LONGER A THIRD ANSWER. A snapshot with no ids at all used to
- * return `undefined`, which let the ship take its design's recommended variant
- * — tolerance for a world written before ships had ids. Chris, 2026-08-04: *"an
- * unreadable save is just old junk at the moment"*, so a ship that does not say
- * what it is is corruption like any other, and this throws for it.
- *
- * Throwing is the whole handling, because the save system already refuses a
- * thing it cannot read rather than reporting it: `Persistence.resume` catches
- * and boots the commander normally, and `readSave` returns null for a record
- * that will not parse. Nothing here reaches a player as an error.
+ * A ship that does not say what it is is corruption like any other, so this
+ * throws for it. Throwing is the whole handling: the save system already
+ * refuses what it cannot read (`Persistence.resume` catches and boots the
+ * commander normally; `readSave` returns null for a record that will not
+ * parse), so nothing here reaches a player as an error.
  */
 export function savedShipIdentity(
   saved: { designId?: unknown; profileId?: unknown },

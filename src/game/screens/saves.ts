@@ -5,18 +5,17 @@
 // what taking one costs. What lives here is the half above both: the list, the
 // deliberate act of naming a save, and renaming a commander — plus the keyboard
 // state machine for each, behind the Screen contract (invariant 13). Typing a
-// name is `typed-name.ts`, saves that leave the browser as a file are
-// `save-transfer.ts`, and STARTING a commander is `new-commander.ts`.
+// name is `typed-name.ts`, saves that leave the browser are `save-transfer.ts`,
+// and STARTING a commander is `new-commander.ts`.
 //
 // Following the same discipline as NpcShip: these screens decide nothing about
 // game state. They return an OUTCOME and the host applies it, so the mode
-// machine stays in one place instead of being poked at from two.
+// machine stays in one place.
 //
-// AND NOTHING HERE WRITES BECAUSE IT WAS LOOKED AT (docs/TODO/55). `open()`
-// used to push a checkpoint so the list would include the run you were standing
-// in; the run is a LINE ABOVE THE TABLE now, read out of state, because a
-// screen that files a save for you the moment you press S is a screen you
-// cannot open to check something.
+// AND NOTHING HERE WRITES BECAUSE IT WAS LOOKED AT (docs/TODO/55): the run in
+// progress is a LINE ABOVE THE TABLE, read out of state, not a checkpoint filed
+// on open — a screen that files a save the moment you press S is one you cannot
+// open just to check something.
 
 import { generateGalaxy } from '../../galaxy/galaxy.ts';
 import type { CommanderData } from '../commander.ts';
@@ -104,9 +103,8 @@ export function checkpointSummary(ctx: SavesContext): SaveSummary | null {
 /**
  * The run in progress, for the line above the table.
  *
- * This is what `open()` used to buy by writing a checkpoint: the list showed
- * where you were because the act of looking had just filed it. Reading it out
- * of state costs nothing and cannot lose anything (docs/TODO/55).
+ * Read out of state rather than filed as a checkpoint on open: costs nothing and
+ * cannot lose anything (docs/TODO/55).
  */
 export function liveRun(ctx: SavesContext): LiveRun {
   const c = ctx.commander;
@@ -129,10 +127,10 @@ export class SavesScreen implements Screen {
   /** a delete waiting on a Y — deleting a save is not undoable */
   private pendingDelete: SaveSummary | null = null;
   /**
-   * ...and a load waiting on a second Enter, for the same reason and a worse
-   * one: a delete costs you a save you can see, and a load can cost you the run
-   * you are in, which is not on the list at all (docs/TODO/55). The panel names
-   * both sides before it happens and ESC backs out of it.
+   * ...and a load waiting on a second Enter, for a worse reason: a delete costs
+   * you a save you can see, and a load can cost you the run you are in, which is
+   * not on the list at all (docs/TODO/55). The panel names both sides before it
+   * happens and ESC backs out.
    */
   private pendingLoad: SaveSummary | null = null;
 
@@ -186,7 +184,7 @@ export class SavesScreen implements Screen {
     }
     if (i.pressed('KeyS')) {
       // A wreck captures as a DOCKED world at the point of death, so saving one
-      // and loading it back was a way to un-die. The panel does not offer S
+      // and loading it back would be a way to un-die. The panel does not offer S
       // over a wreck; this is the same answer for the key.
       if (ctx.dead) {
         ctx.message('YOUR SHIP IS GONE — THERE IS NOTHING LEFT TO SAVE', 4);

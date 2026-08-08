@@ -6,16 +6,14 @@
 // things to do.
 //
 // Pure logic over the fleet, so it is unit-testable: no scene, no renderer,
-// nothing but positions and roles. It ran inline in updateFlight on a 2-second
-// timer, which is also why it never had a test.
+// nothing but positions and roles.
 
 import type { NpcShip } from './npc.ts';
 import type { NpcRole } from './ship-roles.ts';
 import type * as THREE from 'three';
 // A pirate this close to the player has a better prospect in front of it and
-// will not wander off after a trader. It is the SAME 9,000 the ship engages at
-// and the condition light reports, so it is imported rather than restated —
-// see constants/player-interest.ts for what a second copy of it costs.
+// will not wander off after a trader. The SAME range the ship engages at and
+// the condition light reports, so it is imported rather than restated.
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
 import {
   HUNTER_RANGE, PIRATE_HUNT_RANGE, POLICE_HUNT_RANGE,

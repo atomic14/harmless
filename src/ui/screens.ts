@@ -34,9 +34,8 @@ import { elementById, inertElement } from '../engine/inert-dom.ts';
 import { TORUS_MULTIPLIER } from '../constants/torus.ts';
 import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH } from '../constants/chart-metric.ts';
 // The station menu's rows ARE the docked binding table — see ui/key-help.ts.
-// Writing them out here made a sixth home for a key, and the one with a click
-// path: `data-key` becomes a keystroke, so a hand-written row could advertise a
-// key nothing was bound to and it looked alive right up to the click.
+// A hand-written row here would be a second home for a key, and `data-key`
+// becomes a keystroke, so it could advertise a key nothing was bound to.
 import { dockedMenuHtml } from './key-help.ts';
 import { LOCAL_SCALE, LOCAL_CANVAS } from '../constants/chart-metric.ts';
 
@@ -44,8 +43,8 @@ import { LOCAL_SCALE, LOCAL_CANVAS } from '../constants/chart-metric.ts';
 // state; these are pure render functions.
 
 // Inert with no document, so a headless Game can run the mode machine and the
-// screen stack without a DOM — see engine/inert-dom.ts. These are pure render
-// functions and nothing reads them back, so dropping the writes changes no rule.
+// screen stack without a DOM — see engine/inert-dom.ts. Nothing reads these
+// writes back, so dropping them changes no rule.
 const el = (): HTMLElement => elementById('screen');
 const body = (): HTMLElement => (typeof document === 'undefined'
   ? inertElement() : document.body);
@@ -65,10 +64,9 @@ function show(html: string, wide = false): void {
   // charts put their readout beside the map rather than under it, so they need
   // more width than a table screen
   s.classList.toggle('wide', wide);
-  // Drop the cockpit console while a screen is up. Nothing on a screen needs
-  // the scanner or the gauges, and the console was costing the screen a third
-  // of the viewport: #screen sat at top 40% with max-height 66vh purely to
-  // clear it, which is why the short-range chart had to be squeezed.
+  // Drop the cockpit console while a screen is up: nothing on a screen needs
+  // the scanner or gauges, and the console otherwise costs the screen a third
+  // of the viewport.
   body().classList.add('screen-open');
 }
 
@@ -86,17 +84,14 @@ export function renderDockedMenu(sys: StarSystem, c: CommanderData, missionText 
 }
 
 /**
- * Confirmation for starting over. Deliberately spells out what is about to be
- * destroyed and points at the export key first — this is the only action in
- * the game that throws away a career.
+ * Confirmation for starting over — spells out what is about to be destroyed
+ * and points at the export key first, the only action that throws away a career.
  */
 /**
  * The in-game briefing: what to actually DO, for someone who has never played.
  *
- * Deliberately short and paged rather than one long screen. Somebody reading
- * this is stuck right now and wants the next action, not a manual — the manual
- * exists, at /manual.html, and this points at it. Six pages is about the limit
- * of what anyone reads before wanting to fly.
+ * Short and paged rather than one long screen: somebody reading this is stuck
+ * and wants the next action, not a manual — the manual exists at /manual.html.
  */
 const BRIEFING: { title: string; body: string }[] = [
   {
@@ -213,9 +208,8 @@ export function renderNewGameConfirm(sys: StarSystem, c: CommanderData): void {
 
 /**
  * @param fuel what the station charges for fuel, or null where none is sold —
- *   a rock hermit will trade cargo with you but cannot fill your tank, and a
- *   price for something unbuyable is worse than no price at all. The caller
- *   decides which it is; this only paints it.
+ *   a rock hermit trades cargo but cannot fill your tank, and a price for
+ *   something unbuyable is worse than no price. The caller decides which.
  */
 export function renderMarket(
   sys: StarSystem,
@@ -346,17 +340,11 @@ function whoLine(live: LiveRun): string {
  * The commander file: the saves you named, the saves the game made, and the run
  * you are in — which is a LINE and not a row, because it is not a save.
  *
- * Every column answers one question a player actually asks (docs/TODO/55).
- * COMMANDER is whose run this is, and it is the filing name rather than what
- * the pilot is called today, which is the one thing a rename does not move —
- * so the line above the table says both when they differ. SAVE is what the row
- * IS: a name you typed, or the words STATION AUTOSAVE / FLIGHT AUTOSAVE, which
- * answers "did I make this, or did the game?" without a legend and without the
- * `●` footnote that used to answer it a second way.
- *
- * One line shape for both halves — WHEN, WHERE, and what you were worth —
- * because a player choosing "one of the autosaves" has to tell them apart at a
- * glance, and two different line shapes make that a reading exercise.
+ * Every column answers one question a player asks (docs/TODO/55). COMMANDER is
+ * the filing name, the one thing a rename does not move — so the line above the
+ * table says both when they differ. SAVE is what the row IS: a name you typed,
+ * or STATION AUTOSAVE / FLIGHT AUTOSAVE. One line shape for both halves (WHEN,
+ * WHERE, worth), so choosing among the autosaves is a glance, not a read.
  */
 export function renderSaves(
   rows: SaveSummary[],
@@ -498,10 +486,8 @@ export function renderNaming(buffer: string, current = '', filedUnder = ''): voi
 /**
  * Naming a NEW commander — the first thing that happens to one.
  *
- * Blank, and nothing offered. The default the game used to pick was the name
- * already on the shelf with a 2 after it (docs/TODO/56), and a pre-filled field
- * on these screens cannot be selected: the first keystroke would have to
- * replace it, which is a rule to explain rather than a box to type in.
+ * Blank, and nothing offered: a pre-filled field on these screens cannot be
+ * selected, so the first keystroke would have to replace it (docs/TODO/56).
  *
  * @param leaving whoever is being set aside, so ESC says what it goes back to.
  */
@@ -626,14 +612,8 @@ export function drawChart(systems: StarSystem[], c: CommanderData, chart: ChartS
   // Fuel range. An ellipse is correct HERE — unlike the short-range chart —
   // because sx and sy scale the two axes independently to fit the whole galaxy
   // into the canvas, so a circle in light years is not a circle in pixels.
-  //
-  // Semi-axes are R*sx and R*sy with R = fuel/TENTHS_PER_CHART_UNIT — the chart
-  // metric read backwards, which is why it is imported rather than written out
-  // as a 4 — and nothing else. There used
-  // to be an extra *0.5 on the y radius, which halved the drawn reach
-  // north/south: audited against distanceTenths across all 256 systems, it put
-  // 4 of the 9 systems actually in range OUTSIDE the marker. With the correct
-  // radii the drawn ellipse and the real rule agree exactly, both ways.
+  // Semi-axes are R*sx and R*sy with R = fuel/TENTHS_PER_CHART_UNIT (the chart
+  // metric read backwards, hence the import rather than a literal 4).
   ctx.strokeStyle = '#2a8f36';
   ctx.setLineDash([3, 3]);
   ctx.beginPath();
@@ -642,8 +622,8 @@ export function drawChart(systems: StarSystem[], c: CommanderData, chart: ChartS
   ctx.stroke();
   ctx.setLineDash([]);
 
-  // Systems. 1.5px of #2a7a33 on near-black was close to invisible — 256 of
-  // them are the whole point of this screen, so they get size and light.
+  // Systems. Given size and light because 256 of them are the whole point of
+  // this screen and 1.5px of dim green on near-black is close to invisible.
   for (const s of systems) {
     const within = distanceTenths(current, s) <= c.fuel;
     ctx.fillStyle = within ? '#7dff88' : '#46b354';
@@ -737,16 +717,10 @@ export function drawLocalChart(
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
   // A CIRCLE, and it has to be one. distanceTenths divides dy by
-  // CHART_Y_SQUASH and so does py(), so the plotted space is already
-  // isotropic: equal pixels mean equal light years in every direction.
-  // Reachable is therefore a circle of radius
-  // (fuel/TENTHS_PER_CHART_UNIT)*LOCAL_SCALE.
-  //
-  // I briefly "fixed" a clipping problem by making this an ellipse. That was
-  // wrong twice over — it halved the apparent range north/south, so systems
-  // you could actually reach fell outside the marker. The clipping was never
-  // the circle's fault: the canvas was 780x380 for a shape needing 664x664.
-  // The canvas is square now (see renderLocalChart) and the circle fits.
+  // CHART_Y_SQUASH and so does py(), so the plotted space is isotropic: equal
+  // pixels mean equal light years in every direction, and reachable is a circle
+  // of radius (fuel/TENTHS_PER_CHART_UNIT)*LOCAL_SCALE. The canvas is square
+  // (see renderLocalChart) so the circle fits without clipping.
   ctx.arc(cx, cy, (c.fuel / TENTHS_PER_CHART_UNIT) * LOCAL_SCALE, 0, Math.PI * 2);
   ctx.stroke();
   ctx.setLineDash([]);
@@ -800,9 +774,8 @@ export function drawLocalChart(
       return;
     }
     // Rebuild ONLY when the cursor lands on a different system. This runs on
-    // every cursor move, and re-setting innerHTML re-creates the <img> — which
-    // makes the portrait flicker as you sweep the chart even though it is the
-    // same file. Cheap guard, very visible difference.
+    // every cursor move, and re-setting innerHTML re-creates the <img>, making
+    // the portrait flicker as you sweep the chart. Cheap guard.
     if (info.dataset.system === String(near.index)) return;
     info.dataset.system = String(near.index);
 
@@ -835,12 +808,9 @@ export function drawLocalChart(
       `</div>` +
       `<div class="sysblurb">${planetDescription(near)}</div>` +
       // The world half of the extended entry, under the 1984 line. The PEOPLE
-      // half is not here and is not missing: the portrait and its species
-      // caption are directly above, so the panel already says who lives here,
-      // and both paragraphs together run to a median of 942 characters against
-      // roughly 270px of free column — which would scroll, on a panel that
-      // changes every time the cursor lands on a different star. `D` opens the
-      // full entry, and that is where the pair belongs.
+      // half is not here: the portrait and its species caption above already
+      // say who lives here, and both paragraphs together would scroll a panel
+      // that changes on every cursor move. `D` opens the full entry.
       (more ? `<div class="sysblurb sysmore">${escapeHtml(more.description)}</div>` : '');
   }
 }
@@ -849,11 +819,9 @@ export function drawLocalChart(
  * Market estimate for a system you haven't visited. Opened from the charts
  * with M.
  *
- * A painter: `contracts.ts` owns what the numbers ARE (`marketEstimate`), and
- * this used to transcribe the 1984 price formula instead of asking for them.
- * What it draws is a distribution rather than a price — the AVERAGE of every
- * quote the system can roll, and the range those quotes span — so the column
- * headings say average and range, and no row promises a number the destination
+ * A painter: `contracts.ts` owns what the numbers ARE (`marketEstimate`). What
+ * it draws is a distribution — the AVERAGE of every quote the system can roll
+ * and the range those quotes span — so no row promises a price the destination
  * will honour on the day.
  */
 export function renderMarketEstimate(
@@ -915,21 +883,17 @@ export function localCoordsFromClick(
 /**
  * Where an inhabitant portrait lives, or '' if there isn't one.
  *
- * Galaxy 1 only, and that guard is doing real work rather than being cautious.
- * The filename carries both the index and the system name, so a galaxy 2 world
- * almost always 404s and hides itself — but "almost always" is the problem:
- * the eight galaxies share a name pool, so a system could land on the same
- * index AND name as a galaxy 1 world and confidently display the wrong
- * species. Cheaper to check the galaxy than to reason about the collision.
+ * Galaxy 1 only: the filename carries index and system name, so a galaxy 2
+ * world usually 404s and hides itself — but the eight galaxies share a name
+ * pool, so a system could collide on index AND name and show the wrong species.
+ * Cheaper to check the galaxy than to reason about the collision.
  *
  * The images are generated offline and committed (tools/generate-species.py),
- * so this is a plain static asset — nothing runs at build time or in the
- * browser.
+ * so this is a plain static asset.
  *
- * Loaded eagerly, deliberately. `loading="lazy"` on one ~10 KB image that is
- * on screen the moment it exists buys nothing, and it cost something real:
- * the lazy intersection callback never fired in a throttled background tab,
- * so the portrait silently stayed blank while the same URL fetched fine.
+ * Loaded eagerly, deliberately: `loading="lazy"` on a ~10 KB on-screen image
+ * buys nothing and the intersection callback never fires in a throttled tab,
+ * leaving the portrait blank while the same URL fetches fine.
  */
 export function portraitUrl(sys: StarSystem, galaxy: number): string {
   if (galaxy !== 1) return '';
@@ -945,10 +909,9 @@ export function renderSystemData(
 ): void {
   const d = distanceTenths(current, sys);
   const portrait = portraitUrl(sys, galaxy);
-  // The 1984 line above is always there; this is an overlay and is usually
-  // absent — no entry, or no file for this galaxy at all. Absent renders
-  // exactly what this page rendered before the overlay existed, which is what
-  // keeps generated prose from becoming load-bearing.
+  // The 1984 line above is always there; this overlay is usually absent (no
+  // entry, or no file for this galaxy). Absent renders exactly the old page,
+  // which keeps generated prose from becoming load-bearing.
   const more = systemDescription(sys, galaxy);
   const extended = more ? `
     <div class="info sysdesc sysmore">
@@ -1113,10 +1076,8 @@ const pct = (x: number | null | undefined): string =>
  * `OPENED AHEAD 4500 · 3900-5100 OUT · WIDEST 9° OFF YOUR NOSE · IN VIEW`.
  *
  * On the report because where a fight starts decides what the rest of it means:
- * it is the difference between a brain that came at you and one that was already
- * there, it is what makes a record reproducible from its seed, and NOT IN VIEW
- * is how a scenario that deliberately opens behind the pilot says so rather than
- * reading as the bug it used to be (combat-sim-opening.ts).
+ * a brain that came at you versus one already there, and NOT IN VIEW is how a
+ * scenario that opens behind the pilot says so (combat-sim-opening.ts).
  */
 function opening(o: OpeningGeometry): string {
   return `OPENED ${o.arc.toUpperCase()} ${o.range}`
@@ -1128,11 +1089,10 @@ function opening(o: OpeningGeometry): string {
 /**
  * `WAVE 14 OF A RAMP THAT SATURATES AT 18 · CARRYING MISSILES, E.C.M. · NEW: …`
  *
- * On the report because the escalation past wave 11 changes the FIGHT rather
- * than the arithmetic — the opponent table below still says six ships at tier 2,
- * exactly as it did at wave 11 — so without this line a pilot cannot tell a hard
- * wave from an unlucky one. The reason is quoted too: a step whose argument is
- * only in the source is a step nobody can disagree with.
+ * On the report because escalation past wave 11 changes the FIGHT rather than
+ * the arithmetic — the opponent table still says six ships at tier 2 — so
+ * without this line a pilot cannot tell a hard wave from an unlucky one. The
+ * reason is quoted so a step's argument is not only in the source.
  */
 function escalation(e: WaveEscalation): string {
   const carrying = e.active.length ? e.active.join(', ') : 'NOTHING YET';

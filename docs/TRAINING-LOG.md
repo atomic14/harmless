@@ -47,10 +47,13 @@ because retraining a phase overwrites its committed brain file.
 > hundred corrections.
 >
 > Which brains ship is likewise not settled by any entry below: it is
-> `src/game/brains.ts`, and `npm test` reads that file rather than a list. As
-> of Run 19 they are `pirate-attack-g3` (pirates), `pirate-pack-r4-selectonly`
-> (organised gangs) and — since docs/TODO/71 and /72 — `jameson-defend-g2`
-> (armed traders and the combat computer), which replaced `jameson-defend-g1`.
+> `src/game/brains.ts`/`brain-names.ts`, and `npm test` reads those files
+> rather than a list. **NO trained brain ships now** — `src/ai-training/brains/`
+> is empty (the three that Run 19 flew were deleted; see runs 20-21). The game
+> flies three hand-written CODE pilots: `pursuit` (the pirates, by default),
+> `attack-run` (armed traders and the combat computer you buy) and `scripted`
+> (the three-phase attack run, kept as the A/B control). `train/evolve.ts` can
+> still breed a candidate for research, but nothing in the bundle loads one.
 
 ## Infrastructure
 
@@ -61,8 +64,9 @@ because retraining a phase overwrites its committed brain file.
   combat physics with its own vector maths, at dt = 1/15 s. It is deleted as
   of run 17; every figure recorded before that entry was measured in the copy,
   and the copy is a large part of why several of them did not transfer.*
-- **Policy**: `src/ai-training/policy.ts` — MLP 14 → 32 → 32 → 11 (tanh), 1,899
-  parameters. Observation is ship-frame relative (see file docstring).
+- **Policy**: `src/ai-training/policy.ts` — MLP 13 → 32 → 32 → 11 (tanh), 1,867
+  parameters (was 14 → 32 → 32 → 11 / 1,899 until the target-speed observation
+  slot was cut). Observation is ship-frame relative (see file docstring).
   Discrete action heads: pitch ±/0, roll ±/0, throttle ±/0, fire y/n —
   exactly the keyboard interface a human gets.
 - **Trainer**: `train/evolve.ts` — population evolution strategy.
@@ -144,11 +148,10 @@ Orbit/chase cameras, pause, 0.25×/1×/4× speed, auto-restart with a new seed.
 - ✅ **League play** — Run 4 below (r2 pirate: 0% → 98% vs the evader).
 - ✅ **In-game integration** — pirates fly a trained attack brain and armed
   traders a trained defence one (Run 5). *Written when that meant
-  `pirate-attack-r2` and `jameson-defend`, switched with
-  `window.__scriptedPirates`; both statements have since moved on twice — see
-  the two notes at the top of this file, and `src/game/brains.ts` for what
-  actually flies.* The pack brain was wired in at the same time and left off
-  by default; Run 8 shipped it to organised gangs.
+  `pirate-attack-r2` and `jameson-defend`; both have since moved on — see the
+  notes at the top of this file and `src/game/brains.ts` for what actually
+  flies.* The pack brain was wired in at the same time and left off by default;
+  Run 8 shipped it to organised gangs.
 
 ## Run 3 — evaluation methodology (how we tell it works)
 
@@ -230,10 +233,8 @@ only 70% of episodes (though *when* it kills, it's the fastest at 0.6s — an
 all-in alpha-strike strategy), versus 100% for three copies of the solo
 brain. The flanking-spread metric (91°) shows spawn geometry already spreads
 attackers; packmate observations didn't add coordination beyond it yet. The
-solo-brain trio remains the better pack for now. Round-3 ideas: reward
-sustained pressure (damage-per-second window) rather than survivors, drop
-the shot penalty (it appears to teach timidity in the 30% of episodes the
-rush fails), and randomise pack size 2-4 during training.
+solo-brain trio remains the better pack for now. (This verdict was later a
+trainer bug, not a property of pack policies — see Run 7.)
 
 ## Run 5 — the Commander Jameson defence policy
 
@@ -598,40 +599,35 @@ the way to E L I T E sees 34% of receptions as gangs and a privateer 45%.
 
 ### The limit of this evidence — read before trusting it
 
-`npm run campaign` passes every balance check at both scales, and that is
-worth **less than it appears**. The campaign abstracts flight. It models the
-economy, the market, contracts and the living galaxy, so it can tell us that
-gang encounters do not bankrupt anyone and that careers still complete. It
-cannot model a 0.7-second time-to-kill, because it never simulates the
-dogfight at all.
+`npm run campaign` passes every balance check at both scales, and that is worth
+**less than it appears**. The campaign abstracts flight: it models the economy,
+market, contracts and living galaxy — so it can say gang encounters do not
+bankrupt anyone and careers still complete — but it never simulates the
+dogfight, so it cannot model a 0.7-second time-to-kill.
 
-So the shipped configuration is validated on frequency and on economics, and
-is **unvalidated on survivability in real flight**. The tournament says a
-gang of three kills a competent defender in under a second; whether the
-player, in a Cobra with military lasers and an energy unit, fares better than
-the sim's trader hull is untested. If gangs turn out to be unsurvivable, the
-lever is the `organised` roll in contracts.ts — make gangs rarer, or smaller,
-or drop the pack brain to tier 2 groups of 4+ — not the brain, which is doing
-exactly what it was trained to do.
-
-test/playtest.js is the harness that could answer it, since it flies the real
-game with the defence brain.
+So the shipped configuration is validated on frequency and economics, and is
+**unvalidated on survivability in real flight**. Whether the player, in a Cobra
+with military lasers and an energy unit, fares better than the sim's trader hull
+is untested. If gangs turn out to be unsurvivable, the lever is the `organised`
+roll in contracts.ts — make gangs rarer, or smaller, or drop the pack brain to
+tier 2 groups of 4+ — not the brain, which is doing exactly what it was trained
+to do. test/playtest.js is the harness that could answer it, since it flies the
+real game with the defence brain.
 
 ### Correcting the number the balance decision was resting on
 
     npm run survivability
 
-The 0.7s kill above is measured against `CLASSES.traderCobra`, hp 1.0 — and
+The 0.7s kill above is measured against `CLASSES.traderCobra`, hp 1.0 —
 `core.ts` says it outright: "The sim has no shields." The player has two, plus
 an energy bank that absorbs overflow. From game.ts's `applyPlayerDamage`: each
 shield soaks 1.0, then damage costs energy at 2 per point against a bank of 4,
 so a commander taking hits on one face soaks **3.0** raw damage and one
 manoeuvring so both shields work soaks **4.0**, against the sim trader's 1.0.
-
 The tournament defender is roughly a third as durable as the commander flying
-it. That is correct for *training* — shields would have to exist in both the
-sim and the game to hold invariant 5, and every brain was fitted without them
-— but it is the wrong number to make a balance decision from.
+it. That is correct for *training* — shields would have to exist in both sim
+and game to hold invariant 5, and every brain was fitted without them — but it
+is the wrong number to make a balance decision from.
 
 `train/survivability.ts` leaves the sim alone and corrects only the defender's
 hp. 200 episodes per cell, on a seed base distinct from both the training
@@ -697,12 +693,11 @@ traderCobra. survivability.ts corrected the durability and said 50% dead in
 
 The factor both missed is **shield regeneration**. Each shield recovers
 0.035/s, so a 60-second fight regenerates 2.1 per shield — more than a
-commander's entire nominal durability of 3.0-4.0. I explicitly dismissed
-regeneration in survivability.ts as "under a tenth of a point across a fight
-this short", reasoning from the sim's 4.5s kill time. That was circular: the
-fight is only short *if* the model is right about lethality. Real fights last
-minutes, and over minutes regeneration is not a correction to the durability
-number, it dominates it.
+commander's entire nominal durability of 3.0-4.0. survivability.ts dismissed
+regeneration as "under a tenth of a point across a fight this short", reasoning
+from the sim's 4.5s kill time — which was circular: the fight is only short *if*
+the model is right about lethality. Real fights last minutes, and over minutes
+regeneration dominates the durability number rather than correcting it.
 
 The pulse-laser row is the one that matters for balance, because it is the
 commander who can *just* start meeting gangs. Even that one is in no danger.
@@ -2180,10 +2175,8 @@ problem. On 240 held-out episodes, against the incumbent:
 Both candidates take **more** damage than the brain they were meant to beat, deal
 **2.4× and 8× less**, and fire 41 and 13 shots an episode against 234. `t63k`
 has essentially stopped shooting. **Neither is promoted; the weights are
-deleted** (TODO 57's precedent — `src/ai-training/brains/` holds exactly the
-three the game flies and `npm test` fails on a fourth), and
-`train/logs/jameson-defend-t63*.jsonl` are the record. Re-running the table means
-retraining with the commands above.
+deleted** (TODO 57's precedent), and `train/logs/jameson-defend-t63*.jsonl` are
+the record.
 
 This is not a failed search, and more compute is not the answer — docs/TODO/65
 says why, in arithmetic. `evolve.ts` picks its champion on
@@ -2353,9 +2346,8 @@ Neither is promoted. The bar was "better on pools-left AND on kills"; both are
 better on the first and worse on the second, which is docs/TODO/65's inversion
 appearing for the third time and this run's most legible instance of it yet — a
 policy that has stopped pulling the trigger altogether is the one the selector
-prefers. `src/ai-training/brains/` holds the same three files it held this
-morning; `train/logs/jameson-defend-t62*.jsonl` are the record, and re-running
-the table means retraining with the commands above.
+prefers. Weights deleted per the TODO 57 rule;
+`train/logs/jameson-defend-t62*.jsonl` are the record.
 
 **Missiles did not change that, and were never going to.** Making the world
 harder does not fix a selector that pays 1,000× for terminal `hp` and 3 points

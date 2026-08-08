@@ -1,25 +1,22 @@
 // The three layers of "nothing that happens in the simulator leaves it".
 //
-// This is the safety-critical surface of the combat trainer, and it is a file
-// rather than three passages scattered through a 900-line class because the
+// The safety-critical surface of the combat trainer, in one file because the
 // argument only makes sense read as one thing. docs/COMBAT-SIM.md states it;
 // test/combat-sim-career.test.ts proves it.
 //
-//   1. the COMMANDER CLONE — the layer that actually does the work. A laser
-//      kill never passes through StepHost.destroyNpc at all: combat.ts calls
-//      destroy() internally. `Combat` takes the commander per call precisely so
-//      a different one can be handed in, and that is what covers the internal
-//      call, the survivor counts, scooped cargo, fuel and missiles.
-//   2. the alternative STEP HOST — below. 1 pass-through, 4 redirects, 7
-//      refusals. It is the second layer, not the first, and believing otherwise
-//      is what the spec had to correct.
+//   1. the COMMANDER CLONE — the layer that does the work. A laser kill never
+//      passes through StepHost.destroyNpc: combat.ts calls destroy() internally.
+//      `Combat` takes the commander per call so a different one can be handed
+//      in, covering that call, the survivor counts, scooped cargo, fuel and
+//      missiles.
+//   2. the alternative STEP HOST — below. 1 pass-through, 5 redirects, 6
+//      refusals.
 //   3. the entry SNAPSHOT, taken by CombatSim.begin and restored by teardown,
 //      which also puts the rng stream back.
 //
-// The load-bearing rule, in Chris's words: it must not advance you toward
-// E L I T E — that requires real kills. A simulator that credited
-// commander.kills or commander.combatScore would let a player grind the whole
-// ladder in a training room, for free, at a station, with no risk.
+// The load-bearing rule: it must not advance you toward E L I T E, which
+// requires real kills. Crediting `commander.kills` or `commander.combatScore`
+// would let a player grind the whole ladder in a training room, for free.
 
 import type { StepHost } from './world-step.ts';
 import type { NpcShip } from './npc.ts';
@@ -34,8 +31,7 @@ import * as THREE from 'three';
 /**
  * What the host needs from the running exercise: seven verbs, no Game.
  *
- * Naming them is the point. As a closure over `this` the host could reach
- * anything on a 68-member class; as an interface, the exercise's entire
+ * As an interface rather than a closure over `this`, the exercise's entire
  * influence over the world step is a list you can read in one screen.
  */
 export interface ExerciseVerbs {
@@ -73,32 +69,19 @@ export function exerciseStepHost(x: ExerciseVerbs): StepHost {
   };
 }
 
-// --- the fourth thing, which is no longer here ------------------------------
-//
-// The A/B override used to need a layer of its own. Which named policy a pirate
-// flies is a decision per ROLE and per TIER — `state.brains`, a
-// `BrainSelection` — so an exercise that names a brain sets the selection for
-// its duration, and `teardown()` used to undo five `window.__` flags by hand,
-// FIRST, because a career left flying an exercise's A/B brain is the one leak a
-// player would never notice.
-//
-// Making the selection STATE deleted the hazard instead of guarding it: it is in
-// the entry snapshot, so the ordinary restore puts the career's brains back with
-// its world. The table that turns a name into a selection went to brain-names.ts,
-// beside the rule it inverts, and combat-sim.ts reads it directly.
-
 /**
- * Layer 1. The commander the exercise flies: a clone, with no cargo and no reputation.
+ * Layer 1. The commander the exercise flies: a clone, with no cargo and no
+ * reputation.
  *
- * What is DROPPED matters as much as what is kept. No cargo, so a hull breach
- * cannot cost you a tonne you are carrying for a contract and a police scan
- * cannot read contraband; no contracts, so a simulated pirate cannot tick a
- * bounty job along; no legal status, so an exercise cannot make you a Fugitive.
+ * What is DROPPED matters as much as what is kept. No cargo, so a breach cannot
+ * cost a tonne carried for a contract and a scan cannot read contraband; no
+ * contracts, so a simulated pirate cannot tick a bounty job along; no legal
+ * status, so an exercise cannot make you a Fugitive.
  *
- * `kills` and `combatScore` are COPIED rather than zeroed, on purpose. They are
- * the two fields the whole rule is about, and copying them means the exercise
- * credits this clone exactly as the game credits you — so the difference between
- * the two objects afterwards is the proof, rather than an absence of evidence.
+ * `kills` and `combatScore` are COPIED rather than zeroed: they are the two
+ * fields the rule is about, and copying them means the exercise credits this
+ * clone exactly as the game credits you — so the difference between the two
+ * objects afterwards is the proof, rather than an absence of evidence.
  */
 export function exerciseCommander(career: CommanderData, fit: ExerciseFit = {}): CommanderData {
   const c = structuredClone(career);

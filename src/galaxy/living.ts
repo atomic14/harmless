@@ -11,11 +11,11 @@
 // --experimental-strip-types.
 //
 // Design notes:
-//  - the 1984 seeded galaxy remains the BASELINE; this layer stores only
-//    *deltas* (recent price pressure, traffic events), so saves stay small
-//    and the original determinism survives underneath
+//  - the 1984 seeded galaxy is the BASELINE; this layer stores only *deltas*
+//    (recent price pressure, traffic events), so saves stay small and the
+//    original determinism survives underneath
 //  - it advances in whole days, driven by the same clock as contract
-//    deadlines (a jump costs days), so it never needs a real-time tick
+//    deadlines, so it never needs a real-time tick
 //  - everything here is pure data + maths: no three.js, no DOM
 
 import { COMMODITIES, type StarSystem } from './galaxy.ts';
@@ -65,10 +65,9 @@ export interface GalaxyStateSave {
 /**
  * One pressure slot per commodity — the length of every saved pressure array.
  *
- * DERIVED, not transcribed: it was a bare 17 restating `COMMODITIES.length`,
- * a table this file could always see. It cannot move to src/constants/ (the
- * home may not import the table it is the length of), so it stays here as a
- * named entry on the constants gate — the `ANCHOR_RECHARGE_RATING` shape; see
+ * DERIVED from `COMMODITIES.length`, not transcribed. It cannot move to
+ * src/constants/ (the home may not import the table it is the length of), so it
+ * stays here as a named entry on the constants gate — see
  * docs/TODO/90-constants-cleanup.md, Blocked.
  */
 const COMMODITY_COUNT = COMMODITIES.length;
@@ -87,11 +86,11 @@ export class LivingGalaxy {
 
   private readonly systems: StarSystem[];
   /**
-   * Each system's plausible trading partners, precomputed. Ships have the
-   * same 7 LY jump range the commander's tank enforces (`MAX_FUEL`, in tenths
-   * — the file used to write the 70 out), so trade is inherently local —
-   * sampling uniformly across 256 systems would scatter convoys instead of
-   * forming the lanes that make some routes rich and others dangerous.
+   * Each system's plausible trading partners, precomputed. Ships have the same
+   * 7 LY jump range the commander's tank enforces (`MAX_FUEL`, in tenths), so
+   * trade is inherently local — sampling uniformly across 256 systems would
+   * scatter convoys instead of forming lanes that make some routes rich and
+   * others dangerous.
    */
   private readonly neighbours: number[][];
 
@@ -159,11 +158,10 @@ export class LivingGalaxy {
           // the cargo never came: scarcity, and a nervous reputation
           dest.pressure[c.commodity] += 0.08 * c.tonnes / 10;
           dest.recentLosses += 1;
-          // How much a loss damages a system's reputation depends on how
-          // well policed it is: an anarchy takes the full hit, a corporate
-          // state sends patrols and shrugs it off. Without this, busy
-          // well-governed hubs accumulate danger purely from traffic
-          // volume — Lave became the galaxy's worst pirate haven.
+          // How much a loss damages a system's reputation depends on how well
+          // policed it is: an anarchy takes the full hit, a corporate state
+          // shrugs it off — otherwise busy well-governed hubs accumulate
+          // danger purely from traffic volume.
           const lawlessness = (7 - this.systems[c.to].government) / 7;
           dest.danger = Math.min(1, dest.danger + 0.22 * lawlessness);
           // raiders work a route, so the origin gets a milder reputation hit
@@ -320,16 +318,11 @@ export class LivingGalaxy {
     for (const [index, st] of this.states) {
       // NOT rounded. Rounding for compactness quantises the simulation, so a
       // reload lands on a NEARBY galaxy rather than the same one and every
-      // subsequent day diverges. It hid behind save/load/save round-tripping
-      // perfectly — re-rounding an already-rounded value is stable, which is
-      // not the same as being faithful.
+      // subsequent day diverges.
       const pressure = Array.from(st.pressure);
-      // Skip only systems that are ACTUALLY untouched. The arrivals and losses
-      // counters were missing from this test, so a system with convoy history
-      // but no price pressure yet had that history dropped on every save —
-      // silently, and invisibly, because save/load/save still round-tripped:
-      // re-saving simply reproduced the same lossy output. Stability is not
-      // fidelity.
+      // Skip only systems that are ACTUALLY untouched — including the arrivals
+      // and losses counters, or a system with convoy history but no price
+      // pressure yet has that history dropped on every save.
       const untouched = !pressure.some((p) => p !== 0)
         && st.danger === 0 && st.heat === 0
         && st.recentArrivals === 0 && st.recentLosses === 0;
@@ -348,15 +341,12 @@ export class LivingGalaxy {
   /**
    * Put a saved galaxy back.
    *
-   * EVERY FIELD DEFAULTS, and none of it is a migration. `save()` above writes
-   * all five for every system it keeps, so nothing this build wrote arrives
-   * short — what arrives short is an IMPORTED FILE, whose `galaxyState` is
-   * `unknown` in the snapshot and is JSON a human can hand us. The defaults are
-   * that boundary's, and they are uniform on purpose: a system this loader
-   * cannot read a number for is a system at rest, never a `NaN` compounding
-   * through every subsequent day. `heat` used to carry a comment blaming saves
-   * written before notoriety existed; that reason went on 2026-08-04 and the
-   * line stayed, because the real one applies to all five.
+   * EVERY FIELD DEFAULTS, and none of it is a migration. `save()` writes all
+   * five for every system it keeps; what arrives short is an IMPORTED FILE,
+   * whose `galaxyState` is `unknown` JSON a human can hand us. The defaults are
+   * that boundary's, uniform on purpose: a system this loader cannot read a
+   * number for is a system at rest, never a `NaN` compounding through every
+   * subsequent day.
    */
   load(data: GalaxyStateSave | undefined): void {
     if (!data) return;

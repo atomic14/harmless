@@ -11,22 +11,18 @@
 //   observePack      17  ...plus where the nearest wingman is
 //   observePackWide  25  ...plus what that wingman is DOING
 //
-// A separate file from `policy.ts` since docs/TODO/71 and /72 put a third
-// encoder and a fourth output head in. That file is the NETWORK and the GENOME
-// — what shape a brain is, how a forward pass runs, how a genome mutates and
+// A separate file from `policy.ts`: that file is the NETWORK and the GENOME —
+// what shape a brain is, how a forward pass runs, how a genome mutates and
 // widens — and this one is what fills the input vector. The two meet in exactly
 // two places: `ShipView`, which is what a caller fills in, and `observeFor`,
 // which is the one home for turning a brain's declared input count into an
-// encoder. A genome the trainer can produce that the game cannot fly is what
-// happens when that choice is made twice, and it has happened twice.
+// encoder. Make that choice twice and the trainer can produce a genome the game
+// cannot fly — it has happened twice.
 //
-// The vector helpers came from ai-training/core.ts, the parallel physics
-// simulator that has now been deleted in favour of training against the real
-// engine. They are NOT a second physics: they are this file's own arithmetic,
-// and they are structural (V3 is `{x,y,z}`) on purpose — the encoders are
-// handed THREE.Vector3s by the game and plain objects by a harness, and must
-// read both without converting or allocating a scene graph to ask where a ship
-// is pointing.
+// The vector helpers are this file's own arithmetic, NOT a second physics: they
+// are structural (V3 is `{x,y,z}`) on purpose — the encoders are handed
+// THREE.Vector3s by the game and plain objects by a harness, and must read both
+// without converting or allocating a scene graph to ask where a ship is pointing.
 //
 // Erasable-TypeScript only — runs in Node via --experimental-strip-types.
 
@@ -63,16 +59,9 @@ function qRotate(q: Q4, p: V3): V3 {
 
 /**
  * The ship surface the encoders read — ALL of it, including the hull fraction
- * only `observePackWide` looks at.
- *
- * It used to be called `ObservableShip` and stop short of `hp`/`cls.hp`, so
- * every caller reached the encoders through a cast — two in the trainer and
- * the autopilot, and one in npc.ts widened with an intersection carrying
- * exactly those two fields, the type saying out loud that the encoder read
- * things it did not declare. A
- * type that describes what a function reads and omits something it reads is
- * simply wrong, and a cast is how that stays true. The fields are declared
- * here instead, so the callers below fill a struct and hand it over.
+ * only `observePackWide` looks at. A type that describes what a function reads
+ * must not omit a field it reads, so every field is declared here and the
+ * callers fill a struct rather than reaching the encoders through a cast.
  *
  * Both the game and the training scenarios adapt their THREE.js ships to it,
  * which costs nothing: THREE vectors and quaternions are structurally
@@ -165,12 +154,11 @@ function fwdOf(s: ShipView): V3 {
  * floored at 50 and capped two decades up, normalized to 0..1 — so 100 units
  * is 0, 1,000 is 0.5 and 10,000 or more is 1.
  *
- * ONE HOME, and it had three: slot 6 (target), slot 17 (nearest mate) and
- * slot 19 (mate-to-target) each wrote the expression out again, feeding three
- * different brains — so a floor or decade base moved in one place would have
- * had every genome silently reading a different geometry from the one it was
- * fitted on. The 50/100/2 are what every shipped brain was fitted at;
- * `test/observation.test.ts` holds the three slots to one rule.
+ * ONE HOME: slots 6 (target), 17 (nearest mate) and 19 (mate-to-target) all
+ * read this, feeding different brains, so a moved floor or decade base cannot
+ * silently change one genome's geometry. The 50/100/2 are what every shipped
+ * brain was fitted at; `test/observation.test.ts` holds the three slots to one
+ * rule.
  */
 const logDistance = (d: number): number =>
   Math.min(2, Math.log10(Math.max(50, d) / 100)) / 2;
@@ -182,15 +170,10 @@ const logDistance = (d: number): number =>
  *  6 log distance  7 closing speed  8 target-facing-us dot
  *  9 angle-to-target/pi  10 pitchRate  11 rollRate  12 bias
  *
- * THERE IS NO TARGET-SPEED SLOT (docs/TODO/91). The old slot 10 was
- * `target.speed / OBS_SPEED_SCALE`, the input brains.ts said the policy had
- * latched onto — the game clamped it (`TARGET_SPEED_FLOOR`) and the trainer
- * did not, so every genome was fitted on values the live game never produced.
- * Chris chose deletion over closing the divergence: a bare speed scalar
- * carries no direction and nothing the geometry does not already say, and a
- * policy that needs its input clamped to stay in distribution was fitted on a
- * slot it could not use honestly. The target's speed still reaches the
- * network through slot 7's closing rate — honestly, on both sides.
+ * No target-speed slot: a bare speed scalar carries no direction and nothing
+ * the geometry does not already say, and the game clamped it where the trainer
+ * did not (docs/TODO/91). The target's speed reaches the network through slot
+ * 7's closing rate, honestly on both sides.
  */
 export function observe(me: ShipView, target: ShipView, out: Float32Array): Float32Array {
   const rel = vSub(target.pos, me.pos);
@@ -213,9 +196,8 @@ export function observe(me: ShipView, target: ShipView, out: Float32Array): Floa
   out[7] = Math.max(-1, Math.min(1, closing / OBS_SPEED_SCALE));
   out[8] = vDot(targetFwd, vNorm(vSub(me.pos, target.pos))); // +1 → target faces us
   out[9] = Math.acos(Math.max(-1, Math.min(1, vDot(myFwd, relDir)))) / Math.PI;
-  // The ship's own pitch and roll caps are `turnRate * TURN.*` — ship-specs.ts
-  // records that TURN moved OUT of ai-training/ precisely so the two could not
-  // disagree, and these two literals were the residue.
+  // The ship's own pitch and roll caps are `turnRate * TURN.*` — TURN's one
+  // home is ship-specs.ts, so the two sides cannot disagree.
   out[10] = me.pitchRate / (me.cls.turnRate * TURN.pitch);
   out[11] = me.rollRate / (me.cls.turnRate * TURN.roll);
   out[12] = 1;
@@ -257,10 +239,9 @@ export const NO_OTHER_THREATS: ThreatsView = { others: [], count: 1, missilePos:
  *   15     a hostile warhead is in the air (1/0). At most one, because
  *          `Ordnance` caps the sky so one E.C.M. press is a complete answer.
  *   16-18  the fought threat's VELOCITY, in our ship frame, over
- *          `OBS_SPEED_SCALE` — where it is going, not just where it is.
- *          The v1 encoder gave bearing and closing speed only, so "lead the
- *          target" and "it is crossing left" were unrepresentable; a
- *          memoryless network cannot differentiate its own inputs.
+ *          `OBS_SPEED_SCALE` — where it is going, not just where it is, so
+ *          "lead the target" and "it is crossing left" are representable to a
+ *          memoryless network.
  *   19-21  bearing to the SECOND-nearest hostile, our frame (zeros if none).
  *   22     ...and its log distance (1 — "far" — if none), `logDistance`.
  *   23     live hostiles over 4, the biggest gang `defenceFight` spawns.
@@ -360,8 +341,7 @@ export function observePack(
 
 /**
  * The extra surface the wide pack observation needs on a packmate. npc.ts
- * fills these from the fleet (see `packmates`) — it could not, once, which
- * meant a 26-input policy could be trained and never flown.
+ * fills these from the fleet (see `packmates`).
  */
 export interface ObservableMate {
   pos: V3;
@@ -370,12 +350,10 @@ export interface ObservableMate {
    * Health, over `cls.hp` — the encoder reads the RATIO, so any consistent
    * pair works and only the fraction is ever observed.
    *
-   * The game fills it NORMALIZED (`hp` a 0..1 fraction, `cls.hp` 1), because
-   * live combat keeps whole source energy points now and a mate's bank is not
-   * the observer's: two ships of different designs handing over raw points
-   * against their own maxima would be the same fraction only by accident. One
-   * conversion, at this boundary, so the shipped brains keep seeing exactly the
-   * number they were fitted against.
+   * The game fills it NORMALIZED (`hp` a 0..1 fraction, `cls.hp` 1): live combat
+   * keeps whole source energy points, and two ships of different designs handing
+   * over raw points against their own maxima would match only by accident. One
+   * conversion, at this boundary, so shipped brains see the number they were fitted on.
    */
   hp: number;
   cls: { hp: number };
@@ -440,10 +418,8 @@ export function observePackWide(
  * Which observation does THIS brain want? The widest one it has inputs for.
  *
  * The encoders and the sizes live in this file, so the choice between them
- * belongs here too. It used to be made twice — three ways in npc.ts, two ways
- * in scenario.ts — which meant a genome the trainer could produce was not, by
- * construction, a genome the game could fly: npc.ts once knew only the 14 and
- * the 18, so the round-4 wide brains had no way into the game at all.
+ * belongs here too — made anywhere else, a genome the trainer can produce is
+ * not, by construction, one the game can fly.
  *
  * `mates` is the pack this ship is flying with, or **null when the caller has
  * no pack context** — a lone hunter, or a harness with no fleet. Null means

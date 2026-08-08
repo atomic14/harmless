@@ -1,67 +1,37 @@
 // The clock the world advances on: the size of one slice, and the two limits
-// that stop a stalled tab trying to catch up on all of them at once.
+// that stop a stalled tab trying to catch up on all of them at once. The slice
+// is the game's; the two limits are the browser frame loop's. Same clock from
+// two ends — the sim asks "how long is one step", the loop asks "how many may
+// one animation frame run".
 //
-// The slice is the game's; the two limits are the browser's frame loop's. They
-// are one subject because they are the same clock read from two ends — the
-// simulation asks "how much time is one step" and the loop asks "how many of
-// those may one animation frame run". A reader who changes either without
-// seeing the other has changed how far behind real time the ship can get.
-//
-// The loop itself is `Game.loop` in game/game.ts and the step is
-// `WorldStep.step` in game/world-step.ts; neither is a rule this file states.
+// The loop is `Game.loop` in game/game.ts; the step is `WorldStep.step` in
+// game/world-step.ts.
 
 /**
- * The world advances in slices of exactly this. 60Hz, matching the rate the
- * NPC brains decide at (10Hz, every sixth step) and the rate every combat
- * number in this project was measured against.
- *
- * It lived in game.ts, which cannot be imported without a browser — so the
- * training scenarios, which now fly this very step, could not ask what a slice
- * of the world is and picked 1/15 instead. That is a different world: at 1/15
- * a brain re-decides every 0.133s rather than every 0.1, and every discrete
- * `rotateTowards` step is four times as coarse.
- *
- * It moved on from world-step.ts for the same shape of reason it left game.ts:
- * eight files in `train/` and fifteen tests import it, and every one of them
- * was reaching into the step — a 700-line module with a three.js dependency —
- * to ask a number.
+ * The world advances in slices of exactly this. 60Hz, matching the rate the NPC
+ * brains decide at (10Hz, every sixth step) and the rate every combat number in
+ * this project was measured against.
  */
 export const FIXED_DT = 1 / 60;
 
 /**
- * Longest real interval the loop will try to simulate, before dropping the
- * backlog.
- *
- * A backgrounded tab, a breakpoint or a slow first paint can hand the loop
- * seconds of elapsed time. Simulating them is worse than skipping them: the
- * ship arrives somewhere it was never flown to, and at 60Hz a quarter of a
- * second is already fifteen steps.
+ * Longest real interval the loop will simulate before dropping the backlog. A
+ * backgrounded tab, breakpoint or slow first paint can hand the loop seconds;
+ * simulating them lands the ship somewhere it was never flown to.
  */
 export const MAX_FRAME_TIME = 0.25;
 
 /**
- * ...and the most steps one frame may run, so a stall cannot spiral.
- *
- * The death spiral is the reason both numbers exist: if catching up costs more
- * real time than it buys, the backlog grows every frame and the game freezes
- * solid rather than merely stuttering. At the cap the loop gives up on the
- * backlog entirely (`accumulator = 0`) instead of carrying it.
- *
- * `engine/input.ts`'s `CARRY_LIMIT` is chosen against this — three unread taps
- * of one key is well inside one recovered frame's catch-up budget — and its
- * comment used to say "MAX_STEPS_PER_FRAME is 5" by writing the number out,
- * from a file that could not see it.
+ * ...and the most steps one frame may run, so a stall cannot spiral: if catching
+ * up costs more real time than it buys, the backlog grows every frame. At the
+ * cap the loop drops the backlog entirely (`accumulator = 0`).
  */
 export const MAX_STEPS_PER_FRAME = 5;
 
 /**
- * Unread taps of one key the input carries across busy frames (docs/TODO/37).
- *
- * Three, because that is about the most a hand delivers into a single dropped
- * frame — and it is well inside `MAX_STEPS_PER_FRAME`, the catch-up budget
- * above, so a backlog is spent as cursor movement the player asked for rather
- * than as a burst they did not. That relationship used to be prose written
- * from a file that could not see the budget; the two sit together now and
+ * Unread taps of one key the input carries across busy frames. Three, about the
+ * most a hand delivers into a single dropped frame — well inside
+ * `MAX_STEPS_PER_FRAME`, so a backlog is spent as movement the player asked for.
  * `test/input.test.ts` holds the inequality.
  */
 export const CARRY_LIMIT = 3;

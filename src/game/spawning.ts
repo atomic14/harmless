@@ -135,9 +135,8 @@ export function spawnPopulation(
         .multiplyScalar(GENERATION_SHIP_RANGE + random() * GENERATION_SHIP_RANGE_SPAN));
     generationShip = world.spawn('generation', pos, 0);
     // steerQuatToward, not lookAt: Object3D.lookAt aims +Z at its target and a
-    // hull's nose is -Z (invariant 7), so `lookAt(home)` pointed the derelict
-    // exactly AWAY from the station — dot(nose, bearing) = -1, measured. It has
-    // been cruising away from the system it is drifting into since it shipped.
+    // hull's nose is -Z (invariant 7), so `lookAt(home)` would point the
+    // derelict exactly away from the station.
     steerQuatToward(generationShip.object.quaternion,
       _face.copy(home).sub(generationShip.object.position), Math.PI);
     // still shedding cargo after centuries
@@ -173,10 +172,8 @@ export function spawnPopulation(
  *
  * `pirateBrainFor` (brains.ts) reads the threat tier and the `organised` flag,
  * and that flag is the one per-ship lever there is — CLAUDE.md's Training split.
- * Choosing a *named* brain per ship (r2 vs a generation attacker vs the
- * scripted baseline) is a global A/B flag today, so a caller that wants one
- * sets it around the exercise; there is no field on `NpcState` to put it in
- * and inventing one is not this file's business.
+ * Choosing a *named* brain per ship is a global A/B flag today, set around the
+ * exercise; there is no field on `NpcState` for it.
  */
 export type OppositionBrain =
   /** whatever the galaxy would give this role and tier */
@@ -326,14 +323,12 @@ export function spawnOpposition(
 
       const npc = world.spawn(unit.role, pos, seed, oppositionSpec(unit, seed));
       // Pointed at you, not at a random corner of space: the constructor gives
-      // every ship a random orientation, which is right for a system and wrong
-      // for a duel. `state.quat` IS the mesh's quaternion, so this is the state.
+      // every ship a random orientation, right for a system and wrong for a
+      // duel. `state.quat` IS the mesh's quaternion, so this is the state.
       //
-      // steerQuatToward, NOT `object.lookAt(origin)`. Object3D.lookAt points
-      // +Z at its target for anything that is not a camera, and a hull's nose
-      // is -Z (invariant 7, and `advance()` flies along -Z) — so lookAt spawns
-      // the whole gang flying away from you. Verified: the dot product of the
-      // nose against the bearing to the player comes out at exactly -1.
+      // steerQuatToward, NOT `object.lookAt(origin)`: lookAt points +Z at its
+      // target and a hull's nose is -Z (invariant 7), so lookAt would spawn the
+      // gang flying away from you.
       steerQuatToward(npc.object.quaternion, _face.copy(origin).sub(pos), Math.PI);
       if (unit.tier !== undefined) npc.state.threatTier = unit.tier;
       if (unit.brain === 'pack') npc.state.organised = true;
@@ -366,10 +361,9 @@ export function spawnArrivingTrader(world: World, range: number): void {
 /**
  * Vipers off the slot, launched because you shot at something you shouldn't.
  *
- * The rule the station enforces, and it was written inline in `game.ts` where
- * it could not be tested: one or two of them, stacked along the slot normal,
- * jittered so a second call does not look like the first, and PROVOKED —
- * launched specifically for you, so unlike ordinary police they are already
+ * The rule the station enforces: one or two of them, stacked along the slot
+ * normal, jittered so a second call does not look like the first, and PROVOKED
+ * — launched specifically for you, so unlike ordinary police they are already
  * your business.
  *
  * The stack does NOT guarantee they miss each other: the jitter is larger than

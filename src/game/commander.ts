@@ -12,11 +12,6 @@ import {
 // and a test can assert against one. Reading and writing saves is storage.ts;
 // what things cost is shop.ts.
 //
-// The header used to say "everything that persists between sessions", which
-// sounds like a scope and is really a magnet: a price list is not a thing that
-// persists, but it was filed here anyway, and the fuel price followed it in on
-// the reasoning that every other price was here already.
-//
 // Imports carry explicit .ts extensions because Node loads this module
 // directly for the headless campaign simulator (test/campaign.ts).
 //
@@ -66,9 +61,9 @@ export function defaultEquipment(): Equipment {
 
 
 /**
- * A job from a station's bulletin board. The original made you earn the
- * first mission with 16 kills; these are available from your first landing
- * so a new commander always has something to chase.
+ * A job from a station's bulletin board. Available from your first landing, so
+ * a new commander always has something to chase (the original made you earn the
+ * first mission with 16 kills).
  */
 export interface Contract {
   kind: 'cargo' | 'bounty' | 'courier';
@@ -97,11 +92,8 @@ export interface CommanderData {
    * Which hull you are flying, as a `PlayerHullId` (ship-identity.ts).
    *
    * The ONE piece of player identity a later shipyard changes, which is why it
-   * is saved as an id rather than as a copied stat block. It does not drive
-   * flight yet: this phase records what you are in, and the TODOs that resolve
-   * lasers and armour through it come after. A save that does not name one is
-   * refused rather than given the Cobra — `requirePlayerHullId`, and the
-   * migration that used to stand there went on 2026-08-04.
+   * is saved as an id rather than as a copied stat block. A save that does not
+   * name one is refused rather than given the Cobra — `requirePlayerHullId`.
    */
   shipId: PlayerHullId;
   galaxy: number;
@@ -121,11 +113,9 @@ export interface CommanderData {
   /**
    * Pilots pulled out of escape capsules, awaiting delivery to a station.
    *
-   * NOT cargo. This used to be `cargo[3] += 1`, and commodity 3 is SLAVES —
-   * which law.ts lists as contraband. Rescuing a survivor therefore made you a
-   * smuggler: the police scan flagged you and you went to Offender for a good
-   * deed. They still take up a bay (see cargoTonnes) but they are not stock,
-   * cannot be sold, and are nobody's business but yours.
+   * NOT cargo, and deliberately not `cargo[3]` (SLAVES, which law.ts lists as
+   * contraband) — a rescued survivor must not read as smuggling. They take up a
+   * bay (see cargoTonnes) but are not stock and cannot be sold.
    */
   survivors: number;
   equipment: Equipment;
@@ -145,17 +135,12 @@ export interface CommanderData {
   /**
    * The furthest wave this commander has ever reached in the combat trainer.
    *
-   * THE ONE THING AN EXERCISE IS ALLOWED TO LEAVE BEHIND, and it is here rather
-   * than in the trainer because a run needs a result worth coming back to and a
-   * result that dies with the tab is not one. It is state, so it is saved.
-   *
-   * It is deliberately NOT a rating, a kill or a credit, and nothing in the
-   * career reads it: `rating()` reads `combatScore`, `markOf` reads the hold and
-   * the reputation, and neither has heard of this. It is shown on the trainer's
-   * own setup panel and nowhere else — the room's promise is that nothing that
-   * happens in it leaves it, and a number the galaxy cannot see does not break
-   * that promise. `test/combat-sim-career.test.ts` holds it to exactly that:
-   * after a run of waves it is the ONLY field of the career that has moved.
+   * THE ONE THING AN EXERCISE IS ALLOWED TO LEAVE BEHIND. It is state, so it is
+   * saved. Deliberately NOT a rating, a kill or a credit, and nothing in the
+   * career reads it — it is shown on the trainer's own setup panel and nowhere
+   * else, so the room's promise that nothing in it leaves it holds.
+   * `test/combat-sim-career.test.ts` pins that: after a run of waves it is the
+   * ONLY field of the career that has moved.
    */
   furthestWave: number;
   contracts: Contract[];
@@ -166,8 +151,8 @@ export interface CommanderData {
 export function newCommander(): CommanderData {
   return {
     name: DEFAULT_NAME,
-    // Elite-A started you in an Adder; this phase deliberately does not, because
-    // switching the starting hull is a balance change and not an identity one
+    // Elite-A started you in an Adder; we deliberately do not, because switching
+    // the starting hull is a balance change, not an identity one
     // (docs/TODO/ELITE-A-COMBAT-PLAN.md defers it).
     shipId: COBRA_MK_3_HULL_ID,
     galaxy: 1,
@@ -210,11 +195,9 @@ export function recordFurthestWave(c: CommanderData, wave: number): boolean {
 /**
  * What destroying a pirate of this threat tier is worth toward your rating.
  *
- * The original counted every kill the same, which meant the fastest route to
- * E L I T E was farming the weakest thing you could find — and made the
- * ladder's top a flat grind. Weighting by tier rewards taking on the fights
- * that are actually dangerous, which is the play the pirate economics are
- * built to offer. (Deliberate deviation; see docs/GAP-ANALYSIS.md.)
+ * Weighting by tier rewards taking on the fights that are actually dangerous,
+ * rather than farming the weakest thing you can find as the original allowed.
+ * (Deliberate deviation; see docs/GAP-ANALYSIS.md.)
  */
 export function killValue(tier: number): number {
   return tier >= 2 ? 5 : tier === 1 ? 2 : 1;

@@ -1,32 +1,22 @@
 // Two records, held against each other — and the refusal when they may not be.
 //
-// The seventh combat-trainer file, and the one the whole method rests on:
-// docs/COMBAT-SIM.md says the trainer is an A/B rig — same seed, same scenario,
-// two brains, two reports — and that is why the seed is on the record. Until
-// this module, doing it meant flying one, reading a screen, flying the other,
-// and holding twenty numbers in your head while pressing left and right between
-// records.
+// The trainer is an A/B rig (docs/COMBAT-SIM.md): same seed, same scenario, two
+// brains, two reports — which is why the seed is on the record.
 //
-// **It derives, and it accumulates nothing.** Everything here is a function of
-// two finished `CombatSimReport`s: no new sampling, no second tally, no field
-// added to a recorder. Two records that were exported yesterday compare exactly
-// as two flown a minute ago.
+// It derives, and it accumulates nothing: everything here is a function of two
+// finished `CombatSimReport`s. Records exported yesterday compare exactly as two
+// flown a minute ago.
 //
-// The load-bearing part is not the arithmetic, it is the REFUSAL. Subtracting
-// two numbers is always possible and is only sometimes meaningful: two fights on
-// different seeds, in different scenarios or modes, on a different wave, against
-// a different hull or flown with a different fit-out are not an A/B, and a
-// difference column over them is a number that looks like a finding and is not
-// one. So a confound is NAMED, with both of its values, and the difference
-// column is not painted at all. Different BRAINS is the point; different
-// anything else is a confound.
+// The load-bearing part is the REFUSAL. Two fights on different seeds, scenarios,
+// modes, waves, hulls or fit-outs are not an A/B, and a difference column over
+// them looks like a finding and is not one. So a confound is NAMED, with both
+// values, and the difference column is not painted. Different BRAINS is the
+// point; different anything else is a confound.
 //
-// There is deliberately NO verdict, no score and no "which brain won" — the same
-// refusal TODO 34 made about a turret index, for the same reason. The report
-// presents; the pilot judges. Even the difference is left unsigned in meaning:
-// more damage taken is worse for a pilot and exactly what a playtester is
-// hunting for, and a renderer that coloured it green or red would be deciding
-// which of those you are.
+// There is deliberately NO verdict, no score and no "which brain won": the
+// report presents, the pilot judges. Even the difference is left unsigned in
+// meaning — more damage taken is worse for a pilot and exactly what a playtester
+// hunts for, and a renderer that coloured it would be deciding which you are.
 
 import { COMBAT_SIM_SCHEMA, type CombatSimReport } from './combat-sim-report.ts';
 
@@ -121,7 +111,7 @@ interface IdentityField {
 }
 
 const IDENTITY: readonly IdentityField[] = [
-  // The schema first: TODO 28 changed what the damage figures MEAN, so records
+  // The schema first: a bump changes what the damage figures MEAN, so records
   // either side of it are not comparable however well the rest matches.
   { field: 'SCHEMA', of: (r) => String(r.schema) },
   { field: 'SEED', of: (r) => String(r.seed) },

@@ -6,19 +6,18 @@ and the trainer imports **the game itself** — `NpcShip`, `PlayerShip`,
 three.js is the only dependency and it runs headless; there is no canvas and
 no WebGL anywhere in a training run.
 
-There used to be a second physics (`src/ai-training/core.ts`) kept in step by
-hand. It is deleted. What that means for you: **a change to a combat number is
-a change to the training environment**, so the shipped brains are stale the
-moment you touch `NPC_COOLDOWN_LO`, `IMPACT.ram`, a hull's energy bank or
-the player's flight envelope. That is the trade — nothing can silently drift any
-more, and nothing is free either.
+The trainer imports **the game itself**; there is no second physics. So **a
+change to a combat number is a change to the training environment**, and the
+shipped brains are stale the moment you touch `NPC_COOLDOWN_LO`, `IMPACT.ram`,
+a hull's energy bank or the player's flight envelope. Nothing can silently
+drift, and nothing is free either.
 
 ## Quick start
 
 ```sh
 npm install                       # only needed for the game/viewer, not training
 npm run train -- attack           # ~4 min on one laptop core
-npm run train -- evade            # trains against the pirate you just made
+npm run train -- evade            # an unarmed trader vs the scripted pirate
 node --experimental-strip-types --no-warnings train/evaluate.ts 40
 ```
 
@@ -30,29 +29,35 @@ a JSONL curve to `train/logs/`, and writes the winning brain to
 > comparing scores across generations that used different episode seeds, which
 > picks the luckiest generation rather than the best genome.
 >
-> **Footgun warning:** training OVERWRITES the committed brain files, and the
-> game imports them at build time — `git checkout src/ai-training/brains` to restore
-> the shipped ones. Which brains the game flies is decided in
-> `src/game/brain-names.ts` — `SHIPPED_BRAINS` is the one line that changes a
-> default — and `src/game/brains.ts` turns a name into loaded weights. `npm
-> test` reads those files rather than a list, so the regression gate cannot end
-> up measuring a brain nobody flies.
+> **Footgun warning:** a run WRITES a weights file into
+> `src/ai-training/brains/`, which ships empty apart from a `.gitkeep` —
+> `git checkout src/ai-training/brains` clears whatever a run left behind. The
+> game itself imports NO weights: it flies three hand-written code pilots, so
+> which brains it flies is decided in `src/game/brain-names.ts` —
+> `SHIPPED_BRAINS` is the one line that changes a default — and
+> `src/game/brains.ts` is where a name would turn into loaded weights if any were
+> imported. `npm test` holds the weights directory to exactly what `brains.ts`
+> imports (today: nothing), so the regression gate cannot end up measuring a
+> brain nobody flies.
 
 ## The five phases
 
 | phase | trains | against | command |
 | --- | --- | --- | --- |
 | `attack` | a pirate | scripted trader | `npm run train -- attack --gens 400 --pop 64 --eps 3` |
-| `evade` | an unarmed trader | trained pirate | `npm run train -- evade --gens 400 --pop 64 --eps 3` |
-| league | a pirate again | a trained evader | `npm run train -- attack --opponent <an evade brain> --seed-brain pirate-attack-g3 --out my-brain --gens 300 --pop 48` |
+| `evade` | an unarmed trader | scripted pirate (`--opponent` for a trained one) | `npm run train -- evade --gens 400 --pop 64 --eps 3` |
+| league | a pirate again | a trained evader | `npm run train -- attack --opponent <an evade brain> --out my-brain --gens 300 --pop 48` (add `--seed-brain <a champion you kept>` to continue a line) |
 | `pack` | 3 shared-brain pirates | armed scripted trader | `npm run train -- pack --gens 300 --pop 48` |
-| `defend` | an ARMED trader ("Jameson") | 2× `pirate-attack-g3`, the shipped pirate (`--opponent` overrides it) | `npm run train -- defend --gens 300 --pop 48` |
+| `defend` | an ARMED trader ("Jameson") | 2× `scripted`, the default opponent (`--opponent` overrides it) | `npm run train -- defend --gens 300 --pop 48` |
 
-A league or `evade` run needs a frozen opponent BY NAME, and the only weights
-files in the tree are the three the game flies (TODO 57): train the opponent you
-want first, or point `--opponent` at one of the three. `--out` defaults to the
-phase's shipped brain, which is the loud overwrite this file has always warned
-about and did not do — `git checkout src/ai-training/brains` restores.
+A league or `evade` run needs a frozen opponent, named one of two ways: the
+special name `scripted` (the hand-written attack run — it loads no file, and is
+the default for `evade` and `defend`), or the stem of a weights file you trained
+yourself. The tree ships NO weights files — the game flies three code pilots
+(TODO 57) — so for a TRAINED opponent, train it first and point `--opponent` at
+it. `--out` defaults to the phase's default name, so a run without `--out`
+writes that file into the otherwise-empty directory — `git checkout
+src/ai-training/brains` clears it.
 
 Flags: `--gens --pop --eps --elites` (numbers), `--opponent <brain-name>`
 (loads `src/ai-training/brains/<name>.json` as the frozen opponent),
@@ -84,10 +89,13 @@ demanding exact equality there.
 
 ## Wiring a new brain into the game
 
-**`src/ai-training/brains/` holds exactly the three the game flies, and
-`npm test` fails on a fourth file or a missing one** (TODO 57). So a candidate
-is either being compared or being promoted, and the two are different amounts of
-work:
+**`src/ai-training/brains/` ships EMPTY — just a `.gitkeep`. The game flies
+three hand-written code pilots (`attack-run`, `pursuit`, `scripted`) and
+`brains.ts` imports no weights, so `npm test` asserts the weights directory
+matches exactly what `brains.ts` imports (today: nothing) — it trips the moment
+a `.json` appears that `brains.ts` doesn't import, or a file it imports goes
+missing** (TODO 57). So a candidate is either being compared or being promoted,
+and the two are different amounts of work:
 
 *To COMPARE it* — no game changes at all:
 
@@ -103,8 +111,8 @@ work:
 
 5. Import it where the incumbents are imported: `src/game/brains.ts` (one
    `brainFromFile` block and one line in `LOADED`). Any observation width
-   works — 14, 18 or 26; `npc.ts` picks the widest encoder the brain has inputs
-   for. The combat viewer's rows ask `brains.ts` for the shipped policy by role,
+   works — 13, 17 or 25 (plus 29 for defence); `npc.ts` picks the widest encoder
+   the brain has inputs for. The combat viewer's rows ask `brains.ts` for the shipped policy by role,
    so `src/viewer/main.ts` needs nothing unless you want a row of its own.
 6. Name it in `src/game/brain-names.ts`: one `BrainName`, one row in
    `SELECTIONS` (and a `BrainSelection` flag if it is an alternative rather than
@@ -124,11 +132,12 @@ In-game A/B: brain selection is STATE, not a global — `state.brains`
 flag: the **LIVE BRAINS (CAREER)** row on the combat trainer's setup panel (`T`
 at any station) picks one policy for the whole galaxy, and from a console the
 one documented handle does the same — `__game.state.brains.scripted = true`
-reverts every ship to the scripted AI and `__game.state.brains.pack = true` puts
-the gang policy on every pirate. Those two are the whole of `BrainSelection`:
-the other six flags each named an unshipped candidate's weights file and went
-with them in TODO 57. A save carrying one still loads and flies the shipped
-brains. It is in the snapshot, so a reload keeps flying what you chose.
+reverts the WHOLE game to the hand-written attack run (pirates and the defence
+co-pilot both), and `__game.state.brains.pursuit = true` names the pursuit
+dogfighter the pirates already fly by default (so it changes nothing unless a
+`scripted` career is being switched back). Those two are the whole of
+`BrainSelection`. A save carrying an older flag still loads and flies the
+shipped brains. It is in the snapshot, so a reload keeps flying what you chose.
 
 ## The Jameson autopilot (end-to-end economy test)
 
@@ -144,6 +153,6 @@ await __auto.runTrial('Lave', 'Leesti', 6)   // 6 legs, prints the ledger
 It calls `useHarnessSaves()` first, which moves the whole page — the running
 game's autosave included — into a scratch namespace for the life of the tab.
 Nothing it does can reach a real save, and nothing puts the namespace back:
-reload the page to play your career. Backing a save up and restoring it in a
-`finally` was what this used to do, and it was not enough, because the world
-autosaves every 20 seconds and a tab left running wrote over the restore.
+reload the page to play your career. (A backup-and-restore in a `finally` is not
+enough on its own: the world autosaves every 20 seconds, so a tab left running
+overwrites the restore.)

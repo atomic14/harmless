@@ -1,34 +1,22 @@
 // The scripted combat computer: a PURSUIT DOGFIGHTER flying YOUR ship.
 //
-// Chris asked for this after the third trained-defence wall in a row
-// (docs/TRAINING-LOG.md runs 20-21: a turret, a sprayer, a pacifist). The first
-// cut flew the pirates' own three-phase attack run — close, fire on the pass,
-// blow straight through, loop back — because that run had won the feel test as
-// the OPPOSITION twice. Flown as the player's co-pilot it was wrong: the pass
-// phase steers nowhere on purpose (go through on the heading that got you
-// there), so the instant a target got close and crossing, the ship stopped
-// tracking it — "it lines up, shoots, then doesn't follow" (Chris, flying it).
-//
-// So it diverged. What a person does is get on the opponent's six and shoot it
-// up, hauling the throttle back to swing the nose round and stay on a crossing
-// target. That is pure pursuit — point the nose AT the target (the laser is
-// hitscan, so no lead: aim where it is), which curves you onto its tail as it
-// turns and runs — plus a throttle that holds a gun-range standoff behind it and
-// comes off hard when the nose has a long way to swing. It flies `attack-run.ts`
-// no more; the pirates still do (npc.ts), which is a separate ship and a
-// separate decision.
+// What a person does is get on the opponent's six and shoot it up, hauling the
+// throttle back to swing the nose round and stay on a crossing target. That is
+// pure pursuit — point the nose AT the target (the laser is hitscan, so no
+// lead: aim where it is), which curves you onto its tail as it turns and runs —
+// plus a throttle that holds a gun-range standoff behind it and comes off hard
+// when the nose has a long way to swing. It flies `pursuit.ts`, not the attack
+// run; the pirates fly the attack run (npc.ts), a separate ship and decision.
 //
 // It DECIDES and reports, like every module here: what comes back is a
 // `FlightDemand` — ramped pitch and roll rates, a throttle, a trigger — and one
 // E.C.M. request. The Game flies the demand through the same `PlayerShip.update`
 // a human's keys do (which is what puts the co-pilot's turning on the HUD
-// needles) and pulls the trigger with its legal consequences, exactly as it
-// applies the brain co-pilot's demand.
+// needles) and pulls the trigger with its legal consequences.
 //
 // How it POINTS the nose is `pitch-roll-steer.ts`: the player's ship has no yaw
 // axis, so it banks the target onto the pitch plane and pulls up to it, at the
-// commander's OWN caps and ramp (PLAYER_FLIGHT), not the softer CC_* caps the
-// trained brain was fitted to.
+// commander's OWN caps and ramp (PLAYER_FLIGHT).
 
 import * as THREE from 'three';
 import { ThreatLock } from './threat-lock.ts';
@@ -73,10 +61,9 @@ export class ScriptedCoPilot {
   /**
    * Seconds of "the commander is being hit" left — recorded from `noteHit`
    * (the Game's only way to tell the co-pilot it took damage) and decayed each
-   * step. The pursuit does NOT read it yet: it kept fighting whether hit or not
-   * even when it flew the attack run, and a dogfighter on the six should not
-   * break off just because it is taking fire. Kept live end to end so an
-   * evasive behaviour can be built on it later without re-plumbing.
+   * step. The pursuit does NOT read it yet: a dogfighter on the six should not
+   * break off just because it is taking fire. Kept live end to end so an evasive
+   * behaviour can be built on it later without re-plumbing.
    */
   private underFire = 0;
 

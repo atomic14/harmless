@@ -1,16 +1,11 @@
 # Ship AI: from behaviour trees to self-play RL, and a living galaxy
 
-> **Status update (2026-07-26): Phases 1-2 are DONE and reproducible.**
-> The policy MLP and the neuroevolution trainer shipped (`src/ai-training/`,
-> `train/evolve.ts`) — but **what is written below is the original design, not
-> the as-built spec**, and it differs in every dimension that has a number in
-> it. Each section that shipped differently carries an AS BUILT note; the
-> authority is always `src/ai-training/policy.ts`, which exports the sizes.
-> The fitness figures once quoted here have been removed rather than
-> re-measured: they predate several combat-number changes, each of which
-> invalidates the brains they were measured on (docs/INVARIANTS.md invariant 5). Runs,
-> curves and hyperparameters: `docs/TRAINING-LOG.md`. Watch the results at
-> `/viewer`.
+> **This document is the original design, not the as-built spec**, and it
+> differs in every dimension that has a number in it. The policy MLP and the
+> neuroevolution trainer shipped (`src/ai-training/`, `train/evolve.ts`). Each
+> section that shipped differently carries an AS BUILT note; the authority is
+> always `src/ai-training/policy.ts`, which exports the sizes. Runs, curves and
+> hyperparameters: `docs/TRAINING-LOG.md`. Watch the results at `/viewer`.
 
 Chris's questions: can we train ship AI with reinforcement learning, pitting
 AIs against AIs in a simulated environment? And can we simulate a whole
@@ -20,15 +15,20 @@ Short answers: **yes, and it's very tractable for this game** — because our
 flight model is tiny and deterministic — and **yes**, with a two-level
 simulation. Design below.
 
-## Where we started (the scripted tier — since superseded in two roles)
+## The scripted tier
 
-> As shipped, pirates attacking the player fly `pirate-attack-g3`, an
-> organised gang flies `pirate-pack-r4-selectonly`, and armed traders (and the
-> combat computer) defend with `jameson-defend-g2`. `src/game/brain-names.ts`
-> is where that pairing is stated — `SHIPPED_BRAINS` and the `*BrainNameFor`
-> rules — and `src/game/brains.ts` turns a name into weights; `npm test` reads
-> those files rather than a list. The scripted logic below remains for every
-> other behaviour and as the `state.brains.scripted = true` fallback.
+> **No trained policy ships.** `src/ai-training/brains/` holds no weights at all
+> — only a `.gitkeep`. The game flies three hand-written code pilots: `pursuit`
+> (what pirates fly by default — chases onto your six, breaks into the attack
+> run when you turn onto it), `attack-run` (armed traders and the combat
+> computer you buy — the hand-written three-phase run pointed the other way),
+> and `scripted` (the A/B control that reverts the whole game to the three-phase
+> attack run). `src/game/brain-names.ts` is where that pairing is stated:
+> `SHIPPED_BRAINS` is `{}`, `pirateBrainNameFor` returns `pursuit` (`scripted`
+> when the A/B asks), and `defenceBrainNameFor` returns `attack-run` (again
+> `scripted` under the A/B). `npm test` reads those files rather than a list.
+> `train/evolve.ts` can breed a candidate for research, but nothing it produces
+> is loaded until it is imported in `brains.ts` and named here.
 
 `src/game/npc.ts` implements the behaviour matrix by hand:
 
@@ -60,18 +60,15 @@ the regime where simple methods beat fancy ones.
 
 ### 1. Extract the sim core
 
-*(Done, then undone, and the second half is the lesson.)* This was built as
-`src/ai-training/core.ts`: the kinematics and combat resolution rewritten as a
-pure module with its own vector maths and no three.js. It bought fast episodes
-and cost three years' worth of drift in one file — the goal above, "a trained
-policy behaves identically in training and in the shipped game", is exactly
-what a copy cannot deliver, however carefully it is mirrored.
+The kinematics and combat resolution as a pure module with its own vector maths
+and no three.js, to buy fast headless episodes.
 
-The kinematics came out of `npc.ts`/`game.ts` in the end anyway, but *into the
-game*: `world-step.ts`, `collisions.ts`, `systems.ts`, `gunnery.ts` and a
-`PlayerShip` that flies a `FlightDemand` all run headless under node. So
-`core.ts` is deleted and `scenario.ts` builds episodes from the engine
-directly. Same benefit, no copy.
+> **AS BUILT — no separate core, and that is the lesson.** A copy cannot
+> deliver "a trained policy behaves identically in training and in the shipped
+> game", however carefully it is mirrored. So the kinematics run *in the game*:
+> `world-step.ts`, `collisions.ts`, `systems.ts`, `gunnery.ts` and a
+> `PlayerShip` that flies a `FlightDemand` all run headless under node, and
+> `scenario.ts` builds episodes from the engine directly. Same benefit, no copy.
 
 ### 2. Observation & action spaces (per ship)
 
@@ -89,21 +86,28 @@ Actions (discrete, matches the keyboard model — 3×3×3×2 = 54 combos):
   trigger {fire, don't}
 
 > **AS BUILT — smaller, and the encoders are the authority.** The observation
-> is one target, not K=3: `observe()` writes `OBS_SIZE = 14` floats, and each
-> slot is named in its own docstring in `policy.ts`. Two wider encoders extend
-> it for pack play — `observePack` adds the nearest living packmate's
-> direction and log distance (`PACK_OBS_SIZE = 18`), and `observePackWide`
-> adds enough about that mate to fly a complementary line rather than merely
-> avoid it (`PACK_WIDE_OBS_SIZE = 26`). Nothing observes shields, missiles or a
-> hull-class one-hot; there is no missile channel and no protectee channel.
-> `observeFor()` picks the widest encoder a given brain has inputs for, which
-> is why that choice has one home.
+> is one target, not K=3: `observe()` writes `OBS_SIZE = 13` floats, and each
+> slot is named in its own docstring in `policy.ts`. The target's speed is not a
+> slot — it reaches the network through the closing rate. Three wider encoders extend it — `observePack` adds the nearest living
+> packmate's direction and log distance (`PACK_OBS_SIZE = 17`),
+> `observePackWide` adds enough about that mate to fly a complementary line
+> rather than merely avoid it (`PACK_WIDE_OBS_SIZE = 25`), and `observeDefend`
+> (`DEFEND_OBS_SIZE = 29`) is the defender's own: it observes the ship's own
+> pools (hull and energy bank), the shield split (fore/aft faces), an inbound
+> warhead, the fought threat's velocity and a second threat. The pack encoders
+> still see no shields, missiles, hull-class one-hot or protectee channel —
+> those numbers mean nothing to a pirate, so the phase that needs them pays for
+> them. `observeFor()` picks the encoder a given brain wants (the defence
+> encoder by its E.C.M. head, otherwise the widest its inputs allow), which is
+> why that choice has one home.
 >
 > The action SPACE is as designed — 3×3×3×2 = 54 reachable combinations — but
 > it is not 54 outputs. `act()` emits `OUT_SIZE = 11` logits as four
 > independent heads (pitch 3, roll 3, throttle 3, fire 2) and takes an argmax
 > per head, so the policy is deterministic and the head count grows additively
-> rather than multiplicatively.
+> rather than multiplicatively. The defence policy adds a FIFTH head — the
+> E.C.M. (`DEFEND_OUT_SIZE = 13`), a two-logit press that `act()` reads into
+> `Control.ecm` — and only the defence family has it, so a pirate never asks.
 
 ### 3. Policy representation
 
@@ -114,10 +118,14 @@ as a Float32Array in a JSON file; inference is 30 lines of TypeScript, no
 runtime dependency.
 
 > **AS BUILT — a quarter of the size.** `HIDDEN = 32`, so the solo network is
-> 14 → 32 → 32 → 11, and `genomeSize()` in `policy.ts` is the one place the
-> parameter count is worked out: it is under 2k for a solo brain and a little
-> over 2k for the two pack widths. Do not restate the number here — call
-> `genomeSize(obsSize)` if you need it. Everything else in this section held:
+> 13 → 32 → 32 → 11, and `genomeSize()` in `policy.ts` is the one place the
+> parameter count is worked out: it is 1,867 for a solo brain, 1,995 for the
+> pack width (still just under 2k) and 2,251 for pack-wide — only pack-wide is
+> over 2k. The defender is bigger on purpose: `DEFEND_HIDDEN = 64`, so its net
+> is 29 → 64 → 64 → 13 (~6,925 params), because a world with a second threat
+> and a warhead in it asks more of the network than the lone-hunter phases did.
+> Do not restate these numbers here — call `genomeSize(obsSize, hidden,
+> outSize)` if you need one. Everything else in this section held:
 > two `tanh` layers, weights as a `Float32Array` in a JSON file, inference in
 > `act()` with no runtime dependency, and the 10 Hz tick (`brainFly` in
 > `npc.ts` re-decides every 0.1 s and ramps between decisions).
@@ -130,6 +138,10 @@ duels/skirmishes; select + mutate (CMA-ES or simple truncation+noise).
 No backprop, no Python, runs overnight in Node worker threads. Neuroevolution
 is famously competitive on sub-100k-param policies, and the asynchronous
 tournament *is* the AI-vs-AI arena you described.
+
+> **AS BUILT — the defaults are smaller.** `train/evolve.ts` runs POP=48,
+> GENS=300, EPISODES=3, ELITES=8 by default (all `--`-overridable), not a
+> population of ~64.
 
 **Phase B (if we want sharper play): PPO self-play in Python.**
 Port the sim (it's ~300 lines of math), train with PPO + league play

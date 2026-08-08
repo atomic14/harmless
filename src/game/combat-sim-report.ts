@@ -1,37 +1,27 @@
 // What happened in a training fight, and what it means.
 //
-// This is the measurement half of the combat simulator (docs/COMBAT-SIM.md):
-// something else runs the exercise, this counts it. It absorbs the two console
-// harnesses that used to do the counting —
+// The measurement half of the combat simulator (docs/COMBAT-SIM.md): something
+// else runs the exercise, this counts it. It covers two things a console
+// harness used to:
 //
-//   test/combat-recorder.js  a fight a HUMAN flew: accuracy both ways, damage
-//                            by cause, and the geometry that decides whether an
-//                            NPC can shoot at all
-//   test/arena.js            envelope(): how the commander actually flies,
-//                            which is the one human-shaped input the trainer
-//                            has. ai-training/scenario.ts's playerCobra and
-//                            playerCobraSlow target hulls are fitted to it, so
-//                            losing it would cost the trainer that fit
+//   * a fight a HUMAN flew: accuracy both ways, damage by cause, and the
+//     geometry that decides whether an NPC can shoot at all
+//   * envelope(): how the commander actually flies, the one human-shaped input
+//     the trainer has. ai-training/scenario.ts's target hulls are fitted to it.
 //
-// — and it exists as a module rather than as a paste because a harness that is
-// monkey-patched onto three Game methods can only measure what the patches
-// still line up with, and twice they stopped: the five step phases moved off
-// the Game onto WorldStep and every hit silently became `unknown`.
+// A module rather than monkey-patched onto Game methods, which can only measure
+// what the patches still line up with.
 //
-// It is PURE, and that is the point of it. No DOM, no globals at module scope,
-// no clock of its own — it is fed samples and events, and it derives. So the
-// same maths can be asserted in test/run.ts against arrays built by hand, which
-// is the only way to know that a median is a median.
+// It is PURE: no DOM, no globals at module scope, no clock of its own — it is
+// fed samples and events, and it derives. So the same maths can be asserted in
+// test/run.ts against arrays built by hand.
 //
 // One rule, one home, twice over:
 //   * "lined up" is `NPC_FIRE_GATE` and the range cut-offs are `NPC_LASER_RANGE`
 //     (constants/npc-gun.ts, theirs) and `LASER_RANGE` (constants/player-gun.ts,
-//     yours).
-//     combat-recorder.js wrote 14.3 degrees and 3500 out by hand, so a balance
-//     change to either moved the game and left the measurement behind.
-//   * the JSON is VERSIONED (`schema`), as snapshot.ts's SNAPSHOT_VERSION is.
-//     A trainer reading the exported records is an external consumer, and the
-//     first shape change would otherwise break it in silence.
+//     yours), so a balance change moves the game and the measurement together.
+//   * the JSON is VERSIONED (`schema`), as snapshot.ts's SNAPSHOT_VERSION is: a
+//     trainer reading the exported records is an external consumer.
 
 import * as THREE from 'three';
 import { LASER_RANGE } from '../constants/player-gun.ts';
@@ -49,23 +39,12 @@ import {
 /**
  * The shape of an exported record. Bump it when a field changes meaning or
  * leaves, not when one is added — a reader that ignores unknown keys survives
- * additions, which is why SNAPSHOT_VERSION is still 1.
+ * additions.
  *
- * 1 -> 2 (TODO 28): `damageToYou` and every `damageBySource` bucket in the
- * `them` direction changed MEANING. The laser buckets did not move, but a ram,
- * a canister on the hull, a Coriolis scrape and a warhead are stated point
- * numbers now (`constants/impact.ts`) rather than a normalized fraction pushed
- * through a conversion — a warhead is 250 pool points where it was 332, and
- * `damageFromYou` moved too, because a crossfire hit is the firing build's own
- * laser against the target's own defence rather than a flat 11 points. Records
- * exported before this cannot be compared with records exported after it.
- *
- * 2 -> 3 (TODO 47): `you.damageDealt`, `you.damageBySource` and every
- * `damageFromYou` were LASER ONLY. `dealt()` had one caller — the gun — so a
- * fight won with a missile, a ram or the energy bomb exported `damageDealt: 0`
- * beside its kills, and the field silently meant "damage you dealt with the
- * laser". It means what it says now (damage-dealt.ts), so a record from before
- * this understates the outbound half and cannot be held against one from after.
+ * Records across a bump are not comparable: 1->2 changed what `damageToYou` and
+ * the `them` damage buckets MEAN (stated point numbers, `constants/impact.ts`,
+ * rather than a normalized fraction); 2->3 made `you.damageDealt` and
+ * `damageFromYou` cover missile, ram and bomb (damage-dealt.ts), not laser only.
  */
 export const COMBAT_SIM_SCHEMA = 3;
 
@@ -141,14 +120,10 @@ export interface SimProgress {
    * Every hostile still up, as of the last sample — hull, range, and what it is
    * doing right now.
    *
-   * Chris, having seen the same thing in the post-fight report: "I want to see
-   * the details all the time." The report answers what a fight WAS; this
-   * answers what it IS, which is the question you have while deciding whether a
-   * behaviour change was an improvement.
-   *
-   * Off the last frame rather than accumulated, because "now" is the whole
-   * point — and off the SAME sample the report reads, so the strip and the
-   * record cannot disagree about what a ship was doing.
+   * The report answers what a fight WAS; this answers what it IS, the question
+   * you have while deciding whether a behaviour change was an improvement. Off
+   * the last frame rather than accumulated, and off the SAME sample the report
+   * reads, so the strip and the record cannot disagree.
    */
   live: LiveContact[];
 }
@@ -178,9 +153,8 @@ export interface ContactSample {
   /**
    * How fast it was going, in the same units as `FrameSample.speed`.
    *
-   * The one thing a turret cannot hide. A brain that hangs in space and pivots
-   * reads slow here whatever its damage says, and until this field existed the
-   * report measured the player's speed and not theirs.
+   * The one thing a turret cannot hide: a brain that hangs in space and pivots
+   * reads slow here whatever its damage says.
    */
   speed: number;
   /** radians off THEIR nose to you — the angle `NPC_FIRE_GATE` gates their gun on */
@@ -191,18 +165,13 @@ export interface ContactSample {
    * What this ship was DOING at this instant — its attack phase, or the reason
    * it was not flying one.
    *
-   * The record could already say where every ship was and how fast; it could
-   * not say what any of them was trying to do. That is the difference between a
-   * log you can count and a log you can read, and it is the thing that decides
-   * whether a behaviour change was an improvement: a wave-13 record showed six
-   * ships at a median of 2,705 units making zero passes, and the WHY — that
-   * none of them had any reason to come in — took reading the source rather
-   * than reading the fight.
+   * The difference between a log you can count and one you can read: a ship with
+   * `passes: 0` at a median range of 2,705 is a fact; `closing` versus
+   * `extending` beside it is why.
    *
-   * A string rather than an enum on purpose. `AttackPhase` is break-off.ts's
-   * and will grow tactics beside it; a record written today should still be
-   * readable when it does, and a name it does not recognise is a name a human
-   * can still read.
+   * A string rather than an enum on purpose. `AttackPhase` is break-off.ts's and
+   * will grow tactics beside it; a name a record does not recognise is a name a
+   * human can still read.
    */
   doing: string;
 }
@@ -226,17 +195,16 @@ export interface OpponentSetup {
   /**
    * What it was, in ids — see ship-identity.ts.
    *
-   * The display name is for a human reading the record; these are for a record
-   * read by something else. "Moray" is a name two projects spell differently
-   * and a later TODO may re-hull entirely; `elite-a:variant:A:25` is the exact
-   * released build the fight was against, and stays true.
+   * The display name is for a human; these are for a record read by something
+   * else. `elite-a:variant:A:25` is the exact released build the fight was
+   * against, and stays true where a name may be re-spelt or re-hulled.
    */
   designId: ShipDesignId;
   profileId: NpcCombatProfileId;
   /**
-   * Which policy it flies — a brain id, or the scripted baseline. This is the
-   * field that turns the report into an A/B rig: the same scenario against the
-   * shipped pirate and against the scripted AI, and the numbers side by side.
+   * Which policy it flies — a brain id, or the scripted baseline. The field that
+   * turns the report into an A/B rig: same scenario, two brains, numbers side by
+   * side.
    */
   brain: string;
   role?: string;
@@ -246,19 +214,18 @@ export interface OpponentSetup {
 /**
  * What the commander flew.
  *
- * Description, not simulation: the report carries it through to the JSON so a
- * record can be read months later without guessing what "you" had fitted. The
- * hull is RECORDED but not overridden — v1 of the simulator changes the fit-out
- * only (docs/COMBAT-SIM.md), because the player's hull is four constants in
- * player.ts and every pirate brain was fitted against them.
+ * Description, not simulation: carried through to the JSON so a record reads
+ * months later without guessing what "you" had fitted. The hull is RECORDED but
+ * not overridden — the simulator changes the fit-out only (docs/COMBAT-SIM.md),
+ * because the player's hull is four constants in player.ts every pirate brain
+ * was fitted against.
  */
 export interface PlayerLoadout {
   /**
    * Which hull the commander flew, as a `PlayerHullId`.
    *
-   * Description, like everything else here: the exercise does not change your
-   * hull, and this phase does not fly its stats. It is recorded because a
-   * report compared across a shipyard's arrival is worthless without it.
+   * Recorded, not flown: a report compared across a shipyard's arrival is
+   * worthless without it.
    */
   shipId: PlayerHullId;
   /** the front mount: 'pulse' | 'beam' | 'military' */
@@ -275,15 +242,14 @@ export interface PlayerLoadout {
 /**
  * Where the fight started, as it actually came out.
  *
- * The intent is combat-sim-opening.ts's — the arc, the range and the cone a
- * scenario asked for — and the three measured figures are what the seeded
- * scatter made of it. Both, because the pair is what makes a fight reproducible
- * AND checkable: the plan alone cannot say whether the opening happened, and the
- * measurement alone cannot say whether it was meant.
+ * The intent is combat-sim-opening.ts's — arc, range and cone — and the three
+ * measured figures are what the seeded scatter made of it. Both, because the
+ * pair is what makes a fight reproducible AND checkable: the plan alone cannot
+ * say whether the opening happened, the measurement alone whether it was meant.
  *
- * `arc: 'astern'` with `inView: false` is a scenario that is ABOUT being jumped
- * saying so out loud. Without this on the record, a fight that opened behind the
- * pilot and one that opened behind them by accident read identically.
+ * `arc: 'astern'` with `inView: false` is a scenario ABOUT being jumped saying
+ * so: without it, a fight that opened behind the pilot and one that did so by
+ * accident read identically.
  */
 export interface OpeningGeometry {
   /** which arc of the sky they were put in — see `OpeningArc` */
@@ -305,15 +271,12 @@ export interface OpeningGeometry {
  * What the wave ramp has turned on by this wave — the waves mode only.
  *
  * Declared here rather than where the rule lives (`combat-sim-scenarios.ts`,
- * which fills it in) for the same reason `OpeningGeometry` is: it is part of the
- * SHAPE OF THE RECORD, and this file owns that shape. The rules module imports
- * the type; nothing here computes one.
+ * which fills it in) because it is part of the SHAPE OF THE RECORD, which this
+ * file owns. The rules module imports the type; nothing here computes one.
  *
- * It exists because an escalation nobody can see is not an escalation. Count and
- * tier are readable from the opponent table — six ships at tier 2 is six lines
- * saying so — but "they are all carrying missiles now" and "one of them is not a
- * pirate" are facts about the WAVE, and without them on the record a pilot
- * cannot tell a hard wave from an unlucky one.
+ * It exists because an escalation nobody can see is not an escalation: count and
+ * tier are readable from the opponent table, but "they are all carrying missiles
+ * now" and "one of them is not a pirate" are facts about the WAVE.
  */
 export interface WaveEscalation {
   /** which wave, 1-based — the same number `wave` carries */
@@ -338,10 +301,8 @@ export interface ExerciseSetup {
   mode: SimMode;
   player: PlayerLoadout;
   /**
-   * Which brain flew YOUR side — the combat computer if fitted, and every
-   * armed trader in the fight. The record named every opponent's brain and
-   * not this one, so an A/B export could not say which co-pilot it measured.
-   * `scripted` here means NONE: no policy was flying for you.
+   * Which brain flew YOUR side — the combat computer if fitted, and every armed
+   * trader in the fight. `scripted` here means NONE: no policy flew for you.
    */
   coPilot: string;
   opponents: OpponentSetup[];
@@ -382,11 +343,10 @@ export interface OpponentReport {
   missiles: number;
   damageToYou: number;
   /**
-   * ...in SOURCE ENERGY POINTS since TODO 26 — and `damageToYou` above is in
-   * the commander's 255-point pool points since TODO 27, so both sides are now
-   * whole source-scale numbers. They are still not the same UNIT (a ship's bank
-   * is 32-253 points, a commander's is 255 plus two shields), so a ratio of the
-   * two is meaningless; each is comparable with itself across fights.
+   * ...in SOURCE ENERGY POINTS, where `damageToYou` above is in the commander's
+   * 255-point pool points: both whole source-scale numbers, but NOT the same
+   * unit (a ship's bank is 32-253, a commander's is 255 plus two shields), so a
+   * ratio of the two is meaningless — each is comparable only with itself.
    */
   damageFromYou: number;
   /** the median range it held, and the nearest it ever got */
@@ -401,19 +361,15 @@ export interface OpponentReport {
   /**
    * Seconds it spent doing each thing, most first — see `ContactSample.doing`.
    *
-   * This is the column that says WHY the other columns look how they do. A
-   * ship with `passes: 0` and a median range of 2,610 is a fact; the same ship
-   * reading `closing 9.1s` is the explanation, and one reading
-   * `extending 7.0s, closing 2.1s` is a different problem entirely.
-   *
-   * Empty when nothing reported a phase — an older record, or a sampler that
-   * does not know about them.
+   * The column that says WHY the others look how they do: a ship with
+   * `passes: 0` at a median 2,610 reading `closing 9.1s` is one problem,
+   * `extending 7.0s, closing 2.1s` another. Empty when nothing reported a phase.
    */
   doing: Record<string, number>;
 }
 
 /**
- * How the commander flies — arena.js's `envelope()`, unchanged in meaning.
+ * How the commander flies — arena.js's `envelope()`.
  *
  * Read it beside `traderCobra` in ai-training/scenario.ts (220 speed, 0.70
  * pitch, 1.20 roll): the gap between that freighter and these numbers is why
@@ -425,9 +381,9 @@ export interface EnvelopeReport {
   pitchRate: { median: number; p90: number } | null;
   rollRate: { median: number; p90: number } | null;
   /**
-   * Range to the NEAREST hostile, per sampled frame — which is not `range`
-   * below. This one answers "what range does this pilot fight at", so a frame
-   * counts once however many ships are in it.
+   * Range to the NEAREST hostile, per sampled frame — not `range` below. This
+   * answers "what range does this pilot fight at", so a frame counts once
+   * however many ships are in it.
    */
   engagementRange: { median: number; p10: number; p90: number } | null;
 }
@@ -435,25 +391,18 @@ export interface EnvelopeReport {
 /**
  * How the OPPOSITION flew — `EnvelopeReport`'s missing half.
  *
- * The report measured the player's envelope and the range BOTH sides were at,
- * and nothing about how the other side chose to fly. So the one judgement the
- * trainer exists to support was the one it did not evidence: CLAUDE.md's
- * warning is that a well-optimised pirate becomes a turret that hangs in space
- * and snipes, and three brains now — g1, g2 and t29 — have won on damage and
- * been rejected on FEEL. The evidence that settled each of them was
- * `train/flight-probe.ts`'s: how fast they flew, the spread of the ranges they
- * held, and how often they actually came in. Those three numbers are here, and
- * the probe now derives its own from this same code.
+ * The one judgement the trainer exists to support: CLAUDE.md's warning is that a
+ * well-optimised pirate becomes a turret that hangs in space and snipes, and
+ * brains have won on damage and been rejected on FEEL. The evidence that settles
+ * it is how fast they flew, the spread of the ranges they held, and how often
+ * they came in. `train/flight-probe.ts` derives its own from this same code.
  *
- * A DESCRIPTION, and deliberately not a verdict. There is no turret index and
- * no score: inventing that metric is how this went wrong twice, and a pilot who
- * can see 0.2 attack runs at speed 104 does not need one. The report presents;
- * the pilot judges.
+ * A DESCRIPTION, deliberately not a verdict. There is no turret index and no
+ * score: inventing that metric is how this went wrong twice. The report
+ * presents; the pilot judges.
  *
  * The population is SHIP-FRAMES, the same one `range` uses — one ship in one
- * sampled frame, so a gang of three contributes three rows a frame. A duration
- * would want frames; a distribution of how they were flying wants every ship
- * that was flying.
+ * sampled frame, so a gang of three contributes three rows a frame.
  */
 export interface OppositionReport {
   /** ship-frames behind these figures */
@@ -461,25 +410,21 @@ export interface OppositionReport {
   /**
    * Their speed, over every ship-frame.
    *
-   * MEDIAN and p90 rather than a mean, as the player's envelope is: one ship
-   * sprinting in from the horizon while two hold station is a mean nobody flew.
+   * MEDIAN and p90 rather than a mean: one ship sprinting in while two hold
+   * station is a mean nobody flew.
    */
   speed: { median: number; p90: number; max: number } | null;
   /**
    * The spread of ranges they held — p10, median, p90.
    *
-   * The spread is the measurement, not the median. An attack run sweeps through
-   * the whole band, so p10 and p90 sit far apart; a brain that loiters holds one
-   * range and the spread collapses onto it. `range.median` alone cannot tell
-   * those two apart, and that is exactly the pair this project keeps confusing.
+   * The spread is the measurement, not the median: an attack run sweeps the
+   * whole band so p10 and p90 sit far apart, a brain that loiters collapses the
+   * spread onto one range. `range.median` alone cannot tell those two apart.
    */
   range: { p10: number; median: number; p90: number } | null;
   /**
    * Completed attack runs, summed over every opponent — `countPasses`, at
    * `PASS_CLOSE` and `PASS_FAR`.
-   *
-   * The per-opponent lines break it down; a gang of three that each made one
-   * run reads 3 here.
    */
   passes: number;
 }
@@ -531,10 +476,9 @@ export interface CombatSimReport {
     lastAt: number | null;
   };
   /**
-   * Engagement range over every ship in every sampled frame — so a fight
-   * against three ships contributes three ranges a frame. MEDIAN, where
-   * combat-recorder.js reported a mean: one ship breaking off to 8000 while two
-   * knife-fight at 400 drags the mean out to a range nobody was at.
+   * Engagement range over every ship in every sampled frame — three ships
+   * contribute three ranges a frame. MEDIAN, not mean: one ship breaking off to
+   * 8000 while two knife-fight at 400 drags a mean out to a range nobody was at.
    */
   range: { median: number | null; closest: number | null };
   /** share of ship-frames each side spent lined up on the other, and in range */
@@ -549,14 +493,13 @@ export interface CombatSimReport {
   onSixSeconds: BothSides;
   /**
    * The three pools in SOURCE POINTS at the first sample and at the last, and
-   * the worst each of them got in between.
+   * the worst each got in between.
    *
-   * Start and end are TODO 29's: a record that says "you lost 180 points" is
-   * not comparable with one from a different fit-out or a different hull unless
-   * it also says what you started with, and the low-water mark alone cannot
-   * tell a fight that ended on fumes from one that ended and then recharged.
+   * Start and end are recorded because "you lost 180 points" is not comparable
+   * across fit-outs or hulls without what you started with, and the low-water
+   * mark alone cannot tell a fight that ended on fumes from one that recharged.
    * All three are whole 255-point-scale numbers, the same ones `systems.ts`
-   * holds — nothing here is a fraction.
+   * holds.
    */
   poolsAtStart: { foreShield: number | null; aftShield: number | null; energy: number | null };
   poolsAtEnd: { foreShield: number | null; aftShield: number | null; energy: number | null };
@@ -574,8 +517,7 @@ export interface CombatSimReport {
   events: SimEvent[];
   /**
    * Anything the report knows it does not know. A harness that admits it has
-   * stopped understanding beats one that is confidently wrong — which is why
-   * combat-recorder.js keeps an `unknown` damage bucket at all.
+   * stopped understanding beats one that is confidently wrong.
    */
   warnings: string[];
 }
@@ -588,7 +530,7 @@ const tmpTo = new THREE.Vector3();
 /**
  * The angle between a ship's nose and the direction to a point, in radians.
  *
- * `NpcShip.facing()` is the same rule serving the NPC's own gate; this one takes
+ * `NpcShip.facing()` is the same rule serving the NPC's own gate; this takes
  * loose arguments so the measurement can also be taken from the cockpit, which
  * has no `facing()`. Forward is −Z (ARCHITECTURE.md), and the scratch vectors
  * are module-scope so sampling four ships at 10 Hz allocates nothing.
@@ -619,17 +561,15 @@ export function quantile(xs: readonly number[], p: number): number | null {
 }
 
 /**
- * Completed attack runs in a series of ranges, in the order they were sampled.
+ * Completed attack runs in a series of ranges, in sampled order.
  *
  * A hysteresis crossing on `PASS_CLOSE` / `PASS_FAR`: out until it closes past
- * CLOSE, in until it opens back out past FAR, and the pass is counted on the
- * way OUT — a run that closed and never left is not a completed pass, it is a
- * ship that is still in there.
+ * CLOSE, in until it opens back out past FAR, and the pass is counted on the way
+ * OUT — a run that closed and never left is not a completed pass.
  *
- * Pure and total: any series, any length, no state kept between calls. That is
- * what lets `train/flight-probe.ts` count its episodes with the same function
- * the exercise counts its opponents with, instead of a second copy of the same
- * three lines that would drift the first time one of the thresholds moved.
+ * Pure and total, so `train/flight-probe.ts` counts its episodes with the same
+ * function the exercise counts its opponents with rather than a second copy that
+ * would drift when a threshold moved.
  */
 export function countPasses(dists: readonly number[]): number {
   let inside = false;
@@ -689,10 +629,9 @@ const newTally = (): OppTally => ({
 /**
  * Accumulates a fight, then derives a report.
  *
- * It holds counters and samples and nothing else — no Game, no World, no
- * opinion about when the exercise ends. Everything it knows, it was told:
- * `tick()` for the clock and the sampling cadence, and one method per thing that
- * can happen.
+ * Counters and samples and nothing else — no Game, no World, no opinion about
+ * when the exercise ends. Everything it knows, it was told: `tick()` for the
+ * clock and cadence, one method per thing that can happen.
  */
 export class CombatSimRecorder {
   readonly setup: ExerciseSetup;
@@ -747,9 +686,8 @@ export class CombatSimRecorder {
   /**
    * The last sample, turned into something nameable.
    *
-   * A dead ship simply stops appearing in `contacts`, so there is nothing to
-   * filter: the roster shrinks as the fight goes, which is the correct
-   * behaviour and one it gets for free rather than by remembering to check.
+   * A dead ship stops appearing in `contacts`, so the roster shrinks as the
+   * fight goes with nothing to filter.
    */
   private liveContacts(): LiveContact[] {
     const last = this.samples[this.samples.length - 1];
@@ -772,27 +710,23 @@ export class CombatSimRecorder {
    * Advance the clock by one step, and take a sample if one is due.
    *
    * `probe` is called only when one is, so the caller pays for the geometry at
-   * `SAMPLE_HZ` rather than at 60 — which is why the cadence lives here and not
-   * in the exercise.
+   * `SAMPLE_HZ` rather than at 60.
    *
-   * Expects `dt` smaller than the sample interval, which `FIXED_DT` is; a
-   * caller stepping more slowly than the sample rate gets one sample per tick
-   * rather than a burst of identical ones, and durations it derives will be
-   * short. Feed `frame()` directly if you want to own the cadence.
+   * Expects `dt` smaller than the sample interval, which `FIXED_DT` is; a caller
+   * stepping more slowly gets one sample per tick and short durations. Feed
+   * `frame()` directly to own the cadence.
    */
   tick(dt: number, probe: () => FrameSample): void {
     this.t += dt;
     this.accum += dt;
     const interval = 1 / this.hz;
     // The tolerance is not decoration: six steps of FIXED_DT sum to
-    // 0.09999999999999999, so an exact comparison loses one sample in every ten
-    // and `engagedSeconds` comes out 2% short of a clock that agrees with it.
+    // 0.09999999999999999, so an exact comparison loses one sample in ten and
+    // `engagedSeconds` comes out 2% short.
     if (this.accum < interval - CADENCE_EPSILON) return;
-    // Subtract the interval rather than zeroing the accumulator. Zeroing is
-    // what combat-recorder.js did, and at a 1/60 step it took a sample every
-    // SEVEN steps — 8.6 Hz calling itself 10 — because the remainder was
-    // thrown away each time. Every duration in this report is derived from a
-    // count of samples, so that drift would come out as wrong seconds.
+    // Subtract the interval rather than zeroing: zeroing throws away the
+    // remainder, which drifts the cadence, and every duration here is derived
+    // from a count of samples.
     this.accum -= interval;
     if (this.accum > interval) this.accum = 0;
     this.frame(probe());
@@ -816,9 +750,8 @@ export class CombatSimRecorder {
       o.dists.push(c.dist);
       o.speeds.push(c.speed);
       if (c.dist < NPC_LASER_RANGE && c.theirAim < NPC_FIRE_GATE) o.linedUp += 1;
-      // FRAMES, counted per name it reported. Turned into seconds at the end
-      // rather than here, so the histogram survives a change of sample rate the
-      // way every other distribution in this file does.
+      // FRAMES, per name it reported. Turned into seconds at the end, not here,
+      // so the histogram survives a change of sample rate.
       o.doing.set(c.doing, (o.doing.get(c.doing) ?? 0) + 1);
     }
   }
@@ -828,9 +761,8 @@ export class CombatSimRecorder {
    *
    * Discharges, not trigger polls: `firePlayerLaser` is called every frame the
    * trigger is held and refuses internally while the laser is hot, so counting
-   * calls reported 14 shots a second from a pulse laser that manages 4.2, and
-   * turned a 12% hit rate into 3%. The exercise is what knows the difference —
-   * a `fired` event came back — so the exercise says.
+   * calls would report 14 shots a second from a pulse laser that manages 4.2.
+   * The exercise knows the difference — a `fired` event came back — so it says.
    */
   playerShot(landed: { opponent: number; damage: number } | null): void {
     this.playerShots += 1;
@@ -843,10 +775,9 @@ export class CombatSimRecorder {
    * Damage the commander did, by cause.
    *
    * `playerShot` routes its own through here as `laser`; a missile, a ram and
-   * the energy bomb arrive as the `DealtEvent`s that the world step and the
-   * bomb report (damage-dealt.ts), which the exercise turns into this call.
-   * Every one of them is what came OFF the target's bank, so overkill is not
-   * credited and the four buckets are one measurement rather than four.
+   * the energy bomb arrive as the `DealtEvent`s the world step and the bomb
+   * report (damage-dealt.ts). Every one is what came OFF the target's bank, so
+   * overkill is not credited.
    */
   dealt(opponent: number, amount: number, source: DealtSource): void {
     add(this.damageOut, this.key(source), amount);
@@ -859,13 +790,9 @@ export class CombatSimRecorder {
    * Damage the commander took, by cause — the cause ASKED, not guessed from the
    * size of the number.
    *
-   * combat-recorder.js used to classify by magnitude (0.1-0.221 a laser, 0.45 a
-   * ram, 1.3 a missile), which cannot error, only be quietly wrong, and was:
-   * the old NPC-vs-NPC amount of 0.11 sat inside the laser window, so a ship
-   * that rammed the commander read as several perfect shots and the enemy
-   * accuracy came out at the hit cap. `DamageSource` is a static fact at each of the five
-   * places world-step.ts bills the player, and only the laser counts against
-   * their accuracy.
+   * `DamageSource` is a static fact at each of the five places world-step.ts
+   * bills the player; classifying by magnitude cannot error, only be quietly
+   * wrong. Only the laser counts against their accuracy.
    *
    * @param opponent who did it, when the caller knows — a station or a canister
    * does not have one.
@@ -936,9 +863,8 @@ export class CombatSimRecorder {
     const secs = (n: number) => round(n / this.hz, 1);
 
     // Two populations, and confusing them is the mistake this file exists to
-    // avoid. `rows` is one ship in one frame — the right denominator for "how
-    // much of the fight was somebody aimed at me", because two ships aiming is
-    // twice the trouble. Frames are wall-clock — the right one for a duration.
+    // avoid. `rows` is one ship in one frame — the denominator for "how much of
+    // the fight was somebody aimed at me". Frames are wall-clock — for a duration.
     const rows: ContactSample[] = [];
     let engagedFrames = 0;
     let yourSixFrames = 0;
@@ -963,10 +889,9 @@ export class CombatSimRecorder {
       (m, c) => Math.min(m, c.dist), Infinity)).filter((d) => d !== Infinity);
 
     const shipSeconds = rows.length / this.hz;
-    // The live standing and the finished record are ONE set of numbers. The
-    // cockpit strip reads `progress` every frame and the report reads it here,
-    // so "the strip agreed with the report" is a property of the code rather
-    // than of two accumulations that were kept in step by hope.
+    // The live standing and the finished record are ONE set of numbers: the
+    // strip reads `progress` every frame and the report reads it here, so they
+    // cannot disagree.
     const p = this.progress;
     return {
       schema: COMBAT_SIM_SCHEMA,
@@ -1073,12 +998,10 @@ export class CombatSimRecorder {
   /**
    * How they flew — see `OppositionReport`.
    *
-   * Over the SHIP-FRAMES the report has already collected, so nothing is
-   * sampled twice and there is no second cadence: a figure here covers exactly
-   * the frames `range` and `linedUpShare` cover. The passes are per opponent
-   * and then summed, because a pass is one ship's run at you — pooling three
-   * ships' ranges into one series would count a crossing every time the nearest
-   * of them changed.
+   * Over the SHIP-FRAMES the report already collected, so nothing is sampled
+   * twice and a figure here covers exactly the frames `range` and `linedUpShare`
+   * cover. Passes are per opponent then summed, because pooling three ships'
+   * ranges would count a crossing every time the nearest changed.
    */
   private opposition(rows: readonly ContactSample[]): OppositionReport {
     const speeds = rows.map((r) => r.speed);
@@ -1177,7 +1100,7 @@ const total = (m: Map<SourceKey, SourceTally>): number => {
   return sum;
 };
 
-/** Only the causes that actually happened, rounded — as DAMAGE_BY_CAUSE was. */
+/** Only the causes that actually happened, rounded. */
 function tallies(m: Map<SourceKey, SourceTally>): Partial<Record<SourceKey, SourceTally>> {
   const out: Partial<Record<SourceKey, SourceTally>> = {};
   for (const [k, t] of m) {
@@ -1196,11 +1119,9 @@ export function combatSimJson(report: CombatSimReport): string {
 /**
  * How far a run of waves got — 0 for a set of records that is not one.
  *
- * REACHED, not cleared: the wave that killed you is the wave you got to, and it
- * is the number a pilot quotes. It is derived from the records rather than
- * counted alongside them for the usual reason — the records are the run's own
- * account of itself, so a second tally could disagree with the report the pilot
- * is looking at.
+ * REACHED, not cleared: the wave that killed you is the wave you got to.
+ * Derived from the records rather than counted alongside them, so a second tally
+ * cannot disagree with the report the pilot is looking at.
  */
 export function furthestWave(records: readonly CombatSimReport[]): number {
   return records.reduce(

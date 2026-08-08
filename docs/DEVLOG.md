@@ -111,7 +111,8 @@ The architecture:
   from the game three times, each costing a training round. Episodes now step
   the real `NpcShip`, `PlayerShip`, `gunnery.ts` and `collisions.ts` — see
   chapter 13.)*
-- `src/ai-training/policy.ts` — a **1,899-parameter MLP** (14 → 32 → 32 → 11) whose
+- `src/ai-training/policy.ts` — a **1,899-parameter MLP** (14 → 32 → 32 → 11) [now
+  1,867 / 13 → 32 → 32 → 11 after the target-speed observation slot was cut] whose
   observation is entirely in the ship's own frame, and whose outputs are
   the *same discrete keyboard controls a human gets*: pitch ±/0, roll ±/0,
   throttle ±/0, fire y/n. No cheating with continuous steering.
@@ -146,7 +147,6 @@ Textbook. Which is exactly why league play exists.
 
 ### How you tell it's working
 
-This deserves its own note, because it's the part that's easy to skip.
 `train/evaluate.ts` is the gate everything must pass:
 
 1. **Held-out seeds.** Training consumes seeds below ~400,000; evaluation
@@ -225,8 +225,8 @@ capital converted into higher-value cargo. The same corridor that killed
 MkIII, five times, uneventfully.
 
 The difference between MkIII's grave and MkIV's fortune is one trained
-policy — which then became a purchasable **Combat Computer** the player can
-buy and engage with a key.
+policy — which then became the purchasable **Combat Computer**, engaged with
+a key.
 
 ## 8. Going public
 
@@ -251,8 +251,9 @@ warned about in three places, and the trainer says so before it writes.
 - **Verifiable authenticity is a gift.** "System 7 must be Lave" caught
   regressions all session. Find the equivalent invariant in whatever you're
   building.
-- **Small models, small problems.** 1,899 parameters, no GPU, 210 seconds
-  to parity with hand-written AI. Reach for the sophisticated thing second.
+- **Small models, small problems.** Under 2,000 parameters, no GPU, 210
+  seconds to parity with hand-written AI. Reach for the sophisticated thing
+  second.
 - **The evaluation harness is the product.** Training fitness lied twice
   (the pack phase, and the r1 pirate's apparent dominance). Held-out seeds
   and baseline comparisons told the truth both times.
@@ -327,10 +328,9 @@ fix. So every station now runs a **bulletin board** — cargo runs, courier
 jobs, pirate-clearing bounties, with deadlines measured in days that pass
 as you jump. Available from your first landing at Lave. The Constrictor
 hunt and the Navy courier run still sit at the top of the ladder, so the
-original's structure survives; there's simply a bottom rung now.
-
-A commander with 100 credits used to have no direction at all. Now they
-have three or four concrete reasons to pick a destination.
+original's structure survives; there's simply a bottom rung now, giving a
+commander with 100 credits three or four concrete reasons to pick a
+destination.
 
 ### Modern hands, modern affordances
 

@@ -1,24 +1,14 @@
 // The rock hermit's market: what a miner is flush with, what they are
-// desperate for, and what each costs at the tunnel.
-//
-// The hermit economy reads as the opposite of a station's — ore cheap and in
-// quantity, supplies dear because nobody else delivers out here — and that is
-// the whole trade: buy ore at the rock, sell it where the mining stopped. The
-// rule that spends these is `hermitMarket` in game/contracts.ts; whether a
-// hermit is in the system at all is `population.ts`'s `HERMIT_CHANCE`, and
-// where it hides is `spawn-placement.ts`'s `HERMIT_SCATTER`.
+// desperate for, and what each costs at the tunnel. The opposite of a station's
+// prices — ore cheap and plentiful, supplies dear because nobody delivers out
+// here. Spent by `hermitMarket` in game/contracts.ts.
 
 /**
  * What a hermit is sitting on: whatever they dug up.
  *
- * Matched on the market row's own NAME, not its index, because `i === 12 ||
- * i === 13 || i === 14 || i === 15` is only readable to someone who has the
- * 1984 commodity table memorised — and `generateMarket` copies the name
- * straight off `COMMODITIES`, so a renamed row turns the discount off in a
- * way `test/economy.test.ts` catches. A related list at a different meaning:
- * `commodities.ts`'s `ORE` is what a MINED ROCK yields, drawn by index and
- * weighted, and it has no Gem-Stones — what a hermit stocks and what a rock
- * pays are not one rule.
+ * Matched on the market row's NAME, not its index, so a renamed row cannot
+ * silently drop out (`test/economy.test.ts` catches it). Distinct from
+ * `commodities.ts`'s `ORE`, which is what a MINED ROCK yields.
  */
 export const HERMIT_ORE: ReadonlySet<string> = new Set(['Minerals', 'Gold', 'Platinum', 'Gem-Stones']);
 

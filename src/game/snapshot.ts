@@ -1,32 +1,18 @@
 // The whole world, as plain data.
 //
-// This is what makes saving anywhere possible. Until now a commander could
-// only be written down at a station, because the save WAS the commander —
-// credits, cargo, equipment — and none of the world around them. Mid-flight
-// there is a great deal more that matters: where you are, what is shooting at
-// you, what your shields are down to, and which way the random stream was
-// about to break.
+// This is what makes saving anywhere possible: a station save is the commander
+// alone, but mid-flight there is a great deal more that matters — where you are,
+// what is shooting at you, what your shields are down to, and which way the
+// random stream was about to break.
 //
-// THE SHAPE IS DELIBERATE. Chris's observation: an NPC ship is not really a
-// different kind of thing from the player's ship. Both are a transform, a
-// speed, two turn rates and some durability; what differs is who flies them
-// and what they carry. So `ShipSnapshot` is the common core, and the player
-// and NPC snapshots are that plus their own concerns. The classes have not
-// been merged — but the data says they should be, and this is the shape that
-// merge would take.
+// Everything here is JSON: no THREE objects, no class instances, no functions.
+// That is the point — `structuredClone` gives you a save, a replay checkpoint
+// and a test fixture from the same call.
 //
-// Everything here is JSON: no THREE objects, no class instances, no
-// functions. That is the point — `structuredClone` gives you a save, a replay
-// checkpoint and a test fixture from the same call.
-//
-// WHAT A SNAPSHOT DELIBERATELY DOES NOT SAY IS WHOSE IT IS (docs/TODO/43). A
-// world is a place and a moment; which CAREER's autosave group it belongs to is
-// the shelf's question, and the shelf answers it in `SaveRecord.career`
-// (save-file.ts), which is what `save:auto:<CAREER>:*` is keyed by. This file
-// carried a `career` too, and `restore()` assigned it over the one the boot
-// record had already decided — one step after boot, silently. Importing a
-// stranger's file therefore pointed your autosaves at whatever career THEY
-// exported under, and everybody's default is JAMESON. One home: the record.
+// A SNAPSHOT DELIBERATELY DOES NOT SAY WHOSE IT IS (docs/TODO/43). A world is a
+// place and a moment; which CAREER's autosave group it belongs to is the
+// shelf's question, answered in `SaveRecord.career` (save-file.ts), which is
+// what `save:auto:<CAREER>:*` is keyed by. One home: the record.
 
 import type { CommanderData } from './commander.ts';
 import type { ShipSystems } from './systems.ts';
@@ -52,23 +38,17 @@ export interface ShipSnapshot {
 /**
  * A ship's state, serialised.
  *
- * NOT a hand-written field list any more. It is whatever `NpcState` contains,
- * walked generically — which is the whole reason the state was gathered into
- * one object. The list version was written twice and wrong twice: first it
- * forgot the trigger and trade clocks, then the pack station and the brain's
- * ramped rates, and both times two reloads agreed with each other but not with
- * the run they came from. Add a field to NpcState now and it is saved.
+ * NOT a hand-written field list: it is whatever `NpcState` contains, walked
+ * generically — which is the whole reason the state was gathered into one
+ * object. Add a field to NpcState and it is saved.
  */
 export type NpcSnapshot = {
   role: string;
   seed: number;
   /**
    * What it IS — see ship-identity.ts. Immutable, so it is beside the state
-   * rather than in it, and REQUIRED: both were optional while a world written
-   * before this phase could turn up with neither, and `savedShipIdentity` gave
-   * such a ship its design's recommended variant. That tolerance is gone
-   * (2026-08-04) — a ship that does not say what it is makes the snapshot
-   * unreadable, and an unreadable snapshot is old junk rather than a world.
+   * rather than in it, and REQUIRED: a ship that does not say what it is makes
+   * the snapshot unreadable, which is old junk rather than a world.
    */
   designId: string;
   profileId: string;
@@ -80,10 +60,8 @@ export type NpcSnapshot = {
 /**
  * Recursively turn vectors and quaternions into arrays.
  *
- * State used to be flat apart from replaceable decision records, so walking
- * only its top level happened to be enough. `NpcState.dockPlan` is the first
- * nested state with live vector identities: recurse so it remains plain JSON
- * without making the snapshot codec know its field names.
+ * Recurses because nested state (e.g. `NpcState.dockPlan`) holds live vector
+ * identities, so it stays plain JSON without the codec knowing its field names.
  */
 function serialiseValue(value: unknown): unknown {
   if (value && typeof value === 'object' && 'x' in value && 'y' in value && 'z' in value) {
@@ -153,13 +131,8 @@ export interface CanisterSnapshot {
   commodity: number;
   /**
    * What is left of its released bank (TODO 28), so a canister that has been
-   * shot at but not destroyed comes back wounded.
-   *
-   * REQUIRED, like every other field here. It was optional, and absence meant
-   * "whole" — tolerance for a world written before canisters had a bank. That
-   * tolerance is gone (2026-08-04) for the same reason as the rest: no save
-   * without one exists, and a second reading of what a missing field means is a
-   * second home for the rule.
+   * shot at but not destroyed comes back wounded. REQUIRED, like every field
+   * here.
    */
   energy: number;
 }
@@ -220,21 +193,16 @@ export interface WorldSnapshot {
   targetLock: number;
   /**
    * Whether a missile is armed. A live behaviour gate — updateLock() returns
-   * immediately when it is false — so a reload used to silently cool the
-   * pylon and the lock you were a second from getting never happened.
+   * immediately when it is false — so it must survive a reload or the pylon
+   * cools and the lock is lost.
    */
   missileArmed: boolean;
   /** where the chart cursor was left */
   chartCursor: [number, number];
   /**
-   * The station's orientation.
-   *
-   * Simulation state that lives in the SCENE, which is the conflation this
-   * architecture is working to remove — and it is not cosmetic: the slot
-   * normal, the docking box and the bounce in npcsVsStation are all computed
-   * from it, so a station rebuilt at its starting angle changes what every
-   * ship near it does. It was the last thing keeping a restored world from
-   * replaying its original.
+   * The station's orientation. Not cosmetic: the slot normal, the docking box
+   * and the bounce in npcsVsStation are computed from it, so a station rebuilt
+   * at its starting angle changes what every ship near it does.
    */
   stationQuat: [number, number, number, number];
 }
@@ -244,11 +212,7 @@ export interface WorldSnapshot {
 // `parseSnapshot` is THE door: a `WorldSnapshot` is only ever made from
 // untrusted bytes here, and `Persistence.restore` consumes nothing that has
 // not been through it — so "refused" and "half applied" are different states
-// (docs/TODO/94). Before this existed, `restore` replaced the live commander
-// on its first line and could throw seven steps later, leaving a session that
-// was neither the world it had nor the one it was asked for; `resume()`'s
-// catch turned that into a fresh boot, which held the no-lost-commander
-// guarantee by accident.
+// (docs/TODO/94).
 //
 // WHAT IT CHECKS, AND WHAT IT DELIBERATELY DOES NOT. The parser checks what
 // has invariants: the version, the two branded id families, the mode enum,
@@ -258,8 +222,7 @@ export interface WorldSnapshot {
 // are checked for PRESENCE and container shape only, because they are walked
 // generically ON PURPOSE: enumerating their fields here would re-home
 // `SessionState` and its kin into the save format, which is worse than no
-// validation. The owning modules default and validate their own, as they
-// always have.
+// validation. The owning modules default and validate their own.
 //
 // The gate cannot rot: `test/snapshot-parse.test.ts` deletes and corrupts
 // every key of a REAL captured snapshot, walked off the object itself rather
@@ -291,8 +254,8 @@ const fleetIndex = (v: unknown, fleet: number, what: string): void => {
  *
  * Returns its input, typed: the interface stays the single declaration of the
  * shape and this is the only place `unknown` becomes one. Nothing is copied
- * and nothing is repaired — an invalid snapshot is old junk, refused whole
- * (Chris, 2026-08-04), and the refusal happens before anything has mutated.
+ * and nothing is repaired — an invalid snapshot is old junk, refused whole,
+ * and the refusal happens before anything has mutated.
  */
 export function parseSnapshot(raw: unknown): WorldSnapshot {
   const s = record(raw, 'snapshot');

@@ -1,9 +1,7 @@
 # The Elite-A reference catalogue
 
 What was imported, what it is used for, which numbers are the released game's
-and which are ours, and what a future shipyard will need. Written at the close
-of the Elite-A damage-and-catalogue alignment phase (TODOs 21-30,
-[plan](TODO/ELITE-A-COMBAT-PLAN.md)).
+and which are ours, and what a future shipyard will need.
 
 The two companion documents: [DAMAGE-PATHS.md](DAMAGE-PATHS.md) is the
 inventory of every way anything can be hurt, and
@@ -88,18 +86,14 @@ changes the player's hull id; a future blueprint-set loader changes which
 variant an NPC spawns as; geometry changes neither. Combat reads the profile
 and does not care which policy chose it.
 
-**There is no migration, and that is deliberate.** A commander saved before
-this phase has no `shipId` and used to load as the Cobra Mk III
-(`migratedPlayerHullId`); an NPC snapshot with no ids used to re-derive them
-from its role, its seed and its hull. Both were deleted on 2026-08-04 — Chris:
-*"an unreadable save is just old junk at the moment"* — so a save that does not
-say what it is flying is refused. The refusal is the save system's existing one:
-`readSave` returns null for such a record and `Persistence.resume` boots the
-commander normally, so nothing reaches a player as an error. A save that carries
-an EXACT variant which is not its design's recommended default keeps it — that
-is the property that makes saving the id worth anything, and
-`test/ship-identity.test.ts` checks it specifically, because re-deriving on
-restore passes every other test.
+**There is no migration, and that is deliberate.** A save that does not say what
+it is flying is refused — Chris: *"an unreadable save is just old junk at the
+moment"*. The refusal is the save system's existing one: `readSave` returns null
+for such a record and `Persistence.resume` boots the commander normally, so
+nothing reaches a player as an error. A save that carries an EXACT variant which
+is not its design's recommended default keeps it — that is the property that
+makes saving the id worth anything, and `test/ship-identity.test.ts` checks it
+specifically, because re-deriving on restore passes every other test.
 
 ## The geometry registry
 
@@ -129,9 +123,9 @@ Four facts worth knowing before touching any of it:
   is `(0,0,0)`, and two of the Splinter's sit past 60 degrees off its own
   geometry), 177 edges bound no face and are drawn anyway, and every hull but the
   alloy plate is closed.
-- **`buildShip()` turns a def a half turn about Y** — negating x AND z. It used
-  to mirror z alone, which is the same picture for a left/right symmetric hull
-  and a different ship for an asymmetric one; eight of the 38 are asymmetric.
+- **`buildShip()` turns a def a half turn about Y** — negating x AND z, not z
+  alone: mirroring z alone is the same picture for a left/right symmetric hull
+  and a different ship for an asymmetric one, and eight of the 38 are asymmetric.
 
 The two stations are the one exception to the single scale, at
 `STATION_PRESENTATION_SCALE = 4` on top of it — the hulls are exact, the size is
@@ -175,7 +169,7 @@ be spent as the other (`game/damage-units.ts`):
 
 | unit | comes off | range |
 | --- | --- | --- |
-| `NpcEnergyPoints` | a ship's or object's released energy bank | 2 (the missile) to 255 |
+| `NpcEnergyPoints` | a ship's or object's released energy bank | 2 (the missile) to 300 — the rock hermit's bank, our own object above the heaviest source build; 255 (the Dragon) is the heaviest source-derived one |
 | `PlayerPoolPoints` | the commander's 255-point facing shield, then the 255-point bank | 0-510 to strip both |
 
 There is no third scale and no adapter between them. The retired normalized
@@ -187,7 +181,7 @@ bridges can come back.
 
 | where | field | note |
 | --- | --- | --- |
-| `elite-web-commander:<slot>` | `shipId` | a `PlayerHullId`. Absent or unresolvable migrates to the Cobra Mk III |
+| `elite-web-commander:<slot>` | `shipId` | a `PlayerHullId`. Absent or unresolvable is refused — the save reads as old junk and boots a fresh commander (`storage.ts` requires it) |
 | `elite-web-world:<slot>` → `npcs[]` | `designId`, `profileId` | optional in the JSON; absent means a legacy save and is re-derived |
 | `NpcState` | `energy`, `regenCarry` | whole points, and the sub-second remainder in ticks |
 | `ShipSystems` | `energy`, `foreShield`, `aftShield` | 0..255 each, whole numbers |
@@ -195,8 +189,8 @@ bridges can come back.
 
 `SNAPSHOT_VERSION` did not move for any of this: every added key is optional and
 a reader that ignores unknown keys survives. The combat trainer's exported JSON
-DID move, to `COMBAT_SIM_SCHEMA = 2`, because the damage figures in it changed
-meaning.
+carries its own `COMBAT_SIM_SCHEMA`, which moves when its damage figures change
+meaning (docs/COMBAT-SIM.md).
 
 ## Exact, recreated, and ours
 
@@ -210,7 +204,7 @@ inside the released model but made a decision the source did not force.
 | player laser | `hit = (fittedLaserByte & 0x7f) >> 1`; the high bit is a continuous flag, not 64 points of power | — | cadence, heat, the hit cone and aim assist |
 | NPC defence | `defence = maxEnergy & 7`, subtracted after the multiplier | — | — |
 | the Constrictor | halves the player's hit BEFORE defence, and the half is floored | — | it is signposted in the mission text; the source did not tell you |
-| stations | immune to player lasers | — | the rock hermit takes the station rule because it IS a station of ours |
+| stations | the two genuine source stations (Coriolis, Dodo) are immune to player lasers | — | the rock hermit is NOT immune: it is a destructible target of ours with a 300-point energy bank, cracked open with laser fire (`npc-energy.ts`) |
 | NPC laser | `laserPower << 2`, less the hull's `perHitShieldArmour` | the `clean` encoding is used; the released `weaponByte >> 1` (which lets missile bits add damage) stays reproducible and test-only | hit chance, cadence and range falloff |
 | destruction | — | dead at `energy <= 0`; the released exact-zero survival quirk is deliberately dropped | — |
 | regeneration | ordinary AI ships recover one point per elapsed second; stations, missiles, cargo and rocks recover none | — | the 3,600-tick integer clock, so 15, 60 and 144 Hz give the same total |

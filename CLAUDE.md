@@ -87,25 +87,31 @@ reaching the live site. Don't move them out of that path.
 **Two kinds of pilot, and they are not interchangeable.** Know which one you are
 touching before you touch it — `brain-names.ts` is where the rule lives.
 
-- **Scripted flies the opposition.** Every pirate a player meets, solo or in an
-  organised gang, flies the hand-written three-phase attack run — close, pass,
-  extend. No neural net is involved. This is what ships, so a fix here is a fix
-  to the fight.
-- **Trained flies your side, and ONLY your side.** One policy — the
-  `jameson-defend` line — is both the armed trader's pilot and the combat
-  computer the player buys, and since 2026-08-05 it is the only trained policy
-  in the bundle: the two trained pirate policies were deleted outright
-  (scripted is the opposition everywhere, the trainer's rows included), so
-  "the pirate brain" no longer names anything and an encoder change costs one
-  retrain, not three.
+- **Code flies the opposition.** Every pirate a player meets, solo or in an
+  organised gang, flies `pursuit` — the hand-written dogfighter that chases onto
+  your six and holds there while astern, then breaks into the attack run's
+  slashing pass the moment you turn your nose onto it. No neural net is involved.
+  This is what ships, so a fix here is a fix to the fight. The `scripted` pilot
+  is the A/B control: it reverts the whole game — pirates AND the defence
+  co-pilot — to the plain hand-written three-phase attack run, close, pass,
+  extend.
+- **Code flies your side too.** The armed trader's pilot and the combat computer
+  the player buys both fly `attack-run` — the hand-written three-phase run
+  pointed defensively (scripted-co-pilot.ts). No trained policy ships at all:
+  `src/ai-training/brains/` holds no weights and `defenceBrain()` returns null.
+  The `jameson-defend` defence line was retired on 2026-08-05, the same day and
+  for the same reason as the two trained pirate policies — three retrains
+  optimised their way out of fighting (a turret, a sprayer, a pacifist; see
+  runs 20-21). `train/evolve.ts` can still breed a research candidate, but
+  nothing trained is loaded, so "the pirate brain" names nothing.
 
 **Threat is not fun**, and the split above is the scar it left. A well-optimised
 pirate is a turret that hangs in space and snipes; evolution found it twice, won
 every measurement both times, and Chris asked for the old brain back both times.
-So the hostile is scripted, because a run we write can be made to feel like a
-dogfight the player can win and a run we fit was not. Reach for training when the
-job is to survive a fight; reach for script when the job is to give the player
-one.
+So the hostile is hand-written code, not a fitted net, because a run we write can
+be made to feel like a dogfight the player can win and a run we fit was not.
+Reach for training when the job is to survive a fight; reach for script when the
+job is to give the player one.
 
 Lethality is a proxy for threat, and a brain that wins every measurement can
 still be the wrong brain — **a measurement can be excellent and be measuring the

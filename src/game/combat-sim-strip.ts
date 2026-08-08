@@ -1,26 +1,18 @@
 // What the pilot reads WHILE an exercise is being flown.
 //
-// The trainer had three views of a fight and only two of them were visible in
-// time: the setup panel before it, and the report after it. In between, the
-// cockpit was the ordinary cockpit — so the tool whose purpose is judging how a
-// fight FEELS handed over its evidence once the feeling had passed, and a pilot
-// could not tell a 45-second exercise that was nearly up from one that had just
-// begun, or an exercise from real space once the launch banner faded.
+// The trainer's third view of a fight: the setup panel comes before it, the
+// report after, and this is a strip of numbers the cockpit paints for as long as
+// an exercise is running (docs/TODO/33-exercise-hud.md). Without it a pilot could
+// not tell an exercise nearly up from one just begun, or an exercise from real
+// space once the launch banner faded.
 //
-// This is the third view: a strip of numbers the cockpit paints for as long as
-// an exercise is running (docs/TODO/33-exercise-hud.md).
-//
-// **It counts nothing.** Every figure on it comes from the round's own recorder
-// as `SimProgress`, which is the same accumulation `CombatSimRecorder.report()`
-// derives the finished record from — so the strip and the report cannot
-// disagree, because there is only one set of counters. The one thing this file
+// It counts nothing: every figure comes from the round's own recorder as
+// `SimProgress`, the same accumulation `CombatSimRecorder.report()` derives the
+// record from, so the strip and the report cannot disagree. The one thing it
 // decides is what a mode has instead of a countdown, and it asks `MODES` rather
-// than the mode's name: a scenario is on the clock, sparring is scored on kills
-// and waves on the wave number, and all three of those are properties of
-// `ModeRules`.
+// than the mode's name.
 //
-// Pure, like the two modules it sits between: no DOM, no Game, no World. The
-// painter is handed the result (hud/hud.ts) and paints it.
+// Pure: no DOM, no Game, no World. The painter is handed the result (hud/hud.ts).
 
 import type { ExerciseSetup, LiveContact, SimProgress } from './combat-sim-report.ts';
 import {
@@ -57,11 +49,9 @@ export interface ExerciseStrip {
    * What the wave ramp has turned on by this wave, or null outside the waves
    * mode — `WaveEscalation.active`, carried and not formatted.
    *
-   * The banner names a step on the wave that adds it and then it is gone, which
-   * is right for an announcement and wrong for a fact you have to fly against
-   * for the rest of the run: three waves later a pilot needs to know that
-   * everything out there is carrying a missile, and the cockpit is where they
-   * are looking.
+   * The banner names a step on the wave that adds it and then is gone; a pilot
+   * needs to know for the rest of the run that everything out there is carrying
+   * a missile, and the cockpit is where they are looking.
    */
   escalation: readonly string[] | null;
   shots: number;
@@ -73,18 +63,12 @@ export interface ExerciseStrip {
   /**
    * Every hostile still up: hull, range, and what it is doing — nearest first.
    *
-   * This is the one thing on the strip that is NOT deliberately small, and the
-   * doctrine above is amended rather than quietly broken. The strip was written
-   * for a pilot judging how a fight feels, and everything a pilot cannot read at
-   * a glance was sent to the report. Tuning BEHAVIOUR is a different job with a
-   * different reader: Chris, mid-session — "I want to see the details all the
-   * time" — because the question "why is that one not shooting at me" cannot
-   * wait for a report, and answering it two minutes later against a fight you
-   * can no longer see is exactly the failure this file was created to fix.
+   * The one thing on the strip that is NOT deliberately small. Tuning BEHAVIOUR
+   * is a different job with a different reader: "why is that one not shooting at
+   * me" cannot wait for a report against a fight you can no longer see.
    *
    * It stays honest by carrying `ContactSample.doing` rather than deriving a
-   * second opinion, so the strip, the record and the report all quote the same
-   * word.
+   * second opinion, so the strip, the record and the report quote the same word.
    */
   live: readonly LiveContact[];
 }

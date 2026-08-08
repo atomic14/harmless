@@ -54,10 +54,7 @@ import { ThreatLock } from './threat-lock.ts';
  * Everything about a ship that can CHANGE.
  *
  * All of it in one object, which is the point: a snapshot is this, walked
- * generically, so there is no list of fields to keep in step and nothing to
- * forget. Hand-enumerating them cost two rounds of "two reloads agree with
- * each other but not with the run they came from" — first the trigger and
- * trade clocks, then the pack station and the brain's ramped rates.
+ * generically, so there is no list of fields to keep in step.
  *
  * `pos` and `quat` are the SAME THREE objects the mesh uses, not copies. The
  * renderer therefore reads the state rather than being told about it, and
@@ -74,30 +71,24 @@ export interface NpcState {
   /**
    * The docking computer's reusable outputs and its behavior-driving phase.
    *
-   * `phase` latches once a trader commits to the slot run. The vectors remain
-   * live scratch objects which `planDocking` rewrites in place each frame, so
-   * keeping the whole plan here preserves both replay state and the
-   * allocation-free update path.
+   * `phase` latches once a trader commits to the slot run. The vectors are live
+   * scratch objects `planDocking` rewrites in place each frame, so keeping the
+   * whole plan here preserves both replay state and the allocation-free path.
    */
   dockPlan: DockPlan;
   /** Trader lifecycle. */
   traderPhase: TraderPhase;
   /**
    * The cached trained-brain flight decision, re-taken every brainTimer
-   * seconds.
-   *
-   * I excluded this by hand as "not really state", and it was the last thing
-   * keeping a restored world from replaying its original: a ship reloaded
-   * mid-decision re-decides immediately where the original was still acting on
-   * a choice made up to 0.1s earlier, and six frames of difference compound.
-   * If the step reads it, it is state.
+   * seconds. State because the step reads it: a ship reloaded mid-decision must
+   * act on the same choice the original was still acting on, or six frames of
+   * difference compound.
    */
   brainControl: { pitch: number; roll: number; throttle: number; fire: boolean } | null;
   /**
-   * Derived at spawn FROM THE RNG, so they cannot be re-derived on restore:
-   * by then the stream is somewhere else entirely. Chris's rule — a game
-   * constant may live outside the state, a value worked out at runtime may
-   * not.
+   * Derived at spawn FROM THE RNG, so they cannot be re-derived on restore: by
+   * then the stream is somewhere else. A game constant may live outside the
+   * state; a value worked out at runtime may not.
    *
    * Decided at spawn: does this one have business at the station?
    */
@@ -105,25 +96,20 @@ export interface NpcState {
   tumbleAxis: THREE.Vector3;
   /**
    * Whether this ship carries E.C.M., rolled against its spec's chance at
-   * spawn. Chris's example of the rule, almost exactly: a disposition decided
-   * by a shake of the dice on warp-in changes what the ship does for the rest
-   * of its life, so it is state, not a constant.
+   * spawn. A disposition decided by a shake of the dice on warp-in changes what
+   * the ship does for the rest of its life, so it is state, not a constant.
    */
   hasEcm: boolean;
   /**
    * The ship's bank, in SOURCE ENERGY POINTS — a whole number, never a
-   * fraction, because a fraction of a point is not a thing the released game
-   * can express. It was `hp` on a normalized per-hull scale until TODO 26.
-   *
-   * Anything that wants 0..1 asks `healthFraction`; anything that wants to hurt
-   * it passes points. Those are the only two ways in.
+   * fraction. Anything that wants 0..1 asks `healthFraction`; anything that
+   * wants to hurt it passes points. Those are the only two ways in.
    */
   energy: number;
   /**
    * Regeneration's sub-second remainder, as whole ticks — see
-   * ELITE_A_REGEN_TICKS_PER_SECOND. It is state because the step reads it: a
-   * ship reloaded mid-tick that started its carry again would recover at a
-   * different moment from the run it came from.
+   * ELITE_A_REGEN_TICKS_PER_SECOND. State because the step reads it: a ship
+   * reloaded mid-tick must recover at the same moment the original did.
    */
   regenCarry: number;
   alive: boolean;
@@ -142,26 +128,19 @@ export interface NpcState {
    * Which flight actually moved this ship last step — a trained policy, the
    * scripted attack run, or the pursuit dogfighter.
    *
-   * Reported, never read by a rule, and it exists because the readout without
-   * it LIED. `attackPhase` is only touched inside `attack()`, so a brain-flown
-   * pirate left it at whatever it was and the trainer's new "spent its time"
-   * column read `closing 45s` for a ship that had not run the closing logic
-   * once in 45 seconds. `pursuit` is the same lie by a different pilot: a
-   * pursuit pirate never runs the phase machine either, so it read `closing`
-   * forever — the strip said "KNIFE CLOSING" for a ship holding station on the
-   * six. A field that says which flight ran is the honest version, and it costs
-   * nothing to snapshot because NpcState is walked generically.
+   * Reported, never read by a rule. `attackPhase` is only touched inside
+   * `attack()`, so a brain-flown or pursuit pirate leaves it stale; a field
+   * that says which flight ran is the honest version of the readout, and it
+   * costs nothing to snapshot because NpcState is walked generically.
    */
   flownBy: 'brain' | 'scripted' | 'pursuit';
   /** seconds of evasive flying left after the last hit taken — see break-off.ts */
   underFire: number;
   /**
    * How far out THIS run goes before turning back, rolled from the band in
-   * break-off.ts every time the ship starts extending.
-   *
-   * It is state for the same reason `hasEcm` is: a shake of the dice decides
-   * what the ship does next, so it cannot be re-derived on restore — by then
-   * the stream is somewhere else entirely.
+   * break-off.ts every time the ship starts extending. State for `hasEcm`'s
+   * reason: a shake of the dice decides it, so it cannot be re-derived on
+   * restore.
    */
   extendRange: number;
   /** which side this run passes on, +1 or -1, re-rolled with extendRange */
@@ -169,12 +148,10 @@ export interface NpcState {
   /**
    * WHICH WAY this ship flies its attack run — see constants/tactics.ts.
    *
-   * Rolled once at spawn from the hull's own capability set, and re-rolled only
-   * when something happens that a pilot would act on: hurt, a last stand, or a
-   * spell with the guns cold. It is state for `hasEcm`'s reason and
-   * `extendRange`'s — a shake of the dice decides what the ship does next, so it
-   * cannot be re-derived on restore, by which time the stream is somewhere else
-   * entirely.
+   * Rolled once at spawn from the hull's own capability set, re-rolled only when
+   * something happens a pilot would act on: hurt, a last stand, or a spell with
+   * the guns cold. State for `hasEcm`'s reason — decided by a die roll, so it
+   * cannot be re-derived on restore.
    */
   tactic: TacticId;
   /** seconds on the current tactic — the dwell the switch reads */
@@ -183,9 +160,9 @@ export interface NpcState {
    * Seconds since this ship last got a shot away.
    *
    * The SLEEPER's clock: "this is not working, try something else". It ticks in
-   * `attack()` and only in `attack()`, because a tactic governs the scripted
-   * flight and a brain-flown ship's is dormant until it hands over — the same
-   * line `flownBy` draws.
+   * `attack()` and only there, because a tactic governs the scripted flight and
+   * a brain-flown ship's is dormant until it hands over — the line `flownBy`
+   * draws.
    */
   dryFor: number;
   /**
@@ -193,15 +170,12 @@ export interface NpcState {
    *
    * A missile costs money and there is no resupply, so a ship spends one when
    * the fight is going badly rather than when the geometry is convenient — and
-   * "I have flown at this twice and it is still there" is how a ship finds that
-   * out. See `npcMissileEmergency`.
+   * "I have flown at this twice and it is still there" is how it finds that out.
+   * See `npcMissileEmergency`.
    *
-   * NOT per-target, and deliberately not: a pirate that harried a trader and
-   * then turned on the commander has still spent its afternoon failing to kill
-   * things, which is the disposition this is standing in for. Making it
-   * per-target would mean carrying the target's identity in the state as well,
-   * to reset against — a second field to keep in step for a distinction the
-   * rule does not actually draw.
+   * NOT per-target: a pirate that harried a trader and then turned on the
+   * commander has still spent its afternoon failing to kill things, which is
+   * the disposition this stands in for.
    */
   passesMade: number;
   /** Thargons go inert when their mothership dies. */
@@ -230,7 +204,7 @@ export interface NpcState {
    * Time until this ship may launch another missile. Separate from
    * fireCooldown ON PURPOSE: the gun's reload is up to 1.7s and a ship in its
    * last stand does not have that long, so a missile must not queue behind a
-   * bolt. It ticks in chooseWeapon.
+   * bolt. It ticks in tickClocks.
    */
   missileReload: number;
   waypointTimer: number;
@@ -277,14 +251,13 @@ export interface WorldView {
    * Is a hostile missile ALREADY homing on the player?
    *
    * One in the air at a time, across the whole gang. E.C.M. destroys every
-   * missile in flight in one burst for a quarter of the bank, so it is a
-   * complete answer to one missile and no answer at all to five — which is how
-   * a wave-13 gang put three through in nine seconds. Capping the air makes the
-   * counterplay the player already owns actually work, and it costs the gang
+   * missile in flight in one burst for a quarter of the bank — a complete
+   * answer to one missile and no answer at all to five — so capping the air
+   * makes the counterplay the player already owns work, and it costs the gang
    * nothing it can see: a ship that would have launched fires its gun instead.
    *
-   * It lives on the view rather than being read off the world because a ship
-   * decides and reports; `game.ts` supplies what the ship is allowed to know.
+   * On the view rather than read off the world because a ship decides and
+   * reports; `game.ts` supplies what the ship is allowed to know.
    */
   missileInbound: boolean;
   brains: BrainSelection;
@@ -320,11 +293,9 @@ export function isHostileToPlayer(npc: NpcShip, legalStatus: number): boolean {
   if (npc.state.satisfied) return false;
   return (
     npc.role === 'pirate' || npc.role === 'thargoid' || npc.role === 'thargon' ||
-    // provokedBY PLAYER, not provoked. takeDamage() flags `provoked` for any
-    // damage from any source, so a Viper trading fire with a pirate — or one
-    // that clipped an asteroid — used to decide a clean commander was fair
-    // game. Chris flew into exactly that: a police ship mid-fight with another
-    // NPC turned on him as though he were a fugitive.
+    // provokedByPlayer, not provoked: takeDamage() flags `provoked` for damage
+    // from any source, so reading it would let a Viper trading fire with a
+    // pirate turn on a clean commander as though he were a fugitive.
     (npc.role === 'police' && (legalStatus >= 2 || npc.state.provokedByPlayer)) ||
     (npc.role === 'hunter' && (legalStatus >= 1 || npc.state.provokedByPlayer))
   );
@@ -399,45 +370,39 @@ export class NpcShip {
   /**
    * The pirates hunting this ship — the ships whose `npcTarget` is this one.
    *
-   * Private, and the invariant belongs to the three verbs below. It used to be
-   * a public array that two other modules spliced by hand and a third repaired
-   * on restore, which is a rule with three homes and a mirror of `npcTarget`
-   * kept in step by hope.
+   * Private, and the invariant belongs to the three verbs below, so the list
+   * has one home rather than being spliced by hand from other modules.
    */
   private readonly attackers: NpcShip[] = [];
   /** NPC-vs-NPC target, assigned by the game (pirate→trader, police→pirate). */
   npcTarget: NpcShip | null = null;
   /**
    * The pursuit pilot's break-off phase, for a pirate flying `pursuit` rather
-   * than the attack run. Transient like the co-pilot's threat lock — NOT in
-   * `NpcState`, so it is not saved: a reload resumes the chase and re-decides
-   * the break within a frame off the range, which is a defensible cold open and
-   * costs nothing.
+   * than the attack run. Transient — NOT in `NpcState`, so not saved: a reload
+   * resumes the chase and re-decides the break within a frame off the range.
    */
   private readonly pursuitBrk: PursuitBreak = freshPursuitBreak();
 
   /**
    * Whether a pursuit pirate is currently flying the slashing attack run rather
    * than holding the six — the hysteresis bit for the mode switch below. Starts
-   * holding the six and is re-decided every frame off the commander's arc, so
-   * like `pursuitBrk` it is transient (a reload re-decides within a frame) and
-   * not in `NpcState`.
+   * holding the six, re-decided every frame off the commander's arc, so like
+   * `pursuitBrk` it is transient and not in `NpcState`.
    */
   private pursuitSlashing = false;
 
   /**
    * A rock hermit's blinking beacon and the clock that pulses it. Cosmetic and
-   * off the save on purpose: the blink phase drives nothing in the world, so a
-   * reload restarting it mid-pulse is not a divergence anything can observe.
+   * off the save: the blink phase drives nothing, so a reload restarting it
+   * mid-pulse is not an observable divergence.
    */
   private beacon: THREE.Mesh | null = null;
   private beaconClock = 0;
 
   /**
    * Whether the pursuit pilot is veering off to avoid a ram this frame, for the
-   * readout alone (`describeFlight`). Live off the transient break state rather
-   * than mirrored into `NpcState`, so there is still one home for the bit and
-   * the "not saved" decision above stands.
+   * readout alone (`describeFlight`). Read off the transient break state rather
+   * than mirrored into `NpcState`, so the bit has one home.
    */
   get breakingOff(): boolean {
     return this.pursuitBrk.breaking;
@@ -445,13 +410,7 @@ export class NpcShip {
 
   private readonly maxSpeed: number;
   private readonly turnRate: number;
-  /**
-   * Thrust, units/s — per hull, from the roster (ship-specs.ts shipAccel).
-   *
-   * It was one flat 120 for every brain-flown ship in the galaxy, which is
-   * the omission the trainer merge exposed: a Sidewinder tops out 15% quicker
-   * than a Cobra and used to reach it no faster.
-   */
+  /** Thrust, units/s — per hull, from the roster (ship-specs.ts shipAccel). */
   readonly accel: number;
   private readonly tmpDir = new THREE.Vector3();
   private readonly tmpDir2 = new THREE.Vector3();
@@ -473,26 +432,20 @@ export class NpcShip {
   /**
    * The observation views, refilled per decision — see policy.ts `shipView`.
    *
-   * ONE of these numbers is load-bearing and it is a field brainFly never
-   * writes: `meView.laserTemp` stays 0, so obs slot 1 (our laser heat) is
-   * always 0 in the game. Every shipped brain was fitted against exactly that,
-   * so feeding it a real number moves the observation out of the distribution
-   * the weights were trained in: a retrain, not a one-line fix.
+   * ONE number is load-bearing and it is a field brainFly never writes:
+   * `meView.laserTemp` stays 0, so obs slot 1 (our laser heat) is always 0 in
+   * the game. Every shipped brain was fitted against exactly that, so feeding
+   * it a real number is a retrain, not a one-line fix.
    *
-   * `hp` USED TO BE THE SECOND ONE and is filled truthfully now (docs/TODO/71).
-   * Nothing shipped reads it on this path — the solo encoder does not have the
-   * slot, `observePack` (18, what the gang policy is) does not reach it, and
-   * only `observePackWide`'s slot 25 and `observeDefend`'s slot 14 do. The
-   * armed trader that flies the defence policy is exactly the ship the item is
-   * about, and it could not see how hurt it was either. A 26-input pack brain
-   * must now be TRAINED against a real number rather than a constant 1.0; none
+   * `hp` is filled truthfully. Nothing shipped reads it on this path — only
+   * `observePackWide`'s slot 25 and `observeDefend`'s slot 14 do, and a 26-input
+   * pack brain must be TRAINED against a real number, not a constant 1.0; none
    * is in the tree, and `npm test` holds the directory to the three that are.
    *
-   * The rest are inert, and measurably so — brainFly overwrites the me
-   * envelope and the target's pos/quat/speed on every decision, and no encoder
-   * reads a TARGET's `cls` at all. They are the values that were here before,
-   * kept because a view with a plausible envelope is easier to read in a
-   * debugger than one full of zeroes.
+   * The rest are inert: brainFly overwrites the me envelope and the target's
+   * pos/quat/speed every decision, and no encoder reads a TARGET's `cls`. Kept
+   * with a plausible envelope only because it reads easier in a debugger than
+   * zeroes.
    */
   private static readonly meView = shipView(0, 0);
   private static readonly targetView = shipView(400, 1.1, 300);
@@ -503,12 +456,11 @@ export class NpcShip {
   /**
    * What this ship IS — see ship-identity.ts.
    *
-   * Immutable, so it is not in `NpcState`: the state is what can CHANGE, and a
-   * ship does not become another design mid-flight. It is saved beside the role
-   * and the seed instead (`NpcSnapshot`), because a save must carry the id
-   * rather than re-derive it: today the roster's recommended variant is the
-   * only answer, and the moment a blueprint loader picks by system it will not
-   * be.
+   * Immutable, so it is not in `NpcState`: a ship does not become another
+   * design mid-flight. Saved beside the role and seed (`NpcSnapshot`) because a
+   * save must carry the id rather than re-derive it — the moment a blueprint
+   * loader picks by system, the roster's recommended variant stops being the
+   * only answer.
    */
   readonly designId: ShipDesignId;
   readonly profileId: NpcCombatProfileId;
@@ -628,11 +580,9 @@ export class NpcShip {
       this.armed = spec.armed ?? false;
     }
     randomDirection(this.state.packOffset).multiplyScalar(250 + random() * 500);
-    // WHICH WAY THIS ONE FIGHTS, decided by a shake of the dice on warp-in —
-    // Chris's own example of the rule that makes something state. A rock has no
-    // attack run to fly and never reaches `attack()`, so it does not draw: the
-    // roll is taken here, last, so that adding it moved every existing draw in
-    // the constructor by nothing.
+    // WHICH WAY THIS ONE FIGHTS, decided by a shake of the dice on warp-in, so
+    // it is state. A rock has no attack run and never reaches `attack()`, so it
+    // does not draw; the roll is taken here, last.
     if (role !== 'asteroid') {
       this.state.tactic = chooseTactic(this.tacticHull, 1, 'spawn', random());
     }
@@ -661,10 +611,9 @@ export class NpcShip {
    */
   private bindTransform(position: THREE.Vector3): void {
     this.object.position.copy(position);
-    // NOT quaternion.random(): THREE reaches for Math.random inside it, so
-    // every ship in the galaxy was pointing a direction the seed knew nothing
-    // about. Two arrivals in the same system agreed on where the ships were
-    // and disagreed on which way they faced.
+    // NOT quaternion.random(): THREE reaches for Math.random inside it, off the
+    // seeded stream, so two arrivals in one system would disagree on which way
+    // the ships face.
     randomQuaternion(this.object.quaternion);
     this.state.pos = this.object.position;
     this.state.quat = this.object.quaternion;
@@ -711,15 +660,15 @@ export class NpcShip {
       isHostileToPlayer(this, playerLegal) && distPlayer < PLAYER_INTEREST_RANGE;
 
     if (aggressiveToPlayer) {
-      // A pirate a player meets flies the scripted attack run by default — the
-      // whole of CLAUDE.md's "scripted flies the opposition". The LIVE BRAINS
-      // `pursuit` choice turns the combat computer's own pilot on the pirates,
-      // but NOT as a single flight: a ship that only ever held the six was a
-      // duck the moment it drifted ahead of the commander's guns. So a pursuit
-      // pirate SWITCHES — it holds the six while it is astern of the commander
-      // (`pursue`) and slashes past on the attack run the moment the commander
-      // faces it (`slashesRatherThanHoldSix`). Either flight goes through the
-      // same `chooseWeapon` for what leaves the rail.
+      // A pirate a player meets flies the `pursuit` dogfighter by default — the
+      // combat computer's own pilot, turned on the pirates. It is not a single
+      // flight: a ship that only ever held the six was a duck the moment it
+      // drifted ahead of the commander's guns. So a pursuit pirate SWITCHES — it
+      // holds the six while it is astern of the commander (`pursue`) and slashes
+      // past on the attack run the moment the commander faces it
+      // (`slashesRatherThanHoldSix`). The `scripted` A/B reverts every pirate to
+      // the hand-written three-phase attack run instead. Either flight goes
+      // through the same `chooseWeapon` for what leaves the rail.
       const pursuit = pirateBrainNameFor(this.state.threatTier, false, brains) === 'pursuit';
       const shot = pursuit && !this.slashesRatherThanHoldSix(player)
         ? this.pursue(dt, player.position, distPlayer, true, undefined, player.speed, fleet)
@@ -741,10 +690,10 @@ export class NpcShip {
 
     if (this.state.fleeing) {
       // Armed traders turn and fight. WHICH pilot is brain-names.ts's answer:
-      // since 2026-08-05 the shipped answer is the same scripted attack run
-      // every pirate flies, pointed back at whoever is hunting it; the
-      // brainFly block below is the socket a future trained candidate
-      // re-enters through (brains.ts), and flies nothing today.
+      // the shipped answer is the same scripted attack run every pirate flies,
+      // pointed back at whoever is hunting it. The brainFly block below is the
+      // socket a future trained candidate re-enters through (brains.ts), and
+      // flies nothing today.
       if (this.armed && defenceBrainNameFor(brains) === 'attack-run') {
         if (this.state.provokedByPlayer && distPlayer < 6000) {
           const shot = this.attack(dt, player.position, distPlayer, true, undefined,
@@ -829,12 +778,11 @@ export class NpcShip {
         if (this.state.waypointTimer <= 0) {
           this.state.waypointTimer = 10 + random() * 12;
           // Work the lane between station and planet. The planet sits at the
-          // world origin, so scaling `home` walks that line — but the station
-          // orbits at 2.4 planet radii (world/system-scene.ts), which puts the
-          // planet surface at 1/2.4 = 0.42 of the way out. A minimum of 0.35
-          // aimed traders *inside the planet*, and with nothing stopping them
-          // they flew through it. 0.62 keeps the waypoint clear even when the
-          // random offset below happens to point straight down.
+          // world origin, so scaling `home` walks that line; the station orbits
+          // at 2.4 planet radii (world/system-scene.ts), putting the planet
+          // surface at 1/2.4 = 0.42 of the way out. The 0.62 floor keeps the
+          // waypoint clear of the planet even when the offset points straight
+          // down.
           this.state.waypoint
             .copy(station.position)
             .multiplyScalar(0.62 + random() * 0.38)
@@ -890,10 +838,9 @@ export class NpcShip {
    * Note that `a` is hunting this ship. Idempotent, so a caller never has to
    * ask whether the link is already there.
    *
-   * Only PIRATES register: police and hunters set `npcTarget` and stop there.
-   * That asymmetry is deliberate — a fleeing trader reads this list to decide
-   * who to run from, and registering the law made a reloaded ship turn and
-   * duel the police chasing it where before it just ran (world.ts).
+   * Only PIRATES register: police and hunters set `npcTarget` and stop there. A
+   * fleeing trader reads this list to decide who to run from, and registering
+   * the law would make it turn and duel the police chasing it rather than run.
    */
   addAttacker(a: NpcShip): void {
     if (!this.attackers.includes(a)) this.attackers.push(a);
@@ -919,10 +866,9 @@ export class NpcShip {
   private readonly attackerLock = new ThreatLock<NpcShip>();
 
   private nearestAttacker(dt: number): NpcShip | null {
-    // Locked, not first-registered: the old rule took the FIRST living entry,
-    // so which attacker an armed trader fought depended on registration order
-    // rather than on the fight — and a bare distance rule teleports the
-    // brain's target instead (game/threat-lock.ts has the measurements).
+    // Locked, not first-registered or nearest: which attacker an armed trader
+    // fights should not flip with registration order or teleport with distance
+    // (game/threat-lock.ts has the rule and the measurements).
     return this.attackerLock.pick(
       dt,
       this.attackers.filter((a) => a.state.alive),
@@ -953,9 +899,9 @@ export class NpcShip {
       slot.pos = m.object.position;
       slot.quat = m.object.quaternion;
       // NORMALIZED at the boundary: the encoder divides `hp` by `cls.hp`, so a
-      // fraction over 1 is the same observation the brains were fitted against
-      // when both were raw hull points. Feeding it energy points would be too —
-      // right up until a mate's max differed from the divisor.
+      // fraction with divisor 1 is the observation the brains were fitted
+      // against. Feeding it raw energy points would break the moment a mate's
+      // max differed from the divisor.
       slot.hp = m.healthFraction;
       slot.cls.hp = 1;
       slot.alive = true;
@@ -975,12 +921,10 @@ export class NpcShip {
    * Fly with a trained policy: refresh the discrete control at 10 Hz, then
    * integrate it with the same ramp the player's ship uses.
    *
-   * PUBLIC because this is the flight model the trainer optimises against.
-   * `update()` picks the shipped brain from brains.ts, which is the last thing
-   * a training episode wants — it is scoring a candidate genome. So the
-   * scenario drives this directly with the genome and its own target, and
-   * there is exactly one implementation of "how a brain-flown ship moves"
-   * rather than the two that invariant 5 used to police.
+   * PUBLIC because this is the flight model the trainer optimises against: a
+   * training episode drives this directly with the candidate genome and its own
+   * target, so there is exactly one implementation of "how a brain-flown ship
+   * moves" (invariant 5).
    */
   brainFly(
     brain: Brain,
@@ -1021,13 +965,11 @@ export class NpcShip {
       me.hp = this.healthFraction;
       me.cls.hp = 1;
       me.energy = this.healthFraction;
-      // ...and nothing is homing on it. A hostile warhead in this game flies at
-      // the COMMANDER (`Missile.target === null` is what makes it hostile), and
-      // an NPC's own E.C.M. is `state.hasEcm`, rolled at spawn and applied by
-      // ordnance.ts with nothing deciding. So a defence policy flown by an
-      // armed trader never sees slot 16 set and its E.C.M. head is not read
-      // here at all — the button belongs to the ship that has one to press
-      // (docs/TODO/72).
+      // ...and nothing is homing on it. A hostile warhead flies at the
+      // COMMANDER (`Missile.target === null` is what makes it hostile), and an
+      // NPC's own E.C.M. is `state.hasEcm`, applied by ordnance.ts. So a
+      // defence policy never sees slot 16 set and its E.C.M. head is not read
+      // here — the button belongs to the ship that has one to press.
       me.missileInbound = false;
       // One pool, not two faces: whichever side a hit lands, this is what it
       // spends — so the split a defence brain reads is the pool, twice.
@@ -1067,18 +1009,12 @@ export class NpcShip {
     this.advance(dt);
 
     this.state.fireCooldown -= dt;
-    // The policy's own `fire` output is deliberately NOT consulted.
-    //
-    // An NPC needed two independent yeses to shoot: the geometric gate below,
-    // which is the game's balance lever, and the brain's trigger, which is an
-    // artifact of training nobody ever tuned. r2 is lined up on the player 38%
-    // of the time and fires 0.6 shots an engagement, because it was fitted
-    // when firing required a 0.027 rad cone and it learned never to trust a
-    // loose line. That is the "they point right at me and never shoot" bug.
-    //
-    // So: the brain decides where to be, the gun decides when to shoot. Rate
-    // is now exactly what gunnery.ts's npcTriggerPull says it is, which makes
-    // it a number that can be tuned instead of an emergent one.
+    // The policy's own `fire` output is deliberately NOT consulted: the brain
+    // decides where to be, the gun decides when to shoot. The trained trigger
+    // is a training artifact nobody tuned (r2 lines up 38% of the time yet
+    // fires 0.6 shots an engagement — the "they point right at me and never
+    // shoot" bug). Rate is exactly what gunnery.ts's npcTriggerPull says, a
+    // number that can be tuned rather than an emergent one.
     if (fireAt !== null) {
       const reload = npcTriggerPull(
         this.state.fireCooldown, this.facing(targetPos), dist, random);
@@ -1128,27 +1064,19 @@ export class NpcShip {
      */
     targetVel?: THREE.Vector3,
   ): FireEvent | null {
-    // WHERE TO BE and WHETHER TO SHOOT are two decisions, and this used to be
-    // one. Inside the break-off the ship turned away and `return null`ed, so
-    // steering away and holding fire were the same statement — and every police
-    // ship, bounty hunter, Thargoid and knife-range pirate went silent at the
-    // range a human actually fights at. See break-off.ts, which owns the
-    // distance and the argument.
-    // An attack run has three parts and this used to have two. The missing one
-    // was the pass itself: inside BREAK_OFF_RANGE the ship steered to
-    // `own * 2 - target` — directly away, a 180 — which no hull in the roster
-    // can complete in the room 220 units leaves, so it flew through instead.
-    // break-off.ts has the arithmetic and Chris's account of flying it.
+    // WHERE TO BE and WHETHER TO SHOOT are two decisions, not one: the flight
+    // may break off (see break-off.ts) while the gun below still fires, so a
+    // police ship, bounty hunter, Thargoid or knife-range pirate does not go
+    // silent at the range a human actually fights at.
     this.state.flownBy = 'scripted';
-    // `underFire` is NOT decayed here. It used to be, and this was the only
-    // place it decayed, so it was a decay for a scripted ship and a latch for
-    // every brain-flown one — see `tickClocks` (docs/TODO/77).
-    // WHICH WAY IT IS FIGHTING, before anything reads the numbers that follow
-    // from it. `tacticSwitchReason` is roll-free on purpose — a switch that
-    // drew from the stream to decide whether to switch would burn a number per
-    // hostile per frame — so the dice come out only when the answer is yes.
+    // `underFire` is NOT decayed here — that is `tickClocks`'s one home for it,
+    // or it would decay for a scripted ship and latch for a brain-flown one.
+    // WHICH WAY IT IS FIGHTING, before anything reads the numbers that follow.
+    // `tacticSwitchReason` is roll-free on purpose — a switch that drew from
+    // the stream to decide whether to switch would burn a number per hostile
+    // per frame — so the dice come out only when the answer is yes.
     const tactic = TACTICS[this.updateTactic(dt)];
-    // WHERE TO BE is attack-run.ts's decision now — the same composition the
+    // WHERE TO BE is attack-run.ts's decision — the same composition the
     // commander's scripted co-pilot flies, so the two cannot drift. What stays
     // here is the gang's business: bending the chosen line away from wingmen
     // (separation.ts), which a ship flying alone has none of.
@@ -1172,17 +1100,10 @@ export class NpcShip {
       this.accel * dt);
     this.advance(dt);
     this.state.fireCooldown -= dt;
-    // The SAME gun brainFly uses — and now literally the same call, so it
-    // cannot be a second one again. It was: a 0.22 gate and a 1.4 + rand*1.8
-    // cooldown (mean 2.30s against 1.30s), i.e. 77% slower through a tighter
-    // aperture — and this is the path every police ship, bounty hunter,
-    // thargoid and knife-range pirate actually fires on, so most of the
-    // hostiles in the game used numbers the trainer never saw. The parity test
-    // missed it because it reads the FIRST match in the file and brainFly
-    // happens to come first.
-    //
-    // Thargoids keep their edge as a multiplier on the shared cooldown rather
-    // than as a separate literal.
+    // The SAME gun brainFly uses — literally the same call, so it cannot become
+    // a second one. This is the path every police ship, bounty hunter, Thargoid
+    // and knife-range pirate fires on. Thargoids keep their edge as a
+    // multiplier on the shared cooldown rather than a separate literal.
     const reload = npcTriggerPull(
       this.state.fireCooldown, this.facing(targetPos), dist, random,
       this.role === 'thargoid' ? THARGOID_FIRE_RATE : 1);
@@ -1309,39 +1230,22 @@ export class NpcShip {
 
   /**
    * WHICH weapon leaves the rail — and the one case where something leaves it
-   * that the flight above did not ask for.
+   * the flight above did not ask for.
    *
    * The rules are gunnery.ts's; this is the only place that applies them, so a
-   * missile is decided once and reported once. It used to be decided in
-   * game.ts, off the back of a FireEvent the ship had already produced, which
-   * meant a missile could only ever leave at the moment its owner was lined up
-   * for a LASER shot: inside 0.25 rad, with the gun loaded. A pirate that is
-   * about to die is rarely either, so it died with the missile still on the
-   * rail. That is what `npcMissileLastStand` fixes, and it is why it does not
-   * consult the gun's cooldown or its firing gate.
+   * missile is decided once and reported once. `npcMissileLastStand` does not
+   * consult the gun's cooldown or firing gate, so a pirate about to die can
+   * launch even when it is not lined up for a laser shot.
    *
    * PUBLIC, and taking a scalar rather than a `WorldView`, for the same reason
-   * `brainFly`, `attack` and `regenerate` are public: `update()` runs it for
-   * the live sky, and a training episode drives the flight directly, so the
-   * episode owes the ship this call too. It was private and view-shaped, and the
-   * consequence was that **no pirate in a training episode had ever decided to
-   * launch** — 1,374 laser requests and 0 missile requests across 200 armed,
-   * hurt pirates (docs/TODO/62). `missileInbound` is the one fact left that is
-   * not on the ship: whether the air is already occupied. It was two, and the
-   * other was how many of the gang were gone — see `npcMissileEmergency` for
-   * why that reason is deleted rather than repaired (docs/TODO/75). This is the
-   * seam docs/TODO/64 widened; what it REPORTS is resolved by
-   * `fire-resolution.ts`, the one home both worlds call.
+   * `brainFly`, `attack` and `regenerate` are: a training episode drives the
+   * flight directly, so it owes the ship this call too. `missileInbound` is the
+   * one fact not on the ship: whether the air is already occupied. What it
+   * REPORTS is resolved by `fire-resolution.ts`, the one home both worlds call.
    *
-   * IT DECIDES; IT DOES NOT KEEP TIME. This used to tick `missileReload` itself
-   * and carry a "CALL IT ONCE PER FRAME" warning, which the one caller that
-   * matters did not honour: `update()` reaches it only down the
-   * `aggressiveToPlayer` branch, so a rack stopped reloading the moment the
-   * pirate stopped being hostile-and-in-range and the gap between two launches
-   * measured time spent hunting rather than time. The clock is `tickClocks`
-   * now, which every frame runs (docs/TODO/77), and there is no `dt` here to
-   * tempt a second one. Asking twice in a frame is now merely wasteful rather
-   * than wrong.
+   * IT DECIDES; IT DOES NOT KEEP TIME. `missileReload` is ticked by
+   * `tickClocks`, which runs every frame; there is no `dt` here to tempt a
+   * second clock, so asking twice in a frame is merely wasteful.
    */
   chooseWeapon(
     shot: FireEvent | null, dist: number, targetPos: THREE.Vector3,
@@ -1403,41 +1307,20 @@ export class NpcShip {
   /**
    * Where this ship's neighbours are, as a reused array.
    *
-   * Everything solid and alive except itself and the thing it is attacking:
-   * a hull is a hull, so a trader minding its own business is as much of an
-   * obstacle as a wingman. The array is an instance field rather than a fresh
-   * one because this runs per ship per frame.
+   * Everything solid and alive except itself and the thing it is attacking: a
+   * hull is a hull, so a trader minding its own business is as much of an
+   * obstacle as a wingman. The array is an instance field because this runs per
+   * ship per frame.
    *
-   * THE TARGET IS NOT AN OBSTACLE. That is what the line above always claimed
-   * and what the code did not do until docs/TODO/76 found the two disagreeing,
-   * so it is a behaviour change and it is argued rather than assumed.
-   *
-   * A pirate attacking the PLAYER never saw the difference either way — the
-   * commander is not in the fleet. It is a police ship on a pirate, or a pirate
-   * on a trader, where the target IS a fleet member, and only ever inside
-   * `passing`: `SEPARATION_RANGE` (200) is inside `BREAK_OFF_RANGE` (220), so a
-   * ship is already committed to the pass before its target can be near enough
-   * to push it. Holding the committed line THROUGH the merge is that phase's
-   * whole job, and turning away in it is the 180 break-off.ts deleted.
-   *
-   * Two things measured it, over 160 seeded engagements of each pairing against
-   * a target that holds still, target-in-the-list -> target-out-of-it:
-   *
-   *   - IT WAS DELETING THE `ram` TACTIC. `constants/tactics.ts` has a doomed ship aim at
-   *     the hull rather than beside it (`missDistance: 0`, `aimsToHit: true`),
-   *     and `tactic-choice.ts` goes to the trouble of exempting it from the
-   *     clearance gate. Pinned to `ram`, a hunter connected 5 times and 0 times
-   *     in 160 engagements; without the push it connects 13.3 and 11.0 times
-   *     per engagement. One file exempted the tactic and this one vetoed it.
-   *   - IT WAS THE SECOND HOME OF A DISTANCE. How far a run passes what it is
-   *     attacking is `pass-aim.ts`'s `passMissDistance`, swept; separation.ts is
-   *     "keeping wingmen out of each other's way" by its own title. With both
-   *     deciding, the delivered merge sat at a 149.7/149.6 median against the
-   *     110 the aim asked for; with one, 115.2/113.5.
-   *
-   * The price is contact, and it is small: 0 -> 0.031 and 0 -> 0.125 per
-   * engagement in a sky flying the whole tactic vocabulary, against the 0.33 an
-   * episode that constants/tactics.ts already measured and accepted for the commander.
+   * THE TARGET IS NOT AN OBSTACLE. It matters only where the target IS a fleet
+   * member (police on a pirate, pirate on a trader) and only inside `passing`:
+   * `SEPARATION_RANGE` (200) is inside `BREAK_OFF_RANGE` (220), so a ship is
+   * committed to the pass before the target is near enough to push it. Holding
+   * the committed line through the merge is that phase's job, and treating the
+   * target as an obstacle would delete the `ram` tactic (constants/tactics.ts,
+   * which aims at the hull) and make separation.ts a second home for the pass
+   * miss distance `pass-aim.ts` owns. The price is a little more contact, on
+   * the order constants/tactics.ts already accepted for the commander.
    */
   private matePositions(fleet: readonly NpcShip[]): readonly THREE.Vector3[] {
     const out = this.mateSlots;
@@ -1452,9 +1335,8 @@ export class NpcShip {
   /**
    * Angle (radians) between our nose and the direction to a point.
    *
-   * Allocation-free: it used to `point.clone()`, which is a Vector3 per call
-   * on a path the firing gate takes every frame for every ship — and now, per
-   * ship-step of every training episode.
+   * Allocation-free: the firing gate takes this path every frame for every
+   * ship, and per ship-step of every training episode.
    */
   facing(point: THREE.Vector3): number {
     const forward = this.tmpDir.set(0, 0, -1).applyQuaternion(this.object.quaternion);
@@ -1535,28 +1417,15 @@ export class NpcShip {
   /**
    * EVERYTHING THAT RUNS ON ELAPSED TIME, whatever the ship is doing.
    *
-   * One home for the clocks, because each of them used to tick inside the one
-   * branch that happened to read it — which quietly redefined "seconds since"
-   * as "seconds spent doing a particular thing":
-   *
-   * - `underFire` ticked only in `attack()`. For anything flying a trained
-   *   policy it was therefore a LATCH, not the decay `UNDER_FIRE_SECONDS`
-   *   documents: one hit and it stayed at 1.2 for the rest of the ship's life.
-   *   The armed trader flying the defence brain never calls `attack()` at all,
-   *   so it read `evading` forever and handed a permanently-set flag to
-   *   `nextAttackPhase` and `tacticSwitchReason` whenever it did hand over
-   *   (docs/TODO/77).
-   * - `missileReload` ticked only inside `chooseWeapon`, which `update()` calls
-   *   only when the ship is hostile and in range. Same defect, smaller blast
-   *   radius: a rack froze mid-reload whenever the pirate was doing anything
-   *   else, so the 2s gap between launches was 2s of hunting.
-   * - `regenerate` was already correct, and is here rather than beside the
-   *   others at the call site because a caller that pays one of these debts and
-   *   forgets another is exactly what this method exists to prevent.
+   * One home for the clocks — `underFire`, `missileReload`, `regenerate` —
+   * because a clock that ticks inside the one branch that reads it quietly
+   * becomes "seconds spent doing a particular thing" rather than seconds: a
+   * brain-flown ship never calls `attack()`, so `underFire` there would latch,
+   * and a rack that reloaded only in `chooseWeapon` would freeze whenever the
+   * pirate was doing anything else.
    *
    * PUBLIC, and the one call a training episode owes the ship per frame — see
-   * `brainFly` for why an episode drives the ship directly. `Episode.step`
-   * calls this where it used to call `regenerate` alone.
+   * `brainFly` for why an episode drives the ship directly.
    */
   tickClocks(dt: number): void {
     this.regenerate(dt);

@@ -1,46 +1,31 @@
 // Mis-jump limbo: where the scenery goes, and what is waiting for you there.
+// Witch-space is nowhere — no planet, station or sun, only Thargoids. The
+// system scene is reused and its furniture thrown out of reach of every
+// distance check rather than making the whole world nullable.
 //
-// Witch-space is nowhere. There is no planet, no station and no sun, and the
-// only things in it are Thargoids. Rather than make the whole world nullable
-// for a state the player reaches on nine jumps in a hundred, the system scene is
-// reused and its furniture is thrown out of reach of every distance check.
-//
-// What it COSTS to get out is `jump.ts`'s `WITCHSPACE_ESCAPE_COST`, and how
-// often you land here is that file's two mis-jump chances. This file is only the
-// place itself. The drones the mothership then deploys are `encounters.ts`.
+// The exit cost is `jump.ts`'s `WITCHSPACE_ESCAPE_COST`; the drones the
+// mothership deploys are `encounters.ts`. This file is only the place itself.
 
 /**
- * Where the planet, the station and the sun are put while you are in
- * witch-space.
- *
- * A SENTINEL, not a distance: it is used as a coordinate on each axis, so the
- * furniture ends up around 1.4e8 units out. Every check that asks how far you
- * are from something — mass lock, the sun's heat ladder, the docking box, the
- * compass — takes its natural answer and reads "not here", so no subsystem needs
- * a witch-space branch. That is the whole design, and it is cheaper than a
- * nullable world type.
- *
- * Big enough to leave no doubt and small enough to stay exact in a double, which
- * is what stops a distance comparison behaving strangely at the edge.
+ * Where the planet, station and sun are put while you are in witch-space. A
+ * SENTINEL, not a distance: used as a per-axis coordinate, so the furniture
+ * ends up ~1.4e8 units out and every distance check reads "not here" without a
+ * witch-space branch. Big enough to leave no doubt, small enough to stay exact
+ * in a double.
  */
 export const BANISHED = 1e8;
 
 /**
- * How fast you are travelling the moment you arrive in witch-space.
- *
- * Half the commander's top speed, and slower than an ordinary hyperspace
- * arrival (250): you have come out of a failed jump rather than a good one, and
- * the ambush opens immediately, so arriving at cruise would mean flying into the
- * Thargoids before the console has finished saying so.
+ * Speed on arrival in witch-space. Half top speed and slower than an ordinary
+ * hyperspace arrival (250): the ambush opens immediately, so arriving at cruise
+ * would fly you into the Thargoids before the console has finished saying so.
  */
 export const WITCHSPACE_ENTRY_SPEED = 200;
 
 /**
- * The fewest Thargoids waiting...
- *
- * Never one. A single Thargoid is a duel and this is an ambush — the point of a
- * mis-jump is that it is the worst thing that can happen to a jump, and being
- * outnumbered from the first frame is what makes it read that way.
+ * The fewest Thargoids waiting. Never one: a single Thargoid is a duel and this
+ * is an ambush — being outnumbered from the first frame is what makes a mis-jump
+ * read as the worst thing that can happen to a jump.
  */
 export const THARGOID_AMBUSH_MIN = 2;
 
@@ -48,17 +33,8 @@ export const THARGOID_AMBUSH_MIN = 2;
 export const THARGOID_AMBUSH_EXTRA_CHANCE = 0.3;
 
 /**
- * How far out they are waiting...
- *
- * Well inside `PLAYER_INTEREST_RANGE`, so they are already coming for you when
- * the screen finishes fading in.
- *
- * It is also exactly `NPC_LASER_RANGE` (npc-gun.ts) — the nearest Thargoid
- * starts at the outer edge of its own gun and cannot shoot before you have the
- * controls — and that is left as a coincidence rather than expressed. Nothing
- * anywhere states it, and the two would then be impossible to separate: the
- * ambush's opening distance is a question about what a player can survive, and
- * the NPC laser's reach is a question about the fight everywhere in the game.
+ * How far out they are waiting — well inside `PLAYER_INTEREST_RANGE`, so they
+ * are already coming for you when the screen finishes fading in.
  */
 export const THARGOID_AMBUSH_RANGE = 3500;
 
@@ -66,16 +42,10 @@ export const THARGOID_AMBUSH_RANGE = 3500;
 export const THARGOID_AMBUSH_RANGE_SPAN = 2500;
 
 /**
- * Seconds before the console first suggests the distress beacon, once you are
- * stranded — in witch-space with less fuel than `WITCHSPACE_ESCAPE_COST` and
- * no beacon running.
- *
- * Two different numbers for two different rules, not a divergence (the survey
- * flagged the pair): the FIRST hint comes quickly, because a player who does
- * not know the B key is stuck in an empty sky with no way out, and every
- * REPEAT after it comes slowly, because the reminder is for someone busy
- * fighting Thargoids, not a metronome. The timer starts at the first value in
- * every fresh session and only counts down while actually stranded.
+ * Seconds before the console first suggests the distress beacon, once stranded
+ * (in witch-space with less fuel than `WITCHSPACE_ESCAPE_COST`, no beacon). The
+ * first hint comes quickly; repeats come slowly (`STRANDED_HINT_REPEAT`). Timer
+ * counts down only while actually stranded.
  */
 export const STRANDED_HINT_FIRST = 2;
 

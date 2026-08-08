@@ -2,23 +2,20 @@
 //
 // The player pulls the trigger, something takes the hit, and a chain of
 // consequences follows: an explosion, a legal offence, a bounty, a contract
-// tick, cargo tumbling out, a Navy mission closing. All of it lived in four
-// methods of game.ts totalling 142 lines, interleaved with HUD calls.
+// tick, cargo tumbling out, a Navy mission closing.
 //
 // It is one responsibility — resolving a hit — so it is one file. The pattern
-// is the same as ordnance.ts and trumbles.ts: this decides and reports, the
-// Game applies. That matters most for `offence`, because raising your legal
-// status is what launches the station's Vipers, and combat has no business
-// knowing that.
+// is ordnance.ts and trumbles.ts: this decides and reports, the Game applies.
+// That matters most for `offence`, because raising your legal status is what
+// launches the station's Vipers, and combat has no business knowing that.
 //
 // The geometry of what a shot passes through is shot.ts; the numbers are
 // gunnery.ts. This is the consequences.
 //
-// The two free functions at the bottom are the player's own gun and the
-// player's own hull, taken over a GameState: they build the arguments
-// `Combat.fire`/`hitPlayer` want out of the state and hand the events back to
-// whoever asked. That is what lets a caller other than the Game pull the real
-// trigger and take the real damage, and decide for itself what the events mean.
+// The two free functions at the bottom are the player's own gun and hull, over
+// a GameState: they build the arguments `Combat.fire`/`hitPlayer` want out of
+// the state and hand the events back. That is what lets a caller other than
+// the Game pull the real trigger and decide for itself what the events mean.
 
 import * as THREE from 'three';
 import type { World } from './world.ts';
@@ -68,16 +65,10 @@ const heard = (name: SoundName): CombatEvent => ({ kind: 'sound', name });
  * What hurt the player. Five things can, and this is the whole list — the five
  * `StepHost.applyPlayerDamage` calls in world-step.ts.
  *
- * It exists because the source is a STATIC fact at each of those call sites and
- * was being guessed at afterwards from the size of the number:
- * test/combat-recorder.js classified 0.1-0.221 as a laser, 0.45 as a ram and
- * 1.3 as a missile, which cannot error — only be quietly wrong, as it already
- * was, since the old NPC-vs-NPC amount of 0.11 sat inside that laser window.
- * Any balance change to the ram or the shot roll rewrote the table with no
- * warning. The game knows; now it says.
- *
- * Those three magnitudes are gone with the scale that produced them: what each
- * of the five costs is a row of the inventory in docs/DAMAGE-PATHS.md.
+ * It exists because the source is a STATIC fact at each call site: guessing it
+ * afterwards from the size of the number cannot error, only be quietly wrong,
+ * and any balance change to the ram or the shot roll would rewrite the guess.
+ * What each of the five costs is a row of the inventory in docs/DAMAGE-PATHS.md.
  */
 export type DamageSource =
   /** an NPC's gun found you */
@@ -107,8 +98,7 @@ export class Combat {
    *
    * The commander is passed per call, deliberately: `Game.commander` is
    * REPLACED on respawn and on loading a snapshot, so a held reference would
-   * quietly start crediting bounties to a commander who no longer exists.
-   * Ordnance takes it the same way for the same reason.
+   * quietly credit bounties to a commander who no longer exists.
    */
   constructor(world: World) {
     this.world = world;
@@ -145,10 +135,9 @@ export class Combat {
       witchspace ? null : this.world.station, scratch.ray, scratch.a);
 
     // Aim assist, the visible half: bend the cockpit beams onto whatever the
-    // shot found. Chris's point — an allowance that silently counts a near
-    // miss as a hit reads as a bug, where beams that visibly converge on the
-    // target read as the gunsight doing its job. The shot is already resolved;
-    // this only makes the resolution legible.
+    // shot found. Beams that visibly converge on the target read as the
+    // gunsight doing its job, where a silent near-miss-counts-as-hit reads as a
+    // bug. The shot is already resolved; this only makes it legible.
     out.push({
       kind: 'beam',
       at: shot.kind === 'ship' ? shot.ship.object.position
@@ -159,8 +148,7 @@ export class Combat {
       sounds.push(heard('hit'));
       // The HIT goes across, exactly as it does to a ship: the canister's own
       // released bank decides whether it breaks up (cargo.ts). Every laser a
-      // flyable hull carries still does it in one, so this is the same game —
-      // but it is the catalogue saying so rather than a `destroy()` call.
+      // flyable hull carries still breaks one in a single hit.
       const broke = this.world.cargo.takeLaserHit(shot.cargo, laser.hit);
       this.world.effects.explosion(shot.cargo.object.position.clone(), 0x8ad0ff,
         broke ? { count: 10, speed: 55, duration: 0.4 }
@@ -197,12 +185,11 @@ export class Combat {
       out.push({ kind: 'offence', level: offenceFor(shot.ship.role, false) });
       // The HIT goes across, not the damage: what a hit is worth depends on the
       // target's own defence, immunity and multiplier, and the ship applies its
-      // own (npc.ts `takeLaserHit`). A station therefore shrugs this off with no
-      // case here, and the Constrictor halves it without the mission knowing.
+      // own (npc.ts `takeLaserHit`). A station shrugs it off with no case here,
+      // and the Constrictor halves it without the mission knowing.
       if (shot.ship.takeLaserHit(laser.hit, playerPos, true)) {
-        // destroy() reports its explosion before its semantic consequences.
-        // Keep all sounds ahead of events the Game could only apply after this
-        // call returned, matching the pre-extraction observable order.
+        // destroy() reports its explosion before its semantic consequences;
+        // keep all sounds ahead of events the Game applies after this returns.
         for (const event of this.destroy(commander, shot.ship)) {
           if (event.kind === 'sound'
               || event.kind === 'countdown'
@@ -244,8 +231,8 @@ export class Combat {
 
     // What it does to your NAME, which the fine will not wash off. Cracking a
     // hermit is a career-marking act; so is destroying any lawful ship (the
-    // Fugitive-grade offence). Both are the player's own doing — this is only
-    // reached through `destroy`, the player-credited path.
+    // Fugitive-grade offence). Reached only through `destroy`, the
+    // player-credited path.
     if (npc.role === 'hermit') {
       c.disrepute = afterDeed(c.disrepute ?? 0, DISREPUTE_HERMIT_KILL);
     } else if (crime === FUGITIVE) {
@@ -311,10 +298,9 @@ export class Combat {
    *
    * Only the caller knows which way the ship is pointing, so the direction is
    * resolved here into the one bit the damage model wants: did it come from
-   * ahead? And only the caller knows what hit them, which is why the number
-   * arrives already finished and already in the commander's own unit: an NPC
-   * laser has met the hull's armour once (`gunnery.ts`), and a ram, a canister,
-   * the Coriolis wall or a warhead is a stated `IMPACT` (`constants/impact.ts`).
+   * ahead? The number arrives already finished and in the commander's own unit:
+   * an NPC laser has met armour once (`gunnery.ts`), and a ram, canister,
+   * Coriolis wall or warhead is a stated `IMPACT` (`constants/impact.ts`).
    */
   hitPlayer(
     sys: ShipSystems,
@@ -326,7 +312,7 @@ export class Combat {
   ): CombatEvent[] {
     // WHICH FACE is `shield-face.ts` and not this file: a training episode asks
     // the same question of its own target, and asking it in two places is how
-    // one rule grew two homes (docs/TODO/64).
+    // one rule grew two homes.
     const result = applyDamage(
       sys, damage, hitFromAhead(from, playerPos, playerQuat, scratch.a, scratch.q));
 
@@ -340,11 +326,9 @@ export class Combat {
 // --- the player's gun and the player's hull, over a state --------------------
 //
 // `Combat` takes each ingredient separately, deliberately — it is what makes it
-// testable, and what lets `destroy()` be handed a different commander. But the
+// testable, and what lets `destroy()` be handed a different commander. The
 // player's own trigger always wants the same seven arguments and they all come
-// out of one GameState, and that assembly was two methods of game.ts built from
-// `this`. Here, it is assembly over an argument: the Game passes its state, and
-// so can anything else holding one.
+// out of one GameState: this is assembly over an argument.
 //
 // Neither applies anything. The caller decides what the events mean — the HUD
 // and the law for the Game, a report for a caller that wants the numbers.

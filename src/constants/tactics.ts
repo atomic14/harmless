@@ -2,17 +2,14 @@
 //
 // Not four flight models. There is ONE run — `attack-run.ts`'s ranges,
 // `pass-aim.ts`'s aim point, `extend-arc.ts`'s run-out — and a tactic is a named
-// set of three of its numbers, so the sky varies without a second place for a
-// combat rule to live. The run-out BAND is deliberately not varied: it is
-// coupled to `PASS_FAR`, and a shorter one would stop the trainer counting its
-// own attack runs.
+// set of three of its numbers, so the sky varies without a second home for a
+// combat rule. The run-out band is deliberately not varied: it is coupled to
+// `PASS_FAR`, and a shorter one would stop the trainer counting its attack runs.
 //
 // Which tactics a hull may fly, and when it re-decides, is `tactic-choice.ts`
-// and `game/tactic-choice.ts`.
-//
-// The two types are declared here rather than beside the code that spends them,
-// which is what allows the `Record<TacticId, Tactic>` annotation: this directory
-// may not import, so a union declared elsewhere could not be checked.
+// and `game/tactic-choice.ts`. The two types are declared here so the
+// `Record<TacticId, Tactic>` annotation can be checked, since this directory may
+// not import.
 
 import { CLOSING_THROTTLE_MIN } from './attack-run.ts';
 import { PASS_MISS_DISTANCE } from './pass-aim.ts';
@@ -46,7 +43,7 @@ export interface Tactic {
 
 export const TACTICS: Record<TacticId, Tactic> = {
   // The shipped attack run, named. Every value is imported rather than repeated
-  // so this row cannot drift away from the behaviour it is supposed to BE.
+  // so this row cannot drift from the behaviour it is supposed to BE.
   run: {
     id: 'run',
     missDistance: PASS_MISS_DISTANCE,
@@ -56,13 +53,8 @@ export const TACTICS: Record<TacticId, Tactic> = {
   },
   // Wide and fast: it trades the gun for the hull, because a wider aim is a
   // wider angle and `NPC_FIRE_GATE` is an angle. The only row that never touches
-  // anything (0.00 contacts an episode against `run`'s 0.33) and a third less
-  // lethal for it, which is why a hurt ship is weighted toward it.
-  //
-  // 175 is described as 1.6x the standard pass; 1.6 x 110 is 176. Chris kept
-  // 175 (2026-08-05): the flown value is the rule, the prose arithmetic was
-  // the approximation. 175 is what
-  // shipped and what the rows above were flown at, so it stays a literal.
+  // anything and a third less lethal for it, which is why a hurt ship is
+  // weighted toward it.
   slash: {
     id: 'slash',
     missDistance: 175,
@@ -72,9 +64,8 @@ export const TACTICS: Record<TacticId, Tactic> = {
   },
   // The tightest pass, curving back hard — the dangerous one. Lethality and
   // contact are one axis in this flight model, so how far it may be tightened is
-  // a measurement: pinned on every hull over 40 episodes, 70 buys a fifth more
-  // damage for four times the ramming (1.35 contacts an episode against 0.60 at
-  // 100), which is a `ram` with extra steps. 100 is the knee.
+  // a measurement: over 40 episodes, 70 buys a fifth more damage for four times
+  // the ramming, so 100 is the knee.
   knife: {
     id: 'knife',
     missDistance: 100,
