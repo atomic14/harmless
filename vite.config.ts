@@ -42,8 +42,11 @@ function encyclopaediaEntries(): Plugin {
 
 // --- the build footer --------------------------------------------------------
 
+/** The repo — the one spelling; the issues link and commit links derive from it. */
+const REPO_URL = 'https://github.com/atomic14/harmless';
+
 /** Where a reader reports a bug or asks for a feature. */
-const ISSUES_URL = 'https://github.com/atomic14/harmless/issues/new';
+const ISSUES_URL = `${REPO_URL}/issues/new`;
 
 /**
  * Which commit this build is, as a 7-character short hash — the ONE fallback
@@ -76,7 +79,7 @@ export const FOOTER_MARKER = '<!--BUILD-FOOTER-->';
 export function buildFooterHtml(hash: string): string {
   const build = hash === 'dev'
     ? 'build dev'
-    : `build <a href="https://github.com/atomic14/harmless/commit/${hash}">${hash}</a>`;
+    : `build <a href="${REPO_URL}/commit/${hash}">${hash}</a>`;
   return `<span class="build-line">${build} · `
     + `<a href="${ISSUES_URL}">report a bug · request a feature</a></span>`;
 }
@@ -84,14 +87,17 @@ export function buildFooterHtml(hash: string): string {
 /**
  * Replace the marker in every page with the shared footer line. A
  * `transformIndexHtml` hook, like `encyclopaediaEntries` and for the same
- * reason: `npm run dev` serves the same line the build ships. The hash is
- * resolved once per config load, not per page.
+ * reason: `npm run dev` serves the same line the build ships.
+ *
+ * The hash is resolved inside the hook, per page, not at config load: a dev
+ * server lives across commits, and a load-time hash would name whatever was
+ * HEAD when the server started for the rest of the session. One git call per
+ * HTML page is cheap, and importing this file (as the test does) spawns none.
  */
 function buildFooter(): Plugin {
-  const line = buildFooterHtml(buildHash());
   return {
     name: 'harmless:build-footer',
-    transformIndexHtml: (html) => html.replaceAll(FOOTER_MARKER, line),
+    transformIndexHtml: (html) => html.replaceAll(FOOTER_MARKER, buildFooterHtml(buildHash())),
   };
 }
 

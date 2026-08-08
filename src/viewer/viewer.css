@@ -27,6 +27,14 @@
   display: flex;
   gap: 8px;
   align-items: center;
+  /* The strip's texts refuse to wrap mid-phrase (below), so on a window too
+   * narrow to hold every item the strip wraps BETWEEN items — an absolutely
+   * centered box inside overflow:hidden would otherwise clip both ends off
+   * with no way to scroll to them. */
+  flex-wrap: wrap;
+  row-gap: 4px;
+  justify-content: center;
+  max-width: 96vw;
 }
 
 #viewer-controls button, #viewer-controls select {
@@ -42,38 +50,29 @@
 
 #viewer-controls button:hover { border-color: var(--hud-green); }
 
-/* The link to the OTHER dev page. Quieter than the buttons on purpose: it is
- * navigation, not one of this page's controls — the point of the split is that
- * neither page carries the other's. */
-#viewer-other {
+/* The strip's small print — the other-page link, the key legend and the
+ * build/issues footer line are ONE treatment, stated once: quieter than the
+ * buttons because none of them is one of this page's controls. nowrap so a
+ * squeezed strip wraps between items (#viewer-controls) rather than
+ * mid-phrase. */
+#viewer-other, #viewer-keys, #viewer-controls .build-line {
   color: var(--hud-dim);
   font-size: 11px;
   letter-spacing: 1px;
-  padding-left: 10px;
-  text-decoration: none;
-  white-space: nowrap; /* the build-line beside it squeezed it into wrapping */
+  white-space: nowrap;
 }
 
+/* The link to the OTHER dev page — navigation, not a control: the point of
+ * the split is that neither page carries the other's controls. */
+#viewer-other { padding-left: 10px; text-decoration: none; }
 #viewer-other:hover { color: var(--hud-green); }
 
-#viewer-keys {
-  color: var(--hud-dim);
-  font-size: 11px;
-  letter-spacing: 1px;
-  padding-left: 6px;
-  white-space: nowrap; /* the build-line beside it squeezed it into wrapping */
-}
+#viewer-keys { padding-left: 6px; }
 
-/* The shared build/issues footer line sits at the end of the control strip,
- * quiet like #viewer-other: navigation-grade small print, not a control.
- * Link colours are `.build-line a` in style.css, which both pages load. */
-#viewer-controls .build-line {
-  color: var(--hud-dim);
-  font-size: 11px;
-  letter-spacing: 1px;
-  padding-left: 10px;
-  white-space: nowrap; /* one line of small print, not a wrapped block */
-}
+/* The shared build/issues footer line sits at the end of the control strip.
+ * Its look is the small-print rule above; link colours are `.build-line a`
+ * in style.css, which both pages load. */
+#viewer-controls .build-line { padding-left: 10px; }
 #viewer-controls .build-line a { text-decoration: none; }
 
 #viewer-title {
