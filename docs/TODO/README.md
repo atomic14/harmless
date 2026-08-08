@@ -38,6 +38,19 @@ Legacy and migration handling was deleted outright rather than preserved, three
 times over, because nobody but Chris has ever played this game — the cleanup
 list records what went and why, so it is not helpfully reinstated.
 
+## The closed-loop queue (2026-08-08)
+
+The process is now the closed loop in [docs/PROCESS.md](../PROCESS.md): one
+feature in flight at a time, background agents building, verification per the
+plan doc. Triage note, same date: the open training-fidelity and
+training-methodology items below (70-74, 78-80, 82, 84, 85, 91) describe the
+training pipeline, and nothing trained has shipped since the line was retired
+on 2026-08-05 — they are research items until a retrain is deliberately
+wanted, and the queue prefers items a player can feel.
+
+- [ ] 96 — [The character label drives nothing in the world yet (phase 2)](96-the-character-label-drives-nothing-yet.md) — feature · medium · medium
+- [ ] 97 — [Site housekeeping: build hash, issues link, CI warnings](97-site-housekeeping.md) — chore · low · small — closes #14, #13, #12
+
 ## The combat trainer
 
 Progress: **9 / 9 complete**. `T` at any station is where Chris playtests, so
