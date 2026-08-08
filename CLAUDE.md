@@ -8,7 +8,9 @@ a fan-project notice; keep the non-commercial homage framing intact.
 This is a guide to how we work, not a specification. Facts about the code belong
 in the code. The numbered invariants are `docs/INVARIANTS.md` — code cites them
 by number. Where things live is `docs/ARCHITECTURE.md`. Why a decision was made
-is `docs/TODO/` and the git log.
+is `docs/TODO/` and the git log. How a change moves from idea to the live site —
+a closed loop: plan, agent builds, verify with the harnesses and a flown check,
+land — is `docs/PROCESS.md`.
 
 ## How we work
 

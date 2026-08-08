@@ -3,7 +3,10 @@
 One file per change. Each is self-contained so a fresh session can open one
 file, make the change, verify it, and stop. Work through numbered dependencies
 in order; independent items may be delegated in parallel only when their files
-and generated outputs do not overlap.
+and generated outputs do not overlap. How a file here is born, handed to an
+agent and signed off is [docs/PROCESS.md](../PROCESS.md) — new plan docs also
+carry a **Verification** section, naming the evidence that will show the
+change works and plays right, written before the code exists.
 
 TODO 01-16 were completed and checkpointed in commit `0fc8627`. TODO 17-20
 were completed through commit `09278b7`.
