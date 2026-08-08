@@ -50,6 +50,8 @@ wanted, and the queue prefers items a player can feel.
 
 - [ ] 96 — [The character label drives nothing in the world yet (phase 2)](96-the-character-label-drives-nothing-yet.md) — feature · medium · medium
 - [x] 97 — [Site housekeeping: build hash, issues link, CI warnings](97-site-housekeeping.md) — chore · low · small — closed #14, #13, #12
+- [ ] 98 — [The human-shape bands: a gate on the shape of the fight](98-the-human-shape-bands.md) — verification/gameplay · high · medium
+- [ ] 99 — [`npm run survivability` cannot run, and its header says a stale thing](99-survivability-cannot-run.md) — tooling/truth · medium · small
 
 ## The combat trainer
 
