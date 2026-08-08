@@ -62,6 +62,17 @@
   padding-left: 6px;
 }
 
+/* The shared build/issues footer line sits at the end of the control strip,
+ * quiet like #viewer-other: navigation-grade small print, not a control.
+ * Link colours are `.build-line a` in style.css, which both pages load. */
+#viewer-controls .build-line {
+  color: var(--hud-dim);
+  font-size: 11px;
+  letter-spacing: 1px;
+  padding-left: 10px;
+}
+#viewer-controls .build-line a { text-decoration: none; }
+
 #viewer-title {
   position: absolute;
   top: 10px; right: 16px;

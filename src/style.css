@@ -283,6 +283,12 @@ body.screen-open #message {
 #help p { font-size: 11px; opacity: 0.8; }
 #help.hidden { display: none; }
 
+/* The shared build/issues footer line (vite.config.ts fills the BUILD-FOOTER
+ * marker). Dim links, because everywhere this line appears it is small print —
+ * the `?` guide's foot here, the two dev pages' control strips via viewer.css. */
+.build-line a { color: var(--hud-dim); }
+.build-line a:hover { color: var(--hud-green); }
+
 #scanlines {
   position: absolute;
   inset: 0;

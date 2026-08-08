@@ -92,6 +92,7 @@ import './arena.test.ts';
 // --- the shell --------------------------------------------------------------
 import './ui.test.ts';
 import './key-help.test.ts';
+import './site-footer.test.ts';
 import './input.test.ts';
 import './hud-binding.test.ts';
 
