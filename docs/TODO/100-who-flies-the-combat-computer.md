@@ -63,4 +63,36 @@ opposite directions, and one set must be stale:
 
 ## Outcome
 
-(recorded when the cycle closes)
+**Shipped 2026-08-09.** Code-truth, established with the call chains before
+any edit:
+
+1. **The combat computer flies PURE PURSUIT, selected under the name
+   `attack-run`.** `K` → `Game.toggleCombatComputer` (game.ts:1202) →
+   `Autopilot.toggleCombat` (autopilot.ts:118) → per frame
+   `defenceBrainNameFor` returns `SHIPPED_DEFENCE = 'attack-run'`
+   (brain-names.ts:156) → `ScriptedCoPilot.step` (scripted-co-pilot.ts:84),
+   pure-pursuit bank-to-turn with `pursuitSpeed`. Deliberate, not a
+   regression: 790d965 built it on the attack run and named the selection;
+   3c7b8ea moved the flight to pure pursuit without renaming it. The docs
+   were the leftovers.
+2. **The armed trader genuinely flies the attack run** (npc.ts:699-708) —
+   the "differently-scoped" case the plan anticipated, so
+   `SHIPPED_DEFENCE`'s value stands and the fix was wording: one name, two
+   flights, stated at the name's home and everywhere it was lumped
+   (CLAUDE.md, README, ARCHITECTURE, GAP-ANALYSIS, five src comment
+   sites). The display name became `FIGHTS BACK`, which claims neither
+   flight's shape; `test/scripted-co-pilot.test.ts` pins the anti-lumping
+   rule and both pins were broken once and went red.
+3. **Bonus code-truth:** the `scripted` A/B does not revert the defence to
+   the attack run — it switches the defence OFF (co-pilot refuses,
+   autopilot.ts:133; armed trader flees, npc.ts:699). CLAUDE.md said
+   otherwise; corrected.
+4. `train/survivability.ts` flies neither shipped defence (its header
+   already said so after 99); README's survivability line now carries the
+   floor framing.
+
+Verified: build 3263/0, elite-a 494/0, campaign all-green, contradiction
+greps clean. Two behaviour defects found and NOT touched, filed as
+[102](102-two-things-still-load-the-retired-brains.md): the viewer page
+throws at module scope since the retirement, and the ram-probe's `evades`
+row would load a brain that does not exist.

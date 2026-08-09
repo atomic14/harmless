@@ -216,7 +216,7 @@ tier, how they fly and fit, per group — plus a fit-out override for your own
 ship. ENTER launches; **L** re-opens the last report; **ESC** or **Q** ends the
 exercise. The panel is grouped — the fight, who flies what, your ship — with
 **LIVE BRAINS (COMMANDER)** fenced off at the foot, because that one is still set
-when you undock. A brain is picked by how it flies — `FLIES ATTACK RUNS`,
+when you undock. A brain is picked by how it flies — `FIGHTS BACK`,
 `MAKES ATTACK RUNS`, `GETS ON YOUR SIX` — with the pilot behind the name for
 anyone reading the training log.
 
