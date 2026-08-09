@@ -71,6 +71,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 104 — [The constants catalogue](104-the-constants-catalogue.md)
 - [x] 105 — [The deterministic cycle orchestrator](105-the-cycle-orchestrator.md)
 - [x] 106 — [A new pilot must see the instructions](106-new-pilot-instructions.md)
+- [x] 92 — [The lead marker assumes every target is a freighter](92-the-lead-marker-assumes-a-freighter.md)
 
 <!-- append-completed-todos-here -->
 

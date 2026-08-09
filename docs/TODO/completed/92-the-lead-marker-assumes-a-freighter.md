@@ -100,9 +100,9 @@ The HUD open-codes that helper and substitutes a constant for the argument.
       different lead points — `test/hud-model.test.ts`, proven to fail with
       the speed pinned back to 220. It also pins the no-floor decision: at
       speed 0 the lead sits exactly on the bracket.
-- [ ] **Flown by Chris**, in a real fight, against something fast. The code
-      landed 2026-08-09; this is the only step left. Expect the first session
-      to feel worse — muscle memory is calibrated to the under-lead.
+- [x] **Flown by Chris**, in a real fight, against something fast. Flown
+      2026-08-09 and accepted — "it's great". The predicted worse-before-better
+      session did not materialise as a complaint.
 
 ## Verify
 
