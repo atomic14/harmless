@@ -8,7 +8,9 @@ issue and re-enters the loop). Nothing in the cycle waits on him.
 
 **One feature in flight at a time, one agent at a time** (Chris, 2026-08-09):
 no parallel builders even on disjoint files, no scouts beside a build. The
-queue is `docs/TODO/` plus the open GitHub issues.
+active queue is `docs/TODO/QUEUE.json`; only numbered plans directly in
+`docs/TODO/` are executable. `research/`, `retired/` and `completed/` are
+records, not queue input.
 
 **Sessions are disposable workers; git and the TODO doc are the memory**
 (audit, 2026-08-09). Workflow state lives in commits, plan docs and the
@@ -20,17 +22,38 @@ resume a 200k+ history to do new work.
 
 ## 1. Plan
 
-Pick the next queue item. Explore read-only and frugally: targeted searches
-and the specific files the change touches, not directory sweeps. The output
-is a numbered plan doc in `docs/TODO/` in the house shape (Kind/Severity/
-Size · Where we are · What to do · Decisions already made · Open questions ·
-Watch out for) plus **Verification** — the evidence that will show the
-change works and plays right, named before the code exists, TIERED to the
-change (see step 3). Milestones over ~40 tool-turns of work get split in
-the plan itself.
+GitHub is the public inbox, not the queue. Triage each issue against the README,
+the product that currently ships and the code that actually runs. Record one
+disposition on the issue:
+
+- **planned** — accepted, but not the current execution item;
+- **needs information** or **needs investigation** — the outcome is not yet
+  understood well enough to plan;
+- **declined**, duplicate or already fixed — close it with the reason;
+- **in progress** — an executable plan is the current queue item and work has
+  started.
+
+An issue is evidence, not a specification. One issue may become several
+milestones; several issues may have one root; some should produce no TODO at
+all. Do not copy the GitHub inbox into a local list.
+
+Pick the next accepted outcome. Explore read-only and frugally: targeted
+searches and the specific files the change touches, not directory sweeps. The
+output is a numbered plan doc in `docs/TODO/` in the house shape
+(Kind/Severity/Size · Where we are · What to do · Decisions already made · Open
+questions · Watch out for) plus **Verification** — the evidence that will show
+the change works and plays right, named before the code exists, tiered to the
+change (see step 3). Milestones over ~40 tool-turns of work get split in the
+plan itself.
 
 Answer open questions in the plan; one left open is a decision delegated.
 Chris's decisions land in "Decisions already made" and are not relitigated.
+
+When a GitHub issue supplies the work, put `**GitHub:** #N` in the plan. When
+that plan becomes the current queue item, label the issue `in progress` and add
+a comment naming the numbered TODO. Partial overlap is mentioned in the issue
+but does not change its status. Close the issue only when the promised outcome
+has landed, or when triage decides not to pursue it.
 
 ## 2. Implement — one fresh agent per milestone
 
@@ -77,15 +100,15 @@ step 2 with the evidence.
 
 ## 4. Land
 
-The supervisor merges to main (Cloudflare deploys from it), records the
-Outcome in the plan doc — call chains, baselines, ledgers, deviations —
-updates the queue index, pushes, and removes the worktree. A change that
-retunes the core fight is flagged in the outcome so Chris knows what to
-try next time he plays.
+The supervisor records the Outcome in the plan doc — call chains, baselines,
+ledgers, deviations — removes it from `QUEUE.json` and the active index, moves
+it to `docs/TODO/completed/`, then merges to main (Cloudflare deploys from it),
+pushes, and removes the worktree. A change that retunes the core fight is
+flagged in the outcome so Chris knows what to try next time he plays.
 
 ## The human channel
 
 Not a gate. Chris plays the live game when he likes and files issues; they
-enter the queue like any other. His verdicts calibrate the proxies — when
-his judgement and the bands disagree, the bands are wrong, and fixing them
-is a feature like any other.
+enter triage, not the queue. His verdicts calibrate the proxies — when his
+judgement and the bands disagree, the bands are wrong, and fixing them is a
+feature like any other.

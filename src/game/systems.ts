@@ -98,7 +98,7 @@ export function spendLaserEnergy(sys: ShipSystems): void {
  * The one constant of this file's that did not move into `src/constants/`:
  * `playerHull` reaches a released hull through `ship-identity.ts` and the
  * Elite-A catalogue, and `src/constants/` may not import anything. It stays
- * where both halves are in scope — see docs/TODO/90-constants-cleanup.md.
+ * where both halves are in scope — see docs/TODO/completed/90-constants-cleanup.md.
  */
 export const ANCHOR_RECHARGE_RATING =
   playerHull(COBRA_MK_3_HULL_ID).energyRechargeRating;

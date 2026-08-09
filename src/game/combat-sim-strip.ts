@@ -2,7 +2,7 @@
 //
 // The trainer's third view of a fight: the setup panel comes before it, the
 // report after, and this is a strip of numbers the cockpit paints for as long as
-// an exercise is running (docs/TODO/33-exercise-hud.md). Without it a pilot could
+// an exercise is running (docs/TODO/completed/33-exercise-hud.md). Without it a pilot could
 // not tell an exercise nearly up from one just begun, or an exercise from real
 // space once the launch banner faded.
 //

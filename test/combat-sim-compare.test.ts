@@ -1,6 +1,6 @@
 // Two records held against each other — and the refusal when they may not be.
 //
-// The comparison is DERIVED (docs/TODO/35-compare-two-records.md): no new
+// The comparison is DERIVED (docs/TODO/completed/35-compare-two-records.md): no new
 // accumulation, no new sampling, just a pure function of two finished records.
 // So it is stated here the way test/combat-sim-report.test.ts states its
 // medians — records built by hand, and the answer written out independently.

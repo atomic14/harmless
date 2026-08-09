@@ -50,6 +50,10 @@
 
 import { readdirSync, readFileSync } from 'node:fs';
 import { check } from './harness.ts';
+import {
+  findConstants, loadConstants, type ConstantEntry, type ConstantsModel,
+} from '../tools/constants-lib.ts';
+import { changedConstantDiagnostics, ruleDiagnostics } from '../tools/constants-check.ts';
 
 /** Whole-file entry: every constant in it is still waiting for its slice. */
 const ALL = '*' as const;
@@ -116,7 +120,7 @@ const OUTSIDE: readonly Group[] = [
       + ' is indexed. docs/TODO/90 rules the tables out by name. The exception is'
       + ' `WORLD_SPEED_PER_SOURCE_SPEED`, a real derivation that is blocked: its other'
       + ' half is a released hull, which means the Elite-A catalogue and six generated'
-      + ' tables, and this directory may not import. See docs/TODO/90-constants-cleanup.md',
+      + ' tables, and this directory may not import. See docs/TODO/completed/90-constants-cleanup.md',
     files: {
       'game/ship-specs.ts': [
         'SOURCE_DESIGN', 'ASTEROID_IDENTITY', 'WORLD_SPEED_PER_SOURCE_SPEED', 'SPECS',
@@ -155,7 +159,7 @@ const OUTSIDE: readonly Group[] = [
       + ' constants/sun.ts and what a breach costs is constants/hull-breach.ts. The'
       + ' recharge ANCHOR cannot follow — it is a released hull\'s rating, read through'
       + ' ship-identity.ts and the Elite-A catalogue, and this directory may not import.'
-      + ' Same shape as `WORLD_SPEED_PER_SOURCE_SPEED`; see docs/TODO/90-constants-cleanup.md',
+      + ' Same shape as `WORLD_SPEED_PER_SOURCE_SPEED`; see docs/TODO/completed/90-constants-cleanup.md',
     files: {
       'game/systems.ts': ['ANCHOR_RECHARGE_RATING'],
     },
@@ -227,7 +231,7 @@ const OUTSIDE: readonly Group[] = [
       + ' shop.ts and trumbles.ts declare nothing at all now. `COMMODITY_COUNT` is'
       + ' `COMMODITIES.length` — a derivation off the 1984 table, which is DATA the'
       + ' home may not import: the `ANCHOR_RECHARGE_RATING` shape exactly. See'
-      + ' docs/TODO/90-constants-cleanup.md, Blocked',
+      + ' docs/TODO/completed/90-constants-cleanup.md, Blocked',
     files: {
       'galaxy/living.ts': ['COMMODITY_COUNT'],
     },
@@ -319,7 +323,7 @@ const OUTSIDE: readonly Group[] = [
       + ' a format version welded to its record; `CADENCE_EPSILON` is float slack, not'
       + ' a rule; `UNKNOWN`/`SOURCES` are a bucket label and its closed list;'
       + ' `ARENA_RADII` is the decided same-number-different-rule exception'
-      + ' (docs/TODO/90-constants-cleanup.md); `AHEAD`/`OPENINGS`/`CUSTOM_OPENING`/'
+      + ' (docs/TODO/completed/90-constants-cleanup.md); `AHEAD`/`OPENINGS`/`CUSTOM_OPENING`/'
       + '`NO_OPENING` are tables keyed on `ScenarioId` and `DEG` is a unit conversion;'
       + ' the scenario file\'s remainder is typed tables (`SCENARIOS`, `WAVE_STEPS`,'
       + ' `MODES`, `OPPOSITION_ROLES`, `SIM_BRAINS`), brain-name reads, a derivation'
@@ -660,8 +664,87 @@ check('no file is claimed by two groups of the plan', claimedTwice.length === 0,
       if (home.has(name)) shadowed.push(`${name}: ${home.get(name)} and ${rel}`);
     }
   }
-  check('...and nothing in src/ redeclares a name that lives there',
+check('...and nothing in src/ redeclares a name that lives there',
     shadowed.length === 0,
     `${shadowed.join(' · ')} — this is the MAX_TRADERS failure, in a file that`
     + ' can see the answer');
+}
+
+// 5. THE GENERATED CATALOGUE IS THE DISCOVERY SURFACE.
+const repoRoot = new URL('../', import.meta.url).pathname.replace(/\/$/, '');
+const model = loadConstants(repoRoot);
+const homed = [...found].filter(([rel]) => inHome(rel))
+  .reduce((total, [, names]) => total + names.length, 0);
+check(`the AST catalogue finds every exported constant (${model.entries.length})`,
+  model.entries.length === homed);
+check('constants search finds names',
+  findConstants(model, 'brain rate ramp')[0]?.symbol === 'BRAIN_RATE_RAMP');
+check('...values in nested expressions', (() => {
+  const names = findConstants(model, '4.1396').map((entry) => entry.symbol);
+  return names.includes('BRAIN_RATE_RAMP') && names.includes('PLAYER_FLIGHT');
+})());
+check('...and file-purpose prose',
+  findConstants(model, 'trained policy becomes flight')
+    .some((entry) => entry.domain === 'brain-flight'));
+
+// @rule is reserved for equal-looking values whose meanings must stay apart.
+const ruleOwners = new Map(model.rules.map((rule) => [rule.id, rule.owner]));
+check('every @rule id has exactly one valid owner', ruleDiagnostics(model).length === 0);
+check('the equal rate ramps name two different rules',
+  ruleOwners.get('flight.brain.rateRamp') === 'BRAIN_RATE_RAMP'
+    && ruleOwners.get('flight.player.rateRamp') === 'PLAYER_FLIGHT.rateRamp');
+
+const fake = (symbol: string, expression: string, extra: Partial<ConstantEntry> = {}) => ({
+  domain: 'test', symbol, expression, normalizedExpression: expression.replace(/\s/g, ''),
+  literalKey: null, doc: 'A documented synthetic rule.',
+  docFirstSentence: 'A documented synthetic rule.', filePurpose: 'Synthetic rules.',
+  ruleIds: [], source: `src/constants/${symbol.toLowerCase()}.ts`, line: 1, endLine: 1,
+  ...extra,
+}) satisfies ConstantEntry;
+const diagnosticsFor = (entries: ConstantEntry[], changed: ConstantEntry[]) =>
+  changedConstantDiagnostics({ entries, rules: [] },
+    new Set(changed.map((entry) => `${entry.source}:${entry.symbol}`)));
+
+{
+  const first = fake('FIRST_RULE', 'BASE * 2', { normalizedExpression: 'same' });
+  const copy = fake('COPIED_RULE', 'BASE  *  2', { normalizedExpression: 'same' });
+  check('a normalized duplicate expression fails',
+    diagnosticsFor([first, copy], [copy]).some((item) => item.code === 'expression'
+      && item.level === 'error'));
+}
+{
+  const brain = fake('BRAIN_RAMP', '4.1396', {
+    literalKey: 'number:4.1396', ruleIds: ['flight.brain.rateRamp'],
+  });
+  const player = fake('PLAYER_RAMP', '4.1396', {
+    literalKey: 'number:4.1396', ruleIds: ['flight.player.rateRamp'],
+  });
+  check('equal values with different @rule ids pass',
+    diagnosticsFor([brain, player], [player]).length === 0);
+  check('an unexplained repeated primitive value warns', (() => {
+    const copy = fake('UNEXPLAINED_RAMP', '4.1396', { literalKey: 'number:4.1396' });
+    return diagnosticsFor([brain, copy], [copy]).some((item) => item.code === 'value'
+      && item.level === 'warning');
+  })());
+}
+{
+  const undocumented = fake('UNDOCUMENTED', 'BASE + 1', { doc: '', docFirstSentence: '' });
+  check('a new exported constant without JSDoc fails',
+    diagnosticsFor([undocumented], [undocumented]).some((item) => item.code === 'doc'
+      && item.level === 'error'));
+}
+{
+  const wrong = fake('MISSILE_LOCK_DISTANCE', '99', { domain: 'market' });
+  const owner = fake('MISSILE_LOCK_CONE', '0.1', { domain: 'ordnance' });
+  check('a constant in an unlikely domain warns',
+    diagnosticsFor([wrong, owner], [wrong]).some((item) => item.code === 'domain'
+      && item.level === 'warning'));
+}
+{
+  const duplicateRules: ConstantsModel = { entries: [], rules: [
+    { id: 'combat.same.rule', owner: 'A', source: 'a.ts', line: 1 },
+    { id: 'combat.same.rule', owner: 'B', source: 'b.ts', line: 2 },
+  ] };
+  check('a duplicated @rule id fails', ruleDiagnostics(duplicateRules).some((item) =>
+    item.level === 'error' && item.message.includes('2 owners')));
 }

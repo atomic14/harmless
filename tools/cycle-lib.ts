@@ -12,8 +12,8 @@
 import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import {
-  CycleError, CycleStop, findActive, git, loadQueue, loadState, planPath, saveState,
-  sh, statePath, todoDocFor, atomicWrite,
+  archiveTodo, completedTodoDocFor, CycleError, CycleStop, findActive, git, loadQueue,
+  loadState, planPath, saveState, sh, statePath, todoDocFor, atomicWrite,
   type CycleConfig, type CyclePlan, type RunState, type Tier,
 } from './cycle-state.ts';
 import { preparePlan } from './cycle-plan.ts';
@@ -177,11 +177,7 @@ function landing(cfg: CycleConfig, s: RunState, planDoc: string): void {
         s.phase = 'blocked'; s.lastError = 'closer changed files outside docs/TODO/';
         saveState(cfg, s); return;
       }
-      // Deterministic finalization: the index checkbox and the queue, one commit.
-      const readmePath = join(s.worktree, 'docs/TODO/README.md');
-      const readme = readFileSync(readmePath, 'utf8');
-      const ticked = readme.replace(`- [ ] ${s.todo} —`, `- [x] ${s.todo} —`);
-      if (ticked !== readme) atomicWrite(readmePath, ticked);
+      archiveTodo(s.worktree, s.todo, planDoc);
       const queuePath = join(s.worktree, 'docs/TODO/QUEUE.json');
       const q = JSON.parse(readFileSync(queuePath, 'utf8')) as { version: 1; items: number[] };
       q.items = q.items.filter((n) => n !== Number(s.todo));
@@ -221,9 +217,11 @@ function landing(cfg: CycleConfig, s: RunState, planDoc: string): void {
 
 /** Drive one item as far as configuration allows; always resumable. */
 export function runItem(cfg: CycleConfig, num: string): RunState {
-  const planDoc = todoDocFor(cfg, num);
   let s = loadState(cfg, num);
   if (s?.phase === 'complete') throw new CycleError(`${num} is already complete`);
+  const planDoc = s?.phase === 'landed_local'
+    ? completedTodoDocFor(cfg, num)
+    : todoDocFor(cfg, num);
   if (!s) s = freshState(cfg, num);
   ensureWorktree(cfg, s);
   validateResume(cfg, s);

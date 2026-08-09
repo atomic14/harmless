@@ -13,7 +13,11 @@
  * fitted in.
  */
 export const PLAYER_FLIGHT = {
-  /** Top speed, world units per second. */
+  /**
+   * Top speed, world units per second.
+   *
+   * @rule flight.player.maxSpeed
+   */
   maxSpeed: 400,
 
   /** Thrust, world units per second per second, in both directions. */
@@ -39,6 +43,8 @@ export const PLAYER_FLIGHT = {
    * nothing going red. They live in separate files so they can move apart, and
    * each names the other so neither is moved in ignorance.
    * `test/combat-model.test.ts` pins both against the linear rule they came from.
+   *
+   * @rule flight.player.rateRamp
    */
   rateRamp: 4.1396,
 

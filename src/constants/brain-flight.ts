@@ -13,6 +13,8 @@
  * 4.1396 but a DIFFERENT RULE (a feel setting that gets retuned); they agree by
  * coincidence, not design. Each file names the other so neither moves in
  * ignorance. `test/combat-model.test.ts` pins all four constants of the pair.
+ *
+ * @rule flight.brain.rateRamp
  */
 export const BRAIN_RATE_RAMP = 4.1396;
 export const BRAIN_RATE_DECAY = 5.2207;
@@ -32,5 +34,7 @@ export const DECISION_INTERVAL = 0.1;
  * DO NOT FUSE WITH `PLAYER_FLIGHT.maxSpeed` — same trap as `BRAIN_RATE_RAMP`.
  * This is the scale every shipped genome was FITTED at; fusing it with the
  * commander's (retunable) top speed would silently rescale every observation.
+ *
+ * @rule flight.brain.observationSpeed
  */
 export const OBS_SPEED_SCALE = 400;

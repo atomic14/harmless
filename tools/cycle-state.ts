@@ -5,7 +5,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, mkdirSync, readFileSync, readdirSync, renameSync, writeFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 
 export type Tier = 'docs' | 'tooling' | 'src' | 'gameplay';
 export type Phase =
@@ -108,6 +108,15 @@ export function todoDocFor(cfg: CycleConfig, num: string | number): string {
   return `docs/TODO/${m[0]}`;
 }
 
+export function completedTodoDocFor(cfg: CycleConfig, num: string | number): string {
+  const dir = join(cfg.root, 'docs/TODO/completed');
+  const m = readdirSync(dir).filter((f) => f.startsWith(`${num}-`) && f.endsWith('.md'));
+  if (m.length !== 1) {
+    throw new CycleError(`expected one docs/TODO/completed/${num}-*.md, found ${m.length}`);
+  }
+  return `docs/TODO/completed/${m[0]}`;
+}
+
 export function loadQueue(cfg: CycleConfig): number[] {
   const p = join(cfg.root, 'docs/TODO/QUEUE.json');
   if (!existsSync(p)) throw new CycleError('docs/TODO/QUEUE.json is missing');
@@ -122,6 +131,29 @@ export function removeFromQueue(cfg: CycleConfig, num: number): void {
   const items = loadQueue(cfg).filter((n) => n !== num);
   atomicWrite(join(cfg.root, 'docs/TODO/QUEUE.json'),
     `${JSON.stringify({ version: 1, items }, null, 2)}\n`);
+}
+
+/** Remove a completed item from the active index and move its plan/history. */
+export function archiveTodo(root: string, todo: string, planDoc: string): void {
+  const readmePath = join(root, 'docs/TODO/README.md');
+  const readme = readFileSync(readmePath, 'utf8');
+  const activeLine = new RegExp(`^- \\[ \\] ${todo} — .*\\n?`, 'm');
+  const matched = readme.match(activeLine)?.[0]?.trim();
+  if (!matched) throw new CycleError(`active index has no TODO ${todo} line`);
+  atomicWrite(readmePath, readme.replace(activeLine, '').replace(/\\n{3,}/g, '\n\n'));
+
+  const completedDir = join(root, 'docs/TODO/completed');
+  mkdirSync(completedDir, { recursive: true });
+  const indexPath = join(completedDir, 'README.md');
+  const marker = '<!-- append-completed-todos-here -->';
+  const index = readFileSync(indexPath, 'utf8');
+  if (!index.includes(marker)) throw new CycleError('completed TODO index marker is missing');
+  atomicWrite(indexPath, index.replace(marker,
+    `${matched.replace('- [ ]', '- [x]')}\n\n${marker}`));
+
+  const archived = join(completedDir, basename(planDoc));
+  if (existsSync(archived)) throw new CycleError(`completed plan already exists: ${archived}`);
+  renameSync(join(root, planDoc), archived);
 }
 
 /** The one active item, if any: state exists and is not complete. */

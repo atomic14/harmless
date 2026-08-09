@@ -11,9 +11,12 @@
   "scripts": {
     "dev": "vite",
     "lint": "tsc --noEmit",
+    "generate:constants": "node --experimental-strip-types --no-warnings tools/constants.ts generate",
     "generate:elite-a": "node tools/import-elite-a.mjs",
     "generate:descriptions": "node --experimental-strip-types --no-warnings tools/generate-descriptions.ts",
-    "check": "npm run lint && npm test && npm run sizes && npm run generate:elite-a -- --check && npm run generate:descriptions -- --check",
+    "constants:find": "node --experimental-strip-types --no-warnings tools/constants.ts find",
+    "constants:check": "node --experimental-strip-types --no-warnings tools/constants.ts check",
+    "check": "npm run lint && npm test && npm run sizes && npm run constants:check && npm run generate:elite-a -- --check && npm run generate:descriptions -- --check",
     "prebuild": "npm run check",
     "build": "vite build",
     "preview": "vite preview",

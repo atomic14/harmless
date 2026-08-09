@@ -98,6 +98,7 @@ export const harness = { execLog: [] as string[], execFail: new Set<string>() };
 export function freshRepo(name: string, manifest: boolean): CycleConfig {
   const root = join(tmp, name);
   mkdirSync(join(root, 'docs/TODO'), { recursive: true });
+  mkdirSync(join(root, 'docs/TODO/completed'), { recursive: true });
   writeFileSync(join(root, '.gitignore'), '.cycle/\n.claude/\n');
   writeFileSync(join(root, 'docs/TODO/QUEUE.json'),
     '{ "version": 1, "items": [900, 901] }\n');
@@ -108,6 +109,9 @@ export function freshRepo(name: string, manifest: boolean): CycleConfig {
   ].join('\n'));
   writeFileSync(join(root, 'docs/TODO/901-other-item.md'), '# 901 — other\n');
   writeFileSync(join(root, 'docs/TODO/README.md'), '- [ ] 900 — fake item\n- [ ] 901 — other\n');
+  writeFileSync(join(root, 'docs/TODO/completed/README.md'), [
+    '# Completed TODO plans', '', '<!-- append-completed-todos-here -->', '',
+  ].join('\n'));
   const sh = (c: string): void => { execFileSync('sh', ['-c', c], { cwd: root, stdio: 'pipe' }); };
   sh('git init -q && git config user.email t@t && git config user.name t');
   sh('git add -A && git commit -qm base');

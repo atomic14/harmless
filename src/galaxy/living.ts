@@ -68,7 +68,7 @@ export interface GalaxyStateSave {
  * DERIVED from `COMMODITIES.length`, not transcribed. It cannot move to
  * src/constants/ (the home may not import the table it is the length of), so it
  * stays here as a named entry on the constants gate — see
- * docs/TODO/90-constants-cleanup.md, Blocked.
+ * docs/TODO/completed/90-constants-cleanup.md, Blocked.
  */
 const COMMODITY_COUNT = COMMODITIES.length;
 

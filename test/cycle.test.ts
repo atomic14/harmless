@@ -290,7 +290,7 @@ check('the real repo queue resolves every item to one plan doc', (() => {
   check('a blocked item prevents the next queued item', threw.includes('BLOCKED'));
 }
 
-// Landing: closer fills the Outcome, the checkbox ticks, exactly one queue
+// Landing: closer fills the Outcome, the plan is archived, exactly one queue
 // item leaves, main fast-forwards, and the item completes.
 {
   const cfg = freshRepo('land', true);
@@ -301,10 +301,14 @@ check('the real repo queue resolves every item to one plan doc', (() => {
   eq('landing completes the item', s.phase, 'complete');
   const queue = JSON.parse(readFileSync(join(cfg.root, 'docs/TODO/QUEUE.json'), 'utf8')) as { items: number[] };
   eq('exactly one queue item left', queue.items.join(','), '901');
-  check('the index checkbox ticked',
-    readFileSync(join(cfg.root, 'docs/TODO/README.md'), 'utf8').includes('- [x] 900'));
-  check('the outcome landed on main',
-    readFileSync(join(cfg.root, 'docs/TODO/900-fake-item.md'), 'utf8').includes('filled by closer'));
+  check('the active index no longer lists the completed item',
+    !readFileSync(join(cfg.root, 'docs/TODO/README.md'), 'utf8').includes('900 —'));
+  check('the completed index lists the item',
+    readFileSync(join(cfg.root, 'docs/TODO/completed/README.md'), 'utf8').includes('- [x] 900'));
+  check('the active plan is gone', !existsSync(join(cfg.root, 'docs/TODO/900-fake-item.md')));
+  check('the archived outcome landed on main',
+    readFileSync(join(cfg.root, 'docs/TODO/completed/900-fake-item.md'), 'utf8')
+      .includes('filled by closer'));
   check('the worktree and branch are gone', !existsSync(s.worktree));
 }
 

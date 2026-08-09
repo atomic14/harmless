@@ -40,7 +40,7 @@ import { SOURCE_UNITS_PER_WORLD_UNIT } from './elite-a-hulls.ts';
  * which is what every absolute docking distance above is built on. It cannot
  * live in src/constants/ because its meaning IS this product over the ships'
  * own anchor, which that directory may not import — the
- * `WORLD_SPEED_PER_SOURCE_SPEED` shape (docs/TODO/90-constants-cleanup.md).
+ * `WORLD_SPEED_PER_SOURCE_SPEED` shape (docs/TODO/completed/90-constants-cleanup.md).
  */
 export const STATION_PRESENTATION_SCALE = SOURCE_UNITS_PER_WORLD_UNIT;
 

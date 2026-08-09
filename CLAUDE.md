@@ -1,148 +1,60 @@
 # CLAUDE.md — working on HARMLESS
 
-**HARMLESS** — an unofficial browser tribute to Elite (1984). TypeScript, Vite,
-three.js, with a scripted attack run for the ships that hunt you and
-neuroevolution self-play for the ones that fly with you. Public repo, MIT plus
-a fan-project notice; keep the non-commercial homage framing intact.
+HARMLESS is an unofficial, non-commercial browser tribute to Elite (1984),
+built with TypeScript, Vite and three.js. Preserve that framing and the
+MIT/fan-project notice.
 
-This is a guide to how we work, not a specification. Facts about the code belong
-in the code. The numbered invariants are `docs/INVARIANTS.md` — code cites them
-by number. Where things live is `docs/ARCHITECTURE.md`. Why a decision was made
-is `docs/TODO/` and the git log. How a change moves from idea to the live site —
-a closed loop: plan, agent builds, verify with the harnesses and a flown check,
-land — is `docs/PROCESS.md`.
+## Sources of truth
 
-## How we work
+- Running code wins when documentation disagrees.
+- `docs/INVARIANTS.md` lists rules that must not break. Its numbers are cited by
+  the code: never renumber them; append new ones.
+- `docs/ARCHITECTURE.md` maps the system; `docs/TODO/README.md` indexes active
+  plans. Open `completed/`, `research/` or `retired/` only for a specific
+  historical decision. `docs/PROCESS.md` defines delivery.
 
-**Understand the problem in full before changing anything.** Read the code that
-actually runs, not the code you expect. Find the real cause rather than the first
-plausible one — most of the expensive mistakes in this repo were a correct fix to
-a misdiagnosed problem. If you cannot explain why something is broken, you are
-not ready to fix it. If a doc and the code disagree, the code is what ships.
+## Working rules
 
-**There is no deadline, but there is a budget.** Correctness beats speed:
-never pick a worse answer because the better one takes longer, and never
-narrow a job's scope to finish sooner. But context is the resource that runs
-out here (audit, 2026-08-09): read the files the change touches rather than
-sweeping directories, run the targeted test while working and the full gates
-once at the end, keep reports short with the detail in the plan doc, and
-hand off at a checkpoint rather than working on in a bloated session. Do the
-bigger work when the job is bigger — in more sessions, not in one fat one.
+- Diagnose from the code that runs before editing. Fix the cause, not a plausible
+  symptom.
+- Correctness beats speed, but context is finite. Read the affected files, use
+  targeted tests while working, run the full gates once at the end, and hand off
+  at a clear checkpoint.
+- Report only what you measured or ran. State failures and uncertainty plainly.
+- Give every rule one home. Delete duplicates instead of keeping copies in sync.
+- Before adding or changing a constant, use `src/constants/CATALOG.md` as the
+  index: run
+  `npm run constants:find -- "<query>"` for its proposed name, at least two
+  conceptual synonyms, and its value instead of loading the whole directory.
+  Read the likely owner and matches; document the rule, add distinct `@rule`
+  IDs when equal values must stay independent. After adding, changing, or
+  removing constants, run `npm run generate:constants`, then
+  `npm run constants:check`.
+- Put a constant's rationale beside it. Record meaningful alternatives where the
+  next maintainer will look.
 
-**Say what is true.** Report what you actually ran and what it actually printed.
-A number you did not measure is not evidence, and neither is a number from a doc
-that may predate a physics change — measure, don't cite. If something failed, say
-so plainly. If you are unsure, say that instead of hedging a guess into a claim.
+## Design direction
 
-**One rule has one home.** The recurring failure here is one rule with two homes,
-kept in step by hope. Two copies that currently agree are still a defect: nobody
-can change either without remembering the other. When you find a second home,
-deleting it is the fix — not a comment asking the next person to keep them in
-step.
+One world state; a fixed, seeded step advances it; rendering only reads it.
 
-**Constants discipline.** A value that exists twice is a rule with two homes,
-and `src/constants/` is the directory that stops that. Before adding any
-constant, including one derived from another: search the directory for the
-proposed name, at least two conceptual synonyms, and the value; read IN FULL
-the owning constants file plus every candidate the search returns; and record
-the searches you ran in your report. Read the whole directory only when
-introducing a new domain or when ownership is genuinely ambiguous. (TODO 104
-builds the generated catalogue and mechanical duplicate check that replace
-the searches; when it lands, read `src/constants/CATALOG.md` first instead.)
+- Training uses the real game rules, never copied physics or combat logic.
+- Modules decide and return events; orchestrators apply consequences.
+- Behaviour-changing data is saved state, not an ambient global.
+- Platform access stays behind `engine/shell.ts` so the game runs headlessly.
+- `game/brain-names.ts` owns pilot assignments. Shipped pilots are currently
+  hand-written; no trained weights are loaded.
 
-**Leave the reasoning where the next person will look.** A constant is worth the
-sentence that says how it was chosen, beside it. A decision worth making is worth
-a line saying what else was considered.
+## Validation
 
-## The architecture we are building toward
-
-**One world state. A pure step that advances it. A renderer that only reads it.**
-
-- The world advances in fixed slices from one seeded source of chance, so the
-  same inputs give the same run. That is what makes a replay, a regression test
-  and a training run possible at all — seeded reproducibility is not negotiable.
-- The trainer flies the **real game**. There is no second physics, and no second
-  copy of a rule for training to use.
-- A module decides and reports; the orchestrator applies. Modules return events;
-  the game applies them.
-- Anything that drives behaviour and is not a constant is state, and state is
-  saved. Nothing that matters is read from ambient globals.
-- The platform lives behind one seam, so the game runs headless under node. Keep
-  it that way; the portability gate measures it.
-
-## Testing
-
-**Everything is tested.** New code comes with tests, and a change to a rule
-changes the test that pins it.
-
-- **A gate you have not broken is not a gate.** After writing a test that
-  protects a rule, break the rule and confirm the test fails. Whole rules have
-  survived deletion in this repo with nothing going red.
-- **Assert the rule, not the implementation.** A check that expands to
-  `f(x) === f(x)` passes on any code.
-- **Read the set, not the sample.** Defaults are a convenience, not a sample
-  size. Before a number decides anything, run it at two sizes and check the
-  answer is the same one. Findings here have reversed sign between a small run
-  and a large one.
-- **Prove equivalence, not self-consistency.** When refactoring, show the same
-  seed gives the same outcome as the old code.
-
-Lint and tests run as part of the build, which is what stops a broken commit
-reaching the live site. Don't move them out of that path.
-
-## The AI
-
-**Two kinds of pilot, and they are not interchangeable.** Know which one you are
-touching before you touch it — `brain-names.ts` is where the rule lives.
-
-- **Code flies the opposition.** Every pirate a player meets, solo or in an
-  organised gang, flies `pursuit` — the hand-written dogfighter that chases onto
-  your six and holds there while astern, then breaks into the attack run's
-  slashing pass the moment you turn your nose onto it. No neural net is involved.
-  This is what ships, so a fix here is a fix to the fight. The `scripted` pilot
-  is the A/B control: it reverts every pirate to the plain hand-written
-  three-phase attack run — close, pass, extend — and switches the defence OFF:
-  no co-pilot, and an armed trader flees instead of turning to fight.
-- **Code flies your side too.** The defence flies under the one name
-  `attack-run`, and it is two flights: an armed trader turns and fights with
-  the hand-written three-phase run pointed defensively (npc.ts's defence path),
-  while the combat computer the player buys flies a pure-pursuit dogfighter on
-  your own ship (scripted-co-pilot.ts). No trained policy ships at all:
-  `src/ai-training/brains/` holds no weights and `defenceBrain()` returns null.
-  The `jameson-defend` defence line was retired on 2026-08-05, the same day and
-  for the same reason as the two trained pirate policies — three retrains
-  optimised their way out of fighting (a turret, a sprayer, a pacifist; see
-  runs 20-21). `train/evolve.ts` can still breed a research candidate, but
-  nothing trained is loaded, so "the pirate brain" names nothing.
-
-**Threat is not fun**, and the split above is the scar it left. A well-optimised
-pirate is a turret that hangs in space and snipes; evolution found it twice, won
-every measurement both times, and Chris asked for the old brain back both times.
-So the hostile is hand-written code, not a fitted net, because a run we write can
-be made to feel like a dogfight the player can win and a run we fit was not.
-Reach for training when the job is to survive a fight; reach for script when the
-job is to give the player one.
-
-Lethality is a proxy for threat, and a brain that wins every measurement can
-still be the wrong brain — **a measurement can be excellent and be measuring the
-wrong quantity**. Prefer a fight a human flew to a bot-flown number, and **fly it
-before tuning it**. Changing a combat number invalidates the brains; retrain
-deliberately.
-
-Two hazards worth knowing before your first training run: a run with no output
-name **overwrites a shipped brain**, and without validation-based selection the
-champion is the luckiest generation rather than the best genome.
+- New behaviour needs a test; rule changes update the test that pins the rule.
+- Prove a new gate can fail by temporarily breaking the protected rule.
+- Assert behaviour, not an implementation against itself.
+- Before a sampled number drives a decision, check at two sample sizes.
+- Keep lint and tests in the build path.
 
 ## Style
 
-- **Keep files small**, and keep each one about a single thing. When adding to a
-  long file the question is not "will this fit" but "what is this file FOR, and
-  is this that?" If the answer needs an "and", it belongs elsewhere. Going over
-  the ceiling deliberately, with a stated reason, is a fine answer. Trimming real
-  content to fit under it is not.
-- **Module headers state what a file is for** — maintain them. A file that needs
-  a paragraph elsewhere to make sense has the wrong name.
-- This is a **homage, not a museum piece**: instantly recognisable to anyone who
-  played the original, but applying what game design has learned since 1984.
-  Deliberate deviations get written down.
-- Commit per milestone, with a message saying what changed and why.
+- Prefer small, single-purpose files. Exceed the size ceiling only with a stated
+  reason; never delete useful content merely to fit it.
+- Maintain module headers that state each file's purpose.
+- Commit by milestone, explaining what changed and why.

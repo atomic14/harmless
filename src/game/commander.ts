@@ -153,7 +153,7 @@ export function newCommander(): CommanderData {
     name: DEFAULT_NAME,
     // Elite-A started you in an Adder; we deliberately do not, because switching
     // the starting hull is a balance change, not an identity one
-    // (docs/TODO/ELITE-A-COMBAT-PLAN.md defers it).
+    // (docs/TODO/completed/ELITE-A-COMBAT-PLAN.md defers it).
     shipId: COBRA_MK_3_HULL_ID,
     galaxy: 1,
     systemIndex: 7, // Lave

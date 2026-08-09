@@ -1,7 +1,7 @@
 // Which hull, which design, which exact build — and the one way to say so.
 //
 // Three identities, because three things move independently (the fidelity
-// contract in docs/TODO/ELITE-A-COMBAT-PLAN.md says the same):
+// contract in docs/TODO/completed/ELITE-A-COMBAT-PLAN.md says the same):
 //
 //   PlayerHullId         which of the 15 flyable hulls the commander is in
 //   ShipDesignId         which hull is on screen — geometry hangs off this
