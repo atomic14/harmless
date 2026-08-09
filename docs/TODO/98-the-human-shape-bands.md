@@ -114,4 +114,49 @@ to scale.
 
 ## Outcome
 
-(recorded when the cycle closes)
+**Shipped 2026-08-09** as `test/human-shape.test.ts` (393 lines), inside
+`npm test`. Two rounds: the build, then a code-review pass whose confirmed
+findings went back for rework — the fixture now deals hulls through the
+game's own `pirateSpecForTier` (tier cycling 0-1-2 in equal thirds, member
+index per tier, after the agent caught a seed-aliasing defect that dealt
+tier 0 nothing but Worms), the pirate's missile rack is emptied at spawn
+(the launch governor lives in world-step.ts, which the fixture does not
+run — 5 ungoverned launches in 40 episodes before the fix, 0 after), and
+the roster-speed and seed-decade comments were corrected against executed
+values. The src/-side debt the review found (the thrice-copied frame
+sampler, the unnamed 7919 stride) is deliberately deferred to
+[101](101-one-home-for-the-frame-sampler.md).
+
+**The re-baseline record.** Base 50_000_017, stride 7919, 20s episodes,
+tier-weighted dealing:
+
+| stand-in | eps | lined-up | in-range | speed | p10/p90 | passes | on-six |
+|---|---|---|---|---|---|---|---|
+| knife-fighter | 40 | 20.4% | 100.0% | 251 | 229/2875 | 1.20 | 0.1s |
+| knife-fighter | 160 | 21.3% | 100.0% | 254 | 221/2845 | 1.27 | 0.0s |
+| runner | 40 | 84.8% | 94.9% | 251 | 560/3239 | 0.00 | 17.0s |
+| runner | 160 | 86.4% | 97.2% | 251 | 546/3184 | 0.00 | 17.3s |
+
+Bands: knife lined-up (10%, 35%), in-range > 80%, speed > 180,
+spread > 1200, passes > 0.5; runner lined-up (60%, 95%), in-range > 80%,
+speed > 180, on-six > 10s. The 10% floor replaced the planned 5% after the
+sweep found a fully passive pirate still crosses the fire gate 5.6% by
+accident. The 180 speed floor has ~1.4x headroom rather than the usual
+1.5-4x because it cannot drop below the Asp's 164 cruise pin — stated in
+the file.
+
+**The mutation ledger** — every shipped band tripped by at least one:
+
+| mutation | bands red |
+|---|---|
+| turret (cruise floor zeroed, throttle pinned) | knife ceiling 78.9%, speed 4, spread 634, passes 0; runner floor 8.3%, in-range 18.2%, speed 4, on-six 1.7s |
+| snap-tracker (`faceToward` in pursue) | runner ceiling 100.0% |
+| passive (pirates out of `isHostileToPlayer`) | knife floor 6.1%, speed 105, passes 0; runner floor 5.0%, in-range 42.0%, speed 105, on-six 1.0s |
+| pacifist (steers away) | knife in-range 50.3%, floor 0.8%, speed 155, passes 0 |
+
+Two null results, recorded honestly: deleting the pursuit break-off trips
+nothing (a presented tail never closes inside `PURSUIT_BREAK_RANGE`), and a
+4000-6000 extend band trips nothing a 20s episode can see.
+
+Landed after supervisor verification on the merged tree: `npm run build`
+3262 passed / 0 failed, `npm run elite-a` 494 / 0.
