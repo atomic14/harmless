@@ -54,7 +54,48 @@ export function workerArgs(cfg: CycleConfig, role: Role): string[] {
     '--allowedTools', ...ALLOWED_BASH, '--disallowedTools', ...DENIED_BASH];
 }
 
-export interface WorkerResult { text: string; costUsd: number }
+export interface WorkerResult {
+  text: string;
+  structuredOutput: unknown | null;
+  costUsd: number;
+}
+
+interface ClaudeEnvelope {
+  result?: unknown;
+  structured_output?: unknown;
+  total_cost_usd?: unknown;
+}
+
+/** Schema-constrained roles read `structured_output`; the others read the
+ *  textual `result` (https://code.claude.com/docs/en/headless). */
+const SCHEMA_ROLES: Role[] = ['planner', 'verifier'];
+
+/**
+ * One envelope parse for every worker. A schema role's output MUST be a JSON
+ * object envelope — its payload lives in `structured_output`, and a verdict
+ * or plan smuggled into `result` is refused by construction. Non-schema
+ * roles fall back to plain text only when the output is not an envelope.
+ */
+export function parseEnvelope(raw: string, role: Role): WorkerResult {
+  let env: ClaudeEnvelope | null = null;
+  try {
+    const parsed: unknown = JSON.parse(raw);
+    if (parsed && typeof parsed === 'object' && !Array.isArray(parsed)) {
+      env = parsed as ClaudeEnvelope;
+    }
+  } catch { /* not JSON */ }
+  if (!env) {
+    if (SCHEMA_ROLES.includes(role)) {
+      throw new CycleError(`${role} output is not a JSON envelope: ${raw.slice(0, 200)}`);
+    }
+    return { text: raw, structuredOutput: null, costUsd: 0 };
+  }
+  return {
+    text: typeof env.result === 'string' ? env.result : '',
+    structuredOutput: env.structured_output ?? null,
+    costUsd: typeof env.total_cost_usd === 'number' ? env.total_cost_usd : 0,
+  };
+}
 
 /** Run one fresh worker; enforce the run-wide worker and budget caps. */
 export function runWorker(
@@ -63,7 +104,7 @@ export function runWorker(
   if (cfg.dryRun) {
     cfg.log(`[dry] claude (${role}) ${workerArgs(cfg, role).join(' ')}`);
     cfg.log(`--- ${role} prompt ---\n${prompt}\n---`);
-    return { text: '', costUsd: 0 };
+    return { text: '', structuredOutput: null, costUsd: 0 };
   }
   if (s.workerInvocations.length >= cfg.maxWorkers) {
     throw new CycleStop(`worker cap (${cfg.maxWorkers}) reached — rerun to continue`);
@@ -81,13 +122,17 @@ export function runWorker(
     const err = e as { stderr?: string; message?: string };
     throw new CycleStop(`${role} died: ${(err.stderr ?? err.message ?? '').slice(0, 300)}`);
   }
-  let text = raw; let costUsd = 0;
-  try {
-    const env = JSON.parse(raw) as { result?: string; total_cost_usd?: number };
-    if (typeof env.result === 'string') { text = env.result; costUsd = env.total_cost_usd ?? 0; }
-  } catch { /* plain-text worker output is acceptable */ }
-  s.workerInvocations.push({ role, costUsd });
-  return { text, costUsd };
+  const res = parseEnvelope(raw, role);
+  s.workerInvocations.push({ role, costUsd: res.costUsd });
+  return res;
+}
+
+/** The verdict lives in `structured_output`, and nowhere else. */
+export function verdictOf(res: WorkerResult): Verdict {
+  if (res.structuredOutput === null) {
+    throw new CycleError('verifier returned no structured_output');
+  }
+  return parseVerdict(res.structuredOutput);
 }
 
 // --- verdicts ----------------------------------------------------------------
@@ -97,15 +142,15 @@ export interface Finding {
 }
 export interface Verdict { status: 'PASS' | 'REWORK' | 'BLOCKED'; findings: Finding[] }
 
-/** Strict: structured output, exact enum, PASS carries no findings, REWORK
- *  carries at least one actionable one. No greedy-regex extraction. */
-export function parseVerdict(text: string): Verdict {
-  let v: Verdict;
-  try { v = JSON.parse(text.trim()) as Verdict; } catch {
-    throw new CycleError(`verifier output is not JSON: ${text.slice(0, 300)}`);
+/** Strict: an object, exact enum, PASS carries no findings, REWORK carries
+ *  at least one actionable one. */
+export function parseVerdict(value: unknown): Verdict {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) {
+    throw new CycleError(`verifier verdict is not an object: ${JSON.stringify(value)?.slice(0, 200)}`);
   }
+  const v = value as Verdict;
   if (!['PASS', 'REWORK', 'BLOCKED'].includes(v.status) || !Array.isArray(v.findings)) {
-    throw new CycleError(`verifier verdict malformed: ${text.slice(0, 300)}`);
+    throw new CycleError(`verifier verdict malformed: ${JSON.stringify(value).slice(0, 200)}`);
   }
   if (v.status === 'PASS' && v.findings.length) throw new CycleError('PASS with findings');
   if (v.status === 'REWORK' && !v.findings.some((f) => f.problem && f.required_fix)) {

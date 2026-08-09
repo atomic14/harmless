@@ -18,7 +18,7 @@ import {
 } from './cycle-state.ts';
 import { preparePlan } from './cycle-plan.ts';
 import {
-  closerPrompt, implementerPrompt, parseVerdict, runWorker, verifierPrompt,
+  closerPrompt, implementerPrompt, runWorker, verdictOf, verifierPrompt,
 } from './cycle-workers.ts';
 
 const FORBIDDEN = ['.claude/', '.cycle/'];
@@ -239,8 +239,8 @@ export function runItem(cfg: CycleConfig, num: string): RunState {
           s.phase = 'blocked'; s.lastError = 'milestone too large; split required';
         } else {
           const c = deterministicChecks(cfg, s, plan, s.milestoneBase, false);
-          const v = parseVerdict(runWorker(cfg, s, 'verifier',
-            verifierPrompt(s, plan, planDoc, c.summary, diff, false), s.worktree).text);
+          const v = verdictOf(runWorker(cfg, s, 'verifier',
+            verifierPrompt(s, plan, planDoc, c.summary, diff, false), s.worktree));
           cfg.log(`--- verdict: ${v.status} (${v.findings.length}) ---`);
           if (v.status === 'PASS') {
             s.milestoneBase = git(['rev-parse', 'HEAD'], s.worktree);
@@ -272,8 +272,8 @@ export function runItem(cfg: CycleConfig, num: string): RunState {
       if (diff.length > cfg.diffCap) { s.phase = 'blocked'; s.lastError = 'item diff too large'; break; }
       let verdictOk = false;
       if (c.ok) {
-        const v = parseVerdict(runWorker(cfg, s, 'verifier',
-          verifierPrompt(s, plan, planDoc, c.summary, diff, true), s.worktree).text);
+        const v = verdictOf(runWorker(cfg, s, 'verifier',
+          verifierPrompt(s, plan, planDoc, c.summary, diff, true), s.worktree));
         cfg.log(`--- whole-item verdict: ${v.status} (${v.findings.length}) ---`);
         if (v.status === 'PASS') verdictOk = true;
         else if (v.status === 'BLOCKED') { s.phase = 'blocked'; s.lastError = 'final verifier: BLOCKED'; break; }

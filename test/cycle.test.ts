@@ -15,7 +15,7 @@ import {
   type CycleConfig, type CyclePlan, type RunState,
 } from '../tools/cycle-state.ts';
 import { manifestFromDoc, validatePlan } from '../tools/cycle-plan.ts';
-import { parseVerdict, workerArgs } from '../tools/cycle-workers.ts';
+import { parseEnvelope, parseVerdict, verdictOf, workerArgs } from '../tools/cycle-workers.ts';
 import { deterministicChecks, effectiveTier, markFlown, runItem, runNext } from '../tools/cycle-lib.ts';
 import { calls, freshRepo, goodPlan, harness, setCtrl, tmp } from './cycle-harness.ts';
 
@@ -34,13 +34,33 @@ check('verifier has read tools only, plan mode, and a JSON schema',
   verif.includes('--tools Read,Grep,Glob') && verif.includes('plan')
   && verif.includes('--json-schema') && !verif.includes('Bash') && !verif.includes('Edit'));
 
-check('a PASS verdict with findings is refused', (() => {
-  try { parseVerdict('{"status":"PASS","findings":[{"severity":"low","file":"x","problem":"p","required_fix":"f"}]}'); return false; }
-  catch { return true; }
-})());
-check('a REWORK verdict without an actionable finding is refused', (() => {
-  try { parseVerdict('{"status":"REWORK","findings":[]}'); return false; } catch { return true; }
-})());
+const refuses = (fn: () => unknown, needle = ''): boolean => {
+  try { fn(); return false; } catch (e) { return (e as Error).message.includes(needle); }
+};
+check('a PASS verdict with findings is refused', refuses(() => parseVerdict(
+  { status: 'PASS', findings: [{ severity: 'low', file: 'x', problem: 'p', required_fix: 'f' }] })));
+check('a REWORK verdict without an actionable finding is refused',
+  refuses(() => parseVerdict({ status: 'REWORK', findings: [] })));
+check('a non-object verdict is refused', refuses(() => parseVerdict('PASS')));
+
+// --- the structured-output boundary (the real CLI's envelope protocol) -------
+
+const goodEnv = parseEnvelope(
+  '{"result":"","structured_output":{"status":"PASS","findings":[]},"total_cost_usd":0.5}',
+  'verifier');
+eq('a schema payload rides structured_output', verdictOf(goodEnv).status, 'PASS');
+eq('cost is captured even with an empty result', goodEnv.costUsd, 0.5);
+check('a verdict smuggled into result alone is refused', refuses(() => verdictOf(parseEnvelope(
+  '{"result":"{\\"status\\":\\"PASS\\",\\"findings\\":[]}","total_cost_usd":0.1}', 'verifier')),
+'no structured_output'));
+check('missing structured_output names itself',
+  refuses(() => verdictOf(parseEnvelope('{"result":"done"}', 'verifier')), 'no structured_output'));
+check('malformed structured_output is refused', refuses(() => verdictOf(parseEnvelope(
+  '{"structured_output":{"status":"YES","findings":[]}}', 'verifier')), 'malformed'));
+check('a non-envelope schema output is refused',
+  refuses(() => parseEnvelope('plain words', 'verifier'), 'not a JSON envelope'));
+eq('a non-schema role keeps its plain text', parseEnvelope('plain words', 'implementer').text,
+  'plain words');
 
 // --- structured preparation --------------------------------------------------
 

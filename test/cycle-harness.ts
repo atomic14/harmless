@@ -27,10 +27,14 @@ const cp = require('node:child_process');
 const C = ${JSON.stringify(ctrlPath)};
 const ctrl = JSON.parse(fs.readFileSync(C, 'utf8'));
 const prompt = process.argv[process.argv.indexOf('-p') + 1];
-const done = (role, result) => {
+// Schema roles carry their payload in structured_output, exactly as the real
+// CLI does (https://code.claude.com/docs/en/headless); result stays textual.
+const done = (role, payload) => {
   ctrl.calls.push(role);
   fs.writeFileSync(C, JSON.stringify(ctrl));
-  console.log(JSON.stringify({ result, total_cost_usd: 0.01 }));
+  console.log(JSON.stringify(typeof payload === 'string'
+    ? { result: payload, total_cost_usd: 0.01 }
+    : { result: '', structured_output: payload, total_cost_usd: 0.01 }));
 };
 const commit = (msg) => {
   try { cp.execSync('git add -A && git commit -qm "' + msg + '"', { stdio: 'pipe' }); }
@@ -40,15 +44,15 @@ const commit = (msg) => {
     process.exit(1);
   }
 };
-if (prompt.includes('read-only planner')) done('planner', JSON.stringify(ctrl.plan));
+if (prompt.includes('read-only planner')) done('planner', ctrl.plan);
 else if (prompt.includes('read-only verifier')) {
   const whole = prompt.includes('WHOLE item');
   const status = (whole ? ctrl.finalVerdict : ctrl.verdict).shift() ?? 'REWORK';
-  done(whole ? 'final-verifier' : 'verifier', JSON.stringify({
+  done(whole ? 'final-verifier' : 'verifier', {
     status,
     findings: status === 'REWORK'
       ? [{ severity: 'high', file: 'x', problem: 'p', required_fix: 'f' }] : [],
-  }));
+  });
 } else if (prompt.includes('closing worker')) {
   const mode = ctrl.closer.shift() ?? 'good';
   const doc = fs.readdirSync('docs/TODO').find((f) => f.startsWith('900-'));

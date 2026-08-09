@@ -76,9 +76,10 @@ export function preparePlan(cfg: CycleConfig, s: RunState, planDoc: string): Cyc
       };
     } else {
       const out = runWorker(cfg, s, 'planner', plannerPrompt(planDoc), cfg.root);
-      try { plan = JSON.parse(out.text.trim()) as CyclePlan; } catch {
-        throw new CycleError(`planner output is not JSON: ${out.text.slice(0, 300)}`);
+      if (out.structuredOutput === null) {
+        throw new CycleError('planner returned no structured_output');
       }
+      plan = out.structuredOutput as CyclePlan;
     }
   }
   validatePlan(plan, cfg);
