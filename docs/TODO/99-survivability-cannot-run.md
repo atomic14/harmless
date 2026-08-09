@@ -60,4 +60,18 @@ retirement of the trained line:
 
 ## Outcome
 
-(recorded when the cycle closes)
+**Shipped 2026-08-09.** `npm run survivability` runs again with no
+arguments: the defender defaults to the training world's scripted armed
+trader in the commander's hull (the decision above), `DEFEND_BRAIN` stays
+as the research override, and the header now states what a row is evidence
+of — a gang-survival floor in the training world, both sides stand-ins —
+and what it is not. Supervisor re-ran the tool (table matches the agent's:
+0% destroyed at every gang size, pools stripped 8/14/18/24%, consistent
+with recharge outpacing a gang's landed damage against a fleeing target)
+and `npm run build` (3251 passed, 0 failed). The agent also read the table
+at 800 episodes per row and got the same answer, per CLAUDE.md.
+
+Two findings escaped scope and are filed: the combat-computer pilot claims
+disagree between code and docs in both directions —
+[100](100-who-flies-the-combat-computer.md) — which also carries the
+README's survivability line picking up the floor framing.
