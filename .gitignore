@@ -31,3 +31,4 @@ __pycache__/
 # graphify knowledge graph — 7 MB of generated output, rebuilt from the repo.
 # tools/graphify-augment.py IS committed: it is the repair pass, not the output.
 graphify-out/
+.cycle/
