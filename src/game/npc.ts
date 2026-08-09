@@ -690,10 +690,12 @@ export class NpcShip {
 
     if (this.state.fleeing) {
       // Armed traders turn and fight. WHICH pilot is brain-names.ts's answer:
-      // the shipped answer is the same scripted attack run every pirate flies,
-      // pointed back at whoever is hunting it. The brainFly block below is the
-      // socket a future trained candidate re-enters through (brains.ts), and
-      // flies nothing today.
+      // the shipped answer is the hand-written three-phase attack run, pointed
+      // back at whoever is hunting it — the run `scripted` pirates fly; live
+      // pirates default to `pursuit`. Under the `scripted` A/B the gate below
+      // fails and the trader flees without fighting. The brainFly block below
+      // is the socket a future trained candidate re-enters through (brains.ts),
+      // and flies nothing today.
       if (this.armed && defenceBrainNameFor(brains) === 'attack-run') {
         if (this.state.provokedByPlayer && distPlayer < 6000) {
           const shot = this.attack(dt, player.position, distPlayer, true, undefined,

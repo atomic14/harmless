@@ -14,7 +14,7 @@ import { ScriptedCoPilot } from '../src/game/scripted-co-pilot.ts';
 import { hitCone } from '../src/game/gunnery.ts';
 import { LASER_RANGE } from '../src/constants/player-gun.ts';
 import {
-  defenceBrainNameFor, LIVE_BRAIN_IDS, brainName,
+  defenceBrainNameFor, LIVE_BRAIN_IDS, brainName, brainCharacter,
 } from '../src/game/brain-names.ts';
 import { defenceBrain } from '../src/game/brains.ts';
 import { freshState } from '../src/game/state.ts';
@@ -26,15 +26,21 @@ console.log('\nscripted combat computer');
 
 // --- the selection can name it, and it is code rather than weights ----------
 {
-  eq('the attack run IS the shipped defence — no flag needed',
+  eq('\'attack-run\' names the shipped defence — no flag needed',
     defenceBrainNameFor({}), 'attack-run');
   eq('..."no brains at all" still means none',
     defenceBrainNameFor({ scripted: true }), 'scripted');
   check('it loads no weights — the pilot is code',
     defenceBrain({}) === null);
   check('the live picker offers it', LIVE_BRAIN_IDS.includes('attack-run'));
-  check('...under a name that says what it does',
-    (brainName('attack-run') ?? '').includes('ATTACK RUNS'));
+  // The name covers TWO flights (the trader's attack run, this file's pursuit
+  // co-pilot — docs/TODO/100), so the display name must not claim either
+  // flight's shape and the character line must own up to both.
+  check('...under a name that does not claim the co-pilot flies attack runs',
+    !(brainName('attack-run') ?? 'ATTACK').includes('ATTACK'));
+  check('...and a character line that names both flights',
+    (brainCharacter('attack-run') ?? '').includes('ATTACK RUN')
+    && (brainCharacter('attack-run') ?? '').includes('PURSUIT'));
 }
 
 // --- one seeded sky, one pirate, and the co-pilot's contract ----------------

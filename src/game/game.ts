@@ -222,7 +222,8 @@ export class Game {
       priceMultiplier: (index, commodity) => this.state.living.priceMultiplier(index, commodity),
     };
   }
-  // combat computer: the jameson-defend policy flying the player's ship
+  // the combat computer's TRAINED seat — dormant (defenceBrain() is null);
+  // the scripted pure-pursuit co-pilot flies instead, see pilotDemand()
   private readonly combatComputer = new CombatComputer();
   /** Explicit telemetry seam; absent during ordinary play. */
   private readonly combatInstrumentation = new CombatInstrumentation();
@@ -1402,11 +1403,13 @@ export class Game {
     // is ours to do, immediately after reading it
     if (this.input.mouseFlight) this.input.decayMouse(dt);
     if (!this.state.session.ccEngaged) return hands;
-    // WHICH co-pilot is the LIVE BRAINS selection's answer: the scripted attack
-    // run, or the trained defence policy. Both return a FlightDemand — the
-    // scripted one banks-to-turn through the commander's own envelope
-    // (scripted-co-pilot.ts), the trained one flies at its fitted CC_* caps —
-    // so the Game flies either the same way and the HUD reads both.
+    // WHICH co-pilot is the brain selection's answer: under the shipped
+    // 'attack-run' name, the scripted PURE-PURSUIT co-pilot; otherwise the
+    // trained defence seat (dormant — defenceBrain() is null and the seat
+    // disengages). Both return a FlightDemand — the scripted one banks-to-turn
+    // through the commander's own envelope (scripted-co-pilot.ts), the trained
+    // one flies at its fitted CC_* caps — so the Game flies either the same
+    // way and the HUD reads both.
     const auto = defenceBrainNameFor(this.state.brains) === 'attack-run'
       ? this.autopilot.combatSteer(dt, this.handsOn(), this.ordnance.hostileMissilePos)
       : this.autopilot.combatDemand(

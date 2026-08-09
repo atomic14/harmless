@@ -94,8 +94,9 @@ check('the scripted run beats the untrained baseline by a factor of three',
 // final form, asserted the brain was WORSE (32.9% of her pools lost against
 // 23.5%) pending a v2 that never earned promotion — the v2 champion was a
 // pacifist (docs/TRAINING-LOG.md run 21), and on 2026-08-05 Chris discarded
-// the trained defence line outright. The shipped defence is the scripted
-// attack run now, and its gates live in test/scripted-co-pilot.test.ts.
+// the trained defence line outright. The shipped defence is hand-written code
+// now — the trader's attack run (npc.ts), the co-pilot's pure pursuit — and
+// its gates live in test/scripted-co-pilot.test.ts.
 
 // --- we ship what we ship, and only that -------------------------------------
 //
@@ -135,9 +136,9 @@ const ON_DISK = readdirSync(BRAINS).filter((f) => f.endsWith('.json'))
 // panel offers.
 const FLOWN = [...new Set(
   // the CODE pilots fly with no weights file behind them: `scripted` (the
-  // opposition, and 'no co-pilot' on a defence row), `attack-run` (the same run
-  // flying the defence slots, 2026-08-05) and `pursuit` (the combat computer's
-  // pilot, selectable on the pirates)
+  // opposition A/B, and 'no co-pilot' on a defence row), `attack-run` (the
+  // defence slots: the trader's attack run, the co-pilot's pure pursuit) and
+  // `pursuit` (the combat computer's pilot, selectable on the pirates)
   LIVE_BRAIN_IDS.filter(isNamedBrain)
     .filter((n) => n !== 'scripted' && n !== 'attack-run' && n !== 'pursuit'),
 )].sort();

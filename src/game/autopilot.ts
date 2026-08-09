@@ -2,8 +2,9 @@
 //
 // Two pieces of equipment answer to that: the docking computer, which flies you
 // into the slot (the approach itself is `docking.ts`, stepped by
-// `world-step.ts`), and the combat computer, which is the `jameson-defend`
-// policy flying your Cobra (`combat-computer.ts` does the thinking). They had
+// `world-step.ts`), and the combat computer, whose shipped pilot is the
+// scripted pure-pursuit co-pilot (`scripted-co-pilot.ts` does the thinking;
+// `combat-computer.ts` is the trained seat, dormant while no weights load). They had
 // nothing to do with each other in game.ts and everything to do with each other
 // in fact: both are bought, both are engaged with one key, both hand the ship
 // back the moment the pilot touches the controls, and both end up as a
@@ -171,7 +172,7 @@ export class Autopilot {
   }
 
   /**
-   * The SCRIPTED combat computer — the pirates' attack run flying your ship
+   * The SCRIPTED combat computer — a pure-pursuit dogfighter flying your ship
    * (scripted-co-pilot.ts decides; the Game flies the demand and shoots). The
    * same engage key, the same manual override, the same disengage words as the
    * brain co-pilot, and — since it now returns a `FlightDemand` too — the same

@@ -46,8 +46,8 @@ import { SCENARIO_TIMEOUT } from '../constants/exercise.ts';
  * in a fight would be a category error rather than a hard exercise.
  *
  * `trader` is here for the custom picker only — no scenario sends one — because
- * an armed trader flying the Jameson defence brain is a real fight the game
- * contains, and it is the one a would-be pirate should practise.
+ * an armed trader turning to fight with the defensive attack run is a real
+ * fight the game contains, and it is the one a would-be pirate should practise.
  */
 export type OppositionRole = 'pirate' | 'police' | 'hunter' | 'thargoid' | 'thargon' | 'trader';
 
@@ -98,8 +98,9 @@ export const SHIPPED_DEFENCE_BRAIN: BrainId = defenceBrainNameFor(SHIPPED_BRAINS
  */
 export const SIM_BRAINS: readonly BrainId[] = [
   // Two entries, both code, so every row is a pilot the game can actually load.
-  // `attack-run` is the shipped defence: the co-pilot, and what an armed trader
-  // turns and fights with.
+  // `attack-run` is the shipped defence NAME: on a trader it means the
+  // defensive attack run; on the commander's ship the same name selects the
+  // pure-pursuit co-pilot (brain-names.ts's SHIPPED_DEFENCE says which is which).
   'attack-run',
   'scripted',
 ];

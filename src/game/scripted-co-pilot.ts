@@ -6,7 +6,9 @@
 // lead: aim where it is), which curves you onto its tail as it turns and runs —
 // plus a throttle that holds a gun-range standoff behind it and comes off hard
 // when the nose has a long way to swing. It flies `pursuit.ts`, not the attack
-// run; the pirates fly the attack run (npc.ts), a separate ship and decision.
+// run; the pirates fly their own pursuit — hold the six, break into a slashing
+// pass when faced (npc.ts `pursue`) — a separate ship and decision, sharing
+// `pursuitSpeed` so the two cannot drift.
 //
 // It DECIDES and reports, like every module here: what comes back is a
 // `FlightDemand` — ramped pitch and roll rates, a throttle, a trigger — and one

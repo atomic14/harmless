@@ -54,15 +54,17 @@ export interface BrainProfile {
  * are not pilots; their lines live in `screens/combat-sim-notes.ts`.
  */
 export const BRAINS: Readonly<Record<BrainName, BrainProfile>> = Object.freeze({
-  // The attack run flying the DEFENCE slots: the commander's co-pilot, and an
-  // armed trader turning to fight. Same code path as `scripted` (tournament:
-  // 58% accuracy, ~5 attack runs a minute); its trigger is the player gun's hit
-  // cone, so it shoots only what it can hit.
+  // The DEFENCE slots' name — one name, two flights, and the comment on
+  // `SHIPPED_DEFENCE` below says which slot flies which. The trader's half is
+  // the same code path as `scripted` (tournament: 58% accuracy, ~5 attack runs
+  // a minute); the co-pilot's pursuit post-dates the tournament. Either
+  // trigger is the gun's own hit cone, so it shoots only what it can hit.
   'attack-run': {
-    name: 'FLIES ATTACK RUNS',
-    character: 'YOUR SHIP FLIES THE SAME ATTACK RUN THE PIRATES FLY: CLOSE, FIRE THROUGH '
-      + 'THE PASS, SWING OUT AND COME ROUND AGAIN — ABOUT 5 RUNS A MINUTE, SHOOTING ONLY '
-      + 'WHEN LINED UP.',
+    name: 'FIGHTS BACK',
+    character: 'ONE NAME, TWO FLIGHTS: AN ARMED TRADER TURNS AND FIGHTS WITH THE '
+      + 'THREE-PHASE ATTACK RUN (CLOSE, FIRE THROUGH THE PASS, COME ROUND — ABOUT 5 RUNS '
+      + 'A MINUTE), WHILE THE COMBAT COMPUTER YOU BUY FLIES A PURE-PURSUIT DOGFIGHTER ON '
+      + 'YOUR OWN SHIP: ONTO THE TARGET\'S SIX, SHOOTING ONLY WHEN LINED UP.',
   },
   // tournament: 58% accuracy, 31.8s on a hauler's six, loses 0.93 ships an
   // episode to a commander who fights back
@@ -70,7 +72,8 @@ export const BRAINS: Readonly<Record<BrainName, BrainProfile>> = Object.freeze({
     name: 'MAKES ATTACK RUNS',
     character: 'THE HAND-WRITTEN ATTACK RUN PIRATES FLEW BEFORE PURSUIT: CLOSES, FIRES '
       + 'THROUGH THE PASS AND COMES ROUND AGAIN — ABOUT 5 RUNS A MINUTE. THE A/B THAT '
-      + 'PUTS THE WHOLE GAME BACK ON IT; ON A COMBAT COMPUTER ROW IT MEANS NO CO-PILOT.',
+      + 'PUTS THE PIRATES BACK ON IT AND SWITCHES THE DEFENCE OFF: NO CO-PILOT, AND AN '
+      + 'ARMED TRADER RUNS INSTEAD OF TURNING TO FIGHT.',
   },
   // The pursuit dogfighter the combat computer flies, turned on the pirates as
   // the shipped opposition. A hybrid: it holds the six but breaks into the
@@ -123,9 +126,11 @@ export function isNamedBrain(brain: string): brain is BrainName {
  */
 export interface BrainSelection {
   /**
-   * The A/B control: put the whole game on the `scripted` hand-written attack
-   * run — pirates AND the defence co-pilot. An old save carrying a deleted
-   * trained-pirate flag (`pack`/`trained`) rides along unread.
+   * The A/B control: put every pirate on the `scripted` hand-written attack
+   * run, and switch the defence OFF — the combat computer refuses to engage
+   * (autopilot.ts) and an armed trader flees without turning to fight
+   * (npc.ts's defence gate). An old save carrying a deleted trained-pirate
+   * flag (`pack`/`trained`) rides along unread.
    */
   scripted?: boolean;
   /**
@@ -138,11 +143,15 @@ export interface BrainSelection {
 }
 
 /**
- * The pilot an armed trader turns and fights with, and the combat computer you
- * buy, with no overrides: the same `attack-run` the pirates fly, pointed the
- * other way (scripted-co-pilot.ts, npc.ts's defence path). It does not follow
- * the pirates onto pursuit — an armed trader's job is evade, survive, assist,
- * and pursuit is unevaluated there.
+ * The NAME the defence slots fly under with no overrides — one name, two
+ * hand-written flights. An armed trader turns and fights with the three-phase
+ * attack run the name is called after (npc.ts's defence gate compares against
+ * this name and calls its own `attack()`). The combat computer you buy flies
+ * a PURE-PURSUIT dogfighter on the commander's own ship (scripted-co-pilot.ts,
+ * chosen by this name in game.ts's `pilotDemand`) — it first flew the attack
+ * run and diverged deliberately when the run's steer-nowhere pass read as
+ * letting go of a close target (git 3c7b8ea). Neither slot follows the
+ * pirates' rule: pirates default to `pursuit` via `pirateBrainNameFor`.
  */
 const SHIPPED_DEFENCE: BrainName = 'attack-run';
 

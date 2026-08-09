@@ -140,7 +140,7 @@ export interface NpcSpec extends ShipIdentity {
   missiles?: number;
   ecmChance?: number;
   cargoDrop?: number; // max canisters dropped on destruction
-  armed?: boolean; // fights back (with the Jameson defence brain) when attacked
+  armed?: boolean; // turns and fights back (the defensive attack run, npc.ts) when attacked
 }
 
 /** How hard this hull can throttle, units/s. See ACCEL_FRACTION. */

@@ -1,9 +1,9 @@
-// The purchasable combat computer: the defence brain flying your ship.
-//
-// It is the same `jameson-defend` policy an armed trader uses, pointed at the
-// nearest thing hostile to you. Buying it means buying a co-pilot who evades
-// well and shoots adequately — which is exactly what the training measured, so
-// it is honest about what it is.
+// The TRAINED-brain seat of the combat computer: a defence policy flying your
+// ship. DORMANT today — no trained policy ships (`brains.ts`'s `defenceBrain`
+// returns null) and `step` disengages without a brain, so the co-pilot the
+// game actually flies is scripted-co-pilot.ts's pure-pursuit dogfighter
+// (game.ts's `pilotDemand` chooses between the two). The seat stays because a
+// future candidate re-enters through it unchanged.
 //
 // The module works out what the autopilot WANTS and reports it as a
 // `FlightDemand` — the SAME thing a human's hands produce
