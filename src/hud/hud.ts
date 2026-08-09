@@ -16,7 +16,7 @@ const DIM = '#1d6b26';
 const AMBER = '#ffb444';
 
 export type ContactKind =
-  'station' | 'ship' | 'hostile' | 'asteroid' | 'missile' | 'cargo' | 'thargoid';
+  'station' | 'ship' | 'hostile' | 'asteroid' | 'missile' | 'cargo' | 'pod' | 'thargoid';
 
 export interface ScannerContact {
   position: THREE.Vector3;
@@ -32,13 +32,16 @@ export interface ScannerContact {
  */
 const clampUnit = (n: number): number => Math.max(-1, Math.min(1, n));
 
-const CONTACT_COLORS: Record<ContactKind, string> = {
+/** Exported so a test can assert two kinds really are painted apart. */
+export const CONTACT_COLORS: Record<ContactKind, string> = {
   station: '#4dff5c',
   ship: '#ffd24d',
   hostile: '#ff5c4d',
   asteroid: '#b9b9a5',
   missile: '#ff9a3c',
   cargo: '#8ad0ff',
+  /** the colour the capsule's own mesh wears, so the blip matches the object */
+  pod: '#ffd24d',
   thargoid: '#d05cff',
 };
 

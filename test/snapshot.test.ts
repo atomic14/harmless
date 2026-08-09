@@ -343,6 +343,12 @@ console.log('\nsnapshot round trip');
     check('...and the capsule beside it comes back full, as a capsule (the control)',
       back.items[1].energy === canisterMaxEnergy('capsule')
       && back.items[1].kind === 'capsule');
+
+    // `commodity` is ignored for a capsule, and it used to be written as 3 —
+    // SLAVES — which nothing read and which the first generic reader of this
+    // wire would have believed (docs/TODO/108). Zero, and the comment is true.
+    check('a capsule states no commodity, on the object and on the wire',
+      back.items[1].commodity === 0 && field.items[1].commodity === 0);
   }
 
   // --- SessionState --------------------------------------------------------

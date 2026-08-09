@@ -114,8 +114,11 @@ export interface CommanderData {
    * Pilots pulled out of escape capsules, awaiting delivery to a station.
    *
    * NOT cargo, and deliberately not `cargo[3]` (SLAVES, which law.ts lists as
-   * contraband) — a rescued survivor must not read as smuggling. They take up a
-   * bay (see cargoTonnes) but are not stock and cannot be sold.
+   * contraband) — a rescued survivor must not read as smuggling. They are not
+   * stock, cannot be sold, and cost NO HOLD SPACE: a survivor rides in the crew
+   * spaces, so `cargoTonnes` does not count them and a full hold can still take
+   * one aboard (docs/TODO/108). Uncapped for the same reason — they occupy
+   * nothing, and docking hands them to station medical.
    */
   survivors: number;
   equipment: Equipment;
@@ -211,10 +214,15 @@ export function killValue(tier: number): number {
   return tier >= 2 ? 5 : tier === 1 ? 2 : 1;
 }
 
-/** Tonnes currently used (kg/g commodities don't count against the hold). */
+/**
+ * Tonnes currently used (kg/g commodities don't count against the hold).
+ *
+ * STOCK ONLY. `survivors` was added here and is deliberately gone again: a
+ * rescued pilot is a person in the crew spaces, not a tonne in the hold, so
+ * rescuing one neither fills a bay nor is refused when the bays are full.
+ */
 export function cargoTonnes(c: CommanderData): number {
-  return c.cargo.reduce((sum, qty, i) => sum + (COMMODITIES[i].unit === 't' ? qty : 0), 0)
-    + (c.survivors ?? 0);   // a rescued pilot takes up a bay
+  return c.cargo.reduce((sum, qty, i) => sum + (COMMODITIES[i].unit === 't' ? qty : 0), 0);
 }
 
 export function formatCredits(tenths: number): string {

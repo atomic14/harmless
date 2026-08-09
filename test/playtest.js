@@ -97,8 +97,8 @@
       if (c.fuel < -0.001 || c.fuel > 70.001) this.fail(`fuel out of range (${c.fuel})`);
       if (c.missiles < 0 || c.missiles > 4) this.fail(`missiles out of range (${c.missiles})`);
       if (c.cargo.some((q) => q < 0)) this.fail('negative cargo quantity');
-      // the game's own hold arithmetic — the copy here missed the rescued
-      // survivors that also take a bay, so it could not see a real overfill
+      // the game's own hold arithmetic, never a copy of it — a local
+      // reimplementation drifts from the rule and stops seeing a real overfill
       const tonnes = holdTonnes(c);
       const cap = holdCapacity(c);
       if (tonnes > cap) this.fail(`hold overfilled (${tonnes}/${cap})`);

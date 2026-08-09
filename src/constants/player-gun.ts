@@ -78,8 +78,25 @@ export const LASER_GRAZE = 0.9;
  * across, so an exact ray needs 1.4 degrees at 500m and they felt unhittable.
  * They are not a skill target — shooting one is a deliberate act — so they get
  * a flat, generous tolerance.
+ *
+ * @rule gun.graze.canister
  */
 export const CANISTER_GRAZE = 20;
+
+/**
+ * The same allowance for an escape capsule, which since docs/TODO/108 is a
+ * different hull rather than a small canister: released design 2, whose
+ * catalogue radius is 16 source units against the canister's 20. Four fifths
+ * of the canister's tolerance, which is the ratio the two silhouettes had while
+ * a capsule was drawn as a canister at 0.8 scale — so shooting one is no harder
+ * than it was, and the number now has a hull behind it.
+ *
+ * Its own rule, not `CANISTER_GRAZE * 0.8`: these are two objects' silhouettes,
+ * and retuning how forgiving cargo is must not silently move the pod.
+ *
+ * @rule gun.graze.pod
+ */
+export const POD_GRAZE = 16;
 
 /**
  * Aim assist: an angular allowance ON TOP of the target's silhouette, so a

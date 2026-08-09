@@ -11,7 +11,8 @@
 import * as THREE from 'three';
 import { seedWorld } from '../src/game/rng.ts';
 import { NpcShip } from '../src/game/npc.ts';
-import { screenTargets } from '../src/hud/hud-model.ts';
+import { screenTargets, scannerContacts } from '../src/hud/hud-model.ts';
+import { CONTACT_COLORS } from '../src/hud/hud.ts';
 import { check } from './harness.ts';
 
 console.log('\nhud model');
@@ -49,4 +50,27 @@ console.log('\nhud model');
     !!still?.lead
     && Math.abs(still.lead.x - still.x) < 1e-9
     && Math.abs(still.lead.y - still.y) < 1e-9);
+}
+
+// --- a pod gets its own blip (docs/TODO/108) ---------------------------------
+//
+// `scannerContacts` narrowed the drifting objects to `{ object }`, which threw
+// `kind` away one call before the blip was painted: a capsule showed in canister
+// blue. The parameter is wider now, and the model is where the kind becomes a
+// contact — the painter only looks the colour up.
+
+console.log('\nscanner contacts');
+{
+  const at = (x: number) => ({ object: new THREE.Object3D().translateX(x) });
+  const contacts = scannerContacts(
+    new THREE.Vector3(0, 0, 5_000), [], [],
+    [{ ...at(100), kind: 'cargo' as const }, { ...at(200), kind: 'capsule' as const }],
+    0);
+  const kinds = contacts.map((c) => c.kind);
+  check('a canister and a capsule are two different contacts',
+    kinds.includes('cargo') && kinds.includes('pod'));
+  check('...and the capsule is the pod, not more cargo',
+    kinds.filter((k) => k === 'cargo').length === 1);
+  check('...each painted its own colour, the capsule in its own mesh\'s',
+    CONTACT_COLORS.pod !== CONTACT_COLORS.cargo && CONTACT_COLORS.pod === '#ffd24d');
 }

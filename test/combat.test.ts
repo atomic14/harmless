@@ -493,11 +493,15 @@ console.log('\njettison');
   }
 }
 
-// --- rescuing someone is not smuggling ---------------------------------------
+// --- rescuing someone is not smuggling, and is not freight -------------------
 //
 // The occupant of an escape capsule used to be stored as `cargo[3] += 1`, and
 // commodity 3 is Slaves — which law.ts lists as contraband. Rescuing a pilot
 // therefore tripped the police scan and made you an Offender for a good deed.
+//
+// The first fix moved them to `commander.survivors` but kept charging a tonne
+// for them, so the hold still thought a person was stock. docs/TODO/108 finished
+// it: a survivor rides in the crew spaces and weighs nothing against the bays.
 
 console.log('\nsurvivors');
 {
@@ -508,17 +512,20 @@ console.log('\nsurvivors');
   c.survivors = 2;
   check('a rescued pilot is not contraband',
     !carryingContraband(c.cargo) && contrabandTonnes(c.cargo) === 0);
-  check('...but still takes up a bay', cargoTonnes(c) === 2);
+  check('...and takes up no bay either', cargoTonnes(c) === 0);
 
   const withCargo = newCommander();
   withCargo.cargo[0] = 3;
   withCargo.survivors = 1;
-  check('...and shares the hold with real cargo', cargoTonnes(withCargo) === 4);
+  check('...so the hold reports only the real cargo', cargoTonnes(withCargo) === 3);
 
-  // a save written before the fix must still load
+  // `cargoTonnes` reads the HOLD and nothing else now, so a record missing the
+  // survivors field is not a question it can trip over — it used to add the
+  // field and needed a `?? 0` to avoid NaN. The field is still repaired on load
+  // (storage.ts's repairCommander), because the rest of the game reads it.
   const old = JSON.parse(JSON.stringify(newCommander())) as Record<string, unknown>;
   delete old.survivors;
-  check('an old save with no survivors field is repaired, not NaN',
+  check('a record with no survivors field still totals its hold',
     cargoTonnes(old as never) === 0);
 }
 

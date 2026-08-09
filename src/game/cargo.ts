@@ -6,11 +6,12 @@
 // with consequences (legal status, messages, damage), and the Game owns
 // consequences. So `update` reports a REACHED event and stops there.
 //
-// Escape capsules are modelled as a canister with `kind: 'capsule'`, which is
-// the shortcut behind a known complaint: scooping one reads as picking up a
-// cargo pod that happens to contain a person. They should be their own object
-// with their own model — see the project's task list. This file is where that
-// change belongs, and the `kind` field is the seam.
+// Escape capsules SHARE THIS FIELD with canisters — one pool, one drift, one
+// clear() — but they are not canisters, and `kind` is the seam that keeps them
+// apart. Each kind builds its own released hull (design 2 against design 4),
+// carries its own bank, grazes at its own tolerance and, once reached, is worth
+// something entirely different: a person, not a tonne. Everything that reads a
+// drifting object reads `kind` first, and nothing may narrow it away (docs/TODO/108).
 //
 // A CANISTER IS ALSO A TARGET, and since TODO 28 it is a source-profiled one.
 // Shooting one used to delete it whatever the laser was; it now carries the
@@ -47,6 +48,15 @@ export interface Canister {
 /** The released cargo canister — one hull, resolved once. */
 const CANISTER_HULL = requireShipDef(OBJECT_DESIGNS.cargoCanister);
 
+/** ...and the released escape pod, which is a different shape entirely. */
+const POD_HULL = requireShipDef(OBJECT_DESIGNS.escapePod);
+
+/** What each kind is built from and painted, so the two build sites agree. */
+const LOOK: Record<Canister['kind'], { hull: typeof CANISTER_HULL; color: number }> = {
+  cargo: { hull: CANISTER_HULL, color: 0x8ad0ff },
+  capsule: { hull: POD_HULL, color: 0xffd24d },
+};
+
 /** What each kind of drifting object can absorb. The pack's, not ours. */
 const POLICY: Record<Canister['kind'], NpcEnergyPolicy> = {
   cargo: npcEnergyPolicy(recommendedProfileIdFor(OBJECT_DESIGNS.cargoCanister)),
@@ -56,6 +66,17 @@ const POLICY: Record<Canister['kind'], NpcEnergyPolicy> = {
 /** A fresh object of this kind, at full energy. */
 export function canisterMaxEnergy(kind: Canister['kind']): number {
   return POLICY[kind].maxEnergy;
+}
+
+/**
+ * The mesh for a kind, at its own size.
+ *
+ * Through `buildShip`, which turns a +Z-nose definition with a half turn about
+ * Y: the escape pod is one of the eight asymmetric released hulls, so a mirror
+ * would be a different object. See docs/INVARIANTS.md invariant 7.
+ */
+function build(kind: Canister['kind']): THREE.Object3D {
+  return buildShip(LOOK[kind].hull, LOOK[kind].color);
 }
 
 /** Tumble rate, radians per second — how a drifting canister LOOKS, not a rule:
@@ -78,7 +99,7 @@ export class CargoField {
   /** Scatter `count` canisters of the given commodities from a wreck. */
   spawn(at: THREE.Vector3, count: number, commodities: readonly number[]): void {
     for (let i = 0; i < count; i++) {
-      const object = buildShip(CANISTER_HULL, 0x8ad0ff);
+      const object = build('cargo');
       object.position.copy(at)
         .add(randomDirection(new THREE.Vector3()).multiplyScalar(20 + i * 15));
       this.add(object, {
@@ -96,11 +117,13 @@ export class CargoField {
    * destroyed ship may eject its crew.
    */
   spawnCapsule(at: THREE.Vector3): void {
-    const object = buildShip(CANISTER_HULL, 0xffd24d);
-    object.scale.setScalar(0.8);
+    const object = build('capsule');
     object.position.copy(at);
     this.add(object, {
-      commodity: 3,
+      // Zero, and ignored: a capsule's occupant is `commander.survivors`, never
+      // a commodity index. It used to be 3 — Slaves — in a field nothing reads,
+      // which was a trap set for the first generic reader (docs/TODO/108).
+      commodity: 0,
       velocity: randomDirection(new THREE.Vector3()).multiplyScalar(40 + random() * 30),
       spinAxis: randomDirection(new THREE.Vector3()),
       kind: 'capsule',
@@ -113,8 +136,7 @@ export class CargoField {
     pos: THREE.Vector3, velocity: THREE.Vector3, spinAxis: THREE.Vector3,
     kind: 'cargo' | 'capsule', commodity: number, energy: number,
   ): void {
-    const object = buildShip(CANISTER_HULL, kind === 'capsule' ? 0xffd24d : 0x8ad0ff);
-    if (kind === 'capsule') object.scale.setScalar(0.8);
+    const object = build(kind);
     object.position.copy(pos);
     // The bank is taken from the snapshot like everything else here. It used to
     // default to full for a save written before canisters had one; that

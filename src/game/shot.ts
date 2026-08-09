@@ -13,7 +13,7 @@
 
 import * as THREE from 'three';
 import { LASER_RANGE } from '../constants/player-gun.ts';
-import { hitCone, canisterCone } from './gunnery.ts';
+import { hitCone, driftingCone } from './gunnery.ts';
 
 /** Anything the beam can stop against. */
 export interface Solid {
@@ -26,7 +26,12 @@ export interface ShootableShip extends Solid {
   radius: number;
 }
 
-export type ShotHit<S extends ShootableShip, C extends Solid> =
+/** A drifting object, whose graze comes from its KIND — see `driftingCone`. */
+export interface Drifting extends Solid {
+  kind: 'cargo' | 'capsule';
+}
+
+export type ShotHit<S extends ShootableShip, C extends Drifting> =
   | { kind: 'ship'; ship: S; distance: number }
   | { kind: 'cargo'; cargo: C; distance: number }
   | { kind: 'station'; distance: number }
@@ -40,7 +45,7 @@ export type ShotHit<S extends ShootableShip, C extends Solid> =
  *
  * @param station null in witch-space, where there isn't one.
  */
-export function traceShot<S extends ShootableShip, C extends Solid>(
+export function traceShot<S extends ShootableShip, C extends Drifting>(
   origin: THREE.Vector3,
   forward: THREE.Vector3,
   ships: readonly S[],
@@ -112,7 +117,7 @@ export function traceShot<S extends ShootableShip, C extends Solid>(
     const to = scratch.copy(c.object.position).sub(origin);
     const dist = to.length();
     if (dist > bestDist) continue;
-    if (forward.angleTo(to.normalize()) < canisterCone(dist)) {
+    if (forward.angleTo(to.normalize()) < driftingCone(c.kind, dist)) {
       bestDist = dist;
       hit = { kind: 'cargo', cargo: c, distance: dist };
     }

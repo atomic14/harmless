@@ -35,6 +35,8 @@ import {
 import {
   OBJECT_DESIGNS, registeredHull, requireShipDef, shipTargetRadius, SOURCE_HULLS,
 } from '../src/ships/registry.ts';
+import { CargoField } from '../src/game/cargo.ts';
+import { seedWorld } from '../src/game/rng.ts';
 
 console.log('\n--- ship geometry ---');
 
@@ -238,10 +240,43 @@ check('the rock hermit is generated, so it has no tabulated hull',
   check('...that blinks on and off as the world steps', seen.has(true) && seen.has(false));
 }
 
-check('the canister and the missile are released designs 4 and 15',
+check('the canister, the pod and the missile are released designs 4, 2 and 15',
   OBJECT_DESIGNS.cargoCanister === shipDesignIdOf(4)
+  && OBJECT_DESIGNS.escapePod === shipDesignIdOf(2)
   && OBJECT_DESIGNS.missile === shipDesignIdOf(15)
   && requireShipDef(OBJECT_DESIGNS.missile).name === 'Missile');
+
+// --- and a drifting capsule is BUILT from the pod (docs/TODO/108) ------------
+//
+// A capsule used to be a canister at 0.8 scale in a different colour. Both are
+// released designs and they are not the same shape, so the mesh the field
+// actually builds is the claim — spawned, and restored from a snapshot, because
+// `CargoField` builds one at each site and the two used to be able to disagree.
+{
+  const edgeCount = (o: THREE.Object3D): number => {
+    const lines = o.children.find((c) => c instanceof THREE.LineSegments);
+    return (lines as THREE.LineSegments).geometry.getAttribute('position').count;
+  };
+  const pod = edgeCount(buildShip(requireShipDef(OBJECT_DESIGNS.escapePod), 0));
+  const canister = edgeCount(buildShip(requireShipDef(OBJECT_DESIGNS.cargoCanister), 0));
+  check('the two hulls are distinguishable at all (the control)', pod !== canister);
+
+  seedWorld(108);
+  const field = new CargoField(new THREE.Object3D());
+  field.spawnCapsule(new THREE.Vector3());
+  field.spawn(new THREE.Vector3(500, 0, 0), 1, [0]);
+  eq('a spawned capsule is the escape pod\'s mesh', edgeCount(field.items[0].object), pod);
+  eq('...and a canister beside it is still the canister\'s',
+    edgeCount(field.items[1].object), canister);
+  check('...at its own full size, with no leftover 0.8 scale',
+    field.items[0].object.scale.x === 1);
+
+  const back = new CargoField(new THREE.Object3D());
+  back.restoreAll(field.capture());
+  eq('a capsule restored from a snapshot is the pod too',
+    edgeCount(back.items[0].object), pod);
+  eq('...and the canister is still a canister', edgeCount(back.items[1].object), canister);
+}
 
 // --- the ray/hit radius is the catalogue's ------------------------------------
 //

@@ -19,12 +19,18 @@ import {
 } from '../game/docking.ts';
 import { TARGET_BRACKET_RANGE, BOLT_SPEED } from '../constants/console.ts';
 
-/** Everything on the scanner: the station, ships, missiles and cargo. */
+/**
+ * Everything on the scanner: the station, ships, missiles and drifting objects.
+ *
+ * The drifting objects arrive with their `kind` because a capsule is not a
+ * canister and reads as its own blip. This parameter used to narrow them to
+ * `{ object }`, which threw the kind away one call before the blip was painted.
+ */
 export function scannerContacts(
   stationPos: THREE.Vector3,
   npcs: readonly NpcShip[],
   missiles: readonly { object: THREE.Object3D }[],
-  canisters: readonly { object: THREE.Object3D }[],
+  canisters: readonly { object: THREE.Object3D; kind: 'cargo' | 'capsule' }[],
   legalStatus: number,
 ): ScannerContact[] {
   const contacts: ScannerContact[] = [{ position: stationPos, kind: 'station' }];
@@ -38,7 +44,11 @@ export function scannerContacts(
     contacts.push({ position: npc.object.position, kind });
   }
   for (const m of missiles) contacts.push({ position: m.object.position, kind: 'missile' });
-  for (const c of canisters) contacts.push({ position: c.object.position, kind: 'cargo' });
+  for (const c of canisters) {
+    contacts.push({
+      position: c.object.position, kind: c.kind === 'capsule' ? 'pod' : 'cargo',
+    });
+  }
   return contacts;
 }
 

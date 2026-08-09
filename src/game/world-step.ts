@@ -415,18 +415,24 @@ export class WorldStep {
     // ours to decide, because it touches the hold, legal status and damage.
     for (const { canister: c } of world.cargo.update(dt, player.position)) {
       if (!commander.equipment.scoops) {
+        // The same accident either way — no scoops, so it breaks on the hull —
+        // but it is named for what it was. Flying into one is not an offence;
+        // SHOOTING a capsule is, and that is combat.ts's FUGITIVE branch.
         this.host.applyPlayerDamage(
           playerImpactDamage(IMPACT.canisterOnHull), c.object.position, 'cargo');
-        out.push(say('CANISTER DESTROYED ON HULL', 2));
-      } else if (cargoTonnes(commander) >= cargoCapacity(commander)) {
         out.push(say(
-          c.kind === 'capsule' ? 'HOLD FULL — CAPSULE LOST' : 'HOLD FULL — CANISTER LOST', 3));
+          c.kind === 'capsule'
+            ? 'ESCAPE CAPSULE DESTROYED ON HULL' : 'CANISTER DESTROYED ON HULL', 2));
       } else if (c.kind === 'capsule') {
         // A person, not stock. See CommanderData.survivors — a capsule is not
         // cargo commodity 3 (Slaves), which would make rescue read as smuggling.
+        // Tested BEFORE the hold: a survivor rides in the crew spaces, so a full
+        // hold is no reason to leave someone adrift (docs/TODO/108).
         commander.survivors += 1;
         out.push(say('SURVIVOR ABOARD', 4));
         out.push(heard('survivorScooped'));
+      } else if (cargoTonnes(commander) >= cargoCapacity(commander)) {
+        out.push(say('HOLD FULL — CANISTER LOST', 3));
       } else {
         commander.cargo[c.commodity] += 1;
         out.push(say(`SCOOPED 1t ${COMMODITIES[c.commodity].name.toUpperCase()}`, 3));

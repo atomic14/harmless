@@ -20,7 +20,7 @@ import {
   chargeShot,
   assistAt,
   hitCone,
-  canisterCone,
+  driftingCone,
   playerLaser,
   playerLaserHit,
 } from '../src/game/gunnery.ts';
@@ -102,7 +102,13 @@ console.log('\ngunnery');
     check('the same ship is harder to hit further away',
       hitCone(18, 2000) < hitCone(18, 500));
     check('cargo gets a flat tolerance and no assist',
-      canisterCone(500) > 0 && canisterCone(3000) < canisterCone(500));
+      driftingCone('cargo', 500) > 0
+      && driftingCone('cargo', 3000) < driftingCone('cargo', 500));
+    // A capsule is a different hull with a smaller catalogue radius, and since
+    // docs/TODO/108 it grazes on its own number. Both are still generous.
+    check('a capsule grazes at its own, tighter tolerance',
+      driftingCone('capsule', 500) < driftingCone('cargo', 500)
+      && driftingCone('capsule', 500) > 0);
   }
   {
     // ...and the NPC's choice of weapon, which is gunnery.ts's too.
@@ -205,7 +211,15 @@ console.log('\nshot tracing');
   check('beyond laser range, nothing is hit',
     trace([ship(0, 0, -9000)]).kind === 'miss');
   check('drifting cargo is solid',
-    trace([], [{ object: box(0, 0, -400, 12) }]).kind === 'cargo');
+    trace([], [{ object: box(0, 0, -400, 12), kind: 'cargo' }]).kind === 'cargo');
+  {
+    // The graze pass reads the object's KIND: a capsule at a range where only
+    // the canister's wider allowance would reach is a miss, and the canister in
+    // its place is a hit. A ray through neither hull — both boxes are 4 units.
+    const offAxis = (kind: string) => trace([], [{ object: box(18, 0, -400, 4), kind }]);
+    check('a canister is caught by the canister allowance', offAxis('cargo').kind === 'cargo');
+    check('...and a capsule in the same place is not', offAxis('capsule').kind === 'miss');
+  }
   check('the station is solid',
     trace([], [], box(0, 0, -600, 300)).kind === 'station');
   {

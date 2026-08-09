@@ -25,7 +25,7 @@ import {
   clearFlightSaves, withoutSaving, writeDockSave, writeFlightSave, writeNamedSave,
 } from '../src/game/storage.ts';
 import type { NpcSnapshot, WorldSnapshot } from '../src/game/snapshot.ts';
-import { newCommander } from '../src/game/commander.ts';
+import { newCommander, cargoCapacity, cargoTonnes } from '../src/game/commander.ts';
 import {
   Combat,
   firePlayerLaser,
@@ -113,6 +113,8 @@ console.log('\nheadless world step');
     };
     const log = {
       deaths: [] as string[], saves: 0, docks: 0, shots: 0, damage: 0, hermits: 0,
+      /** how many times the step asked for the commander's record to be marked */
+      legal: 0,
       /** every hit the player took, and what the step said did it */
       hits: [] as { amount: PlayerPoolPoints; source: DamageSource }[],
     };
@@ -128,7 +130,7 @@ console.log('\nheadless world step');
       destroyNpc: (npc) => { combat.destroy(state.commander, npc); },
       wreckNpc: (npc) => { combat.wreck(npc); },
       fireLaser: () => { log.shots += 1; },
-      raiseLegal: () => {},
+      raiseLegal: () => { log.legal += 1; },
       die: (reason) => { log.deaths.push(reason); },
       dock: () => { log.docks += 1; },
       completeHyperspace: () => {},
@@ -478,6 +480,69 @@ console.log('\nheadless world step');
 
     check('all five ways to be hurt are named, and nothing else is',
       SOURCES.every((s) => seen.has(s)) && seen.size === SOURCES.length);
+  }
+
+  // --- A POD IS NOT A CANISTER (docs/TODO/108) -------------------------------
+  //
+  // Through the real scoop path — `CargoField.update` reports what the player
+  // reached and the step decides what it is worth — because that is the only
+  // place the rules meet. Each of these failed before the change.
+  {
+    const said = (events: StepEvent[]) => events
+      .filter((e): e is { kind: 'message'; text: string; seconds: number } =>
+        e.kind === 'message').map((e) => e.text);
+    /** A commander with scoops, a hold as full as `tonnes`, and one thing adrift. */
+    const adrift = (seed: number, kind: 'cargo' | 'capsule', tonnes: number) => {
+      const r = arrival(seed);
+      r.state.commander.equipment.scoops = true;
+      r.state.commander.cargo[0] = tonnes;
+      const where = r.state.player.position.clone();
+      if (kind === 'capsule') r.state.world.cargo.spawnCapsule(where);
+      else r.state.world.cargo.spawn(where, 1, [0]);
+      return { r, said: said(fly(r, 1)) };
+    };
+
+    // The rescue, with nowhere to put a tonne. Issue #8: "you rescue a pilot,
+    // you do not gain a tonne" — so the hold's state cannot be the answer.
+    const capacity = cargoCapacity(newCommander());
+    {
+      const { r, said: lines } = adrift(4_252, 'capsule', capacity);
+      check('a full hold still rescues the pilot', r.state.commander.survivors === 1);
+      check('...and says so, rather than losing the capsule',
+        lines.includes('SURVIVOR ABOARD'));
+      check('...without the rescue costing a tonne',
+        cargoTonnes(r.state.commander) === capacity);
+    }
+    {
+      // the control: a CANISTER into the same full hold is still refused
+      const { r, said: lines } = adrift(4_253, 'cargo', capacity);
+      check('a canister into a full hold is still lost',
+        lines.includes('HOLD FULL — CANISTER LOST')
+        && cargoTonnes(r.state.commander) === capacity);
+    }
+    {
+      const { r } = adrift(4_254, 'capsule', 0);
+      check('a rescued pilot occupies no bay in an empty hold either',
+        r.state.commander.survivors === 1 && cargoTonnes(r.state.commander) === 0);
+    }
+
+    // ...and with no scoops fitted it breaks on the hull, named for what it is.
+    {
+      const r = arrival(4_255);
+      r.state.commander.equipment.scoops = false;
+      r.state.world.cargo.spawnCapsule(r.state.player.position.clone());
+      const lines = said(fly(r, 1));
+      check('ramming a capsule without scoops names the capsule',
+        lines.includes('ESCAPE CAPSULE DESTROYED ON HULL'));
+      check('...and it hurts exactly as a canister does — the same accident',
+        r.log.hits.filter((h) => h.source === 'cargo')
+          .every((h) => h.amount === playerImpactDamage(IMPACT.canisterOnHull))
+        && r.log.hits.some((h) => h.source === 'cargo'));
+      // Message only: shooting one is the deliberate act and stays FUGITIVE
+      // (combat.ts); flying into one with no scoops is the same accident it is
+      // for a canister, and the step never asks the host to mark you for it.
+      check('...and is not an offence', r.log.legal === 0);
+    }
   }
 
   // THE FOUR WINDOWS. `VIEW_QUATS` is the one thing in this slice's files that

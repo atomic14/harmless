@@ -73,19 +73,20 @@ export function registeredHull(id: ShipDesignId): RegisteredHull {
 }
 
 /**
- * The two designs the game names directly rather than through the roster.
+ * The designs the game names directly rather than through the roster.
  *
- * A canister and a missile are objects, not ships, so `ship-specs.ts` has no
- * row for them — but they are released designs with released geometry, and
- * `game/cargo.ts` and `game/ordnance.ts` have to say which. Written down once
- * here and validated against the catalogue, rather than at those call sites.
+ * A canister, a pod and a missile are objects, not ships, so `ship-specs.ts`
+ * has no row for them — but they are released designs with released geometry,
+ * and `game/cargo.ts` and `game/ordnance.ts` have to say which. Written down
+ * once here and validated against the catalogue, rather than at those call sites.
  */
 export const OBJECT_DESIGNS = {
   cargoCanister: shipDesignIdOf(4),
   /**
-   * The released escape pod. Harmless has no pod MESH — a capsule is drawn as a
-   * canister in a different colour — so this id is here for its COMBAT PROFILE:
-   * what a pod can absorb before it breaks up is the pack's (see game/cargo.ts).
+   * The released escape pod: a drifting capsule's MESH and its COMBAT PROFILE
+   * both, since docs/TODO/108. It was profile only — a capsule was drawn as a
+   * small canister in a different colour — which is why the pod sits here
+   * beside the canister rather than in the roster: it is an object, not a ship.
    */
   escapePod: shipDesignIdOf(2),
   missile: shipDesignIdOf(15),

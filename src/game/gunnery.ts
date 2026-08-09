@@ -25,7 +25,7 @@
 import type { Equipment, LaserType } from './commander.ts';
 import {
   AIM_ASSIST, ASSIST_FADE_END, ASSIST_FADE_START, CANISTER_GRAZE,
-  LASER_CUTOUT, LASER_GRAZE, LASER_PACING,
+  LASER_CUTOUT, LASER_GRAZE, LASER_PACING, POD_GRAZE,
 } from '../constants/player-gun.ts';
 import {
   NPC_COOLDOWN_LO, NPC_COOLDOWN_SPREAD, NPC_FIRE_GATE, NPC_HIT_BASE,
@@ -75,9 +75,15 @@ export function hitCone(radius: number, dist: number): number {
   return Math.max(0.012, Math.atan((radius * LASER_GRAZE) / dist)) + assistAt(dist);
 }
 
-/** Half-angle for drifting cargo, which gets a flat tolerance and no assist. */
-export function canisterCone(dist: number): number {
-  return Math.max(0.012, Math.atan(CANISTER_GRAZE / dist));
+/**
+ * Half-angle for a drifting object, which gets a flat tolerance and no assist.
+ *
+ * By KIND, not by a radius: neither a canister nor a capsule is a skill target,
+ * so each gets the generous allowance its own hull is worth rather than a cone
+ * that shrinks and swells as the thing tumbles.
+ */
+export function driftingCone(kind: 'cargo' | 'capsule', dist: number): number {
+  return Math.max(0.012, Math.atan((kind === 'capsule' ? POD_GRAZE : CANISTER_GRAZE) / dist));
 }
 
 /**
