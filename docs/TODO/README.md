@@ -54,7 +54,7 @@ wanted, and the queue prefers items a player can feel.
 - [x] 99 — [`npm run survivability` cannot run, and its header says a stale thing](99-survivability-cannot-run.md) — tooling/truth · medium · small
 - [x] 100 — [Who flies the combat computer? The docs disagree with the code, both ways](100-who-flies-the-combat-computer.md) — docs/truth · medium · small
 - [x] 102 — [Two things still try to load the retired brains, and one is a live page](102-two-things-still-load-the-retired-brains.md) — bug · high · small
-- [ ] 103 — [The train tools still name the retired brains](103-the-train-tools-still-name-the-retired-brains.md) — tooling/truth · low · small
+- [x] 103 — [The train tools still name the retired brains](103-the-train-tools-still-name-the-retired-brains.md) — tooling/truth · low · small
 - [ ] 104 — [The constants catalogue, and a mechanical duplicate check](104-the-constants-catalogue.md) — tooling/architecture · high · medium
 - [ ] 105 — [The cycle orchestrator: a deterministic script runs the loop](105-the-cycle-orchestrator.md) — tooling/process · high · medium
 
