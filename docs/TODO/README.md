@@ -58,15 +58,15 @@ wanted, and the queue prefers items a player can feel.
 - [ ] 104 — [The constants catalogue, and a mechanical duplicate check](104-the-constants-catalogue.md) — tooling/architecture · high · medium
 - [ ] 105 — [The cycle orchestrator: a deterministic script runs the loop](105-the-cycle-orchestrator.md) — tooling/process · high · medium
 
-**Checkpoint, 2026-08-09 (session web-elite-harmless, ending at the audit):**
-main is `22083b5` + the process-revision commit that carries this line; 97,
-98, 99, 100, 102 landed and pushed; issues #12-14 closed. 101 (frame
-sampler) is OPEN and barely started — a stale worktree/branch
-`worktree-agent-a8b7955e875de101f` may exist with no commits; delete it and
-restart 101 fresh under the new model. Next: 104 and 105 (they cut every
-later cycle's cost), then 101, 92, 103, #8, #7, 86, 89, 96, 95, #9, #10,
-68. The next supervisor session starts from this file plus docs/PROCESS.md,
-not from any chat history.
+**Checkpoint, 2026-08-09 (session web-elite-harmless, closed clean):** main
+is `ce58a8f` + the commit carrying this line, pushed; working tree clean; NO
+worktrees, branches or agents outstanding — nothing is half-done anywhere.
+Landed today: 97, 98, 99, 100, 102 and the process revision; issues #12-14
+closed; CI green throughout. Queue order: **104** (constants catalogue —
+start here; it and 105 cut every later cycle's cost), 105, 101, 92, 103,
+#8, #7, 86, 89, 96, 95, #9, #10, 68. Every open item is a self-contained
+plan doc in this directory. The next supervisor session starts from this
+file plus docs/PROCESS.md, not from any chat history.
 - [ ] 101 — [One home for the frame sampler, and a name for the seed stride](101-one-home-for-the-frame-sampler.md) — architecture/test infrastructure · medium · small
 
 ## The combat trainer
