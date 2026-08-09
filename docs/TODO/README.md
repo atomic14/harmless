@@ -62,11 +62,15 @@ wanted, and the queue prefers items a player can feel.
 is `ce58a8f` + the commit carrying this line, pushed; working tree clean; NO
 worktrees, branches or agents outstanding — nothing is half-done anywhere.
 Landed today: 97, 98, 99, 100, 102 and the process revision; issues #12-14
-closed; CI green throughout. Queue order: **104** (constants catalogue —
-start here; it and 105 cut every later cycle's cost), 105, 101, 92, 103,
-#8, #7, 86, 89, 96, 95, #9, #10, 68. Every open item is a self-contained
-plan doc in this directory. The next supervisor session starts from this
-file plus docs/PROCESS.md, not from any chat history.
+closed; CI green throughout. **105's orchestrator script now exists**
+(`tools/cycle.ts`, dry-run tested; drive an item with
+`node --experimental-strip-types tools/cycle.ts <number>`); 105 stays open
+until its shakedown — run item 103 through it end to end, which also
+retires 103. Queue order: **103 via the script** (the shakedown), then 104
+(constants catalogue), 101, 92, #8, #7, 86, 89, 96, 95, #9, #10, 68. Every
+open item is a self-contained plan doc in this directory. The next
+supervisor session starts from this file plus docs/PROCESS.md, not from any
+chat history.
 - [ ] 101 — [One home for the frame sampler, and a name for the seed stride](101-one-home-for-the-frame-sampler.md) — architecture/test infrastructure · medium · small
 
 ## The combat trainer
