@@ -12,6 +12,8 @@ import { describeFlight } from '../src/game/break-off.ts';
 import {
   PURSUIT_RANGE, PURSUIT_BREAK_RANGE, PURSUIT_CLEAR_RANGE,
 } from '../src/constants/combat-computer.ts';
+import { Episode, type Controller } from '../src/ai-training/scenario.ts';
+import { FIXED_DT } from '../src/constants/world-clock.ts';
 import { check } from './harness.ts';
 
 console.log('\npursuit');
@@ -195,4 +197,55 @@ console.log('\npursuit');
   check(`...and it switches BACK to the six when the commander looks away again`
     + ` (${asternAgain.flownBy})`,
   asternAgain.flownBy === 'pursuit');
+}
+
+// --- an Episode can stage the pilot that ships (docs/TODO/102) ---------------
+//
+// The combat viewer replays Episodes, and what a player meets is `pursuit` —
+// so the `pursuit` controller must genuinely route a pirate through
+// `pursuitFly`, the SAME call `update()` makes above, switch included.
+// `flownBy` is the witness on both paths: `pursue()` writes 'pursuit' and
+// `attack()` writes 'scripted', so the states seen across a fight say which
+// flights were actually flown.
+{
+  const flownStates = (pirate: Controller, trader: Controller) => {
+    // Held out of every probe base; nothing is selected on it. escapeRange
+    // opened up so a fleeing target cannot end the fight before the switch
+    // has been seen.
+    const ep = new Episode({
+      seed: 1102, pirates: [pirate], trader, maxTime: 20, escapeRange: 50_000,
+    });
+    const seen = new Set<string>();
+    while (!ep.done) {
+      ep.step(FIXED_DT);
+      seen.add(ep.pirates[0].npc.state.flownBy);
+    }
+    return seen;
+  };
+
+  const chased = flownStates({ kind: 'pursuit' }, { kind: 'runner' });
+  check('a pursuit-controlled pirate reaches pursue() inside an episode',
+    chased.has('pursuit'));
+
+  // The switch shows across the two rows: a runner presents its tail (faced
+  // stays past PURSUIT_HOLD_CONE, so it is pursued), a holding target keeps
+  // its nose ON the pirate (faced stays inside PURSUIT_SLASH_CONE, so the
+  // slash latches and the whole fight is the attack run — sitting in its guns
+  // is exactly what the switch exists to refuse).
+  const vsKnife = flownStates({ kind: 'pursuit' }, { kind: 'holding' });
+  check('...and the switch operates: a target with its nose on it is slashed,'
+    + ` never orbited (${[...vsKnife].join(', ')})`,
+  vsKnife.has('scripted') && !vsKnife.has('pursuit'));
+
+  const jousted = flownStates({ kind: 'scripted' }, { kind: 'runner' });
+  check('a scripted-controlled pirate never reaches pursue()',
+    !jousted.has('pursuit'));
+
+  // The shared Controller union would otherwise let a pursuit TARGET fall
+  // silently into the scripted trader; the constructor refuses it instead.
+  let refused = false;
+  try {
+    void new Episode({ seed: 1102, pirates: [], trader: { kind: 'pursuit' } });
+  } catch { refused = true; }
+  check('the target refuses the pursuit pilot — it is a pirate pilot', refused);
 }

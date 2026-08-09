@@ -36,7 +36,9 @@ import * as THREE from 'three';
 
 import { PlayerShip, rampToward, type FlightDemand } from '../player.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
-import { NpcShip, steerQuatToward, type FireEvent } from '../game/npc.ts';
+import {
+  NpcShip, steerQuatToward, type FireEvent, type PlayerRef,
+} from '../game/npc.ts';
 import {
   BRAIN_RATE_DECAY, BRAIN_RATE_RAMP, DECISION_INTERVAL,
 } from '../constants/brain-flight.ts';
@@ -118,6 +120,15 @@ export interface ShotEvent {
 export type Controller =
   | { kind: 'policy'; brain: Brain }
   | { kind: 'scripted' }
+  /**
+   * A pirate flying the SHIPPED opposition: the pursuit dogfighter, switch
+   * included — hold the six while astern, slash past on the attack run the
+   * moment the target faces it. The flight is `NpcShip.pursuitFly`, the same
+   * call `update()` makes for every live pirate, so an episode cannot drift
+   * from the fight a player actually meets (docs/TODO/102). Pirates only:
+   * the target is a `PlayerShip` and cannot fly an NPC pilot.
+   */
+  | { kind: 'pursuit' }
   /**
    * A target that simply leaves: nose away from the nearest pirate, throttle
    * open. It exists so that "do nothing" stops being a winning pirate policy —
@@ -730,6 +741,12 @@ export class Episode {
   private traderFireCooldown = 1.5;
 
   constructor(opts: EpisodeOptions) {
+    // `pursuit` is a pirate's pilot: the target is a `PlayerShip` and cannot
+    // fly an NPC flight. Refused loudly — the shared `Controller` union would
+    // otherwise let it fall silently into the scripted trader below.
+    if (opts.trader.kind === 'pursuit') {
+      throw new Error('Episode: the target cannot fly pursuit — it is a pirate pilot');
+    }
     this.opts = opts;
     // The sky this episode's warheads fly in: its own fleet, and nowhere to
     // draw. `npcs` is the live array, not a copy, because the pirates are pushed
@@ -834,14 +851,20 @@ export class Episode {
         ? p.npc.brainFly(
           ctrl.brain, dt, this.trader.pos, this.trader.quat, this.trader.speed,
           range, 'player', this.fleet)
+        // The shipped opposition: the pursuit dogfighter through the same
+        // `pursuitFly` the live `update()` path flies, switch and all
+        // (docs/TODO/102). The target's speed rides in on the same PlayerRef
+        // the game hands it.
+        : ctrl.kind === 'pursuit'
+          ? p.npc.pursuitFly(dt, this.traderAsPlayer(), range, this.fleet)
         // THE FLEET GOES IN, and so does the target's VELOCITY. Without the
         // first a scripted pirate in an episode flies with no idea its wingmen
         // exist; without the second it lays its attack run on where the target
         // was rather than where it will be. Either omission is a second physics
         // — the same ship flying differently here from in the game — and that
         // is the one thing this file is organised against.
-        : p.npc.attack(dt, this.trader.pos, range, true, undefined, this.fleet,
-          this.traderVelocity());
+          : p.npc.attack(dt, this.trader.pos, range, true, undefined, this.fleet,
+            this.traderVelocity());
       // WHICH WEAPON leaves the rail is the ship's decision, not the flight's
       // (docs/TODO/62). It keeps no time of its own: `tickClocks` above runs the
       // reload, so this is a decision and nothing else (docs/TODO/77). It no
@@ -1009,6 +1032,21 @@ export class Episode {
       this.warheadsTaken += 1;
       this.trader.takeDamage(playerImpactDamage(IMPACT.warhead), this.hitFromFront(e.at));
     }
+  }
+
+  /**
+   * The target as the `PlayerRef` a pursuit pirate's flight reads — the same
+   * three facts `update()` hands `pursuitFly` for the live commander. One
+   * reused object: `pos` and `quat` are the target's own live objects, so only
+   * the speed genuinely changes between calls.
+   */
+  private readonly playerRef: PlayerRef = { position: null!, quaternion: null!, speed: 0 };
+
+  private traderAsPlayer(): PlayerRef {
+    this.playerRef.position = this.trader.pos;
+    this.playerRef.quaternion = this.trader.quat;
+    this.playerRef.speed = this.trader.speed;
+    return this.playerRef;
   }
 
   /**

@@ -661,17 +661,13 @@ export class NpcShip {
 
     if (aggressiveToPlayer) {
       // A pirate a player meets flies the `pursuit` dogfighter by default — the
-      // combat computer's own pilot, turned on the pirates. It is not a single
-      // flight: a ship that only ever held the six was a duck the moment it
-      // drifted ahead of the commander's guns. So a pursuit pirate SWITCHES — it
-      // holds the six while it is astern of the commander (`pursue`) and slashes
-      // past on the attack run the moment the commander faces it
-      // (`slashesRatherThanHoldSix`). The `scripted` A/B reverts every pirate to
-      // the hand-written three-phase attack run instead. Either flight goes
-      // through the same `chooseWeapon` for what leaves the rail.
+      // combat computer's own pilot, turned on the pirates. The `scripted` A/B
+      // reverts every pirate to the hand-written three-phase attack run
+      // instead. Either flight goes through the same `chooseWeapon` for what
+      // leaves the rail.
       const pursuit = pirateBrainNameFor(this.state.threatTier, false, brains) === 'pursuit';
-      const shot = pursuit && !this.slashesRatherThanHoldSix(player)
-        ? this.pursue(dt, player.position, distPlayer, true, undefined, player.speed, fleet)
+      const shot = pursuit
+        ? this.pursuitFly(dt, player, distPlayer, fleet)
         : this.attack(dt, player.position, distPlayer, true, undefined,
           fleet, this.velocityOf(player.quaternion, player.speed));
       return this.chooseWeapon(shot, distPlayer, player.position,
@@ -1121,6 +1117,32 @@ export class NpcShip {
         : { at: npcTarget!, weapon: 'laser' };
     }
     return null;
+  }
+
+  /**
+   * One frame of the WHOLE `pursuit` pilot, switch included. It is not a
+   * single flight: a ship that only ever held the six was a duck the moment it
+   * drifted ahead of the commander's guns, so it holds the six while it is
+   * astern of the target (`pursue`) and slashes past on the attack run the
+   * moment the target's nose swings onto it (`slashesRatherThanHoldSix`).
+   *
+   * PUBLIC for the same reason as `attack` and `brainFly`: it is what every
+   * shipped pirate flies, and the training `Episode`'s `pursuit` controller
+   * (docs/TODO/102) must be this call, not a re-implementation of the switch —
+   * `update()` above and the episode both come through here, so the two cannot
+   * drift. The gun is decided inside `pursue`/`attack`, exactly as the other
+   * two pilots decide theirs.
+   */
+  pursuitFly(
+    dt: number,
+    target: PlayerRef,
+    dist: number,
+    fleet: readonly NpcShip[] = [],
+  ): FireEvent | null {
+    return this.slashesRatherThanHoldSix(target)
+      ? this.attack(dt, target.position, dist, true, undefined,
+        fleet, this.velocityOf(target.quaternion, target.speed))
+      : this.pursue(dt, target.position, dist, true, undefined, target.speed, fleet);
   }
 
   /**
