@@ -32,7 +32,7 @@ what is ours is one table in [ELITE-A.md](ELITE-A.md).
 | Progression | Kills → Harmless … E L I T E; save-on-dock; save export/import. |
 | Console | Elliptical 3D scanner, compass, gauges, missile pylons, the energy readout in four banks (see deviations), S (station in range) and E (ECM detected) indicator lights. |
 | Presentation | Wireframe hidden-line ships, shader sun and planets, phosphor HUD, WebAudio synth, in-game controls guide. Mouse throughout: pointer-lock flight, clickable menus/markets/equipment, click-to-target on the charts. |
-| Ship AI | No neural policy ships: all three pilots are code (`src/game/brains.ts`). Pirates fly `pursuit` (chase onto your six, break into a slashing pass when you turn your nose on them); armed traders and the bought combat computer fly `attack-run` (close, fire through the pass, come round again); `scripted` is the hand-written three-phase attack run kept as the A/B runtime toggle. |
+| Ship AI | No neural policy ships: all three pilots are code (`src/game/brains.ts`). Pirates fly `pursuit` (chase onto your six, break into a slashing pass when you turn your nose on them); armed traders turn and fight with `attack-run` (close, fire through the pass, come round again), while the bought combat computer flies a pure-pursuit co-pilot under the same name (`scripted-co-pilot.ts`); `scripted` is the hand-written attack run kept as the pirates' A/B runtime toggle, and on the defence it means none. |
 
 ## Remaining
 

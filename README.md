@@ -25,9 +25,10 @@ E L I T E.*
 Authentic wireframe ships, the
 original byte-accurate procedural galaxy (Lave is system 7, as it should
 be), modern shader-driven suns and planets — and two hand-written ship-AI
-pilots: a pursuit dogfighter that chases the pirates onto your six, and a
-three-phase attack run for the traders that fight back and the combat
-computer you can buy. Nothing neural ships; the neuroevolution trainer still
+pilots: a pursuit dogfighter flown by the pirates that chase onto your six
+and by the combat computer you can buy (on your side of the fight), and a
+three-phase attack run for the traders that fight back. Nothing neural
+ships; the neuroevolution trainer still
 lives in `train/`, but its trained policies were retired (see the
 [training log](docs/TRAINING-LOG.md)).
 
@@ -101,7 +102,9 @@ compared.
 It exists because every bot-flown measurement in this project turned out to be
 shaped by the bot: flying straight flatters one kind of AI, flying the defence
 policy flatters another. `npm run survivability` is still the bot answer to
-"can I survive a gang?"; the trainer's **waves** mode is the human one.
+"can I survive a gang?" — a floor measured in the training world, stand-in
+pilots on both sides, so the live game sits above its rows; the trainer's
+**waves** mode is the human one.
 
 There's also an **autonomous playtest agent** (`test/playtest.js`): paste it
 into the browser console with the game open and `await __playtest.run({
@@ -174,7 +177,7 @@ joystick the original supported.
 | E / TAB | E.C.M. / energy bomb (if fitted) |
 | J | torus jump drive (8×, stars streak; cuts out when mass-locked) |
 | C | docking computer — flies you in; press again or touch the controls to take over |
-| K | combat computer — the trained defence AI flies your ship (if fitted) |
+| K | combat computer — a scripted co-pilot flies your ship onto your attacker's six (if fitted) |
 | N / G | short range chart / galactic chart |
 | H / ⇧H | hyperspace jump / galactic hyperdrive (if fitted) |
 | B | distress beacon — GalCop tows you out of witch-space, for your cargo |
@@ -359,9 +362,11 @@ detected — as on the original's dashboard.
   the worst decisions available to you.
 - **Two hand-written ship AIs** — pirates fly `pursuit`, the dogfighter that
   chases onto your six and holds there, breaking into a slashing attack run the
-  moment you turn your nose onto it; armed traders and the combat computer you
-  can buy fly `attack-run`, the three-phase run (close, fire through the pass,
-  swing out and come round again). Both are code, not neural nets: the policies
+  moment you turn your nose onto it; armed traders turn and fight with
+  `attack-run`, the three-phase run (close, fire through the pass, swing out
+  and come round again); and the combat computer you can buy flies the pursuit
+  dogfighter on your own ship, onto your attacker's six. All of it is code, not
+  neural nets: the policies
   self-play kept finding were turrets that hung in space and sniped, so the
   trained line was retired in 2026-08 (docs/TRAINING-LOG.md keeps every figure).
   Watch either fight in the combat viewer.
@@ -399,9 +404,11 @@ detected — as on the original's dashboard.
   (1.9k params, keyboard-style discrete actions) and a neuroevolution
   self-play trainer. `src/ai-training/brains/` ships empty (only a `.gitkeep`):
   the game flies three hand-written code pilots — `pursuit` (the dogfighter
-  every pirate uses), `attack-run` (the three-phase run the armed trader and the
-  purchasable combat computer fly) and `scripted` (an A/B control that reverts
-  the whole game to the attack run). The trained line — two pirate policies and
+  every pirate uses, and the purchasable combat computer's own flight, turned
+  to your defence), `attack-run` (the defence name: the three-phase run an
+  armed trader turns and fights with, and the name the co-pilot is selected
+  under) and `scripted` (an A/B control that reverts the pirates to the attack
+  run and switches the defence off). The trained line — two pirate policies and
   the `jameson-defend` defence policy — was deleted 2026-08-05 after three
   retrains optimised their way out of fighting; `docs/TRAINING-LOG.md` keeps
   every figure, and `train/evolve.ts` can still breed a candidate for research.

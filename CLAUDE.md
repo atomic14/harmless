@@ -94,12 +94,14 @@ touching before you touch it — `brain-names.ts` is where the rule lives.
   your six and holds there while astern, then breaks into the attack run's
   slashing pass the moment you turn your nose onto it. No neural net is involved.
   This is what ships, so a fix here is a fix to the fight. The `scripted` pilot
-  is the A/B control: it reverts the whole game — pirates AND the defence
-  co-pilot — to the plain hand-written three-phase attack run, close, pass,
-  extend.
-- **Code flies your side too.** The armed trader's pilot and the combat computer
-  the player buys both fly `attack-run` — the hand-written three-phase run
-  pointed defensively (scripted-co-pilot.ts). No trained policy ships at all:
+  is the A/B control: it reverts every pirate to the plain hand-written
+  three-phase attack run — close, pass, extend — and switches the defence OFF:
+  no co-pilot, and an armed trader flees instead of turning to fight.
+- **Code flies your side too.** The defence flies under the one name
+  `attack-run`, and it is two flights: an armed trader turns and fights with
+  the hand-written three-phase run pointed defensively (npc.ts's defence path),
+  while the combat computer the player buys flies a pure-pursuit dogfighter on
+  your own ship (scripted-co-pilot.ts). No trained policy ships at all:
   `src/ai-training/brains/` holds no weights and `defenceBrain()` returns null.
   The `jameson-defend` defence line was retired on 2026-08-05, the same day and
   for the same reason as the two trained pirate policies — three retrains

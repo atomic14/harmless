@@ -250,7 +250,8 @@ src/
     attack-run.ts           the three-phase run as a shipless decision: where
                             to point the nose and how fast to fly, composed
                             from break-off/pass-aim/extend-arc/tactics — flown
-                            by npc.ts and by the scripted co-pilot
+                            by npc.ts (scripted pirates, and an armed trader
+                            turning to fight)
     pass-aim.ts             where the closing leg AIMS: beside the target, and
                             ahead of it. The miss distance, the lead and the
                             stretch that makes a run pass by what it meant to
@@ -712,13 +713,16 @@ Three code pilots, and that is the whole list:
   pursuit dogfighter: it chases onto the commander's six and holds there,
   breaking into the attack run's slashing pass the moment the nose comes onto
   it (`game/pursuit.ts`, `game/npc.ts`'s `pursue`).
-- **`attack-run`** — the defence slots. The player's combat computer and an
-  armed trader turning to fight both fly the hand-written three-phase run —
-  close, fire through the pass, extend and come round (`game/attack-run.ts`,
-  `game/scripted-co-pilot.ts`).
-- **`scripted`** — the A/B control. It reverts the whole game to the plain
-  three-phase attack run for pirates and defence alike, kept for the LIVE
-  BRAINS row: `__game.state.brains.scripted = true` from a console, or the row
+- **`attack-run`** — the defence slots' name, and it is two flights. An armed
+  trader turning to fight flies the hand-written three-phase run — close, fire
+  through the pass, extend and come round (`game/attack-run.ts` via
+  `game/npc.ts`'s defence path); the player's combat computer flies the
+  pure-pursuit co-pilot on the commander's own ship
+  (`game/scripted-co-pilot.ts`, chosen by this name in `game.ts`).
+- **`scripted`** — the A/B control. It reverts every pirate to the plain
+  three-phase attack run and switches the defence off — no co-pilot, and an
+  armed trader flees instead of turning to fight — kept for the A/B:
+  `__game.state.brains.scripted = true` from a console, or the PIRATES FLY row
   on the combat trainer's setup panel (`T` at any station).
 
 The trained line no longer ships (docs/TRAINING-LOG.md runs 20-21 for why:
