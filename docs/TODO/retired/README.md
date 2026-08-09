@@ -16,8 +16,12 @@ investigation records; do not load this directory wholesale.
 - 95 — [Save only at stations](95-save-only-at-stations.md) — conflicts with the
   README's explicit flight-autosave promise.
 
-## Consolidated into active TODO 107
+## Rejected: live-sky/trainer combat parity
 
+Chris dropped the consolidated plan on 2026-08-09; no work landed. The four
+plans it consolidated stay here as its evidence.
+
+- 107 — [One fight in the live sky and the trainer](107-one-fight-in-the-sky-and-trainer.md)
 - 74 — [Armed-freighter accuracy differs](74-the-armed-freighter-shoots-straighter-in-training.md)
 - 78 — [Training rams always hit the fore shield](78-every-ram-in-training-hits-the-fore-shield.md)
 - 89 — [No live NPC-vs-NPC fight test](89-nothing-flies-npc-against-npc.md)

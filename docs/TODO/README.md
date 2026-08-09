@@ -13,7 +13,6 @@ active context:
 
 ## Execution queue
 
-- [ ] 107 — [One fight in the live sky and the trainer](107-one-fight-in-the-sky-and-trainer.md)
 - [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)
 
 ## Backlog

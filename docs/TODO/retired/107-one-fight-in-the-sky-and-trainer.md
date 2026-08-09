@@ -78,4 +78,9 @@ Follow the constants catalogue/regeneration rule in `CLAUDE.md`.
 
 ## Outcome
 
-(recorded per milestone and when the cycle closes)
+Dropped by Chris on 2026-08-09 before any milestone landed. No code changed.
+The gaps it described remain open facts, recorded in the four consolidated
+plans in this directory: live NPC-vs-NPC combat is untested, live crossfire
+still uses the flat `NPC_VS_NPC_HIT` coin flip rather than the range curve,
+training rams still charge the fore shield, and the frame sampler and seed
+stride remain duplicated.
