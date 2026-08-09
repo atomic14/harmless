@@ -131,11 +131,14 @@ export function runWorker(
     writeLog(cfg, s, seq, role, prompt, `${err.stdout ?? ''}\n${err.stderr ?? err.message ?? ''}`);
     throw new CycleStop(`${role} died: ${(err.stderr ?? err.message ?? '').slice(0, 300)}`);
   }
-  writeLog(cfg, s, seq, role, prompt, raw);
   const res = parseEnvelope(raw, role);
   s.workerInvocations.push({ role, costUsd: res.costUsd });
+  const total = s.workerInvocations.reduce((a, w) => a + w.costUsd, 0);
+  writeLog(cfg, s, seq, role, prompt,
+    `${raw}\n--- cost ---\n$${res.costUsd.toFixed(4)} (item total $${total.toFixed(4)})`);
   cfg.log(`[${clock()}] ${role} #${seq} finished in ${Math.round((Date.now() - started) / 1000)}s` +
-    ` · $${res.costUsd.toFixed(2)} · .cycle/logs/${logName(s, seq, role)}`);
+    ` · $${res.costUsd.toFixed(2)} this worker · $${total.toFixed(2)} this item` +
+    ` · .cycle/logs/${logName(s, seq, role)}`);
   return res;
 }
 
