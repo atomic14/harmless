@@ -8,9 +8,13 @@
  *   await __auto.runTrial('Lave', 'Leesti', 6)
  *
  * It calls `useHarnessSaves()` (see `runTrial`, which explains why), spawns a
- * fresh 100.0 Cr Jameson, flies N trading legs between the two systems
- * (combat handled by the trained jameson-defend policy via
- * window.__policyKit) and prints a ledger. Nothing on the page can reach a
+ * fresh 100.0 Cr Jameson, flies N trading legs between the two systems and
+ * prints a ledger. The combat hand-off was flown by the trained jameson-defend
+ * policy; that line was retired 2026-08-05 (src/game/brain-names.ts — nothing
+ * trained ships) and NOTHING LOADABLE BACKS IT: `window.__policyKit.defendBrain`
+ * is null, so trials now fly UNARMED — pirates are endured, not fought — unless
+ * a research candidate is assigned to `__policyKit.defendBrain` first. Nothing
+ * on the page can reach a
  * real save afterwards, including the running game's own autosave, and the
  * switch is ONE WAY — reload the tab to play your career again. Everything
  * runs through real game mechanics — real markets, fuel, pirates,
@@ -174,7 +178,7 @@
       return best;
     },
 
-    /** One combat step: the jameson-defend brain flies the player's ship. */
+    /** One combat step: the loaded defence candidate flies the player's ship. */
     combatStep(target, dt) {
       this.cTimer -= dt;
       if (!this.cControl || this.cTimer <= 0) {
@@ -228,8 +232,11 @@
         // to be out of 6 on the old 1/1/4 maxima
         hullMin = Math.min(hullMin, g.foreShield + g.aftShield + g.energy);
 
-        // combat: hand the ship to the defence brain when pirates close in
-        const threat = dist > 3000 ? this.nearestHostile(4500) : null;
+        // combat: hand the ship to the defence brain when pirates close in.
+        // With no brain loaded (the shipped state since the 2026-08-05
+        // retirement) there is no hand-off: `kit.act(null, …)` throws, so the
+        // trial flies on unarmed instead.
+        const threat = kit.defendBrain && dist > 3000 ? this.nearestHostile(4500) : null;
         if (threat) {
           g.state.session.torusEngaged = false;
           finalRun = false;
@@ -291,7 +298,7 @@
         events.push('WITCH-SPACE');
         g.startHyperspace();
         for (let i = 0; i < 200 && g.mode === 'flight'; i++) {
-          const t = this.nearestHostile(6000);
+          const t = kit.defendBrain ? this.nearestHostile(6000) : null;
           if (t) this.combatStep(t, 1 / 30);
           g.update(1 / 30, performance.now() / 1000 + i / 30);
         }
@@ -360,4 +367,7 @@
     },
   };
   console.log('Jameson autopilot loaded: await __auto.runTrial("Lave", "Leesti", 6)');
+  if (!kit.defendBrain) {
+    console.log('no defence policy loads (retired 2026-08-05) — trials fly UNARMED');
+  }
 })();

@@ -4,8 +4,12 @@
 //   node --experimental-strip-types train/defence-probe.ts [episodes] [brain...]
 //
 // The pair to `flight-probe.ts`, which asks the same question of an ATTACKER.
-// This one is for the policy that flies armed traders and the commander's own
-// combat computer, and it exists because two numbers were hiding a third.
+// This one is for a TRAINED defence candidate — and since 2026-08-05 nothing
+// trained ships: armed traders and the combat computer fly hand-written code
+// under the one name `attack-run` (src/game/brain-names.ts), and the
+// `jameson-defend` line this tool was built to probe is retired. Run with a
+// candidate's stem to probe it; with no names it says so rather than probing
+// a file that is not there. It exists because two numbers were hiding a third.
 //
 // ## Why a breakdown rather than an average
 //
@@ -210,8 +214,17 @@ const isMain = process.argv[1]?.endsWith('defence-probe.ts') ?? false;
 if (isMain) {
   const episodes = Number(process.argv[2] ?? 120);
   const names = process.argv.slice(3);
-  printDefenceShape(
-    names.length ? names : ['jameson-defend-g2'],
-    Number.isFinite(episodes) ? episodes : 120,
-  );
+  if (names.length === 0) {
+    // The default was the shipped `jameson-defend-g2` until 2026-08-05, when
+    // the line was retired (three retrains optimised their way out of
+    // fighting — docs/TODO/102). With no default there is nothing to probe
+    // unless a run has left a candidate in src/ai-training/brains/.
+    console.log('nothing trained loads: the jameson-defend line was retired 2026-08-05');
+    console.log('and src/ai-training/brains/ holds no weights (src/game/brain-names.ts).');
+    console.log('the defence that ships is hand-written code, which this tool cannot fly.');
+    console.log('to probe a candidate bred by train/evolve.ts, name its stem:');
+    console.log('  node --experimental-strip-types train/defence-probe.ts 120 my-candidate');
+  } else {
+    printDefenceShape(names, Number.isFinite(episodes) ? episodes : 120);
+  }
 }

@@ -3,9 +3,15 @@
  *
  * The unit tests (`npm test`) guard the maths; this guards the *gameplay*.
  * It drives the real game through `window.__game`, exercising trading,
- * contracts, equipment, hyperspace, combat (flown by the trained defence
- * policy), docking, hermits and encounters — while continuously asserting
- * invariants that should never break, however the systems interact.
+ * contracts, equipment, hyperspace, combat, docking, hermits and encounters —
+ * while continuously asserting invariants that should never break, however
+ * the systems interact.
+ *
+ * Combat is flown by whatever `__policyKit.defendBrain` holds — and since
+ * 2026-08-05 that is null: nothing trained ships (src/game/brain-names.ts),
+ * so by default the agent flies UNARMED, enduring pirates rather than
+ * fighting them. Assign a research candidate to `__policyKit.defendBrain`
+ * before running to exercise the combat hand-off.
  *
  * Usage: open the game, open DevTools, paste this file, then:
  *
@@ -126,7 +132,9 @@
       }
     },
 
-    // ---- combat: hand the ship to the trained defence policy ----------
+    // ---- combat: hand the ship to a loaded defence candidate ----------
+    // Every entry point below gates on `kit.defendBrain`: with none loaded
+    // `kit.act(null, …)` throws, so the agent never engages at all.
 
     // 26 wide, as npc.ts's and combat-computer.ts's buffers are: which encoder
     // runs is the brain's decision, not this harness's, so a buffer sized to
@@ -367,10 +375,10 @@
           this.note('combat:blockaded');
         }
 
-        // a fight that won't end is a fight to run from — the defence
-        // policy evades rather than kills, so cap the engagement
+        // a fight that won't end is a fight to run from — a defence candidate
+        // evades rather than kills, so cap the engagement
         const fightingTooLong = combatSteps > 2500;
-        const threat = (dist > 2500 || blockaded) && !fightingTooLong
+        const threat = kit.defendBrain && (dist > 2500 || blockaded) && !fightingTooLong
           ? this.nearestHostile(4500)
           : null;
         if (fightingTooLong && combatSteps < 2600) {
@@ -596,7 +604,7 @@
         if (g.commander.fuel < WITCHSPACE_ESCAPE_COST) break;
         g.startHyperspace();
         for (let i = 0; i < 220 && g.mode === 'flight'; i++) {
-          const t = this.nearestHostile(6000);
+          const t = kit.defendBrain ? this.nearestHostile(6000) : null;
           if (t) this.combatStep(t, 1 / 30);
           g.update(1 / 30, performance.now() / 1000 + i / 30);
         }
@@ -607,7 +615,7 @@
         this.note('encounter:distress-beacon');
         g.sendDistressBeacon();
         for (let i = 0; i < 2000 && g.witchspace && g.mode === 'flight'; i++) {
-          const t = this.nearestHostile(6000);
+          const t = kit.defendBrain ? this.nearestHostile(6000) : null;
           if (t) this.combatStep(t, 1 / 30);
           g.update(1 / 30, performance.now() / 1000 + i / 30);
         }
@@ -753,4 +761,7 @@
   };
 
   console.log('playtest agent loaded: await __playtest.run({ legs: 20 })');
+  if (!kit.defendBrain) {
+    console.log('no defence policy loads (retired 2026-08-05) — the agent flies UNARMED');
+  }
 })();

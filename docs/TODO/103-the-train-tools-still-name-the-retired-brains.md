@@ -48,6 +48,22 @@ loadable backs it; record what went and why.
   contradicts `brain-names.ts`.
 - `npm run build` green.
 
+## Found during the fix (2026-08-09)
+
+- `train/evaluate.ts`'s no-arg run did not merely mislead — it CRASHED:
+  the tail called `printPlayerHullSweep('pirate-attack-g3')`, and
+  `profile-sweep.ts`'s `load()` has no catch, so the run died on ENOENT
+  after printing the tournament. The hull sweep now runs only per loadable
+  `pirate-attack` candidate.
+- Nothing was retired. `train/jameson-autopilot.js` was kept (not deleted)
+  because `docs/JAMESON-TRIALS.md` references it and sits outside this
+  milestone's allowed paths; its header now states nothing loadable backs
+  it. Both console harnesses (`jameson-autopilot.js`, `test/playtest.js`)
+  would have thrown on their first combat hand-off — `kit.act(null, …)`
+  reads `brain.weights` — so their combat entries now gate on
+  `kit.defendBrain` and the scripts genuinely fly unarmed, as their
+  headers now say.
+
 ## Outcome
 
 (recorded when the cycle closes)
