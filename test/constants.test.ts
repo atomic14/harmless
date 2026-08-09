@@ -348,11 +348,12 @@ const OUTSIDE: readonly Group[] = [
   {
     why: 'STAYS: the combat viewer and the gallery are development pages, and their'
       + ' constants are catalogue reads (`COBRA_MK3`, `SIDEWINDER`), brain-name reads'
-      + ' (`SOLO`, `GANG`, `DEFENCE`), a scenario table, typed mode lists'
+      + ' (`SHIPPED_PIRATE`, `SHIPPED_DEFENCE`), a scenario table, typed mode lists'
       + ' (`SCALES`, `VIEWS`) and pure drawing — grid geometry, three colours (one of'
       + ' them the phosphor, which docs/TODO/93 owns) and two fixed axes',
     files: {
-      'viewer/main.ts': ['COBRA_MK3', 'SIDEWINDER', 'DEFENCE', 'SCENARIOS'],
+      'viewer/main.ts': ['COBRA_MK3', 'SIDEWINDER'],
+      'viewer/scenarios.ts': ['SHIPPED_PIRATE', 'SHIPPED_DEFENCE', 'SCENARIOS'],
       'viewer/gallery.ts': [
         'COLUMNS', 'CELL', 'HULL_COLOUR', 'RADIUS_COLOUR', 'LABEL_COLOUR',
         'UP', 'RIGHT', 'GRID_CENTRE',

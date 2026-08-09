@@ -1,24 +1,20 @@
-// Combat viewer: watch the brains the game ships actually fly.
+// Combat viewer: watch the pilots the game ships actually fly.
 //
 // It replays `ai-training/scenario.ts` — the same episodes the trainer scores —
-// with the real wireframe hulls, so a policy can be WATCHED rather than read off
+// with the real wireframe hulls, so a pilot can be WATCHED rather than read off
 // a table. The design gallery used to be on the same page behind a `G` key,
 // which meant this page opened on the gallery and the combat viewer read as
 // deleted; it is `/gallery` now (viewer/gallery-main.ts) and neither page has a
 // mode key.
 //
-// **Every row in the picker flies a brain the game ships, or a stated control.**
-// That is the rule this page exists to keep, and it has been broken twice: once
-// by an `<option>` reading "Shipped pirate (league r2)" over a `pirate-attack-g1`
-// import — a name brain-names.ts calls CANNOT BE FLOWN — and once by a row
-// labelled "Pack of 3 vs armed trader" flying `pirate-pack.json`, a round-one
-// policy, while the shipped gang is `pirate-pack-r4-selectonly`. Both went wrong
-// the same way: the weights came from an import and the label came from the
-// HTML, so nothing tied them together. So SCENARIOS below is the only place a
-// row exists — its weights come from `game/brains.ts`, its name from
-// `game/brain-names.ts`, and its `<option>` is built from both at runtime. A
-// change to SHIPPED_BRAINS moves this page with it, and viewer.html holds an
-// empty `<select>`.
+// This file is the page's DOM SHELL and nothing else: canvas, HUD, keys, and
+// the frame loop. The rows — which fight, flown by which pilot — are
+// `./scenarios.ts`, which is DOM-free so `npm test` can build and fly every
+// row headless. That split is the fix for this page's 2026-08 outage: a
+// module-scope call here still loaded a trained brain after the trained line
+// was retired, so `/viewer` threw at import and nothing went red
+// (docs/TODO/102). Anything that can go stale against the game belongs in
+// scenarios.ts, under the gate; nothing here may ask for a brain.
 
 import * as THREE from 'three';
 
@@ -27,92 +23,14 @@ import { requireShipDef } from '../ships/registry.ts';
 import { shipDesignIdOf } from '../game/ship-identity.ts';
 import { createStage } from './stage.ts';
 import { Episode, type ShotEvent, type EpisodeShip } from '../ai-training/scenario.ts';
-import { randomBrain, type Brain } from '../ai-training/policy.ts';
-import { makeRng } from '../game/rng.ts';
 import { FIXED_DT } from '../constants/world-clock.ts';
-import { defenceBrain } from '../game/brains.ts';
-import { defenceBrainNameFor } from '../game/brain-names.ts';
+import {
+  SCENARIOS, SHIPPED_DEFENCE, SHIPPED_PIRATE, scenarioById, type ViewerScenario,
+} from './scenarios.ts';
 
 /** The two hulls the combat scenarios fly, resolved through the registry. */
 const COBRA_MK3 = requireShipDef(shipDesignIdOf(10));
 const SIDEWINDER = requireShipDef(shipDesignIdOf(17));
-
-/**
- * The shipped policies, ASKED FOR rather than imported.
- *
- * brains.ts loads defensively and hands back null if the weights did not parse.
- * In the game that is a fall back to the scripted AI; on a page whose only job
- * is showing the shipped brains fly, it is the whole point failing, and saying
- * so beats drawing a fight nobody can interpret.
- */
-function shipped(): { brain: Brain; name: string } {
-  const brain = defenceBrain();
-  const name = defenceBrainNameFor();
-  if (!brain) throw new Error(`viewer: the shipped defence brain (${name}) did not load`);
-  return { brain, name };
-}
-
-// The one policy in the bundle. The trained pirate rows went with their
-// weights on 2026-08-05 — scripted is the only opposition anywhere.
-const DEFENCE = shipped();
-
-interface ViewerScenario {
-  id: string;
-  /** the picker row — the brain's file stem is appended, so it cannot go stale */
-  label: string;
-  /** what is flying, for the label and the HUD: a stem, or a stated control */
-  flying: string;
-  build(seed: number): Episode;
-}
-
-/**
- * Every fight the page offers. Four fly a shipped policy and two are controls
- * that say so — the pre-neuroevolution AI, and an untrained random policy, which
- * are the two baselines every figure in docs/TRAINING-LOG.md is measured against.
- */
-const SCENARIOS: readonly ViewerScenario[] = [
-  {
-    id: 'scripted-vs-trader',
-    label: 'Scripted pirate vs trader',
-    flying: 'the scripted attack run — what ships',
-    build: (seed) => new Episode({
-      seed, pirates: [{ kind: 'scripted' }], trader: { kind: 'scripted' },
-    }),
-  },
-  {
-    id: 'random-vs-trader',
-    label: 'Random policy vs trader',
-    flying: 'an untrained network — a control',
-    build: (seed) => new Episode({
-      seed,
-      pirates: [{ kind: 'policy', brain: randomBrain(makeRng(seed ^ 0xbeef)) }],
-      trader: { kind: 'scripted' },
-    }),
-  },
-  {
-    id: 'gang-vs-armed',
-    label: 'Scripted gang of 3 vs armed trader',
-    flying: 'the scripted attack run — what ships',
-    build: (seed) => new Episode({
-      seed, pirates: [{ kind: 'scripted' }, { kind: 'scripted' }, { kind: 'scripted' }],
-      trader: { kind: 'scripted' }, traderArmed: true, maxTime: 60,
-    }),
-  },
-  {
-    id: 'jameson-vs-pirates',
-    label: 'Armed trader vs 2 scripted pirates',
-    flying: DEFENCE.name,
-    build: (seed) => new Episode({
-      seed,
-      pirates: [{ kind: 'scripted' }, { kind: 'scripted' }],
-      trader: { kind: 'policy', brain: DEFENCE.brain },
-      traderArmed: true,
-    }),
-  },
-];
-
-const scenarioById = (id: string): ViewerScenario =>
-  SCENARIOS.find((s) => s.id === id) ?? SCENARIOS[0];
 
 // --- the scene ---------------------------------------------------------------
 
@@ -276,9 +194,9 @@ function renderHud(): void {
       // The rack, because a fight can now turn on it: 250 pool points a round.
       `  msl ${pi.missilesFired}/${pi.missilesCarried}${pi.alive ? '' : '  ✝'}`);
   });
-  // What ships, asked for rather than typed out — the same rule the rows
-  // above fly under: scripted opposition, one trained defence.
-  lines.push('', `SHIPPED    opposition scripted · defence ${DEFENCE.name}`);
+  // What ships, asked for rather than typed out (scenarios.ts asks
+  // brain-names.ts): two code pilots, nothing trained.
+  lines.push('', `SHIPPED    opposition ${SHIPPED_PIRATE} · defence ${SHIPPED_DEFENCE} — code pilots, no trained policy`);
   if (p) lines.push(`FITNESS    ${episode.fitnessAttack(0).toFixed(2)} (attack metric, pirate 1)`);
   hud.textContent = lines.join('\n');
 }

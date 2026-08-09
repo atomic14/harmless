@@ -89,6 +89,7 @@ import './brain-names.test.ts';
 import './combat-model.test.ts';
 import './selection.test.ts';
 import './arena.test.ts';
+import './viewer-scenarios.test.ts';
 
 // --- the shell --------------------------------------------------------------
 import './ui.test.ts';
