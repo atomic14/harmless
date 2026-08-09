@@ -102,4 +102,24 @@ defaults still name the deleted brains:**
 
 ## Outcome
 
-(recorded when the cycle closes)
+**Shipped 2026-08-09.** Both defects confirmed by running them before
+fixing (the viewer threw at module scope on import; the ram-probe died on
+`ENOENT attack-run.json` — a file that never existed, even before the
+retirement). The viewer now shows what ships: rows built DOM-free in
+`viewer/scenarios.ts`, the shipped `pursuit` pirate staged through the new
+`{ kind: 'pursuit' }` Episode controller calling the same
+`NpcShip.pursuitFly()` that `update()` calls — one home, two callers. The
+`evades` probe row is a research hook behind `DEFEND_BRAIN`, retirement
+note printed in its place. Gates: `test/viewer-scenarios.test.ts` flies
+every row headless and bans brains imports; `test/probe-rows.test.ts` pins
+both sides of the hook; each broken once and red.
+
+Equivalence of the `npc.ts` extraction proven two ways: branch-for-branch
+diff review, and the human-shape gate's printed rows identical to 98's
+recorded baseline to every digit. Supervisor flew `/viewer` in Chrome:
+loads clean (zero console errors), renders and replays the pursuit
+matchup; the sim runs slowly only in background-throttled automated tabs.
+Build 3278/0, elite-a 494/0, campaign green.
+
+Four further leftovers found and listed under "Watch out for" above, now
+queued as [103](103-the-train-tools-still-name-the-retired-brains.md).
