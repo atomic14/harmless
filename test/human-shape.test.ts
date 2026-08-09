@@ -33,12 +33,20 @@
 // rest on them) and are deliberately not reused. docs/TODO/89 wants to reach
 // for this fixture later; `flyShapeEpisode` and `measureShape` are exported
 // for it.
+//
+// WHICH pirate each episode meets is the game's own dealing rule, not this
+// file's: `pirateSpecForTier`, the function every sky spawn goes through
+// (spawning.ts), seeded from the episode seed the way the sky seeds it. The
+// fixture only states the tier, cycling 0-1-2 in equal thirds — a career's
+// own tier frequency depends on wealth and fame, and weighting by it would
+// leave the rarer gang hulls unsampled at gate size.
 
 import * as THREE from 'three';
 import { seedWorld } from '../src/game/rng.ts';
 import {
   NpcShip, steerQuatToward, type PlayerRef, type WorldView,
 } from '../src/game/npc.ts';
+import { pirateSpecForTier } from '../src/game/ship-specs.ts';
 import { SHIPPED_BRAINS } from '../src/game/brain-names.ts';
 import { describeFlight } from '../src/game/break-off.ts';
 import {
@@ -56,10 +64,13 @@ import { check } from './harness.ts';
 console.log('\nhuman-shape bands (docs/TODO/98)');
 
 /**
- * Held-out, and distinct from every other seed base in the project — the
- * others are 5_000_011, 8_675_309, 10_000_019, 20_000_003, 30_000_007,
- * 40_000_009 and 918_273 (plus per-file test seeds); nothing else uses the
- * 50-million decade. Prime, following the probe bases' convention.
+ * Held-out, and distinct from every seed base in the project — the named
+ * bases are 5_000_011, 8_675_309, 10_000_019, 20_000_003, 30_000_007,
+ * 40_000_009 and 918_273. test/tactics.test.ts walks episode seeds up from
+ * 51_000_003 in the same decade, but both files stride by 7919 and the bases
+ * differ by 999,986 ≡ 2,192 (mod 7919) with a jitter of at most 96 on top,
+ * so no exact seed can ever collide, at any size. Prime, following the probe
+ * bases' convention.
  */
 export const HUMAN_SHAPE_BASE = 50_000_017;
 
@@ -85,17 +96,33 @@ const SPAWN_RANGE = 3000;
 
 /**
  * The knife-fighter barely translates: well below every pirate hull's own
- * cruise floor (`MIN_CRUISE_FRACTION` x 160 = 68.8 for the slowest), so the
- * geometry is decided by the pirate's flying, not the stand-in's.
+ * cruise floor (`MIN_CRUISE_FRACTION` x 152 = 65 for the slowest, the
+ * Monitor), so the geometry is decided by the pirate's flying, not the
+ * stand-in's.
  */
 const KNIFE_SPEED = 40;
 
 /**
  * The runner translates flat out — for a stand-in that must stay catchable:
- * below the slowest roster pirate's 160 top speed, so every hull the roster
- * can deal presents the same reachable tail.
+ * below the slowest pirate hull's 152 top speed (the Monitor, a margin of
+ * 12), so every hull the tier table deals presents a reachable tail.
  */
 const RUNNER_SPEED = 140;
+
+/**
+ * The turret floor for the mean-speed bands, shared by both rows: above every
+ * pirate hull's own `MIN_CRUISE_FRACTION` pin (0.43 x 381 = 164 for the
+ * fastest hull the tier table deals, the Asp Mk II), so a pilot that sits at
+ * the floor and pivots reads below it whatever hull it drew. Pinched from
+ * both sides — it cannot go below 164 without losing that rationale, and the
+ * measured baseline is ~250 — so 180 splits the gap; the headroom is ~1.4x
+ * rather than this file's usual 1.5-4x, and that trade is deliberate.
+ */
+const TURRET_FLOOR_SPEED = 180;
+
+/** In the fight, not standing off: the reference fight sat in range 95% of
+ *  the time, and both rows measure near that. Shared by both rows. */
+const IN_RANGE_FLOOR = 0.80;
 
 /** How a stand-in flies: a name for the row, a speed, and a steer. */
 export interface StandIn {
@@ -125,16 +152,32 @@ export const RUNNER: StandIn = {
 /**
  * One episode: a real pirate, the shipped brain selection, one stand-in.
  *
- * The variant seed cycles the pirate roster, so a batch samples the hull mix
- * the sky actually deals. No damage flows either way — the stand-ins carry no
- * gun and the pirate's shots are recorded, not resolved — so every episode
- * runs its full length and the shape is the undisturbed pursuit flight.
+ * The hull is dealt by the game's own `pirateSpecForTier` off the episode
+ * seed — the same call every sky spawn makes (spawning.ts) — so the batch
+ * samples the tier's real hull mix and this file holds no dealing rule of
+ * its own. No damage flows either way: the stand-ins carry no gun, the
+ * pirate's laser shots are recorded but not resolved, and its missile rack
+ * is emptied at spawn — the launch governor (the one-in-the-air cap and the
+ * rack decrement) lives in world-step.ts, which this fixture does not run,
+ * so a rack it cannot govern would spam launches nothing resolves. Every
+ * episode therefore runs its full length and the shape measured is the
+ * undisturbed pursuit flight.
  */
 export function flyShapeEpisode(
-  standIn: StandIn, seed: number, variantSeed: number,
+  standIn: StandIn, seed: number, tier: number,
+  /**
+   * Which of the tier's hulls this episode meets — spawning.ts's member
+   * index, played by a per-tier counter. NOT derived from `seed`: the tier
+   * cycle and `pirateSpecForTier`'s modulus alias through a shared linear
+   * seed (a 3-tier cycle over a 3-hull tier dealt one hull forever).
+   */
+  deal: number,
 ): { report: CombatSimReport; ranges: number[]; speeds: number[] } {
   seedWorld(seed);
-  const npc = new NpcShip('pirate', new THREE.Vector3(0, 0, SPAWN_RANGE), variantSeed);
+  const npc = new NpcShip('pirate', new THREE.Vector3(0, 0, SPAWN_RANGE), deal,
+    pirateSpecForTier(tier, deal));
+  npc.state.threatTier = tier;
+  npc.state.missiles = 0;
   const player: PlayerRef = {
     position: new THREE.Vector3(),
     quaternion: new THREE.Quaternion(),
@@ -161,6 +204,7 @@ export function flyShapeEpisode(
       profileId: npc.profileId,
       brain: 'pursuit',
       role: 'pirate',
+      tier,
     }],
     opening: NO_OPENING,
     coPilot: 'scripted',
@@ -180,7 +224,7 @@ export function flyShapeEpisode(
         npc.state.flownBy, npc.state.tactic, npc.breakingOff),
     }],
   });
-  for (let i = 0; i < EPISODE_SECONDS * 60; i++) {
+  for (let i = 0; i < Math.round(EPISODE_SECONDS / FIXED_DT); i++) {
     standIn.steer(player, npc.object.position, FIXED_DT);
     player.position.addScaledVector(
       fwd.set(0, 0, -1).applyQuaternion(player.quaternion), standIn.speed * FIXED_DT);
@@ -224,9 +268,11 @@ export function measureShape(standIn: StandIn, episodes: number): ShapeRow {
   let onSix = 0;
   let aimErr = 0;
   for (let e = 0; e < episodes; e++) {
-    // The 7919 stride every probe base steps by, off this file's own base.
+    // Stride 7919, the probes' convention by copy (a shared constant is a
+    // src-side refactor of its own); the tier cycles 0-1-2 in equal thirds,
+    // and floor(e / 3) walks each tier's own hull list end to end.
     const { report, ranges: r, speeds: s } =
-      flyShapeEpisode(standIn, HUMAN_SHAPE_BASE + e * 7919, e);
+      flyShapeEpisode(standIn, HUMAN_SHAPE_BASE + e * 7919, e % 3, Math.floor(e / 3));
     for (const d of r) ranges.push(d);
     for (const v of s) speeds.push(v);
     linedUp += report.linedUpShare.them;
@@ -277,18 +323,18 @@ printRow(runner);
 // deliberate combat retune can re-baseline it confidently (docs/TODO/89: a
 // test nobody can re-baseline gets deleted).
 //
-// Baseline, 2026-08-09 (40 eps / 160 eps):
-//   knife-fighter  lined 20.1/20.9%  in-range 100/100%  speed 257/257
-//                  p10/p90 224/2853 · 219/2847  passes 1.25/1.27
-//   runner         lined 85.6/85.5%  in-range 96.6/96.1%  speed 257/254
-//                  on-six 17.1/17.1s  passes 0.00/0.00
+// Baseline, 2026-08-09, tier-weighted dealing (40 eps / 160 eps):
+//   knife-fighter  lined 20.4/21.3%  in-range 100/100%  speed 251/254
+//                  p10/p90 229/2875 · 221/2845  passes 1.20/1.27
+//   runner         lined 84.8/86.4%  in-range 94.9/97.2%  speed 251/251
+//                  on-six 17.0/17.3s  passes 0.00/0.00
 
 // THE KNIFE-FIGHTER ROW — the human-shaped fight; exercises the slashing run.
 {
   const r = knife;
   // The balance the reference fight found rests on pirates RARELY lined up:
   // every extra point of alignment converts almost directly into damage, and
-  // doubling it kills the commander. Baseline ~20%; a pirate that tracks the
+  // doubling it kills the commander. Baseline ~21%; a pirate that tracks the
   // turning player reads far above this.
   check(`knife-fighter: lined-up share stays under the tracker ceiling`
     + ` (${(r.linedUpShare * 100).toFixed(1)}% < 35%)`, r.linedUpShare < 0.35);
@@ -298,21 +344,19 @@ printRow(runner);
   // fire gate 5.6% of the time by accident, so a 5% floor never trips.
   check(`knife-fighter: lined-up share stays over the passive floor`
     + ` (${(r.linedUpShare * 100).toFixed(1)}% > 10%)`, r.linedUpShare > 0.10);
-  // The reference fight: within laser range 95% of the time. Baseline 100%.
   check(`knife-fighter: in range — in the fight, not standing off`
-    + ` (${(r.inRangeShare * 100).toFixed(1)}% > 80%)`, r.inRangeShare > 0.80);
-  // The turret floor: above every pirate hull's own MIN_CRUISE_FRACTION pin
-  // (0.43 x 330 = 142 for the fastest), well under the baseline 257 — a brain
-  // that sits at the floor and pivots reads below this.
+    + ` (${(r.inRangeShare * 100).toFixed(1)}% > ${IN_RANGE_FLOOR * 100}%)`,
+  r.inRangeShare > IN_RANGE_FLOOR);
   check(`knife-fighter: mean speed above the turret floor`
-    + ` (${r.meanSpeed.toFixed(0)} > 180)`, r.meanSpeed > 180);
+    + ` (${r.meanSpeed.toFixed(0)} > ${TURRET_FLOOR_SPEED})`,
+  r.meanSpeed > TURRET_FLOOR_SPEED);
   // An attack run sweeps the band; a turret holds one range and the spread
-  // collapses. Baseline p10-p90 gap ~2,630.
+  // collapses. Baseline p10-p90 gap ~2,650.
   check(`knife-fighter: range spread not collapsed`
     + ` (${(r.rangeP90 - r.rangeP10).toFixed(0)} > 1200)`,
   r.rangeP90 - r.rangeP10 > 1200);
   // A pass is a completed close-and-break — a loiter scores none however long
-  // it stays. Baseline 1.25 per 20s episode; the fight keeps moving.
+  // it stays. Baseline ~1.2 per 20s episode; the fight keeps moving.
   check(`knife-fighter: passes per episode above zero`
     + ` (${r.passesPerEpisode.toFixed(2)} > 0.5)`, r.passesPerEpisode > 0.5);
 }
@@ -327,7 +371,7 @@ printRow(runner);
 // finally measured against a target that can move it.
 {
   const r = runner;
-  // It is hunting the tail it was given. Baseline ~86%.
+  // It is hunting the tail it was given. Baseline ~85%.
   check(`runner: lined-up share stays over the hunting floor`
     + ` (${(r.linedUpShare * 100).toFixed(1)}% > 60%)`, r.linedUpShare > 0.60);
   // ...but even on a presented tail the shipped pilot spends time off the gun
@@ -336,12 +380,14 @@ printRow(runner);
   check(`runner: lined-up share stays under the perfect-tracker ceiling`
     + ` (${(r.linedUpShare * 100).toFixed(1)}% < 95%)`, r.linedUpShare < 0.95);
   check(`runner: in range — it caught the tail it was offered`
-    + ` (${(r.inRangeShare * 100).toFixed(1)}% > 80%)`, r.inRangeShare > 0.80);
+    + ` (${(r.inRangeShare * 100).toFixed(1)}% > ${IN_RANGE_FLOOR * 100}%)`,
+  r.inRangeShare > IN_RANGE_FLOOR);
   check(`runner: mean speed above the turret floor`
-    + ` (${r.meanSpeed.toFixed(0)} > 180)`, r.meanSpeed > 180);
+    + ` (${r.meanSpeed.toFixed(0)} > ${TURRET_FLOOR_SPEED})`,
+  r.meanSpeed > TURRET_FLOOR_SPEED);
   // Astern AND pointed at the target — the manoeuvre that is actually
   // threatening, and the mode the slash switch trades away when the commander
-  // turns. Baseline 17.1s of a 20s episode.
+  // turns. Baseline 17.0s of a 20s episode.
   check(`runner: holds the six on a presented tail`
     + ` (${r.onSixSeconds.toFixed(1)}s > 10s)`, r.onSixSeconds > 10);
 }
