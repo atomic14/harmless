@@ -13,10 +13,8 @@ active context:
 
 ## Execution queue
 
-- [ ] 109 — [Passenger berths on the board](109-passenger-berths-on-the-board.md)
-      — GitHub #9, first of two milestones
 - [ ] 110 — [Smuggling runs price the scan](110-smuggling-runs-price-the-scan.md)
-      — GitHub #9, second milestone; after 109
+      — GitHub #9, second milestone; 109 has landed
 
 ## Backlog
 

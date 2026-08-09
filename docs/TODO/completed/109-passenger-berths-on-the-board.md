@@ -129,16 +129,79 @@ point of it (invariant 10, cited at `contracts.ts:129` and
 
 ## Acceptance
 
-- Passenger offers appear at the seeded rate, verified at two sample sizes;
-  qty and reward bounds hold.
-- Accepting refuses when berths would overflow the hold; the board footer
-  and buy cap both count berths, asserted through `cargoTonnes`.
-- Settlement pays on time and expires late through the real
-  `settleContracts`; each assertion fails when its branch is reverted.
-- The campaign bot accepts through `acceptContract` (its transcription is
-  gone) and `npm run campaign` passes every existing gate with the new kind
-  in the mix.
-- Full gates: `npm test`, `npm run campaign`, `npm run constants:check`.
+- [x] Passenger offers appear at the seeded rate, verified at two sample
+      sizes — 15.2% of 2,300 offers and 15.6% of 11,556, measured out of the
+      real `generateContractOffers` over the whole galaxy. `qty` is 1–3 heads
+      across all 2,155 jobs and none carries a commodity, so the
+      ordinary-goods stray check above it stays exactly as it was.
+- [x] Accepting refuses when berths would overflow the hold, including
+      against berths already booked by another job — the case that fails if
+      `cargoTonnes` reads the cargo array alone. The board footer and the
+      trade screen's buy cap both call `cargoTonnes`, which counts berths;
+      `test/economy.test.ts` pins the arithmetic beside the hold-agreement
+      block, with a passenger job and stock in the same hold.
+- [x] Settlement pays on time and expires late through the real
+      `settleContracts`, with no new branch: passengers travel with the
+      contract, so the courier shape already covers them. Dropping the
+      contract is what gives the bays back, and the tests assert that too.
+- [x] The campaign bot accepts through `acceptContract` — its
+      hold-check-and-push is gone — and `npm run campaign` passes every gate
+      with the new kind in the mix.
+- [x] Each new gate was proved able to fail: removing the berth term from
+      `cargoTonnes` reddens 6 checks, removing `acceptContract`'s passenger
+      branch 3, removing `describeContract`'s line 2 (the remaining two are
+      the bounty fallback describing passengers as a pirate hunt, which is
+      why the line is pinned), deleting the generation branch 1, and widening
+      `qty` past three heads 1.
+- [x] Full gates: `npm run check` (lint, 3,373 tests, sizes, constants, the
+      generated catalogues) exits 0, and `npm run campaign` passes.
+
+## What the ledger said, and what moved because of it
+
+**The fare pays MORE per tonne than freight, not less.** "What to do" step 3
+predicted the opposite, but its own formula never gives it: at a typical
+40-tenth hop a berth earns about 135 tenths a tonne against a cargo run's
+100, at every `qty` and every distance. The formula is kept as written,
+because the relationship it actually produces is the better game — a smaller
+footprint and a tighter deadline, paid for at a better rate, is a choice;
+less money for a harder deadline is a job nobody would ever take. The words
+in this plan were the guess and the arithmetic is the answer.
+
+**Passenger work costs the trader cohort about 13% of its net worth, and the
+berths are not why.** Measured at 1,000 commanders, where the median is
+stable to ±0.2%: 7,446 Cr before, 6,495 Cr after. Three controls locate it:
+
+- berths priced at 0 t instead of 2 t recover almost none of it (6,587 Cr),
+  so hold competition is not the cost;
+- perturbing the offer generator's random stream without changing a single
+  reward reproduces the baseline exactly (7,460 Cr), so it is not sampling;
+- what remains is the roll re-cut, and specifically the 10 points taken off
+  cargo.
+
+**A cargo contract is worth far more than its reward, because failing one is
+paid.** An expired or short consignment leaves the goods in the hold, and
+both the game and the campaign bot then sell them: instrumented over 1,000
+careers, failed cargo contracts abandon 55 tonnes per career worth 1,353 Cr —
+comparable to a whole career's net worth and larger than every contract
+reward combined. Cutting the cargo share therefore costs more than the
+rewards it removes. That is a pre-existing flaw in the economy, not something
+this milestone introduced, and it is out of scope here; it is the first thing
+to look at if the ledger is ever re-tuned.
+
+## Also landed
+
+- **`src/game/market.ts`.** `contracts.ts` crossed the 400-line ceiling and
+  was two subjects sharing a name: what the board offers you, and what a
+  station charges you. No caller wanted both. The market half —
+  `applyMarketPressure`, `makeLocalMarket`, `marketEstimate`, `hermitMarket`
+  — moved unchanged; invariant 10 is satisfied by any pure module the
+  campaign shares, not by that filename.
+- **`test/missions.test.ts`.** Same reason: `test/contracts.test.ts` carried
+  contracts, the Navy mission and trumbles, and crossed the ceiling. The
+  latter two share the question "what happened while I was flying?".
+- `constants:check` warns that 2 also appears as `CHART_Y_SQUASH`,
+  `FUGITIVE`, `MISSILE_RELOAD` and ten more: confirmed coincidental, and
+  `PASSENGER_BERTH_TONNES` carries its own `@rule` so it stays free to move.
 
 ## Verify
 
