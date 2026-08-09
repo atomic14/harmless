@@ -70,9 +70,24 @@ drives the machine against a fake claude in a throwaway repo (happy path,
 scope-only violation refused — mutation-proven after the first scenario
 failed to isolate it — rework-to-acceptance, BLOCKED at the cap).
 
-**Remaining before this closes:** the live shakedown — drive item 103
-through it end to end (`node --experimental-strip-types tools/cycle.ts
-103`), which also retires 103.
+**Rework 2 (same day):** the audit reviewed the prototype and specified the
+full controller; built as specified — queue-driven (`docs/TODO/QUEUE.json`,
+validated), `next`/`status`/`flown`/`abort` commands, structured
+preparation (checked-in `cycle-manifest` fence or one read-only planner,
+hard validation, doc-checksummed), mechanical worker safety (acceptEdits
+with allow/deny Bash families, never bypassPermissions; verifier
+Read/Grep/Glob + plan mode + JSON schema), oversized diffs BLOCKED not
+truncated, effective tier = max(declared, inferred floor), gameplay stops
+at `awaiting_flown`, whole-item final verification with capped fixers,
+deterministic landing (closer confined to docs/TODO/, checkbox + queue
+updates, ff-merge, push failure resumable as `landed_local`), atomic
+resumable state, worker death never consumes a round, run-wide caps. 43
+machine tests against a fake claude; suite 3336/0. 103 carries the first
+checked-in manifest.
+
+**Remaining before this closes:** the live shakedown — `node
+--experimental-strip-types tools/cycle.ts next` (103 is head of queue),
+then `--land` — which also retires 103.
 
 ## Outcome
 
