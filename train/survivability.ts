@@ -1,48 +1,61 @@
-// How long does a PLAYER survive an organised gang?
+// How long does a commander survive an organised gang? A FLOOR, measured in
+// the training world.
 //
 //   node --experimental-strip-types train/survivability.ts [episodes]
+//   DEFEND_BRAIN=<file stem> npm run survivability   # research override
 //
-// This script used to exist to CORRECT a number. An episode's target was a
-// stand-in at hp 1.0 with no shields, roughly a third as durable as the
-// commander flying it, so every balance figure the tournament produced was
-// measured against the wrong ship — and this file divided the game's own
-// `durability()` back into the stand-in's units to ask the question properly.
+// BOTH SIDES OF THIS FIGHT ARE THE TRAINING WORLD'S STAND-INS. `Episode`
+// drives `brainFly`/`attack` directly and never `NpcShip.update`, so it can
+// fly neither of the pilots the live game actually uses (`game/brain-names.ts`
+// is that rule's home):
 //
-// TODO 29 removed the need. The episode's target IS the commander now: three
-// 255-point pools from `game/systems.ts`, hit by `applyDamage`, for
-// `npcLaserDamageToPlayer` points off the firing build's own packed byte. There
-// is no conversion left to make and no hp to override.
+//   - THE ATTACKERS fly the scripted attack run — the game's own `attack()`,
+//     called directly. What a player meets is `pursuit`, the dogfighter that
+//     chases onto your six; in the live game the scripted run is the A/B
+//     control. `Episode` cannot fly `pursuit` (docs/TODO/98), and making it
+//     able to is a real design change, not a fix this file may smuggle in.
+//   - THE DEFENDER defaults to the training world's scripted armed trader in
+//     the commander's hull: ambles between waypoints, runs flat out once
+//     hurt, and fires her laser only when an attacker crosses her nose. It is
+//     NOT the defence the game sells — the combat computer's co-pilot
+//     (game/scripted-co-pilot.ts) and the armed trader's defensive attack run
+//     (game/npc.ts) both live behind update paths `Episode` cannot drive. Her
+//     E.C.M. is
+//     fitted but never pressed: only a policy with an E.C.M. head asks, so
+//     a warhead here always lands. `DEFEND_BRAIN` names a research candidate in
+//     `src/ai-training/brains/` to fly instead; nothing trained ships
+//     (game/brains.ts is an empty socket), so there is no trained default.
 //
-// So what this asks now is the question the tournament still cannot: how a
-// fight ends against a real GANG, at each size and against each shipped
-// pirate policy, in the commander's own points. It reports how much of her
-// pools a gang can strip in a fight, how often it gets all the way through,
-// and what it costs them — because "kill rate" alone stopped being the
-// interesting number the moment a kill stopped being cheap.
+// SO WHAT IS A ROW EVIDENCE OF? A floor: how a gang of each size ends a
+// fight against close to the least defence a fighting-back commander can
+// have, in her own points — how much of her pools a gang can strip, how often
+// it gets all the way through, and what it costs them. The shipped defence
+// outflies this stand-in, and the real game adds the escape capsule, the
+// torus drive and a station to run to — every difference favours the player,
+// so the live game sits above these rows. What a row is NOT is the shipped
+// fight: `pursuit` attackers against the defence the game sells is a fight
+// this world cannot stage; evidence about what actually ships comes from
+// harnesses that fly real `NpcShip`s through `update()` (docs/TODO/98).
 //
-// POOL RECHARGE IS IN IT NOW (docs/TODO/63), and it is the biggest single thing
-// these rows ever left out: a shield face recovers 8.9 points a second, which is
-// more than a gang of three lands. The header used to say it was left out
-// "because an episode with it in has no gradient", which is an argument about
-// the fitness made by changing the world; the episode runs `systems.ts`'s
-// `regenerate` now, exactly as the game does. **Every figure this tool printed
-// before 2026-08-04 is on the old world and is not comparable with one printed
-// after it.**
+// Units: this script used to exist to CORRECT a number — an episode's target
+// was a stand-in at hp 1.0, so every figure was in the wrong ship's units,
+// and this file divided the game's own `durability()` back in. TODO 29
+// removed the need: the episode's target IS the commander now, three
+// 255-point pools from `game/systems.ts`, hit by `applyDamage`.
 //
-// SHE CARRIES AN E.C.M. NOW (docs/TODO/72), and that is the second-biggest
-// thing these rows left out: a warhead is 250 of her 765 points, and until
-// today no defence policy had an output that could answer one. It is fitted
-// rather than rotated for the same reason `train/defence-fight.ts` fits it —
-// the commander being modelled here is one with a combat computer flying her
-// ship, which is a fitted commander, and a policy fitted in a world with an
-// E.C.M. and measured in one without is being scored on a distribution nothing
-// trained for. **A row printed before 2026-08-04 is on the old world twice
-// over.** A policy with no E.C.M. head is unaffected either way, so this does
-// not flatter one: it changes nothing at all for `jameson-defend-g1`.
+// POOL RECHARGE IS IN IT (docs/TODO/63), and it is the biggest single thing
+// these rows ever left out: a shield face recovers 8.9 points a second, which
+// is more than a gang of three lands. The episode runs `systems.ts`'s
+// `regenerate` exactly as the game does. **Every figure this tool printed
+// before 2026-08-04 is on the old world and is not comparable with one
+// printed after it.**
 //
-// What the real game still has and this does not, all of it favouring the
-// player: the escape capsule, the torus drive and a station to run to. Treat
-// every row as a floor.
+// THE E.C.M. IS FITTED, NOT ROTATED (docs/TODO/72), because the commander
+// being modelled is a fitted one — a warhead is 250 of her 765 points, and a
+// policy fitted in a world with an E.C.M. and measured in one without is
+// being scored on a distribution nothing trained for. Whether anything
+// PRESSES it is the defender's affair, per the bullet above. **A row printed
+// before 2026-08-04 is on the old world twice over.**
 //
 // Not a substitute for flying it. `T` at any station is.
 
@@ -64,15 +77,13 @@ const DT = FIXED_DT;
 const SEED_BASE = 918_273;
 const MAX_TIME = 45;
 
-// THE ATTACKERS ARE SCRIPTED — the only pirate pilot there is since
-// 2026-08-05, when the trained pirate policies left the bundle. The rows used
-// to fly pirate-attack-g3 and pirate-pack-r4-selectonly; what a player meets
-// is the attack run, so that is what the defender's survivability is measured
-// against. Only the defender is still a loadable choice.
-const BRAIN_NAMES = {
-  defend: process.env.DEFEND_BRAIN ?? 'jameson-defend-g2',
-};
-const jameson = load(BRAIN_NAMES.defend);
+// The defender: the scripted armed trader unless DEFEND_BRAIN names a
+// research candidate's weights file — the header says what each is and is not.
+const DEFEND_BRAIN = process.env.DEFEND_BRAIN;
+const defender: Controller = DEFEND_BRAIN
+  ? { kind: 'policy', brain: load(DEFEND_BRAIN) }
+  : { kind: 'scripted' };
+const defenderName = DEFEND_BRAIN ?? 'the scripted armed trader (a stand-in — see header)';
 
 interface Result {
   /** share of episodes the commander was destroyed in */
@@ -103,7 +114,7 @@ function run(gang: number): Result {
     const ep = new Episode({
       seed: SEED_BASE + e * 7919,
       pirates,
-      trader: { kind: 'policy', brain: jameson },
+      trader: defender,
       traderArmed: true,
       traderClass: 'playerCobra',
       targetEcm: true,
@@ -130,14 +141,14 @@ function run(gang: number): Result {
   };
 }
 
-console.log(`\n${N} episodes per row · ${MAX_TIME}s · defender flies ${BRAIN_NAMES.defend}`);
+console.log(`\n${N} episodes per row · ${MAX_TIME}s · defender flies ${defenderName}`);
 console.log(`the commander's own pools: ${durability(true)} points across two ${MAX_SHIELD}-point`
   + ' shields and the bank, recharging as the game does — see the header\n');
-console.log('| gang | brain | destroyed | pools stripped | a shield flattened | they lost |');
+console.log('| gang | attackers | destroyed | pools stripped | a shield flattened | they lost |');
 console.log('| --- | --- | --- | --- | --- | --- |');
 for (const gang of [1, 2, 3, 4]) {
   const r = run(gang);
-  console.log(`| ${gang} | scripted (what ships) | ${(r.kill * 100).toFixed(0)}% in `
+  console.log(`| ${gang} | scripted run (stand-in) | ${(r.kill * 100).toFixed(0)}% in `
     + `${r.ttk.toFixed(1)}s | ${(r.poolLost * 100).toFixed(0)}% | `
     + `${(r.shieldDown * 100).toFixed(0)}% | ${r.lost.toFixed(2)}/ep |`);
 }
