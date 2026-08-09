@@ -14,7 +14,7 @@
 // the end. No rule is read from it and nothing branches on what it returns.
 
 import {
-  BINDINGS, GLOBAL_BINDINGS, type Binding, type ControlMode,
+  BINDINGS, GLOBAL_BINDINGS, type Binding, type Command, type ControlMode,
 } from '../game/controls.ts';
 import { COMMAND_HELP, type HelpSection } from '../game/command-help.ts';
 import { elementById } from '../engine/inert-dom.ts';
@@ -36,6 +36,20 @@ const LABELS: Record<string, string> = {
   // layouts and its own key on some
   Question: '?',
 };
+
+/**
+ * The key that asks for `command` in `mode`'s table (or anywhere, for a
+ * global binding), as the guide prints it.
+ *
+ * For PROSE that names a key — the briefing — so a sentence cannot outlive
+ * the binding it quotes. Throwing on an unbound command is the point: prose
+ * quoting a key nothing answers should fail the build, not ship.
+ */
+export function boundKey(mode: ControlMode, command: Command): string {
+  const b = [...BINDINGS[mode], ...GLOBAL_BINDINGS].find((x) => x.command === command);
+  if (!b) throw new Error(`boundKey: '${command}' is not bound in '${mode}'`);
+  return keyLabel(b.key, b.shift);
+}
 
 /** What to print for a `KeyboardEvent.code`, with the modifier the table wants. */
 export function keyLabel(code: string, shift = false): string {

@@ -68,7 +68,9 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   },
   openEquip: { what: 'equip ship — fuel, missiles and upgrades', menu: 'EQUIP SHIP' },
   openBriefing: {
-    what: "new pilot's briefing — six pages on what to actually do",
+    // No page count in the caption: the pages are ui/screens.ts's BRIEFING
+    // array, and a number here is a copy of its length going stale.
+    what: "new pilot's briefing — what to actually do, page by page",
     menu: "NEW PILOT'S BRIEFING",
   },
   openSaves: {

@@ -10,6 +10,7 @@ import {
   cargoTonnes, formatCredits, cargoCapacity,
 } from '../game/commander.ts';
 import { MAX_FUEL, STARTING_CREDITS } from '../constants/commander.ts';
+import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 import { rating } from '../game/rating.ts';
 import { characterName } from '../game/character.ts';
 import {
@@ -36,7 +37,7 @@ import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH } from '../constants/chart-metric
 // The station menu's rows ARE the docked binding table — see ui/key-help.ts.
 // A hand-written row here would be a second home for a key, and `data-key`
 // becomes a keystroke, so it could advertise a key nothing was bound to.
-import { dockedMenuHtml } from './key-help.ts';
+import { boundKey, dockedMenuHtml } from './key-help.ts';
 import { LOCAL_SCALE, LOCAL_CANVAS } from '../constants/chart-metric.ts';
 
 // Full-page overlay screens, rendered as DOM. The Game owns all input and
@@ -93,7 +94,28 @@ export function renderDockedMenu(sys: StarSystem, c: CommanderData, missionText 
  * Short and paged rather than one long screen: somebody reading this is stuck
  * and wants the next action, not a manual — the manual exists at /manual.html.
  */
-const BRIEFING: { title: string; body: string }[] = [
+// Every key the briefing names is read off the binding table (`boundKey`), so
+// a rebound command rewrites its own prose and an unbound one fails the build.
+// The chart's cursor keys are the screen's own (screens/chart.ts), not
+// bindings, so those stay written out. The briefing explains goals and
+// consequences; the complete key map is the `?` guide and the manual.
+const KEY = {
+  market: boundKey('docked', 'openMarket'),
+  contracts: boundKey('docked', 'openContracts'),
+  localChart: boundKey('docked', 'openLocalChart'),
+  launch: boundKey('docked', 'launch'),
+  briefing: boundKey('docked', 'openBriefing'),
+  help: boundKey('docked', 'toggleHelp'),
+  jump: boundKey('flight', 'startHyperspace'),
+  torus: boundKey('flight', 'toggleTorus'),
+  dockingComputer: boundKey('flight', 'toggleDockingComputer'),
+  jettison: boundKey('flight', 'jettison1'),
+  ecm: boundKey('flight', 'fireEcm'),
+  armMissile: boundKey('flight', 'armMissile'),
+  fireMissile: boundKey('flight', 'launchMissile'),
+};
+
+export const BRIEFING: { title: string; body: string }[] = [
   {
     title: 'WHERE YOU ARE',
     body: `You are docked at a space station in your own Cobra Mk III, with
@@ -103,22 +125,24 @@ const BRIEFING: { title: string; body: string }[] = [
       on a better ship, and that is the whole game. The only score that matters
       is your combat rating, which starts at <b>Harmless</b>.<br/><br/>
       Everything on this menu is a letter key. <b>&uarr; &darr;</b> and
-      <b>ENTER</b> work too.`,
+      <b>ENTER</b> work too. <b>${KEY.help}</b> shows every control, here and
+      in flight; <b>${KEY.briefing}</b> reopens this briefing whenever you
+      want it back.`,
   },
   {
     title: 'MAKE SOME MONEY',
-    body: `Press <b>M</b> for the market.<br/><br/>
+    body: `Press <b>${KEY.market}</b> for the market.<br/><br/>
       Worlds are short of what they do not make. <b>Agricultural</b> worlds sell
       food, textiles, liquor and furs cheaply. <b>Industrial</b> worlds sell
       machinery, computers and alloys cheaply — and each pays well for the
       other's goods.<br/><br/>
       So: buy a hold full of something cheap here, and sell it somewhere with
-      the opposite economy. <b>Contracts</b> (<b>C</b>) pay better than plain
-      cargo for the same trip, but they have deadlines.`,
+      the opposite economy. <b>Contracts</b> (<b>${KEY.contracts}</b>) pay
+      better than plain cargo for the same trip, but they have deadlines.`,
   },
   {
     title: 'CHOOSE A DESTINATION',
-    body: `Press <b>N</b> for the short range chart.<br/><br/>
+    body: `Press <b>${KEY.localChart}</b> for the short range chart.<br/><br/>
       The dashed circle is how far your fuel will take you — ${MAX_FUEL / 10} light years on a
       full tank. Anything inside it you can reach.<br/><br/>
       Move the cursor with the <b>arrow keys</b>, press <b>ENTER</b> to set your
@@ -127,14 +151,28 @@ const BRIEFING: { title: string; body: string }[] = [
   },
   {
     title: 'FLY THERE',
-    body: `<b>L</b> to launch, then <b>H</b> to jump once you are clear of the
-      station.<br/><br/>
+    body: `<b>${KEY.launch}</b> to launch, then <b>${KEY.jump}</b> to jump once
+      you are clear of the station. The game saves on its own: a checkpoint at
+      every docking, and an autosave every ${AUTOSAVE_INTERVAL} seconds in
+      flight.<br/><br/>
       You come out of hyperspace a long way from the planet. Point at it and
-      press <b>J</b> for the torus drive — ${TORUS_MULTIPLIER} times speed. It cuts out near
+      press <b>${KEY.torus}</b> for the torus drive — ${TORUS_MULTIPLIER} times speed. It cuts out near
       anything with mass: a planet, a station, or somebody who has come to meet
       you.<br/><br/>
       Watch the scanner in the middle of the console. You are the centre. Red
       contacts are hostile.`,
+  },
+  {
+    title: 'A FIGHT',
+    body: `Sooner or later somebody opens fire. Your laser shoots straight
+      ahead: put them in the crosshair and hold the trigger — the stick and
+      trigger depend on your keyboard layout, and <b>${KEY.help}</b> shows
+      yours. Lasers overheat; short bursts.<br/><br/>
+      <b>${KEY.armMissile}</b> arms a missile, which locks when a target
+      crosses your sights; <b>${KEY.fireMissile}</b> fires it.<br/><br/>
+      Kills raise your rating toward <b>Elite</b>. If the fight goes badly, run
+      — and if the worst happens, death puts you back at the last station you
+      docked at, without the flight you were on.`,
   },
   {
     title: 'DOCKING',
@@ -146,16 +184,17 @@ const BRIEFING: { title: string; body: string }[] = [
       its rotation</b> — the opening is a letterbox and you must be the same way
       up as it. Then go in slowly. The marker turns green when you are lined
       up.<br/><br/>
-      When you can afford one, buy a <b>docking computer</b> and press <b>C</b>.`,
+      When you can afford one, buy a <b>docking computer</b> and press
+      <b>${KEY.dockingComputer}</b>.`,
   },
   {
     title: 'STAYING ALIVE',
     body: `Pirates want your cargo and they size you up first — a fat hold on a
       soft ship draws a crowd. Anarchies are the worst.<br/><br/>
-      <b>Y</b> jettisons cargo, and it genuinely works: a pirate who gets paid
-      loses interest. <b>E</b> fires the E.C.M. and kills incoming missiles.
-      Your shields recharge, so turning to put a fresh face towards an attacker
-      buys real time.<br/><br/>
+      <b>${KEY.jettison}</b> jettisons cargo, and it genuinely works: a pirate
+      who gets paid loses interest. <b>${KEY.ecm}</b> fires the E.C.M., which
+      kills incoming missiles — equip one early. Your shields recharge, so
+      turning to put a fresh face towards an attacker buys real time.<br/><br/>
       Police care about contraband and about who shot first.<br/><br/>
       The full manual, with a first-run worked example and rather more besides,
       is at <b>/manual.html</b>.`,

@@ -290,8 +290,9 @@ const OUTSIDE: readonly Group[] = [
       + ' constants/chart-metric.ts and the input carry joined the frame budget it was'
       + ' chosen against in constants/world-clock.ts. What stays is only drawing,'
       + ' prose, typed tables or music: the three phosphor colours (docs/TODO/93) and'
-      + ' the painter\'s label tables; the briefing\'s pages and the count derived over'
-      + ' them; the key tables docs/TODO/50 welded (`BINDINGS`, `COMMAND_HELP`,'
+      + ' the painter\'s label tables; the briefing\'s pages, the count derived over'
+      + ' them and the keys their prose quotes off the binding table (docs/TODO/106);'
+      + ' the key tables docs/TODO/50 welded (`BINDINGS`, `COMMAND_HELP`,'
       + ' `ALL_BINDINGS`, `LABELS`, the layouts and the keymap\'s own storage key —'
       + ' invariant 3\'s one carve-out); the import screen\'s three refusal lines; the'
       + ' inert painter\'s DOM plumbing; the cockpit beams\' convergence depth; the'
@@ -300,7 +301,7 @@ const OUTSIDE: readonly Group[] = [
       'hud/hud.ts': [
         'GREEN', 'DIM', 'AMBER', 'CONTACT_COLORS', 'VIEW_NAMES', 'SCORE_LABELS',
       ],
-      'ui/screens.ts': ['BRIEFING', 'BRIEFING_PAGES'],
+      'ui/screens.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES'],
       'ui/key-help.ts': ['LABELS', 'ALL_BINDINGS'],
       'game/command-help.ts': ['COMMAND_HELP'],
       'game/controls.ts': [

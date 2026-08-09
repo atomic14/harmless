@@ -140,7 +140,8 @@ trade, jump, dock and survive, with a first run worked out against the game's
 own market model — and **[The Long Way Out](https://harmless.atomic14.com/novella)**, an original
 novella with papers from the eight galaxies.
 
-In-game, **H** at the station opens a six-page new pilot's briefing, and **?**
+In-game, the new pilot's briefing opens by itself the first time a commander
+docks; **H** at the station reopens it whenever you want it back, and **?**
 shows the controls at any time.
 
 ## Controls

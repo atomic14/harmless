@@ -25,14 +25,15 @@
 
 import { readFileSync } from 'node:fs';
 import {
-  BINDINGS, GLOBAL_BINDINGS, type Binding, type ControlMode,
+  BINDINGS, GLOBAL_BINDINGS, type Binding, type Command, type ControlMode,
 } from '../src/game/controls.ts';
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import {
-  ALL_BINDINGS, dockedMenuHtml, guideSections, guideTableHtml, keyLabel,
+  ALL_BINDINGS, boundKey, dockedMenuHtml, guideSections, guideTableHtml, keyLabel,
   manualCommandsHtml, paintCommandGuide,
 } from '../src/ui/key-help.ts';
+import { BRIEFING } from '../src/ui/screens.ts';
 import { check, eq } from './harness.ts';
 
 /** A binding's identity for these tests: the same key does the same thing. */
@@ -213,6 +214,45 @@ console.log('\nthe README lists exactly what is bound');
   check('...and the README parser is reading a real table',
     flight.length >= 20 && flight.includes('TAB') && flight.includes('⇧H')
     && !flight.includes('D'));
+}
+
+console.log('\nthe briefing surfaces the whole first journey');
+{
+  // The newcomer journey — trade, launch, navigate, jump, fight, escape,
+  // dock — as the commands that carry it. Each must be quoted in the briefing
+  // with the key the table actually binds; the pages interpolate `boundKey`,
+  // so a REBOUND key rewrites its own prose, and what this holds is that the
+  // guidance is not REMOVED — docs/TODO/106 milestone 3.
+  const journey: [ControlMode, Command][] = [
+    ['docked', 'openMarket'], ['docked', 'openContracts'],
+    ['docked', 'openLocalChart'], ['docked', 'launch'],
+    ['docked', 'openBriefing'], ['docked', 'toggleHelp'],
+    ['flight', 'startHyperspace'], ['flight', 'toggleTorus'],
+    ['flight', 'armMissile'], ['flight', 'launchMissile'],
+    ['flight', 'fireEcm'], ['flight', 'jettison1'],
+    ['flight', 'toggleDockingComputer'],
+  ];
+  const text = BRIEFING.map((p) => `${p.title} ${p.body}`).join(' ');
+  const unquoted = journey
+    .filter(([mode, c]) => !text.includes(`<b>${boundKey(mode, c)}</b>`))
+    .map(([, c]) => c);
+  check(`every journey command is quoted with its bound key (${journey.length})`,
+    unquoted.length === 0, unquoted.join(', '));
+
+  // The control: a bound key the briefing deliberately does not teach.
+  check('...and the check can fail — the briefing does not quote ⇧Y',
+    !text.includes(`<b>${boundKey('flight', 'jettison5')}</b>`));
+
+  // Where the pilot starts and what dying does, in the same words everywhere:
+  // the README promises the auto-opening briefing and H as the way back, and
+  // the briefing's death line matches the respawn the game ships.
+  const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
+  check('the README promises the automatic first briefing',
+    readme.includes('opens by itself the first time'));
+  check('...and H as the permanent way back',
+    readme.includes(`**${boundKey('docked', 'openBriefing')}** at the station reopens it`));
+  check('the briefing tells a pilot what death does',
+    text.includes('death puts you back at the last station'));
 }
 
 console.log('\nthe modes the guide covers are the modes there are');
