@@ -293,9 +293,11 @@ printRow(runner);
   check(`knife-fighter: lined-up share stays under the tracker ceiling`
     + ` (${(r.linedUpShare * 100).toFixed(1)}% < 35%)`, r.linedUpShare < 0.35);
   // ...and the opposite failure is on record too: "the ships didn't do
-  // anything". A pirate that never lines up is not fighting.
+  // anything". Half the baseline, and NOT lower: the mutation sweep found
+  // that a fully passive pirate ambling near the stand-in still crosses the
+  // fire gate 5.6% of the time by accident, so a 5% floor never trips.
   check(`knife-fighter: lined-up share stays over the passive floor`
-    + ` (${(r.linedUpShare * 100).toFixed(1)}% > 5%)`, r.linedUpShare > 0.05);
+    + ` (${(r.linedUpShare * 100).toFixed(1)}% > 10%)`, r.linedUpShare > 0.10);
   // The reference fight: within laser range 95% of the time. Baseline 100%.
   check(`knife-fighter: in range — in the fight, not standing off`
     + ` (${(r.inRangeShare * 100).toFixed(1)}% > 80%)`, r.inRangeShare > 0.80);
