@@ -17,7 +17,8 @@
 // Nothing here draws from the seeded rng, so there is no ordering to preserve.
 //
 // What this file does NOT own: the flying. The docking approach is docking.ts,
-// the policy is combat-computer.ts, and pulling the trigger is the Game's,
+// the combat thinking is scripted-co-pilot.ts (or combat-computer.ts's trained
+// seat), and pulling the trigger is the Game's,
 // because firing has consequences — legal status, bounties, the station's
 // Vipers — that an autopilot has no business deciding.
 
