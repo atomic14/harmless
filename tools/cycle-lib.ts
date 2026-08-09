@@ -1,319 +1,355 @@
-// The cycle orchestrator's state machine (docs/TODO/105) — library half, so
-// test/cycle.test.ts can drive every transition against a fake claude binary
-// in a temporary repo. tools/cycle.ts is the CLI shell over runCycle().
+// Cycle orchestrator: the state machine (docs/TODO/105). Queue-driven, safe,
+// resumable: select → prepare → fresh worker per milestone → deterministic
+// checks → fresh verifier → bounded rework → whole-item verification → close
+// the docs → land. Chris (or a stop hook) never has to remember the active
+// item, milestone, branch or retry count — `.cycle/` and git carry it all.
 //
-// Enforcement is mechanical, not advisory (audit rework, 2026-08-09):
-// implementers get a closed tool list and no session persistence; the
-// verifier gets read-only tools and the diff in its prompt so it needs no
-// Bash at all; scope and targeted tests come from the plan doc's Milestones
-// block and are checked deterministically; gate tiers follow docs/PROCESS.md
-// step 3 from what the diff actually touched; rework rounds are consumed
-// only by a fixer that ran to completion.
+// tools/cycle-state.ts holds state/queue/status; tools/cycle-plan.ts the
+// structured preparation; tools/cycle-workers.ts the worker safety rails.
+// test/cycle.test.ts drives every transition with a fake claude and stubbed
+// gates in throwaway repos.
 
-import { execFileSync } from 'node:child_process';
-import { existsSync, mkdirSync, readFileSync, readdirSync, writeFileSync } from 'node:fs';
+import { existsSync, readFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
-
-export interface CycleConfig {
-  root: string;
-  claudeBin: string;      // injectable for tests (CLAUDE_BIN)
-  maxRework: number;
-  maxBudgetUsd: number;   // per worker invocation
-  dryRun: boolean;
-  log: (line: string) => void;
-}
-
-export interface Milestone {
-  title: string;
-  criteria: string;
-  scope: string[];        // path prefixes; empty = whole-repo (warned, not failed)
-  tests: string[];        // shell commands run in the worktree
-}
-
-export interface RunState {
-  todo: string;
-  base: string;           // the item's base on main
-  branch: string;
-  worktree: string;
-  milestones: Milestone[];
-  mi: number;             // current milestone index
-  mBase: string;          // commit the current milestone builds on
-  phase: 'idle' | 'accepted' | 'blocked';
-  rounds: number;         // rework rounds consumed by the current milestone
-  accepted?: string;
-}
-
-export class CycleError extends Error {}
+import {
+  CycleError, CycleStop, findActive, git, loadQueue, loadState, planPath, saveState,
+  sh, statePath, todoDocFor, atomicWrite,
+  type CycleConfig, type CyclePlan, type RunState, type Tier,
+} from './cycle-state.ts';
+import { preparePlan } from './cycle-plan.ts';
+import {
+  closerPrompt, implementerPrompt, parseVerdict, runWorker, verifierPrompt,
+} from './cycle-workers.ts';
 
 const FORBIDDEN = ['.claude/', '.cycle/'];
-const IMPLEMENTER_TOOLS = 'Read,Grep,Glob,Bash,Edit,Write';
-const VERIFIER_TOOLS = 'Read,Grep,Glob';
-const DIFF_CAP = 50_000; // chars of diff embedded in the verifier prompt
+const TIER_ORDER: Tier[] = ['docs', 'tooling', 'src', 'gameplay'];
 
-// --- plumbing ----------------------------------------------------------------
+// --- gates -------------------------------------------------------------------
 
-function sh(cmd: string, args: string[], cwd: string): string {
-  return execFileSync(cmd, args, { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
+/** Path inference is only a SAFETY FLOOR under the plan's declared tier. */
+export function inferredTier(changed: string[]): Tier {
+  if (changed.some((f) => /^src\/(game|constants|ai-training|ships)\//.test(f))) return 'gameplay';
+  if (changed.some((f) => f.startsWith('src/'))) return 'src';
+  if (changed.every((f) => f.startsWith('docs/') || f.endsWith('.md'))) return 'docs';
+  return 'tooling';
 }
 
-function git(cfg: CycleConfig, args: string[], cwd?: string): string {
-  return sh('git', args, cwd ?? cfg.root).trim();
+export function effectiveTier(declared: Tier, changed: string[]): Tier {
+  const inferred = inferredTier(changed);
+  return TIER_ORDER[Math.max(TIER_ORDER.indexOf(declared), TIER_ORDER.indexOf(inferred))];
 }
 
-function statePath(cfg: CycleConfig, todo: string): string {
-  return join(cfg.root, '.cycle', `${todo}.json`);
-}
-
-export function loadState(cfg: CycleConfig, todo: string): RunState | null {
-  const p = statePath(cfg, todo);
-  return existsSync(p) ? JSON.parse(readFileSync(p, 'utf8')) as RunState : null;
-}
-
-function saveState(cfg: CycleConfig, s: RunState): void {
-  mkdirSync(join(cfg.root, '.cycle'), { recursive: true });
-  writeFileSync(statePath(cfg, s.todo), JSON.stringify(s, null, 2));
-}
-
-// --- plan-doc parsing --------------------------------------------------------
-
-/**
- * An optional `## Milestones` block turns one plan doc into several fresh
- * workers. Each numbered line is a milestone; `[scope: a, b]` and
- * `[tests: cmd; cmd]` tags are enforced mechanically; indented lines under it
- * are its acceptance criteria. No block = one milestone covering the doc.
- */
-export function parseMilestones(planText: string, planDoc: string): Milestone[] {
-  const section = planText.split(/^## Milestones\s*$/m)[1]?.split(/^## /m)[0];
-  if (!section) {
-    return [{ title: `the whole of ${planDoc}`, criteria: 'the plan doc in full', scope: [], tests: [] }];
-  }
-  const out: Milestone[] = [];
-  for (const line of section.split('\n')) {
-    const head = line.match(/^\d+\.\s+(.*)$/);
-    if (head) {
-      let title = head[1];
-      const scope = title.match(/\[scope:\s*([^\]]+)\]/)?.[1].split(',').map((s) => s.trim()) ?? [];
-      const tests = title.match(/\[tests:\s*([^\]]+)\]/)?.[1].split(';').map((s) => s.trim()) ?? [];
-      title = title.replace(/\[(scope|tests):[^\]]+\]/g, '').trim();
-      out.push({ title, criteria: '', scope, tests });
-    } else if (out.length && line.trim()) {
-      out[out.length - 1].criteria += `${line.trim()}\n`;
-    }
-  }
-  if (!out.length) throw new CycleError(`empty ## Milestones section in ${planDoc}`);
-  return out;
-}
-
-// --- gate tiers (docs/PROCESS.md step 3) -------------------------------------
-
-/** Which gates a diff owes, from what it touched. The flown check cannot be
- *  scripted; gameplay tiers get a printed reminder instead. */
-export function gateTier(changed: string[]): { name: string; cmds: string[][]; flown: boolean } {
-  const gameplay = changed.some((f) =>
-    /^src\/(game|constants|ai-training)\//.test(f) || f.startsWith('src/ships/'));
-  if (gameplay) {
-    return {
-      name: 'gameplay', flown: true,
-      cmds: [['npm', 'run', 'build'], ['npm', 'run', 'elite-a'], ['npm', 'run', 'campaign']],
-    };
-  }
-  if (changed.some((f) => f.startsWith('src/'))) {
-    return { name: 'src', cmds: [['npm', 'run', 'build'], ['npm', 'run', 'elite-a']], flown: false };
-  }
-  if (changed.every((f) => f.startsWith('docs/') || f.endsWith('.md'))) {
-    return { name: 'docs', cmds: [['npm', 'run', 'lint']], flown: false };
-  }
-  return { name: 'tooling', cmds: [['npm', 'run', 'build']], flown: false };
+export function gateCmds(tier: Tier): string[][] {
+  if (tier === 'docs') return [['npm', 'run', 'lint']];
+  if (tier === 'tooling') return [['npm', 'run', 'build']];
+  if (tier === 'src') return [['npm', 'run', 'build'], ['npm', 'run', 'elite-a']];
+  return [['npm', 'run', 'build'], ['npm', 'run', 'elite-a'], ['npm', 'run', 'campaign']];
 }
 
 // --- deterministic checks ----------------------------------------------------
 
-export function deterministicChecks(cfg: CycleConfig, s: RunState): { ok: boolean; summary: string } {
-  const m = s.milestones[s.mi];
+interface Checks { ok: boolean; summary: string }
+
+function changedFiles(s: RunState, base: string): string[] {
+  return git(['diff', '--name-only', `${base}...HEAD`], s.worktree).split('\n').filter(Boolean);
+}
+
+export function deterministicChecks(
+  cfg: CycleConfig, s: RunState, plan: CyclePlan, base: string, withGates: boolean,
+): Checks {
+  const exec = cfg.exec ?? sh;
+  // At the whole-item stage the scope is every milestone's union and every
+  // declared targeted test runs again.
+  const m = s.currentMilestone < plan.milestones.length
+    ? plan.milestones[s.currentMilestone]
+    : {
+      id: 'final', title: 'whole item',
+      acceptance: [],
+      scope: [...new Set(plan.milestones.flatMap((x) => x.scope))],
+      tests: plan.milestones.flatMap((x) => x.tests),
+    };
   const lines: string[] = [];
   let ok = true;
   const fail = (msg: string): void => { ok = false; lines.push(`FAIL ${msg}`); };
 
-  if (git(cfg, ['rev-parse', 'HEAD'], s.worktree) === s.mBase) fail('no new commit');
-  if (git(cfg, ['status', '--porcelain'], s.worktree)) fail('worktree not clean');
-  if (git(cfg, ['merge-base', s.mBase, 'HEAD'], s.worktree) !== s.mBase) {
-    fail(`branch not based on ${s.mBase.slice(0, 7)}`);
+  if (git(['rev-parse', 'HEAD'], s.worktree) === base) fail('no new commit');
+  if (git(['status', '--porcelain'], s.worktree)) fail('worktree not clean');
+  if (git(['merge-base', base, 'HEAD'], s.worktree) !== base) {
+    fail(`branch not based on ${base.slice(0, 7)}`);
   }
-  const changed = git(cfg, ['diff', '--name-only', `${s.mBase}...HEAD`], s.worktree)
-    .split('\n').filter(Boolean);
+  const changed = changedFiles(s, base);
   for (const f of changed) {
     if (FORBIDDEN.some((p) => f.startsWith(p))) fail(`forbidden path changed: ${f}`);
-    // The plan doc itself is always in scope: outcomes and decisions land there.
     if (m.scope.length && !f.startsWith('docs/TODO/')
       && !m.scope.some((p) => f.startsWith(p))) fail(`out of scope: ${f}`);
   }
-  if (!m.scope.length && changed.length) lines.push('note scope unset — all paths permitted');
-
   for (const t of m.tests) {
-    try { sh('sh', ['-c', t], s.worktree); lines.push(`ok   targeted: ${t}`); }
-    catch { fail(`targeted test: ${t}`); }
+    try { exec(t.cmd, t.args, s.worktree); lines.push(`ok   targeted: ${t.cmd} ${t.args.join(' ')}`); }
+    catch { fail(`targeted test: ${t.cmd} ${t.args.join(' ')}`); }
   }
-  const tier = gateTier(changed);
-  lines.push(`tier ${tier.name}${tier.flown ? ' (flown check owed at landing)' : ''}`);
-  for (const cmd of tier.cmds) {
-    const name = cmd.slice(1).join(' ');
-    try { sh(cmd[0], cmd.slice(1), s.worktree); lines.push(`ok   ${name}`); }
-    catch (e) {
-      const out = e as { stdout?: string; stderr?: string };
-      fail(`${name}\n${(out.stdout ?? '').slice(-1500)}${(out.stderr ?? '').slice(-500)}`);
+  if (withGates) {
+    const tier = effectiveTier(s.declaredTier, changed);
+    lines.push(`tier ${tier} (declared ${s.declaredTier})`);
+    for (const cmd of gateCmds(tier)) {
+      try { exec(cmd[0], cmd.slice(1), s.worktree); lines.push(`ok   ${cmd.slice(1).join(' ')}`); }
+      catch (e) {
+        const out = e as { stdout?: string; stderr?: string };
+        fail(`${cmd.slice(1).join(' ')}\n${(out.stdout ?? '').slice(-1200)}${(out.stderr ?? '').slice(-400)}`);
+      }
     }
   }
   return { ok, summary: lines.join('\n') };
 }
 
-// --- workers -----------------------------------------------------------------
-
-const CO_AUTHOR = 'Co-Authored-By: Claude (cycle orchestrator, docs/TODO/105) <noreply@anthropic.com>';
-
-function runWorker(cfg: CycleConfig, prompt: string, cwd: string, role: 'implementer' | 'verifier'): string {
-  const args = ['-p', prompt, '--no-session-persistence', '--no-chrome',
-    '--autocompact', '100000', '--max-budget-usd', String(cfg.maxBudgetUsd),
-    ...(role === 'verifier'
-      ? ['--tools', VERIFIER_TOOLS, '--permission-mode', 'plan']
-      : ['--tools', IMPLEMENTER_TOOLS, '--permission-mode', 'bypassPermissions'])];
-  if (cfg.dryRun) {
-    cfg.log(`[dry] claude (${role}) ${args.filter((a) => a !== prompt).join(' ')}`);
-    cfg.log(`--- ${role} prompt ---\n${prompt}\n---`);
-    return '';
-  }
-  return sh(cfg.claudeBin, args, cwd);
-}
-
-export function implementerPrompt(s: RunState, planDoc: string, findings: string | null): string {
-  const m = s.milestones[s.mi];
-  const rework = findings
-    ? `This is a REWORK round. Address ONLY these findings, nothing else:\n${findings}\n` : '';
-  return `You are one disposable implementation worker in the HARMLESS repo's cycle loop.
-Work ONLY in this directory (worktree, branch ${s.branch}, based on ${s.mBase.slice(0, 7)}).
-${rework}Contract: ${planDoc} — milestone ${s.mi + 1}/${s.milestones.length}: ${m.title}
-Acceptance criteria:\n${m.criteria || 'the plan doc section for this milestone'}
-${m.scope.length ? `Allowed paths (mechanically enforced): ${m.scope.join(', ')} and docs/TODO/` : ''}
-Read docs/PROCESS.md step 2 and the contract, then implement THIS milestone only.
-Do not push or merge. Use targeted tests while working; the orchestrator runs the gates.
-Stop after at most 50 tool calls; commit what is complete (checkpoint note if unfinished).
-End every commit message with:\n${CO_AUTHOR}\nFinal output: a report under 300 words.`;
-}
-
-export function verifierPrompt(s: RunState, planDoc: string, checksSummary: string, diff: string): string {
-  const m = s.milestones[s.mi];
-  return `You are a read-only verifier (no Bash, no edits, no agents — your tools are
-Read/Grep/Glob only). Judge whether this diff satisfies milestone ${s.mi + 1}/${s.milestones.length}
-("${m.title}") of ${planDoc} — read that file; criteria:\n${m.criteria || '(whole doc)'}
-Deterministic checks already ran:\n${checksSummary}
-The complete diff (${s.mBase.slice(0, 7)}...HEAD${diff.length >= DIFF_CAP ? ', TRUNCATED' : ''}):
-${diff.slice(0, DIFF_CAP)}
-Your ENTIRE final output must be one JSON object, nothing else:
-{"status":"PASS|REWORK|BLOCKED","findings":[{"severity":"high|medium|low","file":"path",
-"line":0,"problem":"...","required_fix":"..."}]}
-REWORK only for contract or repo-rule failures; BLOCKED only if the contract itself cannot
-be satisfied. Style preferences are not findings.`;
-}
-
-export function parseVerdict(raw: string): { status: string; findings: unknown[] } | null {
-  const match = raw.match(/\{[\s\S]*\}/);
-  if (!match) return null;
-  try {
-    const v = JSON.parse(match[0]) as { status?: string; findings?: unknown[] };
-    return v.status && ['PASS', 'REWORK', 'BLOCKED'].includes(v.status)
-      ? { status: v.status, findings: v.findings ?? [] } : null;
-  } catch { return null; }
-}
-
 // --- the machine -------------------------------------------------------------
 
-export function prepare(cfg: CycleConfig, num: string): RunState {
-  const todoDir = join(cfg.root, 'docs/TODO');
-  const matches = readdirSync(todoDir).filter((f) => f.startsWith(`${num}-`) && f.endsWith('.md'));
-  if (matches.length !== 1) {
-    throw new CycleError(`expected one docs/TODO/${num}-*.md, found ${matches.length}`);
-  }
-  const planDoc = `docs/TODO/${matches[0]}`;
-  if (git(cfg, ['status', '--porcelain'])) throw new CycleError('main working tree is not clean');
-  const base = git(cfg, ['rev-parse', 'HEAD']);
+function ensureWorktree(cfg: CycleConfig, s: RunState): void {
+  if (existsSync(s.worktree)) return;
+  if (git(['branch', '--list', s.branch], cfg.root)) {
+    git(['worktree', 'add', s.worktree, s.branch], cfg.root);
+  } else if (cfg.dryRun) cfg.log(`[dry] git worktree add -b ${s.branch} ${s.worktree}`);
+  else git(['worktree', 'add', '-b', s.branch, s.worktree, s.itemBase], cfg.root);
+}
 
+function validateResume(cfg: CycleConfig, s: RunState): void {
+  ensureWorktree(cfg, s);
+  if (cfg.dryRun && !existsSync(s.worktree)) return;
+  const head = git(['rev-parse', 'HEAD'], s.worktree);
+  if (git(['merge-base', s.itemBase, 'HEAD'], s.worktree) !== s.itemBase) {
+    throw new CycleError(`branch ${s.branch} is not based on ${s.itemBase.slice(0, 7)}`);
+  }
+  // Commits produced before an interruption: skip the implementer, go to checks.
+  if (s.phase === 'implementing' && head !== s.milestoneBase) s.phase = 'checking';
+}
+
+function freshState(cfg: CycleConfig, num: string): RunState {
+  if (git(['status', '--porcelain'], cfg.root)) {
+    throw new CycleError('main working tree is not clean');
+  }
+  const base = git(['rev-parse', 'HEAD'], cfg.root);
+  return {
+    todo: num, branch: `cycle/${num}`,
+    worktree: join(cfg.root, '.claude/worktrees', `cycle-${num}`),
+    itemBase: base, phase: 'preparing', currentMilestone: 0, milestoneBase: base,
+    branchHead: base, milestoneRounds: 0, finalRounds: 0, workerInvocations: [],
+    lastError: null, lastSuccessfulPhase: null, declaredTier: 'tooling',
+    flownCheckOwed: false, planChecksum: '', lastFindings: null,
+  } as RunState;
+}
+
+function landing(cfg: CycleConfig, s: RunState, planDoc: string): void {
+  const exec = cfg.exec ?? sh;
+  if (s.phase === 'ready_to_land') {
+    const preCloser = git(['rev-parse', 'HEAD'], s.worktree);
+    const gateSummary = `effective tier ${effectiveTier(s.declaredTier, changedFiles(s, s.itemBase))}` +
+      `; all gates green at final verification` +
+      (s.flownEvidence ? `; flown: ${s.flownEvidence}` : '');
+    runWorker(cfg, s, 'closer', closerPrompt(s, planDoc, gateSummary), s.worktree);
+    if (!cfg.dryRun) {
+      const closerChanged = git(['diff', '--name-only', `${preCloser}...HEAD`], s.worktree)
+        .split('\n').filter(Boolean);
+      if (git(['status', '--porcelain'], s.worktree) || closerChanged.some((f) => !f.startsWith('docs/TODO/'))) {
+        s.phase = 'blocked'; s.lastError = 'closer changed files outside docs/TODO/';
+        saveState(cfg, s); return;
+      }
+      // Deterministic finalization: the index checkbox and the queue, one commit.
+      const readmePath = join(s.worktree, 'docs/TODO/README.md');
+      const readme = readFileSync(readmePath, 'utf8');
+      const ticked = readme.replace(`- [ ] ${s.todo} —`, `- [x] ${s.todo} —`);
+      if (ticked !== readme) atomicWrite(readmePath, ticked);
+      const queuePath = join(s.worktree, 'docs/TODO/QUEUE.json');
+      const q = JSON.parse(readFileSync(queuePath, 'utf8')) as { version: 1; items: number[] };
+      q.items = q.items.filter((n) => n !== Number(s.todo));
+      atomicWrite(queuePath, `${JSON.stringify(q, null, 2)}\n`);
+      git(['add', 'docs/TODO'], s.worktree);
+      git(['commit', '-q', '-m', `docs/TODO: land ${s.todo} — index and queue\n\n` +
+        'Co-Authored-By: Claude (cycle orchestrator, docs/TODO/105) <noreply@anthropic.com>'], s.worktree);
+      exec('npm', ['run', 'lint'], s.worktree);
+      // Main must be clean, at the expected base, and fast-forwardable.
+      if (git(['status', '--porcelain'], cfg.root)) throw new CycleError('main tree dirty at landing');
+      if (git(['rev-parse', 'HEAD'], cfg.root) !== s.itemBase) {
+        s.phase = 'blocked'; s.lastError = 'main moved past itemBase — rebase needed';
+        saveState(cfg, s); return;
+      }
+      git(['merge', '--ff-only', s.branch], cfg.root);
+    } else cfg.log('[dry] finalize docs, lint, verify main at base, git merge --ff-only');
+    s.phase = 'landed_local';
+    if (!cfg.dryRun) saveState(cfg, s);
+  }
+  if (s.phase === 'landed_local') {
+    if (cfg.push && !cfg.dryRun) {
+      try { git(['push', 'origin', 'main'], cfg.root); } catch (e) {
+        s.lastError = `push failed: ${String((e as Error).message).slice(0, 200)}`;
+        saveState(cfg, s);
+        throw new CycleStop('push failed — state is landed_local; rerun with --push to retry');
+      }
+    } else if (cfg.dryRun) cfg.log('[dry] git push origin main (with --push)');
+    else cfg.log(`landed locally; push is the supervisor's (or rerun with --land --push)`);
+    s.phase = 'complete';
+    if (!cfg.dryRun) {
+      saveState(cfg, s);
+      git(['worktree', 'remove', '--force', s.worktree], cfg.root);
+      git(['branch', '-D', s.branch], cfg.root);
+    }
+  }
+}
+
+/** Drive one item as far as configuration allows; always resumable. */
+export function runItem(cfg: CycleConfig, num: string): RunState {
+  const planDoc = todoDocFor(cfg, num);
   let s = loadState(cfg, num);
-  if (s && s.base !== base && s.phase !== 'accepted') {
-    throw new CycleError(`stale state (base ${s.base.slice(0, 7)} vs HEAD ${base.slice(0, 7)}); ` +
-      `delete .cycle/${num}.json to restart`);
+  if (s?.phase === 'complete') throw new CycleError(`${num} is already complete`);
+  if (!s) s = freshState(cfg, num);
+  ensureWorktree(cfg, s);
+  validateResume(cfg, s);
+  // Landing phases must not re-prepare: the closer edits the plan doc, which
+  // would churn the checksum and re-invoke the planner for nothing.
+  if (['ready_to_land', 'landed_local'].includes(s.phase)) {
+    if (cfg.land || s.phase === 'landed_local') landing(cfg, s, planDoc);
+    if (!cfg.dryRun) saveState(cfg, s);
+    return s;
   }
-  if (s?.phase === 'accepted') throw new CycleError(`already accepted at ${s.accepted?.slice(0, 7)}`);
-  if (s?.phase === 'blocked') throw new CycleError(`BLOCKED — needs a human; see .cycle/${num}.json`);
-  if (!s) {
-    const milestones = parseMilestones(readFileSync(join(cfg.root, planDoc), 'utf8'), planDoc);
-    s = {
-      todo: num, base, branch: `cycle/${num}`,
-      worktree: join(cfg.root, '.claude/worktrees', `cycle-${num}`),
-      milestones, mi: 0, mBase: base, phase: 'idle', rounds: 0,
-    };
-  }
-  if (!existsSync(s.worktree)) {
-    if (cfg.dryRun) cfg.log(`[dry] git worktree add -b ${s.branch} ${s.worktree}`);
-    else git(cfg, ['worktree', 'add', '-b', s.branch, s.worktree, base]);
+  if (s.phase === 'awaiting_flown' || s.phase === 'blocked') return s;
+  const plan = preparePlan(cfg, s, planDoc);
+  if (s.phase === 'preparing') s.phase = 'implementing';
+  if (!cfg.dryRun) saveState(cfg, s);
+
+  try {
+    while (s.currentMilestone < plan.milestones.length
+      && !['blocked', 'awaiting_flown', 'ready_to_land', 'landed_local', 'complete'].includes(s.phase)) {
+      if (s.phase === 'implementing') {
+        cfg.log(`cycle ${num}: milestone ${s.currentMilestone + 1}/${plan.milestones.length}`);
+        const r = runWorker(cfg, s, 'implementer',
+          implementerPrompt(s, plan, planDoc, null), s.worktree);
+        if (!cfg.dryRun) cfg.log(`--- implementer ---\n${r.text.slice(0, 1500)}\n---`);
+        s.phase = 'checking';
+      } else if (s.phase === 'checking') {
+        if (cfg.dryRun) {
+          cfg.log('[dry] deterministic checks: commit/clean/base/scope/targeted tests');
+          dryRunTail(cfg, s, plan, planDoc);
+          return s;
+        }
+        const c = deterministicChecks(cfg, s, plan, s.milestoneBase, false);
+        cfg.log(`--- checks ---\n${c.summary || '(all ok)'}\n---`);
+        if (c.ok) s.phase = 'verifying';
+        else { s.lastFindings = `Deterministic checks failed:\n${c.summary}`; s.phase = 'reworking'; }
+      } else if (s.phase === 'verifying') {
+        const diff = git(['diff', `${s.milestoneBase}...HEAD`], s.worktree);
+        if (diff.length > cfg.diffCap) {
+          s.phase = 'blocked'; s.lastError = 'milestone too large; split required';
+        } else {
+          const c = deterministicChecks(cfg, s, plan, s.milestoneBase, false);
+          const v = parseVerdict(runWorker(cfg, s, 'verifier',
+            verifierPrompt(s, plan, planDoc, c.summary, diff, false), s.worktree).text);
+          cfg.log(`--- verdict: ${v.status} (${v.findings.length}) ---`);
+          if (v.status === 'PASS') {
+            s.milestoneBase = git(['rev-parse', 'HEAD'], s.worktree);
+            s.currentMilestone += 1; s.milestoneRounds = 0; s.lastFindings = null;
+            s.phase = s.currentMilestone < plan.milestones.length ? 'implementing' : 'final_verifying';
+          } else if (v.status === 'BLOCKED') {
+            s.phase = 'blocked'; s.lastError = 'verifier: BLOCKED';
+          } else { s.lastFindings = JSON.stringify(v.findings, null, 1); s.phase = 'reworking'; }
+        }
+      } else if (s.phase === 'reworking') {
+        if (s.milestoneRounds >= cfg.maxRework) {
+          s.phase = 'blocked'; s.lastError = 'rework cap reached with a surviving finding';
+        } else {
+          const r = runWorker(cfg, s, 'implementer',
+            implementerPrompt(s, plan, planDoc, s.lastFindings), s.worktree);
+          s.milestoneRounds += 1; // consumed only after the fixer ran to completion
+          cfg.log(`--- fixer (round ${s.milestoneRounds}) ---\n${r.text.slice(0, 1000)}\n---`);
+          s.phase = 'checking';
+        }
+      }
+      s.lastSuccessfulPhase = s.phase;
+      if (!cfg.dryRun) saveState(cfg, s);
+    }
+
+    while (s.phase === 'final_verifying') {
+      const c = deterministicChecks(cfg, s, plan, s.itemBase, true);
+      cfg.log(`--- final gates ---\n${c.summary}\n---`);
+      const diff = git(['diff', `${s.itemBase}...HEAD`], s.worktree);
+      if (diff.length > cfg.diffCap) { s.phase = 'blocked'; s.lastError = 'item diff too large'; break; }
+      let verdictOk = false;
+      if (c.ok) {
+        const v = parseVerdict(runWorker(cfg, s, 'verifier',
+          verifierPrompt(s, plan, planDoc, c.summary, diff, true), s.worktree).text);
+        cfg.log(`--- whole-item verdict: ${v.status} (${v.findings.length}) ---`);
+        if (v.status === 'PASS') verdictOk = true;
+        else if (v.status === 'BLOCKED') { s.phase = 'blocked'; s.lastError = 'final verifier: BLOCKED'; break; }
+        else s.lastFindings = JSON.stringify(v.findings, null, 1);
+      } else s.lastFindings = `Final gates failed:\n${c.summary}`;
+      if (verdictOk) {
+        s.phase = s.flownCheckOwed && !s.flownEvidence ? 'awaiting_flown' : 'ready_to_land';
+      } else if (s.finalRounds >= cfg.maxFinalRework) {
+        s.phase = 'blocked'; s.lastError = 'final rework cap reached';
+      } else {
+        const r = runWorker(cfg, s, 'implementer',
+          implementerPrompt(s, plan, planDoc, s.lastFindings), s.worktree);
+        s.finalRounds += 1;
+        cfg.log(`--- final fixer (round ${s.finalRounds}) ---\n${r.text.slice(0, 1000)}\n---`);
+      }
+      if (!cfg.dryRun) saveState(cfg, s);
+    }
+
+    if (s.phase === 'ready_to_land' && cfg.land) landing(cfg, s, planDoc);
+  } catch (e) {
+    if (e instanceof CycleStop) {
+      s.lastError = e.message;
+      if (!cfg.dryRun) saveState(cfg, s);
+    }
+    throw e;
   }
   if (!cfg.dryRun) saveState(cfg, s);
   return s;
 }
 
-/** Drive the current milestone to accepted/blocked; returns the state. */
-export function runCycle(cfg: CycleConfig, num: string): RunState {
-  const s = prepare(cfg, num);
-  const planDoc = `docs/TODO/${readdirSync(join(cfg.root, 'docs/TODO'))
-    .find((f) => f.startsWith(`${num}-`) && f.endsWith('.md'))}`;
+function dryRunTail(cfg: CycleConfig, s: RunState, plan: CyclePlan, planDoc: string): void {
+  runWorker(cfg, s, 'verifier', verifierPrompt(s, plan, planDoc, '(checks)', '(diff)', false), s.worktree);
+  runWorker(cfg, s, 'implementer', implementerPrompt(s, plan, planDoc, '(example findings)'), s.worktree);
+  runWorker(cfg, s, 'verifier', verifierPrompt(s, plan, planDoc, '(final gates)', '(item diff)', true), s.worktree);
+  runWorker(cfg, s, 'closer', closerPrompt(s, planDoc, '(gate summary)'), s.worktree);
+  cfg.log('[dry] then: finalize index+queue, lint, ff-merge, push with --push');
+}
 
-  while (s.mi < s.milestones.length) {
-    // Interrupted-run recovery: commits already on the branch mean the
-    // implementer ran; go straight to checks rather than paying for another.
-    const hasWork = !cfg.dryRun && git(cfg, ['rev-parse', 'HEAD'], s.worktree) !== s.mBase;
-    if (!hasWork) {
-      cfg.log(`cycle ${num}: milestone ${s.mi + 1}/${s.milestones.length} — implementing`);
-      const report = runWorker(cfg, implementerPrompt(s, planDoc, null), s.worktree, 'implementer');
-      if (!cfg.dryRun) cfg.log(`--- implementer ---\n${report.slice(0, 2000)}\n---`);
-    } else cfg.log(`cycle ${num}: found existing commits; skipping to checks`);
+// --- queue driving and commands ----------------------------------------------
 
-    if (cfg.dryRun) {
-      cfg.log('[dry] deterministic checks, then:');
-      runWorker(cfg, verifierPrompt(s, planDoc, '(checks summary)', '(diff)'), s.worktree, 'verifier');
-      runWorker(cfg, implementerPrompt(s, planDoc, '(example findings)'), s.worktree, 'implementer');
-      const sample = parseVerdict('{"status":"PASS","findings":[]}');
-      cfg.log(`[dry] verdict parser self-check: ${sample?.status === 'PASS' ? 'ok' : 'BROKEN'}`);
-      return s;
+export function runNext(cfg: CycleConfig): RunState {
+  const current = findActive(cfg);
+  if (current) {
+    if (current.phase === 'blocked') {
+      throw new CycleError(`item ${current.todo} is BLOCKED and prevents the queue: ${current.lastError}`);
     }
-
-    for (; ;) {
-      const checks = deterministicChecks(cfg, s);
-      cfg.log(`--- checks ---\n${checks.summary}\n---`);
-      let findingsText: string;
-      if (checks.ok) {
-        const diff = git(cfg, ['diff', `${s.mBase}...HEAD`], s.worktree);
-        const raw = runWorker(cfg, verifierPrompt(s, planDoc, checks.summary, diff), s.worktree, 'verifier');
-        const verdict = parseVerdict(raw);
-        if (!verdict) throw new CycleError(`unparsable verdict:\n${raw.slice(0, 1000)}`);
-        cfg.log(`--- verdict: ${verdict.status} (${verdict.findings.length} findings) ---`);
-        if (verdict.status === 'PASS') {
-          s.mBase = git(cfg, ['rev-parse', 'HEAD'], s.worktree);
-          s.mi += 1; s.rounds = 0;
-          saveState(cfg, s);
-          break;
-        }
-        if (verdict.status === 'BLOCKED') { s.phase = 'blocked'; saveState(cfg, s); return s; }
-        findingsText = JSON.stringify(verdict.findings, null, 1);
-      } else findingsText = `Deterministic checks failed:\n${checks.summary}`;
-
-      if (s.rounds >= cfg.maxRework) { s.phase = 'blocked'; saveState(cfg, s); return s; }
-      cfg.log(`cycle ${num}: rework round ${s.rounds + 1}/${cfg.maxRework}`);
-      const report = runWorker(cfg, implementerPrompt(s, planDoc, findingsText), s.worktree, 'implementer');
-      s.rounds += 1; // consumed only after the fixer ran to completion
-      saveState(cfg, s);
-      cfg.log(`--- fixer ---\n${report.slice(0, 1500)}\n---`);
-    }
+    return runItem(cfg, current.todo);
   }
-  s.phase = 'accepted';
-  s.accepted = git(cfg, ['rev-parse', 'HEAD'], s.worktree);
+  const queue = loadQueue(cfg);
+  if (!queue.length) throw new CycleError('queue is empty');
+  return runItem(cfg, String(queue[0]));
+}
+
+export function markFlown(cfg: CycleConfig, num: string, evidence: string): RunState {
+  const s = loadState(cfg, num);
+  if (!s) throw new CycleError(`no state for ${num}`);
+  if (s.phase !== 'awaiting_flown') throw new CycleError(`${num} is ${s.phase}, not awaiting_flown`);
+  if (!evidence.trim()) throw new CycleError('flown evidence must not be empty');
+  s.flownEvidence = evidence; s.phase = 'ready_to_land';
   saveState(cfg, s);
   return s;
+}
+
+export function abort(cfg: CycleConfig, num: string, force: boolean): string {
+  const s = loadState(cfg, num);
+  if (!s) throw new CycleError(`no state for ${num}`);
+  const report = [
+    `abort ${num} would remove: worktree ${s.worktree}, branch ${s.branch} ` +
+    `(${s.branchHead.slice(0, 7)} — commits are LOST unless merged elsewhere), ` +
+    `state ${statePath(cfg, num)} and its plan.`,
+    'preserved: main, the plan doc, the queue.',
+  ].join('\n');
+  if (!force) return `${report}\nRerun with --force to do it.`;
+  if (existsSync(s.worktree)) git(['worktree', 'remove', '--force', s.worktree], cfg.root);
+  try { git(['branch', '-D', s.branch], cfg.root); } catch { /* already gone */ }
+  rmSync(statePath(cfg, num), { force: true });
+  rmSync(planPath(cfg, num), { force: true });
+  return `${report}\nDone.`;
 }
