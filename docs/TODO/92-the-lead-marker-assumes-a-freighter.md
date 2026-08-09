@@ -92,11 +92,17 @@ The HUD open-codes that helper and substitutes a constant for the argument.
 
 ## Acceptance
 
-- The lead marker uses the target's real speed, through `velocityOf`.
-- `ASSUMED_TARGET_SPEED` no longer exists.
-- A test that a fast ship and a slow ship at the same bearing produce different
-  lead points — and that it fails if the speed is pinned to a constant again.
-- **Flown by Chris**, in a real fight, against something fast.
+- [x] The lead marker uses the target's real speed, through `velocityOf` —
+      now a free function exported from `npc.ts`, with the ship's private
+      method gone; the HUD and the AI read the same rule.
+- [x] `ASSUMED_TARGET_SPEED` no longer exists.
+- [x] A test that a fast ship and a slow ship at the same bearing produce
+      different lead points — `test/hud-model.test.ts`, proven to fail with
+      the speed pinned back to 220. It also pins the no-floor decision: at
+      speed 0 the lead sits exactly on the bracket.
+- [ ] **Flown by Chris**, in a real fight, against something fast. The code
+      landed 2026-08-09; this is the only step left. Expect the first session
+      to feel worse — muscle memory is calibrated to the under-lead.
 
 ## Verify
 

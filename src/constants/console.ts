@@ -25,9 +25,6 @@ export const SUNSKIM_COMPASS_RANGE = 130_000;
 /** The station takes the compass within this many planet radii. */
 export const STATION_COMPASS_RADII = 3;
 
-/** Assumed target cruise for the lead marker, in world units a second. */
-export const ASSUMED_TARGET_SPEED = 220;
-
 /** Notional bolt speed, for the lead marker only; real shots are instant. */
 export const BOLT_SPEED = 8000;
 

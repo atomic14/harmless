@@ -337,6 +337,22 @@ export function steerQuatToward(
 const steerMat = new THREE.Matrix4();
 const steerQuat = new THREE.Quaternion();
 
+/**
+ * How something with this attitude and this speed is travelling.
+ *
+ * Nose and thrust are the same direction for everything that flies in this
+ * game — `advance()` is the same two lines, and the commander's `update()` is
+ * a third — so a target's velocity is not a thing anybody has to store. The
+ * ships derive it here to lead their shots, and the HUD's lead marker
+ * (hud-model.ts) reads the SAME rule so the aid and the AI agree about where
+ * a target is going. Writes into `out` and allocates nothing.
+ */
+export function velocityOf(
+  quat: THREE.Quaternion, speed: number, out: THREE.Vector3,
+): THREE.Vector3 {
+  return out.set(0, 0, -1).applyQuaternion(quat).multiplyScalar(speed);
+}
+
 export class NpcShip {
   readonly object: THREE.Object3D;
   readonly role: NpcRole;
@@ -669,7 +685,7 @@ export class NpcShip {
       const shot = pursuit
         ? this.pursuitFly(dt, player, distPlayer, fleet)
         : this.attack(dt, player.position, distPlayer, true, undefined,
-          fleet, this.velocityOf(player.quaternion, player.speed));
+          fleet, velocityOf(player.quaternion, player.speed, this.tmpVel));
       return this.chooseWeapon(shot, distPlayer, player.position,
         view.missileInbound);
     }
@@ -679,7 +695,7 @@ export class NpcShip {
       if (d < 7000) {
         return this.attack(
           dt, this.npcTarget.object.position, d, false, this.npcTarget, view.fleet,
-          this.velocityOf(this.npcTarget.object.quaternion, this.npcTarget.state.speed));
+          velocityOf(this.npcTarget.object.quaternion, this.npcTarget.state.speed, this.tmpVel));
       }
       this.npcTarget = null;
     }
@@ -695,14 +711,14 @@ export class NpcShip {
       if (this.armed && defenceBrainNameFor(brains) === 'attack-run') {
         if (this.state.provokedByPlayer && distPlayer < 6000) {
           const shot = this.attack(dt, player.position, distPlayer, true, undefined,
-            fleet, this.velocityOf(player.quaternion, player.speed));
+            fleet, velocityOf(player.quaternion, player.speed, this.tmpVel));
           return this.chooseWeapon(shot, distPlayer, player.position, view.missileInbound);
         }
         const attacker = this.nearestAttacker(dt);
         if (attacker) {
           const d = attacker.object.position.distanceTo(this.object.position);
           return this.attack(dt, attacker.object.position, d, false, attacker, view.fleet,
-            this.velocityOf(attacker.object.quaternion, attacker.state.speed));
+            velocityOf(attacker.object.quaternion, attacker.state.speed, this.tmpVel));
         }
       }
       const defence = this.armed ? defenceBrain(brains) : null;
@@ -1141,7 +1157,7 @@ export class NpcShip {
   ): FireEvent | null {
     return this.slashesRatherThanHoldSix(target)
       ? this.attack(dt, target.position, dist, true, undefined,
-        fleet, this.velocityOf(target.quaternion, target.speed))
+        fleet, velocityOf(target.quaternion, target.speed, this.tmpVel))
       : this.pursue(dt, target.position, dist, true, undefined, target.speed, fleet);
   }
 
@@ -1299,19 +1315,6 @@ export class NpcShip {
   private advance(dt: number): void {
     this.tmpDir.set(0, 0, -1).applyQuaternion(this.object.quaternion);
     this.object.position.addScaledVector(this.tmpDir, this.state.speed * dt);
-  }
-
-  /**
-   * How something with this attitude and this speed is travelling.
-   *
-   * Nose and thrust are the same direction for everything that flies in this
-   * game — `advance()` above is the same two lines, and the commander's
-   * `update()` is a third — so a target's velocity is not a thing anybody has
-   * to store. Written into this ship's own scratch and handed straight to
-   * `attack()`, which is the only caller.
-   */
-  private velocityOf(quat: THREE.Quaternion, speed: number): THREE.Vector3 {
-    return this.tmpVel.set(0, 0, -1).applyQuaternion(quat).multiplyScalar(speed);
   }
 
   /**

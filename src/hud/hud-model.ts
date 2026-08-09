@@ -12,14 +12,12 @@
 import * as THREE from 'three';
 import type { HudState, ScannerContact, ScreenTarget } from './hud.ts';
 import type { NpcShip } from '../game/npc.ts';
-import { isHostileToPlayer } from '../game/npc.ts';
+import { isHostileToPlayer, velocityOf } from '../game/npc.ts';
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
 import {
   inSlotChannel, rollAlignedWithSlot, slotRollOffset,
 } from '../game/docking.ts';
-import {
-  TARGET_BRACKET_RANGE, BOLT_SPEED, ASSUMED_TARGET_SPEED,
-} from '../constants/console.ts';
+import { TARGET_BRACKET_RANGE, BOLT_SPEED } from '../constants/console.ts';
 
 /** Everything on the scanner: the station, ships, missiles and cargo. */
 export function scannerContacts(
@@ -167,8 +165,10 @@ export function dockingAid(
  *
  * Laser bolts are instant, but the target keeps moving while you line up, so
  * the lead point shows where it will be after the bolt's flight time. Assumes
- * the target holds its current heading at cruise — which is wrong the moment
- * it turns, and is exactly why it is an aid rather than an autoaim.
+ * the target holds its current heading at its current speed — which is wrong
+ * the moment it turns, and is exactly why it is an aid rather than an autoaim.
+ * On a stopped target the lead sits on the hull, which is correct: no floor
+ * keeps it off, because a floor is a lie about where the shot lands.
  */
 export function screenTargets(
   npcs: readonly NpcShip[],
@@ -203,8 +203,7 @@ export function screenTargets(
     };
     if (isLocked && npc.role !== 'asteroid') {
       const flight = dist / BOLT_SPEED;
-      const vel = scratch.set(0, 0, -1)
-        .applyQuaternion(npc.object.quaternion).multiplyScalar(ASSUMED_TARGET_SPEED);
+      const vel = velocityOf(npc.object.quaternion, npc.state.speed, scratch);
       const lead = npc.object.position.clone().addScaledVector(vel, flight).project(camera);
       if (lead.z <= 1) target.lead = { x: lead.x, y: lead.y };
     }

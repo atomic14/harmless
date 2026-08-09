@@ -100,6 +100,7 @@ import './key-help.test.ts';
 import './site-footer.test.ts';
 import './input.test.ts';
 import './hud-binding.test.ts';
+import './hud-model.test.ts';
 
 // --- the docked combat trainer ----------------------------------------------
 import './combat-sim.test.ts';
