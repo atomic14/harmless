@@ -20,11 +20,14 @@ plausible one — most of the expensive mistakes in this repo were a correct fix
 a misdiagnosed problem. If you cannot explain why something is broken, you are
 not ready to fix it. If a doc and the code disagree, the code is what ships.
 
-**We are not constrained by time or resources.** There is no deadline and no
-budget to protect. Read the whole file. Run the measurement again at a larger
-sample. Write the harness. Check the thing you assumed. Never pick a worse answer
-because the better one takes longer, and never narrow the scope of a job to
-finish sooner — if the work turns out bigger than it looked, do the bigger work.
+**There is no deadline, but there is a budget.** Correctness beats speed:
+never pick a worse answer because the better one takes longer, and never
+narrow a job's scope to finish sooner. But context is the resource that runs
+out here (audit, 2026-08-09): read the files the change touches rather than
+sweeping directories, run the targeted test while working and the full gates
+once at the end, keep reports short with the detail in the plan doc, and
+hand off at a checkpoint rather than working on in a bloated session. Do the
+bigger work when the job is bigger — in more sessions, not in one fat one.
 
 **Say what is true.** Report what you actually ran and what it actually printed.
 A number you did not measure is not evidence, and neither is a number from a doc
@@ -37,12 +40,15 @@ can change either without remembering the other. When you find a second home,
 deleting it is the fix — not a comment asking the next person to keep them in
 step.
 
-**Read `src/constants/` before you start.** Read the files, in full. Do not grep
-it, do not search it for the name you have in mind, and do not skim it — the
-whole point is to find the constant you did not know was already there, under a
-name you would not have guessed. Before adding any constant, including one
-derived from another, confirm it does not already exist. A value that exists
-twice is a rule with two homes, and this is the directory that stops that.
+**Constants discipline.** A value that exists twice is a rule with two homes,
+and `src/constants/` is the directory that stops that. Before adding any
+constant, including one derived from another: search the directory for the
+proposed name, at least two conceptual synonyms, and the value; read IN FULL
+the owning constants file plus every candidate the search returns; and record
+the searches you ran in your report. Read the whole directory only when
+introducing a new domain or when ownership is genuinely ambiguous. (TODO 104
+builds the generated catalogue and mechanical duplicate check that replace
+the searches; when it lands, read `src/constants/CATALOG.md` first instead.)
 
 **Leave the reasoning where the next person will look.** A constant is worth the
 sentence that says how it was chosen, beside it. A decision worth making is worth

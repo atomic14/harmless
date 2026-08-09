@@ -55,6 +55,18 @@ wanted, and the queue prefers items a player can feel.
 - [x] 100 — [Who flies the combat computer? The docs disagree with the code, both ways](100-who-flies-the-combat-computer.md) — docs/truth · medium · small
 - [x] 102 — [Two things still try to load the retired brains, and one is a live page](102-two-things-still-load-the-retired-brains.md) — bug · high · small
 - [ ] 103 — [The train tools still name the retired brains](103-the-train-tools-still-name-the-retired-brains.md) — tooling/truth · low · small
+- [ ] 104 — [The constants catalogue, and a mechanical duplicate check](104-the-constants-catalogue.md) — tooling/architecture · high · medium
+- [ ] 105 — [The cycle orchestrator: a deterministic script runs the loop](105-the-cycle-orchestrator.md) — tooling/process · high · medium
+
+**Checkpoint, 2026-08-09 (session web-elite-harmless, ending at the audit):**
+main is `22083b5` + the process-revision commit that carries this line; 97,
+98, 99, 100, 102 landed and pushed; issues #12-14 closed. 101 (frame
+sampler) is OPEN and barely started — a stale worktree/branch
+`worktree-agent-a8b7955e875de101f` may exist with no commits; delete it and
+restart 101 fresh under the new model. Next: 104 and 105 (they cut every
+later cycle's cost), then 101, 92, 103, #8, #7, 86, 89, 96, 95, #9, #10,
+68. The next supervisor session starts from this file plus docs/PROCESS.md,
+not from any chat history.
 - [ ] 101 — [One home for the frame sampler, and a name for the seed stride](101-one-home-for-the-frame-sampler.md) — architecture/test infrastructure · medium · small
 
 ## The combat trainer
