@@ -30,6 +30,21 @@ retirement of the trained line:
 - If 98 has landed first, cite its fixture as the measurement of what
   actually ships, and this tool as the gang-survival floor it always was.
 
+## Decisions already made
+
+- (2026-08-09, settled with the supervising session during implementation)
+  Defaulting the defender to the scripted co-pilot proved inexpressible
+  without src/ changes: `Episode`'s trader controllers are
+  `policy | scripted | runner | holding | weaving`
+  (`src/ai-training/scenario.ts:118-153`), and both shipped defence paths —
+  the combat computer's co-pilot and the armed trader's defensive attack
+  run — live behind update paths the `Episode` does not drive, the same
+  limitation as `pursuit` on the pirate side. So the no-argument default is
+  the training world's scripted ARMED TRADER in the commander's hull, and
+  the header says what that makes the tool: a gang-survival floor in the
+  training world, both sides stand-ins — not the shipped fight. Do not
+  reopen by extending `Episode`; the rule below stands.
+
 ## Watch out for
 
 - Do not "fix" this by making `Episode` fly `pursuit` — that is a real
