@@ -33,7 +33,10 @@ doesn't, Claude decides and the doc says so.
 
 ## 2. Implement — a background agent
 
-One plan doc is one handoff, on its own branch or worktree. The agent's
+One plan doc is one handoff, on its own branch or worktree — and **one agent
+at a time, full stop** (Chris, 2026-08-09): no parallel builders even on
+disjoint files, and no scouts running beside a build. Work the supervising
+session can do inline — reconnaissance, review, landing — it does inline. The agent's
 definition of done is mechanical:
 
 - CLAUDE.md followed in full — read `src/constants/` before starting, one
