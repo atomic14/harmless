@@ -12,9 +12,11 @@
 //
 // It flies WHAT SHIPS: real `NpcShip`s under the shipped brain selection —
 // `pursuit`, with its slash switch — through the real `update()`. NOT the
-// training `Episode`, which cannot express pursuit: a gate built on it would
-// measure the `scripted` A/B control and stay green while the real fight
-// turned into a turret. Every measured quantity is the game's own
+// training `Episode`: even now that an episode can stage a pursuit pirate
+// (`{ kind: 'pursuit' }`, docs/TODO/102), only `update()` is the whole
+// shipped path — the engagement gates, the tier dealing, `chooseWeapon` —
+// and a gate on anything less could stay green while the real fight turned
+// into a turret. Every measured quantity is the game's own
 // `CombatSimRecorder`'s — lined-up and in-range shares, the pass count, the
 // on-six clock, the range quantiles. This file computes none of them.
 //

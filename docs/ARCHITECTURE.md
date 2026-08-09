@@ -169,8 +169,8 @@ the fix belongs there rather than in this document.
 play.html                 the game — and the ? help panel, whose key rows are
                           painted from the binding table (ui/key-help.ts)
 index.html                the landing page: no game bundle
-viewer.html               the AI combat viewer — every row flies a shipped
-                          brain or a stated control, and nothing else
+viewer.html               the AI combat viewer — every row flies a code pilot
+                          the game ships or a stated control, and nothing else
 gallery.html              all 38 released hulls, on its own page (docs/TODO/57)
                           rather than sharing /viewer
 encyclopaedia.html        all 256 worlds of galaxy 1: economy, government, tech,
@@ -495,8 +495,10 @@ src/
                             exactly what brains.ts imports (nothing, now)
   viewer/stage.ts           canvas, camera, bloom and starfield: what the two
                             dev pages share, and all they share
-  viewer/main.ts            the combat viewer's page: episodes, and the table
-                            that ties each row's label to the brain it flies
+  viewer/scenarios.ts       the combat viewer's rows — DOM-free, so `npm test`
+                            builds and flies every one (docs/TODO/102)
+  viewer/main.ts            the combat viewer's page: the DOM shell over
+                            scenarios.ts — canvas, HUD and keys
   viewer/gallery-main.ts    the gallery's page, and the gallery's keys
   viewer/gallery.ts         all 38 released designs, labelled, with radii
   viewer/viewer.css         the chrome both dev pages wear

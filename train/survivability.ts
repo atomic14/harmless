@@ -4,16 +4,16 @@
 //   node --experimental-strip-types train/survivability.ts [episodes]
 //   DEFEND_BRAIN=<file stem> npm run survivability   # research override
 //
-// BOTH SIDES OF THIS FIGHT ARE THE TRAINING WORLD'S STAND-INS. `Episode`
-// drives `brainFly`/`attack` directly and never `NpcShip.update`, so it can
-// fly neither of the pilots the live game actually uses (`game/brain-names.ts`
-// is that rule's home):
+// BOTH SIDES OF THIS FIGHT ARE THE TRAINING WORLD'S STAND-INS
+// (`game/brain-names.ts` is the home of which pilots the live game flies):
 //
 //   - THE ATTACKERS fly the scripted attack run — the game's own `attack()`,
 //     called directly. What a player meets is `pursuit`, the dogfighter that
 //     chases onto your six; in the live game the scripted run is the A/B
-//     control. `Episode` cannot fly `pursuit` (docs/TODO/98), and making it
-//     able to is a real design change, not a fix this file may smuggle in.
+//     control. `Episode` CAN stage `pursuit` now (`{ kind: 'pursuit' }`,
+//     docs/TODO/102), but these rows deliberately stay on `scripted`: every
+//     figure this file has ever printed was measured against it, and moving
+//     the attackers is a re-baselining decision, not a default to drift.
 //   - THE DEFENDER defaults to the training world's scripted armed trader in
 //     the commander's hull: ambles between waypoints, runs flat out once
 //     hurt, and fires her laser only when an attacker crosses her nose. It is
