@@ -13,7 +13,10 @@ active context:
 
 ## Execution queue
 
-(empty — nothing is currently accepted for execution)
+- [ ] 109 — [Passenger berths on the board](109-passenger-berths-on-the-board.md)
+      — GitHub #9, first of two milestones
+- [ ] 110 — [Smuggling runs price the scan](110-smuggling-runs-price-the-scan.md)
+      — GitHub #9, second milestone; after 109
 
 ## Backlog
 
@@ -22,3 +25,5 @@ active context:
       label stays cosmetic until this is picked back up
 - [ ] 88 — [The flight readout still quotes two stale words](88-the-readout-still-quotes-two-stale-words.md)
 - [ ] 93 — [One home for the phosphor](93-one-home-for-the-phosphor.md)
+- [ ] 111 — [The chart shows the danger it already reports](111-the-chart-shows-the-danger-it-reports.md)
+      — GitHub #10, first slice; trade-flow follows if it reads well
