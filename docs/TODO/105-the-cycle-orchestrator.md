@@ -56,6 +56,24 @@ tools) that drives one TODO item through:
   out-of-scope file, failing targeted test) and producing a usable brief.
 - The retry cap demonstrated: a forced surviving finding stops as BLOCKED.
 
+## Progress (2026-08-09, item still open)
+
+Built and reworked once after an audit review of the prototype found its
+guarantees were prompts, not enforcement. Now mechanical: closed tool lists
+per role (verifier is Read/Grep/Glob + permission-mode plan, diff embedded
+so it needs no Bash), no session persistence, per-worker dollar caps,
+milestones with `[scope:]`/`[tests:]` tags enforced by the deterministic
+checks, gate tiers derived from the diff per PROCESS.md, rounds consumed
+only by fixers that ran to completion, interrupted runs resuming at the
+checks. `tools/cycle-lib.ts` + `tools/cycle.ts`; `test/cycle.test.ts`
+drives the machine against a fake claude in a throwaway repo (happy path,
+scope-only violation refused — mutation-proven after the first scenario
+failed to isolate it — rework-to-acceptance, BLOCKED at the cap).
+
+**Remaining before this closes:** the live shakedown — drive item 103
+through it end to end (`node --experimental-strip-types tools/cycle.ts
+103`), which also retires 103.
+
 ## Outcome
 
 (recorded when the cycle closes)
