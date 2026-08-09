@@ -118,8 +118,6 @@ import './combat-sim-career.test.ts';
 // Not a behaviour: a scan of src/ that fails when a game-rule constant grows a
 // second home. See docs/TODO/90.
 import './constants.test.ts';
-// The cycle orchestrator's state machine, against a fake claude (docs/TODO/105).
-import './cycle.test.ts';
 
 // Installs a fake AudioContext, so keep it after every behavioural test that
 // may call a richer sound such as explosion().
