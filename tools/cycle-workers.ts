@@ -261,7 +261,8 @@ Final output: a report under 300 words.`;
 }
 
 export function verifierPrompt(
-  s: RunState, plan: CyclePlan, planDoc: string, checksSummary: string, diff: string,
+  s: RunState, plan: CyclePlan, planDoc: string, checksSummary: string,
+  diff: { text: string; summarised: string[] },
   whole: boolean,
 ): string {
   const m = plan.milestones[s.currentMilestone];
@@ -275,7 +276,11 @@ export function verifierPrompt(
 agents). Judge whether this complete diff satisfies ${subject}. Read that file; criteria:
 ${criteria}
 Deterministic checks already ran:\n${checksSummary}
-The complete diff:\n${diff}
+${diff.summarised.length
+    ? `The diff — NOT complete: ${diff.summarised.join(', ')} exceeded the per-file review size
+and appear as --stat summaries only; their exact contents are pinned by the deterministic
+checks above, not by your review. Every other file's diff is complete:`
+    : 'The complete diff:'}\n${diff.text}
 Answer with the JSON schema you were given. REWORK only for contract or repo-rule
 failures, each finding actionable; BLOCKED only if the contract itself cannot be
 satisfied. Style preferences are not findings.`;

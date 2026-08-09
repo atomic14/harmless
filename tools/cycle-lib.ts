@@ -54,6 +54,31 @@ function changedFiles(s: RunState, base: string): string[] {
   return git(['diff', '--name-only', `${base}...HEAD`], s.worktree).split('\n').filter(Boolean);
 }
 
+/** A single file's diff larger than this is summarised by stat in the review
+ *  diff, named as such — generated artifacts (the constants catalogue) would
+ *  otherwise blow the item cap while carrying nothing a verifier can judge
+ *  that the deterministic checks have not already pinned. */
+const PER_FILE_DIFF_CAP = 8_000;
+
+export interface ReviewDiff { text: string; summarised: string[] }
+
+/** The diff a verifier reviews: complete per file, except that oversized
+ *  per-file diffs become their --stat line with an explicit label — the
+ *  prompt never calls a summarised diff complete. */
+export function buildReviewDiff(s: RunState, base: string): ReviewDiff {
+  const parts: string[] = [];
+  const summarised: string[] = [];
+  for (const f of changedFiles(s, base)) {
+    const d = git(['diff', `${base}...HEAD`, '--', f], s.worktree);
+    if (d.length > PER_FILE_DIFF_CAP) {
+      summarised.push(f);
+      parts.push(`--- ${f}: ${d.length} chars, SUMMARISED BY STAT (contents not shown) ---\n`
+        + git(['diff', '--stat', `${base}...HEAD`, '--', f], s.worktree));
+    } else parts.push(d);
+  }
+  return { text: parts.join('\n'), summarised };
+}
+
 export function deterministicChecks(
   cfg: CycleConfig, s: RunState, plan: CyclePlan, base: string, withGates: boolean,
 ): Checks {
@@ -234,8 +259,8 @@ export function runItem(cfg: CycleConfig, num: string): RunState {
         if (c.ok) s.phase = 'verifying';
         else { s.lastFindings = `Deterministic checks failed:\n${c.summary}`; s.phase = 'reworking'; }
       } else if (s.phase === 'verifying') {
-        const diff = git(['diff', `${s.milestoneBase}...HEAD`], s.worktree);
-        if (diff.length > cfg.diffCap) {
+        const diff = buildReviewDiff(s, s.milestoneBase);
+        if (diff.text.length > cfg.diffCap) {
           s.phase = 'blocked'; s.lastError = 'milestone too large; split required';
         } else {
           const c = deterministicChecks(cfg, s, plan, s.milestoneBase, false);
@@ -268,8 +293,10 @@ export function runItem(cfg: CycleConfig, num: string): RunState {
     while (s.phase === 'final_verifying') {
       const c = deterministicChecks(cfg, s, plan, s.itemBase, true);
       cfg.log(`--- final gates ---\n${c.summary}\n---`);
-      const diff = git(['diff', `${s.itemBase}...HEAD`], s.worktree);
-      if (diff.length > cfg.diffCap) { s.phase = 'blocked'; s.lastError = 'item diff too large'; break; }
+      const diff = buildReviewDiff(s, s.itemBase);
+      if (diff.text.length > cfg.diffCap) {
+        s.phase = 'blocked'; s.lastError = 'item diff too large'; break;
+      }
       let verdictOk = false;
       if (c.ok) {
         const v = verdictOf(runWorker(cfg, s, 'verifier',
@@ -305,9 +332,10 @@ export function runItem(cfg: CycleConfig, num: string): RunState {
 }
 
 function dryRunTail(cfg: CycleConfig, s: RunState, plan: CyclePlan, planDoc: string): void {
-  runWorker(cfg, s, 'verifier', verifierPrompt(s, plan, planDoc, '(checks)', '(diff)', false), s.worktree);
+  const dry = { text: '(diff)', summarised: [] as string[] };
+  runWorker(cfg, s, 'verifier', verifierPrompt(s, plan, planDoc, '(checks)', dry, false), s.worktree);
   runWorker(cfg, s, 'implementer', implementerPrompt(s, plan, planDoc, '(example findings)'), s.worktree);
-  runWorker(cfg, s, 'verifier', verifierPrompt(s, plan, planDoc, '(final gates)', '(item diff)', true), s.worktree);
+  runWorker(cfg, s, 'verifier', verifierPrompt(s, plan, planDoc, '(final gates)', dry, true), s.worktree);
   runWorker(cfg, s, 'closer', closerPrompt(s, planDoc, '(gate summary)'), s.worktree);
   cfg.log('[dry] then: finalize index+queue, lint, ff-merge, push with --push');
 }

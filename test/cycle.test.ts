@@ -237,6 +237,17 @@ check('the real repo queue resolves every item to one plan doc', (() => {
     calls().filter((c) => c === 'final-verifier').length === 2);
 }
 
+// A huge GENERATED file does not block review: its per-file diff becomes a
+// labelled stat summary (its contents are pinned by deterministic checks),
+// while the rest of the diff stays complete — the 104 catalogue case.
+{
+  const cfg = freshRepo('bigfile', true);
+  setCtrl({ impl: ['good-big'], verdict: ['PASS'], finalVerdict: ['PASS'] });
+  const s = runItem(cfg, '900');
+  eq('a large generated file is summarised, not blocking', s.phase, 'ready_to_land');
+  check('...and the verifier really was consulted', calls().includes('verifier'));
+}
+
 // An oversized milestone diff is BLOCKED, never sent truncated.
 {
   const cfg = freshRepo('bigdiff', true);

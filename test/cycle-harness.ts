@@ -65,9 +65,10 @@ else if (prompt.includes('read-only verifier')) {
   ctrl.calls.push('impl:' + mode);
   fs.writeFileSync(C, JSON.stringify(ctrl)); // persist the draw BEFORE acting
   if (mode === 'die') process.exit(1);
-  if (mode === 'good' || mode === 'good2') {
+  if (mode === 'good' || mode === 'good2' || mode === 'good-big') {
     fs.mkdirSync('src/thing', { recursive: true });
     fs.writeFileSync(mode === 'good2' ? 'src/thing/done2' : 'src/thing/done', 'ok');
+    if (mode === 'good-big') fs.writeFileSync('src/thing/big', 'x'.repeat(100000));
     fs.rmSync('oops.txt', { force: true });
     commit('fake work');
   } else if (mode === 'oops-plus') {
