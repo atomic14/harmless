@@ -66,4 +66,24 @@ loadable backs it; record what went and why.
 
 ## Outcome
 
-(recorded when the cycle closes)
+Closed 2026-08-09 in one accepted commit, d8455ea. All four sites from 102's
+list now run honestly with no arguments, and no touched file contradicts
+`src/game/brain-names.ts`:
+
+- `train/evaluate.ts` — no-arg run no longer crashes (its tail loaded the
+  deleted `pirate-attack-g3` with no catch). The shipped-brain constants are
+  gone; an empty-at-rest `CANDIDATES` list is the one research hook; the
+  banner states nothing trained loads; code baselines always print, and
+  candidate-only sections print only when a candidate loads.
+- `train/defence-probe.ts` — with no names it states the retirement and how
+  to probe a bred candidate, instead of probing the deleted
+  `jameson-defend-g2` and printing an empty table.
+- `train/jameson-autopilot.js` — kept, not retired, because
+  `docs/JAMESON-TRIALS.md` references it (outside this milestone's paths);
+  its header now says nothing loadable backs it, and combat entries gate on
+  `kit.defendBrain` so trials fly unarmed rather than throwing.
+- `test/playtest.js` — header no longer claims trained-policy combat; the
+  same null-brain gating makes the unarmed run true.
+
+Gates: effective tier tooling; all gates green at final verification.
+Deviations: none beyond the recorded choice to keep `jameson-autopilot.js`.
