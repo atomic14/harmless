@@ -61,6 +61,10 @@ Two intentional quirks:
 - `src/game/threat.ts` computes pirate count, group tier and organisation from
   visible value and reputation. `ship-specs.ts` maps tiers to hulls. The campaign
   simulator calls the same rules.
+- `src/game/contracts.ts` owns the bulletin board: what work a station offers,
+  what accepting it costs the hold, what delivering it pays. `src/game/market.ts`
+  owns what a station charges. Both are pure and shared with the campaign
+  simulator (invariant 10).
 
 ## Conventions
 

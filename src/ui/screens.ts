@@ -20,7 +20,8 @@ import { EQUIPMENT_CATALOGUE } from '../constants/shop.ts';
 import {
   saveLabel, type LiveRun, type LoadCost, type SaveSummary,
 } from '../game/save-file.ts';
-import { describeContract, type MarketEstimate } from '../game/contracts.ts';
+import { describeContract } from '../game/contracts.ts';
+import type { MarketEstimate } from '../game/market.ts';
 import type { ChartState } from '../game/chart-state.ts';
 import {
   type CombatSimReport, type OpeningGeometry, type WaveEscalation,
@@ -858,7 +859,7 @@ export function drawLocalChart(
  * Market estimate for a system you haven't visited. Opened from the charts
  * with M.
  *
- * A painter: `contracts.ts` owns what the numbers ARE (`marketEstimate`). What
+ * A painter: `market.ts` owns what the numbers ARE (`marketEstimate`). What
  * it draws is a distribution — the AVERAGE of every quote the system can roll
  * and the range those quotes span — so no row promises a price the destination
  * will honour on the day.

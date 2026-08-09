@@ -4,6 +4,7 @@ import { COBRA_MK_3_HULL_ID, type PlayerHullId } from './ship-identity.ts';
 import {
   DEFAULT_NAME, HOLD_TONNES, LARGE_BAY_TONNES, MAX_FUEL, STARTING_CREDITS,
 } from '../constants/commander.ts';
+import { PASSENGER_BERTH_TONNES } from '../constants/contracts.ts';
 
 // Commander Jameson: who you are, what you are carrying, and how you rank.
 //
@@ -66,10 +67,10 @@ export function defaultEquipment(): Equipment {
  * first mission with 16 kills).
  */
 export interface Contract {
-  kind: 'cargo' | 'bounty' | 'courier';
+  kind: 'cargo' | 'bounty' | 'courier' | 'passenger';
   destination: number; // system index
   commodity: number; // cargo runs only
-  qty: number;
+  qty: number; // tonnes on a cargo run, kills on a bounty, heads on a passenger job
   reward: number; // tenths of a credit
   deadlineDay: number;
   progress: number; // bounty kills so far
@@ -215,14 +216,29 @@ export function killValue(tier: number): number {
 }
 
 /**
- * Tonnes currently used (kg/g commodities don't count against the hold).
+ * Tonnes currently used: stock in the bays, plus a berth for every passenger
+ * under contract (kg/g commodities don't count against the hold).
  *
- * STOCK ONLY. `survivors` was added here and is deliberately gone again: a
- * rescued pilot is a person in the crew spaces, not a tonne in the hold, so
- * rescuing one neither fills a bay nor is refused when the bays are full.
+ * A PAYING PASSENGER IS NOT A SURVIVOR. `survivors` was counted here once and
+ * is deliberately gone again: a rescued pilot is a person in the crew spaces,
+ * so rescuing one neither fills a bay nor is refused when the bays are full.
+ * Someone who bought a ticket gets a berth struck out of the hold — that
+ * competition with freight is the whole of passenger work (docs/TODO/109).
+ *
+ * Berths are DERIVED from the contracts the commander is already carrying
+ * rather than stored, so the buy cap, the board's footer and
+ * `acceptContract`'s refusal cannot disagree about how full the hold is.
  */
 export function cargoTonnes(c: CommanderData): number {
-  return c.cargo.reduce((sum, qty, i) => sum + (COMMODITIES[i].unit === 't' ? qty : 0), 0);
+  const stock = c.cargo.reduce(
+    (sum, qty, i) => sum + (COMMODITIES[i].unit === 't' ? qty : 0), 0);
+  return stock + berthTonnes(c.contracts);
+}
+
+/** Hold given over to berths by these contracts. */
+export function berthTonnes(contracts: Contract[]): number {
+  return contracts.reduce(
+    (sum, k) => sum + (k.kind === 'passenger' ? k.qty * PASSENGER_BERTH_TONNES : 0), 0);
 }
 
 export function formatCredits(tenths: number): string {

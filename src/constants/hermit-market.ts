@@ -1,7 +1,7 @@
 // The rock hermit's market: what a miner is flush with, what they are
 // desperate for, and what each costs at the tunnel. The opposite of a station's
 // prices — ore cheap and plentiful, supplies dear because nobody delivers out
-// here. Spent by `hermitMarket` in game/contracts.ts.
+// here. Spent by `hermitMarket` in game/market.ts.
 
 /**
  * What a hermit is sitting on: whatever they dug up.

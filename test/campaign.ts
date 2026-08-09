@@ -17,7 +17,8 @@
 
 import { generateGalaxy, generateMarket, COMMODITIES, type StarSystem } from '../src/galaxy/galaxy.ts';
 import { LivingGalaxy } from '../src/galaxy/living.ts';
-import { generateContractOffers, applyMarketPressure, chartDistanceTenths, settleContracts, marketEstimate } from '../src/game/contracts.ts';
+import { generateContractOffers, chartDistanceTenths, settleContracts, acceptContract } from '../src/game/contracts.ts';
+import { applyMarketPressure, marketEstimate } from '../src/game/market.ts';
 import { MAX_CONTRACTS } from '../src/constants/contracts.ts';
 import { pirateThreat, markOf, memberTier } from '../src/game/threat.ts';
 import {
@@ -296,7 +297,9 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
     });
     for (const k of sorted) {
       if (c.contracts.length >= MAX_CONTRACTS) break;
-      // a hunter takes bounty work and leaves the freight to traders
+      // a hunter takes bounty work and leaves the freight — and the
+      // passengers, who would want a berth out of a hold it flies empty on
+      // purpose — to traders
       if (strategy === 'hunter' && k.kind !== 'bounty') continue;
       // ONE BOUNTY JOB AT A TIME, and this is the bot's policy rather than a
       // rule of the game. A cargo or courier run is settled by ARRIVING, so
@@ -315,13 +318,18 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
       // way. Nothing in `game/contracts.ts` changed; this is the simulated
       // commander no longer accepting work she has no way to do.
       if (k.kind === 'bounty' && c.contracts.some((h) => h.kind === 'bounty')) continue;
-      // a privateer takes anything: freight pays, and it doubles as bait
+      // a trader or a privateer takes anything going its way: freight pays,
+      // fares pay, and either one doubles as bait
       const reach = chartDistanceTenths(here, systems[k.destination]);
       if (reach > MAX_FUEL) continue; // could never get there
       if (anchor && chartDistanceTenths(anchor, systems[k.destination]) > 50) continue;
-      if (k.kind === 'cargo' && cargoTonnes(c) + k.qty > cargoCapacity(c)) continue;
-      if (k.kind === 'cargo') c.cargo[k.commodity] += k.qty;
-      c.contracts.push(k);
+      // THE GAME'S OWN ACCEPTANCE, not a transcription of it. This was a
+      // hand-written hold check and push that knew only about cargo runs, so
+      // the harness would have let a simulated commander take passengers no
+      // ship could berth — the same drift invariant 10 caught in the
+      // settlement above, in the same loop. A refusal is simply the next
+      // offer's turn.
+      acceptContract(c, offers, offers.indexOf(k));
     }
 
     // --- choose a destination: a contract, else the best trade ---

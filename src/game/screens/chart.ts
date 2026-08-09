@@ -24,7 +24,7 @@ import type { Screen, ScreenOutcome, ScreenId } from '../../ui/screen-host.ts';
 import type { CommanderData } from '../commander.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
-import { marketEstimate } from '../contracts.ts';
+import { marketEstimate } from '../market.ts';
 import { sfx } from '../../audio.ts';
 import { LOCAL_SCALE, CHART_SPAN_X } from '../../constants/chart-metric.ts';
 

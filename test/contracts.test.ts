@@ -1,19 +1,14 @@
-// Contracts, the Navy mission, and the thing in your cabin.
+// Contracts: what the bulletin board offers, what taking it costs the hold, and
+// what delivering it pays.
 //
-// Contract rules live in game/contracts.ts (invariant 10) so the headless campaign
-// runs the same code the game does — these drive that module directly. Trumbles are
-// here because they are the other thing that changes under you while you fly.
+// Contract rules live in game/contracts.ts (invariant 10) so the headless
+// campaign runs the same code the game does — these drive that module directly.
+// The Navy mission and trumbles were here too and are test/missions.test.ts now.
 
-import { newCommander, cargoCapacity, type Contract } from '../src/game/commander.ts';
-import type { CommanderData } from '../src/game/commander.ts';
-import { stepTrumbles, trumbleMessage } from '../src/game/trumbles.ts';
-import { BREED_INTERVAL, MAX_TRUMBLES } from '../src/constants/trumbles.ts';
 import {
-  stepMissionAtDock,
-  constrictorDestroyed,
-  constrictorLurksHere,
-  missionHeadline, constrictorGunCheck, constrictorWarning,
-} from '../src/game/missions.ts';
+  newCommander, cargoCapacity, cargoTonnes, type Contract,
+} from '../src/game/commander.ts';
+import type { CommanderData } from '../src/game/commander.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { distanceTenths } from '../src/galaxy/navigation.ts';
 import {
@@ -21,11 +16,14 @@ import {
   settleContracts,
   acceptContract,
   contractMessage,
+  describeContract,
 } from '../src/game/contracts.ts';
-import { CONTRACT_RANGE, MAX_CONTRACTS } from '../src/constants/contracts.ts';
+import {
+  CONTRACT_RANGE, MAX_CONTRACTS, PASSENGER_BERTH_TONNES,
+} from '../src/constants/contracts.ts';
 import { ORDINARY_GOODS } from '../src/constants/commodities.ts';
 import { makeRng } from '../src/game/rng.ts';
-import { check, eq } from './harness.ts';
+import { check } from './harness.ts';
 
 // --- taking work, and being paid for it -------------------------------------
 //
@@ -41,6 +39,10 @@ console.log('\ncontracts');
   const systems = generateGalaxy(1);
   const cargoRun = (over: Partial<Contract> = {}): Contract => ({
     kind: 'cargo', destination: 7, commodity: 0, qty: 5,
+    reward: 500, deadlineDay: 10, progress: 0, ...over,
+  });
+  const passengerJob = (over: Partial<Contract> = {}): Contract => ({
+    kind: 'passenger', destination: 7, commodity: 0, qty: 3,
     reward: 500, deadlineDay: 10, progress: 0, ...over,
   });
   const cmdr = (over: Record<string, unknown> = {}): CommanderData => ({
@@ -100,6 +102,36 @@ console.log('\ncontracts');
     check('...and pays once the count is filled',
       settleContracts(c)[0]?.kind === 'paid' && c.credits === 1500);
   }
+  // --- passengers settle like a courier, and free their berths -------------
+  //
+  // They travel WITH the contract: there is nothing to sell short on the way,
+  // so `settleContracts` needs no branch of its own and these prove it — the
+  // two outcomes a passenger job has, driven through the real settler.
+  {
+    const c = cmdr();
+    c.contracts = [passengerJob()];
+    check('...and the berths are charged to the hold while they are aboard',
+      cargoTonnes(c) === 3 * PASSENGER_BERTH_TONNES);
+    const ev = settleContracts(c);
+    check('passengers delivered on time pay', ev[0]?.kind === 'paid' && c.credits === 1500);
+    check('...leave the list', c.contracts.length === 0);
+    check('...and give the bays back', cargoTonnes(c) === 0);
+  }
+  {
+    const c = cmdr({ day: 11 });
+    c.contracts = [passengerJob()];
+    const ev = settleContracts(c);
+    check('late passengers expire, unpaid, like any other job',
+      ev[0]?.kind === 'expired' && c.credits === 1000 && c.contracts.length === 0);
+    check('...and the berths go with them', cargoTonnes(c) === 0);
+  }
+  {
+    const c = cmdr({ systemIndex: 8 });
+    c.contracts = [passengerJob()];
+    check('passengers still in transit are left alone', settleContracts(c).length === 0
+      && c.contracts.length === 1 && cargoTonnes(c) === 3 * PASSENGER_BERTH_TONNES);
+  }
+
   {
     const c = cmdr();
     c.contracts = [cargoRun({ commodity: 0 }), cargoRun({ commodity: 1, reward: 300 })];
@@ -141,6 +173,44 @@ console.log('\ncontracts');
     check('accepting nothing is nothing', acceptContract(cmdr(), [], 0).length === 0);
   }
 
+  // --- berths compete with freight for the same bays -----------------------
+  //
+  // The mirror of the cargo `noHoldSpace` case above, and the whole point of
+  // passenger work: a berth is hold space, so a hold with room for one more
+  // tonne cannot take a passenger who needs two.
+  {
+    const c = cmdr();
+    const berths = 3 * PASSENGER_BERTH_TONNES;
+    c.cargo[0] = cargoCapacity(c) - berths;
+    const offers = [passengerJob({ destination: 8 })];
+    check('a passenger job that exactly fills the hold is taken',
+      acceptContract(c, offers, 0)[0]?.kind === 'accepted');
+    check('...charges the hold for the berths, loading nothing',
+      cargoTonnes(c) === cargoCapacity(c) && c.cargo[0] === cargoCapacity(c) - berths);
+    check('...and fills it: there is no room left for a tonne of freight',
+      cargoTonnes(c) + 1 > cargoCapacity(c));
+  }
+  {
+    const c = cmdr();
+    c.cargo[0] = cargoCapacity(c) - 3 * PASSENGER_BERTH_TONNES + 1;  // one tonne short
+    const offers = [passengerJob({ destination: 8 })];
+    const ev = acceptContract(c, offers, 0);
+    check('passengers with nowhere to sleep are refused',
+      ev[0]?.kind === 'refused' && ev[0].reason === 'noHoldSpace');
+    check('...and a refusal changes nothing at all',
+      c.contracts.length === 0 && offers.length === 1);
+  }
+  {
+    // berths already taken are hold already used — the two jobs compete, and
+    // this fails if `cargoTonnes` reads the cargo array alone
+    const c = cmdr();
+    c.contracts = [passengerJob({ qty: 3, destination: 9 })];
+    c.cargo[0] = cargoCapacity(c) - 4 * PASSENGER_BERTH_TONNES;
+    const offers = [passengerJob({ qty: 2, destination: 8 })];
+    check('a booked berth is counted against the next booking',
+      acceptContract(c, offers, 0)[0]?.kind === 'refused');
+  }
+
   // --- phrasing lives with the rule, away from the AudioContext -------------
   {
     const paid = contractMessage({ kind: 'paid', contract: cargoRun() }, systems);
@@ -152,6 +222,13 @@ console.log('\ncontracts');
       acc.text.includes('LAVE') && acc.text === acc.text.toUpperCase());
     check('a void consignment has no sound',
       contractMessage({ kind: 'incomplete', contract: cargoRun() }, systems).sound === null);
+    // `describeContract` ends on the BOUNTY line as a fallback, not a default:
+    // a kind with no line of its own is silently described as a pirate hunt.
+    check('a passenger job is described as passengers, not as a pirate hunt',
+      describeContract(passengerJob({ qty: 2, destination: 7 }), systems)
+        === 'Carry 2 passengers to LAVE');
+    check('...and one passenger is not two', describeContract(
+      passengerJob({ qty: 1, destination: 7 }), systems) === 'Carry 1 passenger to LAVE');
   }
 }
 
@@ -192,6 +269,9 @@ console.log('\nthe bulletin board\'s reach');
     let maxD = 0;
     let offers = 0;
     let strayCommodity = 0;
+    let passengers = 0;
+    let strayQty = 0;
+    let strayGoods = 0;
     for (let p = 0; p < passes; p += 1) {
       for (const sys of systems) {
         for (const k of generateContractOffers(sys, systems, 0, rng)) {
@@ -199,10 +279,15 @@ console.log('\nthe bulletin board\'s reach');
           const d = distanceTenths(sys, systems[k.destination]);
           if (d > maxD) maxD = d;
           if (k.kind === 'cargo' && !ORDINARY_GOODS.includes(k.commodity)) strayCommodity += 1;
+          if (k.kind === 'passenger') {
+            passengers += 1;
+            if (k.qty < 1 || k.qty > 3) strayQty += 1;
+            if (k.commodity !== 0) strayGoods += 1;
+          }
         }
       }
     }
-    return { maxD, offers, strayCommodity };
+    return { maxD, offers, strayCommodity, passengers, strayQty, strayGoods };
   };
   const small = sweep(3);
   const large = sweep(15);
@@ -213,146 +298,24 @@ console.log('\nthe bulletin board\'s reach');
     + `(${small.offers} and ${large.offers} offers, `
     + `${small.strayCommodity + large.strayCommodity} strays)`,
   small.strayCommodity === 0 && large.strayCommodity === 0);
-}
 
-// --- the Navy mission -------------------------------------------------------
-
-// A five-stage state machine that lived in three private methods of game.ts
-// and one branch of destroyNpc, so nothing could advance a commander through
-// it. game/missions.ts is pure, so these are its first tests.
-
-console.log('\nNavy mission');
-{
-  const systems = generateGalaxy(1);
-  // A real commander underneath, because the headline now derives the Navy's
-  // weapon warning from the hull and the fitted gun (missions.ts
-  // `constrictorGunCheck`) — a stub with no `shipId` is not a ship.
-  const cmdr = (over: Record<string, unknown> = {}) => ({
-    ...newCommander(),
-    kills: 0, galaxy: 1, systemIndex: 7, credits: 1000,
-    mission: { stage: 0, targetIndex: null }, ...over,
-  }) as unknown as Parameters<typeof stepMissionAtDock>[0];
-  const half = () => 0.5;
-
-  {
-    const c = cmdr({ kills: 15 });
-    check('the Navy ignores you below the kill threshold',
-      stepMissionAtDock(c, systems, half).length === 0 && c.mission.stage === 0);
-  }
-  {
-    const c = cmdr({ kills: 16 });
-    const ev = stepMissionAtDock(c, systems, half);
-    check('...and briefs you at it', ev[0]?.kind === 'briefed' && c.mission.stage === 1);
-    check('...with a target that is somewhere else', c.mission.targetIndex !== 7);
-  }
-  {
-    const c = cmdr({ kills: 16, galaxy: 2 });
-    check('the mission is galaxy 1 only',
-      stepMissionAtDock(c, systems, half).length === 0);
-  }
-  {
-    const c = cmdr({ mission: { stage: 1, targetIndex: 7 } });
-    check('the Constrictor lurks where you were told', constrictorLurksHere(c));
-    const before = c.credits;
-    const e = constrictorDestroyed(c);
-    check('killing it pays the Navy bounty and moves you to stage 2',
-      e?.bounty === 25_000 && c.credits === before + 25_000 && c.mission.stage === 2);
-    check('...and it cannot be claimed twice', constrictorDestroyed(c) === null);
-  }
-  {
-    const c = cmdr({ mission: { stage: 2, targetIndex: null } });
-    const ev = stepMissionAtDock(c, systems, half);
-    check('reporting back gets the courier orders',
-      ev[0]?.kind === 'courierOrders' && c.mission.stage === 3);
-    // fly there and dock
-    c.systemIndex = c.mission.targetIndex as number;
-    const before = c.credits;
-    const done = stepMissionAtDock(c, systems, half);
-    check('delivering the plans pays and completes it',
-      done[0]?.kind === 'delivered' && c.credits === before + 15_000 && c.mission.stage === 4);
-  }
-  {
-    check('an idle commander has no mission line',
-      missionHeadline(cmdr(), systems) === '');
-    check('a briefed one names the system',
-      missionHeadline(cmdr({ mission: { stage: 1, targetIndex: 7 } }), systems).includes('LAVE'));
-  }
-
-  // --- what the job NEEDS, which is the other half of a briefing -------------
-  //
-  // TODO 29's ruling on the Constrictor: the source-exact halving stays, and
-  // what was missing was the signposting. A commander must not fly forty light
-  // years to discover that the upgrade she bought does nothing.
-  {
-    const withLaser = (laser: string) => {
-      const c = cmdr({ mission: { stage: 1, targetIndex: 7 } }) as unknown as CommanderData;
-      c.equipment.laser = laser as CommanderData['equipment']['laser'];
-      return c;
-    };
-    const beam = constrictorGunCheck(withLaser('beam'));
-    eq('a beam laser scores nothing at all against the Constrictor', beam.perHit, 0);
-    eq('...and the military laser is what does', `${beam.best}/${beam.bestPerHit}`,
-      'military/3');
-    check('so the briefing says so, with both numbers in it',
-      constrictorWarning(withLaser('beam')).includes('BEAM')
-      && constrictorWarning(withLaser('beam')).includes('MILITARY'));
-    eq('a commander already carrying the right gun is told nothing',
-      constrictorWarning(withLaser('military')), '');
-    check('and the mission headline carries the warning while the hunt is on',
-      missionHeadline(withLaser('beam'), systems).includes('MILITARY'));
-    check('...but not once she has the gun',
-      !missionHeadline(withLaser('military'), systems).includes('MILITARY LASER'));
-  }
-}
-
-// --- trumbles ---------------------------------------------------------------
-
-console.log('\ntrumbles');
-{
-  const cmdr = (trumbles: number, cargo: number[] = new Array(17).fill(0)) =>
-    ({ trumbles, cargo: [...cargo] }) as unknown as Parameters<typeof stepTrumbles>[0];
-  const half = () => 0.5;
-
-  {
-    const c = cmdr(0);
-    const r = stepTrumbles(c, 1, 0, 0, half);
-    check('no trumbles, nothing happens', r.events.length === 0 && c.trumbles === 0);
-  }
-  {
-    const c = cmdr(1);
-    const r = stepTrumbles(c, 1, 0, 0, half);
-    check('they breed', c.trumbles > 1 && r.timer === BREED_INTERVAL);
-  }
-  {
-    // one dt per brood interval, so each call is one generation
-    const c = cmdr(1);
-    let timer = 0;
-    for (let i = 0; i < 8; i++) timer = stepTrumbles(c, BREED_INTERVAL, 0, timer, half).timer;
-    check(`...exponentially (1 -> ${c.trumbles} in 8 broods)`, c.trumbles > 20);
-    check('...but not without bound', c.trumbles <= MAX_TRUMBLES);
-  }
-  {
-    const cargo = new Array(17).fill(0); cargo[0] = 10;
-    const c = cmdr(16, cargo);
-    const r = stepTrumbles(c, 1, 0, 0, half);
-    check('a big enough brood eats the hold',
-      c.cargo[0] < 10 && r.events.some((e) => e.kind === 'ate'));
-  }
-  {
-    const cargo = new Array(17).fill(0); cargo[0] = 10;
-    const c = cmdr(4, cargo);
-    stepTrumbles(c, 1, 0, 0, half);
-    check('a small one is not hungry enough to bite', c.cargo[0] === 10);
-  }
-  {
-    // the cure is a sun-skim — the same manoeuvre that refuels you
-    const c = cmdr(50);
-    const r = stepTrumbles(c, 1, 0.9, BREED_INTERVAL, half);
-    check('cabin heat drives them out', c.trumbles < 50 && r.timer === 0);
-    const c2 = cmdr(1);
-    const r2 = stepTrumbles(c2, 1, 0.9, 0, half);
-    check('...to the last one', c2.trumbles === 0 && r2.events[0]?.kind === 'purged');
-  }
-  check('every event has a line', ['purged', 'fleeing', 'ate', 'breeding'].every((k) =>
-    trumbleMessage({ kind: k, left: 1, total: 1, commodity: 0, tonnes: 1 } as never).length > 0));
+  // The single seeded roll cuts all four kinds, so the passenger share is
+  // pinned the way every other bound here is: measured out of the REAL
+  // generator, at BOTH sample sizes, and it must be the same answer at each.
+  // The band is wide enough to be a sampling question and tight enough that
+  // dropping the branch (0%) or widening its slice past a quarter fails.
+  const share = (s: ReturnType<typeof sweep>) => s.passengers / s.offers;
+  check(`the board offers passenger work at its seeded share `
+    + `(${(100 * share(small)).toFixed(1)}% of ${small.offers} and `
+    + `${(100 * share(large)).toFixed(1)}% of ${large.offers} offers)`,
+  [small, large].every((s) => share(s) > 0.1 && share(s) < 0.2));
+  // qty is HEADS, and each head is a berth: the hold arithmetic downstream is
+  // only bounded because this is. A passenger job carries no goods, so it must
+  // never enter the ordinary-goods check above.
+  check(`a passenger job books 1-3 heads and no cargo `
+    + `(${small.passengers + large.passengers} jobs, `
+    + `${small.strayQty + large.strayQty} out of range, `
+    + `${small.strayGoods + large.strayGoods} carrying goods)`,
+  small.strayQty === 0 && large.strayQty === 0
+  && small.strayGoods === 0 && large.strayGoods === 0);
 }

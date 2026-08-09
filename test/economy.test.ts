@@ -28,14 +28,15 @@ import {
   FUGITIVE_FINE,
 } from '../src/constants/law.ts';
 import { generateGalaxy, generateMarket, COMMODITIES } from '../src/galaxy/galaxy.ts';
-import { hermitMarket, marketEstimate } from '../src/game/contracts.ts';
+import { hermitMarket, marketEstimate } from '../src/game/market.ts';
 import { FLUCTUATIONS } from '../src/constants/market.ts';
 import { LivingGalaxy } from '../src/galaxy/living.ts';
 import { pirateThreat, markOf, memberTier, type Mark } from '../src/game/threat.ts';
 import { CHALLENGE_RATE, PRIZE_SATURATION } from '../src/constants/threat.ts';
 import { VALUE_PER_TONNE } from '../src/constants/jettison.ts';
 import { HOLD_TONNES, LARGE_BAY_TONNES } from '../src/constants/commander.ts';
-import { cargoCapacity } from '../src/game/commander.ts';
+import { cargoCapacity, cargoTonnes } from '../src/game/commander.ts';
+import { PASSENGER_BERTH_TONNES } from '../src/constants/contracts.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import { RATINGS } from '../src/constants/rating.ts';
 import { makeRng } from '../src/game/rng.ts';
@@ -337,6 +338,31 @@ console.log('\npirate economics');
       && markOf(cWithout).capacity === cargoCapacity(cWithout)
       && cargoCapacity(cWith) === LARGE_BAY_TONNES
       && cargoCapacity(cWithout) === HOLD_TONNES);
+
+    // Berths are hold. `cargoTonnes` counts the passenger contracts the
+    // commander is carrying, which is what makes the trade-off issue #9 asks
+    // for real: freight and fares compete for the same bays, and buying the
+    // Large Cargo Bay relieves both at once (docs/TODO/109).
+    const berthed = newCommander();
+    berthed.cargo[0] = 4;
+    berthed.contracts = [{
+      kind: 'passenger', destination: 8, commodity: 0, qty: 3,
+      reward: 500, deadlineDay: 10, progress: 0,
+    }];
+    check('a berth is charged to the hold, on top of the stock in it',
+      cargoTonnes(berthed) === 4 + 3 * PASSENGER_BERTH_TONNES);
+    check('...so three passengers are a visible bite of a standard hold, and '
+      + 'the large bay is what relieves it',
+    3 * PASSENGER_BERTH_TONNES < HOLD_TONNES / 2
+      && cargoCapacity(berthed) === HOLD_TONNES);
+
+    // markOf reads CAPACITY, not occupancy (threat.ts) — deliberately. A
+    // pirate sizes up the bays a ship HAS, not what is in them, so taking
+    // passengers does not change how appealing a target you are. Pinned here
+    // so nobody "fixes" it into occupancy.
+    const empty = newCommander();
+    check('passengers do not change what a pirate thinks you are worth',
+      markOf(berthed).capacity === markOf(empty).capacity);
   }
 
   // --- the ladder and the function that climbs it ---------------------------
