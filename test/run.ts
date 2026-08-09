@@ -64,6 +64,7 @@ import './tactic-choice.test.ts';
 import './scripted-co-pilot.test.ts';
 import './pitch-roll-steer.test.ts';
 import './pursuit.test.ts';
+import './human-shape.test.ts';
 import './systems.test.ts';
 import './energy-low.test.ts';
 import './combat.test.ts';

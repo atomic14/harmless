@@ -265,3 +265,81 @@ const knife = measureShape(KNIFE_FIGHTER, EPISODES);
 const runner = measureShape(RUNNER, EPISODES);
 printRow(knife);
 printRow(runner);
+
+// --- the bands ---------------------------------------------------------------
+//
+// Every value below comes from the two-size baseline in docs/TODO/98 (40 and
+// 160 episodes agreed on every column) plus the human-shape rationale for
+// which side of it is the dangerous one. The stand-ins are not Chris, so the
+// reference fight's own numbers are NOT the band values — they justify which
+// quantities are banded. All assertions are inequalities on shares and
+// counts, never exact totals, and each band sits 1.5-4x off its baseline so a
+// deliberate combat retune can re-baseline it confidently (docs/TODO/89: a
+// test nobody can re-baseline gets deleted).
+//
+// Baseline, 2026-08-09 (40 eps / 160 eps):
+//   knife-fighter  lined 20.1/20.9%  in-range 100/100%  speed 257/257
+//                  p10/p90 224/2853 · 219/2847  passes 1.25/1.27
+//   runner         lined 85.6/85.5%  in-range 96.6/96.1%  speed 257/254
+//                  on-six 17.1/17.1s  passes 0.00/0.00
+
+// THE KNIFE-FIGHTER ROW — the human-shaped fight; exercises the slashing run.
+{
+  const r = knife;
+  // The balance the reference fight found rests on pirates RARELY lined up:
+  // every extra point of alignment converts almost directly into damage, and
+  // doubling it kills the commander. Baseline ~20%; a pirate that tracks the
+  // turning player reads far above this.
+  check(`knife-fighter: lined-up share stays under the tracker ceiling`
+    + ` (${(r.linedUpShare * 100).toFixed(1)}% < 35%)`, r.linedUpShare < 0.35);
+  // ...and the opposite failure is on record too: "the ships didn't do
+  // anything". A pirate that never lines up is not fighting.
+  check(`knife-fighter: lined-up share stays over the passive floor`
+    + ` (${(r.linedUpShare * 100).toFixed(1)}% > 5%)`, r.linedUpShare > 0.05);
+  // The reference fight: within laser range 95% of the time. Baseline 100%.
+  check(`knife-fighter: in range — in the fight, not standing off`
+    + ` (${(r.inRangeShare * 100).toFixed(1)}% > 80%)`, r.inRangeShare > 0.80);
+  // The turret floor: above every pirate hull's own MIN_CRUISE_FRACTION pin
+  // (0.43 x 330 = 142 for the fastest), well under the baseline 257 — a brain
+  // that sits at the floor and pivots reads below this.
+  check(`knife-fighter: mean speed above the turret floor`
+    + ` (${r.meanSpeed.toFixed(0)} > 180)`, r.meanSpeed > 180);
+  // An attack run sweeps the band; a turret holds one range and the spread
+  // collapses. Baseline p10-p90 gap ~2,630.
+  check(`knife-fighter: range spread not collapsed`
+    + ` (${(r.rangeP90 - r.rangeP10).toFixed(0)} > 1200)`,
+  r.rangeP90 - r.rangeP10 > 1200);
+  // A pass is a completed close-and-break — a loiter scores none however long
+  // it stays. Baseline 1.25 per 20s episode; the fight keeps moving.
+  check(`knife-fighter: passes per episode above zero`
+    + ` (${r.passesPerEpisode.toFixed(2)} > 0.5)`, r.passesPerEpisode > 0.5);
+}
+
+// THE RUNNER ROW — the presented tail; exercises hold-six. Its own values,
+// never the knife-fighter's: hold-six is station-keeping, so lined-up runs
+// HIGH here by design, no pass completes (`PURSUIT_CLEAR_RANGE` 560 sits
+// inside `PASS_FAR` 600 — the break-off never opens far enough to count), and
+// the range legitimately collapses onto `PURSUIT_RANGE` once attached. So
+// this row bands the on-six clock instead of passes and spread — the mode it
+// exists to exercise — and docs/TODO/84's zero-by-construction column is
+// finally measured against a target that can move it.
+{
+  const r = runner;
+  // It is hunting the tail it was given. Baseline ~86%.
+  check(`runner: lined-up share stays over the hunting floor`
+    + ` (${(r.linedUpShare * 100).toFixed(1)}% > 60%)`, r.linedUpShare > 0.60);
+  // ...but even on a presented tail the shipped pilot spends time off the gun
+  // — the approach, and the break-off that stops it ramming. A pilot that
+  // never comes off the gun at all is the tracker.
+  check(`runner: lined-up share stays under the perfect-tracker ceiling`
+    + ` (${(r.linedUpShare * 100).toFixed(1)}% < 95%)`, r.linedUpShare < 0.95);
+  check(`runner: in range — it caught the tail it was offered`
+    + ` (${(r.inRangeShare * 100).toFixed(1)}% > 80%)`, r.inRangeShare > 0.80);
+  check(`runner: mean speed above the turret floor`
+    + ` (${r.meanSpeed.toFixed(0)} > 180)`, r.meanSpeed > 180);
+  // Astern AND pointed at the target — the manoeuvre that is actually
+  // threatening, and the mode the slash switch trades away when the commander
+  // turns. Baseline 17.1s of a 20s episode.
+  check(`runner: holds the six on a presented tail`
+    + ` (${r.onSixSeconds.toFixed(1)}s > 10s)`, r.onSixSeconds > 10);
+}
