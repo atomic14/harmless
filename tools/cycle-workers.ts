@@ -6,6 +6,8 @@
 // output BLOCKED, and the orchestrator never relaxes permissions.
 
 import { execFileSync } from 'node:child_process';
+import { mkdirSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
 import {
   CycleError, CycleStop, type CycleConfig, type CyclePlan, type RunState,
 } from './cycle-state.ts';
@@ -113,18 +115,45 @@ export function runWorker(
   if (spent >= cfg.maxTotalBudgetUsd) {
     throw new CycleStop(`total budget ($${cfg.maxTotalBudgetUsd}) reached — rerun to continue`);
   }
+  // The envelope only arrives when the worker completes, so the honest live
+  // signal is the launch line; the transcript lands in .cycle/logs/ after.
+  const seq = s.workerInvocations.length + 1;
+  const started = Date.now();
+  cfg.log(`[${clock()}] ${role} #${seq} launched (item ${s.todo}, cap $${cfg.maxBudgetUsd}` +
+    ') — a worker prints nothing until it finishes; transcript lands in .cycle/logs/');
   let raw: string;
   try {
     raw = execFileSync(cfg.claudeBin, ['-p', prompt, ...workerArgs(cfg, role)],
       { cwd, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] });
   } catch (e) {
     // A worker/API/rate-limit death is a resumable pause, never a rework round.
-    const err = e as { stderr?: string; message?: string };
+    const err = e as { stderr?: string; message?: string; stdout?: string };
+    writeLog(cfg, s, seq, role, prompt, `${err.stdout ?? ''}\n${err.stderr ?? err.message ?? ''}`);
     throw new CycleStop(`${role} died: ${(err.stderr ?? err.message ?? '').slice(0, 300)}`);
   }
+  writeLog(cfg, s, seq, role, prompt, raw);
   const res = parseEnvelope(raw, role);
   s.workerInvocations.push({ role, costUsd: res.costUsd });
+  cfg.log(`[${clock()}] ${role} #${seq} finished in ${Math.round((Date.now() - started) / 1000)}s` +
+    ` · $${res.costUsd.toFixed(2)} · .cycle/logs/${logName(s, seq, role)}`);
   return res;
+}
+
+function clock(): string { return new Date().toTimeString().slice(0, 8); }
+
+function logName(s: RunState, seq: number, role: Role): string {
+  return `${s.todo}-${String(seq).padStart(2, '0')}-${role}.log`;
+}
+
+function writeLog(
+  cfg: CycleConfig, s: RunState, seq: number, role: Role, prompt: string, output: string,
+): void {
+  try {
+    const dir = join(cfg.root, '.cycle', 'logs');
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, logName(s, seq, role)),
+      `--- prompt ---\n${prompt}\n--- output ---\n${output}\n`);
+  } catch { /* logging must never kill a run */ }
 }
 
 /** The verdict lives in `structured_output`, and nowhere else. */
