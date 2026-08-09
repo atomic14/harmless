@@ -253,6 +253,11 @@ body.screen-open #message {
 
 #help {
   position: absolute;
+  /* Topmost, above #screen (10) and #message (20). Without this the 92%-opaque
+     station screen painted over the guide and `?` appeared to do nothing while
+     docked. game.ts suppresses input on the same fact (Game.helpVisible), and
+     test/help-overlay.test.ts pins both halves. */
+  z-index: 30;
   left: 50%; top: 40%;
   transform: translate(-50%, -50%);
   padding: 20px 34px;
@@ -348,16 +353,16 @@ body.screen-open #message {
 /*
  * The transient HUD line — "CONTRACT PAID", "BOUNTY: 6.5 Cr", "MISSILE ARMED".
  *
- * The z-index is load-bearing, and it is the only one in the project. #message
- * is line 23 of play.html and #screen is line 52, so with no stacking context
- * declared anywhere, paint order was DOM order and the 92%-opaque docked menu
- * covered this element completely. Every message shown while a screen is open
- * was drawn and then hidden: CONTRACT PAID, OFFENCE FINE PAID, CONTRACT
- * EXPIRED, CONSIGNMENT INCOMPLETE and all three Navy mission lines. The only
- * contract feedback anyone had ever seen was the one that fires in flight.
+ * The z-index matters here. #message is line 23 of play.html and #screen is
+ * line 52, so with no stacking context declared anywhere, paint order was DOM
+ * order and the 92%-opaque docked menu covered this element completely. Every
+ * message shown while a screen is open was drawn and then hidden: CONTRACT
+ * PAID, OFFENCE FINE PAID, CONTRACT EXPIRED, CONSIGNMENT INCOMPLETE and all
+ * three Navy mission lines. The only contract feedback anyone had ever seen
+ * was the one that fires in flight.
  *
- * Sits just above #screen (10), below nothing — it is pointer-events: none, so
- * it cannot intercept a click on the menu underneath.
+ * Sits just above #screen (10), below only the `?` guide (30) — it is
+ * pointer-events: none, so it cannot intercept a click on the menu underneath.
  */
 #message {
   position: absolute;

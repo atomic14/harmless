@@ -200,6 +200,21 @@ export class Game {
 
   /** waiting on the player to confirm erasing their commander */
   private pendingNewGame = false;
+
+  /**
+   * Whether the `?` controls guide is open. The Game owns the flag rather than
+   * asking the DOM, because the guide is not just paint: while it covers
+   * whatever is underneath, no other input may reach that screen, and
+   * `handleInput` gates on this. The shell's `toggleHelp()` only shows and
+   * hides the panel; the two stay in sync because this command is the panel's
+   * only caller and both start closed.
+   */
+  private helpOpen = false;
+
+  /** the `?` guide: a topmost overlay above every screen, never a Screen */
+  get helpVisible(): boolean {
+    return this.helpOpen;
+  }
   private readonly market_ = new MarketScreen(() => this.tradeContext());
   private readonly contracts_ = new ContractsScreen(() => ({
     commander: this.state.commander,
@@ -1466,6 +1481,16 @@ export class Game {
     if (!pausedOnly) {
       for (const c of globalCommands(i)) this.runCommand(c);
 
+      // The `?` guide is topmost (docs/TODO/106): while it is open, nothing
+      // below it reads the keyboard, so a letter cannot operate the screen it
+      // is covering. Escape closes the guide instead of that screen; every
+      // other tap goes unread and is dropped at endFrame, not banked for the
+      // screen underneath.
+      if (this.helpOpen) {
+        if (i.pressed('Escape')) this.runCommand('toggleHelp');
+        return;
+      }
+
       // The host runs the menu cursor and gives the frame to the top screen.
       // Every overlay has migrated to the Screen contract, so if one is open it
       // handles the frame and we are done — what is left below is the three
@@ -1512,7 +1537,7 @@ export class Game {
    */
   private readonly commands: Record<Command, () => void> = {
     // --- global -----------------------------------------------------------
-    toggleHelp: () => this.shell.toggleHelp(),
+    toggleHelp: () => { this.helpOpen = !this.helpOpen; this.shell.toggleHelp(); },
     // --- the station menu -------------------------------------------------
     launch: () => this.launch(),
     openMarket: () => this.screens.open('market'),
