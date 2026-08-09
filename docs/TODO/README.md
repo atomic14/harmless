@@ -13,7 +13,6 @@ active context:
 
 ## Execution queue
 
-- [ ] 106 — [A new pilot must see the instructions](106-new-pilot-instructions.md) — GitHub #15
 - [ ] 92 — [The lead marker assumes every target is a freighter](92-the-lead-marker-assumes-a-freighter.md)
 - [ ] 107 — [One fight in the live sky and the trainer](107-one-fight-in-the-sky-and-trainer.md)
 - [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)

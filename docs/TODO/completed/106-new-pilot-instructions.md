@@ -61,4 +61,43 @@ promise is not yet reliable:
 
 ## Outcome
 
-(recorded when the cycle closes)
+Landed in three commits on `cycle/106` from base `fddcc95`, the first built
+by the cycle orchestrator's worker, the rest directly in-session after Chris
+dropped the orchestrator (2026-08-09) as too token-hungry for the job.
+
+- `1b05afe` (m1) — `#help` gets `z-index: 30` over `#screen`'s 10; an open
+  guide consumes the whole keyboard in `Game.handleInput` (only Escape/`?`
+  close it) and unread taps drop at `endFrame`. `test/help-overlay.test.ts`
+  pins the stylesheet ordering and the suppression through a headless Game.
+- `9e25a60` (m2) — `CommanderData.briefingSeen` (edition number, 0 = never;
+  `BRIEFING_VERSION` in `constants/commander.ts`, @rule
+  onboarding.briefingVersion). `enterDocked` marks it BEFORE `station.dock`
+  so an 'arrived' checkpoint persists it in the same act, then opens the
+  briefing; `repairCommander` defaults absent/mistyped markers to 0, so
+  imported and pre-marker saves are shown it once. Screens now register
+  before the boot dock in the Game constructor. `dismissBriefing()` in
+  `test/harness.ts` for tests about anything else;
+  `test/briefing-onboarding.test.ts` pins boot/persistence/repair/H.
+- `c0741a4` (m3) — briefing keys interpolate `boundKey()` off the binding
+  table (`KEY` in `ui/screens.ts`, claimed as derived prose in
+  `test/constants.test.ts`); a seventh page A FIGHT covers crosshair,
+  overheat, missiles and what death does; the E.C.M. line says equip one
+  first; FLY THERE states the AUTOSAVE_INTERVAL rhythm; README and the menu
+  caption drop the stale "six-page" count and the README promises the
+  automatic first briefing. `test/key-help.test.ts` holds journey coverage
+  (every journey command quoted with its bound key) and the README promise.
+
+Gates: full suite 3399/0, `npm run build` clean, `npm run elite-a` 494/0.
+Every new gate was proven able to fail (auto-open disabled → 7 fails; repair
+guard broken → 1; fresh default broken → 7; a journey quote removed → named).
+
+Flown (dev server, disposable tab): a pre-marker save booted straight into
+the briefing (page 1/7 with the ? and H lines); ESC left it; `?` painted the
+guide OVER the open market and Escape closed guide-then-market in order; B
+bought a tonne of food; N targeted Esesla; L launched; the launch checkpoint
+carried `briefingSeen: 1`; reload resumed flight with no briefing and no
+console errors.
+
+Deviation: the verifier contract crash (PASS with findings) that killed the
+first orchestrator run is recorded in the session, not fixed here — the
+orchestrator is being retired instead.
