@@ -13,9 +13,12 @@ active context:
 
 ## Execution queue
 
-- [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)
+(empty — nothing is currently accepted for execution)
 
 ## Backlog
 
+- [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)
+      — deferred by Chris 2026-08-09 ("drop for now"); phase 1 shipped, the
+      label stays cosmetic until this is picked back up
 - [ ] 88 — [The flight readout still quotes two stale words](88-the-readout-still-quotes-two-stale-words.md)
 - [ ] 93 — [One home for the phosphor](93-one-home-for-the-phosphor.md)
