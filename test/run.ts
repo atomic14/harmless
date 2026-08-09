@@ -41,6 +41,7 @@ import './world-step.test.ts';
 import './station.test.ts';
 import './game.test.ts';
 import './help-overlay.test.ts';
+import './briefing-onboarding.test.ts';
 import './state.test.ts';
 import './snapshot.test.ts';
 import './snapshot-parse.test.ts';

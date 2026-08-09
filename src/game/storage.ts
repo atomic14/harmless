@@ -478,6 +478,10 @@ function repairCommander(stored: Partial<CommanderData>): CommanderData {
   parsed.mission = { stage: 0, targetIndex: null, ...(stored.mission ?? {}) };
   if (!Array.isArray(parsed.contracts)) parsed.contracts = [];
   if (typeof parsed.day !== 'number') parsed.day = 0;
+  // 0 is "never briefed", so a hand-edited or pre-marker record earns the one
+  // automatic briefing a fresh commander gets — the safe default of
+  // docs/TODO/106, not a lost preference.
+  if (typeof parsed.briefingSeen !== 'number') parsed.briefingSeen = 0;
   if (typeof parsed.trumbles !== 'number') parsed.trumbles = 0;
   if (typeof parsed.survivors !== 'number') parsed.survivors = 0;
   if (typeof parsed.furthestWave !== 'number') parsed.furthestWave = 0;

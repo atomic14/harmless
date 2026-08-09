@@ -106,3 +106,23 @@ export function cmds(mode: ControlMode, down: string[], held: string[] = []): Co
 export function eqc(name: string, actual: Command[], expected: Command[]): void {
   eq(name, actual.join('|'), expected.join('|'));
 }
+
+/**
+ * Close the briefing a fresh commander boots into (docs/TODO/106), for the
+ * many tests that are about anything else. One Escape through the real input
+ * path and one fixed step to deliver it — the same dismissal a player makes,
+ * so a test cannot skip the onboarding by a route no player has.
+ * test/briefing-onboarding.test.ts is the file that does NOT call this.
+ *
+ * Structural type rather than `Game`, so importing the harness never drags the
+ * whole game in for the files that only want `check`.
+ */
+export function dismissBriefing(g: {
+  mode: string;
+  input: { injectPress(code: string): void };
+  step(dt: number, now: number): void;
+}, now = 1 / 60): void {
+  if (g.mode !== 'briefing') return;
+  g.input.injectPress('Escape');
+  g.step(1 / 60, now);
+}

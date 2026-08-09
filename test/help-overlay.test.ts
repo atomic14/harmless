@@ -15,7 +15,7 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { check, eq } from './harness.ts';
+import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe ? guide overlay');
 
@@ -38,10 +38,16 @@ console.log('\nthe ? guide overlay');
 
 // --- suppression: an open guide takes the whole keyboard ---------------------
 {
-  const game = () => withoutSaving(() => {
-    seedWorld(1);
-    return new Game(() => headlessShell());
-  }).value;
+  const game = () => {
+    const g = withoutSaving(() => {
+      seedWorld(1);
+      return new Game(() => headlessShell());
+    }).value;
+    // past the first-boot briefing (docs/TODO/106) — this file is about the
+    // ? guide, and briefing-onboarding.test.ts pins the briefing itself
+    dismissBriefing(g);
+    return g;
+  };
   /** one tap, one fixed step — how every discrete command reaches the Game */
   let at = 0;
   const tap = (g: Game, code: string) => {

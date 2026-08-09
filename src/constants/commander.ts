@@ -26,6 +26,22 @@ export const MAX_FUEL = 70;
 export const MAX_MISSILES = 4;
 
 /**
+ * Which edition of the docked briefing a commander is up to date with.
+ *
+ * `CommanderData.briefingSeen` records the edition a commander has been shown;
+ * a commander whose marker is below this — including every save written before
+ * the marker existed, repaired to 0 — is shown the briefing once on their next
+ * docked entry (game.ts `enterDocked`). Bump it only when the briefing changes
+ * enough that returning pilots should read it again; a bump reopens it once
+ * for EVERY existing commander.
+ * An edition counter: that it currently equals other 1-valued constants is
+ * coincidence, not a shared rule.
+ *
+ * @rule onboarding.briefingVersion
+ */
+export const BRIEFING_VERSION = 1;
+
+/**
  * What the hold carries, in tonnes, without and with the Large Cargo Bay.
  *
  * The single home for both figures: game/commander.ts's `cargoCapacity()`, a

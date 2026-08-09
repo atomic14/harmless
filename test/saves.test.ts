@@ -37,7 +37,7 @@ import {
 } from '../src/game/storage.ts';
 import type { WorldSnapshot } from '../src/game/snapshot.ts';
 import { installStore } from './save-fixtures.ts';
-import { check, eq } from './harness.ts';
+import { check, dismissBriefing, eq } from './harness.ts';
 
 /**
  * A world snapshot that is only as real as the storage layer needs.
@@ -212,6 +212,7 @@ console.log('\nfly out of a station, die, and take the way back');
   try {
     seedWorld(20_260_802);
     const g = new Game(() => headlessShell());
+    dismissBriefing(g); // first-boot briefing (docs/TODO/106) — not this test's subject
     const career = g.state.career;
     check('a fresh career has a name of its own', career.length > 0);
 

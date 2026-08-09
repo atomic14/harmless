@@ -133,6 +133,13 @@ export interface CommanderData {
   /** elapsed days — advanced by hyperspace jumps, used for deadlines */
   day: number;
   /**
+   * The briefing edition this commander has been shown (`BRIEFING_VERSION`),
+   * or 0 for never. Saved state rather than an ambient browser flag, so the
+   * once-per-commander promise travels with the save: an export, an import or
+   * an older record all answer it the same way (docs/TODO/106).
+   */
+  briefingSeen: number;
+  /**
    * The furthest wave this commander has ever reached in the combat trainer.
    *
    * THE ONE THING AN EXERCISE IS ALLOWED TO LEAVE BEHIND. It is state, so it is
@@ -170,6 +177,7 @@ export function newCommander(): CommanderData {
     mission: { stage: 0, targetIndex: null },
     trumbles: 0,
     day: 0,
+    briefingSeen: 0,
     furthestWave: 0,
     contracts: [],
   };

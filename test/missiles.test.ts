@@ -33,7 +33,7 @@ import { IMPACT } from '../src/constants/impact.ts';
 import { MAX_ENERGY, MAX_SHIELD } from '../src/constants/pools.ts';
 import { applyDamage, freshSystems } from '../src/game/systems.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { check, eq } from './harness.ts';
+import { check, dismissBriefing, eq } from './harness.ts';
 
 // --- one launch, whoever is resolving ---------------------------------------
 //
@@ -224,6 +224,7 @@ console.log('\nmissiles: in the real game, headless');
   const fight = (seed: number, count: number, frames: number) => withoutSaving(() => {
     seedWorld(seed);
     const g = new Game(() => headlessShell());
+    dismissBriefing(g); // first-boot briefing (docs/TODO/106) — not this test's subject
     g.launch();
     const missilesInFlight = (handle('__game') as { missiles: readonly unknown[] }).missiles;
     const world = g.state.world;

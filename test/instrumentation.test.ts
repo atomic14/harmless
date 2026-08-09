@@ -10,7 +10,7 @@ import { headlessShell } from '../src/engine/shell.ts';
 import { Game } from '../src/game/game.ts';
 import { CombatInstrumentation } from '../src/game/instrumentation.ts';
 import { withoutSaving } from '../src/game/storage.ts';
-import { check, eq } from './harness.ts';
+import { check, dismissBriefing, eq } from './harness.ts';
 import { playerPoolPoints } from '../src/game/damage-units.ts';
 
 console.log('\ncombat instrumentation');
@@ -61,6 +61,7 @@ console.log('\ncombat instrumentation');
   // is one of WorldStep's five statically-tagged damage call sites.
   withoutSaving(() => {
     const game = new Game(() => headlessShell());
+    dismissBriefing(game); // first-boot briefing (docs/TODO/106) — not this test's subject
     let source = '';
     game.setCombatObserver({
       onPlayerDamaged: (_amount, _from, kind) => { source = kind; },

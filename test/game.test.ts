@@ -21,7 +21,7 @@ import { handle } from '../src/game/console.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { check, eq } from './harness.ts';
+import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe game, headless');
 {
@@ -36,6 +36,9 @@ console.log('\nthe game, headless');
   const fly = (frames: number, seed = 20_260_730, launch = false) => withoutSaving(() => {
     seedWorld(seed);
     const g = new Game(() => headlessShell());
+    // a first boot opens the briefing (docs/TODO/106) — these tests fly past
+    // it the way a player does; briefing-onboarding.test.ts is where it is pinned
+    dismissBriefing(g);
     if (launch) g.launch();
     for (let i = 0; i < frames; i++) g.update(1 / 60, i / 60);
     return g;

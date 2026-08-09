@@ -37,6 +37,7 @@ import { pirateThreat, markOf } from './threat.ts';
 import { createStarfield, SpaceDust } from '../world/starfield.ts';
 import { type FlightDemand } from '../player.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
+import { BRIEFING_VERSION } from '../constants/commander.ts';
 import { Input } from '../engine/input.ts';
 import { flightDemand } from '../engine/flight-controls.ts';
 import {
@@ -496,6 +497,37 @@ export class Game {
     this.state.world.scene.add(this.render.camera);
 
 
+    // Screens register themselves with the host and are addressed by id from
+    // then on. Adding one is a new file plus a line here and a line in
+    // ScreenId — deliberately the whole shared surface. Registered BEFORE the
+    // boot dock below: entering docked may open the briefing over the menu
+    // (docs/TODO/106), and a host asked for a screen it has never heard of
+    // throws rather than shrugs.
+    for (const screen of [
+      this.market_,
+      new EquipScreen(() => this.tradeContext()),
+      new SavesScreen(() => this.savesContext()),
+      new SavePromptScreen(() => this.savesContext()),
+      new NamingScreen(() => this.savesContext()),
+      new NewCommanderScreen(() => this.savesContext()),
+      new StatusScreen(() => ({
+        commander: this.state.commander,
+        systems: this.state.systems,
+        targetIndex: this.state.chart.targetIndex,
+      } satisfies StatusContext)),
+      new DataScreen(() => ({
+        subject: this.dataSubject ?? this.system,
+        here: this.system,
+        galaxy: this.state.commander.galaxy,
+        headline: (index) => this.state.living.headline(index),
+      } satisfies DataContext)),
+      new BriefingScreen(),
+      this.contracts_,
+      new ChartScreen('chart', () => this.chartContext()),
+      new ChartScreen('local', () => this.chartContext()),
+      this.combatSim_,
+    ]) this.screens.register(screen);
+
     this.buildWorld();
     // Resume mid-flight if the last session ended there; otherwise the
     // station, as Elite always did.
@@ -535,34 +567,6 @@ export class Game {
       },
     }));
     installPolicyKit();
-
-    // Screens register themselves with the host and are addressed by id from
-    // then on. Adding one is a new file plus a line here and a line in
-    // ScreenId — deliberately the whole shared surface.
-    for (const screen of [
-      this.market_,
-      new EquipScreen(() => this.tradeContext()),
-      new SavesScreen(() => this.savesContext()),
-      new SavePromptScreen(() => this.savesContext()),
-      new NamingScreen(() => this.savesContext()),
-      new NewCommanderScreen(() => this.savesContext()),
-      new StatusScreen(() => ({
-        commander: this.state.commander,
-        systems: this.state.systems,
-        targetIndex: this.state.chart.targetIndex,
-      } satisfies StatusContext)),
-      new DataScreen(() => ({
-        subject: this.dataSubject ?? this.system,
-        here: this.system,
-        galaxy: this.state.commander.galaxy,
-        headline: (index) => this.state.living.headline(index),
-      } satisfies DataContext)),
-      new BriefingScreen(),
-      this.contracts_,
-      new ChartScreen('chart', () => this.chartContext()),
-      new ChartScreen('local', () => this.chartContext()),
-      this.combatSim_,
-    ]) this.screens.register(screen);
 
     // Fixed timestep, decoupled from the frame rate.
     //
@@ -765,7 +769,17 @@ export class Game {
 
   /** @internal — driven by test/playtest.js */
   enterDocked(arrival: DockArrival = 'arrived'): void {
+    // Once per commander, whatever brought them here: a fresh boot, a real
+    // docking, or a restored save from before the marker existed. The marker
+    // moves BEFORE the dock so an 'arrived' checkpoint persists it in the same
+    // act; the other arrivals write nothing here (docs/TODO/43/45), so theirs
+    // rides the next ordinary save. Opening counts as shown — abandoning the
+    // briefing must not trap a player in an onboarding loop, and H is the
+    // permanent way back (docs/TODO/106).
+    const brief = this.state.commander.briefingSeen < BRIEFING_VERSION;
+    if (brief) this.state.commander.briefingSeen = BRIEFING_VERSION;
     this.applyStation(this.station.dock(arrival));
+    if (brief) this.screens.open('briefing');
   }
 
   /**

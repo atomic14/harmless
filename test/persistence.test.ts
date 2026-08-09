@@ -37,7 +37,7 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { check, eq } from './harness.ts';
+import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe world comes back as it went in');
 
@@ -55,6 +55,7 @@ function roundTrip(launch: boolean): { before: Record<string, unknown>;
   return withoutSaving(() => {
     seedWorld(SEED);
     const g = new Game(() => headlessShell());
+    dismissBriefing(g); // first-boot briefing (docs/TODO/106) — not this test's subject
     if (launch) g.launch();
     for (let i = 0; i < 120; i++) g.update(1 / 60, i / 60);
 
