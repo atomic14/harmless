@@ -44,7 +44,9 @@ import { Episode, type Controller } from '../src/ai-training/scenario.ts';
 import { BREAK_OFF_RANGE } from '../src/constants/attack-run.ts';
 import { quantile } from '../src/game/combat-sim-report.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
-import { PIRATES, pilotFor, type TargetBehaviour } from './ram-probe.ts';
+import {
+  EVADES_RETIRED, PIRATES, evadesAvailable, pilotFor, type TargetBehaviour,
+} from './ram-probe.ts';
 
 /**
  * The seeds, and they are `train/flight-probe.ts`'s.
@@ -171,7 +173,14 @@ const isMain = process.argv[1]?.endsWith('gap-probe.ts') ?? false;
 if (isMain) {
   const episodes = Number(process.argv[2] ?? 40);
   const arg = process.argv[3];
+  // `all` takes what can fly today: `evades` needs a DEFEND_BRAIN candidate
+  // (ram-probe.ts owns that rule), and its absence is printed, not silent.
+  // Asking for `evades` BY NAME with nothing loadable is an error instead —
+  // pilotFor throws the same retirement note.
   const behaviours: TargetBehaviour[] = arg === 'all'
-    ? ['holds', 'evades', 'weaves'] : [(arg as TargetBehaviour) ?? 'holds'];
+    ? (['holds', 'evades', 'weaves'] as TargetBehaviour[])
+      .filter((b) => b !== 'evades' || evadesAvailable())
+    : [(arg as TargetBehaviour) ?? 'holds'];
   printGapShapes(Number.isFinite(episodes) ? episodes : 40, behaviours);
+  if (arg === 'all' && !evadesAvailable()) console.log(`\n${EVADES_RETIRED}`);
 }

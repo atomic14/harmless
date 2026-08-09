@@ -17,8 +17,13 @@
 //   holds    the control, and what flight-probe measures — turns hard, barely
 //            translates. Chris's own recorded envelope is close to this
 //            (median speed 66, pitch near its cap), so it is not a strawman.
-//   evades   the shipped defence policy flying the commander's own Cobra —
-//            `train/survivability.ts`'s model of a piloted commander.
+//   evades   a RESEARCH CANDIDATE flying the commander's own Cobra, named by
+//            `DEFEND_BRAIN=<file stem>` — the same hook `train/survivability.ts`
+//            takes. It used to be the shipped defence policy; that line was
+//            retired on 2026-08-05 (game/brains.ts is an empty socket), so
+//            with nothing named the row is honestly ABSENT and the table says
+//            why, rather than flying something else under the old label
+//            (docs/TODO/102).
 //   weaves   flat out across the arena, indifferent to the pirates. The
 //            instrument the item actually needs, and the reason it had to be
 //            added: NOTHING in the training world both translated and stayed in
@@ -27,10 +32,11 @@
 // The three that were tried and are not measurements: `scripted` ambles until
 // something shoots it and then flees flat out, `runner` flees from the first
 // frame — both settle at ~397 against a pirate's ~240 and are never caught
-// again (0.01 passes a pirate, median range 3,200) — and the defence policy
-// turns out to translate at a mean of 4, so `evades` is LESS mobile than
-// `holds`, not more. It stays in the table because that is worth knowing and
-// because it is the pilot `survivability.ts` reports against.
+// again (0.01 passes a pirate, median range 3,200) — and the retired
+// `jameson-defend` policy turned out to translate at a mean of 4, so its
+// `evades` row was LESS mobile than `holds`, not more. Worth remembering when
+// naming a candidate: an "evader" that does not translate is measuring
+// nothing this probe is for.
 //
 // WHAT IT COUNTS. `Episode.traderRams` — the count taken where the ram is
 // billed, so it cannot disagree with the damage. flight-probe's `rams` column
@@ -48,7 +54,6 @@ import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
 import { Episode, type Controller, type TargetHullId } from '../src/ai-training/scenario.ts';
 import { brainFromFile, type BrainFile } from '../src/ai-training/policy.ts';
-import { defenceBrainNameFor } from '../src/game/brain-names.ts';
 import { countPasses, quantile } from '../src/game/combat-sim-report.ts';
 import { IMPACT } from '../src/constants/impact.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
@@ -75,12 +80,29 @@ export type TargetBehaviour = 'holds' | 'evades' | 'weaves';
 const BRAINS_DIR = new URL('../src/ai-training/brains/', import.meta.url);
 
 /**
- * The commander's pilot, for the `evades` row — the SHIPPED defence policy,
- * named through `brain-names.ts` so this file cannot quietly fly a different
- * one from the game.
+ * Is there a pilot for the `evades` row today? Only when `DEFEND_BRAIN` names
+ * a research candidate — the retirement note in the header is the reason.
+ * ONE home for the question: `printRamShapes` below and `train/gap-probe.ts`
+ * both ask it, so the two tables cannot disagree about which rows exist.
+ */
+export function evadesAvailable(): boolean {
+  return !!process.env.DEFEND_BRAIN;
+}
+
+/** What a table prints where the `evades` row would be, so its absence is stated. */
+export const EVADES_RETIRED = 'evades: retired — the shipped defence policy '
+  + '(jameson-defend) was deleted 2026-08-05 and nothing trained ships; '
+  + 'DEFEND_BRAIN=<file stem> flies a research candidate in the row';
+
+/**
+ * The commander's pilot for the `evades` row: the `DEFEND_BRAIN` candidate,
+ * loaded from `src/ai-training/brains/`. Throws the retirement note when
+ * nothing is named — a caller that asks for the row by hand gets the reason,
+ * not a missing-file stack.
  */
 function defencePilot(): Controller {
-  const name = defenceBrainNameFor();
+  const name = process.env.DEFEND_BRAIN;
+  if (!name) throw new Error(`ram-probe: ${EVADES_RETIRED}`);
   return {
     kind: 'policy',
     brain: brainFromFile(
@@ -190,7 +212,9 @@ export function printRamShapes(episodes: number): void {
   console.log('| target | its speed | rams/ep | ram points/ep | eps with a ram |'
     + ' ship-on-ship/ep | passes/pirate | range p10/med/p90 |');
   console.log('| --- | --- | --- | --- | --- | --- | --- | --- |');
-  for (const b of ['holds', 'evades', 'weaves'] as TargetBehaviour[]) {
+  const behaviours = (['holds', 'evades', 'weaves'] as TargetBehaviour[])
+    .filter((b) => b !== 'evades' || evadesAvailable());
+  for (const b of behaviours) {
     const s = ramProbe(b, episodes);
     console.log(`| ${b.padEnd(7)} | ${s.targetMeanSpeed.toFixed(0).padStart(9)} | `
       + `${s.ramsPerEpisode.toFixed(2).padStart(7)} | `
@@ -200,6 +224,7 @@ export function printRamShapes(episodes: number): void {
       + `${s.passesPerPirate.toFixed(2).padStart(13)} | `
       + `${`${s.rangeP10.toFixed(0)}/${s.rangeMedian.toFixed(0)}/${s.rangeP90.toFixed(0)}`.padStart(17)} |`);
   }
+  if (!evadesAvailable()) console.log(`\n${EVADES_RETIRED}`);
   console.log(`\nram points = contacts x IMPACT.ram.commander (${IMPACT.ram.commander}),`
     + ' the figure a CombatSimReport calls damageBySource.ram');
   console.log('the passes column must NOT fall: a run that misses so widely it never'
