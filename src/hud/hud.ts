@@ -7,13 +7,17 @@ import type { ExerciseStrip } from '../game/combat-sim-strip.ts';
 import {
   SCANNER_RANGE, LASER_GAUGE_WARN, CABIN_GAUGE_WARN,
 } from '../constants/console.ts';
+import { HUD } from '../palette.ts';
 
 // The classic console: elliptical 3D scanner (dot + vertical stick per
 // contact), station compass, gauge bars, and the message line.
 
-const GREEN = '#4dff5c';
-const DIM = '#1d6b26';
-const AMBER = '#ffb444';
+// The four, under the names this painter has always used. They were three
+// hex literals here, and one of the three was then restated twenty lines
+// below itself in CONTACT_COLORS; the red had no name in this file at all and
+// was written out at six call sites. src/palette.ts owns them now, and the
+// stylesheet gets the same four from the same place.
+const { green: GREEN, dim: DIM, amber: AMBER, red: RED } = HUD;
 
 export type ContactKind =
   'station' | 'ship' | 'hostile' | 'asteroid' | 'missile' | 'cargo' | 'pod' | 'thargoid';
@@ -34,7 +38,7 @@ const clampUnit = (n: number): number => Math.max(-1, Math.min(1, n));
 
 /** Exported so a test can assert two kinds really are painted apart. */
 export const CONTACT_COLORS: Record<ContactKind, string> = {
-  station: '#4dff5c',
+  station: GREEN,
   ship: '#ffd24d',
   hostile: '#ff5c4d',
   asteroid: '#b9b9a5',
@@ -228,10 +232,10 @@ export class Hud {
     this.aftEl.style.width = `${frame.aftShield * 100}%`;
     this.fuelEl.style.width = `${frame.fuelFrac * 100}%`;
     this.laserEl.style.width = `${frame.laserTemp * 100}%`;
-    this.laserEl.style.background = frame.laserTemp > LASER_GAUGE_WARN ? '#ff4d4d' : '';
+    this.laserEl.style.background = frame.laserTemp > LASER_GAUGE_WARN ? RED : '';
     this.altEl.style.width = `${Math.min(100, frame.altitudeFrac * 100)}%`;
     this.cabinEl.style.width = `${Math.min(100, frame.cabinTemp * 100)}%`;
-    this.cabinEl.style.background = frame.cabinTemp > CABIN_GAUGE_WARN ? '#ff4d4d' : '';
+    this.cabinEl.style.background = frame.cabinTemp > CABIN_GAUGE_WARN ? RED : '';
     this.viewEl.textContent = frame.assist ? '◆ COMBAT COMPUTER ◆' : (VIEW_NAMES[frame.view] ?? '');
     this.crosshairEl.style.display = frame.hasLaser ? '' : 'none';
     this.shipIdEl.textContent = frame.shipId;
@@ -246,7 +250,7 @@ export class Hud {
     this.indE.classList.toggle('lit-amber', frame.ecmDetected);
     this.lockEl.textContent = ''; // lock is shown by the bracket + missile pylon
     this.conditionEl.textContent = `CONDITION: ${frame.condition}`;
-    this.conditionEl.style.color = frame.condition === 'RED' ? '#ff4d4d' : '';
+    this.conditionEl.style.color = frame.condition === 'RED' ? RED : '';
     this.creditsEl.textContent = formatCredits(frame.credits);
 
     this.drawExercise(frame.exercise);
@@ -346,7 +350,7 @@ export class Hud {
       const x = (t.x * 0.5 + 0.5) * w;
       const y = (-t.y * 0.5 + 0.5) * h;
       const r = Math.max(14, Math.min(120, t.size * h * 0.5));
-      const colour = t.locked ? '#ff4d4d' : t.hostile ? '#ff9a5c' : DIM;
+      const colour = t.locked ? RED : t.hostile ? '#ff9a5c' : DIM;
       ctx.strokeStyle = colour;
       ctx.lineWidth = t.locked ? 2 : 1;
       // corner brackets
@@ -363,7 +367,7 @@ export class Hud {
         ctx.fillStyle = colour;
         ctx.fillText(t.label, x - r, y - r - 6);
         // hull bar
-        ctx.fillStyle = '#ff4d4d';
+        ctx.fillStyle = RED;
         ctx.fillRect(x - r, y + r + 5, 2 * r * Math.max(0, t.hp), 2);
         ctx.strokeStyle = DIM;
         ctx.strokeRect(x - r, y + r + 5, 2 * r, 2);
@@ -432,7 +436,7 @@ export class Hud {
     const onScreen = !marker.behind
       && Math.abs(marker.x) <= 1 && Math.abs(marker.y) <= 1;
     if (onScreen) return;
-    this.drawEdgeArrow(marker, '#ff4d4d', marker.count > 1 ? `THREAT x${marker.count}` : 'THREAT');
+    this.drawEdgeArrow(marker, RED, marker.count > 1 ? `THREAT x${marker.count}` : 'THREAT');
   }
 
   private drawSlotMarker(marker: HudState['slotMarker'], inSlot: boolean): void {
@@ -440,7 +444,7 @@ export class Hud {
     const ctx = this.reticle;
     const w = ctx.canvas.width;
     const h = ctx.canvas.height;
-    const colour = inSlot ? '#4dff5c' : '#ffb444';
+    const colour = inSlot ? GREEN : AMBER;
     ctx.strokeStyle = colour;
     ctx.fillStyle = colour;
     ctx.lineWidth = 2;

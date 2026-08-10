@@ -10,6 +10,7 @@
 // `generateGalaxy`, so the shape of the sky is the same shape the game flies.
 
 import { CHART_SPAN_X, CHART_SPAN_Y } from '../constants/chart-metric.ts';
+import { DOC, alpha } from '../palette.ts';
 import type { Entry } from './entry.ts';
 
 export interface View {
@@ -27,11 +28,17 @@ export interface ChartTheme {
   label: string;
 }
 
+/**
+ * The DOCUMENT palette, not the cockpit's — this canvas sits in a page of
+ * prose and has to match the text around it. The two palettes are two on
+ * purpose and both live in src/palette.ts; see the note at the head of
+ * encyclopaedia.css.
+ */
 const THEME: ChartTheme = {
-  dim: 'rgba(51, 255, 51, 0.16)',
-  lit: 'rgba(51, 255, 51, 0.92)',
-  selected: '#ffcc33',
-  label: 'rgba(51, 255, 51, 0.75)',
+  dim: alpha(DOC.green, 0.16),
+  lit: alpha(DOC.green, 0.92),
+  selected: DOC.amber,
+  label: alpha(DOC.green, 0.75),
 };
 
 export class Chart {

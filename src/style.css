@@ -1,9 +1,8 @@
-:root {
-  --hud-green: #4dff5c;
-  --hud-dim: #1d6b26;
-  --hud-amber: #ffb444;
-  --hud-red: #ff4d4d;
-}
+/* The cockpit. The four colours it is drawn in come from src/palette.ts, which
+   hud.ts and screens.ts paint their canvases from — one home, two consumers,
+   and this end of it is generated. See the head of that file. */
+
+@import './palette.css';
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
@@ -64,7 +63,7 @@ html, body {
 /* a target is inside the envelope: the shot will reach for it */
 #crosshair.locked::before {
   opacity: 1;
-  box-shadow: 0 0 8px var(--hud-green), inset 0 0 6px rgba(77, 255, 92, 0.35);
+  box-shadow: 0 0 8px var(--hud-green), inset 0 0 6px rgba(var(--hud-green-rgb), 0.35);
 }
 
 #topbar {
@@ -74,7 +73,7 @@ html, body {
   justify-content: space-between;
   font-size: 13px;
   letter-spacing: 2px;
-  text-shadow: 0 0 6px rgba(77, 255, 92, 0.7);
+  text-shadow: 0 0 6px rgba(var(--hud-green-rgb), 0.7);
   pointer-events: none;
 }
 
@@ -97,7 +96,7 @@ body.screen-open #screen { top: 50%; max-height: 88vh; }
 body.screen-open #message {
   bottom: 3vh;
   background: rgba(0, 10, 2, 0.92);
-  border: 1px solid rgba(255, 180, 68, 0.35);
+  border: 1px solid rgba(var(--hud-amber-rgb), 0.35);
   padding: 6px 16px;
 }
 
@@ -158,7 +157,7 @@ body.screen-open #message {
   opacity: 0.78;
   margin-top: 10px;
   padding-top: 9px;
-  border-top: 1px solid rgba(51, 255, 51, 0.18);
+  border-top: 1px solid rgba(var(--hud-green-rgb), 0.18);
   /* Takes whatever the column has left and scrolls the rest, so no world can
      change the panel's height — see the note on .chartrow above.
 
@@ -248,7 +247,7 @@ body.screen-open #message {
 .missiles span {
   width: 12px; height: 12px;
   border: 1px solid var(--hud-dim);
-  background: rgba(77, 255, 92, 0.5);
+  background: rgba(var(--hud-green-rgb), 0.5);
 }
 
 #help {
@@ -281,7 +280,7 @@ body.screen-open #message {
   letter-spacing: 4px;
   margin: 10px 0 4px;
 }
-#help h1 { font-size: 34px; margin-bottom: 14px; text-shadow: 0 0 12px rgba(77, 255, 92, 0.8); font-weight: normal; }
+#help h1 { font-size: 34px; margin-bottom: 14px; text-shadow: 0 0 12px rgba(var(--hud-green-rgb), 0.8); font-weight: normal; }
 #help table { margin: 0 auto 14px; font-size: 12px; border-spacing: 14px 4px; }
 #help td:first-child { text-align: right; color: var(--hud-amber); }
 #help td:last-child { text-align: left; }
@@ -346,7 +345,7 @@ body.screen-open #message {
   font-size: 11px;
   letter-spacing: 3px;
   color: var(--hud-red);
-  text-shadow: 0 0 8px rgba(255, 77, 77, 0.8);
+  text-shadow: 0 0 8px rgba(var(--hud-red-rgb), 0.8);
   pointer-events: none;
 }
 
@@ -372,7 +371,7 @@ body.screen-open #message {
   font-size: 15px;
   letter-spacing: 3px;
   color: var(--hud-amber);
-  text-shadow: 0 0 10px rgba(255, 180, 68, 0.8);
+  text-shadow: 0 0 10px rgba(var(--hud-amber-rgb), 0.8);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -394,14 +393,14 @@ body.screen-open #message {
   top: 34px; left: 16px;
   z-index: 5;
   padding: 6px 10px;
-  border: 1px solid rgba(255, 180, 68, 0.45);
+  border: 1px solid rgba(var(--hud-amber-rgb), 0.45);
   border-left: 2px solid var(--hud-amber);
   background: rgba(0, 10, 2, 0.72);
   font-size: 10px;
   letter-spacing: 2px;
   line-height: 1.7;
   color: var(--hud-amber);
-  text-shadow: 0 0 6px rgba(255, 180, 68, 0.5);
+  text-shadow: 0 0 6px rgba(var(--hud-amber-rgb), 0.5);
   pointer-events: none;
   white-space: nowrap;
 }
@@ -466,7 +465,7 @@ body.screen-open #exercise { display: none; }
   font-size: 20px;
   letter-spacing: 6px;
   margin-bottom: 4px;
-  text-shadow: 0 0 10px rgba(77, 255, 92, 0.7);
+  text-shadow: 0 0 10px rgba(var(--hud-green-rgb), 0.7);
 }
 #screen .rule {
   border-bottom: 1px solid var(--hud-dim);
@@ -580,7 +579,7 @@ body.screen-open #exercise { display: none; }
   letter-spacing: 8px;
   margin: 30px 0;
   color: var(--hud-red);
-  text-shadow: 0 0 14px rgba(255, 77, 77, 0.8);
+  text-shadow: 0 0 14px rgba(var(--hud-red-rgb), 0.8);
 }
 
 #tunnel {
@@ -708,7 +707,7 @@ body.screen-open #exercise { display: none; }
   opacity: 0.82;
   margin-top: 12px;
   text-align: left;
-  border-top: 1px solid rgba(51, 255, 51, 0.18);
+  border-top: 1px solid rgba(var(--hud-green-rgb), 0.18);
   padding-top: 10px;
 }
 #screen .sysmore p { margin: 0 0 9px; }
@@ -721,10 +720,10 @@ body.screen-open #exercise { display: none; }
 
 /* clickable screen affordances */
 #screen .menu div[data-key] { cursor: pointer; padding: 0 8px; border-left: 2px solid transparent; }
-#screen .menu div[data-key]:hover { background: rgba(77, 255, 92, 0.14); border-left-color: var(--hud-green); }
-#screen .menu div[data-key].sel { background: rgba(77, 255, 92, 0.2); border-left-color: var(--hud-green); }
+#screen .menu div[data-key]:hover { background: rgba(var(--hud-green-rgb), 0.14); border-left-color: var(--hud-green); }
+#screen .menu div[data-key].sel { background: rgba(var(--hud-green-rgb), 0.2); border-left-color: var(--hud-green); }
 #screen tr.pick { cursor: pointer; }
-#screen tr.pick:hover td { background: rgba(77, 255, 92, 0.14); }
+#screen tr.pick:hover td { background: rgba(var(--hud-green-rgb), 0.14); }
 #screen tr.sel.pick:hover td { background: var(--hud-green); }
 #screen .buttons { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 #screen .buttons button {
@@ -737,7 +736,7 @@ body.screen-open #exercise { display: none; }
   padding: 6px 14px;
   cursor: pointer;
 }
-#screen .buttons button:hover { border-color: var(--hud-green); background: rgba(77, 255, 92, 0.16); }
+#screen .buttons button:hover { border-color: var(--hud-green); background: rgba(var(--hud-green-rgb), 0.16); }
 #screen .buttons button:active { background: var(--hud-green); color: #001402; }
 
 /* combat overlay: target bracket + lead reticle */

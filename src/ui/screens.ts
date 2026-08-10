@@ -4,6 +4,7 @@ import {
 import { planetDescription } from '../galaxy/goatsoup.ts';
 import { systemDescription } from '../galaxy/descriptions.ts';
 import { escapeHtml } from '../engine/escape-html.ts';
+import { HUD, TINT } from '../palette.ts';
 import { distanceTenths, distanceSqToPoint } from '../galaxy/navigation.ts';
 import {
   type CommanderData, type Contract,
@@ -632,9 +633,9 @@ export function nearestSystem(
  *
  * Alpha rather than a second green: the busiest lane in the galaxy and the
  * quietest one drawn should not read alike, and a brightness ramp spelled in
- * new hex would be four more colours for docs/TODO/93 to sweep. The floor
- * keeps the quietest lane visible; without it the tail simply vanishes and the
- * threshold might as well have dropped it.
+ * new hex would be four more rungs on the chart ladder in src/palette.ts. The
+ * floor keeps the quietest lane visible; without it the tail simply vanishes
+ * and the threshold might as well have dropped it.
  *
  * The pointed-at lane is drawn last at full strength, so the line you are
  * reading about is the one that stands out.
@@ -660,14 +661,14 @@ function drawLanes(
     ctx.stroke();
   };
 
-  ctx.strokeStyle = '#2a7a33';
+  ctx.strokeStyle = TINT.lane;
   for (const lane of overlays.lanes) {
     if (lane === overlays.hovered) continue;
     stroke(lane, LANE_FADE_FLOOR + (1 - LANE_FADE_FLOOR) * (lane.tonnes / heaviest));
   }
   if (overlays.hovered) {
     // the one being read about, in the brighter green the in-range systems use
-    ctx.strokeStyle = '#4dff5c';
+    ctx.strokeStyle = HUD.green;
     stroke(overlays.hovered, 1);
   }
   // EVERY dot, ring, tick and crosshair after this shares the context
@@ -710,11 +711,13 @@ const laneSummary = (lane: TradeLane, systems: StarSystem[], day: number): strin
 /**
  * A tick above a system trading dear, below one trading cheap — on both charts.
  *
- * The tell is a SHAPE and a DIRECTION rather than a second colour scale: this
- * palette is green and amber (docs/TODO/93 owns it), it has no blue, and
- * inventing one for a price would be a new hex in the file 93 is about to
- * sweep. Amber is the one the target marker already uses; up and down carry the
- * meaning, so a reader who cannot separate the two greens still gets it right.
+ * The tell is a SHAPE and a DIRECTION rather than a second colour scale: the
+ * palette is green and amber (src/palette.ts owns it), it has no blue, and
+ * inventing one for a price would be a fifth colour in a game that has four.
+ * Amber is the one the target marker already uses, and cheap borrows the green
+ * a world in range is drawn in — the same invitation, said twice. Up and down
+ * carry the meaning, so a reader who cannot separate the two greens still gets
+ * it right.
  */
 function drawPriceTells(
   ctx: CanvasRenderingContext2D,
@@ -728,7 +731,7 @@ function drawPriceTells(
     const s = systems[index];
     if (!s) continue;
     const up = drift === 'dear';
-    ctx.strokeStyle = up ? '#ffb444' : '#7dff88';
+    ctx.strokeStyle = up ? HUD.amber : TINT.lift;
     const x = px(s);
     const y = py(s);
     // The tail starts clear of the dot rather than on it: at 2.5px a system,
@@ -804,7 +807,7 @@ export function drawChart(
   // into the canvas, so a circle in light years is not a circle in pixels.
   // Semi-axes are R*sx and R*sy with R = fuel/TENTHS_PER_CHART_UNIT (the chart
   // metric read backwards, hence the import rather than a literal 4).
-  ctx.strokeStyle = '#2a8f36';
+  ctx.strokeStyle = TINT.fuelRing;
   ctx.setLineDash([3, 3]);
   ctx.beginPath();
   ctx.ellipse(px(current), py(current), (c.fuel / TENTHS_PER_CHART_UNIT) * sx,
@@ -820,7 +823,7 @@ export function drawChart(
   // this screen and 1.5px of dim green on near-black is close to invisible.
   for (const s of systems) {
     const within = distanceTenths(current, s) <= c.fuel;
-    ctx.fillStyle = within ? '#7dff88' : '#46b354';
+    ctx.fillStyle = within ? TINT.lift : TINT.far;
     const r = s.index === c.systemIndex ? 4.5 : 2.5;
     ctx.fillRect(px(s) - r / 2, py(s) - r / 2, r, r);
   }
@@ -830,7 +833,7 @@ export function drawChart(
   // Pirate activity: the same fact the system data screen prints in words.
   // Drawn over the dots so a flagged world reads at a glance, in the red the
   // cursor already uses rather than a colour of its own.
-  ctx.strokeStyle = '#ff4d4d';
+  ctx.strokeStyle = HUD.red;
   for (const index of overlays.danger) {
     const s = systems[index];
     if (!s) continue;
@@ -840,7 +843,7 @@ export function drawChart(
   }
 
   // current system crosshair
-  ctx.strokeStyle = '#4dff5c';
+  ctx.strokeStyle = HUD.green;
   ctx.beginPath();
   ctx.moveTo(px(current) - 8, py(current)); ctx.lineTo(px(current) + 8, py(current));
   ctx.moveTo(px(current), py(current) - 8); ctx.lineTo(px(current), py(current) + 8);
@@ -849,14 +852,14 @@ export function drawChart(
   // target marker
   if (chart.targetIndex !== null) {
     const t = systems[chart.targetIndex];
-    ctx.strokeStyle = '#ffb444';
+    ctx.strokeStyle = HUD.amber;
     ctx.beginPath();
     ctx.arc(px(t), py(t), 6, 0, Math.PI * 2);
     ctx.stroke();
   }
 
   // cursor
-  ctx.strokeStyle = '#ff4d4d';
+  ctx.strokeStyle = HUD.red;
   const cx = chart.cursorX * sx;
   const cy = (chart.cursorY / 2) * sy;
   ctx.beginPath();
@@ -929,7 +932,7 @@ export function drawLocalChart(
   ctx.clearRect(0, 0, w, h);
 
   // fuel range circle (isotropic in this projection)
-  ctx.strokeStyle = '#1d6b26';
+  ctx.strokeStyle = HUD.dim;
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
   // A CIRCLE, and it has to be one. distanceTenths divides dy by
@@ -952,11 +955,11 @@ export function drawLocalChart(
     const y = py(s);
     if (x < -20 || x > w + 20 || y < -12 || y > h + 12) continue;
     const within = distanceTenths(current, s) <= c.fuel;
-    ctx.fillStyle = within ? '#4dff5c' : '#2a7a33';
+    ctx.fillStyle = within ? HUD.green : TINT.lane;
     ctx.beginPath();
     ctx.arc(x, y, s.index === c.systemIndex ? 3.5 : 2.5, 0, Math.PI * 2);
     ctx.fill();
-    ctx.fillStyle = within ? '#8affa0' : '#3f9950';
+    ctx.fillStyle = within ? TINT.liftLabel : TINT.farLabel;
     ctx.fillText(s.name.toUpperCase(), x + 7, y - 6);
   }
 
@@ -965,7 +968,7 @@ export function drawLocalChart(
   // Pirate activity, as on the galactic chart. Same cull as the dots above:
   // a ring for a system this zoom has scrolled off would be drawn at a
   // coordinate outside the canvas anyway.
-  ctx.strokeStyle = '#ff4d4d';
+  ctx.strokeStyle = HUD.red;
   for (const index of overlays.danger) {
     const s = systems[index];
     if (!s) continue;
@@ -978,7 +981,7 @@ export function drawLocalChart(
   }
 
   // current system crosshair
-  ctx.strokeStyle = '#4dff5c';
+  ctx.strokeStyle = HUD.green;
   ctx.beginPath();
   ctx.moveTo(cx - 10, cy); ctx.lineTo(cx + 10, cy);
   ctx.moveTo(cx, cy - 10); ctx.lineTo(cx, cy + 10);
@@ -987,14 +990,14 @@ export function drawLocalChart(
   // target marker
   if (chart.targetIndex !== null) {
     const t = systems[chart.targetIndex];
-    ctx.strokeStyle = '#ffb444';
+    ctx.strokeStyle = HUD.amber;
     ctx.beginPath();
     ctx.arc(px(t), py(t), 7, 0, Math.PI * 2);
     ctx.stroke();
   }
 
   // cursor
-  ctx.strokeStyle = '#ff4d4d';
+  ctx.strokeStyle = HUD.red;
   const ux = cx + (chart.cursorX - current.x) * LOCAL_SCALE;
   const uy = cy + ((chart.cursorY - current.y) / 2) * LOCAL_SCALE;
   ctx.beginPath();
@@ -1009,7 +1012,7 @@ export function drawLocalChart(
   // The canvas has empty sky down there and costs no layout at all.
   if (overlays.hovered) {
     const [head, tail] = laneSummaryParts(overlays.hovered, systems, overlays.day);
-    ctx.fillStyle = '#ffb444';
+    ctx.fillStyle = HUD.amber;
     ctx.fillText(head, 6, h - 20);
     ctx.fillText(tail, 6, h - 8);
   }
@@ -1217,8 +1220,9 @@ export function renderContracts(
   // Illicit freight is flagged, not disguised (docs/TODO/110): the reward is
   // paying for the police scan on the way out, and a player cannot choose to
   // take that on if the row reads like any other consignment. `--hud-amber` is
-  // the warning colour this file already spells everywhere else — docs/TODO/93
-  // is counting new hex, so no new colour is coined for it.
+  // the warning colour this file already spells everywhere else, so no new
+  // colour is coined for it — and since docs/TODO/93 there is nowhere to coin
+  // one except src/palette.ts, which the gate would make you argue for.
   const illicit = (k: Contract) =>
     (k.kind === 'smuggle' ? ' style="color:var(--hud-amber)"' : '');
 

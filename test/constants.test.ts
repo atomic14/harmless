@@ -82,6 +82,23 @@ const OUTSIDE: readonly Group[] = [
   // --- MOVED, apart from a stated exception ---------------------------------
 
   {
+    why: 'STAYS: colour is not a game rule. docs/TODO/90 ruled styling out of'
+      + ' src/constants/ on purpose so that a 500-constant refactor was not also a'
+      + ' styling refactor, and docs/TODO/93 is the other half — src/palette.ts is'
+      + ' the one home for the phosphor, and it sits beside the stylesheets it feeds'
+      + ' rather than among the rules, because the file it GENERATES (palette.css) is'
+      + ' the other half of it and constants/ generates a catalogue, not CSS. It must'
+      + ' also import nothing at all: the landing page, the manual and the'
+      + ' build-time encyclopaedia all reach it, and two of those run no game code.'
+      + ' `CHANNELS` is its parse memo, `CSS_VARS` the list the generator walks.'
+      + ' `npm run palette:check` is what holds the rest of the tree to it',
+    files: {
+      'palette.ts': ['HUD', 'TINT', 'DOC', 'CSS_VARS', 'CHANNELS'],
+    },
+  },
+
+
+  {
     why: 'resolved once at load, not a rule — a catalogue lookup, and moving it would'
       + ' put a `requireShipDef` call inside a directory that may not import',
     files: {
@@ -97,9 +114,21 @@ const OUTSIDE: readonly Group[] = [
     files: {
       'game/npc.ts': ['ZERO', 'UP'],
       'player.ts': ['AXIS_X', 'AXIS_Z'],
-      'game/world-step.ts': ['ZERO'],
       'game/game.ts': ['ZERO', 'UP'],
       'game/combat-sim.ts': ['ZERO', 'UP'],
+    },
+  },
+
+  {
+    why: 'the step\'s two, and a file may only appear in one group. `ZERO` is a scratch'
+      + ' THREE.Vector3, exactly as in the group above and for the same reason.'
+      + ' `WARHEAD_FLASH` is not a declaration but a READ — HUD.amber from'
+      + ' src/palette.ts, converted once to the 24-bit number the effects layer takes'
+      + ' (docs/TODO/93, which found the value written out twice here). The conversion'
+      + ' is done at the call site rather than by adding a second spelling of amber to'
+      + ' the palette',
+    files: {
+      'game/world-step.ts': ['ZERO', 'WARHEAD_FLASH'],
     },
   },
 
@@ -303,8 +332,9 @@ const OUTSIDE: readonly Group[] = [
       + ' constants/camera.ts, the local chart\'s geometry joined'
       + ' constants/chart-metric.ts and the input carry joined the frame budget it was'
       + ' chosen against in constants/world-clock.ts. What stays is only drawing,'
-      + ' prose, typed tables or music: the three phosphor colours (docs/TODO/93) and'
-      + ' the painter\'s label tables; the briefing\'s pages, the count derived over'
+      + ' prose, typed tables or music: the painter\'s label tables — its three'
+      + ' phosphor colours left for src/palette.ts in docs/TODO/93 and it now'
+      + ' destructures the four from there; the briefing\'s pages, the count derived over'
       + ' them and the keys their prose quotes off the binding table (docs/TODO/106);'
       + ' the key tables docs/TODO/50 welded (`BINDINGS`, `COMMAND_HELP`,'
       + ' `ALL_BINDINGS`, `LABELS`, the layouts and the keymap\'s own storage key —'
@@ -312,9 +342,7 @@ const OUTSIDE: readonly Group[] = [
       + ' inert painter\'s DOM plumbing; the cockpit beams\' convergence depth; the'
       + ' Blue Danube; and the manual\'s prose rows',
     files: {
-      'hud/hud.ts': [
-        'GREEN', 'DIM', 'AMBER', 'CONTACT_COLORS', 'VIEW_NAMES', 'SCORE_LABELS',
-      ],
+      'hud/hud.ts': ['CONTACT_COLORS', 'VIEW_NAMES', 'SCORE_LABELS'],
       'ui/screens.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES'],
       'ui/key-help.ts': ['LABELS', 'ALL_BINDINGS'],
       'game/command-help.ts': ['COMMAND_HELP'],
@@ -368,10 +396,14 @@ const OUTSIDE: readonly Group[] = [
     why: 'STAYS: the combat viewer and the gallery are development pages, and their'
       + ' constants are catalogue reads (`COBRA_MK3`, `SIDEWINDER`), brain-name reads'
       + ' (`SHIPPED_PIRATE`, `SHIPPED_DEFENCE`), a scenario table, typed mode lists'
-      + ' (`SCALES`, `VIEWS`) and pure drawing — grid geometry, three colours (one of'
-      + ' them the phosphor, which docs/TODO/93 owns) and two fixed axes',
+      + ' (`SCALES`, `VIEWS`) and pure drawing — grid geometry, one hull colour and two'
+      + ' fixed axes. The rest are READS rather than declarations after docs/TODO/93:'
+      + ' the gallery\'s label and radius colours come from src/palette.ts, and'
+      + ' `PIRATE_COLOUR`/`TRADER_COLOUR` are `SPECS.pirate[0].color` and'
+      + ' `SPECS.trader[0].color`, which were hand-copied hex until that item — a hull'
+      + ' colour is ship data and belongs to the roster',
     files: {
-      'viewer/main.ts': ['COBRA_MK3', 'SIDEWINDER'],
+      'viewer/main.ts': ['COBRA_MK3', 'SIDEWINDER', 'PIRATE_COLOUR', 'TRADER_COLOUR'],
       'viewer/scenarios.ts': ['SHIPPED_PIRATE', 'SHIPPED_DEFENCE', 'SCENARIOS'],
       'viewer/gallery.ts': [
         'COLUMNS', 'CELL', 'HULL_COLOUR', 'RADIUS_COLOUR', 'LABEL_COLOUR',
@@ -473,10 +505,11 @@ const OUTSIDE: readonly Group[] = [
   },
 
   {
-    why: 'STAYS: the encyclopaedia\'s own green and amber, which docs/TODO/90 rules out of'
-      + ' scope by name alongside every other phosphor colour in the game — "the'
-      + ' encyclopaedia\'s separate green and amber" stays duplicated, and docs/TODO/93'
-      + ' owns it, not this item',
+    why: 'STAYS, and is no longer a duplicate: `THEME` is four canvas strings BUILT from'
+      + ' DOC in src/palette.ts, which docs/TODO/93 made the one home for the'
+      + ' encyclopaedia\'s green and amber — a second palette on purpose, named as one'
+      + ' (Chris, 2026-08-10). It is not a game rule and does not belong in'
+      + ' src/constants/, which docs/TODO/90 ruled styling out of by name',
     files: {
       'encyclopaedia/chart.ts': ['THEME'],
     },

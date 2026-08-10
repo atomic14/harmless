@@ -1,12 +1,15 @@
 /* The landing page.
    Deliberately loads no game code: it exists to be read (and indexed), and the
    three.js bundle has no business blocking that. Shares the phosphor palette
-   with the game and the manual, set for reading rather than for a cockpit. */
+   with the game and the manual, set for reading rather than for a cockpit.
+
+   This page runs NO JavaScript, which is why the palette arrives as a
+   stylesheet generated from src/palette.ts rather than pushed onto the
+   document at boot the way --sight-r is. */
+
+@import './palette.css';
 
 :root {
-  --hud-green: #4dff5c;
-  --hud-dim: #1d6b26;
-  --hud-amber: #ffb444;
   --paper: #040a05;
   --ink: #a8e8b0;
 }
@@ -38,7 +41,7 @@ h1 {
   /* the letter-spacing pads the right side only; nudge back to optical centre */
   text-indent: clamp(10px, 4vw, 40px);
   color: var(--hud-green);
-  text-shadow: 0 0 40px rgba(77, 255, 92, 0.45);
+  text-shadow: 0 0 40px rgba(var(--hud-green-rgb), 0.45);
 }
 .tagline { font-size: 21px; color: var(--hud-green); margin-bottom: 22px; }
 .namenote { max-width: 560px; margin: 0 auto 18px; font-size: 15px; color: var(--hud-dim); }
@@ -54,9 +57,9 @@ h1 {
   padding: 16px 42px;
   color: var(--paper); background: var(--hud-green);
   text-decoration: none; font-weight: bold;
-  box-shadow: 0 0 34px rgba(77, 255, 92, 0.35);
+  box-shadow: 0 0 34px rgba(var(--hud-green-rgb), 0.35);
 }
-.play:hover { background: #7dff88; box-shadow: 0 0 46px rgba(77, 255, 92, 0.6); }
+.play:hover { background: var(--hud-green-lift); box-shadow: 0 0 46px rgba(var(--hud-green-rgb), 0.6); }
 .cta-note { display: block; margin-top: 12px; font-size: 13px; color: var(--hud-dim); }
 
 /* --- content ------------------------------------------------------------- */
@@ -81,9 +84,9 @@ h2 {
 .card {
   display: block; text-decoration: none; color: var(--ink);
   border: 1px solid var(--hud-dim); padding: 20px 22px;
-  background: rgba(77, 255, 92, 0.04);
+  background: rgba(var(--hud-green-rgb), 0.04);
 }
-.card:hover { background: rgba(77, 255, 92, 0.1); border-color: var(--hud-green); }
+.card:hover { background: rgba(var(--hud-green-rgb), 0.1); border-color: var(--hud-green); }
 .card h3 { margin: 0 0 8px; color: var(--hud-amber); font-size: 17px; letter-spacing: 1px; }
 .card p { margin: 0; font-size: 15px; }
 

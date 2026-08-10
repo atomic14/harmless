@@ -4,17 +4,28 @@
  * Its own stylesheet rather than style.css: that one dresses a cockpit — fixed
  * viewport, absolute panels, a console owning the bottom fifth — and this is a
  * document that scrolls, gets read on a phone, and has to survive a crawler
- * with no JavaScript at all. Sharing the palette is the right amount of
- * sharing; sharing the layout would mean fighting it.
+ * with no JavaScript at all. Sharing the layout would mean fighting it.
+ *
+ * It does not share the game's palette either, and that is deliberate rather
+ * than an accident nobody got round to (Chris, 2026-08-10). Its green and
+ * amber are the DOC palette in src/palette.ts — harder and squarer than the
+ * cockpit's, and they hold up over 205,000 characters of prose in a way the
+ * cockpit green on black does not. Two palettes, named as two: `--doc-*` here,
+ * `--hud-*` everywhere else, both generated into palette.css from one file, so
+ * neither can drift and neither can be mistaken for the other. This comment
+ * used to claim the opposite of what the file did.
+ *
+ * The crawler is why the import below is a stylesheet and not a boot-time
+ * push from JavaScript: with scripting off this page must still be the whole
+ * encyclopaedia, in colour.
  */
 
+@import '../palette.css';
+
 :root {
-  --green: #33ff33;
-  --green-dim: #1f7a1f;
-  --amber: #ffcc33;
   --ink: #000804;
   --panel: rgba(0, 18, 6, 0.72);
-  --rule: rgba(51, 255, 51, 0.22);
+  --rule: rgba(var(--doc-green-rgb), 0.22);
   --mono: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
 }
 
@@ -24,7 +35,7 @@ body {
   margin: 0;
   padding: 0 20px 60px;
   background: var(--ink);
-  color: var(--green);
+  color: var(--doc-green);
   font-family: var(--mono);
   font-size: 14px;
   line-height: 1.65;
@@ -32,11 +43,11 @@ body {
    * A faint band behind everything, the shape of the galaxy on the chart.
    * Cheap, and it stops the page reading as a plain dark document.
    */
-  background-image: radial-gradient(ellipse 80% 40% at 50% 18%, rgba(51, 255, 51, 0.06), transparent 70%);
+  background-image: radial-gradient(ellipse 80% 40% at 50% 18%, rgba(var(--doc-green-rgb), 0.06), transparent 70%);
 }
 
-a { color: var(--amber); text-decoration: none; border-bottom: 1px solid rgba(255, 204, 51, 0.35); }
-a:hover { border-bottom-color: var(--amber); }
+a { color: var(--doc-amber); text-decoration: none; border-bottom: 1px solid rgba(var(--doc-amber-rgb), 0.35); }
+a:hover { border-bottom-color: var(--doc-amber); }
 
 .sr-only {
   position: absolute; width: 1px; height: 1px;
@@ -47,8 +58,8 @@ a:hover { border-bottom-color: var(--amber); }
 
 .page-head { max-width: 980px; margin: 0 auto; padding: 44px 0 26px; text-align: center; }
 .eyebrow { margin: 0 0 10px; letter-spacing: 5px; font-size: 12px; }
-.eyebrow a { border: 0; color: var(--green-dim); }
-.eyebrow a:hover { color: var(--green); }
+.eyebrow a { border: 0; color: var(--doc-green-dim); }
+.eyebrow a:hover { color: var(--doc-green); }
 
 .page-head h1 {
   margin: 0 0 14px;
@@ -56,12 +67,12 @@ a:hover { border-bottom-color: var(--amber); }
   font-weight: normal;
   letter-spacing: 6px;
   text-transform: uppercase;
-  text-shadow: 0 0 18px rgba(51, 255, 51, 0.35);
+  text-shadow: 0 0 18px rgba(var(--doc-green-rgb), 0.35);
 }
 
 .standfirst {
   max-width: 62ch; margin: 0 auto;
-  color: rgba(51, 255, 51, 0.72); font-size: 13px;
+  color: rgba(var(--doc-green-rgb), 0.72); font-size: 13px;
 }
 
 /* --- layout -------------------------------------------------------------- */
@@ -106,25 +117,25 @@ body.is-interactive #app { display: grid; }
   width: 100%; padding: 7px 9px;
   background: rgba(0, 0, 0, 0.5);
   border: 1px solid var(--rule);
-  color: var(--green); font-family: var(--mono); font-size: 13px;
+  color: var(--doc-green); font-family: var(--mono); font-size: 13px;
 }
-#search:focus { outline: 1px solid var(--green); }
+#search:focus { outline: 1px solid var(--doc-green); }
 
-#count { margin: 10px 0 0; font-size: 12px; color: rgba(51, 255, 51, 0.6); }
-#count.is-narrowed { color: var(--amber); }
+#count { margin: 10px 0 0; font-size: 12px; color: rgba(var(--doc-green-rgb), 0.6); }
+#count.is-narrowed { color: var(--doc-amber); }
 
 #reset {
   margin-top: 9px; width: 100%; padding: 6px;
-  background: transparent; border: 1px solid rgba(255, 204, 51, 0.4);
-  color: var(--amber); font-family: var(--mono); font-size: 12px; cursor: pointer;
+  background: transparent; border: 1px solid rgba(var(--doc-amber-rgb), 0.4);
+  color: var(--doc-amber); font-family: var(--mono); font-size: 12px; cursor: pointer;
 }
-#reset:hover { background: rgba(255, 204, 51, 0.1); }
+#reset:hover { background: rgba(var(--doc-amber-rgb), 0.1); }
 
 .facet { border: 0; padding: 0; margin: 0 0 16px; }
 .facet legend {
   padding: 0; margin-bottom: 6px;
   font-size: 11px; letter-spacing: 2px; text-transform: uppercase;
-  color: rgba(51, 255, 51, 0.55);
+  color: rgba(var(--doc-green-rgb), 0.55);
 }
 
 .facet-row {
@@ -133,14 +144,14 @@ body.is-interactive #app { display: grid; }
   padding: 2px 0; font-size: 12px; cursor: pointer;
 }
 .facet-row:hover .facet-label { color: #fff; }
-.facet-row input { accent-color: #33ff33; margin: 0; }
-.facet-count { color: rgba(51, 255, 51, 0.4); font-size: 11px; }
+.facet-row input { accent-color: var(--doc-green); margin: 0; }
+.facet-count { color: rgba(var(--doc-green-rgb), 0.4); font-size: 11px; }
 
 .facet-range { display: flex; gap: 10px; font-size: 12px; }
 .facet-range input {
   width: 52px; padding: 3px 5px; margin-left: 4px;
   background: rgba(0, 0, 0, 0.5); border: 1px solid var(--rule);
-  color: var(--green); font-family: var(--mono);
+  color: var(--doc-green); font-family: var(--mono);
 }
 
 /* --- chart --------------------------------------------------------------- */
@@ -158,9 +169,9 @@ body.is-interactive #app { display: grid; }
   position: absolute; right: 10px; bottom: 10px;
   padding: 5px 10px;
   background: rgba(0, 12, 4, 0.85); border: 1px solid var(--rule);
-  color: var(--green); font-family: var(--mono); font-size: 11px; cursor: pointer;
+  color: var(--doc-green); font-family: var(--mono); font-size: 11px; cursor: pointer;
 }
-#zoom-out:hover { border-color: var(--green); }
+#zoom-out:hover { border-color: var(--doc-green); }
 
 /* --- detail -------------------------------------------------------------- */
 
@@ -170,18 +181,18 @@ body.is-interactive #app { display: grid; }
   min-height: 190px;
 }
 #detail.is-empty { display: grid; place-items: center; min-height: 120px; }
-.detail-hint { color: rgba(51, 255, 51, 0.45); font-size: 13px; margin: 0; }
+.detail-hint { color: rgba(var(--doc-green-rgb), 0.45); font-size: 13px; margin: 0; }
 #detail .entry { border: 0; padding: 0; margin: 0; }
 
 /* --- entries (shared by the detail panel and the static index) ----------- */
 
 .entry { border-top: 1px solid var(--rule); padding: 20px 0; }
 .entry[hidden] { display: none; }
-.entry.is-selected { background: rgba(255, 204, 51, 0.05); }
+.entry.is-selected { background: rgba(var(--doc-amber-rgb), 0.05); }
 
 .entry-name {
   margin: 0 0 12px; font-size: 19px; font-weight: normal;
-  letter-spacing: 3px; text-transform: uppercase; color: var(--amber);
+  letter-spacing: 3px; text-transform: uppercase; color: var(--doc-amber);
   cursor: pointer; display: inline-block;
 }
 #detail .entry-name { cursor: default; }
@@ -199,11 +210,11 @@ body.is-interactive #app { display: grid; }
   gap: 2px 18px; margin: 0 0 12px;
 }
 .entry-stats div { display: flex; gap: 8px; font-size: 12px; }
-.entry-stats dt { color: rgba(51, 255, 51, 0.5); min-width: 92px; }
+.entry-stats dt { color: rgba(var(--doc-green-rgb), 0.5); min-width: 92px; }
 .entry-stats dd { margin: 0; }
 
-.entry-canon { margin: 0 0 10px; color: var(--green); }
-.entry-prose { color: rgba(51, 255, 51, 0.82); max-width: 74ch; }
+.entry-canon { margin: 0 0 10px; color: var(--doc-green); }
+.entry-prose { color: rgba(var(--doc-green-rgb), 0.82); max-width: 74ch; }
 .entry-prose p { margin: 0 0 9px; }
 .entry-prose p:last-child { margin-bottom: 0; }
 
@@ -218,7 +229,7 @@ body.is-interactive #app { display: grid; }
 .index-head {
   margin: 0 0 4px; font-size: 13px; font-weight: normal;
   letter-spacing: 4px; text-transform: uppercase;
-  color: rgba(51, 255, 51, 0.5);
+  color: rgba(var(--doc-green-rgb), 0.5);
 }
 
 /* --- foot ---------------------------------------------------------------- */
@@ -226,5 +237,5 @@ body.is-interactive #app { display: grid; }
 .page-foot {
   max-width: 1280px; margin: 50px auto 0; padding-top: 20px;
   border-top: 1px solid var(--rule);
-  font-size: 12px; color: rgba(51, 255, 51, 0.5); text-align: center;
+  font-size: 12px; color: rgba(var(--doc-green-rgb), 0.5); text-align: center;
 }

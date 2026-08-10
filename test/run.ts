@@ -126,6 +126,9 @@ import './combat-sim-career.test.ts';
 // Not a behaviour: a scan of src/ that fails when a game-rule constant grows a
 // second home. See docs/TODO/90.
 import './constants.test.ts';
+// The same shape for the four colours, plus the pinned rgba() spellings that
+// prove the sweep changed nothing on screen. See docs/TODO/93.
+import './palette.test.ts';
 
 // Installs a fake AudioContext, so keep it after every behavioural test that
 // may call a richer sound such as explosion().

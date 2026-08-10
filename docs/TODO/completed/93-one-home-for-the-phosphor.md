@@ -4,6 +4,11 @@
 **Depends on:** none, but do it AFTER docs/TODO/90 — that item settles the shape
 of `src/constants/` and this one has to fit it
 
+**LANDED 2026-08-10.** `src/palette.ts` is the one home; `src/palette.css` is
+generated from it and every stylesheet imports it; `npm run palette:check` is
+the gate and is in `npm run check`. What was measured is in "What actually
+happened" at the foot of this file, including the one thing left undone.
+
 ## Why
 
 docs/TODO/90 is game constants and CSS was ruled out of its scope on purpose
@@ -29,6 +34,25 @@ three spellings.**
 
 `viewer.css` uses the variables **without defining them**, so it renders
 correctly only because of whichever other stylesheet the page happens to load.
+
+## Decisions already made
+
+- **Two palettes, named as two** (Chris, 2026-08-10). The encyclopaedia keeps
+  `#33ff33`/`#1f7a1f`/`#ffcc33` as a deliberate *document* palette; the game
+  keeps `#4dff5c`/`#1d6b26`/`#ffb444`/`#ff4d4d` as the *cockpit* palette. Both
+  are named, both have one home, and the encyclopaedia's comment stops claiming
+  it shares a palette it does not share. `style.css` stops borrowing the
+  document green for its two `.sysmore` rules — that hairline is the only
+  pixel on any page that changes.
+- **The one home is TypeScript, and CSS is GENERATED from it** — not pushed at
+  boot from the shell, as this plan first proposed. `index.html` (the landing
+  page) and `novella.html` load no JavaScript at all, and the encyclopaedia is
+  built to survive a crawler with no JavaScript on purpose (see the comment at
+  the head of `encyclopaedia.css`), so a boot-time push would leave three
+  public pages uncoloured and flash the other two. `src/palette.ts` owns the
+  values; `tools/palette.ts generate` writes `src/palette.css`; `... check`
+  fails if the two drift. That is the shape `generate:elite-a --check` and
+  `generate:descriptions --check` already have in this repo.
 
 ## The two that have already gone wrong
 
@@ -135,3 +159,58 @@ grep -rn "hud-green" src | wc -l
 grep -rn "33ff33\|51, *255, *51" src
 # the last one should return the encyclopaedia only, and today does not
 ```
+
+## What actually happened
+
+**The shape changed.** The plan proposed a boot-time push from the shell,
+beside `--sight-r`. That could not work: `index.html` and `novella.html` load
+no JavaScript at all, and the encyclopaedia is built to be complete for a
+crawler with scripting off. Three public pages would have rendered uncoloured
+and the other two would have flashed. So TypeScript still owns the values and
+CSS still only receives them — but through a GENERATED stylesheet, which is the
+shape `generate:elite-a --check` and `generate:descriptions --check` already
+have here.
+
+**`src/palette.ts`** holds three groups: `HUD` (the cockpit four), `DOC` (the
+encyclopaedia's document palette, deliberate and now named), and `TINT` (the
+six rungs of the green ladder that were unnamed hex in `ui/screens.ts`). Plus
+`alpha()`, which retired sixteen hand-written `rgba()` spellings, and `rgb24()`,
+which retired the amber's second copy as a three.js number.
+
+**One find the survey missed.** `landing.css`'s PLAY-button hover was `#7dff88`
+— byte for byte the green the charts draw a world in range with, in a file with
+no connection to a chart. It is `TINT.lift` now and the only rung CSS asks for.
+
+**The gate scans `test/` too**, which the plan did not ask for. A colour
+asserted in a test is a second home in the one place nobody looks, and it is
+the copy that would go on passing after the real value moved.
+`test/palette.test.ts` is its single exemption, because it pins the pre-sweep
+`rgba()` spellings verbatim — testing a generator against its own output proves
+nothing.
+
+**Nothing looks different, measured rather than eyeballed.** Both builds served
+side by side: every computed colour property (14 of them) on every element of
+all seven pages — 9,481 elements — is identical. The galactic chart canvas is
+identical to the pixel, same SHA-256, in both. The one intended change is the
+two `.sysmore` hairlines that stopped borrowing the encyclopaedia's green.
+
+**All three arms of the gate were driven red** before being left green: a
+planted stray in each of the three spellings, a hand-edited `palette.css`, and
+a drifted `posterise.py` copy. Those live in `test/palette.test.ts` rather than
+only in a session log, along with a near-miss (`#4dff5d`) that must NOT fire.
+
+### Left undone, on purpose
+
+The bloom parameters and the `min(devicePixelRatio, 2)` clamp — "worth taking
+while you are in there" above — are **not** done. They were, and it was backed
+out: their one home is `src/constants/`, and landing them there makes the
+catalogue's duplicate-value policy demand `@rule` ids on nineteen unrelated
+constants across ten modules (0.5 and 2 are popular numbers). That is a
+decision about the constants catalogue, not about the phosphor, and it should
+be its own item rather than nineteen drive-by edits inside a colour sweep. The
+duplication is real and still there; `viewer/stage.ts` says so at the site.
+
+The viewer's 55° camera against the game's 60° is likewise left alone, for the
+reason the plan gives: nothing records whether it is deliberate, and unifying
+it would reframe both dev pages to prove a tidiness point. The site now says
+that out loud instead of leaving it unremarked.

@@ -1,13 +1,14 @@
 /* The manual page. Same phosphor palette as the game, but set for READING:
    longer measure, more leading, and a serif-free monospace only where it is
    doing a job (keys, tables). A wall of monospace prose is period-accurate and
-   nobody finishes it. */
+   nobody finishes it.
+
+   novella.html loads this stylesheet and no JavaScript at all, so the palette
+   has to be a stylesheet too — see the head of src/palette.ts. */
+
+@import './palette.css';
 
 :root {
-  --hud-green: #4dff5c;
-  --hud-dim: #1d6b26;
-  --hud-amber: #ffb444;
-  --hud-red: #ff4d4d;
   --paper: #050c06;
   --ink: #a8e8b0;
 }
@@ -48,8 +49,8 @@ kbd, .data, .ladder, .log, code {
   text-decoration: none;
   border-left: 2px solid transparent;
 }
-#toc a:hover { background: rgba(77, 255, 92, 0.1); color: var(--hud-green); }
-#toc a.here { border-left-color: var(--hud-green); color: var(--hud-green); background: rgba(77, 255, 92, 0.08); }
+#toc a:hover { background: rgba(var(--hud-green-rgb), 0.1); color: var(--hud-green); }
+#toc a.here { border-left-color: var(--hud-green); color: var(--hud-green); background: rgba(var(--hud-green-rgb), 0.08); }
 #toc .brand {
   color: var(--hud-amber);
   letter-spacing: 2px;
@@ -72,7 +73,7 @@ header { text-align: center; margin-bottom: 64px; }
 h1 {
   font-family: Menlo, Consolas, monospace;
   font-size: 52px; letter-spacing: 16px; margin: 0;
-  color: var(--hud-green); text-shadow: 0 0 24px rgba(77, 255, 92, 0.4);
+  color: var(--hud-green); text-shadow: 0 0 24px rgba(var(--hud-green-rgb), 0.4);
 }
 .sub { font-size: 18px; letter-spacing: 2px; margin: 8px 0 4px; color: var(--hud-green); }
 .issued { font-size: 12px; color: var(--hud-dim); letter-spacing: 1px; }
@@ -94,7 +95,7 @@ kbd {
   display: inline-block;
   min-width: 22px; padding: 1px 6px;
   border: 1px solid var(--hud-dim); border-bottom-width: 2px; border-radius: 3px;
-  background: rgba(77, 255, 92, 0.08);
+  background: rgba(var(--hud-green-rgb), 0.08);
   color: var(--hud-green); font-size: 13px; text-align: center;
 }
 .or { color: var(--hud-dim); font-size: 12px; }
@@ -112,7 +113,7 @@ kbd {
 
 .box {
   border: 1px solid var(--hud-dim);
-  background: rgba(77, 255, 92, 0.04);
+  background: rgba(var(--hud-green-rgb), 0.04);
   padding: 16px 20px; margin: 20px 0;
 }
 .box h3 { margin-top: 0; }

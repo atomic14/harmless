@@ -61,6 +61,9 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 83 — [The one-warhead cap has no test](83-the-one-warhead-cap-has-no-test.md)
 - [x] 87 — [Three parity checks assert `f(x) === f(x)`](87-three-checks-that-restate-their-own-implementation.md)
 - [x] 90 — [One home for every constant](90-one-home-for-every-constant.md)
+- [x] 93 — [One home for the phosphor](93-one-home-for-the-phosphor.md) — 90's
+      other half: colour. `src/palette.ts` owns it, `src/palette.css` is
+      generated from it, `npm run palette:check` holds the tree to it
 - [x] 94 — [Parse a save at the door](94-parse-a-save-at-the-door.md)
 - [x] 97 — [Site housekeeping](97-site-housekeeping.md) — closed GitHub issues #12–14
 - [x] 98 — [The human-shape bands](98-the-human-shape-bands.md)

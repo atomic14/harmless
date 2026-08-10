@@ -57,7 +57,19 @@ import sys
 
 from PIL import Image, ImageFilter, ImageOps
 
-#: the game's greens, from src/style.css
+#: The ramp the portraits are crushed onto.
+#:
+#: DIM and BRIGHT are a STATED COPY of HUD.dim and HUD.green in src/palette.ts,
+#: which is the one home for both. Python cannot import a TypeScript module, so
+#: a copy is the honest answer here — and `npm run palette:check` reads both
+#: ends and fails if they part company, which is what makes the claim true
+#: rather than merely written down.
+#:
+#: DARK is NOT a copy and never was, though this comment used to say the three
+#: of them came from the stylesheet (docs/TODO/93). The game's background is
+#: plain #000; this is the black a CRT at rest actually sits at, a hair above
+#: it and slightly green, and it exists so `ramp()` has a bottom stop that
+#: dithers into DIM without banding. It belongs to this tool.
 DARK = (0x00, 0x08, 0x02)
 DIM = (0x1D, 0x6B, 0x26)
 BRIGHT = (0x4D, 0xFF, 0x5C)

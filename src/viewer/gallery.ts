@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { buildShip } from '../ships/geometry.ts';
 import { SOURCE_HULLS } from '../ships/registry.ts';
 import type { EliteAHull } from '../ships/elite-a-hulls.ts';
+import { HUD, rgb24 } from '../palette.ts';
 
 /** How the hulls are sized against each other. */
 export type GalleryScale = 'relative' | 'common';
@@ -30,8 +31,12 @@ const COLUMNS = 8;
 /** Cell pitch in world units — the Dodo station is the widest thing shown. */
 const CELL = 190;
 const HULL_COLOUR = 0x9ad9ff;
-const RADIUS_COLOUR = 0xffb444;
-const LABEL_COLOUR = '#4dff5c';
+// The console's own two, reached rather than re-spelled — and this file needed
+// one of them in each of the two forms it exists in, a three.js number for a
+// material and a CSS string for a canvas, which is exactly how it came to hold
+// a private copy of the amber.
+const RADIUS_COLOUR = rgb24(HUD.amber);
+const LABEL_COLOUR = HUD.green;
 
 /** The furthest any vertex of a hull sits from its origin, in world units. */
 function hullReach(hull: EliteAHull): number {

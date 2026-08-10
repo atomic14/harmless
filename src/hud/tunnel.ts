@@ -8,6 +8,7 @@
 // tube simply dims down into the dark of the bay.
 
 import { elementById, viewport } from '../engine/inert-dom.ts';
+import { HUD, alpha } from '../palette.ts';
 
 /** Which way you're going through the tube. */
 export type TunnelMode =
@@ -113,7 +114,7 @@ export class TunnelEffect {
         ? 1 - Math.max(0, (p - BAY_FADE_FROM) / (1 - BAY_FADE_FROM))
         : 1;
       const bright = Math.min(1, phase * 2.2) * bay;
-      ctx.strokeStyle = `rgba(77, 255, 92, ${bright * 0.85})`;
+      ctx.strokeStyle = alpha(HUD.green, bright * 0.85);
       ctx.lineWidth = 1 + phase * 2;
       ctx.beginPath();
       ctx.ellipse(cx, cy, r, r * SQUASH, 0, 0, Math.PI * 2);
@@ -121,7 +122,7 @@ export class TunnelEffect {
     }
 
     // radial motion spokes
-    ctx.strokeStyle = 'rgba(77, 255, 92, 0.25)';
+    ctx.strokeStyle = alpha(HUD.green, 0.25);
     ctx.lineWidth = 1;
     for (let i = 0; i < 8; i++) {
       const a = (i / 8) * Math.PI * 2 + t * 0.15;
@@ -149,7 +150,7 @@ export class TunnelEffect {
         ? Math.max(0, 1 - (open / maxR - 1) * 1.6) // fades as it leaves frame
         : 1;
       if (rim > 0.01) {
-        ctx.strokeStyle = `rgba(77, 255, 92, ${0.9 * rim})`;
+        ctx.strokeStyle = alpha(HUD.green, 0.9 * rim);
         ctx.lineWidth = 2 + 3 * rim;
         ctx.beginPath();
         ctx.ellipse(cx, cy, open, open * SQUASH, 0, 0, Math.PI * 2);

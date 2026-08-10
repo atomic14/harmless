@@ -21,6 +21,7 @@ import * as THREE from 'three';
 import { buildShip } from '../ships/geometry.ts';
 import { requireShipDef } from '../ships/registry.ts';
 import { shipDesignIdOf } from '../game/ship-identity.ts';
+import { SPECS } from '../game/ship-specs.ts';
 import { createStage } from './stage.ts';
 import { Episode, type ShotEvent, type EpisodeShip } from '../ai-training/scenario.ts';
 import { FIXED_DT } from '../constants/world-clock.ts';
@@ -31,6 +32,23 @@ import {
 /** The two hulls the combat scenarios fly, resolved through the registry. */
 const COBRA_MK3 = requireShipDef(shipDesignIdOf(10));
 const SIDEWINDER = requireShipDef(shipDesignIdOf(17));
+
+/**
+ * What the two sides are painted, read from the roster rather than copied.
+ *
+ * These were `0xff9a5c` and `0xffffff` written out here, which are exactly
+ * `SPECS.pirate[0].color` and `SPECS.trader[0].color` — ship DATA, hand-copied
+ * into a dev page, so a recoloured roster would have left this viewer showing
+ * the old colours while claiming to show the fight (docs/TODO/93). Not the
+ * phosphor palette: a hull colour says which ship, not which instrument.
+ *
+ * Index 0 of each role, which is what the copies were, so the viewer looks the
+ * same as it did. Deliberately not `specForDesign` per pirate: every pirate in
+ * an episode is drawn one colour here so that the eye can tell the sides apart
+ * at a glance, which is the whole job of this page.
+ */
+const PIRATE_COLOUR = SPECS.pirate[0].color;
+const TRADER_COLOUR = SPECS.trader[0].color;
 
 // --- the scene ---------------------------------------------------------------
 
@@ -66,11 +84,11 @@ function resetEpisode(newSeed?: number): void {
   elapsed = 0;
 
   for (const p of episode.pirates) {
-    const object = buildShip(p.name === 'Sidewinder' ? SIDEWINDER : COBRA_MK3, 0xff9a5c);
+    const object = buildShip(p.name === 'Sidewinder' ? SIDEWINDER : COBRA_MK3, PIRATE_COLOUR);
     scene.add(object);
     views.push({ sim: p, object, isPirate: true });
   }
-  const traderObj = buildShip(COBRA_MK3, 0xffffff);
+  const traderObj = buildShip(COBRA_MK3, TRADER_COLOUR);
   scene.add(traderObj);
   views.push({ sim: episode.trader, object: traderObj, isPirate: false });
 }

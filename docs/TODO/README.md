@@ -13,18 +13,24 @@ active context:
 
 ## Execution queue
 
-Empty — 117 landed: a new career inherits a galaxy with 30 days of trade behind
-it, and a galactic jump arrives in one of its own. `QUEUE.json` agrees. The
-backlog below is in priority order; promoting its head is what makes the next
-execution item.
+Empty — 93 landed: the four colours have one home in `src/palette.ts`, every
+stylesheet imports a `palette.css` generated from it, and `npm run
+palette:check` fails on the fifteenth copy. The encyclopaedia keeps a second
+palette on purpose and now says so. `QUEUE.json` agrees. The backlog below is
+in priority order; promoting its head is what makes the next execution item.
 
 ## Backlog
 
-- [ ] 93 — [One home for the phosphor](93-one-home-for-the-phosphor.md)
-      — now also owns the charts' overlay colours: the `#ff4d4d` danger rings,
-      the `#2a7a33` trade lanes with their `#4dff5c` highlight, and the
-      `#ffb444`/`#7dff88` price arrows
 - [ ] 88 — [The flight readout still quotes two stale words](88-the-readout-still-quotes-two-stale-words.md)
 - [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)
       — deferred by Chris 2026-08-09 ("drop for now"); phase 1 shipped, the
       label stays cosmetic until this is picked back up
+- [ ] 118 — The bloom and the pixel-ratio clamp are still written out twice
+      — `(0.55, 0.5, 0.15)` and `min(devicePixelRatio, 2)` are byte-identical
+      in `engine/render-stack.ts` and `viewer/stage.ts` (the clamp again in
+      `encyclopaedia/chart.ts`). docs/TODO/93 tried to take these and backed
+      out: their home is `src/constants/`, and putting them there makes the
+      catalogue's duplicate-value policy demand `@rule` ids on nineteen
+      unrelated constants across ten modules, because 0.5 and 2 are popular
+      numbers. That policy call is the actual work and it is not a colour
+      question. Needs a plan doc before it is executable.

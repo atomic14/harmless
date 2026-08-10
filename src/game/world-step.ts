@@ -22,6 +22,7 @@
 import * as THREE from 'three';
 
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
+import { HUD, rgb24 } from '../palette.ts';
 import type { FlightDemand } from '../player.ts';
 import { cargoCapacity, cargoTonnes } from './commander.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
@@ -67,6 +68,19 @@ import { STRANDED_HINT_REPEAT } from '../constants/witchspace.ts';
 
 /** the origin, for `lookAt` — scratch that must never be written to */
 const ZERO = new THREE.Vector3();
+
+/**
+ * A warhead going off, as the 24-bit number the effects layer takes.
+ *
+ * The console's amber, reached rather than re-spelled: a detonation says the
+ * same thing the target marker says and is drawn in the same colour, and it
+ * was that value written out twice in this file (docs/TODO/93). The 0xff8866
+ * a few lines below it is NOT the palette — a hit on the player has its own
+ * hotter tint, owned here and nowhere else — which is the line between the
+ * two: a value that IS the phosphor reaches for it, one that merely looks
+ * like it stays put.
+ */
+const WARHEAD_FLASH = rgb24(HUD.amber);
 
 /**
  * Anything close enough to hold the torus drive down.
@@ -468,12 +482,12 @@ export class WorldStep {
         out.push(heard('explosion'));
         this.host.applyPlayerDamage(playerImpactDamage(IMPACT.warhead), e.at, 'missile');
       } else if (e.kind === 'ecmDefeated') {
-        world.effects.explosion(e.at, 0xffb444, { count: 12, duration: 0.8 });
+        world.effects.explosion(e.at, WARHEAD_FLASH, { count: 12, duration: 0.8 });
         this.state.ecmDetectedTimer = 2;
         out.push(say('TARGET E.C.M. — MISSILE DESTROYED', 3));
         out.push(heard('ecm'));
       } else {
-        world.effects.explosion(e.at, 0xffb444, { count: 12, duration: 0.8 });
+        world.effects.explosion(e.at, WARHEAD_FLASH, { count: 12, duration: 0.8 });
       }
     }
   }

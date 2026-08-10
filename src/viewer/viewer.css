@@ -6,7 +6,14 @@
  * the bottom. It was inline in viewer.html when there was one page; splitting
  * the page in two (TODO 57) would have made it two copies of one look, which is
  * the drift this codebase is organised against.
+ *
+ * The import is not decoration. This file reached for --hud-green without
+ * defining it, and rendered correctly only because both its pages happen to
+ * load style.css as well — a page that loaded this stylesheet alone came out
+ * in the browser's default black. It now colours a page on its own.
  */
+
+@import '../palette.css';
 
 #viewer-hud {
   position: absolute;
@@ -15,7 +22,7 @@
   letter-spacing: 1px;
   line-height: 1.8;
   color: var(--hud-green);
-  text-shadow: 0 0 6px rgba(77, 255, 92, 0.6);
+  text-shadow: 0 0 6px rgba(var(--hud-green-rgb), 0.6);
   pointer-events: none;
   white-space: pre;
 }
@@ -81,5 +88,5 @@
   font-size: 13px;
   letter-spacing: 3px;
   color: var(--hud-amber);
-  text-shadow: 0 0 8px rgba(255, 180, 68, 0.7);
+  text-shadow: 0 0 8px rgba(var(--hud-amber-rgb), 0.7);
 }
