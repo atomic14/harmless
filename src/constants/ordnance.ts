@@ -15,7 +15,15 @@ import { ENERGY_BANK_POINTS } from './pools.ts';
 export const MISSILE_SPEED = 700;
 /** How long a missile lives before it gives up and detonates. */
 export const MISSILE_LIFE = 25;
-/** A hostile missile lives longer — it has further to come. */
+/**
+ * A hostile missile lives longer — it has further to come.
+ *
+ * Its own rule id: it shares 30 with an ambush cone in degrees and with the
+ * trade a galaxy is given before a career starts (constants/living-galaxy.ts).
+ * Seconds of flight follow neither.
+ *
+ * @rule ordnance.hostileMissileLife
+ */
 export const HOSTILE_MISSILE_LIFE = 30;
 /** Turn rate while homing, radians per second. */
 export const MISSILE_TURN = 2.5;

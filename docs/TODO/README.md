@@ -13,12 +13,10 @@ active context:
 
 ## Execution queue
 
-1. [ ] 117 — [The galaxy was trading before you arrived](117-the-galaxy-was-trading-before-you-arrived.md)
-   — pre-warm the living galaxy so a new commander inherits a history. A
-   SIMULATION change: the campaign must be re-run against it
-
-`QUEUE.json` agrees. The backlog below is in priority order; promoting its head
-is what makes the next execution item.
+Empty — 117 landed: a new career inherits a galaxy with 30 days of trade behind
+it, and a galactic jump arrives in one of its own. `QUEUE.json` agrees. The
+backlog below is in priority order; promoting its head is what makes the next
+execution item.
 
 ## Backlog
 

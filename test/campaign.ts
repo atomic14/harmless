@@ -16,7 +16,7 @@
 // make routes matter? how lethal is lawless space?
 
 import { generateGalaxy, generateMarket, COMMODITIES, type StarSystem } from '../src/galaxy/galaxy.ts';
-import { LivingGalaxy } from '../src/galaxy/living.ts';
+import { LivingGalaxy, prewarm } from '../src/galaxy/living.ts';
 import { generateContractOffers, chartDistanceTenths } from '../src/game/contract-offers.ts';
 import { settleContracts, acceptContract } from '../src/game/contracts.ts';
 import { applyMarketPressure, marketEstimate } from '../src/game/market.ts';
@@ -162,8 +162,13 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
   const rng = makeRng(seed);
   const living = new LivingGalaxy(systems);
   const c: CommanderData = newCommander();
-  // give the galaxy a history before this commander launches
-  living.advance(30, GRADIENTS, rng);
+  // Give the galaxy a history before this commander launches — the GAME's
+  // warm-up now (docs/TODO/117), not a hand-written 30 days beside it, so the
+  // balance this measures is the balance a new commander launches into. One
+  // draw off the career stream picks which history: the harness stays
+  // reproducible per seed, and the galaxy is not the same sequence of numbers
+  // the career is about to fly.
+  prewarm(living, Math.floor(rng() * 0xffffffff));
 
   let deaths = 0;
   let contractsDone = 0;

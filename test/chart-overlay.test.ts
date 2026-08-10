@@ -17,6 +17,7 @@ import {
 import {
   nextOverlay, OVERLAY_CYCLE, overlayLegend, type ChartOverlay,
 } from '../src/game/chart-overlay.ts';
+import { LivingGalaxy } from '../src/galaxy/living.ts';
 import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
@@ -70,7 +71,13 @@ console.log('\nT cycles one overlay at a time');
 console.log('\ncycling the overlays does not write to the galaxy');
 {
   const g = headlessGame(() => headlessShell());
-  const living = g.state.living;
+  // A COLD galaxy, put back deliberately: a career boots into one with
+  // PREWARM_DAYS behind it now (docs/TODO/117), and `advance` materialises all
+  // 256 states — against that map "the painter inserted nothing" is true
+  // whatever the painter does. The sparse map is what makes the count an
+  // assertion; the wiring under test is the same one either way.
+  const living = new LivingGalaxy(g.state.systems);
+  g.state.living = living;
   // A sparse galaxy with something for every overlay to find: two dangerous
   // systems, a busy lane between two more, and a price well off baseline.
   living.state(30).danger = 0.7;

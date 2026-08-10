@@ -53,7 +53,15 @@ export const MIN_OPENING_RANGE = 2 * PASS_FAR;
  */
 export const OPENING_CONE_DEG = 8;
 
-/** An ambush spreads wide behind you: 16 to 43 degrees off your tail. */
+/**
+ * An ambush spreads wide behind you: 16 to 43 degrees off your tail.
+ *
+ * Its own rule id: it shares 30 with a hostile missile's lifetime in seconds
+ * and with the trade a galaxy is given before a career starts
+ * (constants/living-galaxy.ts). A spread in degrees follows neither.
+ *
+ * @rule exercise.ambushCone
+ */
 export const AMBUSH_CONE_DEG = 30;
 
 /**

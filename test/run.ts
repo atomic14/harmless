@@ -26,6 +26,7 @@
 
 // --- the world --------------------------------------------------------------
 import './galaxy.test.ts';
+import './prewarm.test.ts';
 import './danger-overlay.test.ts';
 import './trade-overlay.test.ts';
 import './descriptions.test.ts';

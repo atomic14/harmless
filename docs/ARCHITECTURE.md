@@ -36,7 +36,9 @@ Two intentional quirks:
   from the same seed.
 - `src/galaxy/living.ts` advances off-screen trade in whole days and stores only
   deltas: convoys, danger and bounded price pressure. `populateSystem` turns
-  arriving records into ships. Three read-only models decide what the charts
+  arriving records into ships. Its `prewarm` gives a galaxy nobody has saved yet
+  `PREWARM_DAYS` of history on a derived stream — a new career and a galactic
+  jump both arrive in an economy already running. Three read-only models decide what the charts
   draw over it — `danger-overlay.ts`, `trade-lanes.ts` and
   `price-divergence.ts` — and `ui/screens.ts` only paints what they return.
   `game/chart-overlay.ts` names the modes `T` cycles and carries the result;

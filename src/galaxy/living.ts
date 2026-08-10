@@ -20,8 +20,10 @@
 
 import { COMMODITIES, type StarSystem } from './galaxy.ts';
 import { distanceTenths, daysForJump } from './navigation.ts';
-import { random } from '../game/rng.ts';
-import { DANGER_DECAY, DANGER_VISIBLE, HEAT_DECAY, PRESSURE_DECAY } from '../constants/living-galaxy.ts';
+import { makeRng, random } from '../game/rng.ts';
+import {
+  DANGER_DECAY, DANGER_VISIBLE, HEAT_DECAY, PRESSURE_DECAY, PREWARM_DAYS,
+} from '../constants/living-galaxy.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 
 /** A trade run in flight between two systems. */
@@ -364,4 +366,28 @@ export class LivingGalaxy {
       st.heat = s.heat ?? 0;
     }
   }
+}
+
+/**
+ * Give a fresh galaxy a past: `PREWARM_DAYS` of trade before anyone was
+ * watching (docs/TODO/117).
+ *
+ * The simulation used to start when the player did — a new commander opened the
+ * chart and saw nothing moving, because day 0 is the honest truth about a
+ * galaxy that has never traded. This is the one place the number is spent, so
+ * the game and the balance harness cannot disagree about what "a new galaxy"
+ * means.
+ *
+ * ONLY where there is no saved galaxy to load. The warmed deltas are ordinary
+ * saved state from the first checkpoint on, so a reload resumes THIS galaxy
+ * rather than warming a second one on top of it.
+ *
+ * A DERIVED stream, never the world's. Determinism per seed is what invariant
+ * 11 protects and `makeRng` keeps it — but consuming the world's stream at boot
+ * would shift every draw after it and move the seeded pins that hold the rest
+ * of the game still, for a galaxy that is no more repeatable than this one.
+ * The caller supplies the seed, so one seed still means one starting galaxy.
+ */
+export function prewarm(living: LivingGalaxy, seed: number): void {
+  living.advance(PREWARM_DAYS, COMMODITIES.map((c) => c.gradient), makeRng(seed));
 }

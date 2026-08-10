@@ -142,6 +142,53 @@ growing is accumulated danger. That is the shape of the decision.
   baseline, at two sample sizes.
 - Full gates: `npm test`, `npm run lint`, `npm run constants:check`.
 
+## What landed (2026-08-10)
+
+`PREWARM_DAYS = 30` in `constants/living-galaxy.ts`, spent in exactly one place:
+`prewarm(living, seed)` beside `LivingGalaxy`. The Game calls it where a career
+has no `galaxyState` to load (boot and respawn share `loadOrWarmGalaxy`) and on
+a galactic jump, which now REBUILDS the living galaxy for the systems it
+describes; `test/campaign.ts` calls the same seam. The seed is the world's,
+salted by the galaxy number (`freshGalaxySeed`) and spent on `makeRng`, so the
+world stream is only read.
+
+**The shipped galaxy 1 warm-up:** day 30, 235 convoys, 43 busy lanes, 5 systems
+ringed, Lave at 0.000. Driven through a real Game: pressing `T` on the galactic
+chart paints `ROUTES IN FLIGHT · RED RING: PIRATE ACTIVITY` over them.
+
+**Lave, wider than planned.** 400 seeds, not 8: at 30 days Lave's worst is 0.347
+and it never crosses 0.4; at 60 one seed in 400 reaches 0.479, at 90 three in
+200 do. The 8-seed table above understated the spread (it saw 0.11) — 30 is
+still right, and it is the ceiling that is the reason, not the mean.
+
+**Save size, measured rather than estimated.** A docked snapshot is ~145 kB, not
+the ~85 kB expected: the galaxy state is written TWICE per record, once live and
+once inside the commander clone. 20 named saves ≈ 2.9 MB plus ~0.6 MB per
+career, of a typical 5 MB budget. `MAX_NAMED_SAVES` keeps 20 and now argues from
+those numbers; the duplication is named there as the lever to pull first.
+
+**Campaign, re-run at 40, 200 and 800 commanders × 60 legs.** The harness warmed
+30 days already, so what moved is which history each seed draws, not whether
+there is one. At 800 (before → after): trader median net worth 6575 → 6699
+(+1.9%), deaths 1.1 → 1.0; bounty hunter 628 → 623 (−0.8%), deaths 3.7 → 3.6;
+privateer 8028 → 8485 (+5.7%), first upgrade leg 14 → 13. Mean system danger
+moves by ≤0.004. The 40-commander runs disagree by up to 24% in both directions
+and the 800s by ≤6%, which is the size of the sample rather than the size of the
+change. The military-laser balance check fails at 800 BOTH before and after
+(383/799 vs 379/798) — pre-existing, not this milestone's.
+
+**Two tests moved.** `test/danger-overlay.test.ts` and
+`test/chart-overlay.test.ts` count `states.size` to prove a painter inserts
+nothing; a warmed galaxy has all 256 states, against which that is true whatever
+the painter does. Both now put a cold galaxy back in the Game deliberately, with
+the reason written down.
+
+Gates: `npm run check` (lint, 3534 tests, sizes, constants, generators) green.
+Both new gates were proved able to fail — `PREWARM_DAYS = 90` fails the Lave
+check at 200 seeds (0.507) and passes at 24, which is why both sample sizes are
+there; `PREWARM_DAYS = 0` fails ten checks; moving the warm-up onto the world
+stream fails the untouched-stream control.
+
 ## Verify
 
 Measured 2026-08-10 with a scratch harness: the table above, 8 seeds

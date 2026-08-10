@@ -152,7 +152,14 @@ console.log('\nopening a chart does not write to the galaxy');
     dismissBriefing(game);
     return game;
   }).value;
-  const living = g.state.living;
+  // A COLD galaxy, put back deliberately. A career now boots into one with
+  // PREWARM_DAYS behind it (docs/TODO/117), and `advance` materialises all 256
+  // states — against that map the assertion below holds however the painter
+  // behaves, which is the vacuum the block above says it exists to avoid. Same
+  // wiring either way: what is under test is `game.ts` handing the screen
+  // `danger(i)` rather than `state(i)`.
+  const living = new LivingGalaxy(g.state.systems);
+  g.state.living = living;
   living.state(30).danger = 0.7;
   living.state(60).danger = 0.5;
   const before = living.states.size;

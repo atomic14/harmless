@@ -24,10 +24,28 @@ export const AUTOSAVE_INTERVAL = 20;
 export const FLIGHT_RING = 3;
 
 /**
- * How many NAMED saves a player may keep. A snapshot is ~10 kB against megabytes
- * of localStorage, so this is a guard rail against a stuck finger filling the
- * store and failing the AUTOSAVES, not a real capacity limit. Reaching it
- * refuses the write; nothing is ever deleted to make room.
+ * How many NAMED saves a player may keep. Reaching it refuses the write;
+ * nothing is ever deleted to make room.
+ *
+ * THE ARITHMETIC MOVED (docs/TODO/117). This used to argue from "a snapshot is
+ * ~10 kB against megabytes of localStorage". A snapshot now measures **~145 kB**
+ * — a galaxy warmed up before the first launch (constants/living-galaxy.ts)
+ * carries ~72 kB of price pressure and convoys from the first minute of a
+ * career, and a record holds that twice: once as the world's live
+ * `galaxyState` and once inside the commander it clones (measured on a fresh
+ * docked career, galaxy 1).
+ *
+ * So 20 named saves is ~2.9 MB, plus ~0.6 MB for each career's own checkpoint
+ * and `FLIGHT_RING`, against a typical 5 MB origin budget. 20 STAYS: it is
+ * still the number a player can reach only deliberately, and lowering it would
+ * take away slots to pay for a cost the shelf did not choose. But it is no
+ * longer only a guard rail against a stuck finger — several careers with a full
+ * shelf is now within sight of the budget, and a full store fails the write and
+ * keeps what was there (`writeItem`) rather than corrupting it.
+ *
+ * The lever to pull first, if it ever binds, is that DUPLICATED galaxy state,
+ * not this cap and not rounding the pressures — `LivingGalaxy.save()` explains
+ * why quantising them lands a reload on a nearby galaxy instead of the same one.
  */
 export const MAX_NAMED_SAVES = 20;
 

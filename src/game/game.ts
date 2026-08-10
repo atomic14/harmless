@@ -31,7 +31,7 @@ import { viewDirection, VIEW_QUATS } from './views.ts';
 import * as THREE from 'three';
 
 import { generateGalaxy, COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
-import { LivingGalaxy } from '../galaxy/living.ts';
+import { LivingGalaxy, prewarm } from '../galaxy/living.ts';
 import { generateContractOffers } from './contract-offers.ts';
 import { acceptContract, settleContracts, contractMessage, type ContractEvent } from './contracts.ts';
 import { hermitMarket } from './market.ts';
@@ -80,7 +80,7 @@ import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
 import { WITCHPOINT_RADII } from '../constants/planet.ts';
 import { TORUS_MULTIPLIER } from '../constants/torus.ts';
 import { FIXED_DT, MAX_FRAME_TIME, MAX_STEPS_PER_FRAME } from '../constants/world-clock.ts';
-import { random, randomDirection, seedWorld } from './rng.ts';
+import { random, randomDirection, rngState, seedWorld } from './rng.ts';
 import {
   bootCareer, bootCommander, bootSave, clearFlightSaves, withoutSaving,
   writeDockSave, writeFlightSave, writeNamedSave,
@@ -489,6 +489,39 @@ export class Game {
     setMessage(this.state.session, text, seconds);
   }
 
+  /**
+   * The living galaxy this career inherits: the saved one, or — for a career
+   * that has none — a warmed one (docs/TODO/117).
+   *
+   * WARMING ONLY WHERE THERE IS NOTHING TO LOAD. `prewarm` is what a galaxy's
+   * history costs, and it is paid once: from the first checkpoint on the deltas
+   * are `commander.galaxyState` like any other drift, so a reload resumes the
+   * galaxy it saved instead of warming another 30 days on top of it.
+   *
+   * The other warming site is `galacticJump`, which arrives in a galaxy no save
+   * describes — same seam, same seed rule, no state to consult.
+   */
+  private loadOrWarmGalaxy(): void {
+    if (this.state.commander.galaxyState) {
+      this.state.living.load(this.state.commander.galaxyState);
+      return;
+    }
+    prewarm(this.state.living, this.freshGalaxySeed());
+  }
+
+  /**
+   * The seed a galaxy's history is drawn on: the world's, salted by which
+   * galaxy it is — the same mixing `arriveInSystem` seeds arrivals with.
+   *
+   * The salt is what stops the eighth galaxy being the first one again after a
+   * galactic jump. The world's stream is READ here and never drawn from — the
+   * history runs on `prewarm`'s own derived stream — so the seeded pins
+   * downstream of a boot are exactly where they were.
+   */
+  private freshGalaxySeed(): number {
+    return rngState().seed ^ (this.state.commander.galaxy * 0x9e3779b1);
+  }
+
   constructor(makeShell: ShellFactory) {
     // The shell is built HERE, not passed in ready-made, because it needs the
     // scene and the scene belongs to the world this object just constructed.
@@ -501,7 +534,7 @@ export class Game {
     // before anything can write, and NOTHING replaces it afterwards — the
     // record owns it. See state.ts.
     this.state.career = bootCareer(this.state.commander);
-    this.state.living.load(this.state.commander.galaxyState);
+    this.loadOrWarmGalaxy();
     // catch the galaxy up if this save has been away a while
     if (this.state.living.day < this.state.commander.day) {
       this.state.living.advance(
@@ -955,7 +988,7 @@ export class Game {
     // `get system()` lookup reads the wrong star.
     this.state.systems = generateGalaxy(this.state.commander.galaxy);
     this.state.living = new LivingGalaxy(this.state.systems);
-    this.state.living.load(this.state.commander.galaxyState);
+    this.loadOrWarmGalaxy();
     this.buildWorld();
     // 'fresh', not 'resumed': there was no checkpoint to come back to, so
     // nothing has stocked this station and `bootCommander` brought no market.
@@ -1304,8 +1337,15 @@ export class Game {
       6);
   }
 
-  /** One-shot jump to the next galaxy; lands at the nearest system to our coords. */
-  private galacticJump(): void {
+  /**
+   * One-shot jump to the next galaxy; lands at the nearest system to our coords.
+   *
+   * @internal — driven by test/prewarm.test.ts. Public for the same reason
+   * `respawn` and `launch` are: ⇧H needs a shift HELD, which `Input` only
+   * learns from a real keydown, so a headless test cannot press it. The
+   * binding itself is pinned in test/ui.test.ts.
+   */
+  galacticJump(): void {
     const may = checkGalacticJump(this.state.commander, this.combatSim.active);
     if (!may.ok) {
       this.showMessage(galacticRefusalMessage(may.reason), 3);
@@ -1314,6 +1354,16 @@ export class Game {
     }
     const jump = resolveGalacticJump(this.state.commander, this.system);
     this.state.systems = jump.systems;
+    // A NEW GALAXY BRINGS ITS OWN ECONOMY (docs/TODO/117). Keeping the old
+    // `LivingGalaxy` across the jump left galaxy 2's system 7 wearing galaxy
+    // 1's Lave danger and price pressure, and every convoy in the list flying
+    // between two systems it had never departed or been bound for. The state is
+    // per-galaxy, so it is rebuilt with the systems it describes — and warmed,
+    // because a galaxy arrived at has no more been standing still than the one
+    // left behind. The saved deltas describe the galaxy just left, so they are
+    // not reloaded here; the next checkpoint writes these over them.
+    this.state.living = new LivingGalaxy(this.state.systems);
+    prewarm(this.state.living, this.freshGalaxySeed());
     this.state.chart.targetIndex = null;
     this.arriveInSystem();
     this.showMessage(

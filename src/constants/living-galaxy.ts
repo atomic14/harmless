@@ -51,6 +51,32 @@ export const DANGER_DECAY = 0.015;
 export const DANGER_VISIBLE = 0.4;
 
 /**
+ * How many days of trade a galaxy has behind it before its first commander
+ * launches — the history the other 255 systems made while nobody was watching.
+ *
+ * Measured across 8 seeds on galaxy 1 (docs/TODO/117), warming a fresh galaxy
+ * by N days: the trade network is FULLY FORMED by ~30 (38 busy lanes drawn,
+ * 3.6 systems over `DANGER_VISIBLE`, prices ~9% off baseline) and does not grow
+ * after it — 120 days and a year both draw the same 38 lanes. What keeps
+ * growing is accumulated danger, which buys the player nothing they can use and
+ * costs the one thing that matters: at 60 days one seed in eight puts LAVE
+ * itself at 0.37 against the 0.4 ring threshold, and a starting world flagged
+ * as pirate-infested on a fresh save is a bad first impression. At 30 the worst
+ * Lave across those seeds is 0.11.
+ *
+ * It is not free — a warmed galaxy is deltas that have to be written down; what
+ * that costs the shelf is `MAX_NAMED_SAVES`'s rule, which argues from it.
+ *
+ * Its own rule id: it shares the value 30 with a flight time in seconds
+ * (`HOSTILE_MISSILE_LIFE`) and a spread in degrees (`AMBUSH_CONE_DEG`). Days of
+ * trade follow neither, and both of those name a rule of their own so the three
+ * can move apart.
+ *
+ * @rule living.prewarmDays
+ */
+export const PREWARM_DAYS = 30;
+
+/**
  * How many convoys a lane needs in flight at once before the charts draw it —
  * "more than one load on it right now", counted rather than ranked.
  *
