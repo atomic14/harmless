@@ -34,9 +34,11 @@ Two intentional quirks:
   from the same seed.
 - `src/galaxy/living.ts` advances off-screen trade in whole days and stores only
   deltas: convoys, danger and bounded price pressure. `populateSystem` turns
-  arriving records into ships. `src/galaxy/danger-overlay.ts` is the read-only
-  model behind the charts' red rings: it decides which systems are flagged and
-  `ui/screens.ts` only paints them.
+  arriving records into ships. Three read-only models decide what the charts
+  draw over it — `danger-overlay.ts`, `trade-lanes.ts` and
+  `price-divergence.ts` — and `ui/screens.ts` only paints what they return.
+  `game/chart-overlay.ts` names the modes `T` cycles and carries the result;
+  the Game owns the current mode, so both charts show the same one.
 - Released ship data is generated under `src/game/elite-a/`; lookup and combat
   profiles enter through its catalogue. Hull lookup enters through
   `src/ships/registry.ts`.

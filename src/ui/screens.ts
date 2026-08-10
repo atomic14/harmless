@@ -24,6 +24,10 @@ import { describeContract } from '../game/contract-offers.ts';
 import type { MarketEstimate } from '../game/market.ts';
 import type { ChartState } from '../game/chart-state.ts';
 import {
+  overlayLegend, type ChartOverlay, type ChartOverlays,
+} from '../game/chart-overlay.ts';
+import type { PriceDrift } from '../galaxy/price-divergence.ts';
+import {
   type CombatSimReport, type OpeningGeometry, type WaveEscalation,
 } from '../game/combat-sim-report.ts';
 import { PASS_CLOSE, PASS_FAR } from '../constants/combat-record.ts';
@@ -619,33 +623,84 @@ export function nearestSystem(
   return best;
 }
 
+/**
+ * A tick above a system trading dear, below one trading cheap — on both charts.
+ *
+ * The tell is a SHAPE and a DIRECTION rather than a second colour scale: this
+ * palette is green and amber (docs/TODO/93 owns it), it has no blue, and
+ * inventing one for a price would be a new hex in the file 93 is about to
+ * sweep. Amber is the one the target marker already uses; up and down carry the
+ * meaning, so a reader who cannot separate the two greens still gets it right.
+ */
+function drawPriceTells(
+  ctx: CanvasRenderingContext2D,
+  prices: ReadonlyMap<number, PriceDrift>,
+  systems: StarSystem[],
+  px: (s: { x: number; y: number }) => number,
+  py: (s: { x: number; y: number }) => number,
+  reach: number,
+): void {
+  for (const [index, drift] of prices) {
+    const s = systems[index];
+    if (!s) continue;
+    const up = drift === 'dear';
+    ctx.strokeStyle = up ? '#ffb444' : '#7dff88';
+    const x = px(s);
+    const y = py(s);
+    // The tail starts clear of the dot rather than on it: at 2.5px a system,
+    // a tick that began at the centre read as a blob rather than an arrow.
+    const tip = up ? y - reach : y + reach;
+    const base = up ? y - reach * 0.55 : y + reach * 0.55;
+    ctx.beginPath();
+    ctx.moveTo(x, base);
+    ctx.lineTo(x, tip);
+    // the arrowhead, two strokes off the tip
+    ctx.moveTo(x - 2.5, up ? tip + 2.5 : tip - 2.5);
+    ctx.lineTo(x, tip);
+    ctx.lineTo(x + 2.5, up ? tip + 2.5 : tip - 2.5);
+    ctx.stroke();
+  }
+}
+
 export function renderChart(
   systems: StarSystem[],
   c: CommanderData,
   chart: ChartState,
-  danger: ReadonlySet<number>,
+  overlays: ChartOverlays,
 ): void {
   show(`
     <h2>GALACTIC CHART ${c.galaxy}</h2>
     <div class="rule"></div>
     <canvas id="chart-canvas" width="780" height="400"></canvas>
     <div class="keyline" id="chart-info"></div>
-    <div class="keyline">CLICK A SYSTEM TO TARGET IT &middot; ARROWS MOVE &middot; ENTER TARGET &middot; D DATA ON SYSTEM &middot; M MARKET &middot; F FIND &middot; ESC EXIT &middot; RED RING: PIRATE ACTIVITY</div>
+    <div class="keyline">${chartKeyline(overlays.mode)}</div>
   `);
-  drawChart(systems, c, chart, danger);
+  drawChart(systems, c, chart, overlays);
 }
+
+/**
+ * The chart keys and what the overlays mean. ONE home, used by both charts:
+ * they were two hand-written copies and the second was always the one that
+ * fell behind. Chart keys are the screen's own and exempt from the binding
+ * tables (see the note at the top of this file), so this line is where they
+ * live.
+ */
+const chartKeyline = (mode: ChartOverlay): string =>
+  'CLICK A SYSTEM TO TARGET IT &middot; ARROWS MOVE &middot; ENTER TARGET'
+  + ' &middot; D DATA ON SYSTEM &middot; M MARKET &middot; F FIND &middot; ESC EXIT'
+  + ` &middot; ${overlayLegend(mode)} &middot; RED RING: PIRATE ACTIVITY`;
 
 /**
  * Redraw only the canvas + info line (cheap, for cursor moves).
  *
- * `danger` is the flagged set from `galaxy/danger-overlay.ts` — decided there,
- * only painted here.
+ * `overlays` is decided by the models in `galaxy/` — this only paints it, and
+ * draws whatever it is handed without knowing which mode is up.
  */
 export function drawChart(
   systems: StarSystem[],
   c: CommanderData,
   chart: ChartState,
-  danger: ReadonlySet<number>,
+  overlays: ChartOverlays,
 ): void {
   const canvas = maybeById('chart-canvas') as HTMLCanvasElement | null;
   if (!canvas) return;
@@ -673,6 +728,19 @@ export function drawChart(
   ctx.stroke();
   ctx.setLineDash([]);
 
+  // Trade lanes, UNDER the systems: freight passes beneath the worlds it
+  // serves, and a line over a 2.5px dot would swallow it.
+  ctx.strokeStyle = '#2a7a33';
+  for (const lane of overlays.lanes) {
+    const a = systems[lane.a];
+    const b = systems[lane.b];
+    if (!a || !b) continue;
+    ctx.beginPath();
+    ctx.moveTo(px(a), py(a));
+    ctx.lineTo(px(b), py(b));
+    ctx.stroke();
+  }
+
   // Systems. Given size and light because 256 of them are the whole point of
   // this screen and 1.5px of dim green on near-black is close to invisible.
   for (const s of systems) {
@@ -682,11 +750,13 @@ export function drawChart(
     ctx.fillRect(px(s) - r / 2, py(s) - r / 2, r, r);
   }
 
+  drawPriceTells(ctx, overlays.prices, systems, px, py, 8);
+
   // Pirate activity: the same fact the system data screen prints in words.
   // Drawn over the dots so a flagged world reads at a glance, in the red the
   // cursor already uses rather than a colour of its own.
   ctx.strokeStyle = '#ff4d4d';
-  for (const index of danger) {
+  for (const index of overlays.danger) {
     const s = systems[index];
     if (!s) continue;
     ctx.beginPath();
@@ -742,7 +812,7 @@ export function renderLocalChart(
   systems: StarSystem[],
   c: CommanderData,
   chart: ChartState,
-  danger: ReadonlySet<number>,
+  overlays: ChartOverlays,
 ): void {
   show(`
     <h2>SHORT RANGE CHART</h2>
@@ -751,16 +821,16 @@ export function renderLocalChart(
       <canvas id="local-canvas" width="${LOCAL_CANVAS}" height="${LOCAL_CANVAS}"></canvas>
       <div class="info" id="local-info"></div>
     </div>
-    <div class="keyline">CLICK A SYSTEM TO TARGET IT &middot; ARROWS MOVE &middot; ENTER TARGET &middot; D DATA ON SYSTEM &middot; M MARKET &middot; F FIND &middot; ESC EXIT &middot; RED RING: PIRATE ACTIVITY</div>
+    <div class="keyline">${chartKeyline(overlays.mode)}</div>
   `, true);
-  drawLocalChart(systems, c, chart, danger);
+  drawLocalChart(systems, c, chart, overlays);
 }
 
 export function drawLocalChart(
   systems: StarSystem[],
   c: CommanderData,
   chart: ChartState,
-  danger: ReadonlySet<number>,
+  overlays: ChartOverlays,
 ): void {
   const canvas = maybeById('local-canvas') as HTMLCanvasElement | null;
   if (!canvas) return;
@@ -790,6 +860,20 @@ export function drawLocalChart(
   ctx.stroke();
   ctx.setLineDash([]);
 
+  // Trade lanes, under the systems as on the galactic chart. Lanes run up to
+  // 7 LY, so one end is often off this zoom — the line is simply clipped by the
+  // canvas, which reads correctly as freight heading out of the neighbourhood.
+  ctx.strokeStyle = '#2a7a33';
+  for (const lane of overlays.lanes) {
+    const a = systems[lane.a];
+    const b = systems[lane.b];
+    if (!a || !b) continue;
+    ctx.beginPath();
+    ctx.moveTo(px(a), py(a));
+    ctx.lineTo(px(b), py(b));
+    ctx.stroke();
+  }
+
   ctx.font = '10px Menlo, Consolas, monospace';
   for (const s of systems) {
     const x = px(s);
@@ -804,11 +888,13 @@ export function drawLocalChart(
     ctx.fillText(s.name.toUpperCase(), x + 7, y - 6);
   }
 
+  drawPriceTells(ctx, overlays.prices, systems, px, py, 8);
+
   // Pirate activity, as on the galactic chart. Same cull as the dots above:
   // a ring for a system this zoom has scrolled off would be drawn at a
   // coordinate outside the canvas anyway.
   ctx.strokeStyle = '#ff4d4d';
-  for (const index of danger) {
+  for (const index of overlays.danger) {
     const s = systems[index];
     if (!s) continue;
     const x = px(s);

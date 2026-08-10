@@ -276,6 +276,12 @@ A **red ring** marks a system merchants are reporting heavy pirate activity
 in — the living galaxy's own losses, on the same threshold that world's data
 screen reports in words, so the map and the news can never disagree.
 
+**T** cycles the trade overlay: **routes in flight** draws the lanes with more
+than one convoy on them (~45 of the ~175 pairs trading at any moment), and
+**prices** arrows the worlds trading well off the 1984 baseline — up amber for
+dear, down green for cheap. Both charts share the mode, and the rings stay
+under all of it.
+
 ### Docking and the console
 
 Fly into the station's docking port with your wings matched to its rotation.

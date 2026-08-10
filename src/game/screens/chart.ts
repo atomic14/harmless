@@ -26,6 +26,10 @@ import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
 import { marketEstimate } from '../market.ts';
 import { dangerousSystems } from '../../galaxy/danger-overlay.ts';
+import { busyLanes } from '../../galaxy/trade-lanes.ts';
+import { divergentSystems } from '../../galaxy/price-divergence.ts';
+import type { Convoy } from '../../galaxy/living.ts';
+import type { ChartOverlay, ChartOverlays } from '../chart-overlay.ts';
 import { sfx } from '../../audio.ts';
 import { LOCAL_SCALE, CHART_SPAN_X } from '../../constants/chart-metric.ts';
 
@@ -46,6 +50,17 @@ export interface ChartContext {
    * system a redraw looks at, which is a draw path mutating the world.
    */
   danger(systemIndex: number): number;
+  /** convoys in flight, for the routes overlay — a read of a public array */
+  readonly convoys: readonly Convoy[];
+  /**
+   * Which trade overlay is up, and the key that cycles it. Held by the Game
+   * rather than by either screen, exactly as `viewData` holds the data
+   * screen's subject: both charts then show the same thing, so `G` and `N`
+   * cannot disagree. Not saved — `SNAPSHOT_VERSION` is checked strictly, and a
+   * view mode is not worth invalidating every existing save.
+   */
+  readonly overlay: ChartOverlay;
+  cycleOverlay(): void;
 }
 
 export class ChartScreen implements Screen {
@@ -74,27 +89,36 @@ export class ChartScreen implements Screen {
 
   render(): void {
     const { systems, commander, chart } = this.ctx();
-    const flagged = this.dangerous();
-    if (this.local) renderLocalChart(systems, commander, chart, flagged);
-    else renderChart(systems, commander, chart, flagged);
+    const overlays = this.overlays();
+    if (this.local) renderLocalChart(systems, commander, chart, overlays);
+    else renderChart(systems, commander, chart, overlays);
   }
 
   /**
-   * Which systems get the red ring, recomputed per repaint. Cheap and always
+   * Everything drawn over the stars, recomputed per repaint. Cheap and always
    * current: the charts repaint on open, cursor move or click, never per frame,
    * and the galaxy only drifts when the clock moves.
+   *
+   * Only the active overlay's model is run. The danger rings are always on —
+   * they are a warning, not a view.
    */
-  private dangerous(): Set<number> {
-    const { systems, danger } = this.ctx();
-    return dangerousSystems(systems, danger);
+  private overlays(): ChartOverlays {
+    const { systems, danger, convoys, priceMultiplier, overlay } = this.ctx();
+    return {
+      mode: overlay,
+      danger: dangerousSystems(systems, danger),
+      lanes: overlay === 'routes' ? busyLanes(convoys) : [],
+      prices: overlay === 'prices'
+        ? divergentSystems(systems, priceMultiplier) : new Map(),
+    };
   }
 
   /** Repaint the canvas only, keeping the surrounding chrome. */
   private redraw(): void {
     const { systems, commander, chart } = this.ctx();
-    const flagged = this.dangerous();
-    if (this.local) drawLocalChart(systems, commander, chart, flagged);
-    else drawChart(systems, commander, chart, flagged);
+    const overlays = this.overlays();
+    if (this.local) drawLocalChart(systems, commander, chart, overlays);
+    else drawChart(systems, commander, chart, overlays);
     if (this.find !== null) {
       const info = document.getElementById(this.local ? 'local-info' : 'chart-info');
       if (info) info.textContent = `FIND: ${this.find}_`;
@@ -148,6 +172,13 @@ export class ChartScreen implements Screen {
     if (i.pressed('KeyF')) {
       this.find = '';
       this.redraw();
+      return 'stay';
+    }
+    if (i.pressed('KeyT')) {
+      // The Game owns the mode, so the other chart is already showing this
+      // when you open it. A full render: the keyline names the overlay.
+      this.ctx().cycleOverlay();
+      this.render();
       return 'stay';
     }
     if (i.pressed('Enter')) {

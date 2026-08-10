@@ -14,7 +14,7 @@ what is ours is one table in [ELITE-A.md](ELITE-A.md).
 | --- | --- |
 | Galaxy generation | Byte-accurate: 8 galaxies × 256 systems; names, economy, government, tech level, population, productivity, radius, species, and the original's "goat soup" planet descriptions (Lave's canonical line is asserted by `npm test`). |
 | Market & trading | Original 17-commodity price/quantity model, per-visit fluctuation, buy/sell, 20t/35t hold, kg/g exemption. Market estimates for any charted system (M on the charts). |
-| Charts | Galactic chart + Short Range Chart with names, 7 LY fuel circle, keyboard or click targeting, type-to-find, market estimates, and the full DATA ON SYSTEM page. |
+| Charts | Galactic chart + Short Range Chart with names, 7 LY fuel circle, keyboard or click targeting, type-to-find, market estimates, and the full DATA ON SYSTEM page. Ours, not the original's: the living galaxy is drawn on both — a red ring on every system reporting pirate activity, and T cycling the freight lanes actually in flight and the worlds trading well off the 1984 baseline. |
 | Hyperspace | Real chart distances, fuel cost, 5-second countdown, break-pattern tunnel. Witchpoint arrivals 12 planet-radii out on the station's side. Galactic Hyperdrive (one-shot, TL10). |
 | Witch-space | Mis-jumps (9%, 22% on the courier mission) drop you among Thargoids with Thargon drones; 1.0 LY escape jump; strand yourself without fuel and a distress beacon (B) buys a tow at the cost of your cargo. |
 | Stations | Rotating Coriolis with docking slot; dodecahedral Dodo stations at TL10+; manual docking with roll alignment + on-screen alignment aid; docking computer (C, TL9); launch/dock tunnel effect; policed safety zone. |
@@ -50,12 +50,9 @@ what is ours is one table in [ELITE-A.md](ELITE-A.md).
    technology, government and galaxy is a swap of that policy and nothing else.
 4. **Contract variety** — the bulletin board covers cargo, courier and
    bounty work; passenger berths and smuggling runs would widen it.
-5. **Surfacing the living galaxy** — the danger overlay has landed: both charts
-   ring the systems the data screen calls dangerous, off the same threshold, so
-   piracy is visible across all 256 worlds at once instead of one world at a
-   time. What is still invisible is the trade itself — which routes are moving
-   goods, and where prices have diverged. That needs an accessor over the
-   convoy list and some density filtering before an edge overlay would read.
+Surfacing the living galaxy was item 5 here and is now in the table above:
+docs/TODO/111 and 114 put the danger, the freight network and the price
+divergences on both charts. GitHub #10.
 
 ## Deliberate deviations
 

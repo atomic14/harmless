@@ -130,6 +130,7 @@ import { DataScreen, type DataContext } from './screens/data.ts';
 import { BriefingScreen } from './screens/briefing.ts';
 import { ContractsScreen, type ContractsContext } from './screens/contracts.ts';
 import { ChartScreen, type ChartContext } from './screens/chart.ts';
+import { nextOverlay, type ChartOverlay } from './chart-overlay.ts';
 import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 import { BEAM_Z } from '../engine/render-stack.ts';
@@ -231,6 +232,13 @@ export class Game {
   /** Which system the data screen is reading about. */
   private dataSubject: StarSystem | null = null;
 
+  /**
+   * Which overlay the charts are drawing. Here rather than on either screen so
+   * both show the same one — the same reason `dataSubject` is here. A view
+   * mode, so deliberately not in the snapshot.
+   */
+  private chartOverlay: ChartOverlay = 'none';
+
   private chartContext(): ChartContext {
     return {
       commander: this.state.commander,
@@ -241,6 +249,9 @@ export class Game {
       priceMultiplier: (index, commodity) => this.state.living.priceMultiplier(index, commodity),
       // the read-only accessor, never state(): see ChartContext.danger
       danger: (index) => this.state.living.danger(index),
+      convoys: this.state.living.convoys,
+      overlay: this.chartOverlay,
+      cycleOverlay: () => { this.chartOverlay = nextOverlay(this.chartOverlay); },
     };
   }
   // the combat computer's TRAINED seat — dormant (defenceBrain() is null);

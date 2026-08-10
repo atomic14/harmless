@@ -77,7 +77,8 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 110 — [Smuggling runs price the scan](110-smuggling-runs-price-the-scan.md)
 - [x] 112 — [The consignment goes back](112-the-consignment-goes-back.md)
 - [x] 113 — [What you cannot hand back, you are billed for](113-what-you-cannot-hand-back-you-are-billed-for.md) — closed GitHub #17
-- [x] 111 — [The chart shows the danger it already reports](111-the-chart-shows-the-danger-it-reports.md) — GitHub #10, first slice; trade-flow still open
+- [x] 111 — [The chart shows the danger it already reports](111-the-chart-shows-the-danger-it-reports.md) — GitHub #10, first slice
+- [x] 114 — [The chart shows where the trade is](114-the-chart-shows-where-the-trade-is.md) — closed GitHub #10
 
 <!-- append-completed-todos-here -->
 

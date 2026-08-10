@@ -103,6 +103,9 @@ console.log('\nopening a chart does not write to the galaxy');
       viewData: () => {},
       priceMultiplier: (index, commodity) => living.priceMultiplier(index, commodity),
       danger: (index) => living.danger(index),
+      convoys: living.convoys,
+      overlay: 'none',
+      cycleOverlay: () => {},
     };
     new ChartScreen('chart', () => context).open();
     new ChartScreen('local', () => context).open();

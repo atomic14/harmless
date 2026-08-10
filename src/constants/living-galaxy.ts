@@ -49,3 +49,37 @@ export const DANGER_DECAY = 0.015;
  * @rule living.dangerVisible
  */
 export const DANGER_VISIBLE = 0.4;
+
+/**
+ * How many convoys a lane needs in flight at once before the charts draw it —
+ * "more than one load on it right now", counted rather than ranked.
+ *
+ * There are ~240 convoys in flight across ~175 distinct lanes at any moment
+ * (measured on galaxy 1 at seeds 999/4242, 23/120/365 days), and drawing all of
+ * them is a hairball on a 780x400 canvas. This lands on ~40-47 lanes at every
+ * one of those samples, which is a trade NETWORK rather than a scribble. A
+ * top-N cut would draw the same number of lines but could not be stated in
+ * words, and would keep drawing a dead route on a quiet day.
+ *
+ * Read with `>=`, unlike the two thresholds either side of it, which are
+ * strict: this is a count of things, not a level something exceeds.
+ *
+ * @rule living.busyLaneConvoys
+ */
+export const BUSY_LANE_CONVOYS = 2;
+
+/**
+ * How far a price must have drifted from the 1984 baseline before the charts
+ * mark the system: 15%, against the +-25% clamp `priceMultiplier` applies.
+ *
+ * Nearly every system has SOME drift — 243 to 251 of 256 at the samples above —
+ * so the useful question is not "has it moved" but "has it moved enough to be
+ * worth a jump". 15% flags 12-17 systems; 12% flags 31-39, which is a dot in
+ * seven and tells the player nothing they can act on.
+ *
+ * Its own rule id: it shares 0.15 with a gunnery floor and a turn-rate floor,
+ * and a price is not either of those.
+ *
+ * @rule living.priceDivergenceVisible
+ */
+export const PRICE_DIVERGENCE_VISIBLE = 0.15;

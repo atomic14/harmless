@@ -40,6 +40,15 @@ export const NPC_HIT_BASE = 0.9;
  */
 export const NPC_HIT_FALLOFF = NPC_LASER_RANGE;
 export const NPC_HIT_CAP = 0.85;
+/**
+ * The far end of that curve: however long the shot, this fraction of it still
+ * connects, so distance thins a fight without ending it.
+ *
+ * Its own rule id: 0.15 is also the co-pilot's turn-rate floor and a
+ * price-divergence threshold, and neither should move with a gun's reach.
+ *
+ * @rule npc.hitFloor
+ */
 export const NPC_HIT_FLOOR = 0.15;
 
 /**

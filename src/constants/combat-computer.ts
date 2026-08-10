@@ -95,6 +95,11 @@ export const PURSUIT_CLOSE_GAIN = 1.0;
  * throttles back to while turning hard. Unlike a pirate's `MIN_CRUISE_FRACTION`
  * this may near a stop: the commander's ship (unlike a turret-prone fighter) is
  * meant to be able to.
+ *
+ * Its own rule id: 0.15 is also a gunnery hit floor and a price-divergence
+ * threshold, and how hard the co-pilot brakes follows neither.
+ *
+ * @rule copilot.turnFloor
  */
 export const PURSUIT_TURN_FLOOR = 0.15;
 

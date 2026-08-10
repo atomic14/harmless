@@ -221,6 +221,19 @@ const OUTSIDE: readonly Group[] = [
     },
   },
 
+  {
+    why: 'STAYS: `OVERLAY_CYCLE` is the order `T` walks the chart overlays in, and it'
+      + ' is an array of `ChartOverlay` — a type declared beside it, which this'
+      + ' directory may not import: the `LOADED` shape exactly. It is also not a'
+      + ' tunable number but the mode list itself, and the three modes, their order and'
+      + ' their legends are one rule with one home (docs/TODO/114). The thresholds the'
+      + ' overlays actually read — BUSY_LANE_CONVOYS, PRICE_DIVERGENCE_VISIBLE — are in'
+      + ' constants/living-galaxy.ts where they belong',
+    files: {
+      'game/chart-overlay.ts': ['OVERLAY_CYCLE'],
+    },
+  },
+
   // --- pending slices --------------------------------------------------------
 
   {
