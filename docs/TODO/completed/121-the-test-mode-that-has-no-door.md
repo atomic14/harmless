@@ -3,6 +3,29 @@
 **Kind:** feature / tooling · **Severity:** medium · **Size:** medium (three
 milestones) · **Depends on:** none · **GitHub:** #18
 
+**Landed 2026-08-10** in three commits (`de0dab3`, `fb046c7`, `7b2164d`). All
+three milestones are in the tree — M3 was NOT cut — and `npm run check` is
+green at 3,689 assertions.
+
+**Two decisions the code made that the plan did not.**
+
+1. **`TestModeContext` is the whole `GameState`**, where every other screen
+   takes a hand-picked field list. Writing state is what this screen is for,
+   and a narrow context needs one setter per lever — which would put half of
+   every lever in `game.ts`, the one place none of them belongs.
+2. **The SPAWN choice is `GameState.cheatRole`**, a saved field, because the
+   row that picks it is at the station and the key that reads it is in the
+   cockpit. Kept on the screen it would have been a rule read from somewhere no
+   test can reach and no save carries, which is invariant 12 by another name.
+
+**What is NOT here, by the plan's own answers:** no cockpit badge, no filtering
+of marked careers out of the rating or the campaign, and no numeric entry. The
+mark is a status-screen line and the outfitters' existing amber banner.
+
+**Flown by tests, not by hand.** Every claim below is a headless assertion in
+`test/test-mode.test.ts`; nobody has yet sat in the cockpit and pressed ⇧S.
+What plays wrong becomes a GitHub issue and a new plan.
+
 ## Where we are
 
 **Most of what #18 asks for is already built and cannot be switched on.**
