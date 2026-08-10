@@ -13,94 +13,68 @@ active context:
 
 ## Execution queue
 
-Three plans. In order; `QUEUE.json` agrees. One came out of the GitHub inbox on
-2026-08-10 and one out of the first real flight the same day — once 121's test
-mode and 124's quit key made one possible. The third came from Chris reading
-what 122 and 123 had just shipped: does bribing a policeman touch your
-Character? It does; nothing says so.
+**One plan, and it is half-finished on purpose.** 127 and 126 landed on
+2026-08-10 alongside 129's first milestone; what is left of 129 is a number
+nobody has flown, and flying it is Chris's.
 
-121 landed before them: ⇧T at the station is the door onto `GameState.cheat`,
-twenty levers are behind it — fuel, missiles, credits, legal status, Character
-and a fit-out that takes equipment OFF, which no shop in the game can — and the
-jump stops asking about fuel. 124 gave the cockpit a way out: P then Q gives up
-a flight and puts you back at the station autosave you launched from.
-
-The GitHub inbox is empty of untriaged work: **#22** is the only plan below with
-one, labelled `planned` with its disposition on the issue. #18 closed with 121,
-#20 with 122, **#21 with 123**. 126 and 129 have no issue — one came out of a
-flight, the other out of what that flight's fixes still do not tell a pilot.
-
-**That flight found six things.** Two were bugs and are fixed (`1067e87`):
-jettisoned cargo landed inside your own scoop reach, so pressing Y dumped a
-tonne and collected it again one frame later; and every note of the docking
-waltz decayed to silence across its own length, so the theme played as blips.
-One was already planned and has now landed (bribing a Viper is 123). One was a
-finding recorded on 122 and landed with it: being scanned makes you an Offender,
-police hunt Fugitives, so the Viper that scanned you carried on patrolling with
-nothing on the console to say why. The remaining two are 126 and 127 below —
-and 129 is above both, because what pressing one of those keys costs your name
-is still invisible after it is paid.
-
-122, 123 and 128 landed before these three. **128 is the cockpit that points at
-the other two**: a prompt line under the console says what a key can do about
-what is happening right now, priced — `L PAY 141.0 Cr AND YOUR NAME` · `O DUMP
-THE EVIDENCE` — for each of six moments, and never in a letter of its own, since
-the label comes from the binding table. Its last milestone turned that rule on
-the rest of the game: `test/key-prose.test.ts` fails on any message in
-`src/game/` that spells a bound key, which found two offenders the plan had not.
-
-A patrol closing on a dirty hold now says **POLICE PATROL CLOSING** for the
-1,800 units before it can read you, and the
-scan that follows says what it cost — the record, and who comes for one —
-instead of leaving the world to shrug. **O** dumps a tonne of the illegal cargo
-specifically, which the ordinary dump key could not reach without throwing the
-whole run overboard first, and **L** offers the man money instead: the scan does
-not happen, or a Viper already shooting breaks off, and neither touches your
-record while both cost your name. He can also refuse and report you, less often
-the worse your name already is.
+The GitHub inbox is empty: **#22** closed with 127, as #18 did with 121, #20
+with 122 and #21 with 123. Nothing below has an issue.
 
 1. [ ] [129 — your name changes and nothing says so](129-your-name-changes-in-silence.md)
-   · no issue — asked by Chris · feature, small. Seven deeds move `disrepute`
-   and the only surface for the result is the word on the status screen, so a
-   pilot crosses Honest → Dubious → Dodgy in silence and a bribe's real price is
-   invisible at the moment it is paid. `characterName` already names the rung;
-   M1 says it when it changes, queued behind the line that caused it the way
-   122's verdict is, and says it on the way DOWN too — the decay has never had
-   any feedback at all. M2 is the `DISREPUTE_BRIBE` value, and it is
-   deliberately empty until Chris has flown it: make it visible before retuning
-   it.
-2. [ ] [127 — the survivor is handed over without asking](127-the-survivor-is-handed-over-without-asking.md)
-   · **#22** · feature, medium. You scoop someone out of a capsule and docking files them
-   with station medical in the same breath as resetting your shields — no
-   choice, no payment, no consequence. Chris: force the choice, and let it be a
-   dirty one. M1 is the prompt and the decent answer; M2 sells them at the
-   station's own Slaves price or takes a bribe to let them go, priced against
-   the Character ladder 96 built; M3 is the law's half. Ahead of 126 because it
-   is the one that gives that ladder something to say. #22 and the flight asked
-   for it separately and differ: the issue wants two options and says the legal
-   status must move, the flight added a third option and did not — so between
-   them the law's half is decided rather than deferred.
-3. [ ] [126 — the docking computer turns the ship without flying it](126-the-docking-computer-flies-by-fiat.md)
-   · no issue — found in flight · bug, medium. It writes `player.quaternion` through a shortest-arc slerp
-   instead of producing a `FlightDemand`, so it pivots about an axis no stick
-   can produce, never writes the rates the HUD reads, and obeys its own turn
-   limit rather than the hull's. Two file headers already claim otherwise.
-   `pitch-roll-steer.ts` is the vocabulary it never used. Last because docking
-   is the hardest thing in the game and this aid must still thread the
-   letterbox — the fix has to be measured, not asserted.
+   · no issue — asked by Chris · feature, small. **M1 landed** (`8153086`):
+   eight deeds and the decay now say `CHARACTER: DUBIOUS` when a rung is
+   crossed, assembled from `characterName` so it cannot promise a rung the
+   status screen does not show, and queued behind the line that caused it.
+   Making that work replaced `scanVerdictTimer` with a real queue — a scan owes
+   the console two lines, the record and the name, and one slot silently ate the
+   second. **M2 is the `DISREPUTE_BRIBE` value and it stays open**: the whole
+   shape of the plan is *make it visible before retuning it*, and the input M2
+   needs is a flight.
 
-96 landed before all of these: the Character label drives the world now, but
-`DISREPUTE_HEAT`, `COURTESY_RATE` and `HERMIT_FAVOUR` are unflown starting
-values. 121's CHARACTER lever is the cockpit that settles them; 123 gave the
-ladder its first thing to decide — how often a policeman takes your money — 128
-made the price visible before the key is pressed, and 127 is the first deed
-worth spending it on.
+## What the playtest is now carrying
 
-**A playtest is coming** (Chris, 2026-08-10), and two of the plans above are
-waiting on it rather than on an argument: 129 M2 is the `DISREPUTE_BRIBE` value,
-and the three numbers 96 left unflown are the same flight's business. Nothing in
-the character system should be retuned before somebody has seen it work — which
-is what 129 M1 is for.
+**A playtest is coming** (Chris, 2026-08-10) and it is the blocking input for
+every number below. Nothing in the character system should be retuned before
+somebody has seen it work — which is what 129 M1 was for, and what 128's priced
+prompts before it were for.
+
+- **`DISREPUTE_BRIBE` (12)** — 129 M2. One bribe takes an Honest commander to
+  Dubious. Too much, or the point?
+- **`DISREPUTE_HEAT` (0.5), `COURTESY_RATE` (0.15), `HERMIT_FAVOUR` (0.2)** —
+  96's three unflown starting values. Is a Dodgy pilot's reception too hard, does
+  being waved off read as a mechanic or as a bug, is the discount worth the
+  detour?
+- **What a person fetches** — 127's finding. A tonne of Slaves is 6 Cr at Lave
+  and 16 at the dearest system in galaxy 1, so selling a rescued pilot pays
+  6–16 Cr against 40 disrepute. As shipped, the dirty answer is not a
+  temptation, and the price being the market's is the decision that makes it
+  interesting elsewhere — so the lever is a multiplier on top of the quote.
+
+121's CHARACTER lever (⇧T at the station) is the cockpit that settles all of
+them: twenty levers behind one door, including the Character score itself.
+
+## What landed on 2026-08-10
+
+Eight plans in a day, and they are one argument in sequence: a consequence that
+is invisible is indistinguishable from nothing happening.
+
+- **122** gave the police scan a window and a verdict; **123** gave you a way to
+  buy it off; **128** put both on the console at the moment they matter, priced,
+  with the key read off the binding table — and turned that rule on the rest of
+  the game, so `test/key-prose.test.ts` fails on any message in `src/game/` that
+  spells a bound key.
+- **129 M1** finished the thought for the Character ladder: seven deeds moved a
+  score nobody was shown.
+- **127** made the one genuinely moral act in the game cost something. Docking
+  used to file a rescued pilot with station medical in the same breath as
+  resetting your shields; it is a forced choice now — hand them over, sell them,
+  or take money to let them go — and selling one is an offence the Government
+  notices.
+- **126** made the docking computer fly. It wrote `player.quaternion` directly,
+  so it turned about an axis no stick can produce and no instrument saw it move;
+  `npm run dock-probe` is the 320-approach measurement that says the fix still
+  threads the letterbox.
+- **121** and **124** came first: the test-mode door, and a way out of a flight.
 
 ## Backlog
 

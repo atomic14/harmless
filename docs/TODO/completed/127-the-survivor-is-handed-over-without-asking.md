@@ -148,3 +148,51 @@ Tier: unit per milestone, plus a campaign read if M2 moves the money.
 - **M3** — a sale applies `saleFallout`, asserted against the same rule the
   market applies, not a copy of it.
 - Prove each gate can fail by reverting the outcome it guards.
+
+## Where we are now
+
+**All three milestones landed** (`50b5d9a`, `f0700b4`, `23ba814`), and #22 is
+closed with them.
+
+**M1** — `SurvivorsScreen` opens from `enterDocked` when somebody is aboard, and
+it cannot be escaped: ESC is refused and re-asks, because "do nothing" resolving
+in the decent direction for free is the bug being fixed. `Station.dock` no
+longer touches `survivors`; the leak its comment worried about stays plugged
+precisely because the question cannot be dodged. The order against the briefing
+was decided rather than left to chance: the prompt opens LAST, so it is on TOP —
+it is what is holding the clearance up, and the briefing is reading matter that
+is still there behind it. `game/survivors.ts` is the rule, pure and mutating the
+commander the way `settleContracts` does, so the campaign harness could make the
+same choice without a keyboard.
+
+**M2** — SELL pays the station's own Slaves quote per person and marks the name
+at `DISREPUTE_SLAVE_SALE` (40, the hermit-kill weight: one takes Honest clear to
+Dodgy). LET THEM GO pays `SURVIVOR_RELEASE_SHARE` of that and costs
+`DISREPUTE_SURVIVOR_RELEASED` (10). Neither touches `cargo`, which
+`test/survivors.test.ts` holds to on both paths. `SLAVES`
+(constants/commodities.ts) is named at last — the index was a bare 3 in four
+comments explaining what it was — and `priceInTenths` (game/market.ts) deletes
+the counter's duplicated rounding rather than adding a third copy of it.
+
+**M3** — the sale applies `saleFallout` for the region's heat and `raiseLegal`
+for the record, both decided in the pure rule and carried on the event.
+OFFENDER, not Fugitive. Its `disrepute` term is deliberately not added on top of
+M2's: that prices a tonne of narcotics, and charging both would price one deed
+twice under two names. The record's meaning is queued behind the receipt as
+`recordVerdict`, which is 122's line and 122's answer to "an Offender walks out
+unmolested".
+
+**One thing it found.** `raiseLegal` was reachable from the station for the
+first time, and a docked ship is parked well inside `DEFENCE_RANGE`, so the sale
+scrambled Vipers into a world the player is not in. `callStationDefence` returns
+unless the base mode is flight now — misbehaving means in the sky — and the
+empty pad is asserted.
+
+**A NUMBER FOR THE PLAYTEST, not retuned from the armchair.** A tonne of Slaves
+is 6 Cr at Lave and 16 at the dearest system in galaxy 1, so selling a person
+pays 6–16 Cr against 40 disrepute. As shipped, the dirty answer is not a
+temptation — nobody would take it — and the choice is therefore not yet the
+choice this plan is for. The price being the market's is a decision this plan
+made deliberately (it is what makes a Feudal system pay differently), so the
+lever is a multiplier on top of the quote, and it wants the same flight that
+129 M2 and 96's three unflown values want.

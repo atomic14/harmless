@@ -141,3 +141,32 @@ flown assertion per family of deed that the line actually reaches the console.
 - Prove the gate can fail: hard-code the message to one rung name and watch the
   boundary cases fail.
 - `npm run check` at the end of each milestone; commit per milestone.
+
+## Where we are now
+
+**M1 landed** (`8153086`). `rungCrossed`/`characterVerdict` (game/character.ts)
+are the one rule — two `characterName` calls, so the line cannot promise a rung
+the status screen does not show — and all eight occasions spend it: the scan,
+the bribe taken and refused, a hermit, a murder, a dirty sale over a counter, a
+settled consignment, and the decay, both on a jump and on the tow home.
+
+**The queue could not be shared, and it is better for it.** `scanVerdictTimer`
+was one slot, and a scan owes the console TWO lines — the record and the name —
+so the second would silently have erased the first. It is `session.queued` now:
+a list, drained by `tickMessage`, which runs docked as well as flying because a
+dirty sale over a counter marks a name the same way a Viper does. Message events
+carry a `queued` flag so a pure module can ask for the same thing. The scan's
+own verdict goes through it, so 122's line and this one queue behind each other
+in order instead of racing.
+
+The gates are proven able to fail both ways: hard-coding the line to one rung
+fails five pure boundaries and two flown ones, and making every move report a
+crossing fails sixteen and the control.
+
+**M2 IS STILL OPEN, and deliberately.** `DISREPUTE_BRIBE` is unchanged at 12.
+The whole shape of this plan is *make it visible before retuning it*, and
+nobody has flown it yet — the flight is the input M2 does not have. It is the
+same flight 96's three unflown values (`DISREPUTE_HEAT`, `COURTESY_RATE`,
+`HERMIT_FAVOUR`) are waiting on, and docs/TODO/127 has now added a fourth
+question to it: a person sells for 6–16 Cr against 40 disrepute, which is not a
+temptation.

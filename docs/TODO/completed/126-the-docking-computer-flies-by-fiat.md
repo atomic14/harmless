@@ -89,3 +89,59 @@ Tier: unit plus a measured approach.
 - Docking still succeeds: N approaches from spread starting points, all ending
   docked, compared against the same N before the change.
 - Prove the gate can fail by reverting the demand to the quaternion write.
+
+## Where we are now
+
+**Landed** (`859790e`), M1 and M2 in one commit — the measurement made them
+inseparable, and the plan half-expected it ("whether it survives at all is M2's
+question").
+
+`dockingComputerStep` returns a `FlightDemand` and `PlayerShip.update` flies it,
+ramped through the commander's own envelope from the ship's current rates, so a
+save taken mid-approach carries the manoeuvre. Nothing writes
+`player.quaternion`.
+
+**The hard part was not the demand; it was that one stick has two jobs.** A ship
+with no yaw turns by rolling the target into its pitch plane and pulling, and
+the letterbox wants that same roll spent lining the wings up with a slot on a
+spinning hull. Three attempts, measured each time:
+
+1. Crossfade `bankToTurn`'s roll with a slot-alignment roll on the nose error.
+   A fixed blend of two laws that disagree has no equilibrium: the ship rolled
+   at a steady 1 rad/s all the way into the hull.
+2. A null band so the bank asks for nothing near the heading. Better, and it
+   exposed the next one: `bankToTurn`'s pitch is gated by ITS OWN roll plan, so
+   once the wings were committed to the slot the gate read a roll that would
+   never be flown and the nose stopped being corrected at all — drifting from 6
+   to 15 degrees off over a run. `pitchOnto` is the ungated half, and new.
+3. **What shipped:** the slot's own tolerance as a budget. `ROLL_TOLERANCE` is
+   how far from lined up a ship may be and still fit, so the roll the TURN wants
+   is clamped into a window that wide around the roll the SLOT wants — bank as
+   hard as the turn asks, right to the edge of what the letterbox will take. The
+   window opens to a half turn far out, where no slot matters, and closes as
+   `plan.lateral` crosses from `LINED_UP_LATERAL` to the channel's own
+   half-width. One law, one equilibrium.
+
+`pitch-roll-steer.ts` gained `rollErrorTo`, `rollOnto`, `pitchOnto` and
+`steerStick` — the vocabulary the plan said was already there turned out to be
+half of it.
+
+**Both constants are gone rather than retuned.** `DC_TURN_RATE` re-expressed as
+a fraction of the hull's caps measured worse the lower it went (0.8 → 35 scrapes
+over the sweep, 0.9 → 9, 1.0 → 3): a cautious cap does not fly cautiously, it
+flies a roll that cannot keep up with the plan and arrives still turning. So the
+limit is the commander's own and there is no second number for a shipyard to
+contradict. `DC_THROTTLE_GAIN` went with it — a demand has a throttle, so the
+plan's speed is held with the hull's thrust and a one-frame deadband.
+
+**The measurement**, `npm run dock-probe` (new, `train/dock-probe.ts`): 320
+approaches over five offsets, four off-axis distances, four ranges and four
+station rotations.
+
+| | docked | median | worst | scrapes |
+| --- | --- | --- | --- | --- |
+| before (quaternion slerp) | 320/320 | 15.2s | 36.3s | 2 |
+| after (demand-flown) | 320/320 | 16.8s | 30.6s | 3 |
+
+A second and a half slower to the median, a better worst case, one more scrape
+across 320 approaches — and it flies like a ship now.
