@@ -227,6 +227,7 @@ console.log('\nthe fit-out rows take equipment OFF, which no shop in the game ca
     atHermit: false,
     cheat: true,                      // the outfitter at its most permissive
     message: () => {},
+    queueMessage: () => {},
     addNotoriety: () => {},
     checkpoint: () => {},
     leaveHermit: () => {},

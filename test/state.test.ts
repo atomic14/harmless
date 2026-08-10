@@ -10,11 +10,17 @@
 
 import { readFileSync, readdirSync } from 'node:fs';
 import { freshState } from '../src/game/state.ts';
+import { queueMessage } from '../src/game/session.ts';
 import { AUTOSAVE_INTERVAL } from '../src/constants/saves.ts';
 import { BREED_INTERVAL } from '../src/constants/trumbles.ts';
 import { newCommander } from '../src/game/commander.ts';
 import { seedWorld, random } from '../src/game/rng.ts';
 import { check } from './harness.ts';
+
+/** One row of a plain-data array: an object of scalars and nothing else. */
+const plainRecord = (row: unknown): boolean => !!row && typeof row === 'object'
+  && !Array.isArray(row)
+  && Object.values(row as Record<string, unknown>).every((v) => typeof v !== 'object');
 
 // --- anything that drives behaviour is state ------------------------------
 
@@ -62,9 +68,17 @@ console.log('\nbehaviour-driving values are state');
       typeof st.session === 'object' && 'torusEngaged' in st.session);
     check('...and the ship systems, the dock plan and the charts',
       !!st.sys && !!st.dockPlan && !!st.chart && !!st.world && !!st.player);
-    // the snapshot walks these generically, so they must be plain data
-    check('...and the session is flat, so serialiseState can walk it',
-      Object.values(st.session).every((v) => typeof v !== 'object'));
+    // The snapshot walks these generically, so they must be plain data: JSON
+    // and nothing else — no live vector, no class instance, no function.
+    // Scalars, and since docs/TODO/129 one array of scalar records (the
+    // console lines waiting their turn), which `serialiseState` recurses into
+    // exactly as it already does for `NpcState.dockPlan`. Asserted with a line
+    // ACTUALLY QUEUED, so an empty array cannot pass the check vacuously.
+    queueMessage(st.session, 'CHARACTER: DUBIOUS', 4);
+    const plain = (v: unknown): boolean => typeof v !== 'object' || v === null
+      || (Array.isArray(v) && v.every((row) => plainRecord(row)));
+    check('...and the session is plain data, so serialiseState can walk it',
+      Object.values(st.session).every(plain));
     // one rule, one home: a fresh infestation's clock is one brood interval,
     // the same constant the trumbles breed on — the survey's duplicated pair,
     // now an import (the neighbouring autoSaveTimer was already the pattern)

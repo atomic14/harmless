@@ -24,6 +24,35 @@ export function characterName(disrepute: number): string {
 }
 
 /**
+ * The rung a move onto `after` put you on, or null when it stayed inside the
+ * one you were already on.
+ *
+ * `characterName` twice and nothing else, so a crossing cannot disagree with
+ * the label the status screen prints — the same bargain `recordVerdict`
+ * (law.ts) strikes with `lawTakesInterest`. It reads both directions: the
+ * decay crosses rungs downward, and your name fading is the one piece of good
+ * news the character system has.
+ */
+export function rungCrossed(before: number, after: number): string | null {
+  const name = characterName(after);
+  return characterName(before) === name ? null : name;
+}
+
+/**
+ * ...in the one line the console has, or null when nothing happened worth
+ * saying.
+ *
+ * The ONE phrasing of it, for the seven deeds and the decay that all owe the
+ * player the same sentence. Only crossings speak: the score itself stays out
+ * of the cockpit (test mode shows the number), because the ladder is the
+ * interface and a running commentary on a hidden number is not.
+ */
+export function characterVerdict(before: number, after: number): string | null {
+  const rung = rungCrossed(before, after);
+  return rung === null ? null : `CHARACTER: ${rung.toUpperCase()}`;
+}
+
+/**
  * A disrepute score after a deed of `delta` — never below Honest, never past
  * the ceiling, so neither a good week nor a bad career can run the bar away.
  */

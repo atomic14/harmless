@@ -30,9 +30,10 @@ import { carryingContraband, patrolReach, recordVerdict } from './law.ts';
 import {
   OFFENDER, SCAN_LINE_SECONDS, SCAN_WARN_REPEAT,
 } from '../constants/law.ts';
-import { afterDeed } from './character.ts';
+import { afterDeed, characterVerdict } from './character.ts';
 import { hermitRefuses } from './market.ts';
-import { DISREPUTE_CAUGHT } from '../constants/character.ts';
+import { CHARACTER_LINE_SECONDS, DISREPUTE_CAUGHT } from '../constants/character.ts';
+import { queueMessage } from './session.ts';
 import { playerVsNpcs, npcVsNpcs, npcsVsStation } from './collisions.ts';
 import { assignNpcTargets } from './npc-targeting.ts';
 import { stepEncounters } from './encounters.ts';
@@ -110,7 +111,8 @@ export function massLocked(state: GameState): boolean {
  * the opposite.
  */
 export type StepEvent =
-  | { kind: 'message'; text: string; seconds: number }
+  /** `queued` waits for the console rather than taking it — see session.ts */
+  | { kind: 'message'; text: string; seconds: number; queued?: boolean }
   /**
    * Something should be heard. The same `SoundEvent` the autopilots return, so
    * there is ONE place in game.ts that turns a sound into a call — sounds.ts.
@@ -575,10 +577,18 @@ export class WorldStep {
         session.policeScanned = true;
         this.host.raiseLegal(OFFENDER);
         // caught smuggling: the fine clears, but the name does not
-        commander.disrepute = afterDeed(commander.disrepute ?? 0, DISREPUTE_CAUGHT);
+        const was = commander.disrepute ?? 0;
+        commander.disrepute = afterDeed(was, DISREPUTE_CAUGHT);
         out.push(say('POLICE SCAN: CONTRABAND DETECTED', SCAN_LINE_SECONDS));
-        // ...and what that cost you, queued behind the line it explains
-        session.scanVerdictTimer = SCAN_LINE_SECONDS;
+        // ...and what that cost you, both of it, queued behind the line each
+        // explains. Police hunt Fugitives, so the Viper that reads your hold
+        // flies on and a conviction looks from the cockpit exactly like nothing
+        // happening; `recordVerdict` (law.ts) asks the rule who IS coming, and
+        // `characterVerdict` says it if the same scan moved your name onto a
+        // new rung (docs/TODO/129).
+        queueMessage(session, recordVerdict(commander.legalStatus), SCAN_LINE_SECONDS);
+        const named = characterVerdict(was, commander.disrepute);
+        if (named) queueMessage(session, named, CHARACTER_LINE_SECONDS);
       } else {
         copInBand = reach === 'warn';
       }
@@ -596,18 +606,6 @@ export class WorldStep {
       // so the next patrol to close is announced on the frame it does rather
       // than after the remains of a countdown that has stopped meaning anything
       session.scanWarnTimer = 0;
-    }
-
-    // The verdict, once the scan's own line has had the console. Police hunt
-    // Fugitives, so the Viper that reads your hold goes back to patrolling and
-    // a conviction looks from the cockpit exactly like nothing happening;
-    // `recordVerdict` (law.ts) asks the rule who IS coming.
-    if (session.scanVerdictTimer > 0) {
-      session.scanVerdictTimer -= dt;
-      if (session.scanVerdictTimer <= 0) {
-        session.scanVerdictTimer = 0;
-        out.push(say(recordVerdict(commander.legalStatus), SCAN_LINE_SECONDS));
-      }
     }
 
     // hyperspace countdown

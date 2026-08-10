@@ -87,6 +87,31 @@ export const DISREPUTE_CONTRABAND_SALE = 5;
 export const DISREPUTE_SHORTED_CONSIGNMENT = 5;
 
 /**
+ * How long the line that says your name has changed holds the console
+ * (docs/TODO/129).
+ *
+ * ONE duration for all eight occasions that can say it — seven deeds and the
+ * decay — because it is one sentence, and a per-site number would let the same
+ * line linger differently depending on which crime produced it. It is the
+ * length of the scan's own line for the same reason that one is 4: long enough
+ * to read at the moment a fight may be starting, short enough not to sit over
+ * the next thing that matters.
+ *
+ * Its own rule id: it shares the value 4 with `SCAN_LINE_SECONDS`
+ * (constants/law.ts), which is how long a POLICE SCAN line holds the console,
+ * and with `PATROL_BRIBE_FINES`, which is a multiplier. Neither should move
+ * because this one did.
+ *
+ * Owner confirmed as character.ts rather than contracts, which the catalogue's
+ * likely-owner heuristic prefers because a settled contract is one of the eight
+ * occasions that say it: settlement is a CALLER. What the line is, and how long
+ * it holds the console, belongs to the ladder it names.
+ *
+ * @rule character.lineSeconds
+ */
+export const CHARACTER_LINE_SECONDS = 4;
+
+/**
  * How fast disrepute fades, per day — slower than the galaxy's `HEAT_DECAY`: a
  * cargo is forgotten in days, a reputation is not.
  */

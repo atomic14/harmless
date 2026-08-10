@@ -20,6 +20,7 @@ import { IMPACT } from '../src/constants/impact.ts';
 import { playerPoolPoints, type PlayerPoolPoints } from '../src/game/damage-units.ts';
 import { npcLaserDamageToPlayer } from '../src/game/gunnery.ts';
 import { freshState } from '../src/game/state.ts';
+import { queueMessage, showMessage, tickMessage } from '../src/game/session.ts';
 import { Persistence, type PersistenceHost } from '../src/game/persistence.ts';
 import {
   clearFlightSaves, withoutSaving, writeDockSave, writeFlightSave, writeNamedSave,
@@ -688,9 +689,6 @@ console.log('\nheadless world step');
     // there was no moment at which the player knew it was coming and therefore
     // no decision to make. The band above SCAN_RANGE is that moment.
     {
-      const messages = (events: StepEvent[]): string[] => events
-        .filter((e): e is { kind: 'message'; text: string; seconds: number } =>
-          e.kind === 'message').map((e) => e.text);
       const WARNING = 'POLICE PATROL CLOSING';
       const SCAN = 'POLICE SCAN: CONTRABAND DETECTED';
 
@@ -702,17 +700,32 @@ console.log('\nheadless world step');
        */
       const holding = (r: ReturnType<typeof patrol>, d: number, steps: number) => {
         const cop = r.state.world.npcs.find((n) => n.role === 'police');
-        const events: StepEvent[] = [];
+        const session = r.state.session;
+        const said: string[] = [];
+        let last = session.messageText;
         r.state.player.speed = 0;
         for (let i = 0; i < steps; i++) {
           cop?.object.position.copy(r.state.player.position)
             .add(new THREE.Vector3(0, 0, -d));
           cop?.object.updateMatrixWorld(true);
-          events.push(...r.step.step(1 / 60, i / 60, {
+          // What `Game.step` does around the world step, because that is what
+          // decides which of these lines a PLAYER sees: age the console and
+          // hand it to whatever has been waiting (session.ts), then say what
+          // the step reported. A queued line — the record verdict, the name —
+          // reaches the console frames later than the event that owed it, so
+          // reading the event stream alone would miss it entirely.
+          tickMessage(session, 1 / 60);
+          for (const e of r.step.step(1 / 60, i / 60, {
             demand: { rollRate: 0, pitchRate: 0, throttle: 0, fire: false }, handsOn: false,
-          }));
+          })) {
+            if (e.kind !== 'message') continue;
+            if (e.queued) queueMessage(session, e.text, e.seconds);
+            else showMessage(session, e.text, e.seconds);
+          }
+          if (session.messageText && session.messageText !== last) said.push(session.messageText);
+          last = session.messageText;
         }
-        return messages(events);
+        return said;
       };
 
       {

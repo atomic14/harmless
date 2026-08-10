@@ -31,12 +31,18 @@ export interface SessionState {
   /** counts down to the next POLICE PATROL CLOSING while a cop is in the band */
   scanWarnTimer: number;
   /**
-   * Counts down from the scan to the line that says what the scan cost you,
-   * and rests at 0. Not folded into `policeScanned`: the latch is a fact about
-   * this system visit and survives in the save, while this is a message on its
-   * way to the console.
+   * Lines waiting for the console the current one is holding, oldest first.
+   *
+   * The console is one line, and some consequences only make sense AFTER the
+   * thing that caused them has been read: what a police scan cost your record
+   * (docs/TODO/122), what a deed cost your name (docs/TODO/129). Said in the
+   * same frame as their cause they would erase it.
+   *
+   * A list rather than the single countdown this replaced, because one act can
+   * owe the console two lines — a scan marks the record AND the name — and a
+   * one-slot queue would have made the second silently overwrite the first.
    */
-  scanVerdictTimer: number;
+  queued: { text: string; seconds: number }[];
   defenceLaunched: boolean;
   hermitTrading: boolean;
   hermitCooldown: boolean;
@@ -63,14 +69,36 @@ export function showMessage(state: SessionState, text: string, seconds = 3): voi
   state.messageTimer = seconds;
 }
 
-/** Advance the message lifetime as part of the fixed game step. */
+/**
+ * Say it once the console is free — behind whatever is on it now, and behind
+ * anything already waiting.
+ *
+ * For a line that EXPLAINS another: it has to arrive after the one it explains
+ * or it reads as an unprompted announcement, and `showMessage` would simply
+ * take the console away from its own cause.
+ */
+export function queueMessage(state: SessionState, text: string, seconds = 3): void {
+  state.queued.push({ text, seconds });
+}
+
+/**
+ * Advance the message lifetime as part of the fixed game step, and hand the
+ * console to whatever has been waiting for it.
+ *
+ * The promotion is here rather than in the world step because a queued line is
+ * owed from the station too — a dirty sale over a counter marks your name the
+ * same way a scan does — and `Game.step` ticks this whether the ship is flying
+ * or docked.
+ */
 export function tickMessage(state: SessionState, dt: number): void {
-  if (!state.messageText) return;
-  state.messageTimer -= dt;
-  if (state.messageTimer <= 0) {
+  if (state.messageText) {
+    state.messageTimer -= dt;
+    if (state.messageTimer > 0) return;
     state.messageText = '';
     state.messageTimer = 0;
   }
+  const next = state.queued.shift();
+  if (next) showMessage(state, next.text, next.seconds);
 }
 
 /**

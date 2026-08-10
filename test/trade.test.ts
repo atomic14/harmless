@@ -57,6 +57,7 @@ console.log('\noutfitting');
       cheat,
       leaveHermit: () => {},
       message: (t) => { said.push(t); },
+      queueMessage: (t) => { said.push(t); },
       addNotoriety: () => {},
       checkpoint: () => { saveCheckpoint(ctx.commander); },
     };

@@ -68,7 +68,8 @@ export type DockArrival = 'arrived' | 'fresh' | 'resumed';
 /** What the station reports for the orchestrator to say out loud. */
 export type StationEvent =
   | SoundEvent
-  | { kind: 'message'; text: string; seconds: number }
+  /** `queued` waits for the console rather than taking it — see session.ts */
+  | { kind: 'message'; text: string; seconds: number; queued?: boolean }
   | { kind: 'persistence'; action: 'checkpoint' | 'forgetFlight' }
   | { kind: 'presentation'; action: 'releaseMouseFlight' }
   | { kind: 'presentation'; action: 'screen'; screen: 'docked' | 'hidden' }

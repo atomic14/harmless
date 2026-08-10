@@ -36,8 +36,10 @@ import { random, randomInt } from './rng.ts';
 import type { SoundEvent, SoundName } from './sounds.ts';
 import { ESCAPE_CHANCE, HERMIT_CONTRABAND_MIN, HERMIT_CONTRABAND_SPAN,
   MINING_YIELD_MIN, MINING_YIELD_SPAN } from '../constants/wreck.ts';
-import { DISREPUTE_HERMIT_KILL, DISREPUTE_MURDER } from '../constants/character.ts';
-import { afterDeed } from './character.ts';
+import {
+  CHARACTER_LINE_SECONDS, DISREPUTE_HERMIT_KILL, DISREPUTE_MURDER,
+} from '../constants/character.ts';
+import { afterDeed, characterVerdict } from './character.ts';
 import { ORE, ORDINARY_GOODS } from '../constants/commodities.ts';
 
 /** Seconds the cockpit beams stay lit after a shot. */
@@ -45,7 +47,13 @@ export const BEAM_FLASH = 0.12;
 
 export type CombatEvent =
   | SoundEvent
-  | { kind: 'message'; text: string; seconds: number }
+  /**
+   * Something to say. `queued` holds it back until the console is free
+   * (session.ts): a kill says several things at once — the bounty, the
+   * contract, what it did to your name — and a line that EXPLAINS another
+   * cannot be the one that erases it.
+   */
+  | { kind: 'message'; text: string; seconds: number; queued?: boolean }
   /** raise the legal status — the Game does it, because it launches the Vipers */
   | { kind: 'offence'; level: number }
   /** this ship has left the sky; drop any missile lock on it */
@@ -59,6 +67,9 @@ export type CombatEvent =
   | { kind: 'died'; reason: string };
 
 const say = (text: string, seconds: number): CombatEvent => ({ kind: 'message', text, seconds });
+/** ...once the console is free of the line this one explains. */
+const later = (text: string, seconds: number): CombatEvent =>
+  ({ kind: 'message', text, seconds, queued: true });
 const heard = (name: SoundName): CombatEvent => ({ kind: 'sound', name });
 
 /**
@@ -233,11 +244,18 @@ export class Combat {
     // hermit is a career-marking act; so is destroying any lawful ship (the
     // Fugitive-grade offence). Reached only through `destroy`, the
     // player-credited path.
+    const wasNamed = c.disrepute ?? 0;
     if (npc.role === 'hermit') {
-      c.disrepute = afterDeed(c.disrepute ?? 0, DISREPUTE_HERMIT_KILL);
+      c.disrepute = afterDeed(wasNamed, DISREPUTE_HERMIT_KILL);
     } else if (crime === FUGITIVE) {
-      c.disrepute = afterDeed(c.disrepute ?? 0, DISREPUTE_MURDER);
+      c.disrepute = afterDeed(wasNamed, DISREPUTE_MURDER);
     }
+    // ...and what THAT is called, once the bounty and the record have been
+    // read (docs/TODO/129). Either deed is 40, so it can cross two rungs at
+    // once; `characterVerdict` names the one you landed on, not each one you
+    // passed through.
+    const named = characterVerdict(wasNamed, c.disrepute ?? 0);
+    if (named) out.push(later(named, CHARACTER_LINE_SECONDS));
 
     if (npc.bounty > 0) {
       c.credits += npc.bounty;

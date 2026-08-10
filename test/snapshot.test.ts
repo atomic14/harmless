@@ -353,10 +353,10 @@ console.log('\nsnapshot round trip');
 
   // --- SessionState --------------------------------------------------------
   //
-  // Flat by contract (the check above asserts it), so the round trip is about
-  // completeness: twenty-three fields, of which a hand-written snapshot once
-  // caught five, and `torusEngaged` — a field that changes your speed — was
-  // among the eighteen it missed.
+  // Plain data by contract (the check above asserts it), so the round trip is
+  // about completeness: twenty-three fields, of which a hand-written snapshot
+  // once caught five, and `torusEngaged` — a field that changes your speed —
+  // was among the eighteen it missed.
   {
     const session = freshState(newCommander()).session as unknown as Record<string, unknown>;
     const keys = Object.keys(session);
@@ -368,6 +368,10 @@ console.log('\nsnapshot round trip');
       if (typeof v === 'boolean') session[k] = !v;
       else if (typeof v === 'number') session[k] = v + (n += 1) + 0.5;
       else if (typeof v === 'string') session[k] = `dirty-${k}`;
+      // ...including the one field that is not a scalar: the console lines
+      // waiting their turn (docs/TODO/129). A save taken between the deed and
+      // the line that explains it must still say it on the other side.
+      else if (Array.isArray(v)) session[k] = [{ text: `dirty-${k}`, seconds: (n += 1) }];
     }
     const dirty = structuredClone(session);
     const wireSession = JSON.stringify(serialiseState(session));

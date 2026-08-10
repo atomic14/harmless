@@ -26,9 +26,9 @@ import type { SoundName } from './sounds.ts';
 import { describeContract } from './contract-offers.ts';
 import { MAX_CONTRACTS, PASSENGER_BERTH_TONNES } from '../constants/contracts.ts';
 import {
-  DISREPUTE_CONTRABAND_SALE, DISREPUTE_SHORTED_CONSIGNMENT,
+  CHARACTER_LINE_SECONDS, DISREPUTE_CONTRABAND_SALE, DISREPUTE_SHORTED_CONSIGNMENT,
 } from '../constants/character.ts';
-import { afterDeed } from './character.ts';
+import { afterDeed, characterVerdict } from './character.ts';
 
 
 // --- taking work, and being paid for it -------------------------------------
@@ -69,7 +69,18 @@ export type ContractEvent =
   | { kind: 'billed'; contract: Contract; reclaimed: number; tonnes: number; charged: number }
   | { kind: 'expired'; contract: Contract; reclaimed: number }
   | { kind: 'accepted'; contract: Contract }
-  | { kind: 'refused'; reason: 'tooMuchWork' | 'noHoldSpace' };
+  | { kind: 'refused'; reason: 'tooMuchWork' | 'noHoldSpace' }
+  /**
+   * Settling this lot moved your name onto a new rung of the Character ladder
+   * (docs/TODO/129) — `line` is what to say about it, assembled by
+   * `characterVerdict` rather than written out here.
+   *
+   * ONE per settlement, not one per job: a shorted consignment and a smuggling
+   * run landed in the same breath are one visit to the counter, and the rung
+   * you end on is the only one worth naming. It comes last, so the orchestrator
+   * says it behind the receipts that caused it.
+   */
+  | { kind: 'character'; line: string };
 
 
 /**
@@ -148,6 +159,7 @@ function billShortfall(c: CommanderData, k: Contract, tonnes: number): number {
 export function settleContracts(c: CommanderData): ContractEvent[] {
   const events: ContractEvent[] = [];
   const kept: Contract[] = [];
+  const wasNamed = c.disrepute ?? 0;
   for (const k of c.contracts) {
     const here = k.destination === c.systemIndex;
     const late = c.day > k.deadlineDay;
@@ -187,6 +199,8 @@ export function settleContracts(c: CommanderData): ContractEvent[] {
     kept.push(k);
   }
   c.contracts = kept;
+  const named = characterVerdict(wasNamed, c.disrepute ?? 0);
+  if (named) events.push({ kind: 'character', line: named });
   return events;
 }
 
@@ -239,6 +253,8 @@ export interface ContractMessage {
   text: string;
   seconds: number;
   sound: SoundName | null;
+  /** hold it back until the console is free of the line it explains */
+  queued?: boolean;
 }
 
 /**
@@ -301,6 +317,10 @@ export function contractMessage(e: ContractEvent, systems: StarSystem[]): Contra
         seconds: 3,
         sound: 'refused',
       };
+    case 'character':
+      // No sound: a name changing makes no noise (docs/TODO/129), and the
+      // receipts it follows have already made theirs.
+      return { text: e.line, seconds: CHARACTER_LINE_SECONDS, sound: null, queued: true };
   }
 }
 

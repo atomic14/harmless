@@ -23,7 +23,8 @@ import { type MarketEntry, type StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import { sfx } from '../../audio.ts';
-import { afterDeed } from '../character.ts';
+import { afterDeed, characterVerdict } from '../character.ts';
+import { CHARACTER_LINE_SECONDS } from '../../constants/character.ts';
 import { saleFallout } from '../market.ts';
 
 /** The slice of the Game these screens are allowed to see. */
@@ -39,6 +40,8 @@ export interface TradeContext {
   /** GameState.cheat — fits anything from the catalogue, free, at any tech level */
   readonly cheat: boolean;
   message(text: string, seconds: number): void;
+  /** ...and one said behind the line it explains — see sell() */
+  queueMessage(text: string, seconds: number): void;
   /** word gets around: see sell() */
   addNotoriety(amount: number): void;
   /**
@@ -154,7 +157,13 @@ export class MarketScreen implements Screen {
       // harness (game/market.ts). This screen only applies it.
       const fallout = saleFallout(idx, sold, revenue);
       ctx.addNotoriety(fallout.notoriety);
-      ctx.commander.disrepute = afterDeed(ctx.commander.disrepute ?? 0, fallout.disrepute);
+      const wasNamed = ctx.commander.disrepute ?? 0;
+      ctx.commander.disrepute = afterDeed(wasNamed, fallout.disrepute);
+      // ...and what the counter's own paperwork calls you now, behind the
+      // receipt that caused it (docs/TODO/129). Clean goods cross nothing and
+      // say nothing.
+      const named = characterVerdict(wasNamed, ctx.commander.disrepute);
+      if (named) ctx.queueMessage(named, CHARACTER_LINE_SECONDS);
     } else {
       sfx.refused();
     }

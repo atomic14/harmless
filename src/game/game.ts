@@ -88,7 +88,9 @@ import {
 } from './storage.ts';
 import { MAX_NAMED_SAVES } from '../constants/saves.ts';
 import { type WorldSnapshot } from './snapshot.ts';
-import { showMessage as setMessage, tickBeam, tickMessage } from './session.ts';
+import {
+  showMessage as setMessage, queueMessage, tickBeam, tickMessage,
+} from './session.ts';
 import { Persistence, type PersistenceHost } from './persistence.ts';
 import {
   Station, type DockArrival, type StationHost, type StationEvent,
@@ -151,7 +153,8 @@ import {
   bribeOffered, carryingContraband, inspectionPrice, patrolPrice, patrolReach,
   recordCleared,
 } from './law.ts';
-import { afterDecay } from './character.ts';
+import { afterDecay, characterVerdict } from './character.ts';
+import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
 import {
   hideScreen, renderDockedMenu, renderNewGameConfirm,
   renderGameOver,
@@ -498,6 +501,39 @@ export class Game {
     setMessage(this.state.session, text, seconds);
   }
 
+  /** ...and for one said BEHIND the line that caused it (session.ts). */
+  private queueMessage(text: string, seconds = 3): void {
+    queueMessage(this.state.session, text, seconds);
+  }
+
+  /**
+   * One message event, from whichever module reported it: said now, or said
+   * once the console is free of the line it explains.
+   *
+   * Every `apply*` below routes through here rather than carrying its own copy
+   * of the branch, so a module cannot find that its queued line is honoured
+   * from flight and ignored from the station.
+   */
+  private sayEvent(e: { text: string; seconds: number; queued?: boolean }): void {
+    if (e.queued) this.queueMessage(e.text, e.seconds);
+    else this.showMessage(e.text, e.seconds);
+  }
+
+  /**
+   * Your name changed hands on the ladder — say so, once the deed that moved
+   * it has been read (docs/TODO/129).
+   *
+   * Called with the score either side of a deed or a quiet week; silent unless
+   * a RUNG was crossed, so the hidden number never becomes a running
+   * commentary. `characterVerdict` (character.ts) decides both questions, so
+   * no caller is free to disagree about what counts as a crossing or about
+   * what the line says.
+   */
+  private markName(before: number, after: number): void {
+    const named = characterVerdict(before, after);
+    if (named) this.queueMessage(named, CHARACTER_LINE_SECONDS);
+  }
+
   /**
    * The living galaxy this career inherits: the saved one, or — for a career
    * that has none — a warmed one (docs/TODO/117).
@@ -704,6 +740,7 @@ export class Game {
       atHermit: this.state.session.hermitTrading,
       cheat: this.state.cheat,
       message: (text, seconds) => this.showMessage(text, seconds),
+      queueMessage: (text, seconds) => this.queueMessage(text, seconds),
       addNotoriety: (amount) => this.state.living.addNotoriety(this.state.commander.systemIndex, amount),
       checkpoint: () => { this.persistence.checkpoint(); },
       leaveHermit: () => {
@@ -839,7 +876,7 @@ export class Game {
         continue;
       }
       switch (e.kind) {
-        case 'message': this.showMessage(e.text, e.seconds); break;
+        case 'message': this.sayEvent(e); break;
         case 'persistence':
           if (e.action === 'forgetFlight') this.persistence.forgetFlight();
           else this.persistence.checkpoint();
@@ -1112,7 +1149,7 @@ export class Game {
       const m = contractMessage(e, this.state.systems);
       return [
         ...(m.sound ? [{ kind: 'sound' as const, name: m.sound }] : []),
-        { kind: 'message', text: m.text, seconds: m.seconds },
+        { kind: 'message', text: m.text, seconds: m.seconds, queued: m.queued },
       ];
     });
   }
@@ -1167,9 +1204,12 @@ export class Game {
       return;
     }
     this.state.living.advance(jump.days, COMMODITIES.map((c) => c.gradient));
-    // the galaxy forgets a little on the way — a jump is days of honest distance
-    this.state.commander.disrepute =
-      afterDecay(this.state.commander.disrepute ?? 0, jump.days);
+    // the galaxy forgets a little on the way — a jump is days of honest
+    // distance, and falling back down a rung is the one piece of good news the
+    // character system has, so it is said too (docs/TODO/129)
+    const wasNamed = this.state.commander.disrepute ?? 0;
+    this.state.commander.disrepute = afterDecay(wasNamed, jump.days);
+    this.markName(wasNamed, this.state.commander.disrepute);
     this.state.chart.targetIndex = null;
     this.arriveInSystem();
     this.showMessage(`ARRIVED: ${this.system.name.toUpperCase()}`, 4);
@@ -1311,7 +1351,7 @@ export class Game {
         continue;
       }
       switch (e.kind) {
-        case 'message': this.showMessage(e.text, e.seconds); break;
+        case 'message': this.sayEvent(e); break;
         case 'offence': this.raiseLegal(e.level); break;
         case 'wrecked': if (this.ordnance.targetLock === e.npc) this.ordnance.targetLock = null; break;
         case 'beam': this.aimBeams(e.at); break;
@@ -1347,7 +1387,7 @@ export class Game {
    */
   private applyAutopilot(events: readonly AutopilotEvent[]): void {
     for (const e of events) {
-      if (e.kind === 'message') this.showMessage(e.text, e.seconds);
+      if (e.kind === 'message') this.sayEvent(e);
       else this.playSound(e);
     }
   }
@@ -1411,7 +1451,9 @@ export class Game {
     c.systemIndex = target;
     c.day += 3; // the tow takes a while
     this.state.living.advance(3, COMMODITIES.map((cm) => cm.gradient));
-    c.disrepute = afterDecay(c.disrepute ?? 0, 3);
+    const wasNamed = c.disrepute ?? 0;
+    c.disrepute = afterDecay(wasNamed, 3);
+    this.markName(wasNamed, c.disrepute);
     this.state.chart.targetIndex = null;
     this.state.session.witchspace = false;
     this.arriveInSystem();
@@ -1585,7 +1627,7 @@ export class Game {
    */
   private applyStep(events: readonly StepEvent[]): void {
     for (const e of events) {
-      if (e.kind === 'message') this.showMessage(e.text, e.seconds);
+      if (e.kind === 'message') this.sayEvent(e);
       else if (e.kind !== 'npcFired' && e.kind !== 'playerDealt') this.playSound(e);
     }
   }
@@ -2043,6 +2085,11 @@ export class Game {
       sfx.refused();
       return null;
     }
+    // The name is charged here, so the line that says so is queued here too —
+    // behind whichever of the four answers below the caller puts on the
+    // console. A REFUSAL costs it as well, which is the one case that reads
+    // like a bug until you have read docs/TODO/123: the deed is the asking.
+    this.markName(c.disrepute ?? 0, offer.disrepute);
     c.disrepute = offer.disrepute;
     if (offer.outcome === 'refused') {
       target.state.provokedByPlayer = true;

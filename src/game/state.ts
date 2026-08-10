@@ -131,7 +131,7 @@ export function freshSession(): SessionState {
     energyLowTimer: 0,
     policeScanned: false,
     scanWarnTimer: 0,
-    scanVerdictTimer: 0,
+    queued: [],
     defenceLaunched: false,
     hermitTrading: false,
     hermitCooldown: false,

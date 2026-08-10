@@ -36,7 +36,7 @@ import {
   FLUCTUATIONS, SALE_NOTORIETY_CONTRABAND, SALE_NOTORIETY_MAX, SALE_NOTORIETY_REVENUE,
 } from '../src/constants/market.ts';
 import { MarketScreen, type TradeContext } from '../src/game/screens/trade.ts';
-import { DISREPUTE_CONTRABAND_SALE } from '../src/constants/character.ts';
+import { CHARACTER, DISREPUTE_CONTRABAND_SALE } from '../src/constants/character.ts';
 import { characterName } from '../src/game/character.ts';
 import { LivingGalaxy } from '../src/galaxy/living.ts';
 import { pirateThreat, markOf, memberTier, type Mark } from '../src/game/threat.ts';
@@ -270,6 +270,7 @@ console.log('\nwhat a sale is noticed as');
     const commander = newCommander();
     commander.cargo[DIRTY] = 5;
     let heat = 0;
+    const queued: string[] = [];
     const ctx: TradeContext = {
       commander,
       system: g1[7],
@@ -278,6 +279,7 @@ console.log('\nwhat a sale is noticed as');
       cheat: false,
       leaveHermit: () => {},
       message: () => {},
+      queueMessage: (text) => { queued.push(text); },
       addNotoriety: (amount) => { heat += amount; },
       checkpoint: () => {},
     };
@@ -289,6 +291,19 @@ console.log('\nwhat a sale is noticed as');
     check('the market screen sold the load', commander.cargo[DIRTY] === 0 && heat > 0);
     eq('...and raised exactly the heat the shared rule says', heat, expected.notoriety);
     eq('...and the same mark on the name', commander.disrepute, expected.disrepute);
+    // ...and said nothing about it, because five tonnes of narcotics over one
+    // counter is a nudge that crosses no rung (docs/TODO/129).
+    eq(`a sale inside a rung is silent (${queued.join(' / ')})`, queued.length, 0);
+
+    // ...where one that DOES cross says so, behind the receipt. The score is
+    // set to a point below the next rung rather than to a literal, so the line
+    // is the ladder's answer and not this test's.
+    const nextRung = CHARACTER.find(([t]) => t > (commander.disrepute ?? 0))!;
+    commander.disrepute = nextRung[0] - DISREPUTE_CONTRABAND_SALE;
+    commander.cargo[DIRTY] = 1;
+    screen.sell(1);
+    eq(`the crossing is queued behind the sale (${queued.join(' / ')})`,
+      queued.join(' / '), `CHARACTER: ${nextRung[1].toUpperCase()}`);
   }
 }
 
