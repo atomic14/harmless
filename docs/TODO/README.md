@@ -13,15 +13,15 @@ active context:
 
 ## Execution queue
 
-- [ ] 110 — [Smuggling runs price the scan](110-smuggling-runs-price-the-scan.md)
-      — GitHub #9, second milestone; 109 has landed
+Empty — 110 landed and closed issue #9. `QUEUE.json` agrees. The backlog below
+is in priority order; promoting its head is what makes the next execution item.
 
 ## Backlog
 
+- [ ] 111 — [The chart shows the danger it already reports](111-the-chart-shows-the-danger-it-reports.md)
+      — GitHub #10, first slice; trade-flow follows if it reads well
+- [ ] 93 — [One home for the phosphor](93-one-home-for-the-phosphor.md)
+- [ ] 88 — [The flight readout still quotes two stale words](88-the-readout-still-quotes-two-stale-words.md)
 - [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)
       — deferred by Chris 2026-08-09 ("drop for now"); phase 1 shipped, the
       label stays cosmetic until this is picked back up
-- [ ] 88 — [The flight readout still quotes two stale words](88-the-readout-still-quotes-two-stale-words.md)
-- [ ] 93 — [One home for the phosphor](93-one-home-for-the-phosphor.md)
-- [ ] 111 — [The chart shows the danger it already reports](111-the-chart-shows-the-danger-it-reports.md)
-      — GitHub #10, first slice; trade-flow follows if it reads well

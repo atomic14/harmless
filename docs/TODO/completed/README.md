@@ -74,6 +74,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 92 — [The lead marker assumes every target is a freighter](92-the-lead-marker-assumes-a-freighter.md)
 - [x] 108 — [A pod is not a canister](108-a-pod-is-not-a-canister.md)
 - [x] 109 — [Passenger berths on the board](109-passenger-berths-on-the-board.md)
+- [x] 110 — [Smuggling runs price the scan](110-smuggling-runs-price-the-scan.md)
 
 <!-- append-completed-todos-here -->
 
