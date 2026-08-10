@@ -13,20 +13,17 @@ active context:
 
 ## Execution queue
 
-Empty — 88 landed: `NpcState.flownBy` is now cleared at the top of every
-`update()` and stamped by whichever flight actually moves the ship, so the
-readout names the flight rather than the branch. An armed trader fighting from
-inside the `fleeing` branch reads its attack run, `fleeing` belongs to the
-unarmed one running from it, and a ship flying no combat flight reads
-`not fighting` instead of the `closing` its constructor set. `QUEUE.json`
-agrees. The backlog below is in priority order; promoting its head is what makes
-the next execution item.
+1. [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)
+       — phase 2 of Character, un-deferred by Chris 2026-08-10 and re-planned
+       with his three decisions in it: the outlaw path gets its carrots,
+       disrepute folds into the pirates' "how you're seen" channel, and the
+       hermit refusal is binary. Four milestones; **M1 has landed** (one home
+       for what a sale does to your name, and the campaign now prints the
+       character it was blind to). M2 is the `Mark`, M3 the hermit's door,
+       M4 the balance re-read. `QUEUE.json` agrees.
 
 ## Backlog
 
-- [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)
-      — deferred by Chris 2026-08-09 ("drop for now"); phase 1 shipped, the
-      label stays cosmetic until this is picked back up
 - [ ] 118 — The bloom and the pixel-ratio clamp are still written out twice
       — `(0.55, 0.5, 0.15)` and `min(devicePixelRatio, 2)` are byte-identical
       in `engine/render-stack.ts` and `viewer/stage.ts` (the clamp again in

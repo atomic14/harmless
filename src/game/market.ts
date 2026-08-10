@@ -24,7 +24,12 @@ import {
   COMMODITIES, generateMarket, type StarSystem, type MarketEntry,
 } from '../galaxy/galaxy.ts';
 import { randomInt } from './rng.ts';
-import { FLUCTUATIONS } from '../constants/market.ts';
+import { isContraband } from './law.ts';
+import {
+  FLUCTUATIONS, SALE_NOTORIETY_CONTRABAND, SALE_NOTORIETY_MAX,
+  SALE_NOTORIETY_REVENUE,
+} from '../constants/market.ts';
+import { DISREPUTE_CONTRABAND_SALE } from '../constants/character.ts';
 import {
   HERMIT_ORE, HERMIT_ORE_GLUT, HERMIT_ORE_PRICE, HERMIT_SUPPLIES,
   HERMIT_SUPPLY_PRICE,
@@ -70,6 +75,42 @@ export function makeLocalMarket(
     // exactly the save-scum this game now has to be robust to
     generateMarket(system, randomInt(FLUCTUATIONS)),
     priceMultiplier);
+}
+
+/** What one sale over a counter costs you in reputation. */
+export interface SaleFallout {
+  /** heat to add HERE — `LivingGalaxy.addNotoriety` spreads it to the neighbours */
+  notoriety: number;
+  /** what it adds to the commander's disrepute; 0 for legal goods */
+  disrepute: number;
+}
+
+/**
+ * Word gets around. A big payday — or any quantity of contraband — makes you
+ * worth watching for, here and in the systems within a jump, which is why
+ * smuggling raises the temperature of your *next* arrival. Dealing in
+ * contraband marks your NAME as well as the region: a dirty sale is a dirty
+ * sale however small, and unlike the heat it does not fade in a week
+ * (game/character.ts).
+ *
+ * One home for both halves, because it had two: the game applied this in
+ * screens/trade.ts and the campaign harness in a hand-written copy that had
+ * the heat and had silently dropped the disrepute. Nothing read `disrepute`
+ * then, so the divergence cost nothing; docs/TODO/96 makes it drive the pirate
+ * reception, at which point the instrument measuring that balance would have
+ * been reading a cleaner commander than the game ships. Invariant 10.
+ *
+ * `revenue` is in tenths of a credit, like all money here (invariant 8).
+ */
+export function saleFallout(
+  commodity: number, tonnes: number, revenue: number,
+): SaleFallout {
+  const contraband = isContraband(commodity);
+  return {
+    notoriety: Math.min(SALE_NOTORIETY_MAX, revenue / SALE_NOTORIETY_REVENUE
+      + (contraband ? tonnes * SALE_NOTORIETY_CONTRABAND : 0)),
+    disrepute: contraband ? DISREPUTE_CONTRABAND_SALE : 0,
+  };
 }
 
 /**

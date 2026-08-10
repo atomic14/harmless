@@ -28,8 +28,12 @@ import {
   FUGITIVE_FINE,
 } from '../src/constants/law.ts';
 import { generateGalaxy, generateMarket, COMMODITIES } from '../src/galaxy/galaxy.ts';
-import { hermitMarket, marketEstimate } from '../src/game/market.ts';
-import { FLUCTUATIONS } from '../src/constants/market.ts';
+import { hermitMarket, marketEstimate, saleFallout } from '../src/game/market.ts';
+import {
+  FLUCTUATIONS, SALE_NOTORIETY_CONTRABAND, SALE_NOTORIETY_MAX, SALE_NOTORIETY_REVENUE,
+} from '../src/constants/market.ts';
+import { MarketScreen, type TradeContext } from '../src/game/screens/trade.ts';
+import { DISREPUTE_CONTRABAND_SALE } from '../src/constants/character.ts';
 import { LivingGalaxy } from '../src/galaxy/living.ts';
 import { pirateThreat, markOf, memberTier, type Mark } from '../src/game/threat.ts';
 import { CHALLENGE_RATE, PRIZE_SATURATION } from '../src/constants/threat.ts';
@@ -156,6 +160,80 @@ console.log('\nrock hermit prices');
     base.every((m, i) => touched.has(m.name)
       || (hermit[i].price === m.price && hermit[i].quantity === m.quantity)));
   check('a hermit sells ore below the station price', hermit[12].price < base[12].price);
+}
+
+// --- what a sale is noticed as ----------------------------------------------
+//
+// `saleFallout` is one home for a rule that had two: the market screen applied
+// it and test/campaign.ts held a hand-written copy that had dropped the
+// disrepute half (docs/TODO/96, M1). Each number below is solved back OUT of
+// the real function and compared to the constant, which a probe at the constant
+// itself could never fail — and the last pair drives the SCREEN, so a rule
+// re-inlined at the call site fails here rather than in a playtest.
+
+console.log('\nwhat a sale is noticed as');
+{
+  const LEGAL = 0; // Food
+  const DIRTY = 6; // Narcotics
+  check('the fixtures are what this block assumes',
+    !isContraband(LEGAL) && isContraband(DIRTY));
+
+  // The takings term: with a legal commodity there is nothing else in the
+  // number, so notoriety × SALE_NOTORIETY_REVENUE IS the revenue.
+  eq('a legal sale is talked about for its takings alone',
+    saleFallout(LEGAL, 3, 1234).notoriety * SALE_NOTORIETY_REVENUE, 1234);
+  eq('...and leaves no mark on the name', saleFallout(LEGAL, 3, 1234).disrepute, 0);
+
+  // The contraband term, with the takings zeroed so only tonnage is left.
+  check(`each tonne of contraband adds SALE_NOTORIETY_CONTRABAND (${SALE_NOTORIETY_CONTRABAND})`,
+    [1, 3, 10].every((t) =>
+      Math.abs(saleFallout(DIRTY, t, 0).notoriety / t - SALE_NOTORIETY_CONTRABAND) < 1e-12));
+
+  // The cap, bisected: the smallest revenue at which one sale stops raising
+  // heat is exactly the cap divided by the takings rate.
+  let lo = 0;
+  let hi = 1 << 26;
+  while (lo + 1 < hi) {
+    const mid = (lo + hi) >> 1;
+    if (saleFallout(LEGAL, 0, mid).notoriety >= SALE_NOTORIETY_MAX) hi = mid;
+    else lo = mid;
+  }
+  eq('one sale is capped at SALE_NOTORIETY_MAX of the heat bar',
+    hi, SALE_NOTORIETY_MAX * SALE_NOTORIETY_REVENUE);
+
+  // A dirty sale is a dirty sale however small: the heat scales with the load,
+  // the mark on the NAME does not.
+  check('the mark on the name does not scale with the tonnage',
+    [1, 5, 30].every((t) =>
+      saleFallout(DIRTY, t, 100 * t).disrepute === DISREPUTE_CONTRABAND_SALE));
+
+  // ...and the screen the player actually sells through applies that rule
+  // rather than a copy of it. Revenue is read off the credits the sale paid,
+  // so nothing here re-derives a price.
+  {
+    const commander = newCommander();
+    commander.cargo[DIRTY] = 5;
+    let heat = 0;
+    const ctx: TradeContext = {
+      commander,
+      system: g1[7],
+      market: generateMarket(g1[7], 0),
+      atHermit: false,
+      cheat: false,
+      leaveHermit: () => {},
+      message: () => {},
+      addNotoriety: (amount) => { heat += amount; },
+      checkpoint: () => {},
+    };
+    const screen = new MarketScreen(() => ctx);
+    screen.selected = DIRTY;
+    const before = commander.credits;
+    screen.sell(5);
+    const expected = saleFallout(DIRTY, 5, commander.credits - before);
+    check('the market screen sold the load', commander.cargo[DIRTY] === 0 && heat > 0);
+    eq('...and raised exactly the heat the shared rule says', heat, expected.notoriety);
+    eq('...and the same mark on the name', commander.disrepute, expected.disrepute);
+  }
 }
 
 // --- who's worth robbing ----------------------------------------------------

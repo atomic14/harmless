@@ -19,7 +19,8 @@ import { generateGalaxy, generateMarket, COMMODITIES, type StarSystem } from '..
 import { LivingGalaxy, prewarm } from '../src/galaxy/living.ts';
 import { generateContractOffers, chartDistanceTenths } from '../src/game/contract-offers.ts';
 import { settleContracts, acceptContract } from '../src/game/contracts.ts';
-import { applyMarketPressure, marketEstimate } from '../src/game/market.ts';
+import { applyMarketPressure, marketEstimate, saleFallout } from '../src/game/market.ts';
+import { afterDeed, characterName } from '../src/game/character.ts';
 import { MAX_CONTRACTS, SMUGGLE_DELIVERY_NOTORIETY } from '../src/constants/contracts.ts';
 import { pirateThreat, markOf, memberTier } from '../src/game/threat.ts';
 import {
@@ -126,6 +127,10 @@ interface CareerResult {
   bands: BandTally[];
   /** mean "worth robbing" score across the career */
   appeal: number;
+  /** mean disrepute at the moment each reception was sized */
+  disrepute: number;
+  /** the worst the name ever got — decay means the final score understates it */
+  peakDisrepute: number;
   /**
    * The Navy mission's signposting question (TODO 29): the leg her 16th kill
    * landed on, what she was worth then, whether she had already docked at a
@@ -180,6 +185,13 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
   let firstUpgradeLeg: number | null = null;
   let bankruptAtLeg: number | null = null;
   let peakCredits = c.credits;
+  // Your NAME, sampled where it is spent: at the reception. A career's peak
+  // matters as much as its mean because disrepute decays between jumps — an
+  // end-of-career reading would say Honest of a commander who spent forty legs
+  // Dodgy (game/character.ts, docs/TODO/96).
+  let disreputeSum = 0;
+  let disreputeSamples = 0;
+  let peakDisrepute = 0;
   let legs = 0;
   const tierSeen: [number, number, number] = [0, 0, 0];
   const bands: BandTally[] = [freshBand(), freshBand(), freshBand()];
@@ -274,10 +286,12 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
       }
       c.credits += revenue;
       if (sold > 0) {
-        // same rule as game.ts sellCargo: word gets around
-        const contraband = isContraband(i);
-        living.addNotoriety(c.systemIndex,
-          Math.min(0.5, revenue / 40_000 + (contraband ? sold * 0.04 : 0)));
+        // The GAME's rule, not a transcription of it: `saleFallout` is what
+        // screens/trade.ts applies too, heat AND the mark on the name. The
+        // hand-written copy here had the heat and had lost the disrepute.
+        const fallout = saleFallout(i, sold, revenue);
+        living.addNotoriety(c.systemIndex, fallout.notoriety);
+        c.disrepute = afterDeed(c.disrepute ?? 0, fallout.disrepute);
       }
     }
 
@@ -428,6 +442,9 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
 
     // --- what happens on the way in ---
     const danger = living.danger(dest);
+    disreputeSum += c.disrepute ?? 0;
+    disreputeSamples += 1;
+    peakDisrepute = Math.max(peakDisrepute, c.disrepute ?? 0);
     const threat = pirateThreat(destSys, danger, markOf(c, living.notoriety(dest)), rng);
     const band = bands[bandOf(legs - 1, LEGS)];
     tierSeen[threat.tier] += 1;
@@ -513,6 +530,8 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
     tl10SeenByMission: tl10SeenAtMission,
     militaryAtMission,
     appeal: appealSum / Math.max(1, appealCount),
+    disrepute: disreputeSum / Math.max(1, disreputeSamples),
+    peakDisrepute,
     milestones,
     day: c.day,
     legs,
@@ -746,6 +765,18 @@ function report(label: string, careers: CareerResult[], strategy: Strategy): voi
   console.log(`COMBAT   ${num(careers.map((r) => r.kills)).toFixed(1)} kills · ` +
     `${num(careers.map((r) => r.cargoLost)).toFixed(1)}t cargo lost to pirates per career`);
   console.log(`RATING   median ${rating(Math.round(median(careers.map((r) => r.combatScore))))}`);
+  {
+    // What the pirates were reading off the name when they sized each
+    // reception (docs/TODO/96). If this is flat zero the cohort never earns a
+    // reputation and no character-driven balance change is visible to this
+    // instrument — that is a fact about the strategy, and it has to be on the
+    // page rather than assumed either way.
+    const peak = median(careers.map((r) => r.peakDisrepute));
+    console.log(`CHARACTER mean disrepute at reception `
+      + `${num(careers.map((r) => r.disrepute)).toFixed(1)} · `
+      + `median career peak ${peak.toFixed(1)} (${characterName(peak)}) · `
+      + `worst ${Math.max(...careers.map((r) => r.peakDisrepute)).toFixed(1)}`);
+  }
 
   // equipment progression
   const kitCounts = new Map<string, number>();
