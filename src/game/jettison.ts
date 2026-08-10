@@ -93,6 +93,21 @@ export function dumpContraband(cargo: number[], tonnes: number): Dumped {
   return dumpBest(cargo, tonnes, CONTRABAND);
 }
 
+/**
+ * Is there anything at all for `dumpCargo` to reach?
+ *
+ * The dump key's own precondition, as a predicate, because the cockpit now asks
+ * it before the key is pressed rather than after: `game/prompts.ts` only offers
+ * JETTISON to a pirate when there is a tonne to throw, and a prompt for a key
+ * that answers HOLD EMPTY is worse than silence. Deliberately every slot rather
+ * than `cargoTonnes`, which counts passenger berths and skips the units sold by
+ * weight — `dumpBest` reaches any slot with something in it, and this is that
+ * same question asked without mutating the hold.
+ */
+export function holdHasCargo(cargo: readonly number[]): boolean {
+  return cargo.some((qty) => qty > 0);
+}
+
 /** What it takes to buy off one pirate. */
 export function appetiteOf(organised: boolean, arrivalCargoValue: number): number {
   return Math.max(

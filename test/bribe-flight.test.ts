@@ -262,8 +262,13 @@ console.log('\n...and the cockpit says so while the window is open');
   fly(1);
   const offered = g.keyPrompts();
   check(`the cockpit offers both answers (${offered.join(' \u00b7 ') || 'nothing'})`,
-    offered.length === 2 && offered[0] === `L PAY ${formatCredits(inspectionPrice(c.cargo))}`
+    offered.length === 2
+    && offered[0].startsWith(`L PAY ${formatCredits(inspectionPrice(c.cargo))}`)
     && offered[1].startsWith('O '));
+  // ...and the money is only half of what it will cost him \u2014 see
+  // test/prompts.test.ts, which holds that claim against DISREPUTE_BRIBE.
+  check('...and the offer names the name it will spend',
+    offered[0].endsWith('AND YOUR NAME'));
 
   nextOffer('taken');
   g.bribePolice();

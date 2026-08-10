@@ -45,7 +45,6 @@ export interface SessionState {
   genShipSeen: boolean;
   trumbleTimer: number;
   beaconTimer: number;
-  strandedHintTimer: number;
   paused: boolean;
   /**
    * 0 front, 1 rear, 2 left, 3 right. NOT a camera setting: laserForView()

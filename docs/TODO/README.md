@@ -61,12 +61,16 @@ the worse your name already is.
    do about what is happening right now, priced — `L PAY 141.0 Cr` — for every
    moment a key is the answer. It carries a `Command`, never a letter: the
    label comes from the binding table, which also fixes the two messages that
-   hand-write one today (`world-step.ts:550`, `game.ts:611`) and lie the moment
-   anything is rebound. First, at Chris's call: a feature nothing points at is a
-   feature nobody finds. **M1 landed** (`3537e4a`): the closing patrol's two
-   answers, priced from the functions the keys actually charge. M2 (the other
-   five moments, and the prompt naming the name as well as the money) and M3
-   (the scan that bans a hard-coded key in a message) remain.
+   hand-write one today and lie the moment anything is rebound. First, at
+   Chris's call: a feature nothing points at is a feature nobody finds. **M1
+   landed** (`3537e4a`): the closing patrol's two answers, priced from the
+   functions the keys actually charge. **M2 landed**: the other five moments —
+   the E.C.M., the pirate's tonne, the beacon and the docking computer, each
+   gated on the refusal the key itself would give — and both bribes now name the
+   name as well as the money, because `DISREPUTE_BRIBE` is non-zero rather than
+   because a string says so. `NO FUEL TO JUMP — PRESS B` is deleted, and the
+   hint cadence it needed with it. M3 (the scan that bans a hard-coded key in a
+   message; `game.ts:611` is the last one) remains.
 2. [ ] [129 — your name changes and nothing says so](129-your-name-changes-in-silence.md)
    · no issue — asked by Chris · feature, small. Seven deeds move `disrepute`
    and the only surface for the result is the word on the status screen, so a

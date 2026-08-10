@@ -41,13 +41,9 @@ export const THARGOID_AMBUSH_RANGE = 3500;
 /** ...and the width of that band, so they do not all arrive at one distance. */
 export const THARGOID_AMBUSH_RANGE_SPAN = 2500;
 
-/**
- * Seconds before the console first suggests the distress beacon, once stranded
- * (in witch-space with less fuel than `WITCHSPACE_ESCAPE_COST`, no beacon). The
- * first hint comes quickly; repeats come slowly (`STRANDED_HINT_REPEAT`). Timer
- * counts down only while actually stranded.
- */
-export const STRANDED_HINT_FIRST = 2;
-
-/** ...and seconds between repeats of the same hint thereafter. */
-export const STRANDED_HINT_REPEAT = 8;
+// What used to end this file — STRANDED_HINT_FIRST and STRANDED_HINT_REPEAT,
+// the cadence of a console message that told you to press B — went with the
+// message (docs/TODO/128). Being stranded is a situation, not an event: the
+// cockpit's prompt line now carries the offer for as long as it is true, so
+// there is no repeat to time and no letter to hard-code. The condition itself
+// (`WITCHSPACE_ESCAPE_COST` in the tank) is `game/prompts.ts`.

@@ -88,12 +88,12 @@ already computed somewhere and a phrase.
 
 | when | prompt |
 | --- | --- |
-| patrol in 122's band, dirty hold | `L PAY 141.0 Cr` · `O DUMP EVIDENCE` |
-| police engaging you | `L PAY 300.0 Cr TO BREAK OFF` |
+| patrol in 122's band, dirty hold | `L PAY 141.0 Cr AND YOUR NAME` · `O DUMP THE EVIDENCE` |
+| police engaging you | `L PAY 100.0 Cr AND YOUR NAME TO BREAK OFF` |
 | pirates engaging, cargo aboard | `Y JETTISON A TONNE` |
 | hostile missile in the air | `E FIRE E.C.M.` (only if fitted) |
-| stranded in witch-space, no fuel | `B DISTRESS BEACON` |
-| station in scanner range | `C DOCKING COMPUTER` (only if fitted) |
+| stranded in witch-space, no fuel | `B DISTRESS BEACON — NO FUEL TO JUMP` |
+| station in docking-computer range | `C DOCKING COMPUTER` (only if fitted) |
 
 Every one is gated on the equipment actually being aboard: a prompt for a key
 that will answer `NOT FITTED` is worse than silence.
@@ -178,3 +178,29 @@ milestone that the line appears and clears with the situation.
 - Prove the gates can fail: drop the `policeScanned` guard (prompts survive a
   scan that has already happened), and hard-code a letter (M3's scan fires).
 - `npm run check` at the end of each milestone; commit per milestone.
+
+## Where we are now
+
+**M1 landed** (`3537e4a`): the rule module, the prompt line, and the closing
+patrol's two answers.
+
+**M2 landed**: the other five moments and the second cost.
+
+- The E.C.M., the pirate's tonne, the beacon and the docking computer, each
+  gated on the refusals the key itself would give — `triggerEcm`'s two, an empty
+  hold, a beacon already broadcasting, `DOCK_COMPUTER_RANGE`.
+- Both bribe prompts name the name, and say it because `DISREPUTE_BRIBE` is
+  non-zero rather than as a fixed phrase.
+- `NO FUEL TO JUMP — PRESS B FOR THE DISTRESS BEACON` is **deleted**, and with
+  it `strandedHintTimer` and the `STRANDED_HINT_FIRST`/`_REPEAT` pair: being
+  stranded is a situation, so there is no repeat to time. The fuel threshold
+  that test/world-step.test.ts bisected out of that message is bisected out of
+  the prompt in test/prompts.test.ts instead.
+- The ranking is now doing work and the cap bites: a warhead outranks a Viper
+  outranks a leisurely docking aid, and three-at-once is asserted with its
+  control.
+
+**M3 remains**: the source scan that no message string in `src/game/` names a
+key. Its one known offender is `game.ts:611`, `PRESS ? FOR CONTROLS — …
+(B TO SWITCH)`, which the composition root can render from `boundKey` since it
+already imports it.

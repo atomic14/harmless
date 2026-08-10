@@ -2166,6 +2166,15 @@ export class Game {
       npcs: this.state.world.npcs,
       policeScanned: this.state.session.policeScanned,
       witchspace: this.state.session.witchspace,
+      energy: this.state.sys.energy,
+      missileInbound: this.ordnance.missileInbound,
+      // `>= 0` is `sendDistressBeacon`'s own reading of the timer, a few methods
+      // up: a beacon already broadcasting is what that key refuses, and this is
+      // the prompt for that key.
+      beaconSent: this.state.session.beaconTimer >= 0,
+      stationDistance: this.state.player.position
+        .distanceTo(this.state.world.station.position),
+      dcEngaged: this.state.session.dcEngaged,
     }).flatMap((p) => {
       // `keyIfBound`, not `boundKey`: the arena's table subtracts eight of the
       // cockpit's commands, so an unbound one here is an ordinary answer — the

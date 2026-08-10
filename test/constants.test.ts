@@ -584,6 +584,19 @@ const OUTSIDE: readonly Group[] = [
       'world/sun.ts': ALL,
     },
   },
+
+  {
+    why: 'STAYS: player-facing WORDS, and a derivation rather than a value —'
+      + ' `DISREPUTE_BRIBE > 0 ? " AND YOUR NAME" : ""`. The rule it reports lives in'
+      + ' constants/character.ts and this is the phrase a prompt appends when that'
+      + ' rule costs anything (docs/TODO/128). Moving the string into src/constants/'
+      + ' would put prose in the rules directory and split one sentence across two'
+      + ' files; leaving it here is what lets retuning the deed to nothing silence the'
+      + ' claim automatically',
+    files: {
+      'game/prompts.ts': ['NAME_COST'],
+    },
+  },
 ];
 
 // --- the scan ----------------------------------------------------------------

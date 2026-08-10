@@ -28,11 +28,16 @@
 import type * as THREE from 'three';
 import type { Command } from './controls.ts';
 import { formatCredits, type CommanderData } from './commander.ts';
+import { holdHasCargo } from './jettison.ts';
 import {
   carryingContraband, inspectionPrice, patrolPrice, patrolReach,
 } from './law.ts';
 import { nearestEngaging, nearestNpc, type NpcShip } from './npc.ts';
 import { PROMPT_LIMIT } from '../constants/console.ts';
+import { DISREPUTE_BRIBE } from '../constants/character.ts';
+import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
+import { WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
+import { ECM_ENERGY_COST } from '../constants/ordnance.ts';
 
 /** One thing worth pressing, and what it does about this. */
 export interface Prompt {
@@ -59,7 +64,30 @@ export interface PromptWorld {
   /** already read your hold this visit — `SessionState.policeScanned` */
   readonly policeScanned: boolean;
   readonly witchspace: boolean;
+  /** the energy bank, because the E.C.M. refuses a burst it cannot pay for */
+  readonly energy: number;
+  /** a hostile warhead is homing on you — `Ordnance.missileInbound` */
+  readonly missileInbound: boolean;
+  /** the beacon is already broadcasting, so there is nothing left to send */
+  readonly beaconSent: boolean;
+  /** how far off the station is; in witch-space it is banished out of reach */
+  readonly stationDistance: number;
+  /** the docking computer is already flying — `SessionState.dcEngaged` */
+  readonly dcEngaged: boolean;
 }
+
+/**
+ * What a bribe costs besides the money, when it costs anything.
+ *
+ * Every offer moves `disrepute` by `DISREPUTE_BRIBE` whether he takes it or
+ * turns you in (law.ts), and until now the console only said so AFTER the key
+ * was pressed. The design of that feature is that the credits are not the
+ * expensive half, so the prompt says it first.
+ *
+ * Read off the constant rather than written as a fixed phrase: retune the deed
+ * to nothing and the prompt stops claiming a price the law no longer charges.
+ */
+const NAME_COST = DISREPUTE_BRIBE > 0 ? ' AND YOUR NAME' : '';
 
 /**
  * What the cockpit should offer, most urgent first, capped at `PROMPT_LIMIT`.
@@ -73,23 +101,63 @@ export function flightPrompts(w: PromptWorld): Prompt[] {
   const out: Prompt[] = [];
   const c = w.commander;
 
+  // A warhead already in the air. First of everything, because it is the only
+  // problem on this list measured in seconds — and gated on both of the
+  // E.C.M.'s own refusals (`triggerEcm`): no unit fitted, or a bank too flat to
+  // fire it, and the cockpit has nothing to offer.
+  if (w.missileInbound && c.equipment.ecm && w.energy > ECM_ENERGY_COST) {
+    out.push({ command: 'fireEcm', what: 'FIRE E.C.M.' });
+  }
+
   // A policeman already shooting: the most expensive problem in the game that
   // money can still answer. Priced off the rung you are on (`patrolPrice`), so
   // the line says what pressing the key will actually cost.
-  if (nearestEngaging(w.npcs, w.playerPos, c.legalStatus, 'police')) {
+  const hunter = nearestEngaging(w.npcs, w.playerPos, c.legalStatus, 'police');
+  if (hunter) {
     out.push({
       command: 'bribePolice',
-      what: `PAY ${formatCredits(patrolPrice(c.legalStatus))} TO BREAK OFF`,
+      what: `PAY ${formatCredits(patrolPrice(c.legalStatus))}${NAME_COST} TO BREAK OFF`,
     });
-  } else if (!w.policeScanned && !w.witchspace && carryingContraband(c.cargo)
+  }
+
+  // Pirates came for the cargo, not for you, and a tonne over the side is what
+  // makes an opportunist break off (jettison.ts). Below the fight the law is
+  // in, because a Viper you have not paid keeps shooting whatever you dump.
+  if (nearestEngaging(w.npcs, w.playerPos, c.legalStatus, 'pirate')
+    && holdHasCargo(c.cargo)) {
+    out.push({ command: 'jettison1', what: 'JETTISON A TONNE' });
+  }
+
+  // 122's window, and both answers to it — the order is what each costs: the
+  // money first, because the tonne is gone for good and the credits are not.
+  //
+  // `!hunter` for the same reason the key itself takes the fight first
+  // (game.ts, `bribePolice`): one press buys ONE ship, so offering the
+  // inspection price beside a Viper that is shooting would quote a figure L
+  // will not charge.
+  if (!hunter && !w.policeScanned && !w.witchspace && carryingContraband(c.cargo)
     && inPatrolBand(w)) {
-    // 122's window, and both answers to it — the order is what each costs: the
-    // money first, because the tonne is gone for good and the credits are not.
     out.push({
       command: 'bribePolice',
-      what: `PAY ${formatCredits(inspectionPrice(c.cargo))}`,
+      what: `PAY ${formatCredits(inspectionPrice(c.cargo))}${NAME_COST}`,
     });
     out.push({ command: 'jettisonContraband', what: 'DUMP THE EVIDENCE' });
+  }
+
+  // Stranded in witch-space: nothing is chasing the clock, but nothing else is
+  // going to happen either, so it sits below anything that is shooting. This is
+  // the one home of "stranded" now — the world step used to say it in a message
+  // with the letter B written into the words.
+  if (w.witchspace && c.fuel < WITCHSPACE_ESCAPE_COST && !w.beaconSent) {
+    out.push({ command: 'distressBeacon', what: 'DISTRESS BEACON — NO FUEL TO JUMP' });
+  }
+
+  // ...and last, the only one that is not about trouble: the aid you paid for,
+  // offered exactly where `toggleDocking` would accept the job rather than at a
+  // range of this file's own.
+  if (c.equipment.dockingComputer && !w.dcEngaged
+    && w.stationDistance <= DOCK_COMPUTER_RANGE) {
+    out.push({ command: 'toggleDockingComputer', what: 'DOCKING COMPUTER' });
   }
 
   return out.slice(0, PROMPT_LIMIT);

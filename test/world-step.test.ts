@@ -46,10 +46,7 @@ import {
   TORUS_MULTIPLIER, MASS_LOCK_STATION, MASS_LOCK_PLANET_ALTITUDE, MASS_LOCK_SHIP,
 } from '../src/constants/torus.ts';
 import { PLANET_CRASH_ALTITUDE, WITCHPOINT_RADII } from '../src/constants/planet.ts';
-import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../src/constants/jump.ts';
-import {
-  STRANDED_HINT_FIRST, STRANDED_HINT_REPEAT,
-} from '../src/constants/witchspace.ts';
+import { COUNTDOWN } from '../src/constants/jump.ts';
 import {
   CLEAN, CONTRABAND, FUGITIVE, LEGAL_NAMES, OFFENDER, SCAN_LINE_SECONDS,
   SCAN_RANGE, SCAN_WARN_RANGE, SCAN_WARN_REPEAT,
@@ -1019,53 +1016,11 @@ console.log('\nheadless world step');
       Math.abs(lo - PLANET_CRASH_ALTITUDE) < 1e-2 && dies(1) && !dies(10_000));
   }
 
-  // "Enough fuel to jump clear" is `WITCHSPACE_ESCAPE_COST`, and the step's
-  // stranded hint is one of the three places that decided it independently.
-  {
-    const stranded = (fuel: number): boolean => {
-      const run = arrival(4249);
-      run.state.session.witchspace = true;
-      run.state.commander.fuel = fuel;
-      return fly(run, 60 * 3).some((e) =>
-        e.kind === 'message' && e.text.startsWith('NO FUEL TO JUMP'));
-    };
-    // Bisected rather than probed at the constant, for the same reason as the
-    // mass lock above: the threshold the step actually has is the thing worth
-    // comparing to the constant, and `COST - 1` would pass whatever both said.
-    let lo = 0, hi = 40;
-    while (hi - lo > 1e-3) {
-      const mid = (lo + hi) / 2;
-      if (stranded(mid)) lo = mid; else hi = mid;
-    }
-    check('the tank the beacon starts being offered below is exactly what an'
-      + ` escape costs (measured ${hi.toFixed(3)})`,
-    Math.abs(hi - WITCHSPACE_ESCAPE_COST) < 1e-2
-      && stranded(0) && !stranded(WITCHSPACE_ESCAPE_COST * 4));
-  }
-
-  // ...and the hint's CADENCE is the 2/8 pair the survey flagged
-  // (constants/witchspace.ts): the first nudge comes quickly, the repeats
-  // slowly. Solved out of the message times in one stranded run, so a
-  // re-inlined 2 in state.ts or 8 in world-step.ts goes red either way.
-  {
-    const run = arrival(4250);
-    run.state.session.witchspace = true;
-    run.state.commander.fuel = 0;
-    const at: number[] = [];
-    for (let i = 0; i < 60 * 20 && at.length < 3; i++) {
-      const events = run.step.step(1 / 60, i / 60,
-        { demand: { rollRate: 0, pitchRate: 0, throttle: 0, fire: false }, handsOn: false });
-      if (events.some((e) => e.kind === 'message' && e.text.startsWith('NO FUEL TO JUMP'))) {
-        at.push((i + 1) / 60);
-      }
-    }
-    check(`the first stranded hint lands after STRANDED_HINT_FIRST (${at[0]?.toFixed(2)}s)`,
-      at.length === 3 && Math.abs(at[0] - STRANDED_HINT_FIRST) < 2 / 60);
-    check('...and every repeat after STRANDED_HINT_REPEAT '
-      + `(${(at[1] - at[0]).toFixed(2)}s, ${(at[2] - at[1]).toFixed(2)}s)`,
-    Math.abs(at[1] - at[0] - STRANDED_HINT_REPEAT) < 2 / 60
-      && Math.abs(at[2] - at[1] - STRANDED_HINT_REPEAT) < 2 / 60);
-  }
+  // The step no longer says anything about being stranded: the fuel threshold
+  // that used to be measured here — and the 2/8 cadence of the hint that
+  // carried it — went with `NO FUEL TO JUMP — PRESS B` (docs/TODO/128). Both
+  // claims moved intact to test/prompts.test.ts, where the same
+  // `WITCHSPACE_ESCAPE_COST` is bisected out of the cockpit's prompt instead.
 
   // --- ...and it SAVES without a browser -------------------------------------
   //

@@ -49,7 +49,6 @@ import { BOUNCE_STANDOFF } from '../constants/station.ts';
 import { regenerate, updateCabinTemp, scoopFuel, energyLow } from './systems.ts';
 import { SUN_KILL_DIST } from '../constants/sun.ts';
 import { PLANET_CRASH_ALTITUDE } from '../constants/planet.ts';
-import { WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
 import {
   TORUS_MULTIPLIER, MASS_LOCK_STATION, MASS_LOCK_PLANET_ALTITUDE, MASS_LOCK_SHIP,
 } from '../constants/torus.ts';
@@ -67,7 +66,6 @@ import type { SoundEvent, SoundName } from './sounds.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
 import type { GameState } from './state.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
-import { STRANDED_HINT_REPEAT } from '../constants/witchspace.ts';
 
 /** the origin, for `lookAt` — scratch that must never be written to */
 const ZERO = new THREE.Vector3();
@@ -539,16 +537,14 @@ export class WorldStep {
     if (s.ecmDetectedTimer > 0) s.ecmDetectedTimer -= dt;
     this.updateTrumbles(dt, out);
 
+    // The tow, once it has been called for. What used to sit on the other side
+    // of this branch — a repeating NO FUEL TO JUMP — PRESS B hint — is now a
+    // cockpit prompt (`game/prompts.ts`, docs/TODO/128): being stranded is a
+    // situation, not an event, and the letter B belonged to the binding table
+    // rather than to a string in here.
     if (session.beaconTimer > 0) {
       session.beaconTimer -= dt;
       if (session.beaconTimer <= 0) this.host.completeRescue();
-    } else if (session.witchspace && commander.fuel < WITCHSPACE_ESCAPE_COST
-      && session.beaconTimer < 0) {
-      session.strandedHintTimer -= dt;
-      if (session.strandedHintTimer <= 0) {
-        session.strandedHintTimer = STRANDED_HINT_REPEAT;
-        out.push(say('NO FUEL TO JUMP — PRESS B FOR THE DISTRESS BEACON', 5));
-      }
     }
 
     // flashing low-energy warning — `energyLow` and nothing else, so the console

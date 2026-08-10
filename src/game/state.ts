@@ -35,7 +35,6 @@ import { LivingGalaxy } from '../galaxy/living.ts';
 import { SHIPPED_BRAINS, type BrainSelection } from './brain-names.ts';
 import { BREED_INTERVAL } from '../constants/trumbles.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
-import { STRANDED_HINT_FIRST } from '../constants/witchspace.ts';
 
 export interface GameState {
   // --- where and who ------------------------------------------------------
@@ -142,7 +141,6 @@ export function freshSession(): SessionState {
     // a fresh infestation is one full brood away, the same clock it breeds on
     trumbleTimer: BREED_INTERVAL,
     beaconTimer: -1,
-    strandedHintTimer: STRANDED_HINT_FIRST,
     paused: false,
     view: 0,
     ccEngaged: false,
