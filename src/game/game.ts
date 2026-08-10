@@ -100,7 +100,7 @@ import { CombatComputer } from './combat-computer.ts';
 import { Autopilot, type AutopilotEvent } from './autopilot.ts';
 import type { SoundEvent } from './sounds.ts';
 import {
-  commandsFor, globalCommands, type Command, type ControlMode,
+  commandsFor, globalCommands, WHILE_PAUSED, type Command, type ControlMode,
 } from './controls.ts';
 import {
   Ordnance, ordnanceMessage, fireEcm,
@@ -152,7 +152,7 @@ import {
   hideScreen, renderDockedMenu, renderNewGameConfirm,
   renderGameOver,
 } from '../ui/screens.ts';
-import { paintCommandGuide } from '../ui/key-help.ts';
+import { boundKey, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
 
 
@@ -587,6 +587,11 @@ export class Game {
       new QuitScreen(() => ({
         checkpoint: checkpointSummary(this.savesContext()),
         abandon: () => this.abandonFlight(),
+        // You paused to get here, so backing out returns you to the pause
+        // rather than dropping you live into whatever you stopped. `step`
+        // clears `paused` while any screen is up (the mode is not 'flight'),
+        // which is what this puts back.
+        keepFlying: () => { this.state.session.paused = true; },
       } satisfies QuitContext)),
     ]) this.screens.register(screen);
 
@@ -983,6 +988,30 @@ export class Game {
     this.baseMode = 'dead';
     this.showMessage(reason, 6);
     renderGameOver(this.state.commander, checkpointSummary(this.savesContext()));
+  }
+
+  /**
+   * Ask whether to give up on this flight — but only with the world stopped.
+   *
+   * The gate is PAUSE, and it is the whole point of the key's shape: giving up
+   * a flight is a deliberate act, and requiring the world to be stopped first
+   * makes it two decisions rather than one mistyped letter. `WHILE_PAUSED` is
+   * what lets Q reach this handler at all while paused; this is what refuses it
+   * the rest of the time.
+   *
+   * It SAYS SO rather than doing nothing. A bound key that appears dead is a
+   * bug report, and the same refusal answers a Q pressed during the launch
+   * tunnel, where nothing is paused either.
+   */
+  private quitFlight(): void {
+    if (!this.state.session.paused) {
+      this.showMessage(
+        `PAUSE FIRST — ${boundKey('flight', 'togglePause')},`
+        + ` THEN ${boundKey('flight', 'quitFlight')} TO QUIT THE FLIGHT`, 3);
+      sfx.refused();
+      return;
+    }
+    this.screens.open('quit');
   }
 
   /**
@@ -1440,12 +1469,12 @@ export class Game {
     tickMessage(this.state.session, dt);
     // Flight is the only state that can be paused. While it is paused, route
     // input through the same command table as any other frame, but apply only
-    // the command that can resume it.
+    // what a paused cockpit answers — controls.ts's WHILE_PAUSED.
     if (this.mode !== 'flight') this.state.session.paused = false;
     if (this.state.session.paused) {
       this.handleInput(dt, true);
       if (this.state.session.paused) {
-        this.showMessage('PAUSED — P TO RESUME', 0.4);
+        this.showMessage(this.pausedHint(), 0.4);
         this.finishStep(dt);
         return;
       }
@@ -1453,13 +1482,28 @@ export class Game {
     if (!this.tunnel.active) this.handleInput(dt);
     else this.handleInput(dt, true);
     if (this.state.session.paused) {
-      this.showMessage('PAUSED — P TO RESUME', 0.4);
+      this.showMessage(this.pausedHint(), 0.4);
       this.finishStep(dt);
       return;
     }
     this.tunnel.update(dt);
     if (this.mode === 'flight') this.updateFlight(dt, elapsed);
     this.finishStep(dt);
+  }
+
+  /**
+   * What the paused world says, and the only place a player is told that Q is
+   * available at all.
+   *
+   * The keys are read off the binding table (`boundKey`) rather than typed:
+   * this is prose quoting a key, which is invariant 9's rule, and the briefing
+   * already works this way. Built per call rather than hoisted — it is two
+   * lookups on a frame that is doing nothing else, and a module-level constant
+   * would be a second home for a caption `command-help.ts` owns.
+   */
+  private pausedHint(): string {
+    return `PAUSED — ${boundKey('flight', 'togglePause')} TO RESUME`
+      + ` · ${boundKey('flight', 'quitFlight')} TO QUIT THE FLIGHT`;
   }
 
   /**
@@ -1642,7 +1686,7 @@ export class Game {
     const mode = this.controlMode();
     if (!mode) return;
     for (const c of commandsFor(mode, i)) {
-      if (!pausedOnly || c === 'togglePause') this.runCommand(c);
+      if (!pausedOnly || WHILE_PAUSED.includes(c)) this.runCommand(c);
     }
   }
 
@@ -1732,7 +1776,7 @@ export class Game {
     startHyperspace: () => this.startHyperspace(),
     galacticJump: () => this.galacticJump(),
     distressBeacon: () => this.sendDistressBeacon(),
-    quitFlight: () => this.screens.open('quit'),
+    quitFlight: () => this.quitFlight(),
     jettison1: () => this.jettisonCargo(1),
     jettison5: () => this.jettisonCargo(5),
     // --- the training simulator -------------------------------------------

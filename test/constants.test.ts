@@ -359,6 +359,7 @@ const OUTSIDE: readonly Group[] = [
       'game/command-help.ts': ['COMMAND_HELP'],
       'game/controls.ts': [
         'GLOBAL_BINDINGS', 'FLIGHT_BINDINGS', 'NOT_IN_THE_SIMULATOR', 'BINDINGS',
+        'WHILE_PAUSED',
       ],
       'game/screens/save-transfer.ts': ['NOT_A_SAVE', 'WRONG_VERSION', 'STORE_FULL'],
       'engine/keymap.ts': ['LAYOUTS', 'STORAGE_KEY'],

@@ -42,6 +42,24 @@ you are doing" key in the other two tables — it backs out of the new-commander
 confirmation at the station and ends an exercise in the arena. `controls.ts`'s
 rule that a destructive action must not share a key is satisfied per mode.
 
+**PAUSE FIRST** (Chris, on the shipped key): *"Q should only be available if you
+Pause P during flying."* So giving up a flight is three deliberate presses — P
+to stop the world, Q to ask, Y to answer — and a mistyped letter in a fight
+costs nothing. `WHILE_PAUSED` is what a stopped world answers, and it is exactly
+two entries: the key that starts it again and the one that gives up. Q pressed
+unpaused reaches its handler and is REFUSED with the line that says what to
+press instead, because a bound key that appears dead is a bug report; the same
+refusal answers a Q pressed during the launch tunnel, where nothing is paused
+either, which is why the gate needs no third state. The paused line itself —
+`PAUSED — P TO RESUME · Q TO QUIT THE FLIGHT` — is the one place a player is
+told the key exists, and it quotes both keys off the binding table rather than
+spelling them (invariant 9).
+
+**Backing out returns you to the pause.** `step` clears `paused` while any
+screen is up, so without this a confirmation you declined would drop you live
+into the fight you stopped to think about. The screen puts it back through
+`QuitContext.keepFlying`.
+
 **The confirmation is a SCREEN, not a `ControlMode`.** Two reasons. The screen
 stack already freezes the world while an overlay is up (`Game.mode` is
 `screens.topId ?? baseMode`, and only `'flight'` steps), so nothing can shoot
@@ -72,14 +90,19 @@ already resting on. Y confirms; N or ESC keeps you flying.
 
 Tier: unit, plus one behavioural pass through a real headless `Game`.
 
-- The key: Q asks to quit in the cockpit, still ENDS THE EXERCISE in the arena,
-  and is still NEW COMMANDER at the station.
+- The key: Q asks to quit in a PAUSED cockpit, is refused with a line naming
+  both keys while flying, still ENDS THE EXERCISE in the arena, and is still NEW
+  COMMANDER at the station.
 - The screen: Y abandons exactly once and exits the stack; N and ESC back out
   having abandoned nothing; ENTER does nothing at all.
 - The cost, flown for real: launch, earn credits/kills/a Fugitive record, take a
   real in-flight autosave, quit — and the commander that comes back is the one
   that LAUNCHED, the flight ring is gone, and the docked checkpoint is not.
 - Backing out costs nothing: ESC leaves you flying with what you had.
-- Four gates proved failable: un-filtering the simulator entry reproduces the
+- Eight gates proved failable: un-filtering the simulator entry reproduces the
   shadowing; ENTER-confirms breaks four assertions; dropping `forgetFlight()`
-  leaves you in flight; docking-where-you-are keeps the flight's money.
+  leaves you in flight; docking-where-you-are keeps the flight's money; removing
+  the pause gate opens the confirmation mid-flight; dropping `quitFlight` from
+  `WHILE_PAUSED` makes it unreachable even when paused; not calling
+  `keepFlying` resumes live; and a silent refusal fails the line that names
+  both keys.

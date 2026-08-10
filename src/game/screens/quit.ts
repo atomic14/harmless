@@ -33,6 +33,12 @@ export interface QuitContext {
   readonly checkpoint: SaveSummary | null;
   /** Do it: forget the flight and restore that checkpoint. */
   abandon(): void;
+  /**
+   * Changed your mind. You reached this screen from a PAUSED cockpit, so this
+   * is what puts the pause back — a confirmation you backed out of must not
+   * drop you live into the fight you stopped to think about.
+   */
+  keepFlying(): void;
 }
 
 export class QuitScreen implements Screen {
@@ -60,6 +66,8 @@ export class QuitScreen implements Screen {
       this.ctx().abandon();
       return 'exit';
     }
-    return i.pressed('Escape') || i.pressed('KeyN') ? 'back' : 'stay';
+    if (!i.pressed('Escape') && !i.pressed('KeyN')) return 'stay';
+    this.ctx().keepFlying();
+    return 'back';
   }
 }

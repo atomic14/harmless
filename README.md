@@ -185,7 +185,7 @@ joystick the original supported.
 | Y / ⇧Y | jettison a tonne of cargo / five at once — pirates came for the goods, not for you |
 | I | commander status |
 | P | pause |
-| Q | quit this flight — asks first, then puts you back at the station autosave you launched from |
+| Q | **while paused only** — quit this flight; asks first, then puts you back at the station autosave you launched from |
 | V | mouse flight — pointer-locked analogue stick, left button fires |
 | ? | controls guide |
 

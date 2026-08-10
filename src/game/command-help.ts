@@ -158,7 +158,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   },
   jettison5: { what: 'jettison five tonnes at once', section: 'flight' },
   quitFlight: {
-    what: 'give up this flight — asks first, then puts you back at the station autosave you launched from',
+    what: 'pause first, then Q gives up the flight — asks, then puts you back at the station autosave you launched from',
     section: 'flight',
   },
 

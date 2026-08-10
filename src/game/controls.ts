@@ -174,8 +174,8 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   // Q for QUIT — free in the cockpit, and the same letter that backs out of the
   // new-commander confirmation at the station and ends an exercise in the
   // arena. Three per-mode tables, one meaning: this is the key that gives up on
-  // what you are doing. It asks first (screens/quit.ts), so a mis-press costs a
-  // keystroke rather than the flight.
+  // what you are doing. It answers only while PAUSED (see WHILE_PAUSED) and
+  // asks before it acts, so giving up a flight takes three deliberate presses.
   { key: 'KeyQ', command: 'quitFlight' },
 ];
 
@@ -207,6 +207,26 @@ export const NOT_IN_THE_SIMULATOR: readonly Command[] = [
   'startHyperspace', 'galacticJump', 'distressBeacon', 'jettison1', 'jettison5',
   'toggleDockingComputer', 'quitFlight',
 ];
+
+/**
+ * What a PAUSED cockpit answers. Everything else waits.
+ *
+ * Pausing is not a menu in this game — it is the world stopping — so the list
+ * is deliberately two entries: the key that starts it again, and the one that
+ * gives up on the flight. Anything else would make pause a place you can play
+ * from, which is the thing a paused world is not.
+ *
+ * `quitFlight` is here because it is ONLY here: giving up a flight is a
+ * deliberate act, and requiring the world to be stopped first is what makes it
+ * two decisions instead of one mistyped letter. The refusal when you press Q
+ * without pausing is the Game's, not this table's — a key that silently does
+ * nothing is a bug report, so it says what to press instead.
+ *
+ * The same filter runs while the launch/docking TUNNEL is playing, where
+ * nothing is paused at all. `quitFlight` reaches its handler there too and gets
+ * the same honest refusal, which is why this list needs no third state.
+ */
+export const WHILE_PAUSED: readonly Command[] = ['togglePause', 'quitFlight'];
 
 /**
  * The binding table. This IS the key map for commands — see CLAUDE.md's
