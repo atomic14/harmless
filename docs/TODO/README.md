@@ -78,5 +78,16 @@ is invisible is indistinguishable from nothing happening.
 
 ## Backlog
 
-Empty. Promoting the head is what makes the next execution item, once it has a
-plan doc; 118 was the last entry and landed on 2026-08-10.
+Not executable yet. In priority order; promoting the head is what makes the
+next execution item, once it has a plan doc.
+
+- [ ] 130 — `LEGAL STATUS: FUGITIVE` is erased by the line after it. Found while
+      flying docs/TODO/129's tests: destroy a lawful ship near a station and
+      `raiseLegal` says the status, then `callStationDefence` says STATION
+      DEFENCE LAUNCHED in the same frame, so the record moving is never on the
+      console at all. It is exactly the defect 122 fixed for the scan and 129
+      fixed for the name — a real consequence that looks like nothing happening
+      — and the machinery to fix it now exists: `session.queued`, and
+      `recordVerdict`, which 127's sale already queues behind its own receipt.
+      Small. Needs a plan doc before it is executable, mostly to decide which of
+      the two lines is the cause and which is the consequence.
