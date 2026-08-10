@@ -1,5 +1,6 @@
-// The station bulletin board: how much work you may hold, and how far away a
-// job may send you.
+// The station bulletin board: how much work you may hold, how far away a job
+// may send you, what a berth costs the hold, and what notoriety a delivery of
+// illicit freight leaves behind at the far end.
 //
 // The board itself — pay, deadlines, settlement — is game/contracts.ts, whose
 // reward formula stays there, pinned in aggregate by `npm run campaign`.
@@ -38,3 +39,31 @@ export const CONTRACT_RANGE = MAX_FUEL;
  * @rule contracts.passengerBerthTonnes
  */
 export const PASSENGER_BERTH_TONNES = 2;
+
+/**
+ * How loudly a delivered smuggling run is talked about, per tonne landed.
+ *
+ * Handing illicit freight over at the far end is noticed the way a dirty market
+ * sale is (game/screens/trade.ts adds `0.04` a tonne), and rather more loudly:
+ * a market sale is one hold emptying into a legitimate exchange, a consignment
+ * delivered no-questions-asked is a working arrangement somebody remembers. At
+ * 0.06 a two-tonne job costs 0.12 heat and a five-tonne job 0.30 — a whole
+ * grade of the 0..1 scale for the biggest run, so the reward has bought you
+ * something the *next* arrival pays for (galaxy/living.ts spreads it to the
+ * neighbours, and `HEAT_DECAY` takes a fortnight to forget it).
+ *
+ * Regional heat, NOT character: the deed also marks the name, and that half is
+ * `DISREPUTE_CONTRABAND_SALE` (constants/character.ts). Two consequences, two
+ * owners — the pure settlement applies the disrepute and the orchestrators
+ * apply this (invariant 15), which is why it is a rate here rather than a
+ * literal at either call site.
+ *
+ * Lives with the board rather than beside the disrepute deeds because it is a
+ * property of the JOB, like `PASSENGER_BERTH_TONNES` above; character.ts is
+ * explicitly not about the Government or the regions.
+ *
+ * Its own rule id: it shares no meaning with any other small fraction.
+ *
+ * @rule contracts.smuggleDeliveryNotoriety
+ */
+export const SMUGGLE_DELIVERY_NOTORIETY = 0.06;

@@ -27,6 +27,9 @@ import {
   CONTRACT_RANGE, MAX_CONTRACTS, PASSENGER_BERTH_TONNES,
 } from '../constants/contracts.ts';
 import { ORDINARY_GOODS } from '../constants/commodities.ts';
+import { CONTRABAND } from '../constants/law.ts';
+import { DISREPUTE_CONTRABAND_SALE } from '../constants/character.ts';
+import { afterDeed } from './character.ts';
 
 /** Chart distance in tenths of a light-year (the original's metric). */
 // Was a second copy of the chart metric. It now comes from the one owner, and
@@ -56,11 +59,13 @@ export function generateContractOffers(
     const dest = reachable[Math.floor(rng() * reachable.length)];
     const dist = distanceTenths(sys, dest);
     const roll = rng();
-    // One roll cuts all four kinds, so any re-cut moves every seeded board —
-    // cargo and courier gave up the slice passengers occupy and bounty kept
-    // its 0.2, because a bulletin board that stops offering fights changes the
-    // combat ladder as well as the ledger.
-    if (roll < 0.45) {
+    // One roll cuts all five kinds, so any re-cut moves every seeded board.
+    // Cargo and courier gave up the slice passengers occupy; smuggling's 0.10
+    // then came off cargo and bounty together, leaving illicit freight the
+    // narrowest slice on the board — it is meant to be the job you notice, not
+    // the job you plan a career around — and bounty still wide enough that the
+    // combat ladder is fed by the board as well as the ledger.
+    if (roll < 0.4) {
       // cargo run: they supply the goods, you supply the nerve
       const commodity = ORDINARY_GOODS[Math.floor(rng() * ORDINARY_GOODS.length)];
       const qty = 3 + Math.floor(rng() * 8);
@@ -73,7 +78,7 @@ export function generateContractOffers(
         deadlineDay: day + 4 + Math.ceil(dist / 12),
         progress: 0,
       });
-    } else if (roll < 0.65) {
+    } else if (roll < 0.6) {
       offers.push({
         kind: 'courier',
         destination: dest.index,
@@ -83,7 +88,7 @@ export function generateContractOffers(
         deadlineDay: day + 3 + Math.ceil(dist / 16),
         progress: 0,
       });
-    } else if (roll < 0.8) {
+    } else if (roll < 0.75) {
       // passengers: a berth apiece out of the same hold freight wants, and a
       // courier's deadline, because people notice being late in a way that a
       // crate does not.
@@ -95,6 +100,29 @@ export function generateContractOffers(
         qty,
         reward: Math.round(qty * (90 + dist * 3) + 120),
         deadlineDay: day + 3 + Math.ceil(dist / 16),
+        progress: 0,
+      });
+    } else if (roll < 0.85) {
+      // Illicit freight (docs/TODO/110). A cargo run in every mechanical
+      // respect — the consignment is loaded on accept and must still be aboard
+      // at the far end — but drawn from the law's own `CONTRABAND`, so from the
+      // moment you accept it the police scan (world-step.ts), the pirates'
+      // appetite (threat.ts) and the hermit outlet all apply with no new code.
+      // Small loads: it is a job you hide, not a hold you fill.
+      const commodity = CONTRABAND[Math.floor(rng() * CONTRABAND.length)];
+      const qty = 2 + Math.floor(rng() * 4);
+      offers.push({
+        kind: 'smuggle',
+        destination: dest.index,
+        commodity,
+        qty,
+        // A FLAT formula, deliberately not `marketEstimate`: the estimate's own
+        // docstring records that the Narcotics mean lies (byte wrap), and
+        // pricing a reward off it would import that lie. Roughly 3x the
+        // per-tonne rate of an ordinary cargo run above, which is what the
+        // existing punishment ladder is worth taking on.
+        reward: Math.round(qty * (80 + dist * 2) + 200),
+        deadlineDay: day + 4 + Math.ceil(dist / 12),
         progress: 0,
       });
     } else {
@@ -145,16 +173,29 @@ export function describeContract(k: Contract, systems: StarSystem[]): string {
   if (k.kind === 'passenger') {
     return `Carry ${k.qty} passenger${k.qty === 1 ? '' : 's'} to ${dest}`;
   }
+  // Says what it is. The board never pretends a smuggling run is freight — the
+  // player is choosing to take the law on, and cannot choose what they were not
+  // told (`ui/screens.ts` marks the row amber to match).
+  if (k.kind === 'smuggle') {
+    return `Move ${k.qty}t ${COMMODITIES[k.commodity].name} to ${dest} — no questions asked`;
+  }
   return `Destroy ${k.qty} pirates around ${dest}`;
 }
 
 /**
  * Pay out anything delivered here, and drop anything overdue.
  *
- * Mutates the commander's cargo, credits and contract list; the surviving work
- * stays on it. A bounty job standing at its destination with the count unfilled
- * is NOT settled and NOT dropped — you can come back to it until the deadline,
- * which is the one branch a re-implementation is most likely to get wrong.
+ * Mutates the commander's cargo, credits, DISREPUTE and contract list; the
+ * surviving work stays on it. A bounty job standing at its destination with the
+ * count unfilled is NOT settled and NOT dropped — you can come back to it until
+ * the deadline, which is the one branch a re-implementation is most likely to
+ * get wrong.
+ *
+ * Disrepute is the newest of those (docs/TODO/110) and worth saying out loud,
+ * because the campaign's numbers move once settlement starts applying deeds:
+ * landing a smuggling run marks the name exactly as a dirty market sale does.
+ * The regional heat that goes with it is `LivingGalaxy` state this pure module
+ * cannot see, so the orchestrators apply that from the `paid` event.
  *
  * Passengers need no branch of their own: they travel with the contract and
  * cannot be sold off en route the way a consignment can, so arriving in time
@@ -168,8 +209,10 @@ export function settleContracts(c: CommanderData): ContractEvent[] {
     const here = k.destination === c.systemIndex;
     const late = c.day > k.deadlineDay;
     if (here && !late && (k.kind !== 'bounty' || k.progress >= k.qty)) {
-      if (k.kind === 'cargo') {
-        // the consignment must still be aboard
+      if (k.kind === 'cargo' || k.kind === 'smuggle') {
+        // the consignment must still be aboard — and a smuggling run is exactly
+        // as voidable as freight, because what you sold at a better price on
+        // the way is the temptation the job is built around
         if (c.cargo[k.commodity] < k.qty) {
           events.push({ kind: 'incomplete', contract: k });
           continue;
@@ -177,6 +220,9 @@ export function settleContracts(c: CommanderData): ContractEvent[] {
         c.cargo[k.commodity] -= k.qty;
       }
       c.credits += k.reward;
+      if (k.kind === 'smuggle') {
+        c.disrepute = afterDeed(c.disrepute ?? 0, DISREPUTE_CONTRABAND_SALE);
+      }
       events.push({ kind: 'paid', contract: k });
       continue;
     }
@@ -193,7 +239,8 @@ export function settleContracts(c: CommanderData): ContractEvent[] {
 /**
  * Take the offer at `index` off the board.
  *
- * Mutates the commander (a cargo run loads the consignment on the spot) and
+ * Mutates the commander (a cargo or smuggling run loads the consignment on the
+ * spot) and
  * splices the accepted job out of `offers`. A refusal changes nothing at all,
  * which is what lets the caller treat it as a refusal.
  */
@@ -205,7 +252,10 @@ export function acceptContract(
   if (c.contracts.length >= MAX_CONTRACTS) {
     return [{ kind: 'refused', reason: 'tooMuchWork' }];
   }
-  if (k.kind === 'cargo') {
+  // A smuggling run loads like freight, and that is the whole mechanism: from
+  // the next line on `carryingContraband` is true, so the police scan, the
+  // pirates' appetite and the hermit outlet all apply without a word of new code.
+  if (k.kind === 'cargo' || k.kind === 'smuggle') {
     if (cargoTonnes(c) + k.qty > cargoCapacity(c)) {
       return [{ kind: 'refused', reason: 'noHoldSpace' }];
     }

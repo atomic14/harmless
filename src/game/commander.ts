@@ -67,10 +67,11 @@ export function defaultEquipment(): Equipment {
  * first mission with 16 kills).
  */
 export interface Contract {
-  kind: 'cargo' | 'bounty' | 'courier' | 'passenger';
+  kind: 'cargo' | 'bounty' | 'courier' | 'passenger' | 'smuggle';
   destination: number; // system index
-  commodity: number; // cargo runs only
-  qty: number; // tonnes on a cargo run, kills on a bounty, heads on a passenger job
+  commodity: number; // cargo and smuggling runs only
+  /** tonnes on a cargo or smuggling run, kills on a bounty, heads on a passenger job */
+  qty: number;
   reward: number; // tenths of a credit
   deadlineDay: number;
   progress: number; // bounty kills so far

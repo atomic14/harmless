@@ -21,6 +21,8 @@ import { handle } from '../src/game/console.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
+import { CONTRABAND } from '../src/constants/law.ts';
+import { SMUGGLE_DELIVERY_NOTORIETY } from '../src/constants/contracts.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe game, headless');
@@ -208,6 +210,58 @@ console.log('\nthe game, headless');
     check(`opening a screen writes nothing (${opening.refused.join(', ') || 'nothing refused'})`,
       opening.refused.length === 0,
       'a screen that files a save the moment you open it is a screen you cannot open to check something');
+  }
+
+  // --- the ORCHESTRATOR's half of a smuggling delivery (docs/TODO/110) -------
+  //
+  // `settleContracts` is pure and applies what it owns — the credits, the hold
+  // and the commander's disrepute (test/contracts.test.ts pins those). The
+  // regional heat is `LivingGalaxy` state the pure module has no handle on, so
+  // the Game applies it from the `paid` event: modules decide, orchestrators
+  // apply (invariant 15). This is that half, driven through the real dock.
+  //
+  // ONCE is the property. The game applies it in `applyContracts` and the
+  // campaign at its own settle site; a second application in station.ts's dock
+  // path would be easy to add by accident and would double the heat of every
+  // delivery — so the second dock is asserted to add nothing.
+  {
+    const g = fly(0);
+    const c = g.state.commander;
+    const dest = c.systemIndex;
+    c.cargo[CONTRABAND[1]] = 4;                        // 6, Narcotics
+    c.contracts = [{
+      kind: 'smuggle', destination: dest, commodity: CONTRABAND[1], qty: 4,
+      reward: 900, deadlineDay: c.day + 5, progress: 0,
+    }];
+    const before = g.state.living.notoriety(dest);
+    withoutSaving(() => g.enterDocked('arrived'));
+    const after = g.state.living.notoriety(dest);
+    check(`landing a smuggling run heats its destination `
+      + `(${before.toFixed(3)} to ${after.toFixed(3)})`,
+    Math.abs(after - before - 4 * SMUGGLE_DELIVERY_NOTORIETY) < 1e-9);
+    check('...and the job was actually paid, so the heat is not free',
+      c.contracts.length === 0 && c.cargo[CONTRABAND[1]] === 0);
+    // The DOUBLE-APPLICATION guard: dock again with nothing to settle.
+    withoutSaving(() => g.enterDocked('arrived'));
+    check('...once per delivery, not once per dock',
+      Math.abs(g.state.living.notoriety(dest) - after) < 1e-9);
+
+    // The control: an honest cargo run of the same size pays and heats nothing,
+    // which is what makes the check above about the CONTRABAND rather than
+    // about deliveries in general.
+    const honest = fly(0);
+    const hc = honest.state.commander;
+    const there = hc.systemIndex;
+    hc.cargo[0] = 4;
+    hc.contracts = [{
+      kind: 'cargo', destination: there, commodity: 0, qty: 4,
+      reward: 900, deadlineDay: hc.day + 5, progress: 0,
+    }];
+    const was = honest.state.living.notoriety(there);
+    withoutSaving(() => honest.enterDocked('arrived'));
+    check('...where an honest consignment of the same size heats nothing',
+      hc.contracts.length === 0
+      && Math.abs(honest.state.living.notoriety(there) - was) < 1e-9);
   }
 }
 

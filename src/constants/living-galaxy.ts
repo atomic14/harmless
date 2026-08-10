@@ -12,6 +12,14 @@ export const PRESSURE_DECAY = 0.12;
  * How fast talk about the player dies down, per day. Faster than `DANGER_DECAY`:
  * a system's reputation for piracy should outlast one convoy, but nobody
  * remembers one trader's cargo for a month.
+ *
+ * Its own rule id because it shares the value 0.06 with the per-tonne heat a
+ * landed smuggling run deposits (constants/contracts.ts) — a rate per DAY
+ * beside a quantity per TONNE. The coincidence currently reads as "a tonne of
+ * illicit freight is forgotten in a day", which is a pleasant accident and not
+ * a rule: either may move without the other.
+ *
+ * @rule living.heatDecay
  */
 export const HEAT_DECAY = 0.06;
 

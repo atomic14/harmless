@@ -50,6 +50,8 @@ import { WITCHSPACE_ESCAPE_COST } from '../src/constants/jump.ts';
 import {
   STRANDED_HINT_FIRST, STRANDED_HINT_REPEAT,
 } from '../src/constants/witchspace.ts';
+import { CONTRABAND, SCAN_RANGE } from '../src/constants/law.ts';
+import { DISREPUTE_CAUGHT } from '../src/constants/character.ts';
 import { check } from './harness.ts';
 
 // --- the world builds without a browser --------------------------------------
@@ -542,6 +544,102 @@ console.log('\nheadless world step');
       // (combat.ts); flying into one with no scoops is the same accident it is
       // for a canister, and the step never asks the host to mark you for it.
       check('...and is not an offence', r.log.legal === 0);
+    }
+  }
+
+  // --- THE POLICE SCAN (docs/TODO/110) --------------------------------------
+  //
+  // `policeScanned` appeared nowhere under test/ until this block: the scan was
+  // the oldest untested branch in the step, and docs/TODO/110's smuggling
+  // contracts are priced on it working. Driven through the real step with a
+  // police ship spawned the way the world spawns one — the range at which it
+  // fires is BISECTED out of the step rather than probed at `SCAN_RANGE ± 1`,
+  // which would pass on any value the constant took.
+  {
+    /** An arrival with contraband aboard and one police ship at `d` off the nose. */
+    const patrol = (seed: number, contraband: number, d: number) => {
+      const r = arrival(seed);
+      // clear the sky the fixture spawns: a pirate near the player is a fight,
+      // and a fight in the same frame as the scan makes the messages ambiguous
+      r.state.world.clearNpcs();
+      r.state.commander.cargo[CONTRABAND[1]] = contraband;   // 6, Narcotics
+      const cop = r.state.world.spawn('police',
+        r.state.player.position.clone().add(new THREE.Vector3(0, 0, -d)), 5);
+      cop.object.updateMatrixWorld(true);
+      return r;
+    };
+    const scanned = (r: ReturnType<typeof arrival>, steps = 1) =>
+      fly(r, steps).some((e) => e.kind === 'message'
+        && e.text === 'POLICE SCAN: CONTRABAND DETECTED');
+
+    {
+      const r = patrol(4_260, 3, SCAN_RANGE * 0.5);
+      const was = r.state.commander.disrepute ?? 0;
+      check('a police ship alongside a hold of contraband scans it', scanned(r));
+      check('...and asks the host to mark the record', r.log.legal === 1);
+      check(`...and the name with it, at DISREPUTE_CAUGHT (${DISREPUTE_CAUGHT})`,
+        (r.state.commander.disrepute ?? 0) === was + DISREPUTE_CAUGHT);
+      // ONCE per system visit, latched — 600 more steps of the same patrol must
+      // not cost a second record. `station.ts` clears the latch on docking.
+      check('...once per visit, however long the patrol stays alongside',
+        !scanned(r, 600) && r.log.legal === 1 && r.state.session.policeScanned);
+    }
+    {
+      // the control that matters most: a clean hold is never scanned, so the
+      // reward for a smuggling run is buying a risk that a legal run has not
+      const r = patrol(4_261, 0, SCAN_RANGE * 0.5);
+      check('a clean hold is not scanned, however close the law flies',
+        !scanned(r, 600) && r.log.legal === 0 && !r.state.session.policeScanned);
+    }
+    {
+      // ...and contraband with nobody to find it is nobody's business. The
+      // pirate and trader the fixture flies are NOT police: only the role scans.
+      const r = arrival(4_262);
+      r.state.commander.cargo[CONTRABAND[1]] = 3;
+      check('contraband with no police in the sky costs nothing',
+        !fly(r, 600).some((e) => e.kind === 'message'
+          && e.text === 'POLICE SCAN: CONTRABAND DETECTED')
+        && r.log.legal === 0);
+    }
+    {
+      // ...and in witch-space there is no law at all — the other half of the
+      // step's guard, and the reason a jump interrupted by Thargoids is not
+      // also a conviction.
+      const r = patrol(4_263, 3, SCAN_RANGE * 0.5);
+      r.state.session.witchspace = true;
+      check('and no scan in witch-space, where the Government cannot see',
+        !scanned(r, 60) && r.log.legal === 0);
+    }
+
+    // THE RANGE, measured. Bisected on the distance a police ship sits at when
+    // the scan fires, against the constant that is supposed to say so.
+    //
+    // A tenth-of-a-millisecond step, and a stopped ship with the throttle shut:
+    // both craft FLY during the step being measured, and at 1/60 with the
+    // fixture's cruising speed the closure put the measured edge 1.6 units
+    // inside SCAN_RANGE — a real displacement being read as a wrong constant.
+    // Shrinking dt shrinks that to under a twentieth of a unit without
+    // abstracting anything: this is still the shipped step.
+    {
+      const fires = (d: number): boolean => {
+        const r = patrol(4_264, 3, d);
+        r.state.player.speed = 0;
+        return r.step.step(1e-4, 0, {
+          demand: { rollRate: 0, pitchRate: 0, throttle: 0, fire: false }, handsOn: false,
+        }).some((e) => e.kind === 'message'
+          && e.text === 'POLICE SCAN: CONTRABAND DETECTED');
+      };
+      let lo = 10, hi = 40_000;
+      if (!fires(lo) || fires(hi)) {
+        check('the scan bisection has a bracket to work in', false);
+      } else {
+        while (hi - lo > 1e-2) {
+          const mid = (lo + hi) / 2;
+          if (fires(mid)) lo = mid; else hi = mid;
+        }
+        check(`the law reads your hold at exactly SCAN_RANGE (measured ${lo.toFixed(2)})`,
+          Math.abs(lo - SCAN_RANGE) < 0.1);
+      }
     }
   }
 

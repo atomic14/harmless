@@ -1004,8 +1004,16 @@ export function renderContracts(
   offers: Contract[],
   selected: number,
 ): void {
+  // Illicit freight is flagged, not disguised (docs/TODO/110): the reward is
+  // paying for the police scan on the way out, and a player cannot choose to
+  // take that on if the row reads like any other consignment. `--hud-amber` is
+  // the warning colour this file already spells everywhere else — docs/TODO/93
+  // is counting new hex, so no new colour is coined for it.
+  const illicit = (k: Contract) =>
+    (k.kind === 'smuggle' ? ' style="color:var(--hud-amber)"' : '');
+
   const rows = offers.map((k, i) => `
-    <tr class="${i === selected ? 'sel' : ''} pick" data-row="${i}">
+    <tr class="${i === selected ? 'sel' : ''} pick" data-row="${i}"${illicit(k)}>
       <td>${describeContract(k, systems)}</td>
       <td class="num">${(distanceTenths(sys, systems[k.destination]) / 10).toFixed(1)} LY</td>
       <td class="num">${k.deadlineDay - c.day} days</td>
@@ -1013,7 +1021,7 @@ export function renderContracts(
     </tr>`).join('') || '<tr><td colspan="4">No work on offer today.</td></tr>';
 
   const taken = c.contracts.map((k) => `
-    <tr><td>${describeContract(k, systems)}${k.kind === 'bounty' ? ` (${k.progress}/${k.qty})` : ''}</td>
+    <tr${illicit(k)}><td>${describeContract(k, systems)}${k.kind === 'bounty' ? ` (${k.progress}/${k.qty})` : ''}</td>
       <td class="num">${k.deadlineDay - c.day} days left</td>
       <td class="num">${formatCredits(k.reward)}</td></tr>`).join('');
 

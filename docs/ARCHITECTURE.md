@@ -64,7 +64,10 @@ Two intentional quirks:
 - `src/game/contracts.ts` owns the bulletin board: what work a station offers,
   what accepting it costs the hold, what delivering it pays. `src/game/market.ts`
   owns what a station charges. Both are pure and shared with the campaign
-  simulator (invariant 10).
+  simulator (invariant 10). A smuggling run's consequences are split by where the
+  state lives: settlement applies the commander's disrepute itself, and the
+  orchestrators (`Game.applyContracts`, the campaign's settle site) apply the
+  destination's regional heat from the `paid` event — once each (invariant 15).
 
 ## Conventions
 

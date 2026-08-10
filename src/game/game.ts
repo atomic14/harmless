@@ -141,6 +141,7 @@ import {
 import {
   LEGAL_NAMES, CLEAN, DEFENCE_RANGE,
 } from '../constants/law.ts';
+import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
 import { recordCleared } from './law.ts';
 import { afterDecay } from './character.ts';
 import {
@@ -961,9 +962,20 @@ export class Game {
    * Messages come back as StationEvents rather than going straight to the HUD
    * because docking says several things in a row and the last one is the one
    * the player reads — see station.ts.
+   *
+   * ...and the consequences the pure module cannot reach: landing a smuggling
+   * run raises the destination's temperature, which is `LivingGalaxy` state
+   * `settleContracts` has no handle on. The module decides, the orchestrator
+   * applies (invariant 15). ONE application per event, here and at the
+   * campaign's own settle site — the dock path in station.ts must not add a
+   * second, which would double the heat of every delivery.
    */
   private applyContracts(events: readonly ContractEvent[]): StationEvent[] {
     return events.flatMap((e): StationEvent[] => {
+      if (e.kind === 'paid' && e.contract.kind === 'smuggle') {
+        this.state.living.addNotoriety(
+          e.contract.destination, e.contract.qty * SMUGGLE_DELIVERY_NOTORIETY);
+      }
       const m = contractMessage(e, this.state.systems);
       return [
         ...(m.sound ? [{ kind: 'sound' as const, name: m.sound }] : []),

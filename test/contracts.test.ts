@@ -1,28 +1,27 @@
-// Contracts: what the bulletin board offers, what taking it costs the hold, and
-// what delivering it pays.
+// Contracts: what taking a job off the bulletin board costs the hold, and what
+// delivering it pays.
 //
 // Contract rules live in game/contracts.ts (invariant 10) so the headless
 // campaign runs the same code the game does — these drive that module directly.
-// The Navy mission and trumbles were here too and are test/missions.test.ts now.
+// The Navy mission and trumbles were here too and are test/missions.test.ts now;
+// what the board may OFFER is test/contract-offers.test.ts, which left when the
+// smuggling kind (docs/TODO/110) took the pair over the size ceiling.
 
 import {
   newCommander, cargoCapacity, cargoTonnes, type Contract,
 } from '../src/game/commander.ts';
 import type { CommanderData } from '../src/game/commander.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
-import { distanceTenths } from '../src/galaxy/navigation.ts';
 import {
-  generateContractOffers,
   settleContracts,
   acceptContract,
   contractMessage,
   describeContract,
 } from '../src/game/contracts.ts';
-import {
-  CONTRACT_RANGE, MAX_CONTRACTS, PASSENGER_BERTH_TONNES,
-} from '../src/constants/contracts.ts';
-import { ORDINARY_GOODS } from '../src/constants/commodities.ts';
-import { makeRng } from '../src/game/rng.ts';
+import { MAX_CONTRACTS, PASSENGER_BERTH_TONNES } from '../src/constants/contracts.ts';
+import { CONTRABAND } from '../src/constants/law.ts';
+import { DISREPUTE_CONTRABAND_SALE } from '../src/constants/character.ts';
+import { carryingContraband } from '../src/game/law.ts';
 import { check } from './harness.ts';
 
 // --- taking work, and being paid for it -------------------------------------
@@ -44,6 +43,10 @@ console.log('\ncontracts');
   const passengerJob = (over: Partial<Contract> = {}): Contract => ({
     kind: 'passenger', destination: 7, commodity: 0, qty: 3,
     reward: 500, deadlineDay: 10, progress: 0, ...over,
+  });
+  const smuggleRun = (over: Partial<Contract> = {}): Contract => ({
+    kind: 'smuggle', destination: 7, commodity: CONTRABAND[1], qty: 4,
+    reward: 900, deadlineDay: 10, progress: 0, ...over,
   });
   const cmdr = (over: Record<string, unknown> = {}): CommanderData => ({
     ...newCommander(), systemIndex: 7, day: 0, credits: 1000, contracts: [], ...over,
@@ -130,6 +133,73 @@ console.log('\ncontracts');
     c.contracts = [passengerJob()];
     check('passengers still in transit are left alone', settleContracts(c).length === 0
       && c.contracts.length === 1 && cargoTonnes(c) === 3 * PASSENGER_BERTH_TONNES);
+  }
+
+  // --- illicit freight settles like freight, and marks the name (TODO 110) ---
+  //
+  // The reward prices a risk the law and the pirates already impose, so the
+  // settlement must be the cargo branch and nothing more inventive: still
+  // aboard pays, sold en route is void, late expires. What IS new is the deed —
+  // `settleContracts` touched credits and cargo only until this landed.
+  {
+    const c = cmdr();
+    c.contracts = [smuggleRun()];
+    c.cargo[CONTRABAND[1]] = 4;
+    const ev = settleContracts(c);
+    check('a smuggling run delivered on time pays', ev[0]?.kind === 'paid'
+      && c.credits === 1900);
+    check('...and the consignment leaves the hold', c.cargo[CONTRABAND[1]] === 0);
+    check(`...and it marks the name at DISREPUTE_CONTRABAND_SALE `
+      + `(${DISREPUTE_CONTRABAND_SALE})`,
+    c.disrepute === DISREPUTE_CONTRABAND_SALE);
+    // the control: an honest delivery is not a dirty one, and this is the
+    // assertion that fails if the deed is applied to every `paid` event
+    const honest = cmdr();
+    honest.contracts = [cargoRun()];
+    honest.cargo[0] = 5;
+    settleContracts(honest);
+    check('...where an honest cargo run leaves it untouched',
+      (honest.disrepute ?? 0) === 0);
+  }
+  {
+    // THE temptation the job exists for: narcotics sell, and a hold that sold
+    // them has nothing to hand over. Void, not paid — and no deed either,
+    // because the sale that marked the name happened at the market screen.
+    const c = cmdr();
+    c.contracts = [smuggleRun()];
+    c.cargo[CONTRABAND[1]] = 3;
+    const ev = settleContracts(c);
+    check('a smuggling run sold off en route is incomplete, not paid',
+      ev[0]?.kind === 'incomplete' && c.credits === 1000);
+    check('...keeps what is left and leaves the list',
+      c.cargo[CONTRABAND[1]] === 3 && c.contracts.length === 0);
+    check('...and settlement adds no deed of its own for a job it did not pay',
+      (c.disrepute ?? 0) === 0);
+  }
+  {
+    const c = cmdr({ day: 11 });
+    c.contracts = [smuggleRun()];
+    c.cargo[CONTRABAND[1]] = 4;
+    const ev = settleContracts(c);
+    check('a late smuggling run expires with the goods still aboard',
+      ev[0]?.kind === 'expired' && c.credits === 1000
+      && c.cargo[CONTRABAND[1]] === 4 && (c.disrepute ?? 0) === 0);
+  }
+  {
+    // ...and accepting one loads it, which is the ENTIRE mechanism: from here
+    // `carryingContraband` is true, so the scan, the pirates' appetite and the
+    // hermit outlet apply with no code of their own.
+    const c = cmdr();
+    const offers = [smuggleRun({ destination: 8 })];
+    check('accepting a smuggling run loads the contraband on the spot',
+      acceptContract(c, offers, 0)[0]?.kind === 'accepted'
+      && c.cargo[CONTRABAND[1]] === 4 && offers.length === 0);
+    check('...and that is what makes it contraband aboard, with no new rule',
+      carryingContraband(c.cargo));
+    const full = cmdr();
+    full.cargo[0] = cargoCapacity(full);
+    check('...and a hold with no room refuses it like any consignment',
+      acceptContract(full, [smuggleRun({ destination: 8 })], 0)[0]?.kind === 'refused');
   }
 
   {
@@ -229,93 +299,11 @@ console.log('\ncontracts');
         === 'Carry 2 passengers to LAVE');
     check('...and one passenger is not two', describeContract(
       passengerJob({ qty: 1, destination: 7 }), systems) === 'Carry 1 passenger to LAVE');
+    // The board says what the job is. A smuggling run described as a pirate
+    // hunt — the fallback's failure mode — would have the player accept a
+    // police scan without being told there was one to accept.
+    check('a smuggling run names the goods and admits what it is',
+      describeContract(smuggleRun({ qty: 4, destination: 7 }), systems)
+        === 'Move 4t Narcotics to LAVE — no questions asked');
   }
-}
-
-// --- what the board may offer -------------------------------------------------
-//
-// The two constants of the offer generator, measured out of the REAL
-// generateContractOffers over the whole galaxy rather than probed at
-// themselves — a re-inlined literal in the filter or the commodity draw goes
-// red here and nowhere else.
-//
-// CONTRACT_RANGE is MAX_FUEL now (resolved 2026-08-05 — the tank is the
-// rule): the check pins the bound exactly, from both sides — the furthest
-// offer equals the furthest system the bound admits, and the galaxy holds
-// destinations just beyond it that are never offered, so widening OR
-// narrowing the filter moves the measurement.
-
-console.log('\nthe bulletin board\'s reach');
-{
-  const systems = generateGalaxy(1);
-
-  // pure data: the furthest pair the bound admits, and how many sit just past
-  let maxPossible = 0;
-  let justBeyond = 0;
-  for (const a of systems) {
-    for (const b of systems) {
-      const d = distanceTenths(a, b);
-      if (a.index !== b.index && d > 0 && d <= CONTRACT_RANGE && d > maxPossible) maxPossible = d;
-      if (d > CONTRACT_RANGE && d <= CONTRACT_RANGE + 5) justBeyond += 1;
-    }
-  }
-  check(`the bound excludes real destinations (${justBeyond} pairs sit in `
-    + `(${CONTRACT_RANGE}, ${CONTRACT_RANGE + 5}])`, justBeyond > 0);
-
-  // the sweep, read at two sizes (CLAUDE.md: read the set, not the sample) —
-  // the answer must be the same one at both
-  const sweep = (passes: number) => {
-    const rng = makeRng(90);
-    let maxD = 0;
-    let offers = 0;
-    let strayCommodity = 0;
-    let passengers = 0;
-    let strayQty = 0;
-    let strayGoods = 0;
-    for (let p = 0; p < passes; p += 1) {
-      for (const sys of systems) {
-        for (const k of generateContractOffers(sys, systems, 0, rng)) {
-          offers += 1;
-          const d = distanceTenths(sys, systems[k.destination]);
-          if (d > maxD) maxD = d;
-          if (k.kind === 'cargo' && !ORDINARY_GOODS.includes(k.commodity)) strayCommodity += 1;
-          if (k.kind === 'passenger') {
-            passengers += 1;
-            if (k.qty < 1 || k.qty > 3) strayQty += 1;
-            if (k.commodity !== 0) strayGoods += 1;
-          }
-        }
-      }
-    }
-    return { maxD, offers, strayCommodity, passengers, strayQty, strayGoods };
-  };
-  const small = sweep(3);
-  const large = sweep(15);
-  check(`every offer stays inside CONTRACT_RANGE and the bound is reached `
-    + `(furthest ${large.maxD} of a possible ${maxPossible}, over ${large.offers} offers)`,
-  small.maxD === maxPossible && large.maxD === maxPossible);
-  check(`a cargo consignment is always ordinary goods `
-    + `(${small.offers} and ${large.offers} offers, `
-    + `${small.strayCommodity + large.strayCommodity} strays)`,
-  small.strayCommodity === 0 && large.strayCommodity === 0);
-
-  // The single seeded roll cuts all four kinds, so the passenger share is
-  // pinned the way every other bound here is: measured out of the REAL
-  // generator, at BOTH sample sizes, and it must be the same answer at each.
-  // The band is wide enough to be a sampling question and tight enough that
-  // dropping the branch (0%) or widening its slice past a quarter fails.
-  const share = (s: ReturnType<typeof sweep>) => s.passengers / s.offers;
-  check(`the board offers passenger work at its seeded share `
-    + `(${(100 * share(small)).toFixed(1)}% of ${small.offers} and `
-    + `${(100 * share(large)).toFixed(1)}% of ${large.offers} offers)`,
-  [small, large].every((s) => share(s) > 0.1 && share(s) < 0.2));
-  // qty is HEADS, and each head is a berth: the hold arithmetic downstream is
-  // only bounded because this is. A passenger job carries no goods, so it must
-  // never enter the ordinary-goods check above.
-  check(`a passenger job books 1-3 heads and no cargo `
-    + `(${small.passengers + large.passengers} jobs, `
-    + `${small.strayQty + large.strayQty} out of range, `
-    + `${small.strayGoods + large.strayGoods} carrying goods)`,
-  small.strayQty === 0 && large.strayQty === 0
-  && small.strayGoods === 0 && large.strayGoods === 0);
 }

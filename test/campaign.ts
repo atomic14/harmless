@@ -19,7 +19,7 @@ import { generateGalaxy, generateMarket, COMMODITIES, type StarSystem } from '..
 import { LivingGalaxy } from '../src/galaxy/living.ts';
 import { generateContractOffers, chartDistanceTenths, settleContracts, acceptContract } from '../src/game/contracts.ts';
 import { applyMarketPressure, marketEstimate } from '../src/game/market.ts';
-import { MAX_CONTRACTS } from '../src/constants/contracts.ts';
+import { MAX_CONTRACTS, SMUGGLE_DELIVERY_NOTORIETY } from '../src/constants/contracts.ts';
 import { pirateThreat, markOf, memberTier } from '../src/game/threat.ts';
 import {
   newCommander, cargoCapacity, cargoTonnes, killValue,
@@ -189,14 +189,29 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
     // the details — which is the whole failure mode invariant 10 exists to stop,
     // in the very harness that is supposed to be checking the shipped balance.
     for (const e of settleContracts(c)) {
-      if (e.kind === 'paid') contractsDone += 1;
-      else contractsFailed += 1;   // expired, or the consignment was not aboard
+      if (e.kind === 'paid') {
+        contractsDone += 1;
+        // The GAME's split, mirrored: `settleContracts` applied the disrepute
+        // itself — it is commander state — and the regional heat is
+        // `LivingGalaxy` state the pure module cannot see, so the orchestrator
+        // applies it from the event. `Game.applyContracts` is the other site;
+        // ONE application each, so the campaign scores the heat the game does.
+        if (e.contract.kind === 'smuggle') {
+          living.addNotoriety(e.contract.destination,
+            e.contract.qty * SMUGGLE_DELIVERY_NOTORIETY);
+        }
+      } else contractsFailed += 1;   // expired, or the consignment was not aboard
     }
 
     // --- sell everything not promised to a contract ---
+    // Smuggle consignments are held back like any other: a bot that sold the
+    // narcotics it was paid to deliver would void every job it took and score
+    // the feature as a failure of the rules rather than of its own policy.
     const committed = new Map<number, number>();
     for (const k of c.contracts) {
-      if (k.kind === 'cargo') committed.set(k.commodity, (committed.get(k.commodity) ?? 0) + k.qty);
+      if (k.kind === 'cargo' || k.kind === 'smuggle') {
+        committed.set(k.commodity, (committed.get(k.commodity) ?? 0) + k.qty);
+      }
     }
     for (let i = 0; i < COMMODITIES.length; i++) {
       const keep = committed.get(i) ?? 0;
@@ -301,6 +316,14 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
       // passengers, who would want a berth out of a hold it flies empty on
       // purpose — to traders
       if (strategy === 'hunter' && k.kind !== 'bounty') continue;
+      // ILLICIT FREIGHT IS A PRIVATEER'S WORK. A trader has a clean record to
+      // protect and a hold that pays without a police scan in it, so she leaves
+      // it on the board; a privateer already wants to be looked at (its cargo is
+      // bait) and a scan is one more reason for somebody to come and try. This
+      // is the BOT's policy, not a rule of the game — nothing in
+      // game/contracts.ts asks who is accepting — and it is what makes the two
+      // cohorts' ledgers say different things about the same offer.
+      if (strategy === 'trader' && k.kind === 'smuggle') continue;
       // ONE BOUNTY JOB AT A TIME, and this is the bot's policy rather than a
       // rule of the game. A cargo or courier run is settled by ARRIVING, so
       // three of them to three nearby systems are three jobs a commander can
