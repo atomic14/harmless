@@ -240,7 +240,9 @@ export function renderBriefing(page: number): void {
  * would be the cruellest kind of wrong. `game/screens/survivors.ts` refuses the
  * key; this is what makes the refusal read as deliberate.
  */
-export function renderSurvivors(people: number): void {
+export function renderSurvivors(
+  people: number, offers: { sale: number; release: number },
+): void {
   const many = people > 1;
   show(`
     <h2>${people} SURVIVOR${many ? 'S' : ''} ABOARD</h2>
@@ -255,8 +257,13 @@ export function renderSurvivors(people: number): void {
     </div>
     <div class="buttons">
       <button data-key="KeyM">M &mdash; HAND THEM TO STATION MEDICAL</button>
+      <button data-key="KeyV">V &mdash; SELL THEM &mdash; ${formatCredits(offers.sale)}</button>
+      <button data-key="KeyL">L &mdash; TAKE ${formatCredits(offers.release)} TO LET THEM GO</button>
     </div>
-    <div class="keyline hints"><span>M MEDICAL &mdash; NO PAYMENT, NO QUESTIONS</span></div>
+    <div class="keyline hints">
+      <span>M MEDICAL &mdash; NO PAYMENT, NO QUESTIONS</span>
+      <span style="color:var(--hud-amber)">V AND L BOTH COST YOUR NAME</span>
+    </div>
   `);
 }
 

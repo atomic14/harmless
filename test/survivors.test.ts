@@ -15,11 +15,22 @@ import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { newCommander } from '../src/game/commander.ts';
-import { cargoTonnes } from '../src/game/commander.ts';
-import { handOverSurvivors, survivorMessage } from '../src/game/survivors.ts';
+import { cargoTonnes, formatCredits } from '../src/game/commander.ts';
+import {
+  resolveSurvivors, survivorMessage, survivorOffers,
+} from '../src/game/survivors.ts';
 import { SurvivorsScreen, type SurvivorsContext } from '../src/game/screens/survivors.ts';
+import { priceInTenths } from '../src/game/market.ts';
+import { characterName } from '../src/game/character.ts';
+import { generateMarket } from '../src/galaxy/galaxy.ts';
+import { SLAVES } from '../src/constants/commodities.ts';
+import { SURVIVOR_RELEASE_SHARE } from '../src/constants/survivors.ts';
+import {
+  DISREPUTE_SLAVE_SALE, DISREPUTE_SURVIVOR_RELEASED,
+} from '../src/constants/character.ts';
 import type { Input } from '../src/engine/input.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
+import { g1 } from './fixtures.ts';
 
 /** A keyboard that has already been pressed, as `Input` — taps are consumed. */
 function taps(): { press(code: string): void; input: Input } {
@@ -40,13 +51,19 @@ function taps(): { press(code: string): void; input: Input } {
 
 // --- the rule ----------------------------------------------------------------
 
+/** A commander with `people` aboard, and the offers a station would make. */
+const aboard = (people: number, quote = 40.6) => {
+  const c = newCommander();
+  c.survivors = people;
+  return { c, offers: survivorOffers(people, quote) };
+};
+
 console.log('\nhanding a survivor over costs nothing and pays nothing');
 {
-  const c = newCommander();
-  c.survivors = 2;
+  const { c, offers } = aboard(2);
   const before = { credits: c.credits, disrepute: c.disrepute ?? 0, hold: cargoTonnes(c) };
 
-  const e = handOverSurvivors(c);
+  const e = resolveSurvivors(c, 'medical', offers);
   check('the rule reports what happened', e?.kind === 'handed' && e.people === 2);
   eq('...and the crew spaces are clear', c.survivors, 0);
   eq('...for nothing', c.credits, before.credits);
@@ -55,23 +72,71 @@ console.log('\nhanding a survivor over costs nothing and pays nothing');
   eq('...and it is not a hold operation', cargoTonnes(c), before.hold);
   eq('the console line counts them', survivorMessage(e!), '2 SURVIVORS HANDED TO STATION MEDICAL');
 
-  const one = newCommander();
-  one.survivors = 1;
+  const one = aboard(1);
   eq('...and pluralises off the count',
-    survivorMessage(handOverSurvivors(one)!), '1 SURVIVOR HANDED TO STATION MEDICAL');
+    survivorMessage(resolveSurvivors(one.c, 'medical', one.offers)!),
+    '1 SURVIVOR HANDED TO STATION MEDICAL');
 
   // A caller must not be able to announce a rescue that did not happen.
-  eq('nobody aboard is not an answer', handOverSurvivors(newCommander()), null);
+  eq('nobody aboard is not an answer',
+    resolveSurvivors(newCommander(), 'medical', offers), null);
+}
+
+console.log('\n...and the two that do not');
+{
+  // SELL: the station's own Slaves quote, per person, and a career-marking
+  // deed. The price is read off `generateMarket` rather than written down, so
+  // this is the rule and not a copy of it.
+  const quote = generateMarket(g1[7], 0)[SLAVES].price;
+  const { c, offers } = aboard(2, quote);
+  const before = { credits: c.credits, hold: cargoTonnes(c) };
+
+  const e = resolveSurvivors(c, 'sold', offers);
+  eq('selling pays the station\'s own Slaves price, per person',
+    c.credits - before.credits, 2 * priceInTenths(quote));
+  check('the event says what was paid', e?.kind === 'sold' && e.paid === offers.sale);
+  eq('...and it marks the name at the career-marking weight',
+    c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
+  eq('one sale takes an Honest commander to Dodgy', characterName(c.disrepute ?? 0), 'Dodgy');
+  // THE THING THAT MUST NOT HAPPEN (docs/TODO/108): a person is not stock. A
+  // sale that routed through the hold would let a full ship refuse it.
+  eq('...and nothing went through the hold', cargoTonnes(c), before.hold);
+  eq('...and the crew spaces are clear', c.survivors, 0);
+
+  // LET THEM GO: less money, less of your name. You are not selling a person;
+  // you are declining to file one.
+  const go = aboard(2, quote);
+  const paid = resolveSurvivors(go.c, 'released', go.offers)!;
+  check('a release pays less than the sale', paid.kind === 'released'
+    && paid.paid === go.offers.release && paid.paid < go.offers.sale);
+  eq('...at the share the rule sets',
+    go.offers.release, Math.round(go.offers.sale * SURVIVOR_RELEASE_SHARE));
+  eq('...and costs less of the name', go.c.disrepute ?? 0, DISREPUTE_SURVIVOR_RELEASED);
+  check('...which is a nudge and not a career',
+    DISREPUTE_SURVIVOR_RELEASED < DISREPUTE_SLAVE_SALE
+    && characterName(go.c.disrepute ?? 0) !== 'Dodgy');
+  eq('...and it too clears the crew spaces', go.c.survivors, 0);
+
+  // The market is the price, so a system that pays differently for people
+  // pays differently for this — which is the reason for reading the quote.
+  const dear = g1.reduce((best, sys) =>
+    (generateMarket(sys, 0)[SLAVES].price > generateMarket(best, 0)[SLAVES].price ? sys : best));
+  check(`the quote is the market's, and it varies (${g1[7].name} ${quote}`
+    + ` vs ${dear.name} ${generateMarket(dear, 0)[SLAVES].price})`,
+    survivorOffers(1, generateMarket(dear, 0)[SLAVES].price).sale > survivorOffers(1, quote).sale);
 }
 
 // --- the keyboard ------------------------------------------------------------
 
 console.log('\nthe prompt cannot be escaped');
 {
-  let handed = 0;
+  const answered: string[] = [];
   const screen = new SurvivorsScreen(() => ({
     people: 1,
-    handOver: () => { handed += 1; },
+    offers: { sale: 400, release: 200 },
+    handOver: () => { answered.push('medical'); },
+    sell: () => { answered.push('sold'); },
+    release: () => { answered.push('released'); },
   } satisfies SurvivorsContext));
   const kb = taps();
   screen.open();
@@ -81,17 +146,25 @@ console.log('\nthe prompt cannot be escaped');
   // in the decent direction for free and put the old bug straight back.
   kb.press('Escape');
   eq('ESC does not dismiss it', screen.input(kb.input), 'stay');
-  eq('...and nothing was decided', handed, 0);
+  eq('...and nothing was decided', answered.length, 0);
 
   for (const key of ['Enter', 'KeyQ', 'KeyY', 'Space']) {
     kb.press(key);
     eq(`...and neither does ${key}`, screen.input(kb.input), 'stay');
   }
-  eq('...still nothing decided', handed, 0);
+  eq('...still nothing decided', answered.length, 0);
 
   kb.press('KeyM');
   eq('M hands them over, and closes the prompt', screen.input(kb.input), 'back');
-  eq('...having answered exactly once', handed, 1);
+  eq('...having answered exactly once', answered.join(','), 'medical');
+
+  // ...and the two dirty answers are the other two letters, each its own act
+  kb.press('KeyV');
+  eq('V sells them', screen.input(kb.input), 'back');
+  kb.press('KeyL');
+  eq('L takes the money to let them go', screen.input(kb.input), 'back');
+  eq('...three answers, three keys, no default',
+    answered.join(','), 'medical,sold,released');
 }
 
 // --- and the real docking ----------------------------------------------------
@@ -119,8 +192,38 @@ console.log('\ndocking with somebody aboard asks before it resolves');
 
   const kb = taps();
   kb.press('KeyM');
-  g.screens.top!.screen.input(kb.input);
+  g.screens.update(kb.input);
   eq('the answer clears the crew spaces', c.survivors, 0);
   eq('...and the console says so', g.state.session.messageText,
     '1 SURVIVOR HANDED TO STATION MEDICAL');
+}
+
+console.log('...and the sale is priced off the market that station rolled');
+{
+  const g = withoutSaving(() => {
+    seedWorld(20_270_811);
+    const game = new Game(() => headlessShell());
+    dismissBriefing(game);
+    return game;
+  }).value;
+  const c = g.state.commander;
+  c.survivors = 1;
+  withoutSaving(() => { g.enterDocked('resumed'); });
+
+  const quote = g.state.market[SLAVES].price;
+  const before = c.credits;
+  const kb = taps();
+  kb.press('KeyV');
+  g.screens.update(kb.input);
+
+  eq('the money is this station\'s Slaves quote', c.credits - before, priceInTenths(quote));
+  eq('...and the console says what was done and what it paid',
+    g.state.session.messageText,
+    `1 SOLD ON THE SLAVE ROW — ${formatCredits(priceInTenths(quote))}`);
+  eq('...and the name pays the career-marking weight', c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
+  // The name's own line is QUEUED behind the receipt (docs/TODO/129), so the
+  // rung it crossed is waiting rather than shouting over it.
+  check(`the crossing is queued behind it (${g.state.session.queued.map((q) => q.text).join()})`,
+    g.state.session.queued.some((q) => q.text === 'CHARACTER: DODGY'));
+  eq('...and the prompt is gone', g.screens.topId, null);
 }

@@ -138,7 +138,10 @@ import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts'
 import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
 import { QuitScreen, type QuitContext } from './screens/quit.ts';
 import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
-import { handOverSurvivors, survivorMessage, type SurvivorEvent } from './survivors.ts';
+import {
+  resolveSurvivors, survivorMessage, survivorOffers, type SurvivorChoice,
+} from './survivors.ts';
+import { SLAVES } from '../constants/commodities.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 import { BEAM_Z } from '../engine/render-stack.ts';
 
@@ -640,7 +643,10 @@ export class Game {
       } satisfies QuitContext)),
       new SurvivorsScreen(() => ({
         people: this.state.commander.survivors,
-        handOver: () => this.answerForSurvivors(handOverSurvivors(this.state.commander)),
+        offers: this.survivorOffers(),
+        handOver: () => this.answerForSurvivors('medical'),
+        sell: () => this.answerForSurvivors('sold'),
+        release: () => this.answerForSurvivors('released'),
       } satisfies SurvivorsContext)),
     ]) this.screens.register(screen);
 
@@ -1178,15 +1184,29 @@ export class Game {
   }
 
   /**
-   * The survivors rule decided; the Game says it (docs/TODO/127).
+   * What the two dirty answers pay here: the station's own Slaves quote, read
+   * off the market this dock rolled rather than priced again (docs/TODO/127).
+   */
+  private survivorOffers(): { sale: number; release: number } {
+    return survivorOffers(
+      this.state.commander.survivors, this.state.market[SLAVES]?.price ?? 0);
+  }
+
+  /**
+   * The survivors rule decides; the Game says it (docs/TODO/127).
    *
    * Same shape as `applyContracts` and for the same reason: `survivors.ts` is
    * pure, and everything a choice touches outside the commander — the console,
    * and in M3 the region's heat and the Government's opinion — lands here.
    */
-  private answerForSurvivors(e: SurvivorEvent | null): void {
+  private answerForSurvivors(choice: SurvivorChoice): void {
+    const before = this.state.commander.disrepute ?? 0;
+    const e = resolveSurvivors(this.state.commander, choice, this.survivorOffers());
     if (!e) return;
     this.showMessage(survivorMessage(e), 4);
+    // ...and what it did to your name, behind the line that explains it — the
+    // same rule every other deed spends (docs/TODO/129).
+    this.markName(before, this.state.commander.disrepute ?? 0);
   }
 
   /** Pay out anything delivered here; drop anything overdue. */

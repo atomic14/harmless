@@ -77,6 +77,19 @@ export function makeLocalMarket(
     priceMultiplier);
 }
 
+/**
+ * A quoted price as MONEY: tenths of a credit (invariant 8).
+ *
+ * `MarketEntry.price` is the human-facing figure — 40.6 Cr — and every ledger
+ * in the game is integer tenths. The counter did this twice in
+ * `screens/trade.ts` (buying and selling) and docs/TODO/127 needed it a third
+ * time to price a person off the Slaves row, which is a rounding rule with
+ * three homes waiting to disagree about a half-tenth.
+ */
+export function priceInTenths(price: number): number {
+  return Math.round(price * 10);
+}
+
 /** What one sale over a counter costs you in reputation. */
 export interface SaleFallout {
   /** heat to add HERE — `LivingGalaxy.addNotoriety` spreads it to the neighbours */

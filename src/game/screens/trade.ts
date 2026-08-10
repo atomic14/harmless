@@ -25,7 +25,7 @@ import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import { sfx } from '../../audio.ts';
 import { afterDeed, characterVerdict } from '../character.ts';
 import { CHARACTER_LINE_SECONDS } from '../../constants/character.ts';
-import { saleFallout } from '../market.ts';
+import { priceInTenths, saleFallout } from '../market.ts';
 
 /** The slice of the Game these screens are allowed to see. */
 export interface TradeContext {
@@ -117,7 +117,7 @@ export class MarketScreen implements Screen {
     const ctx = this.ctx();
     const idx = this.selected;
     const m = ctx.market[idx];
-    const cost = Math.round(m.price * 10);
+    const cost = priceInTenths(m.price);
     let bought = 0;
     while (bought < want) {
       if (m.quantity <= 0 || ctx.commander.credits < cost) break;
@@ -145,7 +145,7 @@ export class MarketScreen implements Screen {
     while (sold < want && ctx.commander.cargo[idx] > 0) {
       ctx.commander.cargo[idx] -= 1;
       m.quantity += 1;
-      revenue += Math.round(m.price * 10);
+      revenue += priceInTenths(m.price);
       sold += 1;
     }
     if (sold > 0) {

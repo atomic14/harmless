@@ -29,6 +29,47 @@ export const DISREPUTE_MURDER = 40;
 export const DISREPUTE_CAUGHT = 10;
 
 /**
+ * Selling somebody you pulled out of an escape capsule (docs/TODO/127).
+ *
+ * The deed the ladder was built for, and priced with the other career-marker:
+ * one takes an Honest commander clear to Dodgy, which is what a rescue turned
+ * into a transaction ought to be worth. That it equals `DISREPUTE_HERMIT_KILL`
+ * is the statement — cracking a hermit for his ore and selling a rescued pilot
+ * are the same order of thing.
+ *
+ * Its own rule id: it shares the value 40 with `DISREPUTE_HERMIT_KILL` and
+ * `DISREPUTE_MURDER` above, and the three must stay free to move apart. This
+ * one is the only one of them a station counter will process.
+ *
+ * Owner confirmed as character.ts rather than the survivors file the catalogue
+ * prefers: constants/survivors.ts prices the TRANSACTION, and every mark on the
+ * name lives here beside the ladder that reads it and the decay that erodes it
+ * (docs/TODO/127 says so in as many words).
+ *
+ * @rule character.disreputeSlaveSale
+ */
+export const DISREPUTE_SLAVE_SALE = 40;
+
+/**
+ * Taking money to let one go instead (docs/TODO/127).
+ *
+ * A quarter of the sale, because it is a different deed and not a discount on
+ * the same one: you are not selling a person, you are declining to file one,
+ * and what is left is that you were paid for it. `DISREPUTE_CAUGHT`-scale — a
+ * nudge that only adds up over a habit of them, which is the shape every deed
+ * on this ladder that is not career-marking has.
+ *
+ * Its own rule id: it shares the value 10 with `DISREPUTE_CAUGHT` above, which
+ * prices being read by a police scan, and with the ladder's own Dubious
+ * threshold, which is not a deed at all.
+ *
+ * Owner confirmed as character.ts, for `DISREPUTE_SLAVE_SALE`'s reason above.
+ *
+ * @rule character.disreputeSurvivorReleased
+ */
+export const DISREPUTE_SURVIVOR_RELEASED = 10;
+
+/**
  * Buying a policeman: what the offer adds to disrepute whether he takes it or
  * refuses it (`game/law.ts`, docs/TODO/123).
  *

@@ -20,8 +20,14 @@ import { sfx } from '../../audio.ts';
 export interface SurvivorsContext {
   /** how many people are aboard — the prompt pluralises off it */
   readonly people: number;
+  /** what the two dirty answers pay here, in tenths (`survivorOffers`) */
+  readonly offers: { sale: number; release: number };
   /** Hand them to station medical: costs nothing, pays nothing. */
   handOver(): void;
+  /** Sell them on the Slaves row at the local quote. */
+  sell(): void;
+  /** Take their money and let them walk. */
+  release(): void;
 }
 
 export class SurvivorsScreen implements Screen {
@@ -37,12 +43,24 @@ export class SurvivorsScreen implements Screen {
   }
 
   render(): void {
-    renderSurvivors(this.ctx().people);
+    const ctx = this.ctx();
+    renderSurvivors(ctx.people, ctx.offers);
   }
 
   input(i: Input): ScreenOutcome {
+    const ctx = this.ctx();
+    // Three answers, three letters, and no default: the whole point is that
+    // the player says which. M is the decent one; the two below it are not.
     if (i.pressed('KeyM')) {
-      this.ctx().handOver();
+      ctx.handOver();
+      return 'back';
+    }
+    if (i.pressed('KeyV')) {
+      ctx.sell();
+      return 'back';
+    }
+    if (i.pressed('KeyL')) {
+      ctx.release();
       return 'back';
     }
     // Everything else, Escape included, is refused and re-asked. The station
