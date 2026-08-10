@@ -13,9 +13,12 @@ active context:
 
 ## Execution queue
 
-Empty — 115 landed the lane detail and the traffic fade. `QUEUE.json` agrees.
-The backlog below is in priority order; promoting its head is what makes the
-next execution item.
+1. [ ] 116 — [A loaded save jumps on its own](116-a-loaded-save-jumps-on-its-own.md)
+   — reported by Chris and reproduced: a snapshot taken during a hyperspace
+   countdown resumes it on load, so the ship jumps unasked
+
+`QUEUE.json` agrees. The backlog below is in priority order; promoting its head
+is what makes the next execution item.
 
 ## Backlog
 
