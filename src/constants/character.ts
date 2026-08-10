@@ -1,7 +1,8 @@
 // Your CHARACTER: the reputation for dirty dealing that clings to a name after
 // the fine is paid. Distinct from `rating.ts` (how DANGEROUS you are) and
 // `law.ts` (your standing with the Government right now, which money clears).
-// A score shady deeds raise and time erodes, read off the ladder below by
+// A score shady deeds raise and time erodes — a dirty sale, a shorted
+// consignment, a bribe pressed on a policeman — read off the ladder below by
 // `game/character.ts`.
 
 /**
@@ -26,6 +27,27 @@ export const CHARACTER: readonly (readonly [number, string])[] = [
 export const DISREPUTE_HERMIT_KILL = 40;
 export const DISREPUTE_MURDER = 40;
 export const DISREPUTE_CAUGHT = 10;
+
+/**
+ * Buying a policeman: what the offer adds to disrepute whether he takes it or
+ * refuses it (`game/law.ts`, docs/TODO/123).
+ *
+ * More than being CAUGHT, which is the only comparison that matters. Being
+ * scanned costs you the record, the fine and everybody the record brings after
+ * you; a bribe leaves the Government's paperwork spotless, so the name is the
+ * ONLY thing it costs and it has to bite for the deed to have a price at all.
+ * Two of them take an Honest commander past Dubious, five past Dodgy — a habit
+ * makes a reputation, one bad afternoon does not.
+ *
+ * Its own rule id: it shares the value 12 with `DEFENCE_WEIGHT`
+ * (constants/threat.ts), which weighs how much shooting a hull survives, and
+ * with `TACTIC_SLEEPER_SECONDS`, which is a duration. Coincidences, and nothing
+ * else.
+ *
+ * @rule character.disreputeBribe
+ */
+export const DISREPUTE_BRIBE = 12;
+
 /**
  * Selling illicit goods over a market counter, or landing a consignment of them
  * no-questions-asked (`game/contracts.ts`).

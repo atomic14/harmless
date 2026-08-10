@@ -8,10 +8,15 @@
 // the numbers themselves are constants/law.ts now; everything about your
 // standing with the Galactic Government is still decided here and nowhere else.
 
+import { COMMODITIES } from '../galaxy/galaxy.ts';
 import {
-  CLEAN, CONTRABAND, FUGITIVE, FUGITIVE_FINE, LAW_ROLE_NAMES, LEGAL_NAMES,
-  OFFENDER, OFFENDER_FINE,
+  BRIBE_FLOOR, BRIBE_SHARE, CLEAN, CONTRABAND, FUGITIVE, FUGITIVE_FINE,
+  LAW_ROLE_NAMES, LEGAL_NAMES, OFFENDER, OFFENDER_FINE, SCAN_RANGE,
+  SCAN_WARN_RANGE,
 } from '../constants/law.ts';
+import { DISREPUTE_BRIBE } from '../constants/character.ts';
+import { VALUE_PER_TONNE } from '../constants/jettison.ts';
+import { afterDeed } from './character.ts';
 
 /** Is this commodity illegal to carry? */
 export function isContraband(commodity: number): boolean {
@@ -49,6 +54,73 @@ export function recordCleared(
   if (legalStatus <= CLEAN) return null;
   const paid = fineFor(legalStatus, credits);
   return { paid, creditsLeft: credits - paid };
+}
+
+/**
+ * What the nearest police ship is close enough to DO about a dirty hold, at
+ * `distance` world units.
+ *
+ * One home for the two ranges, spent twice: `world-step.ts` reads it every
+ * frame to decide between the scan and the telegraph that precedes it, and the
+ * bribe (game.ts) reads it to decide whether there is an inspection to buy off.
+ * Written out in both places, the offer would be free to disagree with the
+ * warning that prompts it — you would read POLICE PATROL CLOSING and press the
+ * key and be told there is nobody there.
+ */
+export function patrolReach(distance: number): 'scan' | 'warn' | 'none' {
+  if (distance < SCAN_RANGE) return 'scan';
+  return distance < SCAN_WARN_RANGE ? 'warn' : 'none';
+}
+
+/**
+ * What a policeman wants to not read your hold, in tenths of a credit.
+ *
+ * Priced off what you are PROTECTING — the evidence, at what the market pays
+ * for it (`VALUE_PER_TONNE`, the same rule the jettison toll and the pirate's
+ * assessment price a hold by) — because that is the sum a third party doing the
+ * looking-away is doing too. `BRIBE_SHARE` is his cut of it and `BRIBE_FLOOR`
+ * is what the risk costs him regardless.
+ *
+ * Rounded, because money is integer tenths (invariant 8).
+ */
+export function inspectionPrice(cargo: readonly number[]): number {
+  const value = CONTRABAND.reduce(
+    (sum, i) => sum + (cargo[i] ?? 0) * COMMODITIES[i].basePrice * VALUE_PER_TONNE, 0);
+  return Math.max(BRIBE_FLOOR, Math.round(value * BRIBE_SHARE));
+}
+
+/** What an offer of `price` does: taken and paid for, or short by this much. */
+export type BribeAnswer =
+  | { readonly bought: false; readonly price: number; readonly short: number }
+  | {
+    readonly bought: true; readonly price: number;
+    readonly creditsLeft: number; readonly disrepute: number;
+  };
+
+/**
+ * Offer it: what a commander is left with, or what they are short.
+ *
+ * The same shape as `recordCleared` above and for the same reason — the rule
+ * works out the arithmetic and the caller writes it down (invariant 10). What
+ * it will not do is half-work: an offer you cannot cover buys nothing and
+ * spends nothing, which is what makes the shortfall worth printing.
+ *
+ * **It always costs your name.** `DISREPUTE_BRIBE` is applied here rather than
+ * left to the caller, so no future half of this feature can quietly ship the
+ * version where money makes consequences go away. The record is untouched:
+ * buying your name back is `recordCleared` at a station, by choice, and it is
+ * the only thing that clears one.
+ */
+export function bribeOffered(
+  price: number, credits: number, disrepute: number,
+): BribeAnswer {
+  if (credits < price) return { bought: false, price, short: price - credits };
+  return {
+    bought: true,
+    price,
+    creditsLeft: credits - price,
+    disrepute: afterDeed(disrepute, DISREPUTE_BRIBE),
+  };
 }
 
 /**

@@ -26,9 +26,9 @@ import { HUD, rgb24 } from '../palette.ts';
 import type { FlightDemand } from '../player.ts';
 import { cargoCapacity, cargoTonnes } from './commander.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
-import { carryingContraband, recordVerdict } from './law.ts';
+import { carryingContraband, patrolReach, recordVerdict } from './law.ts';
 import {
-  OFFENDER, SCAN_LINE_SECONDS, SCAN_RANGE, SCAN_WARN_RANGE, SCAN_WARN_REPEAT,
+  OFFENDER, SCAN_LINE_SECONDS, SCAN_WARN_REPEAT,
 } from '../constants/law.ts';
 import { afterDeed } from './character.ts';
 import { hermitRefuses } from './market.ts';
@@ -62,7 +62,7 @@ import type { DamageSource } from './combat.ts';
 import { dealToNpc, type DealtEvent } from './damage-dealt.ts';
 import { viewDirection } from './views.ts';
 import { Ordnance, ordnanceMessage, type OrdnanceOutcome } from './ordnance.ts';
-import type { NpcShip, FireEvent, WorldView } from './npc.ts';
+import { nearestNpc, type NpcShip, type FireEvent, type WorldView } from './npc.ts';
 import type { SoundEvent, SoundName } from './sounds.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
 import type { GameState } from './state.ts';
@@ -569,13 +569,13 @@ export class WorldStep {
     let copInBand = false;
     if (!session.policeScanned && !session.witchspace
       && carryingContraband(commander.cargo)) {
-      let nearest = Infinity;
-      for (const npc of world.npcs) {
-        if (npc.state.alive && npc.role === 'police') {
-          nearest = Math.min(nearest, npc.object.position.distanceTo(player.position));
-        }
-      }
-      if (nearest < SCAN_RANGE) {
+      const nearest = nearestNpc(world.npcs, player.position,
+        (npc) => npc.role === 'police')?.distance ?? Infinity;
+      // `patrolReach` (law.ts) owns both ranges, because the bribe key reads the
+      // same window: an offer that disagreed with the warning that prompted it
+      // would be a key that does nothing while the console says a cop is there.
+      const reach = patrolReach(nearest);
+      if (reach === 'scan') {
         session.policeScanned = true;
         this.host.raiseLegal(OFFENDER);
         // caught smuggling: the fine clears, but the name does not
@@ -584,7 +584,7 @@ export class WorldStep {
         // ...and what that cost you, queued behind the line it explains
         session.scanVerdictTimer = SCAN_LINE_SECONDS;
       } else {
-        copInBand = nearest < SCAN_WARN_RANGE;
+        copInBand = reach === 'warn';
       }
     }
     if (copInBand) {

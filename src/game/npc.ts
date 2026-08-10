@@ -329,6 +329,33 @@ export function hostilesNear(
     && npc.object.position.distanceTo(playerPos) < PLAYER_INTEREST_RANGE);
 }
 
+/**
+ * The nearest LIVING ship the predicate accepts, and how far off it is — or
+ * null when the sky holds none.
+ *
+ * "Which one is nearest, of the ones that count?" was written out wherever it
+ * was asked: the step's police scan had its own loop, and the bribe key
+ * (game.ts) needed the same sweep at the same range plus a second one for the
+ * ships already shooting. The predicate is the only thing that differs between
+ * them, so it is the only thing passed — the aliveness and the distance are the
+ * part nobody should be restating.
+ *
+ * `inert` is deliberately NOT filtered here: a ship that has stopped deciding
+ * is still a ship in the sky, and `isHostileToPlayer` is the rule that knows
+ * which questions care.
+ */
+export function nearestNpc(
+  npcs: readonly NpcShip[], from: THREE.Vector3, wants: (npc: NpcShip) => boolean,
+): { npc: NpcShip; distance: number } | null {
+  let best: { npc: NpcShip; distance: number } | null = null;
+  for (const npc of npcs) {
+    if (!npc.state.alive || !wants(npc)) continue;
+    const distance = npc.object.position.distanceTo(from);
+    if (!best || distance < best.distance) best = { npc, distance };
+  }
+  return best;
+}
+
 export type TraderPhase = 'arriving' | 'trading' | 'departing' | 'docking';
 
 /**

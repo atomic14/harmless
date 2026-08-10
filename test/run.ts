@@ -39,6 +39,7 @@ import './contract-acceptance.test.ts';
 import './missions.test.ts';
 import './trade.test.ts';
 import './jettison.test.ts';
+import './bribe.test.ts';
 import './world.test.ts';
 import './docking.test.ts';
 import './observation.test.ts';

@@ -87,6 +87,7 @@ export type Command =
   | 'jettison1'
   | 'jettison5'
   | 'jettisonContraband'
+  | 'bribePolice'
   | 'quitFlight'
   // --- the training simulator ---------------------------------------------
   | 'endExercise'
@@ -177,6 +178,15 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   // thing the law is looking for — a modifier on a bulk dump would read as more
   // of the same rather than as a different rule.
   { key: 'KeyO', command: 'jettisonContraband' },
+  // ...and L is the other answer to the same warning: O throws the evidence
+  // out, L pays the man to look the other way. It sits under O on the keyboard
+  // for that reason — the two things a patrol closing on a dirty hold leaves
+  // you are one finger apart — and it is a plain letter rather than ⇧O because
+  // shift already means MORE OF THE SAME on ⇧Y, and a bribe is a different rule
+  // rather than a bigger dump. L launches at the STATION, which is the
+  // established per-mode convention and not a clash (C, M and T all mean two
+  // things across the two tables).
+  { key: 'KeyL', command: 'bribePolice' },
   { key: 'KeyJ', command: 'toggleTorus' },
   // Q for QUIT — free in the cockpit, and the same letter that backs out of the
   // new-commander confirmation at the station and ends an exercise in the
@@ -201,6 +211,9 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
  *    gang, and the clone's hold is deliberately EMPTY, so the keys can only ever
  *    mislead. The contraband key doubly so: there is no law in the arena to hide
  *    it from.
+ *  - `bribePolice` — the same reason once more, and harder: an exercise has no
+ *    hold to be inspected, no police, and credits that are not the career's, so
+ *    the one thing the key could do is spend money that is not there.
  *  - `toggleDockingComputer` — it flies you at a station 77,000 units away and
  *    docking is the one transition that writes the save.
  *  - `quitFlight` — it restores the CAREER's docked checkpoint, which is the one
@@ -214,7 +227,7 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
  */
 export const NOT_IN_THE_SIMULATOR: readonly Command[] = [
   'startHyperspace', 'galacticJump', 'distressBeacon', 'jettison1', 'jettison5',
-  'jettisonContraband', 'toggleDockingComputer', 'quitFlight',
+  'jettisonContraband', 'bribePolice', 'toggleDockingComputer', 'quitFlight',
 ];
 
 /**

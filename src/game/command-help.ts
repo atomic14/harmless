@@ -161,6 +161,10 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     what: 'jettison a tonne of the ILLEGAL cargo — the evidence, which is rarely the most valuable thing aboard',
     section: 'flight',
   },
+  bribePolice: {
+    what: 'offer the police ship in front of you money — it never clears your record, and it always costs your name',
+    section: 'flight',
+  },
   quitFlight: {
     what: 'pause first, then Q gives up the flight — asks, then puts you back at the station autosave you launched from',
     section: 'flight',

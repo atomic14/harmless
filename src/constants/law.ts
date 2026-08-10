@@ -88,6 +88,51 @@ export const SCAN_WARN_RANGE = 4400;
 export const SCAN_WARN_REPEAT = 2;
 
 /**
+ * What a policeman charges to not read your hold: this share of what the
+ * contraband aboard is worth at market (`VALUE_PER_TONNE`,
+ * constants/jettison.ts, which is the one home of what a tonne fetches).
+ *
+ * HALF, and the half is the whole argument. The other answer to a patrol
+ * closing is to dump the evidence, which costs you all of it — so a bribe that
+ * cost as much as the cargo would never be worth making, and one that cost a
+ * token would delete the choice from the other side. Half of what he is
+ * ignoring is a cut a smuggler can live with and still feel.
+ *
+ * Deliberately NOT priced off `OFFENDER_FINE`: 25 Cr is what the station
+ * charges for the paperwork, and a man looking away from a hold of narcotics is
+ * not selling the same thing. Anchoring them together would make one move the
+ * other. A light hold is caught by the floor below rather than by this.
+ *
+ * Its own rule id: half is a popular number, and every other 0.5 in the
+ * catalogue — what a bad name is worth to a pirate, how far a cone opens, how
+ * far a gun leads — is an answer to a different question and must stay free to
+ * move without moving this.
+ *
+ * @rule law.bribeShare
+ */
+export const BRIBE_SHARE = 0.5;
+
+/**
+ * ...but never less than this, so a light run is not a free pass. 50 Cr, in
+ * tenths of a credit (invariant 8).
+ *
+ * The same shape as `OPPORTUNIST_FLOOR` and for the same reason, and the reason
+ * bites harder here: Slaves are 14th of 17 on the 1984 price table, so a tonne
+ * of them is worth 16 Cr and a share of that is not a bribe, it is a tip. The
+ * floor is what the risk costs HIM, independent of what you happen to be
+ * carrying — which is also why the owner is the law rather than the jettison
+ * domain it resembles: a pirate's floor is the least he will call a payday, and
+ * this is the least a policeman will call a career worth gambling.
+ *
+ * Its own rule id: it shares the value 500 with `PURSUIT_RANGE`,
+ * `EXTEND_RANGE_MIN` and `STATION_DEFENCE_STANDOFF`, which are distances in
+ * world units.
+ *
+ * @rule law.bribeFloor
+ */
+export const BRIBE_FLOOR = 500;
+
+/**
  * How long the scan's own line holds the console — and so how long the verdict
  * that explains it waits behind it.
  *

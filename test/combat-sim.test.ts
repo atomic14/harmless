@@ -69,6 +69,9 @@ console.log('\ncombat simulator — the simulator binding table');
     // ...and the contraband dump with them: an arena has no law to hide from,
     // on top of the empty hold that keeps the other two out.
     'jettisonContraband',
+    // ...and the bribe key for the same two reasons at once: no law to buy off,
+    // and credits that are not the career's to spend (docs/TODO/123).
+    'bribePolice',
     'toggleDockingComputer',
     // Not a way out of the ARENA but out of the career: it restores the docked
     // checkpoint, the one thing an exercise must never touch. Q is the arena's
@@ -82,7 +85,8 @@ console.log('\ncombat simulator — the simulator binding table');
   eq('...and that is exactly the list controls.ts states',
     [...NOT_IN_THE_SIMULATOR].sort().join(','),
     ['distressBeacon', 'galacticJump', 'jettison1', 'jettison5', 'jettisonContraband',
-      'startHyperspace', 'toggleDockingComputer', 'quitFlight'].sort().join(','));
+      'bribePolice', 'startHyperspace', 'toggleDockingComputer', 'quitFlight']
+      .sort().join(','));
 
   // Everything else is kept: an exercise is meant to be the real ship.
   for (const kept of [

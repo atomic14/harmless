@@ -49,7 +49,7 @@ import { Hud } from '../hud/hud.ts';
 import { buildHudFrame } from '../hud/hud-binding.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
 import { sfx } from '../audio.ts';
-import { NpcShip } from './npc.ts';
+import { nearestNpc, NpcShip } from './npc.ts';
 import { npcImpactDamage } from './impact-damage.ts';
 import { IMPACT } from '../constants/impact.ts';
 import { dealToNpc } from './damage-dealt.ts';
@@ -146,7 +146,9 @@ import {
   LEGAL_NAMES, CLEAN, DEFENCE_RANGE,
 } from '../constants/law.ts';
 import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
-import { recordCleared } from './law.ts';
+import {
+  bribeOffered, carryingContraband, inspectionPrice, patrolReach, recordCleared,
+} from './law.ts';
 import { afterDecay } from './character.ts';
 import {
   hideScreen, renderDockedMenu, renderNewGameConfirm,
@@ -1780,6 +1782,7 @@ export class Game {
     jettison1: () => this.jettisonCargo(1),
     jettison5: () => this.jettisonCargo(5),
     jettisonContraband: () => this.jettisonContraband(1),
+    bribePolice: () => this.bribePolice(),
     // --- the training simulator -------------------------------------------
     endExercise: () => this.endExercise(),
     // --- after the end ----------------------------------------------------
@@ -1935,6 +1938,54 @@ export class Game {
   jettisonContraband(tonnes = 1): void {
     this.throwOverboard(
       (cargo) => dumpContraband(cargo, tonnes), 'NO CONTRABAND ABOARD');
+  }
+
+  /**
+   * Offer the law money — the other answer to a patrol closing on a dirty hold.
+   *
+   * `law.ts` decides what it costs and what it leaves; this spends the credits
+   * and writes the latch (invariant 10). One key and no mode: it reads the
+   * situation in front of you, and when there is nothing to buy it says so and
+   * spends nothing, the way an empty hold answers HOLD EMPTY.
+   *
+   * **The scan simply does not happen.** `policeScanned` latches with no
+   * `raiseLegal`, so the Government's paperwork stays spotless — and the name
+   * pays for it instead (`bribeOffered`). That asymmetry is the whole feature:
+   * a bribe never clears a record and never buys one back, it buys the reading
+   * that would have created one.
+   *
+   * @internal — driven by test/playtest.js
+   */
+  bribePolice(): void {
+    if (this.mode !== 'flight') { sfx.refused(); return; }
+    const c = this.state.commander;
+    const session = this.state.session;
+    const cop = nearestNpc(this.state.world.npcs, this.state.player.position,
+      (npc) => npc.role === 'police');
+
+    // The inspection: contraband aboard, nobody has read it yet, and a patrol
+    // close enough to. `patrolReach` is the same window the console warned you
+    // about, rather than a second opinion about the same two ranges.
+    if (!session.policeScanned && !session.witchspace && carryingContraband(c.cargo)
+      && cop && patrolReach(cop.distance) !== 'none') {
+      const offer = bribeOffered(inspectionPrice(c.cargo), c.credits, c.disrepute ?? 0);
+      if (!offer.bought) {
+        // the pirate bribe's own shape for the same failure — one message for
+        // "not enough", with the figure, rather than a second way of saying it
+        this.showMessage(`THEY WANT MORE (${formatCredits(Math.ceil(offer.short))})`, 3);
+        sfx.refused();
+        return;
+      }
+      c.credits = offer.creditsLeft;
+      c.disrepute = offer.disrepute;
+      session.policeScanned = true;
+      this.showMessage(
+        `PATROL LOOKS THE OTHER WAY — ${formatCredits(offer.price)} AND YOUR NAME`, 4);
+      return;
+    }
+
+    this.showMessage('NOBODY TO PAY OFF', 2);
+    sfx.refused();
   }
 
   /**
