@@ -11,8 +11,8 @@
 import { COMMODITIES } from '../galaxy/galaxy.ts';
 import {
   BRIBE_FLOOR, BRIBE_SHARE, CLEAN, CONTRABAND, FUGITIVE, FUGITIVE_FINE,
-  LAW_ROLE_NAMES, LEGAL_NAMES, OFFENDER, OFFENDER_FINE, SCAN_RANGE,
-  SCAN_WARN_RANGE,
+  LAW_ROLE_NAMES, LEGAL_NAMES, OFFENDER, OFFENDER_FINE, PATROL_BRIBE_FINES,
+  SCAN_RANGE, SCAN_WARN_RANGE,
 } from '../constants/law.ts';
 import { DISREPUTE_BRIBE } from '../constants/character.ts';
 import { VALUE_PER_TONNE } from '../constants/jettison.ts';
@@ -87,6 +87,25 @@ export function inspectionPrice(cargo: readonly number[]): number {
   const value = CONTRABAND.reduce(
     (sum, i) => sum + (cargo[i] ?? 0) * COMMODITIES[i].basePrice * VALUE_PER_TONNE, 0);
   return Math.max(BRIBE_FLOOR, Math.round(value * BRIBE_SHARE));
+}
+
+/**
+ * What ONE police ship already hunting you wants to break off, in tenths.
+ *
+ * Priced off your STANDING and not your hold: what a policeman wants to look
+ * away from a Fugitive is not a function of what is in the bay, and a Fugitive
+ * with an empty hold is the commander who most needs the offer to exist. The
+ * rung's fine is the law's own statement of what the rung is worth
+ * (`PATROL_BRIBE_FINES` says how much worse than paying it this is).
+ *
+ * `fineFor` is not reused: it caps at what you can pay, which is right for a
+ * fine you cannot escape and wrong for a price you can fail to meet. A Clean
+ * commander pays the Offender's rate — the only way to be shot at by the law
+ * with a clean record is to have provoked it, and the deed he is ignoring is
+ * the same deed either way.
+ */
+export function patrolPrice(legalStatus: number): number {
+  return PATROL_BRIBE_FINES * (legalStatus >= FUGITIVE ? FUGITIVE_FINE : OFFENDER_FINE);
 }
 
 /** What an offer of `price` does: taken and paid for, or short by this much. */

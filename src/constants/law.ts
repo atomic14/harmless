@@ -133,6 +133,30 @@ export const BRIBE_SHARE = 0.5;
 export const BRIBE_FLOOR = 500;
 
 /**
+ * What a police ship already shooting at you charges to break off, as a
+ * multiple of the fine for the rung you are on — PER SHIP, so a pair costs
+ * twice, exactly as a gang of pirates does.
+ *
+ * Expressed from `OFFENDER_FINE` and `FUGITIVE_FINE` because those are the
+ * existing statement of what each rung is worth to the law, and MUCH worse than
+ * them because it has to be: a bribe that undercut the fine would delete the
+ * fine. Docking and paying clears the record for 75 Cr; buying one Viper out of
+ * one fight costs 300 and you are still a Fugitive when he goes.
+ *
+ * Four rather than two or ten: two makes running from the law cheaper than
+ * facing it, and ten is a number nobody in a fight has. Three hundred credits
+ * is a good cargo — the escape is affordable and it hurts, which is the whole
+ * design of every bribe in the game.
+ *
+ * Its own rule id: it shares the value 4 with `VALUE_PER_TONNE` (what a tonne
+ * fetches), `TENTHS_PER_CHART_UNIT` and a dozen counts and spans. This one is a
+ * multiplier on a fine.
+ *
+ * @rule law.patrolBribeFines
+ */
+export const PATROL_BRIBE_FINES = 4;
+
+/**
  * How long the scan's own line holds the console — and so how long the verdict
  * that explains it waits behind it.
  *

@@ -202,7 +202,13 @@ export interface NpcState {
    * organising against.
    */
   organised: boolean;
-  /** Took the jettisoned cargo and lost interest — see isHostileToPlayer. */
+  /**
+   * Has been paid off and lost interest — see isHostileToPlayer.
+   *
+   * Cargo buys a pirate (game/jettison.ts) and credits buy a policeman
+   * (game/law.ts); the field does not care which, and neither does the rule
+   * that honours it.
+   */
   satisfied: boolean;
   /** Threat tier this ship was spawned at — sets what killing it is worth. */
   threatTier: number;
@@ -297,8 +303,11 @@ export type FireEvent =
  */
 export function isHostileToPlayer(npc: NpcShip, legalStatus: number): boolean {
   if (!npc.state.alive || npc.state.inert) return false;
-  // A pirate that has taken its payday stops caring about you: this is what
-  // makes jettisoning cargo a real escape rather than a donation.
+  // A ship that has taken its payday stops caring about you: this is what makes
+  // jettisoning cargo a real escape rather than a donation, and it is asked
+  // FIRST, before the role, so it means the same thing for every ship that can
+  // be bought. A pirate takes cargo and a policeman takes credits (docs/TODO/
+  // 123); what they have in common is that they are done with you.
   if (npc.state.satisfied) return false;
   return (
     npc.role === 'pirate' || npc.role === 'thargoid' || npc.role === 'thargon' ||
@@ -315,18 +324,42 @@ export function isHostileToPlayer(npc: NpcShip, legalStatus: number): boolean {
 }
 
 /**
+ * Is this ship both cross with you and close enough to act on it?
+ *
+ * The same range the ship itself engages at, from
+ * `constants/player-interest.ts`. One home for it, because everything that
+ * answers "who is in this fight" has to agree: the condition light below, and
+ * the bribe key, which may only buy off a ship that is actually on you.
+ */
+function engaging(npc: NpcShip, playerPos: THREE.Vector3, legalStatus: number): boolean {
+  return isHostileToPlayer(npc, legalStatus)
+    && npc.object.position.distanceTo(playerPos) < PLAYER_INTEREST_RANGE;
+}
+
+/**
  * Is anything close enough and cross enough to turn the condition light red?
  *
- * The same range the ship itself engages at, from `constants/player-interest.ts` — the
- * light reports the rule rather than restating it, which is what stops the
+ * The light reports the rule rather than restating it, which is what stops the
  * console going red at a ship that has not decided anything.
  */
 export function hostilesNear(
   npcs: readonly NpcShip[], playerPos: THREE.Vector3, legalStatus: number,
 ): boolean {
-  return npcs.some((npc) =>
-    isHostileToPlayer(npc, legalStatus)
-    && npc.object.position.distanceTo(playerPos) < PLAYER_INTEREST_RANGE);
+  return npcs.some((npc) => engaging(npc, playerPos, legalStatus));
+}
+
+/**
+ * The nearest ship of `role` that is engaging you, and how far off it is.
+ *
+ * What the bribe key spends: an offer can only be made to a ship that is in
+ * this fight, and "in this fight" is the rule the red light reports, not a
+ * range of its own.
+ */
+export function nearestEngaging(
+  npcs: readonly NpcShip[], playerPos: THREE.Vector3, legalStatus: number, role: string,
+): { npc: NpcShip; distance: number } | null {
+  return nearestNpc(npcs, playerPos,
+    (npc) => npc.role === role && engaging(npc, playerPos, legalStatus));
 }
 
 /**

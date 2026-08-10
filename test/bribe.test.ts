@@ -19,9 +19,13 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { bribeOffered, inspectionPrice, patrolReach } from '../src/game/law.ts';
 import {
-  BRIBE_FLOOR, BRIBE_SHARE, CLEAN, CONTRABAND, SCAN_RANGE, SCAN_WARN_RANGE,
+  bribeOffered, fineFor, inspectionPrice, patrolPrice, patrolReach,
+} from '../src/game/law.ts';
+import { isHostileToPlayer, type NpcShip } from '../src/game/npc.ts';
+import {
+  BRIBE_FLOOR, BRIBE_SHARE, CLEAN, CONTRABAND, FUGITIVE, FUGITIVE_FINE,
+  OFFENDER, PATROL_BRIBE_FINES, SCAN_RANGE, SCAN_WARN_RANGE,
 } from '../src/constants/law.ts';
 import { DISREPUTE_BRIBE } from '../src/constants/character.ts';
 import { VALUE_PER_TONNE } from '../src/constants/jettison.ts';
@@ -107,6 +111,25 @@ console.log('\nan offer is taken, or it is short — never half of each');
     exact.bought && exact.creditsLeft === 0);
 }
 
+console.log('\nwhat a Viper already shooting charges to break off');
+{
+  check('a Fugitive is asked for more than an Offender',
+    patrolPrice(FUGITIVE) > patrolPrice(OFFENDER));
+  // THE RULE THAT MATTERS: a bribe that undercut the fine would delete the
+  // fine. Docking and paying is always the cheaper way to deal with a record.
+  check('...and both are worse than docking and paying the fine at that rung',
+    patrolPrice(FUGITIVE) > fineFor(FUGITIVE, Infinity)
+    && patrolPrice(OFFENDER) > fineFor(OFFENDER, Infinity));
+  eq('...by the multiple the constant states, not a number of its own',
+    patrolPrice(FUGITIVE), PATROL_BRIBE_FINES * FUGITIVE_FINE);
+  // A clean commander can only be shot at by the law for something he did, and
+  // the deed is the same deed: he pays the bottom rung's rate rather than the
+  // nothing `fineFor` would return.
+  eq('a Clean commander pays the Offender rate rather than nothing',
+    patrolPrice(CLEAN), patrolPrice(OFFENDER));
+  check('...and that is not nothing', patrolPrice(CLEAN) > 0);
+}
+
 console.log('\nthe window an offer fits in is the window the warning names');
 {
   eq('inside scan range he is reading you', patrolReach(SCAN_RANGE * 0.5), 'scan');
@@ -128,7 +151,7 @@ console.log('\nthe window an offer fits in is the window the warning names');
  * or at whatever range the caller wants him to close to.
  */
 function smuggling(seed: number, tonnes: number, d: number): {
-  g: Game; fly: (steps: number, closeTo?: number) => string[];
+  g: Game; cop: NpcShip; fly: (steps: number, closeTo?: number) => string[];
 } {
   const g = withoutSaving(() => {
     seedWorld(seed);
@@ -165,7 +188,7 @@ function smuggling(seed: number, tonnes: number, d: number): {
     }
     return said;
   };
-  return { g, fly };
+  return { g, cop, fly };
 }
 
 const SCAN = 'POLICE SCAN: CONTRABAND DETECTED';
@@ -231,6 +254,90 @@ console.log('\na bribe you cannot afford does not half-work');
   near.g.bribePolice();
   check('a broke commander is still scanned', near.fly(2).includes(SCAN)
     && near.g.state.commander.legalStatus !== CLEAN);
+}
+
+console.log('\na Viper takes credits to break off — and the record stays where it is');
+{
+  // Provoked rather than hunting a record, which is the case a CLEAN commander
+  // can be in: shoot at the law and it is personal whatever your paperwork says.
+  const { g, cop } = smuggling(20_260_816, 0, 800);
+  const c = g.state.commander;
+  c.credits = 100_000;
+  cop.state.provokedByPlayer = true;
+  check('the Viper is on you', isHostileToPlayer(cop, c.legalStatus));
+
+  g.bribePolice();
+  check(`the offer is taken, and named (${g.state.session.messageText})`,
+    g.state.session.messageText.startsWith('PATROL BREAKS OFF'));
+  eq('...at the price for the rung you are on', c.credits, 100_000 - patrolPrice(CLEAN));
+  eq('...and DISREPUTE_BRIBE off the name', c.disrepute ?? 0, DISREPUTE_BRIBE);
+
+  // THE CLAIM, and it is two claims that have to hold at once: the ship is done
+  // with you and the record has not moved. The rule and the paperwork moving
+  // independently is the point of the milestone.
+  check('the same call that said he was hostile now says he is not',
+    !isHostileToPlayer(cop, c.legalStatus));
+  eq('...and the record is exactly where it was', c.legalStatus, CLEAN);
+  check('...because the mechanism is the field a pirate takes cargo for',
+    cop.state.satisfied);
+  // He is bought, not gone: still provoked, still in the sky. What ended is his
+  // interest in you.
+  check('...and nothing pretended the provocation never happened',
+    cop.state.provokedByPlayer && cop.state.alive);
+}
+
+console.log('...and a Fugitive pays the Fugitive rate, and is still a Fugitive');
+{
+  const { g, cop } = smuggling(20_260_817, 0, 800);
+  const c = g.state.commander;
+  c.credits = 100_000;
+  c.legalStatus = FUGITIVE;
+  check('police hunt Fugitives, so he is hostile on the record alone',
+    isHostileToPlayer(cop, c.legalStatus) && !cop.state.provokedByPlayer);
+
+  g.bribePolice();
+  eq('the Fugitive rate is what it costs', c.credits, 100_000 - patrolPrice(FUGITIVE));
+  check('...he breaks off', !isHostileToPlayer(cop, c.legalStatus));
+  eq('...and you are still a Fugitive: the next patrol is a fresh problem',
+    c.legalStatus, FUGITIVE);
+}
+
+console.log('...and a pair costs twice, one press at a time');
+{
+  const { g, cop } = smuggling(20_260_818, 0, 800);
+  const c = g.state.commander;
+  c.credits = 100_000;
+  c.legalStatus = FUGITIVE;
+  const second = g.state.world.spawn('police',
+    g.state.player.position.clone().add(new THREE.Vector3(0, 0, -2000)), 6);
+  second.object.updateMatrixWorld(true);
+
+  g.bribePolice();
+  check('the nearer of the two breaks off first',
+    cop.state.satisfied && !second.state.satisfied);
+  check('...and the far one is still coming',
+    isHostileToPlayer(second, c.legalStatus));
+
+  g.bribePolice();
+  check('a second press buys the second ship', second.state.satisfied);
+  eq('...for twice the money, exactly as a gang of pirates costs',
+    c.credits, 100_000 - 2 * patrolPrice(FUGITIVE));
+  eq('...and the name paid twice too', c.disrepute ?? 0, 2 * DISREPUTE_BRIBE);
+}
+
+console.log('...and an escort you cannot pay for keeps shooting');
+{
+  const { g, cop } = smuggling(20_260_819, 0, 800);
+  const c = g.state.commander;
+  c.legalStatus = FUGITIVE;
+  c.credits = patrolPrice(FUGITIVE) - 1;
+  const was = c.credits;
+  g.bribePolice();
+  check(`the console names the shortfall (${g.state.session.messageText})`,
+    g.state.session.messageText.startsWith('THEY WANT MORE'));
+  eq('...and not a tenth is spent', c.credits, was);
+  check('...and he is still hostile', isHostileToPlayer(cop, c.legalStatus)
+    && !cop.state.satisfied);
 }
 
 console.log('\nthere is nothing to buy when nobody is there');

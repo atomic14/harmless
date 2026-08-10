@@ -49,7 +49,7 @@ import { Hud } from '../hud/hud.ts';
 import { buildHudFrame } from '../hud/hud-binding.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
 import { sfx } from '../audio.ts';
-import { nearestNpc, NpcShip } from './npc.ts';
+import { nearestEngaging, nearestNpc, NpcShip } from './npc.ts';
 import { npcImpactDamage } from './impact-damage.ts';
 import { IMPACT } from '../constants/impact.ts';
 import { dealToNpc } from './damage-dealt.ts';
@@ -147,7 +147,8 @@ import {
 } from '../constants/law.ts';
 import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
 import {
-  bribeOffered, carryingContraband, inspectionPrice, patrolReach, recordCleared,
+  bribeOffered, carryingContraband, inspectionPrice, patrolPrice, patrolReach,
+  recordCleared,
 } from './law.ts';
 import { afterDecay } from './character.ts';
 import {
@@ -1941,18 +1942,22 @@ export class Game {
   }
 
   /**
-   * Offer the law money — the other answer to a patrol closing on a dirty hold.
+   * Offer the law money.
    *
-   * `law.ts` decides what it costs and what it leaves; this spends the credits
-   * and writes the latch (invariant 10). One key and no mode: it reads the
-   * situation in front of you, and when there is nothing to buy it says so and
-   * spends nothing, the way an empty hold answers HOLD EMPTY.
+   * Two situations and no mode: the Viper shooting at you, and the patrol
+   * closing on a dirty hold. The key reads which one is in front of you, and
+   * when there is neither it says so and spends nothing, the way an empty hold
+   * answers HOLD EMPTY.
    *
-   * **The scan simply does not happen.** `policeScanned` latches with no
-   * `raiseLegal`, so the Government's paperwork stays spotless — and the name
-   * pays for it instead (`bribeOffered`). That asymmetry is the whole feature:
-   * a bribe never clears a record and never buys one back, it buys the reading
-   * that would have created one.
+   * `law.ts` decides what each costs and what it leaves; this spends the
+   * credits, writes the latch and writes `satisfied` (invariant 10).
+   *
+   * **Neither half touches the record.** The inspection latches `policeScanned`
+   * with no `raiseLegal`, so the scan does not happen and the Government's
+   * paperwork stays spotless; the fight buys one ship out of one fight and
+   * leaves you exactly as Fugitive as you were. The name pays for both
+   * (`bribeOffered`). That asymmetry is the whole feature: a bribe never clears
+   * a record and never buys one back.
    *
    * @internal — driven by test/playtest.js
    */
@@ -1960,22 +1965,37 @@ export class Game {
     if (this.mode !== 'flight') { sfx.refused(); return; }
     const c = this.state.commander;
     const session = this.state.session;
-    const cop = nearestNpc(this.state.world.npcs, this.state.player.position,
-      (npc) => npc.role === 'police');
+
+    // The fight comes first: a Viper already shooting is the more urgent
+    // purchase, and buying an inspection off a man who is trying to kill you
+    // would be money for nothing. One press buys ONE ship — a pair costs twice,
+    // exactly as a gang of pirates does.
+    const hunter = nearestEngaging(this.state.world.npcs, this.state.player.position,
+      c.legalStatus, 'police');
+    if (hunter) {
+      const offer = bribeOffered(patrolPrice(c.legalStatus), c.credits, c.disrepute ?? 0);
+      if (!offer.bought) { this.wantMore(offer.short); return; }
+      c.credits = offer.creditsLeft;
+      c.disrepute = offer.disrepute;
+      // The same field the jettisoned cargo sets, honoured by the same line of
+      // `isHostileToPlayer` — this ship is done with you. The RECORD is not
+      // touched: you are still a Fugitive, the next patrol is a fresh problem,
+      // and the station still wants its money.
+      hunter.npc.state.satisfied = true;
+      this.showMessage(
+        `PATROL BREAKS OFF — ${formatCredits(offer.price)} AND YOUR NAME`, 4);
+      return;
+    }
 
     // The inspection: contraband aboard, nobody has read it yet, and a patrol
     // close enough to. `patrolReach` is the same window the console warned you
     // about, rather than a second opinion about the same two ranges.
+    const cop = nearestNpc(this.state.world.npcs, this.state.player.position,
+      (npc) => npc.role === 'police');
     if (!session.policeScanned && !session.witchspace && carryingContraband(c.cargo)
       && cop && patrolReach(cop.distance) !== 'none') {
       const offer = bribeOffered(inspectionPrice(c.cargo), c.credits, c.disrepute ?? 0);
-      if (!offer.bought) {
-        // the pirate bribe's own shape for the same failure — one message for
-        // "not enough", with the figure, rather than a second way of saying it
-        this.showMessage(`THEY WANT MORE (${formatCredits(Math.ceil(offer.short))})`, 3);
-        sfx.refused();
-        return;
-      }
+      if (!offer.bought) { this.wantMore(offer.short); return; }
       c.credits = offer.creditsLeft;
       c.disrepute = offer.disrepute;
       session.policeScanned = true;
@@ -1985,6 +2005,18 @@ export class Game {
     }
 
     this.showMessage('NOBODY TO PAY OFF', 2);
+    sfx.refused();
+  }
+
+  /**
+   * An offer that was not enough, in the pirate bribe's own words.
+   *
+   * Shared by both halves rather than written twice: "not enough, and here is
+   * the figure" is one answer, and a second phrasing of it would read as a
+   * second rule.
+   */
+  private wantMore(short: number): void {
+    this.showMessage(`THEY WANT MORE (${formatCredits(Math.ceil(short))})`, 3);
     sfx.refused();
   }
 
