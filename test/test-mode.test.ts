@@ -13,10 +13,17 @@
 import { TestModeScreen, type TestModeContext } from '../src/game/screens/test-mode.ts';
 import { freshState } from '../src/game/state.ts';
 import { markTested, newCommander, type CommanderData } from '../src/game/commander.ts';
+import { characterName } from '../src/game/character.ts';
+import { isHostileToPlayer } from '../src/game/npc.ts';
 import { BINDINGS } from '../src/game/controls.ts';
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 import { commanderOf, fileId } from '../src/game/save-file.ts';
 import { makeRecord, readSave, writeSave } from '../src/game/storage.ts';
+import {
+  CHEAT_CREDIT_GRANT, MAX_FUEL, MAX_MISSILES,
+} from '../src/constants/commander.ts';
+import { CLEAN, FUGITIVE, LEGAL_NAMES, OFFENDER } from '../src/constants/law.ts';
+import { CHARACTER } from '../src/constants/character.ts';
 import type { Input } from '../src/engine/input.ts';
 import { check, cmds, eq, eqc } from './harness.ts';
 import { installStore } from './save-fixtures.ts';
@@ -95,6 +102,147 @@ console.log('\nthe screen is what sets GameState.cheat');
   kb.press('Escape');
   eq('ESC closes the screen', screen.input(kb.input), 'back');
   check('...and changed nothing', state.cheat === false && checkpoints === 2);
+}
+
+// --- the commander levers ----------------------------------------------------
+//
+// Each one is asserted against the constant that DEFINES its ceiling or its
+// rung — MAX_FUEL, MAX_MISSILES, FUGITIVE — rather than against a literal, so a
+// balance change that moves the constant moves the assertion with it. And each
+// is asserted twice: once with the mode on, once with it off, because "the door
+// is what opens these" is the claim the whole item is about.
+
+/**
+ * A screen over a fresh career, and a hand to pull its levers with.
+ *
+ * `pull` finds the row BY LABEL rather than by index, so re-ordering the panel
+ * — which M3 will do — moves these tests with it instead of silently pointing
+ * them at the wrong lever.
+ */
+function rig(cheat: boolean): {
+  screen: TestModeScreen;
+  state: ReturnType<typeof freshState>;
+  saves: () => number;
+  pull: (label: string, key?: string) => void;
+} {
+  const state = freshState(newCommander());
+  state.cheat = cheat;
+  let saves = 0;
+  const screen = new TestModeScreen(() => ({
+    state,
+    checkpoint: () => { saves += 1; },
+  } satisfies TestModeContext));
+  screen.open();
+  const kb = taps();
+  return {
+    screen,
+    state,
+    saves: () => saves,
+    pull: (label, key = 'Enter') => {
+      const at = screen.panel().rows.findIndex((r) => r.label === label);
+      if (at < 0) throw new Error(`test-mode: no row labelled '${label}'`);
+      // Through `select()` and `input()`, which are the two doors a click and a
+      // key come in by — not by reaching for the cell.
+      screen.select(at);
+      kb.press(key);
+      screen.input(kb.input);
+    },
+  };
+}
+
+/** What a row currently reads, for the assertions about the panel itself. */
+const valueOf = (screen: TestModeScreen, label: string): string =>
+  screen.panel().rows.find((r) => r.label === label)?.value ?? '';
+
+console.log('\nthe commander levers, with the door open');
+{
+  const { screen, state, saves, pull } = rig(true);
+  const c = state.commander;
+
+  c.fuel = 0;
+  pull('FILL TANK');
+  eq('FILL TANK fills it to the tank the game defines', c.fuel, MAX_FUEL);
+
+  c.missiles = 0;
+  pull('FILL MISSILE RAILS');
+  eq('FILL MISSILE RAILS fills every rail there is', c.missiles, MAX_MISSILES);
+
+  const before = c.credits;
+  pull('GRANT CREDITS');
+  eq('GRANT CREDITS hands over the named sum', c.credits, before + CHEAT_CREDIT_GRANT);
+  pull('GRANT CREDITS', 'ArrowLeft');
+  eq('...and ← takes the same sum back', c.credits, before);
+  // Broke, not overdrawn: money is unsigned tenths (invariant 8), and a
+  // negative balance is a state no rule in the game knows how to read.
+  pull('GRANT CREDITS', 'ArrowLeft');
+  eq('...and cannot take you past broke', c.credits, 0);
+
+  eq('a fresh career is Clean', c.legalStatus, CLEAN);
+  pull('LEGAL STATUS');
+  eq('LEGAL STATUS steps to Offender', c.legalStatus, OFFENDER);
+  pull('LEGAL STATUS');
+  eq('...then Fugitive', c.legalStatus, FUGITIVE);
+  eq('...and the row says so in the law\'s own words',
+    valueOf(screen, 'LEGAL STATUS'), LEGAL_NAMES[FUGITIVE].toUpperCase());
+  pull('LEGAL STATUS');
+  eq('...and round to Clean again', c.legalStatus, CLEAN);
+
+  eq('a fresh career is Honest', characterName(c.disrepute), CHARACTER[0][1]);
+  pull('CHARACTER');
+  eq('CHARACTER steps onto the next rung of the ladder', c.disrepute, CHARACTER[1][0]);
+  eq('...and the status screen would call it that',
+    characterName(c.disrepute), CHARACTER[1][1]);
+  pull('CHARACTER', 'ArrowLeft');
+  eq('...and ← walks back down it', c.disrepute, CHARACTER[0][0]);
+
+  // A score mid-decay sits BETWEEN rungs. → must land on the rung above the one
+  // it has cleared rather than skipping it.
+  c.disrepute = CHARACTER[1][0] + 1;
+  pull('CHARACTER');
+  eq('a score between rungs steps to the next one up', c.disrepute, CHARACTER[2][0]);
+
+  eq('every pull was written to the shelf', saves(), 11);
+}
+
+console.log('\n...and with the door shut, every one of them is a no-op');
+{
+  const { screen, state, saves, pull } = rig(false);
+  const c = state.commander;
+  c.fuel = 0;
+  c.missiles = 0;
+  const was = JSON.stringify(c);
+
+  const levers = screen.panel().rows.slice(1).map((r) => r.label);
+  for (const label of levers) {
+    pull(label);
+    pull(label, 'ArrowLeft');
+  }
+  eq(`the commander is untouched by all ${levers.length} of them`,
+    JSON.stringify(c), was);
+  eq('...and nothing was written', saves(), 0);
+  check('...and the panel says why: every lever is dimmed, the door is not',
+    screen.panel().rows.slice(1).every((r) => r.dim === true)
+    && screen.panel().rows[0].dim !== true);
+}
+
+// --- the legal lever, proved against a rule rather than against itself -------
+
+console.log('\nthe legal-status lever is the one 122 and 123 are tested through');
+{
+  const { state, pull } = rig(true);
+  // The narrowest thing `isHostileToPlayer` reads — the idiom is
+  // test/combat.test.ts's police-hostility block.
+  const police = { role: 'police', state: {
+    alive: true, inert: false, satisfied: false, provoked: false, provokedByPlayer: false,
+  } } as unknown as Parameters<typeof isHostileToPlayer>[0];
+
+  check('a clean commander is nobody the police want',
+    !isHostileToPlayer(police, state.commander.legalStatus));
+  pull('LEGAL STATUS');
+  pull('LEGAL STATUS');
+  eq('two pulls and you are a Fugitive', state.commander.legalStatus, FUGITIVE);
+  check('...and the same police ship now comes for you',
+    isHostileToPlayer(police, state.commander.legalStatus));
 }
 
 console.log('\nthe mark is one way, wherever it is asked for');

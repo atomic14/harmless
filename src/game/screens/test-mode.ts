@@ -19,10 +19,16 @@
 // report.
 
 import type { GameState } from '../state.ts';
-import { markTested } from '../commander.ts';
+import { formatCredits, markTested } from '../commander.ts';
+import { characterName } from '../character.ts';
 import { renderTestMode } from '../../ui/screens.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { Input } from '../../engine/input.ts';
+import {
+  MAX_FUEL, MAX_MISSILES, CHEAT_CREDIT_GRANT,
+} from '../../constants/commander.ts';
+import { LEGAL_NAMES } from '../../constants/law.ts';
+import { CHARACTER } from '../../constants/character.ts';
 
 /**
  * The slice of the Game this screen is allowed to see.
@@ -76,6 +82,19 @@ const cycle = (n: number, len: number, d: number): number => (n + d + len) % len
 const clamp = (n: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, n));
 const onOff = (b: boolean): string => (b ? 'ON' : 'OFF');
 
+/**
+ * Which rung of the character ladder a disrepute score is standing on — the
+ * highest threshold it clears, which is what `characterName` names.
+ *
+ * A score between two rungs (a career's, mid-decay) rounds DOWN to the rung it
+ * has cleared, so → from 7 lands on Dubious rather than skipping it.
+ */
+const rungOf = (disrepute: number): number => {
+  let at = 0;
+  for (const [threshold] of CHARACTER) if (disrepute >= threshold) at += 1;
+  return Math.max(0, at - 1);
+};
+
 export class TestModeScreen implements Screen {
   readonly id = 'test-mode' as const;
 
@@ -91,13 +110,21 @@ export class TestModeScreen implements Screen {
   }
 
   render(): void {
+    renderTestMode(this.panel());
+  }
+
+  /**
+   * The panel as the renderer needs it — and as a test reads it.
+   *
+   * Public for `combat-sim-setup.ts`'s reason: the half of a screen worth
+   * testing is what its rows SAY and what an arrow key does to them, and both
+   * are readable here with no DOM, no Input and no Game. It is a projection of
+   * live state, so it is derived on every call rather than kept.
+   */
+  panel(): TestModePanel {
     const cells = this.cells();
     this.row = clamp(this.row, 0, cells.length - 1);
-    renderTestMode({
-      rows: cells,
-      selected: this.row,
-      on: this.ctx().state.cheat,
-    });
+    return { rows: cells, selected: this.row, on: this.ctx().state.cheat };
   }
 
   /** A click on a row selects it — the same path the arrow keys take. */
@@ -140,13 +167,84 @@ export class TestModeScreen implements Screen {
    */
   private cells(): TestCell[] {
     const { state } = this.ctx();
+    const c = state.commander;
     return [
       {
         label: 'TEST MODE',
         value: onOff(state.cheat),
         act: () => this.setCheat(!state.cheat),
       },
+      this.lever({
+        label: 'FILL TANK',
+        value: `${(c.fuel / 10).toFixed(1)} / ${(MAX_FUEL / 10).toFixed(1)} LY`,
+        act: () => { c.fuel = MAX_FUEL; },
+      }),
+      this.lever({
+        label: 'FILL MISSILE RAILS',
+        value: `${c.missiles} / ${MAX_MISSILES}`,
+        act: () => { c.missiles = MAX_MISSILES; },
+      }),
+      this.lever({
+        // Both directions, because the interesting half of a credit lever is
+        // often the refusal it buys back: → grants the fixed sum, ← takes the
+        // same sum away, floored at broke. Neither is typed in.
+        label: 'GRANT CREDITS',
+        value: formatCredits(c.credits),
+        act: (d) => {
+          c.credits = Math.max(0, c.credits + (d > 0 ? CHEAT_CREDIT_GRANT : -CHEAT_CREDIT_GRANT));
+        },
+      }),
+      this.lever({
+        // The lever docs/TODO/122 and 123 are tested through: `isHostileToPlayer`
+        // branches on exactly this number for police and for bounty hunters.
+        //
+        // A ring over `LEGAL_NAMES` rather than a hand-written
+        // [CLEAN, OFFENDER, FUGITIVE]: constants/law.ts states that the number
+        // IS the index into that ladder, so walking the ladder itself leaves the
+        // three statuses with one home. A second list here could go stale
+        // against it and nothing would say so.
+        label: 'LEGAL STATUS',
+        value: LEGAL_NAMES[c.legalStatus].toUpperCase(),
+        act: (d) => { c.legalStatus = cycle(c.legalStatus, LEGAL_NAMES.length, d); },
+      }),
+      this.lever({
+        // docs/TODO/96 shipped DISREPUTE_HEAT, COURTESY_RATE and HERMIT_FAVOUR
+        // as unflown STARTING VALUES and closed on the campaign rather than on a
+        // cockpit. This row is what lets somebody fly them.
+        //
+        // It sets the rung's own threshold, so the name on the status screen and
+        // the number the rules read agree by construction — `characterName`
+        // reads the same table back.
+        label: 'CHARACTER',
+        value: `${characterName(c.disrepute ?? 0).toUpperCase()} (${Math.round(c.disrepute ?? 0)})`,
+        act: (d) => { c.disrepute = CHARACTER[cycle(rungOf(c.disrepute ?? 0), CHARACTER.length, d)][0]; },
+      }),
     ];
+  }
+
+  /**
+   * A lever: inert until the mode is on, and dimmed while it is not.
+   *
+   * The guard is here rather than repeated in each `act`, because "nothing
+   * happens unless test mode is on" is one rule and a row that forgot it would
+   * be a lever the door does not open — the exact shape of the thing this whole
+   * item exists to fix, in miniature.
+   *
+   * The write is checkpointed for `setCheat`'s reason: these are the commander's
+   * own fields, and a lever pulled at the station that a reload undoes is a
+   * lever nobody can trust to have been pulled.
+   */
+  private lever(cell: TestCell): TestCell {
+    const on = this.ctx().state.cheat;
+    return {
+      ...cell,
+      dim: !on,
+      act: (d) => {
+        if (!on) return;
+        cell.act(d);
+        this.ctx().checkpoint();
+      },
+    };
   }
 
   /**

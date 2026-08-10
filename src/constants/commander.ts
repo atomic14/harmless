@@ -14,6 +14,28 @@ export const DEFAULT_NAME = 'JAMESON';
 export const STARTING_CREDITS = 1000;
 
 /**
+ * What test mode's GRANT CREDITS row hands over per press, in tenths — 10,000
+ * Cr, a hundred grubstakes (`game/screens/test-mode.ts`).
+ *
+ * Here beside the grubstake because it is the same kind of number — money the
+ * commander is GIVEN rather than money something costs — and because the shop's
+ * shelf is a list of prices, which this is not. A fixed sum rather than a typed
+ * one is a decision of docs/TODO/121: a number-entry screen is a second typed
+ * input flow for one development lever, and the row is repeatable, so the way
+ * to get more is to press it again.
+ *
+ * The size is chosen to be one press for anything a test needs and still small
+ * enough that pressing it is deliberate: it clears the largest fine many times
+ * over and fills a hold with the priciest cargo, but it is not so vast that a
+ * marked career reads as having no economy at all.
+ *
+ * Named for `GameState.cheat` rather than for the screen, because that is the
+ * flag it belongs to and the one the plan kept: the screen is the door, the
+ * flag is the mode, and it is the mode that spends this.
+ */
+export const CHEAT_CREDIT_GRANT = 100_000;
+
+/**
  * The tank, in tenths of a light year — the classic 7.0 LY range.
  *
  * A tenth of a light year is also the unit of chart distance

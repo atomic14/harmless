@@ -1580,6 +1580,16 @@ export function renderCombatSimCompare(p: SimComparePanel): void {
 // --- test mode ---------------------------------------------------------------
 
 /**
+ * Why the dimmed rows do nothing.
+ *
+ * Painted through `reservedNotes` so it holds its own height whether it is
+ * showing or not: the first row of this screen is what makes it appear and
+ * disappear, and a note that pushed the rows down as you pressed it would move
+ * the cursor out from under the hand that pressed it.
+ */
+const LEVERS_OFF = 'THE LEVERS BELOW DO NOTHING UNTIL TEST MODE IS ON';
+
+/**
  * The development levers, and the amber warning above them.
  *
  * A row list rather than a named field per lever, for the setup panel's reason:
@@ -1600,6 +1610,7 @@ export function renderTestMode(p: TestModePanel): void {
       SAYS SO ON ITS STATUS SCREEN, FOR GOOD
     </div>
     <table>${rows}</table>
+    ${reservedNotes(p.on ? [] : [LEVERS_OFF], [LEVERS_OFF], 'note-help')}
     <div class="buttons">
       <button data-key="Escape">ESC &mdash; DONE</button>
     </div>

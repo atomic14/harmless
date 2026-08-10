@@ -338,12 +338,15 @@ const OUTSIDE: readonly Group[] = [
       + ' them and the keys their prose quotes off the binding table (docs/TODO/106);'
       + ' the key tables docs/TODO/50 welded (`BINDINGS`, `COMMAND_HELP`,'
       + ' `ALL_BINDINGS`, `LABELS`, the layouts and the keymap\'s own storage key —'
-      + ' invariant 3\'s one carve-out); the import screen\'s three refusal lines; the'
+      + ' invariant 3\'s one carve-out); the import screen\'s three refusal lines and'
+      + ' test mode\'s one line saying why its levers are dimmed, which is named only'
+      + ' because it is painted twice — once live and once as the invisible ghost that'
+      + ' holds its height (docs/TODO/121); the'
       + ' inert painter\'s DOM plumbing; the cockpit beams\' convergence depth; the'
       + ' Blue Danube; and the manual\'s prose rows',
     files: {
       'hud/hud.ts': ['CONTACT_COLORS', 'VIEW_NAMES', 'SCORE_LABELS'],
-      'ui/screens.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES'],
+      'ui/screens.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES', 'LEVERS_OFF'],
       'ui/key-help.ts': ['LABELS', 'ALL_BINDINGS'],
       'game/command-help.ts': ['COMMAND_HELP'],
       'game/controls.ts': [
