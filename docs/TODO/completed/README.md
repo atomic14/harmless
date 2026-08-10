@@ -66,6 +66,7 @@ its rationale is relevant; do not load this directory wholesale.
       other half: colour. `src/palette.ts` owns it, `src/palette.css` is
       generated from it, `npm run palette:check` holds the tree to it
 - [x] 94 — [Parse a save at the door](94-parse-a-save-at-the-door.md)
+- [x] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md) — phase 2 of Character: a name is now one more thing a pirate can see, and the rock hermit's credential up to the Dodgy rung and shut door at it. Landed on the campaign, not on a flight — `DISREPUTE_HEAT`, `COURTESY_RATE` and `HERMIT_FAVOUR` are unflown starting values and anything that plays wrong becomes a GitHub issue
 - [x] 97 — [Site housekeeping](97-site-housekeeping.md) — closed GitHub issues #12–14
 - [x] 98 — [The human-shape bands](98-the-human-shape-bands.md)
 - [x] 99 — [`npm run survivability` cannot run](99-survivability-cannot-run.md)

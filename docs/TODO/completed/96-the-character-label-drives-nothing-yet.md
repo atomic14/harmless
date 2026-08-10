@@ -5,6 +5,17 @@ milestones) **Depends on:** the Character phase-1 commit (`c7d90d6`) · this is
 its planned phase 2 **GitHub:** none — phase 1's planned successor, deferred by
 Chris 2026-08-09 ("drop for now") and picked back up 2026-08-10.
 
+**Landed 2026-08-10** in four commits (`c10a838`, `fe9f48c`, `659f45c`,
+`c6d61dd`). All four milestones are in the tree and `npm run check` is green.
+
+**Closed without the flight, deliberately.** Chris: "we'll fly it later — mark
+it as done and we'll create issues where it doesn't work." So the balance
+evidence behind this plan is the campaign and the unit gates, and
+`DISREPUTE_HEAT` (0.5), `COURTESY_RATE` (0.15) and `HERMIT_FAVOUR` (0.2) are
+**unflown starting values**. Nothing about them is settled by this plan being
+closed; what plays wrong becomes a GitHub issue and a new plan, not a reopening
+of this one.
+
 ## Where we are
 
 Phase 1 shipped a `disrepute` number on the commander and a **Character** label

@@ -13,17 +13,18 @@ active context:
 
 ## Execution queue
 
-1. [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)
-       — phase 2 of Character, un-deferred by Chris 2026-08-10 and re-planned
-       with his three decisions in it. **M1–M3 have landed**: one home for what
-       a sale does to your name, the `Mark` carries your disrepute (a worse
-       reception, and occasionally being waved off), and the hermit gives mates'
-       rates up to the Dodgy rung and shuts the door at it. **M4's campaign is
-       read** — a bounty hunter's 200-commander row is identical to the
-       baseline, a privateer's gangs go 12%→19% — and what is left is the
-       FLIGHT: nobody has met a Dodgy pilot's pirates yet, and
-       `DISREPUTE_HEAT`, `COURTESY_RATE` and `HERMIT_FAVOUR` should not be
-       re-tuned on the strength of a table. `QUEUE.json` agrees.
+Empty — 96 landed: the Character label drives the world now. A pirate reads
+your disrepute as one more thing they can see, folded into the reputation model
+already there, so a Dodgy pilot meets a worse reception and a Notorious one is
+occasionally waved off by somebody who recognised the name. The rock hermit
+gives mates' rates up to the Dodgy rung and shuts the door at it, which is what
+cracking a hermit costs you. Closed on the campaign rather than a flight, at
+Chris's call: the bounty hunter's 200-commander row is identical to the
+baseline and the privateer's gangs go 12%→19%, but nobody has met those pirates
+in a cockpit yet. `DISREPUTE_HEAT`, `COURTESY_RATE` and `HERMIT_FAVOUR` are
+unflown starting values, and what plays wrong becomes a GitHub issue.
+`QUEUE.json` agrees. The backlog below is in priority order; promoting its head
+is what makes the next execution item.
 
 ## Backlog
 
