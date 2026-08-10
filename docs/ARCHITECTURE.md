@@ -24,6 +24,12 @@ this file is a map.
   It returns a `Command` and words, never a letter: the label is looked up at the
   edge (`game.ts`, through `ui/key-help.ts`), which is how invariant 9 reaches
   prose. Prompts are derived state — nothing about them is saved.
+- The console is one line, so `SessionState.queued` is the line waiting for it
+  (`session.ts`). A consequence that only makes sense after its cause — what a
+  scan cost your record, what a deed cost your name — is queued rather than
+  said, and `tickMessage` promotes it when the console falls quiet, docked or
+  flying. Message events carry `queued` so a pure module can ask for the same
+  thing.
 
 Laser fire, spawning and the hyperspace transition still remain in `game.ts`.
 
@@ -83,6 +89,15 @@ Two intentional quirks:
   credits itself, and the orchestrators (`Game.applyContracts`, the campaign's
   settle site) apply the destination's regional heat from the `paid` event —
   once each (invariant 15).
+- `src/game/character.ts` owns the disrepute ladder: what a score is CALLED, how
+  a deed and a quiet week move it, and whether a move crossed a rung worth
+  telling the pilot about. Every deed in the game asks it the same question, so
+  no site is free to disagree about what a crossing is.
+- `src/game/survivors.ts` owns what becomes of somebody scooped out of a
+  capsule — the choice `screens/survivors.ts` forces on docking. Pure, like the
+  two above: it clears the crew spaces and reports, and the heat and the record
+  a sale earns are the orchestrator's to apply. It never touches `cargo`; a
+  rescued pilot is not stock.
 
 ## Conventions
 
