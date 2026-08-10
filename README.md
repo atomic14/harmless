@@ -183,6 +183,7 @@ joystick the original supported.
 | H / ⇧H | hyperspace jump / galactic hyperdrive (if fitted) |
 | B | distress beacon — GalCop tows you out of witch-space, for your cargo |
 | Y / ⇧Y | jettison a tonne of cargo / five at once — pirates came for the goods, not for you |
+| O | jettison a tonne of the ILLEGAL cargo — the evidence, which is rarely the most valuable thing aboard |
 | I | commander status |
 | P | pause |
 | Q | **while paused only** — quit this flight; asks first, then puts you back at the station autosave you launched from |

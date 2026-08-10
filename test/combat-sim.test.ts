@@ -66,6 +66,9 @@ console.log('\ncombat simulator — the simulator binding table');
   // filter runs over its own list.
   for (const escape of [
     'startHyperspace', 'galacticJump', 'distressBeacon', 'jettison1', 'jettison5',
+    // ...and the contraband dump with them: an arena has no law to hide from,
+    // on top of the empty hold that keeps the other two out.
+    'jettisonContraband',
     'toggleDockingComputer',
     // Not a way out of the ARENA but out of the career: it restores the docked
     // checkpoint, the one thing an exercise must never touch. Q is the arena's
@@ -78,8 +81,8 @@ console.log('\ncombat simulator — the simulator binding table');
   }
   eq('...and that is exactly the list controls.ts states',
     [...NOT_IN_THE_SIMULATOR].sort().join(','),
-    ['distressBeacon', 'galacticJump', 'jettison1', 'jettison5', 'startHyperspace',
-      'toggleDockingComputer', 'quitFlight'].sort().join(','));
+    ['distressBeacon', 'galacticJump', 'jettison1', 'jettison5', 'jettisonContraband',
+      'startHyperspace', 'toggleDockingComputer', 'quitFlight'].sort().join(','));
 
   // Everything else is kept: an exercise is meant to be the real ship.
   for (const kept of [

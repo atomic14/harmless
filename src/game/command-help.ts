@@ -157,6 +157,10 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     section: 'flight',
   },
   jettison5: { what: 'jettison five tonnes at once', section: 'flight' },
+  jettisonContraband: {
+    what: 'jettison a tonne of the ILLEGAL cargo — the evidence, which is rarely the most valuable thing aboard',
+    section: 'flight',
+  },
   quitFlight: {
     what: 'pause first, then Q gives up the flight — asks, then puts you back at the station autosave you launched from',
     section: 'flight',

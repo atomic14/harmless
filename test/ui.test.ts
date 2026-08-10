@@ -149,6 +149,9 @@ console.log('\ncommand layer');
   eqc('...and the right-hand shift too', cmds('flight', ['KeyH'], ['ShiftRight']), ['galacticJump']);
   eqc('Y dumps one tonne', cmds('flight', ['KeyY']), ['jettison1']);
   eqc('⇧Y dumps five', cmds('flight', ['KeyY'], ['ShiftLeft']), ['jettison5']);
+  // ...and O is the third one: the evidence, not the profit (docs/TODO/122 M2)
+  eqc('O dumps a tonne of contraband',
+    cmds('flight', ['KeyO']), ['jettisonContraband']);
   // the failure this ordering exists to prevent: reading pressed('KeyH') on the
   // shifted entry first would eat the tap and leave the plain entry nothing
   check('an unshifted tap survives the shifted entry above it',

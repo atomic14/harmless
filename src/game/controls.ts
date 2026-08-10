@@ -86,6 +86,7 @@ export type Command =
   | 'distressBeacon'
   | 'jettison1'
   | 'jettison5'
+  | 'jettisonContraband'
   | 'quitFlight'
   // --- the training simulator ---------------------------------------------
   | 'endExercise'
@@ -170,6 +171,12 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'KeyB', command: 'distressBeacon' },
   { key: 'KeyY', shift: true, command: 'jettison5' },
   { key: 'KeyY', command: 'jettison1' },
+  // O for OVERBOARD, and it sits on the top row a few keys along from Y so the
+  // three ways of emptying the hold are under one hand. Not a shifted Y: ⇧Y is
+  // already five tonnes, and the point of this key is that it takes the ONE
+  // thing the law is looking for — a modifier on a bulk dump would read as more
+  // of the same rather than as a different rule.
+  { key: 'KeyO', command: 'jettisonContraband' },
   { key: 'KeyJ', command: 'toggleTorus' },
   // Q for QUIT — free in the cockpit, and the same letter that backs out of the
   // new-commander confirmation at the station and ends an exercise in the
@@ -190,8 +197,10 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
  *    arrival anyway, so the countdown would run and silently do nothing; the
  *    galactic drive additionally rebuilds the scene mid-fight.
  *  - `distressBeacon` — GalCop tows you out of the fight, for your cargo.
- *  - `jettison1` / `jettison5` — dumping cargo buys off a gang, and the clone's
- *    hold is deliberately EMPTY, so the key can only ever mislead.
+ *  - `jettison1` / `jettison5` / `jettisonContraband` — dumping cargo buys off a
+ *    gang, and the clone's hold is deliberately EMPTY, so the keys can only ever
+ *    mislead. The contraband key doubly so: there is no law in the arena to hide
+ *    it from.
  *  - `toggleDockingComputer` — it flies you at a station 77,000 units away and
  *    docking is the one transition that writes the save.
  *  - `quitFlight` — it restores the CAREER's docked checkpoint, which is the one
@@ -205,7 +214,7 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
  */
 export const NOT_IN_THE_SIMULATOR: readonly Command[] = [
   'startHyperspace', 'galacticJump', 'distressBeacon', 'jettison1', 'jettison5',
-  'toggleDockingComputer', 'quitFlight',
+  'jettisonContraband', 'toggleDockingComputer', 'quitFlight',
 ];
 
 /**

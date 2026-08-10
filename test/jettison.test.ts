@@ -21,6 +21,7 @@ import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { SCOOP_RANGE } from '../src/constants/scoop.ts';
 import { JETTISON_CLEARANCE } from '../src/constants/jettison.ts';
+import { COMMODITIES } from '../src/galaxy/galaxy.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 /** A commander in flight, with fuel scoops fitted and a hold worth dumping. */
@@ -108,6 +109,45 @@ console.log('\na wreck still spills its hold where it died');
     .map((c) => c.object.position.distanceTo(at));
   check(`three canisters, all close to the wreck (${spread.map((d) => d.toFixed(0)).join(', ')})`,
     spread.length === 3 && spread.every((d) => d < SCOOP_RANGE + JETTISON_CLEARANCE));
+}
+
+// --- the dump you can aim, in a world (docs/TODO/122 M2) ---------------------
+//
+// `test/combat.test.ts` owns which tonne is chosen. This is the half that needs
+// a ship: that the chosen tonne actually leaves, by the same road, and that the
+// refusal when there is nothing illegal aboard is an honest one rather than a
+// silent fall-back onto the ordinary dump.
+console.log('\nthe contraband dump throws the evidence, not the profit');
+{
+  const { g, step } = flying(20_260_818);
+  const slaves = COMMODITIES.findIndex((c) => c.name === 'Slaves');
+  const platinum = COMMODITIES.findIndex((c) => c.name === 'Platinum');
+  g.state.commander.cargo[0] = 0;
+  g.state.commander.cargo[slaves] = 2;
+  g.state.commander.cargo[platinum] = 2;
+
+  g.jettisonContraband(1);
+  eq('a tonne of the illegal cargo goes over the side',
+    g.state.commander.cargo[slaves], 1);
+  eq('...and the platinum stays aboard', g.state.commander.cargo[platinum], 2);
+  eq('...and it is out there in the sky', g.state.world.cargo.items.length, 1);
+
+  const away = g.state.world.cargo.items[0].object.position
+    .distanceTo(g.state.player.position);
+  check(`...clear of your own scoop reach, the same road out (${away.toFixed(1)})`,
+    away > SCOOP_RANGE);
+  step();
+  eq('...and a frame later it is still gone', g.state.commander.cargo[slaves], 1);
+
+  // The refusal. A hold full of legal cargo has nothing to throw at the law,
+  // and the key must say so rather than dumping the platinum instead.
+  g.state.commander.cargo[slaves] = 0;
+  const before = g.state.world.cargo.items.length;
+  g.jettisonContraband(1);
+  check(`a clean hold refuses, and dumps nothing ("${g.state.session.messageText}")`,
+    g.state.commander.cargo[platinum] === 2
+    && g.state.world.cargo.items.length === before
+    && g.state.session.messageText === 'NO CONTRABAND ABOARD');
 }
 
 console.log('\nyou can still go back for what you dropped');

@@ -59,7 +59,7 @@ import { defenceBrainNameFor } from './brain-names.ts';
 import { type NpcSpec } from './ship-specs.ts';
 import { type NpcRole } from './ship-roles.ts';
 import { spawnPopulation, launchStationDefence } from './spawning.ts';
-import { dumpCargo, offerBribe } from './jettison.ts';
+import { dumpCargo, dumpContraband, offerBribe, type Dumped } from './jettison.ts';
 import {
   Combat, BEAM_FLASH, firePlayerLaser, damagePlayer,
   type CombatEvent, type DamageSource,
@@ -1779,6 +1779,7 @@ export class Game {
     quitFlight: () => this.quitFlight(),
     jettison1: () => this.jettisonCargo(1),
     jettison5: () => this.jettisonCargo(5),
+    jettisonContraband: () => this.jettisonContraband(1),
     // --- the training simulator -------------------------------------------
     endExercise: () => this.endExercise(),
     // --- after the end ----------------------------------------------------
@@ -1916,11 +1917,43 @@ export class Game {
    */
   /** @internal — driven by test/playtest.js */
   jettisonCargo(tonnes = 1): void {
+    this.throwOverboard(
+      (cargo) => dumpCargo(cargo, tonnes), 'HOLD EMPTY');
+  }
+
+  /**
+   * Dump a tonne of the ILLEGAL cargo — the evidence, not the profit.
+   *
+   * The same act with a different reach, which is why it is a key of its own
+   * rather than a mode on the one above: `dumpCargo` takes the most valuable
+   * thing in the hold because that is what buys off a pirate, and Slaves are
+   * 14th of 17 on the 1984 price table. Inside the window a police warning
+   * opens, that key throws the run's profit into space while the crime stays
+   * aboard. See `dumpContraband` (jettison.ts) for the ordering.
+   */
+  /** @internal — driven by test/playtest.js */
+  jettisonContraband(tonnes = 1): void {
+    this.throwOverboard(
+      (cargo) => dumpContraband(cargo, tonnes), 'NO CONTRABAND ABOARD');
+  }
+
+  /**
+   * The road out of the ship, shared by both dumps: clear of your own scoop,
+   * counted toward the toll, and offered to the pirates.
+   *
+   * `choose` is the only difference between them — WHICH tonnes go — and it is
+   * passed rather than branched on so neither ordering can quietly acquire the
+   * other's rule.
+   */
+  private throwOverboard(
+    choose: (cargo: number[]) => Dumped,
+    nothingToDump: string,
+  ): void {
     if (this.mode !== 'flight') { sfx.refused(); return; }
 
-    const dumped = dumpCargo(this.state.commander.cargo, tonnes);
+    const dumped = choose(this.state.commander.cargo);
     if (dumped.tonnes.length === 0) {
-      this.showMessage('HOLD EMPTY', 1.5);
+      this.showMessage(nothingToDump, 1.5);
       sfx.refused();
       return;
     }

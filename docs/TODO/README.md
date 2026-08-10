@@ -13,8 +13,8 @@ active context:
 
 ## Execution queue
 
-Four plans. In order; `QUEUE.json` agrees. Three came out of the GitHub inbox on
-2026-08-10; the fourth came out of the first real flight the same day, once
+Three plans. In order; `QUEUE.json` agrees. Two came out of the GitHub inbox on
+2026-08-10; the third came out of the first real flight the same day, once
 121's test mode and 124's quit key made one possible.
 
 121 landed before them: ⇧T at the station is the door onto `GameState.cheat`,
@@ -23,35 +23,33 @@ and a fit-out that takes equipment OFF, which no shop in the game can — and th
 jump stops asking about fuel. 124 gave the cockpit a way out: P then Q gives up
 a flight and puts you back at the station autosave you launched from.
 
-The GitHub inbox is empty of untriaged work: #20, #21 and #22 are the three
-plans below that have one, each labelled `planned` with its disposition on the
-issue. #18 closed with 121. 126 has no issue — it came out of a flight.
+The GitHub inbox is empty of untriaged work: #21 and #22 are the two plans below
+that have one, each labelled `planned` with its disposition on the issue. #18
+closed with 121, **#20 with 122**. 126 has no issue — it came out of a flight.
 
 **That flight found six things.** Two were bugs and are fixed (`1067e87`):
 jettisoned cargo landed inside your own scoop reach, so pressing Y dumped a
 tonne and collected it again one frame later; and every note of the docking
 waltz decayed to silence across its own length, so the theme played as blips.
-One was already planned (bribing a Viper is 123). One is a finding recorded on
-122 rather than a plan of its own — being scanned makes you an Offender, and
-police hunt Fugitives, so the Viper that scanned you carries on patrolling.
-The remaining two are 126 and 127 below.
+One was already planned (bribing a Viper is 123). One was a finding recorded on
+122 and landed with it: being scanned makes you an Offender, police hunt
+Fugitives, so the Viper that scanned you carried on patrolling with nothing on
+the console to say why. The remaining two are 126 and 127 below.
 
-1. [ ] [122 — the police scan arrives with no warning](122-the-scan-arrives-with-no-warning.md)
-   · **#20** · balance, small. Proximity is already required (`SCAN_RANGE`
-   2,600); the telegraph is not there, so the scan is a silent verdict rather
-   than a decision. Warning only, no new flying, at Chris's call. M2 is the
-   player's half of that window: `dumpCargo` takes the most valuable thing
-   first, which puts Slaves 14th of 17 — the dump key throws the profit
-   overboard while the evidence stays aboard. **Carries the flight's finding**,
-   and it wants a decision before M1: is the consequence made legible, or do
-   police start engaging Offenders?
-2. [ ] [123 — you cannot buy off the law](123-you-cannot-buy-off-the-law.md) ·
+122 landed before these three, and 123 builds on it. A patrol closing on a dirty
+hold now says **POLICE PATROL CLOSING** for the 1,800 units before it can read
+you, and the scan that follows says what it cost — the record, and who comes for
+one — instead of leaving the world to shrug. **O** dumps a tonne of the illegal
+cargo specifically, which the ordinary dump key could not reach without throwing
+the whole run overboard first.
+
+1. [ ] [123 — you cannot buy off the law](123-you-cannot-buy-off-the-law.md) ·
    **#21** · feature, medium. `satisfied` already ends a ship's interest in you
    for every role; only the offer is missing. M1 buys off the inspection inside
    122's window, M2 calls off the vipers already on you, M3 is the cop who says
    no, weighted by Character. A bribe never clears a record and always costs
    your name.
-3. [ ] [127 — the survivor is handed over without asking](127-the-survivor-is-handed-over-without-asking.md)
+2. [ ] [127 — the survivor is handed over without asking](127-the-survivor-is-handed-over-without-asking.md)
    · **#22** · feature, medium. You scoop someone out of a capsule and docking files them
    with station medical in the same breath as resetting your shields — no
    choice, no payment, no consequence. Chris: force the choice, and let it be a
@@ -62,7 +60,7 @@ The remaining two are 126 and 127 below.
    for it separately and differ: the issue wants two options and says the legal
    status must move, the flight added a third option and did not — so between
    them the law's half is decided rather than deferred.
-4. [ ] [126 — the docking computer turns the ship without flying it](126-the-docking-computer-flies-by-fiat.md)
+3. [ ] [126 — the docking computer turns the ship without flying it](126-the-docking-computer-flies-by-fiat.md)
    · no issue — found in flight · bug, medium. It writes `player.quaternion` through a shortest-arc slerp
    instead of producing a `FlightDemand`, so it pivots about an axis no stick
    can produce, never writes the rates the HUD reads, and obeys its own turn

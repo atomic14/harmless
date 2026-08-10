@@ -8,7 +8,9 @@
 import * as THREE from 'three';
 import { World } from '../src/game/world.ts';
 import { newCommander, cargoTonnes } from '../src/game/commander.ts';
-import { dumpCargo, offerBribe, appetiteOf } from '../src/game/jettison.ts';
+import {
+  dumpCargo, dumpContraband, offerBribe, appetiteOf,
+} from '../src/game/jettison.ts';
 import {
   OPPORTUNIST_FLOOR, GANG_FLOOR, VALUE_PER_TONNE,
 } from '../src/constants/jettison.ts';
@@ -452,6 +454,71 @@ console.log('\njettison');
   {
     const d = dumpCargo(new Array(COMMODITIES.length).fill(0), 3);
     check('an empty hold dumps nothing', d.tonnes.length === 0 && d.value === 0);
+  }
+
+  // --- ...and the dump you can AIM (docs/TODO/122 M2) ------------------------
+  //
+  // Most-valuable-first is right for buying off a pirate and wrong for the
+  // police, because the two are asking for different things. Against the 1984
+  // table Narcotics is the dearest commodity in the game, Firearms are 7th of
+  // 17 and Slaves are 14th — so the key that saves you from a gang throws the
+  // run's profit overboard while the evidence stays in the hold.
+  {
+    const at = (name: string): number => {
+      const i = COMMODITIES.findIndex((c) => c.name === name);
+      check(`the price table still has ${name}`, i >= 0);
+      return i;
+    };
+    const [slaves, furs, platinum] = ['Slaves', 'Furs', 'Platinum'].map(at);
+    /** The smuggler's actual hold: two tonnes of people under the good stuff. */
+    const running = () => {
+      const c = new Array(COMMODITIES.length).fill(0);
+      c[slaves] = 2; c[furs] = 3; c[platinum] = 2;
+      return c;
+    };
+
+    /** The dearest of a set of commodity indices, by the 1984 table. */
+    const dearestOf = (xs: readonly number[]): number =>
+      xs.reduce((a, b) => (COMMODITIES[a].basePrice > COMMODITIES[b].basePrice ? a : b));
+
+    // The premise, read out of the table rather than assumed: in this hold the
+    // two rules MUST disagree, because the dearest tonne aboard is a legal one.
+    check('the evidence is not the profit — the dearest tonne aboard is legal',
+      !CONTRABAND.includes(dearestOf([slaves, furs, platinum]))
+      && CONTRABAND.includes(slaves));
+
+    const aimed = running();
+    const took = dumpContraband(aimed, 1);
+    check('the contraband dump takes the illegal tonne',
+      took.tonnes.length === 1 && CONTRABAND.includes(took.tonnes[0])
+      && aimed[slaves] === 1);
+    check('...and leaves the cargo you were paid to carry alone',
+      aimed[furs] === 3 && aimed[platinum] === 2);
+
+    const blind = running();
+    const profit = dumpCargo(blind, 1).tonnes[0];
+    check('...where the ordinary dump takes the profit and leaves the crime',
+      profit === dearestOf([slaves, furs, platinum])
+      && !CONTRABAND.includes(profit) && blind[slaves] === 2);
+
+    // Dearest CONTRABAND first, so the ordering rule is the same rule aimed at
+    // a smaller set — not "whatever comes first in the table".
+    {
+      const both = new Array(COMMODITIES.length).fill(0);
+      both[slaves] = 1; both[at('Narcotics')] = 1;
+      const first = dumpContraband(both, 1).tonnes[0];
+      check('...most valuable contraband first, not first in the table',
+        first === dearestOf([slaves, at('Narcotics')]));
+    }
+    check('...and it is priced like any other tonne, so it still buys off a pirate',
+      took.value === COMMODITIES[slaves].basePrice * VALUE_PER_TONNE);
+
+    // A clean hold has nothing to hide, however full it is: the key refuses
+    // rather than quietly falling back on the ordinary dump.
+    const clean = new Array(COMMODITIES.length).fill(0);
+    clean[furs] = 5;
+    check('a hold with no contraband in it dumps nothing at all',
+      dumpContraband(clean, 5).tonnes.length === 0 && clean[furs] === 5);
   }
 
   {

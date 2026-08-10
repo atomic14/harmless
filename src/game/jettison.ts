@@ -10,9 +10,16 @@
 // buys peace) and WHETHER it is enough (an appetite that scales with what you
 // arrived carrying, so a fat trader is asked for more than a poor one).
 //
-// Both pure. The Game spawns the canisters and says the lines.
+// ...and then a third, because there is a second reason to empty a hold in a
+// hurry and it wants the opposite tonne. A police warning asks for the
+// EVIDENCE, which on the 1984 price table is usually not the good stuff — see
+// `dumpContraband`. One ordering, two eligible sets, and each rule stated
+// where somebody changing it will read it.
+//
+// All pure. The Game spawns the canisters and says the lines.
 
 import { COMMODITIES } from '../galaxy/galaxy.ts';
+import { CONTRABAND } from '../constants/law.ts';
 import {
   GANG_FLOOR, GANG_SHARE, OPPORTUNIST_FLOOR, OPPORTUNIST_SHARE, VALUE_PER_TONNE,
 } from '../constants/jettison.ts';
@@ -27,18 +34,19 @@ export interface Dumped {
 }
 
 /**
- * Take `tonnes` off the hold, most valuable first. Mutates `cargo`.
+ * Take `tonnes` off the hold, most valuable first, out of `eligible` when it is
+ * given and out of the whole hold when it is not. Mutates `cargo`.
  *
- * Most-valuable-first is the rule that makes jettisoning a real choice: it
- * costs you the good stuff, so it is never free to try.
+ * The ordering is one mechanism; WHAT it may reach is the difference between
+ * the two rules below, and each of them says its own out loud.
  */
-export function dumpCargo(cargo: number[], tonnes: number): Dumped {
+function dumpBest(cargo: number[], tonnes: number, eligible?: readonly number[]): Dumped {
   const out: Dumped = { tonnes: [], value: 0, lastName: '' };
   for (let t = 0; t < tonnes; t++) {
     let best = -1;
     let bestPrice = 0;
-    for (let i = 0; i < cargo.length; i++) {
-      if (cargo[i] <= 0) continue;
+    for (const i of eligible ?? cargo.keys()) {
+      if ((cargo[i] ?? 0) <= 0) continue;
       if (COMMODITIES[i].basePrice > bestPrice) {
         bestPrice = COMMODITIES[i].basePrice;
         best = i;
@@ -51,6 +59,38 @@ export function dumpCargo(cargo: number[], tonnes: number): Dumped {
     out.lastName = COMMODITIES[best].name.toUpperCase();
   }
   return out;
+}
+
+/**
+ * Take `tonnes` off the hold, most valuable first. Mutates `cargo`.
+ *
+ * Most-valuable-first is the rule that makes jettisoning a real choice: it
+ * costs you the good stuff, so it is never free to try. Pirate appetites are
+ * priced against that (`constants/jettison.ts`), which is why it is a rule and
+ * not a convenience.
+ */
+export function dumpCargo(cargo: number[], tonnes: number): Dumped {
+  return dumpBest(cargo, tonnes);
+}
+
+/**
+ * Take `tonnes` of ILLEGAL cargo off the hold, most valuable contraband first.
+ * Mutates `cargo`.
+ *
+ * A separate rule rather than a flag on `dumpCargo`, because the two orderings
+ * answer different questions. The pirate's is "what buys peace", and against
+ * the 1984 price table it reaches Narcotics (the most valuable commodity in the
+ * game) at once — but Firearms are 7th of 17 and Slaves are 14th, so a smuggler
+ * running slaves under a hold of furs and platinum had to throw nearly the
+ * whole cargo overboard to reach the evidence. The warning said dump and the
+ * dump key threw the profit away while the crime stayed aboard.
+ *
+ * This reaches the evidence, and only the evidence, from `CONTRABAND` — the set
+ * that already has exactly one home. The value still counts toward a bribe:
+ * contraband thrown at a pirate buys peace exactly as anything else does.
+ */
+export function dumpContraband(cargo: number[], tonnes: number): Dumped {
+  return dumpBest(cargo, tonnes, CONTRABAND);
 }
 
 /** What it takes to buy off one pirate. */

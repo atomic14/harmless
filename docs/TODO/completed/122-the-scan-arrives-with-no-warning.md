@@ -4,12 +4,14 @@
 milestones) · **Depends on:** none · 123 builds its bribe on M1's window
 **GitHub:** #20
 
-## Where we are
+**Landed 2026-08-10.** `npm run check` green at 3,794 assertions.
 
-Half of what #20 asks for is already true, and the half that is missing is the
-half the player can feel.
+## Where we were
 
-The scan does require proximity (`world-step.ts:563-577`):
+Half of what #20 asked for was already true, and the half that was missing was
+the half the player can feel.
+
+The scan did require proximity (`world-step.ts`):
 
 ```ts
 if (!session.policeScanned && !session.witchspace) {
@@ -19,94 +21,130 @@ if (!session.policeScanned && !session.witchspace) {
       n.object.position.distanceTo(player.position) < SCAN_RANGE);
 ```
 
-`SCAN_RANGE` is 2,600 against a 6,000 scanner (`constants/law.ts:37`,
-`constants/console.ts:17`), it latches once per system visit, `station.ts:177`
-clears it on docking, and on a LAUNCH police scatter 9,000–27,000 out
-(`POLICE_PATROL_RANGE`, `spawn-placement.ts:29`), so a launch is never scanned
-at the slot. `test/world-step.test.ts:578-620` bisects the range out of the step
-rather than probing the constant. The mechanism is sound.
+`SCAN_RANGE` is 2,600 against a 6,000 scanner, it latches once per system visit,
+`station.ts` clears it on docking, and on a LAUNCH police scatter 9,000–27,000
+out (`POLICE_PATROL_RANGE`), so a launch is never scanned at the slot. The
+mechanism was sound.
 
-**What is missing is the telegraph.** The scan is a silent proximity test that
-resolves into a verdict. There is no moment at which the player knows it is
-about to happen, so there is no decision — a smuggler who flies the arrival
-corridor (where police scatter 600–1,800 off the lane, `POLICE_SCATTER`) either
-passes near one or does not, and finds out afterwards. Dumping the cargo is a
-key away and there is nothing to tell you to press it.
+**What was missing was the telegraph.** The scan was a silent proximity test
+that resolved into a verdict. There was no moment at which the player knew it
+was about to happen, so there was no decision — a smuggler who flew the arrival
+corridor either passed near a patrol or did not, and found out afterwards.
+Dumping the cargo was a key away and nothing told you to press it.
 
 One correction to the issue title, for the record: the scan makes you an
-**Offender**, not a Fugitive — `this.host.raiseLegal(1)` — plus
-`DISREPUTE_CAUGHT` on your name. That balance is not what #20 is about and is
-left alone.
+**Offender**, not a Fugitive — `raiseLegal(1)` — plus `DISREPUTE_CAUGHT` on your
+name. That balance is not what #20 was about and is untouched.
 
-## A finding from the first real flight (2026-08-10)
+## The finding from the first real flight (2026-08-10)
 
 Chris, flying it: *"I got 'police scan - contraband detected' but didn't get
 attacked by the viper - I thought that should be automatic?"*
 
-**Not a bug — but the reason is invisible, and it belongs to this plan.** The
-scan calls `raiseLegal(1)`, so being caught makes you an **Offender**. And
-`isHostileToPlayer` (`npc.ts`) splits the two roles deliberately:
+Not a bug. `isHostileToPlayer` split the two roles deliberately: police hunt
+**Fugitives**, bounty hunters take an interest in **Offenders**. So a smuggler
+who is caught has a record, will be fined at the door and is now worth a
+hunter's time — and the Viper that scanned him carries on patrolling. Defensible
+as a rule: contraband is a fine-level offence, not shoot-on-sight.
 
-```ts
-(npc.role === 'police' && (legalStatus >= 2 || npc.state.provokedByPlayer)) ||
-(npc.role === 'hunter' && (legalStatus >= 1 || npc.state.provokedByPlayer))
+What was not defensible is that the player could not tell any of it had
+happened. Worse than it looked, in fact: `raiseLegal` says `LEGAL STATUS:
+OFFENDER` itself, but the host applies it BEFORE the step's own message reaches
+the console, so the scan line overwrote it in the same frame. The conviction was
+literally unprintable.
+
+## What was decided
+
+**Chris, on the finding (2026-08-10): make it legible.** The rules do not move —
+police keep hunting Fugitives only, and the Offender ladder is untouched. What
+changes is that the world says what it did.
+
+**Chris, on M2 (2026-08-10): build it.** The window is only worth opening if the
+player can act inside it.
+
+Carried over from the plan, unchanged:
+
+- **Warning only, no new flying.** Police do not break patrol to inspect you, do
+  not hail, and do not pursue. The change is a console warning and the window it
+  opens.
+- **The warning repeats while the condition holds**, rather than firing once on
+  entering the band. A one-shot needs to know whether a ship is *closing*, which
+  needs a previous distance per ship that the step does not keep; a repeat while
+  a cop is in the band is the same information without the bookkeeping, and it
+  goes quiet by itself. It is the pattern ENERGY LOW already established fifteen
+  lines above.
+- **No new sound.** Message only, so the change is one thing.
+- **The scan itself is untouched** — same range, same latch, same Offender, same
+  `DISREPUTE_CAUGHT`.
+- **The warning only ever fires with contraband aboard.** A clean hold is never
+  told the police are near, which is both cheaper and the correct tell: the
+  message means something because it is only ever true.
+- **The message does not name the distance.** The scanner already shows the
+  blip, and a number would invite flying the number.
+
+## What shipped
+
+### M1 — the warning, and the verdict behind it
+
+`constants/law.ts` gained three numbers and one vocabulary list:
+
+| constant | value | the rule |
+| --- | --- | --- |
+| `SCAN_WARN_RANGE` | 4,400 | the band a patrol is announced in |
+| `SCAN_WARN_REPEAT` | 2 s | how often, while it stays there |
+| `SCAN_LINE_SECONDS` | 4 s | the scan line's lifetime, and so the verdict's wait |
+| `LAW_ROLE_NAMES` | — | POLICE / BOUNTY HUNTERS, beside `LEGAL_NAMES` |
+
+**The band is 1,800 wide**, which is what the player's Cobra covers in about
+four and a half seconds at its 400 u/s top speed — flying flat out straight at a
+patrol, the worst case that is not deliberate. **The rule the value obeys, and
+the one under test, is `SCAN_RANGE < SCAN_WARN_RANGE <= SCANNER_RANGE`**: you are
+never warned about a ship you cannot see, so "which one?" has an answer.
+
+In the step, the scan and its telegraph are now one block reading one geometry —
+the nearest live police ship — against two ranges, with the scan winning the
+frame it fires on. `SessionState` gained `scanWarnTimer`, which the snapshot
+walks generically and so persists for free. Out of the band, scanned, jumping or
+clean, the timer re-arms at 0, so the next patrol to close is announced on the
+frame it does rather than after the remains of a countdown.
+
+`POLICE PATROL CLOSING` holds the console for half the repeat period — the duty
+cycle ENERGY LOW flashes at, derived rather than given a constant of its own.
+
+**The verdict** is the finding's half. A second `SessionState` field,
+`scanVerdictTimer`, counts the scan line out and then says what it cost you:
+
+```
+POLICE SCAN: CONTRABAND DETECTED
+RECORD: OFFENDER — BOUNTY HUNTERS WILL ENGAGE
 ```
 
-Police hunt **Fugitives**; bounty hunters take an interest in **Offenders**. So
-a smuggler who is caught has a record, will be fined at the door and is now
-worth a hunter's time — and the Viper that scanned him carries on patrolling.
+Delayed rather than pushed in the same frame, because the console is one line and
+a verdict pushed alongside would erase the line it exists to explain — which is
+exactly the bug that hid `LEGAL STATUS: OFFENDER` in the first place.
 
-That is defensible as a rule: contraband is a fine-level offence, not
-shoot-on-sight. What is NOT defensible is that the player cannot tell any of it
-happened beyond one line of text — which is exactly this item's subject. The
-scan says CONTRABAND DETECTED and then the world appears to shrug.
+It is **assembled, not written out**. The threshold that decides who comes for a
+record moved into `game/law.ts` as `lawTakesInterest(role, legalStatus)`;
+`npc.ts`'s `isHostileToPlayer` now spends that function instead of restating the
+two comparisons, and `recordVerdict` spends the same one to build the sentence.
+So the message cannot promise a fight the rules will not deliver, and a Fugitive
+is told the truth about his own case without a second branch:
 
-**So it is scope for this plan, not a new one.** Whichever way it goes, the
-window has to say what it did: either the consequence is legible (you are an
-Offender, here is what that now means for you) or the police do engage, and then
-`offenceFor`'s ladder is what moves. **Chris's call**, and worth taking before
-M1 is written, because it decides whether the telegraph is a warning about the
-scan or a warning about the fight after it.
-
-## What to do
-
-### M1 — the warning
-
-A police ship carrying you toward its scan range says so, on the pattern the
-same function already uses for ENERGY LOW (`world-step.ts:553-561`): a session
-timer, a repeat while the condition holds, silence when it stops.
-
-```ts
-// constants/law.ts
-/** A police ship this close is about to be able to read your hold. */
-export const SCAN_WARN_RANGE = ...;   // > SCAN_RANGE, and <= SCANNER_RANGE
-export const SCAN_WARN_REPEAT = ...;  // seconds between repeats
+```
+RECORD: FUGITIVE — POLICE AND BOUNTY HUNTERS WILL ENGAGE
 ```
 
-In the step, inside the block that already tests `policeScanned`, `witchspace`
-and `carryingContraband`: if the nearest live police ship is inside
-`SCAN_WARN_RANGE` but outside `SCAN_RANGE`, run the timer down and say
-`POLICE PATROL CLOSING`. `SessionState` gains `scanWarnTimer`, which the
-snapshot walks generically (`snapshot.ts:315`) and so persists for free.
-
-**The rule the range must obey: you are never warned about a ship you cannot
-see.** `SCAN_WARN_RANGE <= SCANNER_RANGE` makes the warning actionable — the
-blip is on the scanner, so "which one?" has an answer — and it is the constraint
-worth pinning in a test rather than the value itself.
-
-No new flying. Police keep their patrol; the warning is the step reporting a
-geometry that was always there.
+The test harness's `StepHost` stub now APPLIES `raiseLegal` as well as counting
+it, because the step reads `commander.legalStatus` back to build that line. A
+stub that only counted would have let the verdict say CLEAN while the real Game
+said OFFENDER.
 
 ### M2 — a dump you can aim
 
-The window M1 opens is only useful if the player can act inside it, and today,
-for half the contraband table, they cannot.
-
-`dumpCargo` (`jettison.ts:35-54`) takes the **most valuable thing first**, and
-that ordering is deliberate and load-bearing for the pirate bribe: *"it costs
-you the good stuff, so it is never free to try."* Against the 1984 price table
-that is fine for Narcotics (`basePrice` 0xeb — the most valuable commodity in
-the game) and wrong for the other two:
+`dumpCargo` takes the **most valuable thing first**, and that ordering is
+load-bearing for the pirate bribe: *"it costs you the good stuff, so it is never
+free to try."* Against the 1984 price table it is right for Narcotics and wrong
+for the other two:
 
 | commodity | `basePrice` | rank of 17 |
 | --- | --- | --- |
@@ -114,101 +152,92 @@ the game) and wrong for the other two:
 | Firearms | 0x7c (124) | 7th |
 | Slaves | 0x28 (40) | 14th |
 
-A smuggler running slaves under a hold of furs and platinum has to jettison
-almost the entire cargo to reach them. The warning tells them to dump and the
-dump key throws the profit overboard while the evidence stays aboard.
+So a smuggler running slaves under a hold of furs and platinum had to jettison
+almost the entire cargo to reach them: the warning said dump, and the dump key
+threw the profit overboard while the evidence stayed aboard.
 
-So: a **JETTISON CONTRABAND** command, one tonne per press, most valuable
-*contraband* first, using `CONTRABAND` from `constants/law.ts` — the set that
-already has exactly one home. Free letters in the cockpit table: L, O, Q, R, Z.
+`jettison.ts` now states two rules over one mechanism. A private `dumpBest`
+holds the ordering and takes the eligible set; `dumpCargo` passes the whole hold
+and `dumpContraband` passes `CONTRABAND` — the set that already has exactly one
+home. Neither export can quietly acquire the other's rule, and the pirate's
+pricing is untouched. The dumped value still accrues to
+`session.jettisonedValue`, so contraband thrown at a pirate buys peace exactly as
+anything else does.
 
-A separate command rather than a mode on `dumpCargo`: the bribe's ordering is a
-priced rule that pirates are balanced against (`constants/jettison.ts`), and
-threading a flag through it would put two rules in one function. The dumped
-value still accrues to `session.jettisonedValue`, so contraband thrown at a
-pirate still buys peace, exactly as it does today.
+In `game.ts`, both keys now travel one road out of the ship — `throwOverboard`
+takes the chooser and the refusal line, so the canister placement, the toll and
+the bribe offer cannot drift apart between them. A hold with nothing illegal in
+it is refused with `NO CONTRABAND ABOARD` rather than falling back on the
+ordinary dump.
 
-**M2 is the milestone Chris may want to cut** — it is the player's half of the
-window, not the police's, and #20 as written only asks for the police's half.
-It is here because a warning nobody can act on is a notification, not a
-mechanic.
+**The key is O**, for OVERBOARD: free in the cockpit, a few keys along the top
+row from Y so the three ways of emptying a hold sit under one hand. Not a
+shifted Y — ⇧Y is already five tonnes, and a modifier on a bulk dump would read
+as more of the same rather than as a different rule. It joins
+`NOT_IN_THE_SIMULATOR` for the reason the other two are there, and one more: an
+arena has no law to hide from.
 
-## Decisions already made
-
-- **Warning only, no new flying** (Chris, 2026-08-10). Police do not break
-  patrol to inspect you, do not hail, and do not pursue. The change is a console
-  warning and the window it opens.
-- **The warning repeats while the condition holds**, rather than firing once on
-  entering the band. A one-shot needs to know whether a ship is *closing*, which
-  needs a previous distance per ship that the step does not keep; a repeat while
-  a cop is in the band is the same information without the bookkeeping, and it
-  goes quiet by itself when they drift off. It is also the pattern ENERGY LOW
-  already established fifteen lines above.
-- **No new sound.** Message only, so the change is one thing. Whether this
-  wants an alert of its own is a question for after somebody has flown it.
-- **The scan itself is untouched** — same range, same latch, same Offender, same
-  `DISREPUTE_CAUGHT`. #20 reports the absence of a warning, not the verdict.
-- **The warning only ever fires with contraband aboard**, inside the existing
-  `carryingContraband` guard. A clean hold is never told the police are near,
-  which is both cheaper and the correct tell: the message means something
-  because it is only ever true.
-
-## Open questions — answered here
-
-- **Should the message name the distance?** No. Every console line in this game
-  is two or three words and the scanner already shows the blip. A number would
-  invite flying the number.
-- **What about a police ship that is in the band when you arrive?** It warns
-  immediately, which is right: you dropped out of witchspace next to a patrol
-  with a dirty hold. `session.witchspace` still suppresses the whole block
-  during the jump itself.
-- **Does M2's key work in the simulator?** No — `jettison1`/`jettison5` are
-  already in `NOT_IN_THE_SIMULATOR` because the clone's hold is empty
-  (`controls.ts:176-198`). The new command joins them for the same reason.
-
-## Watch out for
-
-- **`constants:find` before naming anything.** `SCAN_WARN_RANGE` sits between
-  two existing distances and `SCANNER_RANGE` is 6,000; a value equal to an
-  existing constant needs a distinct `@rule` id, per the catalogue's
-  duplicate-value policy. Run `npm run constants:find` for the proposed name,
-  two synonyms and the value, then `npm run generate:constants` and
-  `npm run constants:check`.
-- **`world-step.ts` is 743 lines.** M1 is a dozen lines inside a block that
-  exists; keep it there rather than opening a new section.
-- **M2 adds a binding, so invariant 9's four surfaces apply** — `command-help.ts`
-  (will not compile without a caption), the `?` guide section, the manual, and
-  the hand-written README table that `test/key-help.test.ts` holds in both
-  directions.
-- **Do not let the warning re-arm the latch.** `policeScanned` guards the whole
-  block; once scanned, the warning must go quiet too — being told the police are
-  closing after they have already read your hold is the same class of bug as
-  #19.
+Invariant 9's surfaces: `controls.ts` binds it, `command-help.ts` says what it
+does (and would not compile without a caption), the `?` guide and the manual are
+rendered from the pair, and the hand-written README row is held in both
+directions by `test/key-help.test.ts`.
 
 ## Verification
 
-Tier: extend `test/world-step.test.ts`'s existing police-scan block, which
-already builds an arrival with contraband and one police ship at a chosen
-distance (`patrol(seed, contraband, d)`, `:587-598`). Everything below is one
-more call to that fixture.
+Extends `test/world-step.test.ts`'s police-scan block, off the `patrol(seed,
+contraband, d)` fixture that block already had, plus a `holding` stepper that
+pins the cop and stops the commander so what is measured is the range rule and
+not two ships drifting.
 
-- A cop at `SCAN_WARN_RANGE * 0.9` warns and does **not** scan; the record and
-  `disrepute` are unchanged. This is the claim of the whole milestone.
-- A cop at `SCAN_RANGE * 0.5` scans, and the scan message and the warning do not
-  both appear for the same frame.
+- A cop at `SCAN_WARN_RANGE * 0.9` warns and does **not** scan; no record, no
+  latch, `disrepute` unchanged. The claim of the whole milestone.
+- A cop at `SCAN_RANGE * 0.5` scans, and the scan and the warning never share a
+  frame.
 - A cop beyond `SCAN_WARN_RANGE` says nothing.
-- The warning repeats on `SCAN_WARN_REPEAT` and stops once `policeScanned`
-  latches — fly on 600 steps and assert silence, mirroring the latch assertion
-  already at `:610-613`.
-- A **clean** hold at `SCAN_WARN_RANGE * 0.9` is never warned — the control that
-  matters, in the same shape as the existing clean-hold control at `:616-619`.
-- `SCAN_WARN_RANGE > SCAN_RANGE && SCAN_WARN_RANGE <= SCANNER_RANGE`, asserted in
-  `test/constants.test.ts` as a rule, not a value.
-- **M2:** a hold of slaves under furs and platinum. `jettisonContraband` removes
-  a tonne of slaves; `dumpCargo` on the same hold removes the platinum. Both
-  asserted from `CONTRABAND` and the commodity table, so the test states the
-  rule rather than restating the ordering code.
-- Prove the gates can fail: drop the `< SCAN_RANGE` exclusion from the warning
-  band (the warning then fires alongside the scan), and revert `jettisonContraband`
-  to `dumpCargo`.
-- `npm run check` at the end of each milestone.
+- The warning repeats on `SCAN_WARN_REPEAT` — 5 in 9 seconds, wanted 5, computed
+  from the constant — and goes quiet for good once `policeScanned` latches, over
+  600 further steps.
+- A **clean** hold at `SCAN_WARN_RANGE * 0.9` is never warned, over 600 steps.
+- The band's edge is **bisected out of the shipped step** the same way the scan's
+  is, and measured at 4,400.00.
+- `SCAN_RANGE < SCAN_WARN_RANGE <= SCANNER_RANGE`, asserted as a rule rather than
+  a value.
+- The verdict follows the line it explains, once, naming the record the scan
+  actually left; and across all three statuses the roles it names are exactly the
+  ones `isHostileToPlayer` turns on for real spawned ships — so the sentence
+  cannot drift from the rule.
+- **M2**, pure half in `test/combat.test.ts`: a hold of slaves under furs and
+  platinum, with the premise (*the dearest tonne aboard is legal*) read out of
+  the commodity table rather than assumed. `dumpContraband` takes the slaves and
+  leaves the freight; `dumpCargo` on the same hold takes the dearest legal tonne
+  and leaves the crime; dearest-contraband-first is asserted against the table;
+  the tonne is priced like any other, so it still buys off a pirate; and a hold
+  with no contraband dumps nothing at all.
+- **M2**, world half in `test/jettison.test.ts`: the chosen tonne actually leaves,
+  clear of your own scoop reach by the same road as the ordinary dump, and is
+  still gone a frame later; a clean hold refuses honestly.
+- `test/ui.test.ts` pins O to `jettisonContraband`; `test/combat-sim.test.ts`
+  pins it out of the arena.
+
+**The gates were proven able to fail**, each break reverted:
+
+- dropping the `< SCAN_RANGE` exclusion from the warning band → 2 failures, both
+  the frame-sharing assertions;
+- replacing `recordVerdict`'s derivation with a hard-coded `POLICE` → 2 failures,
+  at Offender and at Fugitive;
+- reverting `dumpContraband` to `dumpCargo` → 8 failures across both halves.
+
+`npm run check`: 3,794 passed, 0 failed. Two catalogue warnings remain by
+design, both the diff-scoped *confirm the meanings differ* prompt on a repeated
+primitive; both are confirmed in the constants' own JSDoc, and
+`SCAN_WARN_REPEAT` carries an `@rule` id because it shares the value 2 with
+`FUGITIVE` eleven lines above it in the same file.
+
+## What was deliberately left
+
+- **The scan's own balance.** Same range, same latch, same Offender, same
+  `DISREPUTE_CAUGHT`.
+- **Police engaging Offenders.** Considered and declined at Chris's call: the
+  consequence is made legible instead, so contraband stays a fine-level offence.
+- **A sound of its own.** Whether the warning wants one is a question for after
+  somebody has flown it.
