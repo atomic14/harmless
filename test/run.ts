@@ -137,6 +137,7 @@ import './palette.test.ts';
 // Installs a fake AudioContext, so keep it after every behavioural test that
 // may call a richer sound such as explosion().
 import './audio.test.ts';
+import './music.test.ts';
 
 import { summarise } from './harness.ts';
 

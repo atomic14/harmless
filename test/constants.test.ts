@@ -351,14 +351,15 @@ const OUTSIDE: readonly Group[] = [
       + ' because it is painted twice — once live and once as the invisible ghost that'
       + ' holds its height (docs/TODO/121); the'
       + ' inert painter\'s DOM plumbing; the cockpit beams\' convergence depth; the'
-      + ' Blue Danube, which left audio.ts for music.ts when it grew an engine —'
-      + ' a public-domain tune (`MELODY`), the chords it is written over, the'
-      + ' note-name table its pitch parser reads, and the four'
-      + ' INSTRUMENTS that play it. Every one is how a note SOUNDS and not what'
-      + ' anything in the world does, which is the same test the tunnel effect\'s'
-      + ' squash passes, and they are tuned BY EAR — pinning an audible judgement'
-      + ' in src/constants/ would make every tweak a two-file edit; and the'
-      + ' manual\'s prose rows',
+      + ' Blue Danube, which left audio.ts for music.ts when it grew an engine.'
+      + ' music.ts keeps the note-name table its pitch parser reads, the tempo the'
+      + ' game plays at and the level the whole thing sits under the game at;'
+      + ' music-score.ts is GENERATED and is the arrangement itself — four'
+      + ' instruments and 1,051 notes of a public-domain waltz. Every one is how a'
+      + ' note SOUNDS and not what anything in the world does, which is the same'
+      + ' test the tunnel effect\'s squash passes, and they are tuned BY EAR —'
+      + ' pinning an audible judgement in src/constants/ would make every tweak a'
+      + ' two-file edit; and the manual\'s prose rows',
     files: {
       'hud/hud.ts': ['CONTACT_COLORS', 'VIEW_NAMES', 'SCORE_LABELS'],
       'ui/screens.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES', 'LEVERS_OFF'],
@@ -372,9 +373,10 @@ const OUTSIDE: readonly Group[] = [
       'engine/keymap.ts': ['LAYOUTS', 'STORAGE_KEY'],
       'engine/inert-dom.ts': ['STYLE_METHODS'],
       'engine/render-stack.ts': ['BEAM_Z'],
-      'music.ts': [
-        'STEP', 'MELODY', 'CHORDS', 'TRIAD',
-        'LEAD', 'HORNS', 'CELLO', 'PIZZ', 'MUSIC_GAIN',
+      'music.ts': ['STEP', 'MUSIC_GAIN', 'WALTZ_BPM'],
+      'music-score.ts': [
+        'MELODY', 'HARMONY', 'BASS', 'STRINGS',
+        'MELODY_NOTES', 'HARMONY_NOTES', 'BASS_NOTES', 'STRINGS_NOTES',
       ],
       'manual.ts': ['FLIGHT'],
     },

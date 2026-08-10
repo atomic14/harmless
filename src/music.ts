@@ -33,8 +33,10 @@
 // and a different instrument palette is another — neither needs this engine
 // touched, which is what makes tuning it by ear cheap.
 
+import { waltz } from './music-score.ts';
+
 /** One oscillator inside an instrument: its wave, its offset and its share. */
-interface Layer {
+export interface Layer {
   type: OscillatorType;
   /** cents away from the written pitch — a pair a few cents apart beats, and
    *  that beating is what a single oscillator lacks most */
@@ -44,7 +46,7 @@ interface Layer {
 }
 
 /** The shape of every note: rise, fall, hold, let go. */
-interface Adsr {
+export interface Adsr {
   attack: number;
   decay: number;
   /** the level held after the decay, as a fraction of the peak */
@@ -56,7 +58,7 @@ interface Adsr {
  * A voice. Everything here is how it SOUNDS, and none of it is a game rule —
  * it is tuned by ear in this file, which is why it is not in `src/constants/`.
  */
-interface Instrument {
+export interface Instrument {
   layers: readonly Layer[];
   envelope: Adsr;
   /** a lowpass, because a raw sawtooth is all edge and no body */
@@ -68,7 +70,7 @@ interface Instrument {
 }
 
 /** A note: where it starts and how long it lasts, both in BEATS. */
-interface Note {
+export interface Note {
   /** scientific pitch, e.g. `D4`, `F#5`, `A2` */
   note: string;
   at: number;
@@ -76,7 +78,7 @@ interface Note {
   velocity: number;
 }
 
-interface Track {
+export interface Track {
   instrument: Instrument;
   notes: readonly Note[];
 }
@@ -104,172 +106,46 @@ function noteHz(name: string): number {
   return 440 * Math.pow(2, (midi - 69) / 12);
 }
 
-/** A pitch moved by an interval rather than a number of hertz. */
-const cents = (frequency: number, n: number): number => frequency * Math.pow(2, n / 1200);
-
-// --- the instruments ---------------------------------------------------------
-//
-// Four voices, and the shape of them — layered oscillators, ADSR, a lowpass and
-// a stereo position — came from a palette Chris put together for this. What
-// audio.ts had was a bare square and a bare triangle with no decay, no sustain
-// level, no filter and no width, which is most of the distance between "the
-// notes are right" and "it sounds nice".
-
-const LEAD: Instrument = {
-  layers: [
-    { type: 'sawtooth', detune: -5, gain: 0.45 },
-    { type: 'sawtooth', detune: 5, gain: 0.45 },
-    { type: 'sine', detune: 0, gain: 0.15 },
-  ],
-  envelope: { attack: 0.035, decay: 0.12, sustain: 0.72, release: 0.18 },
-  cutoff: 4200, q: 0.7, pan: -0.15, gain: 0.8,
-};
-
-const HORNS: Instrument = {
-  layers: [
-    { type: 'triangle', detune: 0, gain: 0.75 },
-    { type: 'sine', detune: -3, gain: 0.25 },
-  ],
-  envelope: { attack: 0.06, decay: 0.16, sustain: 0.65, release: 0.22 },
-  cutoff: 2200, q: 0.8, pan: 0.15, gain: 0.62,
-};
-
-const CELLO: Instrument = {
-  layers: [
-    { type: 'triangle', detune: 0, gain: 0.8 },
-    { type: 'sine', detune: 0, gain: 0.25 },
-  ],
-  envelope: { attack: 0.015, decay: 0.12, sustain: 0.58, release: 0.12 },
-  cutoff: 1200, q: 0.6, pan: 0, gain: 0.72,
-};
-
-const PIZZ: Instrument = {
-  layers: [
-    { type: 'triangle', detune: 0, gain: 0.55 },
-    { type: 'square', detune: 0, gain: 0.12 },
-  ],
-  envelope: { attack: 0.004, decay: 0.09, sustain: 0.12, release: 0.07 },
-  cutoff: 3000, q: 0.5, pan: 0.25, gain: 0.48,
-};
-
-/** How loud the whole thing sits under the game. */
-const MUSIC_GAIN = 0.06;
 
 // --- the score ---------------------------------------------------------------
-//
-// The opening of the waltz theme in D major, written from the public-domain
-// score. `[note, beats]` in sequence, rests included, which is how a tune is
-// read rather than how a sequencer stores one — the bar positions below are
-// DERIVED from it, so a note cannot be written at a beat the melody never
-// reaches.
-
-/** [note or rest, beats] — the melody, in order. */
-const MELODY: [string | null, number][] = [
-  ['D4', 1], ['F#4', 1], ['A4', 1],           // the rising arpeggio everyone knows
-  ['A4', 2], [null, 1],
-  ['B4', 0.5], ['B4', 0.5], [null, 2],        // dum dum
-  ['B4', 0.5], ['B4', 0.5], [null, 2],        // dum dum
-  ['D4', 1], ['F#4', 1], ['A4', 1],
-  ['A4', 2], [null, 1],
-  ['G4', 0.5], ['G4', 0.5], [null, 2],
-  ['G4', 0.5], ['G4', 0.5], [null, 2],
-  ['B3', 1], ['E4', 1], ['G4', 1],
-  ['G4', 2], [null, 1],
-  ['F#4', 0.5], ['F#4', 0.5], [null, 2],
-  ['A3', 1], ['D4', 1], ['F#4', 1],
-  ['F#4', 2], [null, 1],
-  ['D5', 1], [null, 2],
-];
 
 /**
- * The harmony, one chord a bar: its root and whether it is minor.
+ * How loud the whole arrangement sits under the game.
  *
- * The qualities are the key's own — D and A major, B and E minor. The
- * accompaniment, the horn line and the bass are all DERIVED from this, so they
- * cannot drift apart from each other or stop before the melody does.
+ * The instruments carry their own balance against each other; this is the one
+ * number that decides how the music sits against a laser and an explosion, and
+ * it is the first knob to reach for if the waltz is too quiet or drowns the
+ * cockpit.
  */
-const CHORDS: [string, 'maj' | 'min'][] = [
-  ['D', 'maj'], ['A', 'maj'], ['D', 'maj'], ['A', 'maj'],
-  ['B', 'min'], ['E', 'min'], ['A', 'maj'], ['D', 'maj'],
-];
-
-/** Semitones above the root for each triad. */
-const TRIAD: Record<'maj' | 'min', readonly number[]> = { maj: [0, 4, 7], min: [0, 3, 7] };
-
-/** A chord tone as a pitch name, `n` semitones above the root in `octave`. */
-function chordTone(root: string, quality: 'maj' | 'min', degree: number, octave: number): string {
-  const semitone = STEP[root] + TRIAD[quality][degree];
-  const names = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
-  return `${names[semitone % 12]}${octave + Math.floor(semitone / 12)}`;
-}
+const MUSIC_GAIN = 0.35;
 
 /**
- * The waltz, as four tracks.
- *
- * The accompaniment is generated ACROSS THE MELODY'S OWN LENGTH rather than
- * written out to a length of its own, and that is not tidiness. The palette
- * this engine came from arrived with a score whose bass and chords stopped at
- * bar 9 while the tune ran to bar 13 — four bars, nearly a third of the piece,
- * of melody over silence. Deriving the bar count from the melody makes that
- * particular mistake unwriteable; `test/audio.test.ts` holds it anyway, because
- * the next arrangement may not be generated the same way.
+ * How fast the game plays it: Chris's call, and slower than the arrangement is
+ * written at (150). A docking approach is a minute of drifting onto a slot, not
+ * a ballroom, and the extra weight in every note is most of what makes it sound
+ * like an occasion rather than a jingle.
  */
+const WALTZ_BPM = 100;
+
+/** The waltz, at the tempo the game plays it. */
 export function dockingScore(): Score {
-  const lead: Note[] = [];
-  let at = 0;
-  for (const [note, beats] of MELODY) {
-    if (note) lead.push({ note, at, beats: beats * 0.92, velocity: 0.86 });
-    at += beats;
-  }
-  const bars = Math.ceil(at / 3);
-
-  const horns: Note[] = [];
-  const bass: Note[] = [];
-  const pizz: Note[] = [];
-  for (let bar = 0; bar < bars; bar++) {
-    const [root, quality] = CHORDS[bar % CHORDS.length];
-    const beat0 = bar * 3;
-    // The horn line: the chord's third, held across the bar under the tune.
-    horns.push({ note: chordTone(root, quality, 1, 4), at: beat0, beats: 2.8, velocity: 0.5 });
-    // Oom-pah-pah: root low on one, the fifth on two and three.
-    bass.push({ note: chordTone(root, quality, 0, 2), at: beat0, beats: 0.82, velocity: 0.72 });
-    for (const step of [1, 2]) {
-      bass.push({
-        note: chordTone(root, quality, 2, 2), at: beat0 + step, beats: 0.82, velocity: 0.58,
-      });
-      // ...and the triad plucked over it, which is the "pah" a single note
-      // could never be: one note is the bass again an octave up, a metronome.
-      for (const degree of [0, 1, 2]) {
-        pizz.push({
-          note: chordTone(root, quality, degree, 4), at: beat0 + step,
-          beats: 0.55, velocity: 0.48,
-        });
-      }
-    }
-  }
-
-  return {
-    beat: 0.34,
-    tracks: [
-      { instrument: LEAD, notes: lead },
-      { instrument: HORNS, notes: horns },
-      { instrument: CELLO, notes: bass },
-      { instrument: PIZZ, notes: pizz },
-    ],
-  };
+  return waltz(60 / WALTZ_BPM);
 }
 
 /**
  * Schedule a score and hand back every oscillator in it, so it can be cut off.
  *
- * The per-track chain — filter, panner, level — is built ONCE and every note of
- * that track plays through it. A filter a note is the whole point of a static
- * one is not, and four nodes beats four hundred.
+ * The per-track chain — level, filter, panner — is built ONCE and every note of
+ * that track plays through it. Four nodes rather than four thousand, and a
+ * static filter is not something a note needs its own copy of.
  *
- * Each note's layers get their OWN envelope, scaled by the layer's share,
- * rather than sharing one: multiplying gains is linear, so the sound is
- * identical and every oscillator carries its own shape — which is what lets a
- * test read an envelope off any voice in the piece.
+ * THE RELEASE FITS INSIDE THE NOTE, which is the one thing worth saying about
+ * the envelope: the fall starts at `end - release` and the voice is finished at
+ * `end`. An earlier version added the release AFTER the written length, which
+ * is fine for a tune with a rest after every phrase and wrong for an
+ * arrangement where one note ends as the next begins — every voice would have
+ * overhung its neighbour by the release and the whole thing would smear. This
+ * follows the reference player Chris built the arrangement against.
  */
 export function playScore(a: AudioContext, score: Score, from: number): {
   voices: OscillatorNode[]; until: number;
@@ -279,53 +155,62 @@ export function playScore(a: AudioContext, score: Score, from: number): {
 
   for (const track of score.tracks) {
     const inst = track.instrument;
-    const out = a.createGain();
-    out.gain.value = inst.gain * MUSIC_GAIN;
-    out.connect(a.destination);
+    const bus = a.createGain();
+    bus.gain.value = inst.gain * MUSIC_GAIN;
 
     const filter = a.createBiquadFilter();
     filter.type = 'lowpass';
     filter.frequency.value = inst.cutoff;
     filter.Q.value = inst.q;
+    bus.connect(filter);
     // Stereo width where the browser has a panner, straight through where it
     // does not — a missing StereoPannerNode must cost the placement, not the
     // music.
     const panner = a.createStereoPanner?.();
     if (panner) {
       panner.pan.value = inst.pan;
-      filter.connect(panner).connect(out);
+      filter.connect(panner).connect(a.destination);
     } else {
-      filter.connect(out);
+      filter.connect(a.destination);
     }
 
     const env = inst.envelope;
     for (const note of track.notes) {
-      const t = from + note.at * score.beat;
-      const held = note.beats * score.beat;
-      const end = t + held + env.release;
+      const when = from + note.at * score.beat;
+      const end = when + note.beats * score.beat;
       until = Math.max(until, end);
       const hz = noteHz(note.note);
+      const v = Math.max(0.0001, note.velocity);
+      const sustain = Math.max(0.0001, v * env.sustain);
+
+      const amp = a.createGain();
+      amp.gain.setValueAtTime(0.0001, when);
+      amp.gain.exponentialRampToValueAtTime(v, when + Math.max(0.002, env.attack));
+      // The decay only happens if the note is long enough to have one.
+      const decayed = when + env.attack + env.decay;
+      if (decayed < end) amp.gain.exponentialRampToValueAtTime(sustain, decayed);
+      // HOLD, then let go. Without this hold a note decays across its own
+      // length and a minim is inaudible by its midpoint, which is what "the
+      // notes seem weirdly truncated" was.
+      amp.gain.setValueAtTime(sustain, Math.max(when + env.attack, end - env.release));
+      amp.gain.exponentialRampToValueAtTime(0.0001, end);
+      amp.connect(bus);
 
       for (const layer of inst.layers) {
-        const peak = Math.max(0.0002, note.velocity * layer.gain);
-        const amp = a.createGain();
-        amp.gain.setValueAtTime(0.0001, t);
-        amp.gain.exponentialRampToValueAtTime(peak, t + env.attack);
-        amp.gain.exponentialRampToValueAtTime(
-          Math.max(0.0002, peak * env.sustain), t + env.attack + env.decay);
-        // HOLD. Without this the note decays across its own length and a minim
-        // is inaudible by its midpoint, which is what "the notes seem weirdly
-        // truncated" was.
-        amp.gain.setValueAtTime(Math.max(0.0002, peak * env.sustain), t + held);
-        amp.gain.exponentialRampToValueAtTime(0.0001, end);
-        amp.connect(filter);
+        const level = a.createGain();
+        level.gain.value = layer.gain;
+        level.connect(amp);
 
         const o = a.createOscillator();
         o.type = layer.type;
-        o.frequency.setValueAtTime(cents(hz, layer.detune), t);
-        o.connect(amp);
-        o.start(t);
-        o.stop(end);
+        o.frequency.setValueAtTime(hz, when);
+        // `detune` is the oscillator's own parameter and is in CENTS, so the
+        // layers of a chord sit the same musical distance apart wherever the
+        // note is written.
+        o.detune.value = layer.detune;
+        o.connect(level);
+        o.start(when);
+        o.stop(end + 0.04);
         voices.push(o);
       }
     }
