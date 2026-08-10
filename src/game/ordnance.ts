@@ -24,6 +24,7 @@ import {
 import type { NpcShip } from './npc.ts';
 import type { CommanderData } from './commander.ts';
 import { random } from './rng.ts';
+import type { Prompt } from './prompts.ts';
 import type { MissileSnapshot } from './snapshot.ts';
 import type { SoundEvent, SoundName } from './sounds.ts';
 
@@ -95,11 +96,25 @@ function outcome(reply: OrdnanceReply | null): OrdnanceOutcome {
   return { reply, events: [heard(sounds[reply])] };
 }
 
-/** The line for a reply, so the wording lives with the rule. */
-export function ordnanceMessage(r: OrdnanceReply): { text: string; seconds: number } {
+/**
+ * The line for a reply, so the wording lives with the rule.
+ *
+ * `offer` is the exception that proves it: a refusal that has an ANSWER names
+ * the command, never the letter (docs/TODO/128 M3). This file is a rule module
+ * and may not reach `ui/key-help.ts`, so `ALREADY LOCKED — U TO UNARM` was a
+ * hard-coded binding in a message and free to lie the moment `disarmMissile`
+ * moved. The caller that says the line renders the key, exactly as it does for
+ * a cockpit prompt.
+ */
+export function ordnanceMessage(r: OrdnanceReply): {
+  text: string; seconds: number; offer?: Prompt;
+} {
   switch (r) {
     case 'noMissiles': return { text: 'NO MISSILES', seconds: 2 };
-    case 'alreadyLocked': return { text: 'ALREADY LOCKED — U TO UNARM', seconds: 2 };
+    case 'alreadyLocked': return {
+      text: 'ALREADY LOCKED', seconds: 2,
+      offer: { command: 'disarmMissile', what: 'TO UNARM' },
+    };
     case 'armed': return { text: 'MISSILE ARMED', seconds: 2 };
     case 'unarmed': return { text: 'MISSILE UNARMED', seconds: 2 };
     case 'locked': return { text: 'MISSILE LOCKED', seconds: 2 };

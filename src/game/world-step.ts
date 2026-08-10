@@ -762,7 +762,15 @@ export class WorldStep {
       npc.nosePosition(this.tmp).clone(), shot.at.object.position.clone(), 0xffaa55, 0.18);
   }
 
-  /** Ordnance reports what it did; saying it is ours. */
+  /**
+   * Ordnance reports what it did; saying it is ours.
+   *
+   * `m.offer` is deliberately dropped: a message's key is rendered from the
+   * binding table and the step may not reach `ui/` (tools/portability.mjs). The
+   * only reply that carries one is `alreadyLocked`, which comes from the
+   * player's own arm key through game.ts and never through here — the step's
+   * replies are NPC ordnance.
+   */
   private reply(result: OrdnanceOutcome, out: StepEvent[]): void {
     out.push(...result.events);
     if (!result.reply) return;

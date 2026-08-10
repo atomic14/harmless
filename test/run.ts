@@ -111,6 +111,7 @@ import './probe-rows.test.ts';
 import './ui.test.ts';
 import './chart-overlay.test.ts';
 import './key-help.test.ts';
+import './key-prose.test.ts';
 import './site-footer.test.ts';
 import './input.test.ts';
 import './hud-binding.test.ts';

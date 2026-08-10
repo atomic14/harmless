@@ -28,7 +28,9 @@ renumber; append**. Tests are the detailed source where they exist.
 8. **Money is integer tenths of a credit; fuel is tenths of a light-year.**
 
 9. **Each key binding has one home.** Help surfaces are rendered from the binding
-   and description tables; no surface copies keys.
+   and description tables; no surface copies keys — and neither does PROSE: a
+   console message names a `Command` and the edge renders the key
+   (`test/key-prose.test.ts` scans `src/game/` for the letters).
 
 10. **Economic rules stay outside `game.ts`** in modules shared with the headless
     campaign.

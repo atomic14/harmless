@@ -374,4 +374,7 @@ console.log('\nordnance');
     'noMissiles', 'alreadyLocked', 'armed', 'unarmed', 'locked', 'noLock', 'away',
     'incoming', 'noEcm', 'noEnergy', 'ecmFired', 'noBomb', 'bombFired',
   ] as const).every((r) => ordnanceMessage(r).text.length > 0));
+  // ...and the line for `alreadyLocked` carries a COMMAND rather than a letter
+  // (docs/TODO/128 M3). What it renders to is test/key-prose.test.ts, which
+  // owns every claim about a key appearing in words.
 }

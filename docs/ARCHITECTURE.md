@@ -20,6 +20,10 @@ this file is a map.
 - The HUD is a read-only painter: `hud-model.ts` computes its frame model and
   `hud.ts` renders it. Screens live behind `ui/screen-host.ts` and own their own
   rendering, input and local state.
+- `src/game/prompts.ts` decides what a key can do about the situation right now.
+  It returns a `Command` and words, never a letter: the label is looked up at the
+  edge (`game.ts`, through `ui/key-help.ts`), which is how invariant 9 reaches
+  prose. Prompts are derived state — nothing about them is saved.
 
 Laser fire, spawning and the hyperspace transition still remain in `game.ts`.
 

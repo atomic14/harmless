@@ -50,7 +50,7 @@ import { buildHudFrame } from '../hud/hud-binding.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
 import { sfx } from '../audio.ts';
 import { nearestEngaging, nearestNpc, NpcShip } from './npc.ts';
-import { flightPrompts } from './prompts.ts';
+import { flightPrompts, type Prompt } from './prompts.ts';
 import { npcImpactDamage } from './impact-damage.ts';
 import { IMPACT } from '../constants/impact.ts';
 import { dealToNpc } from './damage-dealt.ts';
@@ -429,7 +429,10 @@ export class Game {
   private say(reply: OrdnanceOutcome['reply']): void {
     if (!reply) return;
     const m = ordnanceMessage(reply);
-    this.showMessage(m.text, m.seconds);
+    // A refusal with an answer names the COMMAND (ordnance.ts); the letter is
+    // this side's business, from the same table the prompt line reads.
+    const offer = m.offer ? this.renderPrompt(m.offer) : null;
+    this.showMessage(offer ? `${m.text} — ${offer}` : m.text, m.seconds);
   }
 
   /** Ordnance sounds first, then says its semantic reply, as before extraction. */
@@ -608,8 +611,14 @@ export class Game {
     // same in both layouts, so they are painted from the binding table once.
     refreshHelpPanel();
     paintCommandGuide();
+    // ...and the two keys this line names come from that same table rather than
+    // from the sentence (docs/TODO/128 M3): the guide is a global binding and
+    // the layout toggle is the docked table's, which is where a commander
+    // reading this is standing.
     this.showMessage(
-      `PRESS ? FOR CONTROLS — ${layoutName().toUpperCase()} LAYOUT (B TO SWITCH)`, 8);
+      `PRESS ${boundKey('docked', 'toggleHelp')} FOR CONTROLS`
+      + ` — ${layoutName().toUpperCase()} LAYOUT`
+      + ` (${boundKey('docked', 'toggleLayout')} TO SWITCH)`, 8);
 
     // all screens accept mouse input; the shell owns the listener and hands
     // back the element that carries data-key/data-row
@@ -1823,7 +1832,10 @@ export class Game {
       this.showMessage('MOUSE FLIGHT OFF', 2);
     } else {
       this.input.requestMouseFlight();
-      this.showMessage('MOUSE FLIGHT — ESC OR V TO RELEASE', 4);
+      // ESC is the browser's own way out of a pointer lock and belongs to no
+      // table; the other one is this command's own key, read from it.
+      this.showMessage(
+        `MOUSE FLIGHT — ESC OR ${boundKey('flight', 'toggleMouseFlight')} TO RELEASE`, 4);
     }
   }
 
@@ -2176,12 +2188,25 @@ export class Game {
         .distanceTo(this.state.world.station.position),
       dcEngaged: this.state.session.dcEngaged,
     }).flatMap((p) => {
-      // `keyIfBound`, not `boundKey`: the arena's table subtracts eight of the
-      // cockpit's commands, so an unbound one here is an ordinary answer — the
-      // prompt simply does not appear — rather than a build failure.
-      const key = keyIfBound(mode, p.command);
-      return key ? [`${key} ${p.what}`] : [];
+      const line = this.renderPrompt(p);
+      return line ? [line] : [];
     });
+  }
+
+  /**
+   * One offer as the cockpit prints it: the key this mode binds, then the
+   * words. Null when it binds none.
+   *
+   * `keyIfBound`, not `boundKey`: the arena's table subtracts eight of the
+   * cockpit's commands, so an unbound one here is an ordinary answer — the
+   * offer simply is not made — rather than a build failure. Shared with the
+   * ordnance refusals, which carry a `Prompt` for the same reason a prompt does
+   * (docs/TODO/128 M3): a rule module may not name a key.
+   */
+  private renderPrompt(p: Prompt): string | null {
+    const mode = this.controlMode();
+    const key = mode ? keyIfBound(mode, p.command) : null;
+    return key ? `${key} ${p.what}` : null;
   }
 
   private renderHud(dt: number): void {

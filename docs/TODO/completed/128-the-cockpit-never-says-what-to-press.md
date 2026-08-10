@@ -200,7 +200,21 @@ patrol's two answers.
   outranks a leisurely docking aid, and three-at-once is asserted with its
   control.
 
-**M3 remains**: the source scan that no message string in `src/game/` names a
-key. Its one known offender is `game.ts:611`, `PRESS ? FOR CONTROLS — …
-(B TO SWITCH)`, which the composition root can render from `boundKey` since it
-already imports it.
+**M3 landed**: `test/key-prose.test.ts` — the scan, and the fixes it forced.
+
+The plan expected one offender and the scan found three. `game.ts` had two
+(`PRESS ? FOR CONTROLS — … (B TO SWITCH)` and `MOUSE FLIGHT — ESC OR V TO
+RELEASE`), both now interpolating `boundKey`. The third was `ordnance.ts`'s
+`ALREADY LOCKED — U TO UNARM`, and it is the interesting one: a rule module may
+not reach `ui/key-help.ts`, so `ordnanceMessage` now returns an optional
+`offer: Prompt` — the same `{ command, what }` the cockpit's prompt line
+carries — and `game.ts` renders the key through the helper both paths share.
+
+What the scan deliberately does not hunt: the digits (`1 DAY AGO` counts, it
+does not name the view key), ESC and ENTER (the browser's own keys, named in
+prose about pointer lock), and `game/screens/` — screens read raw codes and
+print their own keylines, which is the station menu this plan put out of scope.
+`chart-overlay.ts`'s `T TRADE OVERLAY` is the one keyline outside `screens/`
+and is named in the scan with that reason.
+
+Invariant 9 now says prose is covered too.
