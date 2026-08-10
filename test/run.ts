@@ -101,6 +101,7 @@ import './probe-rows.test.ts';
 
 // --- the shell --------------------------------------------------------------
 import './ui.test.ts';
+import './chart-overlay.test.ts';
 import './key-help.test.ts';
 import './site-footer.test.ts';
 import './input.test.ts';

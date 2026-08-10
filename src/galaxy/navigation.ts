@@ -63,6 +63,40 @@ export function distanceSqToPoint(s: StarSystem, x: number, y: number): number {
   return dx * dx + dy * dy;
 }
 
+/**
+ * Squared chart distance from a chart coordinate to the SEGMENT between two
+ * systems — what picks the trade lane you are pointing at.
+ *
+ * A segment, not the infinite line through it: the projection is clamped to
+ * the ends, so standing well past one end of a short lane measures to that
+ * end rather than to some imaginary continuation of the route.
+ *
+ * The same y-squashed metric as its neighbours, so a lane is picked at the
+ * distance it LOOKS on either chart rather than at its distance in raw chart
+ * units, where the y axis is drawn at half weight.
+ */
+export function distanceSqToSegment(
+  a: { x: number; y: number },
+  b: { x: number; y: number },
+  x: number,
+  y: number,
+): number {
+  const ax = a.x;
+  const ay = a.y / CHART_Y_SQUASH;
+  const bx = b.x;
+  const by = b.y / CHART_Y_SQUASH;
+  const py = y / CHART_Y_SQUASH;
+  const dx = bx - ax;
+  const dy = by - ay;
+  const lengthSq = dx * dx + dy * dy;
+  // a zero-length lane is a point: both its systems are at the same place
+  const t = lengthSq === 0 ? 0
+    : Math.max(0, Math.min(1, ((x - ax) * dx + (py - ay) * dy) / lengthSq));
+  const fx = x - (ax + t * dx);
+  const fy = py - (ay + t * dy);
+  return fx * fx + fy * fy;
+}
+
 /** The system nearest `from` in `systems`, by the chart metric. */
 export function nearestSystemTo(from: StarSystem, systems: readonly StarSystem[]): StarSystem {
   let best = systems[0];

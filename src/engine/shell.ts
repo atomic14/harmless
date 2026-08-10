@@ -55,6 +55,12 @@ export interface Shell {
   onResize(fn: () => void): void;
   /** a click landed on the screen overlay — clicks are input (invariant 13) */
   onScreenClick(fn: (target: unknown, event: unknown) => void): void;
+  /**
+   * the pointer moved across the screen overlay. Separate from the click seam
+   * because it is not input: nothing is selected, targeted or spent by moving a
+   * mouse, and a screen that ignores it loses nothing.
+   */
+  onScreenMove(fn: (target: unknown, event: unknown) => void): void;
   /** drive the frame loop; `now` is a monotonic clock in milliseconds */
   runLoop(frame: (now: number) => void): void;
   /** the sight is drawn to the aim-assist envelope, in pixels */
@@ -103,6 +109,7 @@ export function headlessShell(): Shell {
     },
     onResize: () => {},
     onScreenClick: () => {},
+    onScreenMove: () => {},
     runLoop: () => {},
     setSightRadius: () => {},
     setSightLit: () => {},

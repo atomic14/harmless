@@ -45,3 +45,32 @@ export const LOCAL_SCALE = 15;
 
 /** Square, so a light year is the same number of pixels whichever way you go. */
 export const LOCAL_CANVAS = 560;
+
+/**
+ * The galactic chart's canvas, in px. Its own home because two things now read
+ * it: the markup that sizes the canvas, and the pixels-to-chart-units
+ * conversion that decides how near the pointer must be to pick a trade lane —
+ * which runs with no DOM to ask, in tests and headless.
+ *
+ * `CHART_CANVAS_W / CHART_SPAN_X` is ~3 px a system, and it is the whole
+ * legibility budget every chart overlay is designed against.
+ */
+export const CHART_CANVAS_W = 780;
+/**
+ * Its height. Not `CHART_CANVAS_W / CHART_Y_SQUASH` (390): the extra 10 px are
+ * margin for the 4.5 px marker on a system sitting at y 0 or 255, so the
+ * galactic chart is very slightly taller than the metric alone would make it
+ * and is NOT quite isotropic. That is a drawing decision, hence a literal.
+ */
+export const CHART_CANVAS_H = 400;
+
+/**
+ * How near the pointer must come to a trade lane to be pointing AT it, in
+ * canvas pixels — converted to chart units per chart, since one pixel is ~13x
+ * more chart on the galactic view than on the short-range one.
+ *
+ * Smaller than the 28 px a click snaps to a system by: lanes are long targets
+ * and dozens of them are on screen, so a generous radius would pick a
+ * neighbouring lane while the pointer sat on a star.
+ */
+export const LANE_PICK_PX = 8;

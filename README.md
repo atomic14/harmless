@@ -282,6 +282,10 @@ than one convoy on them (~45 of the ~175 pairs trading at any moment), and
 dear, down green for cheap. Both charts share the mode, and the rings stay
 under all of it.
 
+Lanes fade with how much freight is on them. Point at one — mouse or cursor —
+and the chart names both worlds, the convoys on it, their tonnage, their cargo
+and when the next load lands.
+
 ### Docking and the console
 
 Fly into the station's docking port with your wings matched to its rotation.

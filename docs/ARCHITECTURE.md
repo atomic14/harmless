@@ -14,7 +14,9 @@ this file is a map.
   `persistence.ts`; docking and launch transitions are in `station.ts`.
 - `src/engine/shell.ts` is the platform seam. `browser-shell.ts` owns browser and
   DOM access; `render-stack.ts` is the only GPU-dependent module. Controls read
-  an input interface rather than the browser.
+  an input interface rather than the browser. Two pointer seams cross it:
+  `onScreenClick` is input, `onScreenMove` is reporting only — a screen may
+  repaint what it is describing, never select or spend.
 - The HUD is a read-only painter: `hud-model.ts` computes its frame model and
   `hud.ts` renders it. Screens live behind `ui/screen-host.ts` and own their own
   rendering, input and local state.

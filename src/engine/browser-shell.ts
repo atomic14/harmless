@@ -39,6 +39,15 @@ export function browserShell(canvas: HTMLCanvasElement, scene: THREE.Scene): She
       });
     },
 
+    // The pointer's twin of the above, on the same persistent container. No
+    // `closest()` lookup: hover has no data-key or data-row meaning, and the
+    // only thing that answers it is a canvas, which is `e.target` already.
+    onScreenMove: (fn) => {
+      document.getElementById('screen')!.addEventListener('mousemove', (e) => {
+        fn(e.target, e);
+      });
+    },
+
     // was the requestAnimationFrame pair at the end of the constructor
     runLoop: (frame) => {
       const tick = (now: number): void => {

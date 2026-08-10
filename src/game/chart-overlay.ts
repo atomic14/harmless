@@ -43,6 +43,10 @@ export interface ChartOverlays {
   readonly danger: ReadonlySet<number>;
   readonly lanes: readonly TradeLane[];
   readonly prices: ReadonlyMap<number, PriceDrift>;
+  /** the lane being pointed at, by mouse or by cursor, and described in words */
+  readonly hovered: TradeLane | null;
+  /** the galaxy's day, so an arrival can be stated as "in N days" */
+  readonly day: number;
 }
 
 /**

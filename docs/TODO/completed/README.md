@@ -79,6 +79,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 113 — [What you cannot hand back, you are billed for](113-what-you-cannot-hand-back-you-are-billed-for.md) — closed GitHub #17
 - [x] 111 — [The chart shows the danger it already reports](111-the-chart-shows-the-danger-it-reports.md) — GitHub #10, first slice
 - [x] 114 — [The chart shows where the trade is](114-the-chart-shows-where-the-trade-is.md) — closed GitHub #10
+- [x] 115 — [Point at a lane and it tells you what it carries](115-point-at-a-lane-and-it-tells-you-what-it-carries.md) — hover and cursor detail, lanes faded by traffic
 
 <!-- append-completed-todos-here -->
 

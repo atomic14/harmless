@@ -250,6 +250,7 @@ export class Game {
       // the read-only accessor, never state(): see ChartContext.danger
       danger: (index) => this.state.living.danger(index),
       convoys: this.state.living.convoys,
+      day: this.state.living.day,
       overlay: this.chartOverlay,
       cycleOverlay: () => { this.chartOverlay = nextOverlay(this.chartOverlay); },
     };
@@ -559,6 +560,9 @@ export class Game {
     // all screens accept mouse input; the shell owns the listener and hands
     // back the element that carries data-key/data-row
     this.shell.onScreenClick((el, e) => this.handleScreenClick(el, e));
+    // Reporting only, and the Game forwards it without naming a DOM type, as
+    // it does clicks — see handleScreenClick.
+    this.shell.onScreenMove((el, e) => this.screens.hover(el, e));
 
     // Console and automated agents keep their convenient read handles without
     // making those aliases part of the orchestrator's class surface.

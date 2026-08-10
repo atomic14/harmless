@@ -15,6 +15,8 @@
 // `LivingGalaxy.state()`, which would insert.
 
 import { BUSY_LANE_CONVOYS } from '../constants/living-galaxy.ts';
+import { distanceSqToSegment } from './navigation.ts';
+import type { StarSystem } from './galaxy.ts';
 import type { Convoy } from './living.ts';
 
 /** One route with freight on it, both directions folded together. */
@@ -26,6 +28,14 @@ export interface TradeLane {
   convoys: number;
   /** how much they are carrying, in tonnes */
   tonnes: number;
+  /**
+   * What is on it: commodity indices, distinct, heaviest cargo first — so a
+   * detail line that runs out of room drops the shipment nobody would have
+   * asked about.
+   */
+  commodities: number[];
+  /** the day the next of them lands, for "next arrival in N days" */
+  soonestEta: number;
 }
 
 /**
@@ -45,6 +55,8 @@ export interface TradeLane {
  */
 export function busyLanes(convoys: readonly Convoy[]): TradeLane[] {
   const lanes = new Map<number, TradeLane>();
+  /** tonnage per commodity per lane, so the cargo list can be ranked */
+  const cargo = new Map<number, Map<number, number>>();
   for (const c of convoys) {
     if (!c.intact) continue;
     const a = Math.min(c.from, c.to);
@@ -52,12 +64,51 @@ export function busyLanes(convoys: readonly Convoy[]): TradeLane[] {
     // one key per unordered pair; 256 systems, so the high index is safe to
     // pack into the upper bits rather than build a string per convoy
     const key = a * 256 + b;
-    const lane = lanes.get(key) ?? { a, b, convoys: 0, tonnes: 0 };
+    const lane = lanes.get(key)
+      ?? { a, b, convoys: 0, tonnes: 0, commodities: [], soonestEta: c.etaDay };
     lane.convoys += 1;
     lane.tonnes += c.tonnes;
+    lane.soonestEta = Math.min(lane.soonestEta, c.etaDay);
     lanes.set(key, lane);
+    const byCommodity = cargo.get(key) ?? new Map<number, number>();
+    byCommodity.set(c.commodity, (byCommodity.get(c.commodity) ?? 0) + c.tonnes);
+    cargo.set(key, byCommodity);
+  }
+  for (const [key, lane] of lanes) {
+    lane.commodities = [...(cargo.get(key) ?? new Map<number, number>())]
+      .sort((x, y) => y[1] - x[1])
+      .map(([commodity]) => commodity);
   }
   return [...lanes.values()]
     .filter((lane) => lane.convoys >= BUSY_LANE_CONVOYS)
     .sort((x, y) => y.tonnes - x.tonnes);
+}
+
+/**
+ * The lane under a chart coordinate, or null — what turns pointing at a line
+ * into reading it.
+ *
+ * `within` is a tolerance in chart units, because a pixel is a different
+ * distance on each chart; the caller converts, as `clickAt`'s snap radius
+ * already does. Nearest wins, and a tie goes to the heavier lane: `lanes`
+ * arrives heaviest-first, and only a STRICTLY nearer lane displaces one, so
+ * where two cross at a point the eye was more likely aiming at the busier.
+ */
+export function nearestLane(
+  lanes: readonly TradeLane[],
+  systems: readonly StarSystem[],
+  x: number,
+  y: number,
+  within: number,
+): TradeLane | null {
+  let best: TradeLane | null = null;
+  let bestD = within * within;
+  for (const lane of lanes) {
+    const a = systems[lane.a];
+    const b = systems[lane.b];
+    if (!a || !b) continue;
+    const d = distanceSqToSegment(a, b, x, y);
+    if (d < bestD) { bestD = d; best = lane; }
+  }
+  return best;
 }

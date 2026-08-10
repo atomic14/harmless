@@ -27,6 +27,8 @@ import {
   overlayLegend, type ChartOverlay, type ChartOverlays,
 } from '../game/chart-overlay.ts';
 import type { PriceDrift } from '../galaxy/price-divergence.ts';
+import type { TradeLane } from '../galaxy/trade-lanes.ts';
+import { LANE_CARGO_NAMED, LANE_FADE_FLOOR } from '../constants/chart-overlay.ts';
 import {
   type CombatSimReport, type OpeningGeometry, type WaveEscalation,
 } from '../game/combat-sim-report.ts';
@@ -43,7 +45,9 @@ import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH } from '../constants/chart-metric
 // A hand-written row here would be a second home for a key, and `data-key`
 // becomes a keystroke, so it could advertise a key nothing was bound to.
 import { boundKey, dockedMenuHtml } from './key-help.ts';
-import { LOCAL_SCALE, LOCAL_CANVAS } from '../constants/chart-metric.ts';
+import {
+  LOCAL_SCALE, LOCAL_CANVAS, CHART_CANVAS_W, CHART_CANVAS_H,
+} from '../constants/chart-metric.ts';
 
 // Full-page overlay screens, rendered as DOM. The Game owns all input and
 // state; these are pure render functions.
@@ -624,6 +628,86 @@ export function nearestSystem(
 }
 
 /**
+ * The trade lanes, faded by how much freight is on them — on both charts.
+ *
+ * Alpha rather than a second green: the busiest lane in the galaxy and the
+ * quietest one drawn should not read alike, and a brightness ramp spelled in
+ * new hex would be four more colours for docs/TODO/93 to sweep. The floor
+ * keeps the quietest lane visible; without it the tail simply vanishes and the
+ * threshold might as well have dropped it.
+ *
+ * The pointed-at lane is drawn last at full strength, so the line you are
+ * reading about is the one that stands out.
+ */
+function drawLanes(
+  ctx: CanvasRenderingContext2D,
+  overlays: ChartOverlays,
+  systems: StarSystem[],
+  px: (s: { x: number; y: number }) => number,
+  py: (s: { x: number; y: number }) => number,
+): void {
+  if (!overlays.lanes.length) return;
+  // heaviest first out of busyLanes(), so the head is the scale
+  const heaviest = overlays.lanes[0].tonnes || 1;
+  const stroke = (lane: TradeLane, alpha: number): void => {
+    const a = systems[lane.a];
+    const b = systems[lane.b];
+    if (!a || !b) return;
+    ctx.globalAlpha = alpha;
+    ctx.beginPath();
+    ctx.moveTo(px(a), py(a));
+    ctx.lineTo(px(b), py(b));
+    ctx.stroke();
+  };
+
+  ctx.strokeStyle = '#2a7a33';
+  for (const lane of overlays.lanes) {
+    if (lane === overlays.hovered) continue;
+    stroke(lane, LANE_FADE_FLOOR + (1 - LANE_FADE_FLOOR) * (lane.tonnes / heaviest));
+  }
+  if (overlays.hovered) {
+    // the one being read about, in the brighter green the in-range systems use
+    ctx.strokeStyle = '#4dff5c';
+    stroke(overlays.hovered, 1);
+  }
+  // EVERY dot, ring, tick and crosshair after this shares the context
+  ctx.globalAlpha = 1;
+}
+
+/**
+ * What the lane under the pointer is carrying, in one line.
+ *
+ * Presentation, not a rule: `galaxy/trade-lanes.ts` decided which lane and
+ * what is on it, and this only spells it — which is why the commodity NAMES
+ * and the "in N days" arithmetic live here rather than in the model.
+ */
+function laneSummaryParts(lane: TradeLane, systems: StarSystem[], day: number): [string, string] {
+  const cargo = lane.commodities.slice(0, LANE_CARGO_NAMED)
+    .map((c) => COMMODITIES[c]?.name.toUpperCase()).filter(Boolean);
+  const more = lane.commodities.length - cargo.length;
+  const days = lane.soonestEta - day;
+  const arrival = days <= 0 ? 'ARRIVING NOW'
+    : days === 1 ? 'NEXT ARRIVAL TOMORROW'
+      : `NEXT ARRIVAL IN ${days} DAYS`;
+  // Literal · and ↔ rather than &middot;/&harr;: this reads as HTML on the
+  // galactic chart's keyline and is painted into the canvas on the short-range
+  // one, and only the characters themselves work in both.
+  return [
+    `${systems[lane.a]?.name.toUpperCase()} ↔ ${systems[lane.b]?.name.toUpperCase()}`
+      + ` · ${lane.convoys} CONVOYS · ${lane.tonnes}t`,
+    `${cargo.join(', ')}${more > 0 ? ` +${more}` : ''} · ${arrival}`,
+  ];
+}
+
+/**
+ * The whole line, for the galactic chart's keyline — which has the page's full
+ * width. The short-range chart paints the two halves on two lines instead: its
+ * canvas is 560px and the joined line runs off the end of it.
+ */
+const laneSummary = (lane: TradeLane, systems: StarSystem[], day: number): string =>
+  laneSummaryParts(lane, systems, day).join(' · ');
+
+/**
  * A tick above a system trading dear, below one trading cheap — on both charts.
  *
  * The tell is a SHAPE and a DIRECTION rather than a second colour scale: this
@@ -671,7 +755,7 @@ export function renderChart(
   show(`
     <h2>GALACTIC CHART ${c.galaxy}</h2>
     <div class="rule"></div>
-    <canvas id="chart-canvas" width="780" height="400"></canvas>
+    <canvas id="chart-canvas" width="${CHART_CANVAS_W}" height="${CHART_CANVAS_H}"></canvas>
     <div class="keyline" id="chart-info"></div>
     <div class="keyline">${chartKeyline(overlays.mode)}</div>
   `);
@@ -730,16 +814,7 @@ export function drawChart(
 
   // Trade lanes, UNDER the systems: freight passes beneath the worlds it
   // serves, and a line over a 2.5px dot would swallow it.
-  ctx.strokeStyle = '#2a7a33';
-  for (const lane of overlays.lanes) {
-    const a = systems[lane.a];
-    const b = systems[lane.b];
-    if (!a || !b) continue;
-    ctx.beginPath();
-    ctx.moveTo(px(a), py(a));
-    ctx.lineTo(px(b), py(b));
-    ctx.stroke();
-  }
+  drawLanes(ctx, overlays, systems, px, py);
 
   // Systems. Given size and light because 256 of them are the whole point of
   // this screen and 1.5px of dim green on near-black is close to invisible.
@@ -791,6 +866,12 @@ export function drawChart(
 
   const info = maybeById('chart-info');
   if (info) {
+    // A lane under the pointer takes the line: it is what you are pointing at,
+    // and the cursor's system comes back the moment you leave it.
+    if (overlays.hovered) {
+      info.innerHTML = laneSummary(overlays.hovered, systems, overlays.day);
+      return;
+    }
     const near = nearestSystem(systems, chart.cursorX, chart.cursorY);
     if (near) {
       const d = distanceTenths(current, near);
@@ -863,16 +944,7 @@ export function drawLocalChart(
   // Trade lanes, under the systems as on the galactic chart. Lanes run up to
   // 7 LY, so one end is often off this zoom — the line is simply clipped by the
   // canvas, which reads correctly as freight heading out of the neighbourhood.
-  ctx.strokeStyle = '#2a7a33';
-  for (const lane of overlays.lanes) {
-    const a = systems[lane.a];
-    const b = systems[lane.b];
-    if (!a || !b) continue;
-    ctx.beginPath();
-    ctx.moveTo(px(a), py(a));
-    ctx.lineTo(px(b), py(b));
-    ctx.stroke();
-  }
+  drawLanes(ctx, overlays, systems, px, py);
 
   ctx.font = '10px Menlo, Consolas, monospace';
   for (const s of systems) {
@@ -929,6 +1001,18 @@ export function drawLocalChart(
   ctx.moveTo(ux - 7, uy); ctx.lineTo(ux + 7, uy);
   ctx.moveTo(ux, uy - 7); ctx.lineTo(ux, uy + 7);
   ctx.stroke();
+
+  // The pointed-at lane is painted INTO the canvas, bottom-left, and not into
+  // any row of chrome. `#local-info` is a 440px column measured to fit all 256
+  // planet descriptions without scrolling (style.css) so it cannot grow a row,
+  // and a new keyline pushed this screen's own keys under the controls banner.
+  // The canvas has empty sky down there and costs no layout at all.
+  if (overlays.hovered) {
+    const [head, tail] = laneSummaryParts(overlays.hovered, systems, overlays.day);
+    ctx.fillStyle = '#ffb444';
+    ctx.fillText(head, 6, h - 20);
+    ctx.fillText(tail, 6, h - 8);
+  }
 
   // data on system (the nearest to the cursor)
   const info = maybeById('local-info');

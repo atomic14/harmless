@@ -104,6 +104,7 @@ console.log('\nopening a chart does not write to the galaxy');
       priceMultiplier: (index, commodity) => living.priceMultiplier(index, commodity),
       danger: (index) => living.danger(index),
       convoys: living.convoys,
+      day: living.day,
       overlay: 'none',
       cycleOverlay: () => {},
     };

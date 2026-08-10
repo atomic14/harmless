@@ -60,6 +60,13 @@ export interface Screen {
    * @returns true if consumed.
    */
   clickAt?(target: HTMLElement, e: MouseEvent): boolean;
+  /**
+   * The pointer moved over the screen. Reporting only: a screen may repaint
+   * what it is describing, but nothing may be selected or spent here — that is
+   * `clickAt`'s and `input`'s job, and a pointer crossing a chart on its way
+   * somewhere else must not change the game.
+   */
+  hoverAt?(target: HTMLElement, e: MouseEvent): void;
 }
 
 /**
@@ -243,5 +250,18 @@ export class ScreenHost {
     const screen = this.top?.screen;
     if (screen?.clickAt && e) return screen.clickAt(el, e);
     return false;
+  }
+
+  /**
+   * Route a pointer move to the top screen, if it wants one.
+   *
+   * Deliberately thin next to `click`: no `data-key`, no `select()`, no
+   * `Input`. A move is not a keystroke, and routing it through the same door
+   * would let a pointer crossing the screen press things.
+   */
+  hover(target: unknown, event?: unknown): void {
+    const screen = this.top?.screen;
+    if (!screen?.hoverAt || !event) return;
+    screen.hoverAt(target as HTMLElement, event as MouseEvent);
   }
 }

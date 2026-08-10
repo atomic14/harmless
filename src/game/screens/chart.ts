@@ -26,12 +26,14 @@ import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
 import { marketEstimate } from '../market.ts';
 import { dangerousSystems } from '../../galaxy/danger-overlay.ts';
-import { busyLanes } from '../../galaxy/trade-lanes.ts';
+import { busyLanes, nearestLane, type TradeLane } from '../../galaxy/trade-lanes.ts';
 import { divergentSystems } from '../../galaxy/price-divergence.ts';
 import type { Convoy } from '../../galaxy/living.ts';
 import type { ChartOverlay, ChartOverlays } from '../chart-overlay.ts';
 import { sfx } from '../../audio.ts';
-import { LOCAL_SCALE, CHART_SPAN_X } from '../../constants/chart-metric.ts';
+import {
+  LOCAL_SCALE, CHART_SPAN_X, CHART_CANVAS_W, LANE_PICK_PX,
+} from '../../constants/chart-metric.ts';
 
 export interface ChartContext {
   readonly commander: CommanderData;
@@ -52,6 +54,8 @@ export interface ChartContext {
   danger(systemIndex: number): number;
   /** convoys in flight, for the routes overlay — a read of a public array */
   readonly convoys: readonly Convoy[];
+  /** the galaxy's day, which turns a convoy's `etaDay` into "in 2 days" */
+  readonly day: number;
   /**
    * Which trade overlay is up, and the key that cycles it. Held by the Game
    * rather than by either screen, exactly as `viewData` holds the data
@@ -69,6 +73,15 @@ export class ChartScreen implements Screen {
   private readonly ctx: () => ChartContext;
   /** typed prefix while type-to-find is active, or null when it is not */
   private find: string | null = null;
+  /**
+   * Where the mouse last was, in chart coordinates, or null when it has not
+   * been over this canvas. Kept beside the cursor rather than moved INTO it:
+   * the cursor also chooses the hyperspace target, and a pointer crossing the
+   * chart on its way somewhere else must not retarget the ship.
+   */
+  private pointer: { x: number; y: number } | null = null;
+  /** the lane the last repaint described, so a move that changes nothing costs nothing */
+  private described: TradeLane | null = null;
   /** the market-estimate panel is up, and owns Escape */
   private estimate = false;
 
@@ -82,6 +95,9 @@ export class ChartScreen implements Screen {
     const { chart, system } = this.ctx();
     this.find = null;
     this.estimate = false;
+    // the mouse has not been over THIS canvas yet, whatever it did on the other
+    this.pointer = null;
+    this.described = null;
     chart.cursorX = system.x;
     chart.cursorY = system.y;
     this.render();
@@ -103,14 +119,48 @@ export class ChartScreen implements Screen {
    * they are a warning, not a view.
    */
   private overlays(): ChartOverlays {
-    const { systems, danger, convoys, priceMultiplier, overlay } = this.ctx();
+    const { systems, danger, convoys, priceMultiplier, overlay, day } = this.ctx();
+    const lanes = overlay === 'routes' ? busyLanes(convoys) : [];
+    // what this paint describes, remembered so a pointer move that changes
+    // nothing does not repaint
+    this.described = this.laneAtPointer(lanes);
     return {
       mode: overlay,
       danger: dangerousSystems(systems, danger),
-      lanes: overlay === 'routes' ? busyLanes(convoys) : [],
+      lanes,
       prices: overlay === 'prices'
         ? divergentSystems(systems, priceMultiplier) : new Map(),
+      hovered: this.described,
+      day,
     };
+  }
+
+  /**
+   * The lane being pointed at: under the mouse if it has moved over the chart,
+   * otherwise under the cursor the arrow keys drive.
+   *
+   * BOTH, because nothing else on these charts is mouse-only — a click and the
+   * arrows move the same cursor — and the detail should not be the first thing
+   * a keyboard cannot reach. The mouse wins while it is over the canvas,
+   * because a pointer is a deliberate act and the cursor may be parked.
+   */
+  private laneAtPointer(lanes: readonly TradeLane[]): TradeLane | null {
+    if (!lanes.length) return null;
+    const { systems, chart } = this.ctx();
+    const at = this.pointer ?? { x: chart.cursorX, y: chart.cursorY };
+    return nearestLane(lanes, systems, at.x, at.y, this.pickRadius());
+  }
+
+  /**
+   * How near counts as pointing at a lane, in chart units — `LANE_PICK_PX`
+   * pixels on whichever chart this is. The same conversion `clickAt` makes for
+   * its snap radius, and for the same reason: a pixel is ~13x more chart on
+   * the galactic chart than on the short-range one.
+   */
+  private pickRadius(): number {
+    return this.local
+      ? LANE_PICK_PX / LOCAL_SCALE
+      : LANE_PICK_PX / (CHART_CANVAS_W / CHART_SPAN_X);
   }
 
   /** Repaint the canvas only, keeping the surrounding chrome. */
@@ -191,6 +241,43 @@ export class ChartScreen implements Screen {
     }
     if (i.pressed('Escape')) return 'back';
     return 'stay';
+  }
+
+  /**
+   * The pointer moved. Report only — nothing here selects, targets or spends.
+   *
+   * Repaints only when the described lane CHANGES: `mousemove` fires on every
+   * pixel of travel, where this chart has never repainted more than once per
+   * cursor step.
+   */
+  hoverAt(target: HTMLElement, e: MouseEvent): void {
+    if (this.estimate || this.find !== null) return;
+    const was = this.described;
+    this.pointer = target instanceof HTMLCanvasElement
+      ? this.chartCoords(target, e)
+      // off the canvas — fall back to the cursor, so the line does not go
+      // stale describing a lane the pointer left
+      : null;
+    const now = this.laneAtPointer(this.routeLanes());
+    // BY ITS SYSTEMS, not by identity: `busyLanes` folds fresh objects out of
+    // the convoy list on every call, so two reads of the same lane are never
+    // the same object and an identity test would repaint on every pixel.
+    const same = was === now
+      || (!!was && !!now && was.a === now.a && was.b === now.b);
+    if (!same) this.redraw();
+  }
+
+  /** The lanes currently drawn, or none when the routes overlay is off. */
+  private routeLanes(): TradeLane[] {
+    const { overlay, convoys } = this.ctx();
+    return overlay === 'routes' ? busyLanes(convoys) : [];
+  }
+
+  /** Canvas pixels to chart coordinates, whichever chart this is. */
+  private chartCoords(canvas: HTMLCanvasElement, e: MouseEvent): { x: number; y: number } {
+    return this.local
+      ? localCoordsFromClick(canvas, e.clientX, e.clientY, this.ctx().system)
+      : chartCoordsFromClick(canvas, e.clientX, e.clientY);
   }
 
   clickAt(target: HTMLElement, e: MouseEvent): boolean {
