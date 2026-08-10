@@ -291,9 +291,9 @@ check('...but being hit outranks it, whatever it had planned',
 check('...and fleeing outranks even that',
   describeFlight('closing', UNDER_FIRE_SECONDS, true) === 'fleeing');
 
-// A brain-flown ship's tactic is DORMANT until it hands over at
-// BRAIN_HANDOVER_RANGE, so naming one would report a plan nothing is executing
-// — the same lie `flownBy` was added to stop.
+// A brain-flown ship never runs the attack-run machine — it flies its policy
+// the whole way in — so naming a tactic would report a plan nothing is
+// executing: the same lie `flownBy` was added to stop.
 check('...and a brain-flown ship names no tactic, because it is flying none',
   describeFlight('closing', 0, false, 'brain', 'knife') === 'own policy'
   && describeFlight('closing', 0.4, false, 'brain', 'knife') === 'evading');

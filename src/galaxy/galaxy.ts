@@ -46,7 +46,7 @@ function twist(s: Seed): void {
 }
 
 /** Seed for galaxy n (1-8): each galaxy is the previous with every byte rolled left. */
-export function galaxySeed(galaxy: number): Seed {
+function galaxySeed(galaxy: number): Seed {
   const roll = (w: number) => {
     const rollByte = (b: number) => ((b << 1) & 0xfe) | (b >> 7);
     return (rollByte(w >> 8) << 8) | rollByte(w & 0xff);

@@ -18,14 +18,12 @@ import {
   HARMLESS_OVERLAYS, shipDesign, shipDesignIdOf, type ShipDesignId,
 } from '../game/ship-identity.ts';
 import {
-  eliteAHull, ELITE_A_HULLS, sourceGeometryToWorld, type EliteAHull,
+  eliteAHull, ELITE_A_HULLS, type EliteAHull,
 } from './elite-a-hulls.ts';
 import {
   GENERATION_SHIP, GENERATION_SHIP_RADIUS, ROCK_HERMIT_RADIUS,
 } from './harmless-hulls.ts';
 import type { ShipDef } from './geometry.ts';
-
-export { sourceGeometryToWorld };
 
 /** What a design id resolves to: a hull to build, and how big it counts as. */
 export interface RegisteredHull {

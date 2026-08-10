@@ -13,11 +13,12 @@ active context:
 
 ## Execution queue
 
-Empty — 93 landed: the four colours have one home in `src/palette.ts`, every
-stylesheet imports a `palette.css` generated from it, and `npm run
-palette:check` fails on the fifteenth copy. The encyclopaedia keeps a second
-palette on purpose and now says so. `QUEUE.json` agrees. The backlog below is
-in priority order; promoting its head is what makes the next execution item.
+Empty — 119 landed (GitHub #7): `BRAIN_HANDOVER_RANGE` and the three comments
+that still described a handover no shipped pilot makes are gone, along with two
+dead functions, two dead re-exports and eleven exports narrowed to their file.
+The 128 unused exports were mostly types, and the types were all in use.
+`QUEUE.json` agrees. The backlog below is in priority order; promoting its head
+is what makes the next execution item.
 
 ## Backlog
 

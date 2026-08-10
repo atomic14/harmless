@@ -85,6 +85,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 115 — [Point at a lane and it tells you what it carries](115-point-at-a-lane-and-it-tells-you-what-it-carries.md) — hover and cursor detail, lanes faded by traffic
 - [x] 116 — [A loaded save jumps on its own](116-a-loaded-save-jumps-on-its-own.md) — restore puts the hyperspace countdown back at rest, and the in-flight ring will not write one down
 - [x] 117 — [The galaxy was trading before you arrived](117-the-galaxy-was-trading-before-you-arrived.md) — a new career inherits 30 days of trade, and a galactic jump arrives in a galaxy of its own
+- [x] 119 — [A constant that names nothing, and the exports around it](119-a-constant-that-names-nothing.md) — `BRAIN_HANDOVER_RANGE` and the prose asserting a handover no pilot makes; two dead functions, two dead re-exports, eleven narrowed visibilities
 
 <!-- append-completed-todos-here -->
 

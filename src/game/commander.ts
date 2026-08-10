@@ -237,7 +237,7 @@ export function cargoTonnes(c: CommanderData): number {
 }
 
 /** Hold given over to berths by these contracts. */
-export function berthTonnes(contracts: Contract[]): number {
+function berthTonnes(contracts: Contract[]): number {
   return contracts.reduce(
     (sum, k) => sum + (k.kind === 'passenger' ? k.qty * PASSENGER_BERTH_TONNES : 0), 0);
 }

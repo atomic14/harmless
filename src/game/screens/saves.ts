@@ -75,7 +75,7 @@ function systemNamer(ctx: SavesContext): (galaxy: number, index: number) => stri
 }
 
 /** Every save on the shelf, as rows: named saves first, then autosaves. */
-export function saveRows(ctx: SavesContext): SaveSummary[] {
+function saveRows(ctx: SavesContext): SaveSummary[] {
   const name = systemNamer(ctx);
   const now = Date.now();
   const rows = listSaves()
@@ -106,7 +106,7 @@ export function checkpointSummary(ctx: SavesContext): SaveSummary | null {
  * Read out of state rather than filed as a checkpoint on open: costs nothing and
  * cannot lose anything (docs/TODO/55).
  */
-export function liveRun(ctx: SavesContext): LiveRun {
+function liveRun(ctx: SavesContext): LiveRun {
   const c = ctx.commander;
   return {
     career: ctx.career,

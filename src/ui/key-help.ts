@@ -72,7 +72,7 @@ export interface HelpRow {
  * ESC and Q both cancel a new commander, and printing that as two rows saying
  * the same thing reads like two different things.
  */
-export function helpRows(bindings: readonly Binding[]): HelpRow[] {
+function helpRows(bindings: readonly Binding[]): HelpRow[] {
   const rows: HelpRow[] = [];
   const byCommand = new Map<string, HelpRow>();
   for (const b of bindings) {

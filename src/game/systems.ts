@@ -100,7 +100,7 @@ export function spendLaserEnergy(sys: ShipSystems): void {
  * Elite-A catalogue, and `src/constants/` may not import anything. It stays
  * where both halves are in scope — see docs/TODO/completed/90-constants-cleanup.md.
  */
-export const ANCHOR_RECHARGE_RATING =
+const ANCHOR_RECHARGE_RATING =
   playerHull(COBRA_MK_3_HULL_ID).energyRechargeRating;
 
 export function freshSystems(): ShipSystems {

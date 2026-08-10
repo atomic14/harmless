@@ -150,8 +150,8 @@ export function nextAttackPhase(
  * `evading` outranks the phase because it is the answer to "why has it stopped
  * flying the run". `fleeing` and `own policy` carry NO tactic: a trader running
  * for the system edge is not flying an attack run at all, and a brain-flown
- * ship's tactic is dormant until it hands over at `BRAIN_HANDOVER_RANGE`. The
- * pursuit dogfighter is a third case with no tactic and no phase — `on your
+ * ship never runs one — it flies its policy the whole way in, so its tactic is
+ * a plan it is not executing. The pursuit dogfighter is a third case with no tactic and no phase — `on your
  * six` while it chases, `breaking off` while it veers clear of a ram — because
  * it never runs the attack-run machine those words describe.
  */

@@ -1,20 +1,19 @@
 // The attack run, as ranges: how close a hostile gets before it turns away,
-// how far it runs out, how slowly it flies to turn, and where a trained pilot
-// hands over to the script. The phase machine that spends these is
-// `game/break-off.ts`.
+// how far it runs out, and how slowly it flies to turn. The phase machine that
+// spends these is `game/break-off.ts`.
+//
+// There is no brain-handover range here any more. `BRAIN_HANDOVER_RANGE` (150)
+// was the distance at which a trained pirate stopped flying its policy and gave
+// the ship to the scripted run; its only reader was `pirateBrainFor`, which
+// went with the trained pirate policies on 2026-08-05, and no shipped pilot has
+// handed over since. It named a rule nothing executed, so docs/TODO/119 deleted
+// it rather than leave the catalogue asserting a handover the game never makes.
 
 /**
  * A ship this close to what it is fighting stops closing and turns away.
  * A STEERING rule only — it keeps shooting.
  */
 export const BREAK_OFF_RANGE = 220;
-
-/**
- * Range at which a trained pilot stops flying its own policy and hands the ship
- * over to the scripted break-off — the policies were fitted without collisions
- * and otherwise close to zero range and ram.
- */
-export const BRAIN_HANDOVER_RANGE = 150;
 
 /**
  * The band a ship's own turn-back range is rolled from, each time it extends.

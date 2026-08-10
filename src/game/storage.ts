@@ -341,7 +341,7 @@ export function setBootId(id: string): boolean {
   return writeItem(BOOT_KEY(), id);
 }
 
-export function clearBootId(): void {
+function clearBootId(): void {
   dropItem(BOOT_KEY());
 }
 

@@ -19,7 +19,7 @@ import { MAX_FUEL, MAX_MISSILES } from '../../constants/commander.ts';
 import { fuelQuote } from '../shop.ts';
 import { BEAM_LASER_PRICE, PULSE_LASER_PRICE } from '../../constants/shop.ts';
 import { renderMarket, renderEquip, equipRows } from '../../ui/screens.ts';
-import { COMMODITIES, type MarketEntry, type StarSystem } from '../../galaxy/galaxy.ts';
+import { type MarketEntry, type StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import { sfx } from '../../audio.ts';
@@ -283,6 +283,3 @@ export function buyEquipment(id: string, ctx: TradeContext): void {
   ctx.checkpoint();
   sfx.equipmentBought();
 }
-
-/** Re-exported so game.ts's jettison path keeps its commodity table. */
-export { COMMODITIES };

@@ -30,7 +30,7 @@ export function assert(condition, message) {
 export const LASER_TYPES = ['pulse', 'beam', 'military', 'mining'];
 
 /** Vertex/edge face slots use 4 bits, so 15 means "no face" — never an index. */
-export const NO_FACE = 15;
+const NO_FACE = 15;
 
 /** `{ blueprintSet, designId }` is the exact-variant identity, as one string. */
 export const variantId = (set, designId) => `${set}:${designId}`;

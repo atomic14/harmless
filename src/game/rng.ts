@@ -95,16 +95,6 @@ export function randomInt(n: number): number {
   return Math.floor(random() * n);
 }
 
-/** True with probability `p`. */
-export function chance(p: number): boolean {
-  return random() < p;
-}
-
-/** One of `items`, uniformly. */
-export function pick<T>(items: readonly T[]): T {
-  return items[randomInt(items.length)];
-}
-
 /**
  * A unit vector pointing anywhere, written into `out`.
  *

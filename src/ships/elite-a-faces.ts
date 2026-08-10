@@ -33,9 +33,9 @@ import { ELITE_A_NO_FACE } from '../game/elite-a/catalogue.ts';
 import type { EliteAGeometry } from '../game/elite-a/types.ts';
 
 /** Column strides in the generated flat arrays — the columns are in types.ts. */
-export const VERTEX_STRIDE = 8;
-export const EDGE_STRIDE = 5;
-export const FACE_STRIDE = 4;
+const VERTEX_STRIDE = 8;
+const EDGE_STRIDE = 5;
+const FACE_STRIDE = 4;
 
 export interface SourceVertex {
   readonly x: number; readonly y: number; readonly z: number;
