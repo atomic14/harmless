@@ -192,33 +192,88 @@ M2's curve: nearly nothing, which is the correct answer for lawful play but
 means **the trader cohort cannot measure this change**. M4 needs the privateer
 and hunter cohorts, and probably a deliberately dirty row.
 
-**M2** — in `test/economy.test.ts`, in the measured shape the file already uses:
+**M2 — done.** In `test/economy.test.ts`, in the measured shape the file
+already uses:
 
-1. **The zero pin.** For a spread of marks, `pirateThreat` with `disrepute: 0`
-   is deep-equal to the pre-change function on the same seed. This is the
-   promise that lawful play did not move.
-2. **`DISREPUTE_FULL` bisected** out of the real function, and asserted to be
-   exactly the score at which `characterName` starts saying Notorious — the
-   same cross-check `FAME_FULL` gets against `rating()`.
-3. **`DISREPUTE_HEAT` and `DISREPUTE_DRAW`** each solved out of `appeal` and out
-   of the challenge roll's flip point, compared to the constants.
-4. **Both directions, as behaviour:** a Dodgy pilot with a given hold draws a
-   higher tier than an Honest one with the same hold; and across 200 seeded
-   rolls a Cutthroat sees a measurable share of `passed` receptions while an
-   Honest pilot sees none.
+1. **The zero pin, as four golden rows.** `pirateThreat` at `disrepute: 0` on a
+   fixed seed, computed from the code as it stood at the M1 commit and pinned.
+   Making the courtesy roll unconditional — one extra draw off the stream —
+   fails all four, which is exactly the failure the pin exists for.
+2. **`DISREPUTE_FULL` bisected** out of `appeal` and asserted to be the score at
+   which `characterName` starts saying Notorious (80) — the cross-check
+   `FAME_FULL` gets against `rating()`.
+3. **`DISREPUTE_HEAT` measured as what it means:** the regional heat that makes
+   a spotless commander exactly as attractive as a fully notorious one. Nothing
+   in the test knows the appeal formula's weights. **`DISREPUTE_DRAW`** out of
+   the challenge roll, **`COURTESY_RATE`** out of a scripted stream (a constant
+   rng answers both rolls with the same number and never reaches the second).
+4. **Both directions, as behaviour:** a Dodgy pilot never draws a softer
+   reception than an Honest one and draws a harder one on 7 of 41 sampled
+   holds; a Cutthroat is waved off 49 times in 400 seeded receptions and an
+   Honest commander never.
 
-**M3** — `test/economy.test.ts`: `hermitRefuses` flips exactly at the Dodgy
-rung, read off `CHARACTER`; a favoured pilot's ore is cheaper and their supplies
-dearer than an Honest pilot's, and both are today's numbers at disrepute 0.
-Prove the gate can fail by moving the threshold a point. Then the world half,
-which no unit test reaches: a `test/playtest.js` run that flies to a hermit at
-disrepute 0 (trade opens), and at 40 (hail refuses, no screen pushed, and the
-message does not repeat while parked).
+**M3 — done.** `test/economy.test.ts` bisects the door out of `hermitRefuses`
+(25, the ladder's Dodgy rung), solves `HERMIT_FAVOUR` out of a real quote
+(0.1993 off the ore, 0.2003 onto the supplies), walks the ramp point by point,
+and holds a spotless commander's prices to today's. Moving the threshold a point
+fails the bisect.
 
-**M4** — `npm run campaign` against `campaign-baseline.txt`, reporting mean and
-max disrepute per row alongside the existing tier mix, gang rate and mean
-appeal. What must be true: lawful rows are **identical** to the baseline (the
-zero pin, end to end), and smuggling rows show a higher tier mix and a
-non-trivial `passed` share. Then `npm run check`, and a browser trial recorded
-in `docs/BROWSER-TRIALS.md` in that file's shape: meet a Dodgy commander's
-reception, get refused at a rock, and see the courtesy line fire at least once.
+The world half went to a new `test/hermit-door.test.ts` rather than
+`test/playtest.js`: a real `WorldStep`, a real hermit in the sky and a hundred
+frames parked alongside it, which reaches everything the browser run would have
+except the feel. An honest pilot gets the market; a hermit-killer gets no market
+at all, is told why exactly once, and the approach hail stops with it. Deleting
+the `hermitCooldown` line fails it three ways (100 refusals, 100 hails, no
+cooldown).
+
+**M4 — the campaign is read; the flight is not.**
+
+`npm run campaign -- 200 60 all`, against the same command at the M1 commit
+(both in `scratchpad/`, run from a worktree so the comparison is the same
+harness):
+
+| cohort | mean disrepute | appeal | opportunist/professional/gang | organised/career | deaths |
+|---|---|---|---|---|---|
+| **hunter** (M1) | 0.0 | 0.00 | 100 / 0 / 0 | 0.1 | 3.6 |
+| **hunter** (now) | 0.0 | 0.00 | 100 / 0 / 0 | 0.1 | 3.6 |
+| **trader** (M1) | 6.9 | 0.30 | 55 / 29 / 16 | 3.1 | 1.0 |
+| **trader** (now) | 6.9 | 0.31 | 51 / 30 / 18 | 3.5 | 1.0 |
+| **privateer** (M1) | 18.8 | 0.24 | 65 / 23 / 12 | 2.2 | 0.7 |
+| **privateer** (now) | 19.2 | 0.29 | 55 / 26 / 19 | 4.5 | 0.9 |
+
+What it says:
+
+- **The zero pin holds end to end.** The bounty hunter flies clean, earns no
+  disrepute at all, and every line of its 200-commander row is identical to the
+  baseline — net worth to the tenth of a credit, deaths, tier mix, the lot.
+  Lawful play did not move, in the live harness and not only in a unit test.
+- **The cost scales with the name.** A trader at a mean of 6.9 barely notices
+  (appeal +0.01, gangs 16→18%). A privateer at 19.2, whose median career peak is
+  40 — Dodgy — meets visibly worse: appeal +0.05, gangs 12→19%, organised packs
+  doubled from 2.2 to 4.5 a career, 53t of cargo lost against 48t, and about 3%
+  off the median net worth. That is the intended shape: a dirty name is a real
+  and survivable cost, paid by the commander who chose it.
+- **Some of that delta is a re-rolled seed.** Any commander with a name takes an
+  extra draw off the world stream, so the privateer's numbers are not a
+  controlled A/B. The direction is unambiguous and the size is about what the
+  arithmetic predicts (infamy 0.24 → appeal +0.047 against +0.05 measured), but
+  do not read the third significant figure.
+- **One pre-existing failure, untouched.** `most commanders have docked where
+  the military laser is sold by then — 90/199` fails in the hunter cohort at 200
+  commanders, and fails identically at the M1 commit and at 40 commanders it
+  does not run. It is nothing to do with 96.
+
+`npm run check` is green: 3,617 tests, no lint errors, no constants warnings
+(`HERMIT_FAVOUR` and `HUNTER_CHANCE_LAUNCH` both took `@rule` ids for the 0.2
+they share; the four unrelated `0.5`s that `DISREPUTE_HEAT` and
+`SALE_NOTORIETY_MAX` collide with are docs/TODO/118's policy question and are
+left warning-free only because the diff-scoped checker no longer looks at them).
+
+**What is left: the flight.** The plan said a human should meet a Dodgy pilot's
+pirates before anyone tunes a constant on the strength of a table, and that is
+still true and still outstanding. The three numbers most likely to want a second
+pass after it are `DISREPUTE_HEAT` (0.5 — is a Dodgy reception too hard?),
+`COURTESY_RATE` (0.15 — does being waved off read as a mechanic or as a bug?)
+and `HERMIT_FAVOUR` (0.2 — is the discount worth the detour?). A trial goes in
+`docs/BROWSER-TRIALS.md` in that file's shape: a Dodgy commander's reception,
+a refusal at a rock, and the courtesy line firing at least once.
