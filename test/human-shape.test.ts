@@ -222,8 +222,8 @@ export function flyShapeEpisode(
       theirAim: aimAngle(npc.object.position, npc.object.quaternion, player.position),
       yourAim: aimAngle(player.position, player.quaternion, npc.object.position),
       doing: describeFlight(
-        npc.state.attackPhase, npc.state.underFire, npc.state.fleeing,
-        npc.state.flownBy, npc.state.tactic, npc.breakingOff),
+        npc.state.flownBy, npc.state.attackPhase, npc.state.underFire,
+        npc.state.tactic, npc.breakingOff),
     }],
   });
   for (let i = 0; i < Math.round(EPISODE_SECONDS / FIXED_DT); i++) {

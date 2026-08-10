@@ -96,8 +96,8 @@ console.log('\npursuit');
   const at = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
   const station = new THREE.Object3D();
   const doing = (n: NpcShip): string => describeFlight(
-    n.state.attackPhase, n.state.underFire, n.state.fleeing,
-    n.state.flownBy, n.state.tactic, n.breakingOff);
+    n.state.flownBy, n.state.attackPhase, n.state.underFire,
+    n.state.tactic, n.breakingOff);
 
   /** Fly a pirate at a player flying forward for `secs`, under one brain choice. */
   const flyAtPlayer = (brains: object, secs: number) => {
@@ -160,8 +160,8 @@ console.log('\npursuit');
   const at = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
   const station = new THREE.Object3D();
   const doing = (n: NpcShip): string => describeFlight(
-    n.state.attackPhase, n.state.underFire, n.state.fleeing,
-    n.state.flownBy, n.state.tactic, n.breakingOff);
+    n.state.flownBy, n.state.attackPhase, n.state.underFire,
+    n.state.tactic, n.breakingOff);
 
   seedWorld(20_260_806);
   const npc = new NpcShip('pirate', at(0, 0, 3000), 3);

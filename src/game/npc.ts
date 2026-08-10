@@ -126,14 +126,22 @@ export interface NpcState {
   attackPhase: AttackPhase;
   /**
    * Which flight actually moved this ship last step — a trained policy, the
-   * scripted attack run, or the pursuit dogfighter.
+   * scripted attack run, the pursuit dogfighter, the run for the horizon, or
+   * `none` for a ship that flew none of them.
    *
    * Reported, never read by a rule. `attackPhase` is only touched inside
    * `attack()`, so a brain-flown or pursuit pirate leaves it stale; a field
    * that says which flight ran is the honest version of the readout, and it
    * costs nothing to snapshot because NpcState is walked generically.
+   *
+   * IT IS RE-DECIDED EVERY STEP (`update()` clears it, each flight stamps it),
+   * because the version that was only ever written by the three combat flights
+   * still lied twice: a trader ambling its lane and a pirate outside interest
+   * range both kept whichever word ran last — or, having never flown at all,
+   * the constructor's — and the readout quoted `attackPhase` off the back of
+   * it. See docs/TODO/88.
    */
-  flownBy: 'brain' | 'scripted' | 'pursuit';
+  flownBy: 'brain' | 'scripted' | 'pursuit' | 'fleeing' | 'none';
   /** seconds of evasive flying left after the last hit taken — see break-off.ts */
   underFire: number;
   /**
@@ -538,7 +546,7 @@ export class NpcShip {
       tumbleAxis: randomDirection(new THREE.Vector3()),
       energy: this.maxEnergy, regenCarry: 0,
       alive: true, provoked: false, provokedByPlayer: false, missiles: 0,
-      isMissionTarget: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'scripted',
+      isMissionTarget: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
       extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
       tactic: 'run', tacticClock: 0, dryFor: 0,
       inert: false, tradeTimer: 0,
@@ -646,6 +654,12 @@ export class NpcShip {
     // doing, and the roles that return early below are exactly the ones every
     // clock in here gives a rate of 0 to anyway. See `tickClocks`.
     this.tickClocks(dt);
+    // ...and this step owes an answer for who flies. Cleared here rather than
+    // set in every branch, so a flight that is added later and forgets to stamp
+    // reports flying nothing — which is a visible gap — instead of inheriting
+    // the last word a real flight left behind, which is invisible and is the
+    // defect docs/TODO/88 is about.
+    this.state.flownBy = 'none';
 
     const { station, fleet, playerLegal, brains } = view;
 
@@ -745,6 +759,11 @@ export class NpcShip {
             });
         }
       }
+      // The only flight that is actually RUNNING AWAY, and the only one the
+      // readout may call `fleeing`. Everything above this line in the branch
+      // turned and fought, and reporting the branch rather than the flight is
+      // what made an armed trader mid-duel read as a ship on the run.
+      this.state.flownBy = 'fleeing';
       this.steerToward(
         this.tmpDir.copy(this.object.position).multiplyScalar(2).sub(this.state.fleeFrom), dt);
       this.state.speed = approach(this.state.speed, this.maxSpeed, 150 * dt);

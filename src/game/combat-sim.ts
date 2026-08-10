@@ -824,8 +824,8 @@ export class CombatSim {
         speed: o.ship.state.speed,
         theirAim: aimAngle(at, o.ship.object.quaternion, player.position),
         doing: describeFlight(
-          o.ship.state.attackPhase, o.ship.state.underFire, o.ship.state.fleeing,
-          o.ship.state.flownBy, o.ship.state.tactic, o.ship.breakingOff),
+          o.ship.state.flownBy, o.ship.state.attackPhase, o.ship.state.underFire,
+          o.ship.state.tactic, o.ship.breakingOff),
         yourAim: aimAngle(player.position, player.quaternion, at),
       });
     }

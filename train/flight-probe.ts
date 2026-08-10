@@ -199,8 +199,8 @@ export function probeEpisode(
       speed: p.speed,
       theirAim: aimAngle(p.pos, p.quat, target.pos),
       doing: describeFlight(
-        p.npc.state.attackPhase, p.npc.state.underFire, p.npc.state.fleeing,
-        p.npc.state.flownBy, p.npc.state.tactic),
+        p.npc.state.flownBy, p.npc.state.attackPhase, p.npc.state.underFire,
+        p.npc.state.tactic),
       yourAim: aimAngle(target.pos, target.quat, p.pos),
     }] : [])),
   });

@@ -49,7 +49,7 @@ const level = new THREE.Quaternion();
 const LAST = Math.round(UNDER_FIRE_SECONDS * 60);
 
 const flown = (n: NpcShip): string => describeFlight(
-  n.state.attackPhase, n.state.underFire, n.state.fleeing, n.state.flownBy, n.state.tactic);
+  n.state.flownBy, n.state.attackPhase, n.state.underFire, n.state.tactic);
 
 // A live `WorldView`, for the assertions that go through `update()` rather than
 // driving a flight directly. `playerLegal: 2` — a fugitive — is what makes a

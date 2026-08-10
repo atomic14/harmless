@@ -13,16 +13,17 @@ active context:
 
 ## Execution queue
 
-Empty — 119 landed (GitHub #7): `BRAIN_HANDOVER_RANGE` and the three comments
-that still described a handover no shipped pilot makes are gone, along with two
-dead functions, two dead re-exports and eleven exports narrowed to their file.
-The 128 unused exports were mostly types, and the types were all in use.
-`QUEUE.json` agrees. The backlog below is in priority order; promoting its head
-is what makes the next execution item.
+Empty — 88 landed: `NpcState.flownBy` is now cleared at the top of every
+`update()` and stamped by whichever flight actually moves the ship, so the
+readout names the flight rather than the branch. An armed trader fighting from
+inside the `fleeing` branch reads its attack run, `fleeing` belongs to the
+unarmed one running from it, and a ship flying no combat flight reads
+`not fighting` instead of the `closing` its constructor set. `QUEUE.json`
+agrees. The backlog below is in priority order; promoting its head is what makes
+the next execution item.
 
 ## Backlog
 
-- [ ] 88 — [The flight readout still quotes two stale words](88-the-readout-still-quotes-two-stale-words.md)
 - [ ] 96 — [The character label drives nothing in the world yet](96-the-character-label-drives-nothing-yet.md)
       — deferred by Chris 2026-08-09 ("drop for now"); phase 1 shipped, the
       label stays cosmetic until this is picked back up

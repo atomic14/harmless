@@ -1,5 +1,7 @@
 # 88 — The flight readout still quotes two stale words
 
+> Completed plan. Archived from the active queue.
+
 **Kind:** UI/UX · **Severity:** low · **Size:** small
 **Depends on:** none · found while doing 77, and the same defect as 77
 
@@ -54,20 +56,40 @@ this case because such a ship is nominally scripted; it simply is not flying.
   field — three places a human reads to understand a fight, which is precisely
   why 77 mattered.
 
-## What to work out
+## Decisions already made
 
-- **The armed trader needs a word that is true.** It is fighting, with a trained
-  policy, and `own policy` is the honest answer the function already has: reorder
-  so the brain check comes before the fleeing check, or gate the fleeing branch
-  on whether a defence brain actually took the wheel. The second is more
-  faithful — an UNARMED trader in the same branch really is running.
-- **A ship flying nothing needs a word too**, and the honest one is not a phase.
-  Whatever is chosen, the point is that `attackPhase`'s initial value must stop
-  being reported as though the machine had produced it.
-- **Consider whether `attackPhase` should have a null-ish initial state** rather
-  than `'closing'`, so "has not run" is representable. That is the root of the
-  second half and it touches the snapshot, so weigh it against just fixing the
-  readout.
+Both halves have ONE root: `flownBy` is documented as "which flight actually
+moved this ship last step" and only three code paths ever write it, so the two
+paths that fly a ship without fighting — the runaway steer in the `fleeing`
+branch and the trader/amble branches — leave whatever word ran last standing,
+and a ship that has never flown at all reads the constructor's `'scripted'`.
+`attackPhase`'s `'closing'` is then quoted as though the machine had produced it.
+So the fix is to make the existing field tell the truth rather than to add a
+fourth one.
+
+- **`flownBy` gains `'fleeing'` and `'none'`, and `update()` resets it to
+  `'none'` each step.** Every flight stamps its own name after that, so a branch
+  that flies nothing cannot inherit a word. Reset-then-stamp rather than
+  stamping every branch: a branch added later that forgets to stamp under-claims
+  (`not fighting`) instead of quoting a stale word, which is the failure mode
+  this item is about. The constructor's initial value becomes `'none'`.
+- **The armed trader gets the word for the flight it is actually flying.** In a
+  shipped build that is the scripted attack run (`defenceBrainNameFor` returns
+  `attack-run`), so it reads `run closing` / `slash evading` like any other ship
+  flying the run, and `own policy` if a defence candidate ever takes the wheel.
+  `fleeing` is left to the ship that really is running: the unarmed trader down
+  the steer-away path, which is the only path that now stamps it.
+- **A ship flying nothing reads `not fighting`.** Two words, like `own policy`
+  and `on your six`, and unmistakably not a phase. It is true of every ship that
+  reaches it — an ambling pirate, a trader working its lane, an inert Thargon.
+- **`attackPhase` keeps `'closing'` as its initial value.** Making it null-ish
+  would ripple through `nextAttackPhase`, `attack-run.ts` and the snapshot to fix
+  a readout that `flownBy` already answers first. `describeFlight` simply stops
+  reaching the phase for a ship that never ran the machine.
+- **`describeFlight` stops taking `fleeing`** and takes `flownBy` first. The
+  boolean would be a fourth input nothing reads — the same defect one argument
+  slot further along. `state.fleeing` itself is untouched: it still drives the
+  branch.
 
 ## Watch out for
 
@@ -79,10 +101,27 @@ this case because such a ship is nominally scripted; it simply is not flying.
 
 ## Acceptance
 
-- An armed trader flying the defence brain does not report `fleeing`, asserted
-  through the real `update()`.
+- An armed trader fighting back does not report `fleeing`, asserted through the
+  real `update()`; the unarmed one in the same branch still does.
 - A ship that has never run the phase machine does not report a phase.
 - Both assertions fail if the corresponding branch is reverted.
+
+## Verification
+
+Tier: a new test file, because both claims are about what the LIVE sky reports
+and `break-off.test.ts` only calls the pure function (and is 317 lines against a
+400 ceiling).
+
+- `test/flight-readout.test.ts` — three ships through `NpcShip.update()` with
+  `SHIPPED_BRAINS`: an armed trader that has been hit, an unarmed trader that has
+  been hit, and a pirate parked outside `PLAYER_INTEREST_RANGE`. Assert the
+  phrase each reports, and that the first two differ.
+- `test/break-off.test.ts` — the pure-function baselines re-cut for the new
+  signature, including `none` → `not fighting` and `fleeing` coming from
+  `flownBy`.
+- Prove both gates can fail: restore `if (fleeing) return 'fleeing'` at the top,
+  and drop the per-step reset in `update()`, one at a time.
+- `npm run check` at the end.
 
 ## Verify
 

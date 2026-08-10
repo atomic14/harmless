@@ -277,26 +277,30 @@ check('a ship with a short roll turns back early',
 // phrase, so a ship that changed its mind mid-fight shows up as two runs of
 // time rather than as one label that only says what it is doing now.
 check('a ship flying its run reports the tactic and the phase it is in',
-  describeFlight('closing', 0, false, 'scripted', 'run') === 'run closing'
-  && describeFlight('passing', 0, false, 'scripted', 'slash') === 'slash passing'
-  && describeFlight('extending', 0, false, 'scripted', 'knife') === 'knife extending');
+  describeFlight('scripted', 'closing', 0, 'run') === 'run closing'
+  && describeFlight('scripted', 'passing', 0, 'slash') === 'slash passing'
+  && describeFlight('scripted', 'extending', 0, 'knife') === 'knife extending');
 
 // Being shot at outranks the phase, because it is the answer to "why has it
 // stopped flying the run" — which is the interesting thing to see in a log. The
 // tactic stays in front of it: it is what the ship goes back to.
 check('...but being hit outranks it, whatever it had planned',
-  describeFlight('extending', UNDER_FIRE_SECONDS, false, 'scripted', 'run') === 'run evading'
-  && describeFlight('closing', 0.1, false, 'scripted', 'ram') === 'ram evading');
+  describeFlight('scripted', 'extending', UNDER_FIRE_SECONDS, 'run') === 'run evading'
+  && describeFlight('scripted', 'closing', 0.1, 'ram') === 'ram evading');
 
-check('...and fleeing outranks even that',
-  describeFlight('closing', UNDER_FIRE_SECONDS, true) === 'fleeing');
+// Since docs/TODO/88 the word comes from the FLIGHT that ran, not from
+// `state.fleeing`: an armed trader fights from inside the fleeing branch, so the
+// branch is not evidence that a ship is running. `update()` stamps `fleeing`
+// only on the steer-away that really is.
+check('...and the run for the horizon outranks even that',
+  describeFlight('fleeing', 'closing', UNDER_FIRE_SECONDS, 'knife') === 'fleeing');
 
 // A brain-flown ship never runs the attack-run machine — it flies its policy
 // the whole way in — so naming a tactic would report a plan nothing is
 // executing: the same lie `flownBy` was added to stop.
 check('...and a brain-flown ship names no tactic, because it is flying none',
-  describeFlight('closing', 0, false, 'brain', 'knife') === 'own policy'
-  && describeFlight('closing', 0.4, false, 'brain', 'knife') === 'evading');
+  describeFlight('brain', 'closing', 0, 'knife') === 'own policy'
+  && describeFlight('brain', 'closing', 0.4, 'knife') === 'evading');
 
 // The pursuit dogfighter has no phase and no tactic either — it holds the six
 // or veers off a ram — so it reports its OWN two states off `breakingOff`,
@@ -304,9 +308,17 @@ check('...and a brain-flown ship names no tactic, because it is flying none',
 // "KNIFE CLOSING" for a ship holding station on the six). And NOT `evading`:
 // unlike the attack run, a pursuit pirate under fire keeps chasing.
 check('...and the pursuit pilot names the six or the break-off, not a phase',
-  describeFlight('closing', 0, false, 'pursuit', 'knife') === 'on your six'
-  && describeFlight('extending', 0, false, 'pursuit', 'run', true) === 'breaking off'
-  && describeFlight('passing', UNDER_FIRE_SECONDS, false, 'pursuit', 'ram') === 'on your six');
+  describeFlight('pursuit', 'closing', 0, 'knife') === 'on your six'
+  && describeFlight('pursuit', 'extending', 0, 'run', true) === 'breaking off'
+  && describeFlight('pursuit', 'passing', UNDER_FIRE_SECONDS, 'ram') === 'on your six');
+
+// A ship that flew NOTHING is the case that had no word at all, so it borrowed
+// the constructor's `closing` and read `slash closing` while ambling between
+// waypoints. `attackPhase` still says `closing` here — the point is that nothing
+// reaches it.
+check('...and a ship flying no combat flight names no phase and no tactic',
+  describeFlight('none', 'closing', 0, 'slash') === 'not fighting'
+  && describeFlight('none', 'extending', UNDER_FIRE_SECONDS, 'ram', true) === 'not fighting');
 
 // It must describe the ship, not a guess about it: every phase the flight can
 // be in has to come back as something, or a log would silently lose frames —
@@ -314,4 +326,4 @@ check('...and the pursuit pilot names the six or the break-off, not a phase',
 // column that exists to show it.
 check('every attack phase and every tactic has a name',
   (['closing', 'passing', 'extending'] as AttackPhase[]).every(
-    (p) => TACTIC_IDS.every((t) => describeFlight(p, 0, false, 'scripted', t).length > 0)));
+    (p) => TACTIC_IDS.every((t) => describeFlight('scripted', p, 0, t).length > 0)));

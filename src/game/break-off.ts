@@ -148,20 +148,37 @@ export function nextAttackPhase(
  * only ever shows what the ship is doing now.
  *
  * `evading` outranks the phase because it is the answer to "why has it stopped
- * flying the run". `fleeing` and `own policy` carry NO tactic: a trader running
- * for the system edge is not flying an attack run at all, and a brain-flown
- * ship never runs one — it flies its policy the whole way in, so its tactic is
- * a plan it is not executing. The pursuit dogfighter is a third case with no tactic and no phase — `on your
- * six` while it chases, `breaking off` while it veers clear of a ram — because
- * it never runs the attack-run machine those words describe.
+ * flying the run". `fleeing`, `not fighting` and `own policy` carry NO tactic: a
+ * trader running for the system edge is not flying an attack run at all, a ship
+ * flying no combat flight has none to name, and a brain-flown ship never runs
+ * one — it flies its policy the whole way in, so its tactic is a plan it is not
+ * executing. The pursuit dogfighter is a fourth case with no tactic and no phase
+ * — `on your six` while it chases, `breaking off` while it veers clear of a ram
+ * — because it never runs the attack-run machine those words describe.
+ *
+ * WHICH FLIGHT RAN IS THE FIRST QUESTION, and since docs/TODO/88 it is the only
+ * one that may reach the phase. `attackPhase` starts life at `closing` and is
+ * written by `attack()` alone, so anything that answers ahead of `flownBy`
+ * reports that initial value as though the machine had produced it: a pirate
+ * ambling outside interest range read `slash closing`, and an armed trader
+ * fighting off its attacker read `fleeing` because the branch it took was named
+ * for what it does when it has no guns.
  */
 export function describeFlight(
-  phase: AttackPhase, underFire: number, fleeing: boolean,
-  flownBy: 'brain' | 'scripted' | 'pursuit' = 'scripted',
+  flownBy: 'brain' | 'scripted' | 'pursuit' | 'fleeing' | 'none',
+  phase: AttackPhase, underFire: number,
   tactic: TacticId = 'run',
   breaking = false,
 ): string {
-  if (fleeing) return 'fleeing';
+  // Flying nothing at all: an ambling pirate, a trader working the lane, an
+  // inert Thargon. Named for the absence rather than for a guess at the errand,
+  // because this function knows the flight and not the role — and any word for
+  // an errand would be the same stale quote one step removed.
+  if (flownBy === 'none') return 'not fighting';
+  // Running, with no intention of turning: `state.fleeing` is the BRANCH, and
+  // an armed trader fights from inside it, so the word belongs to the flight
+  // that actually points away from the attacker.
+  if (flownBy === 'fleeing') return 'fleeing';
   // The pursuit dogfighter is not in an attack-run phase either — it has no
   // `closing`/`passing`/`extending`, only "on the six" and "veering off to
   // avoid a ram". Reporting `attackPhase` here quoted a word it never set, so
