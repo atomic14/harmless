@@ -164,14 +164,80 @@ run leaves contraband aboard with a hermit outlet that never asks questions.
 
 ## Acceptance
 
-- No path leaves an unpaid consignment in the hold: expiry and short delivery
-  both reclaim what is aboard, for cargo and for smuggling runs.
-- The HUD says what was taken back, and never says it for courier, passenger or
-  bounty work.
-- The trader cohort's median net worth is back to ≈6,981 Cr on
-  `npm run campaign`, with the abandoned-goods income at zero and the fee
-  making up the difference.
-- Full gates: `npm test`, `npm run campaign`, `npm run constants:check`.
+- [x] No path leaves an unpaid consignment in the hold: expiry and short
+      delivery both reclaim what is aboard, for cargo and for smuggling runs.
+      Reverting the one line that empties the hold reddens 6 checks and leaves
+      the rest of the suite green.
+- [x] The reclaim takes what is there, not what was owed: 2 t aboard against a
+      5 t job leaves the hold at 0 and reports `reclaimed: 2`. Pooled goods are
+      handled by the same `min`: a 5 t Food job against 15 t aboard leaves 10 t
+      whether it is paid or expired.
+- [x] The HUD says what was taken back — `CONTRACT EXPIRED — 8T MACHINERY
+      RECLAIMED` — and never says it for courier, passenger or bounty work, nor
+      for freight with nothing left aboard to take.
+- [x] The trader cohort's median net worth is back to 6,887 Cr on
+      `npm run campaign -- 1000 60` against the 6,981 Cr post-110 baseline
+      (−1.3%), with the abandoned goods — 53.6 t a career, formerly income —
+      now handed back and the fee making up the difference.
+- [x] Full gates: `npm run check` (lint, 3,414 tests, sizes, constants, the
+      generated catalogues) exits 0, and `npm run campaign` passes.
+
+## What the ledger said
+
+**The leak was worth more than the goods it left behind.** With the reclaim in
+and the fee untouched, the trader cohort's median net worth falls 6,981 →
+4,454 Cr over 1,000 careers — a 36% cut, against the ~1,354 Cr of abandoned
+freight the instrumentation valued. The difference is compounding: the goods
+were being sold early in a career, when the money buys a large bay that pays
+for everything after it, so removing them costs the trading capital as well as
+the sale.
+
+That is what set the fee. The plan's opening bracket, `55 + dist * 4.0`,
+overshot to 7,346 Cr (+5.2%); the campaign was read at six pairs and
+`54 + dist * 3.9` lands at **6,887 Cr, −1.3% from baseline** — inside the band
+109 established the median is stable to (±0.2% is the sampling noise; the
+remaining 1.1% is real and in the honest direction, since a late run now costs
+the trip). Smuggling's `80 + dist * 2` is scaled by the same 2.45x, which
+holds the per-tonne premium at 1.9x (25.2 Cr/t cargo against 48.2 smuggle,
+swept over 30,000 t of offers).
+
+**All three cohorts, 1,000 commanders × 60 legs, before → after:**
+
+| | trader | bounty hunter | privateer |
+|---|---|---|---|
+| median net worth | 6,981 → **6,887** Cr | 628.4 → **628.4** Cr | 8,456 → **8,778** Cr |
+| never went broke | 928 → 930 | 1000 → 1000 | 972 → 978 |
+| contracts done/failed | 28.7/23.0 → 28.4/23.1 | 5.1/2.3 → 5.1/2.3 | 36.1/25.7 → 36.5/25.6 |
+| tonnes handed back | — → 53.6 t | — → 0.0 t | — → 61.2 t |
+
+The bounty hunter is *identical to the digit*, which is the control this change
+wanted: it takes no freight, so a change to freight must not move it. Its two
+failing balance checks fail the same way on `main` before this commit and are
+untouched here (the same pre-existing pair 110 recorded).
+
+**The plan's forecast held.** Completions did not move (28.7 → 28.4 for the
+trader) exactly as the slot constraint predicted, and 53.6 t handed back
+against the 55.2 t the instrumentation measured — the freight was already being
+counted correctly, it was simply being kept. The privateer gains 3.8%: it is
+the cohort that takes smuggling work, so it collects the 2.45x on the narrowest
+slice of the board and hands back the most tonnage (61.2 t) at the same time.
+
+## Also landed
+
+- **`reclaimed` is read at the campaign's settle site**, and the harness now
+  prints `53.6t handed back on failure` on its CONTRACT line. Without that the
+  line the plan asked for would have reported zero whether or not the rule
+  worked, because the tonnage leaves the hold before anything downstream can
+  count it.
+- **A per-tonne fee bound in `test/contract-offers.test.ts`**, swept at the
+  file's existing two sample sizes: a cargo fee between 20 and 40 Cr/t, and
+  illicit freight between 1.5x and 3x that. This is the bound that could not
+  exist while a failed run left its consignment behind — the fee did not have
+  to cover the job, because the goods were the real reward. Reverting the
+  coefficient to `22 + dist * 1.6` reddens it at 11.2 Cr/t.
+- **The smuggling comment said "roughly 3x" and always meant ~2x** (24.1
+  against 11.4 Cr/t measured before this change). Corrected while the line
+  was being touched; the ratio itself is unchanged.
 
 ## Verify
 

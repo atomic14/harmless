@@ -55,6 +55,10 @@ console.log('\nthe bulletin board\'s reach');
     let smuggles = 0;
     let strayLegal = 0;
     let strayLoad = 0;
+    let cargoFee = 0;
+    let cargoTonnes = 0;
+    let smuggleFee = 0;
+    let smuggleTonnes = 0;
     for (let p = 0; p < passes; p += 1) {
       for (const sys of systems) {
         for (const k of generateContractOffers(sys, systems, 0, rng)) {
@@ -62,6 +66,8 @@ console.log('\nthe bulletin board\'s reach');
           const d = distanceTenths(sys, systems[k.destination]);
           if (d > maxD) maxD = d;
           if (k.kind === 'cargo' && !ORDINARY_GOODS.includes(k.commodity)) strayCommodity += 1;
+          if (k.kind === 'cargo') { cargoFee += k.reward; cargoTonnes += k.qty; }
+          if (k.kind === 'smuggle') { smuggleFee += k.reward; smuggleTonnes += k.qty; }
           if (k.kind === 'passenger') {
             passengers += 1;
             if (k.qty < 1 || k.qty > 3) strayQty += 1;
@@ -78,6 +84,7 @@ console.log('\nthe bulletin board\'s reach');
     return {
       maxD, offers, strayCommodity, passengers, strayQty, strayGoods,
       smuggles, strayLegal, strayLoad,
+      cargoFee, cargoTonnes, smuggleFee, smuggleTonnes,
     };
   };
   const small = sweep(3);
@@ -132,4 +139,28 @@ console.log('\nthe bulletin board\'s reach');
   check(`a smuggling run carries 2-5t (`
     + `${small.strayLoad + large.strayLoad} out of range)`,
   small.strayLoad === 0 && large.strayLoad === 0);
+
+  // --- and what the fee is worth per tonne (docs/TODO/112) --------------------
+  //
+  // THE BOUND THAT WAS MISSING while a failed run left its consignment in the
+  // hold: the fee did not have to cover the job, because the goods were the real
+  // reward. They go back now, so the fee is the whole of it — and a cargo
+  // consignment is worth about 24.5 Cr/t at its destination, measured over these
+  // same sweeps. Below that and freight is not worth a hold slot; far above it
+  // and hauling beats trading outright. Money is TENTHS of a credit
+  // (docs/INVARIANTS.md invariant 8), which is exactly the trap 112 records: the
+  // old `22 + dist*1.6` reads like a fee and pays 11.4 Cr/t.
+  const perTonne = (fee: number, t: number) => fee / (10 * t);
+  const cargoRate = (s: ReturnType<typeof sweep>) => perTonne(s.cargoFee, s.cargoTonnes);
+  const smuggleRate = (s: ReturnType<typeof sweep>) => perTonne(s.smuggleFee, s.smuggleTonnes);
+  check(`a cargo run's fee covers the freight it asks you to carry `
+    + `(${cargoRate(small).toFixed(1)} Cr/t over ${small.cargoTonnes}t and `
+    + `${cargoRate(large).toFixed(1)} Cr/t over ${large.cargoTonnes}t)`,
+  [small, large].every((s) => cargoRate(s) > 20 && cargoRate(s) < 40));
+  // Illicit freight keeps the premium 110 gave it: the police scan, the pirates'
+  // extra appetite and the disrepute are what the difference buys.
+  check(`illicit freight still pays its premium over honest freight `
+    + `(${smuggleRate(small).toFixed(1)} and ${smuggleRate(large).toFixed(1)} Cr/t)`,
+  [small, large].every((s) => smuggleRate(s) > 1.5 * cargoRate(s)
+    && smuggleRate(s) < 3 * cargoRate(s)));
 }

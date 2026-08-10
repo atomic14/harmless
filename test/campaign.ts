@@ -75,6 +75,17 @@ interface CareerResult {
   combatScore: number;
   contractsDone: number;
   contractsFailed: number;
+  /**
+   * Tonnage handed back to the station by failed freight runs (docs/TODO/112).
+   *
+   * Before that landed, this was income: the consignment stayed in the hold and
+   * the sell loop below turned it into credits at the local quote, which was
+   * about a fifth of a trader's career and the reason a cut to cargo's share of
+   * the board cost the cohort far more than the rewards removed. It has to be
+   * read off the settlement event — once the goods are gone from the hold there
+   * is nothing left here to count.
+   */
+  tonnesReclaimed: number;
   cargoLost: number;
   equipment: string[];
   /** credits + what the fitted equipment cost — the honest wealth measure */
@@ -143,6 +154,7 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
   let deaths = 0;
   let contractsDone = 0;
   let contractsFailed = 0;
+  let tonnesReclaimed = 0;
   let cargoLost = 0;
   let firstUpgradeLeg: number | null = null;
   let bankruptAtLeg: number | null = null;
@@ -200,7 +212,14 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
           living.addNotoriety(e.contract.destination,
             e.contract.qty * SMUGGLE_DELIVERY_NOTORIETY);
         }
-      } else contractsFailed += 1;   // expired, or the consignment was not aboard
+      } else {
+        contractsFailed += 1;   // expired, or the consignment was not aboard
+        // ...and a failed freight run's consignment goes back to the station
+        // (docs/TODO/112). The event carries the tonnage because the hold no
+        // longer does: without reading it here the line this harness prints
+        // would report zero abandoned goods whether or not the rule works.
+        if (e.kind === 'expired' || e.kind === 'incomplete') tonnesReclaimed += e.reclaimed;
+      }
     }
 
     // --- sell everything not promised to a contract ---
@@ -471,6 +490,7 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
     combatScore: c.combatScore,
     contractsDone,
     contractsFailed,
+    tonnesReclaimed,
     cargoLost,
     equipment: EQUIPMENT_CATALOGUE
       .filter((e) => e.id !== 'missile' && e.id !== 'trumble' && equipmentOwned(e.id, c))
@@ -685,7 +705,8 @@ function report(label: string, careers: CareerResult[], strategy: Strategy): voi
     `first upgrade at leg ${median(careers.filter((r) => r.firstUpgradeLeg !== null)
       .map((r) => r.firstUpgradeLeg!))}`);
   console.log(`CONTRACT ${num(careers.map((r) => r.contractsDone)).toFixed(1)} completed · ` +
-    `${num(careers.map((r) => r.contractsFailed)).toFixed(1)} failed per career`);
+    `${num(careers.map((r) => r.contractsFailed)).toFixed(1)} failed per career · ` +
+    `${num(careers.map((r) => r.tonnesReclaimed)).toFixed(1)}t handed back on failure`);
   console.log(`COMBAT   ${num(careers.map((r) => r.kills)).toFixed(1)} kills · ` +
     `${num(careers.map((r) => r.cargoLost)).toFixed(1)}t cargo lost to pirates per career`);
   console.log(`RATING   median ${rating(Math.round(median(careers.map((r) => r.combatScore))))}`);

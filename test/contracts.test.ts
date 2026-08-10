@@ -63,14 +63,49 @@ console.log('\ncontracts');
     check('...the goods leave the hold', c.cargo[0] === 0);
     check('...and the job leaves the list', c.contracts.length === 0);
   }
+  // --- a failed consignment goes back (docs/TODO/112) ------------------------
+  //
+  // The freight is the station's: it is loaded at acceptance against a fee for
+  // carrying it, so a run that fails hands it back rather than leaving it in the
+  // hold for the trade screen to sell. `reclaimed` rides on the event because
+  // the hold no longer holds the answer once settlement has run.
   {
     const c = cmdr();
     c.contracts = [cargoRun()];
     c.cargo[0] = 4;              // sold one on the way
     const ev = settleContracts(c);
     check('a short consignment is void, not paid', ev[0]?.kind === 'incomplete');
-    check('...pays nothing and takes nothing', c.credits === 1000 && c.cargo[0] === 4);
+    check('...pays nothing', c.credits === 1000);
+    // WHAT IS THERE, not what was owed: 4t aboard against a 5t job leaves the
+    // hold empty and reports 4, which is also what stops the hold going negative
+    check('...hands back what is aboard, not what was owed',
+      c.cargo[0] === 0 && ev[0]?.kind === 'incomplete' && ev[0].reclaimed === 4);
     check('...and is off the list for good', c.contracts.length === 0);
+  }
+  {
+    const c = cmdr();
+    c.contracts = [cargoRun({ qty: 5 })];
+    c.cargo[0] = 2;              // 2t against a 5t job — the plan's own case
+    const ev = settleContracts(c);
+    check('...a 2t hold against a 5t job hands back 2t and reports it',
+      ev[0]?.kind === 'incomplete' && ev[0].reclaimed === 2 && c.cargo[0] === 0);
+  }
+  {
+    // Goods are fungible and the hold keeps no per-contract provenance, so a
+    // commander who bought 10t of the same Food has covered the 5t consignment:
+    // the station takes its five and the ten she paid for stay hers.
+    const c = cmdr();
+    c.contracts = [cargoRun({ commodity: 0, qty: 5 })];
+    c.cargo[0] = 15;
+    const ev = settleContracts(c);
+    check('pooled goods give back the consignment and no more',
+      ev[0]?.kind === 'paid' && c.cargo[0] === 10);
+    const late = cmdr({ day: 11 });
+    late.contracts = [cargoRun({ commodity: 0, qty: 5 })];
+    late.cargo[0] = 15;
+    const lateEv = settleContracts(late);
+    check('...and a failed one takes the consignment out of the pool, not the pool',
+      lateEv[0]?.kind === 'expired' && lateEv[0].reclaimed === 5 && late.cargo[0] === 10);
   }
   {
     const c = cmdr({ day: 11 });
@@ -79,6 +114,11 @@ console.log('\ncontracts');
     const ev = settleContracts(c);
     check('a late delivery expires even standing on the doorstep',
       ev[0]?.kind === 'expired' && c.credits === 1000 && c.contracts.length === 0);
+    // THE LEAK docs/TODO/112 closed: being late used to leave ~470 Cr of
+    // Machinery in the hold against a fee of ~79, so the best job on the board
+    // was one you never delivered. Revert the reclaim line and this goes red.
+    check('...and the consignment goes back, unpaid and unsold',
+      c.cargo[0] === 0 && ev[0]?.kind === 'expired' && ev[0].reclaimed === 5);
   }
   {
     const c = cmdr({ systemIndex: 8 });
@@ -105,6 +145,18 @@ console.log('\ncontracts');
     check('...and pays once the count is filled',
       settleContracts(c)[0]?.kind === 'paid' && c.credits === 1500);
   }
+  {
+    // Work that carries no consignment cannot have one taken back. The hold is
+    // deliberately full of the commodity the contract names, which is the only
+    // way a reclaim that ignored `kind` would show itself.
+    const c = cmdr({ day: 11 });
+    c.contracts = [cargoRun({ kind: 'courier', qty: 0 }), cargoRun({ kind: 'bounty', qty: 3 })];
+    c.cargo[0] = 9;
+    const ev = settleContracts(c);
+    check('a failed courier or bounty job hands nothing back and touches no cargo',
+      ev.length === 2 && ev.every((e) => e.kind === 'expired' && e.reclaimed === 0)
+      && c.cargo[0] === 9);
+  }
   // --- passengers settle like a courier, and free their berths -------------
   //
   // They travel WITH the contract: there is nothing to sell short on the way,
@@ -123,10 +175,17 @@ console.log('\ncontracts');
   {
     const c = cmdr({ day: 11 });
     c.contracts = [passengerJob()];
+    c.cargo[0] = 6;              // her own goods, nothing to do with the fares
     const ev = settleContracts(c);
     check('late passengers expire, unpaid, like any other job',
       ev[0]?.kind === 'expired' && c.credits === 1000 && c.contracts.length === 0);
-    check('...and the berths go with them', cargoTonnes(c) === 0);
+    check('...and the berths go with them, leaving only her own 6t',
+      cargoTonnes(c) === 6);
+    // There is no consignment to hand back, and the HOLD IS NOT EMPTY: a job
+    // that reclaimed by `qty` regardless of kind would take 3t of the Food she
+    // bought for herself, and `commodity: 0` is Food.
+    check('...and a passenger job reclaims nothing, out of a hold with goods in it',
+      ev[0]?.kind === 'expired' && ev[0].reclaimed === 0 && c.cargo[0] === 6);
   }
   {
     const c = cmdr({ systemIndex: 8 });
@@ -171,19 +230,24 @@ console.log('\ncontracts');
     const ev = settleContracts(c);
     check('a smuggling run sold off en route is incomplete, not paid',
       ev[0]?.kind === 'incomplete' && c.credits === 1000);
-    check('...keeps what is left and leaves the list',
-      c.cargo[CONTRABAND[1]] === 3 && c.contracts.length === 0);
+    check('...hands back the 3t still aboard and leaves the list',
+      ev[0]?.kind === 'incomplete' && ev[0].reclaimed === 3
+      && c.cargo[CONTRABAND[1]] === 0 && c.contracts.length === 0);
     check('...and settlement adds no deed of its own for a job it did not pay',
       (c.disrepute ?? 0) === 0);
   }
   {
+    // Illicit freight is reclaimed exactly like freight — the hermit outlet
+    // must not be a way to keep a smuggling run's cargo by being late for it.
     const c = cmdr({ day: 11 });
     c.contracts = [smuggleRun()];
     c.cargo[CONTRABAND[1]] = 4;
     const ev = settleContracts(c);
-    check('a late smuggling run expires with the goods still aboard',
-      ev[0]?.kind === 'expired' && c.credits === 1000
-      && c.cargo[CONTRABAND[1]] === 4 && (c.disrepute ?? 0) === 0);
+    check('a late smuggling run expires, and the contraband goes back too',
+      ev[0]?.kind === 'expired' && ev[0].reclaimed === 4 && c.credits === 1000
+      && (c.disrepute ?? 0) === 0);
+    check('...leaving the hold clean', c.cargo[CONTRABAND[1]] === 0
+      && !carryingContraband(c.cargo));
   }
   {
     // ...and accepting one loads it, which is the ENTIRE mechanism: from here
@@ -291,7 +355,24 @@ console.log('\ncontracts');
     check('...and an acceptance names the destination',
       acc.text.includes('LAVE') && acc.text === acc.text.toUpperCase());
     check('a void consignment has no sound',
-      contractMessage({ kind: 'incomplete', contract: cargoRun() }, systems).sound === null);
+      contractMessage({ kind: 'incomplete', contract: cargoRun(), reclaimed: 0 }, systems)
+        .sound === null);
+    // The HUD says what was taken back, in the commodity's own name, and says
+    // nothing when nothing was — a line that always claimed a seizure would be
+    // wrong for a courier, and wrong for freight already sold off entirely.
+    const seized = contractMessage(
+      { kind: 'expired', contract: cargoRun({ commodity: 8, qty: 8 }), reclaimed: 8 }, systems);
+    check('an expired freight run names what the station took back',
+      seized.text === 'CONTRACT EXPIRED — 8T MACHINERY RECLAIMED');
+    check('...and a courier run, carrying nothing, just expires',
+      contractMessage({ kind: 'expired', contract: cargoRun({ kind: 'courier', qty: 0 }),
+        reclaimed: 0 }, systems).text === 'CONTRACT EXPIRED');
+    check('...as does freight with nothing left aboard to take',
+      contractMessage({ kind: 'expired', contract: cargoRun(), reclaimed: 0 }, systems)
+        .text === 'CONTRACT EXPIRED');
+    check('a short delivery says the same of the part it handed over',
+      contractMessage({ kind: 'incomplete', contract: cargoRun({ commodity: 0 }), reclaimed: 2 },
+        systems).text === 'CONSIGNMENT INCOMPLETE — CONTRACT VOID — 2T FOOD RECLAIMED');
     // `describeContract` ends on the BOUNTY line as a fallback, not a default:
     // a kind with no line of its own is silently described as a pirate hunt.
     check('a passenger job is described as passengers, not as a pirate hunt',

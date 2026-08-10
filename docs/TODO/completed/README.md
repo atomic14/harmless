@@ -75,6 +75,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 108 — [A pod is not a canister](108-a-pod-is-not-a-canister.md)
 - [x] 109 — [Passenger berths on the board](109-passenger-berths-on-the-board.md)
 - [x] 110 — [Smuggling runs price the scan](110-smuggling-runs-price-the-scan.md)
+- [x] 112 — [The consignment goes back](112-the-consignment-goes-back.md)
 
 <!-- append-completed-todos-here -->
 

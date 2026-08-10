@@ -13,18 +13,15 @@ active context:
 
 ## Execution queue
 
-Empty — 110 landed and closed issue #9. `QUEUE.json` agrees. The backlog below
-is in priority order; promoting its head is what makes the next execution item.
+Empty — 112 landed; issue #17 stays open for its second milestone, 113.
+`QUEUE.json` agrees. The backlog below is in priority order; promoting its head
+is what makes the next execution item.
 
 ## Backlog
 
-- [ ] 112 — [The consignment goes back](112-the-consignment-goes-back.md)
-      — GitHub #17, first of two milestones. Put at the head over 111: it is a
-      live defect in the shipped economy, and it distorts the campaign harness
-      every other economy plan is measured against. One line to reorder if the
-      chart slice matters more.
 - [ ] 113 — [What you cannot hand back, you are billed for](113-what-you-cannot-hand-back-you-are-billed-for.md)
-      — GitHub #17, second milestone; needs 112
+      — GitHub #17, second milestone; 112 has landed, so this is unblocked and
+      is the head of the backlog
 - [ ] 111 — [The chart shows the danger it already reports](111-the-chart-shows-the-danger-it-reports.md)
       — GitHub #10, first slice; trade-flow follows if it reads well
 - [ ] 93 — [One home for the phosphor](93-one-home-for-the-phosphor.md)

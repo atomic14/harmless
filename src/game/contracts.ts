@@ -74,7 +74,17 @@ export function generateContractOffers(
         destination: dest.index,
         commodity,
         qty,
-        reward: Math.round(qty * (22 + dist * 1.6) + 90),
+        // The per-tonne term was `22 + dist * 1.6` until docs/TODO/112, which is
+        // 11.4 Cr/t of fee to haul goods worth 24.5 Cr/t at the far end — a fee
+        // nobody would take a hold slot for once the consignment goes back on
+        // failure instead of staying sold-able in the hold. 2.45x makes the fee
+        // the whole of the reward, at ~25 Cr/t. The pair was SET by the campaign
+        // rather than argued: over 1,000 trader careers the reclaim alone costs
+        // the cohort 6,981 -> 4,454 Cr of median net worth, and this is what puts
+        // it back (6,887 Cr). The flat term and the deadline are unchanged, and
+        // so is the roll above, so the fee and 110's share change stay legible
+        // apart in the ledger.
+        reward: Math.round(qty * (54 + dist * 3.9) + 90),
         deadlineDay: day + 4 + Math.ceil(dist / 12),
         progress: 0,
       });
@@ -118,10 +128,13 @@ export function generateContractOffers(
         qty,
         // A FLAT formula, deliberately not `marketEstimate`: the estimate's own
         // docstring records that the Narcotics mean lies (byte wrap), and
-        // pricing a reward off it would import that lie. Roughly 3x the
+        // pricing a reward off it would import that lie. Roughly twice the
         // per-tonne rate of an ordinary cargo run above, which is what the
-        // existing punishment ladder is worth taking on.
-        reward: Math.round(qty * (80 + dist * 2) + 200),
+        // existing punishment ladder is worth taking on. Scaled by the same
+        // 2.45x as cargo in docs/TODO/112 (`80 + dist * 2` before it), so the
+        // premium illicit freight carries is the one 110 measured and not a
+        // second change riding along with the reclaim.
+        reward: Math.round(qty * (195 + dist * 4.9) + 200),
         deadlineDay: day + 4 + Math.ceil(dist / 12),
         progress: 0,
       });
@@ -154,12 +167,22 @@ export function generateContractOffers(
 // commander, and RETURNS what happened. The Game announces and plays it, because
 // a HUD and an AudioContext are not something a headless career simulator has.
 
-/** What settling or accepting work did. */
+/**
+ * What settling or accepting work did.
+ *
+ * A failed freight run carries `reclaimed`: the tonnage taken back off the ship
+ * (docs/TODO/112). It is on the EVENT rather than being a new event kind,
+ * because nothing new happened — the contract failed, exactly as before, and
+ * the orchestrators have no consequence of their own to apply. But the number
+ * cannot be recovered from the contract afterwards (the hold may have been
+ * short), and both the HUD line and the campaign's ledger need it. Courier,
+ * passenger and bounty work always reports 0.
+ */
 export type ContractEvent =
   | { kind: 'paid'; contract: Contract }
   /** delivered here, on time — but the goods are no longer aboard */
-  | { kind: 'incomplete'; contract: Contract }
-  | { kind: 'expired'; contract: Contract }
+  | { kind: 'incomplete'; contract: Contract; reclaimed: number }
+  | { kind: 'expired'; contract: Contract; reclaimed: number }
   | { kind: 'accepted'; contract: Contract }
   | { kind: 'refused'; reason: 'tooMuchWork' | 'noHoldSpace' };
 
@@ -183,7 +206,32 @@ export function describeContract(k: Contract, systems: StarSystem[]): string {
 }
 
 /**
- * Pay out anything delivered here, and drop anything overdue.
+ * Take a failed consignment back off the ship, and say how much that was.
+ *
+ * The freight was never yours: the station supplied it at acceptance
+ * (`acceptContract`) against a fee for carrying it, so a run that fails —
+ * late, or short at the door — hands it back. Before docs/TODO/112 it stayed
+ * in the hold and the trade screen sold it at the local quote, which made the
+ * best job on the board one you never delivered: a 10t cargo run is ~470 Cr of
+ * goods against a fee of ~79.
+ *
+ * `min`, not `qty`: goods are fungible and the hold keeps no per-contract
+ * provenance, so a commander who bought more of the same commodity has in
+ * effect covered the consignment, and one who sold it can only hand back what
+ * is left. It is also what keeps the hold out of negative tonnage.
+ *
+ * Courier, passenger and bounty work carries nothing, so it reclaims nothing.
+ */
+function reclaim(c: CommanderData, k: Contract): number {
+  if (k.kind !== 'cargo' && k.kind !== 'smuggle') return 0;
+  const taken = Math.min(k.qty, c.cargo[k.commodity]);
+  c.cargo[k.commodity] -= taken;
+  return taken;
+}
+
+/**
+ * Pay out anything delivered here, drop anything overdue, and take back the
+ * freight that was riding on it (`reclaim`, docs/TODO/112).
  *
  * Mutates the commander's cargo, credits, DISREPUTE and contract list; the
  * surviving work stays on it. A bounty job standing at its destination with the
@@ -214,7 +262,7 @@ export function settleContracts(c: CommanderData): ContractEvent[] {
         // as voidable as freight, because what you sold at a better price on
         // the way is the temptation the job is built around
         if (c.cargo[k.commodity] < k.qty) {
-          events.push({ kind: 'incomplete', contract: k });
+          events.push({ kind: 'incomplete', contract: k, reclaimed: reclaim(c, k) });
           continue;
         }
         c.cargo[k.commodity] -= k.qty;
@@ -227,7 +275,7 @@ export function settleContracts(c: CommanderData): ContractEvent[] {
       continue;
     }
     if (late) {
-      events.push({ kind: 'expired', contract: k });
+      events.push({ kind: 'expired', contract: k, reclaimed: reclaim(c, k) });
       continue;
     }
     kept.push(k);
@@ -287,6 +335,20 @@ export interface ContractMessage {
   sound: SoundName | null;
 }
 
+/**
+ * What the station took back, if anything — the tail of a failure message.
+ *
+ * Read off the event's own tonnage rather than the contract's, because a run
+ * that arrived short hands back what is there and not what was owed. A job
+ * carrying nothing (courier, passenger, bounty) and a hold with nothing left in
+ * it both reclaim 0, and say nothing: the line must not claim a seizure that
+ * did not happen.
+ */
+function reclaimedClause(e: { contract: Contract; reclaimed: number }): string {
+  if (e.reclaimed <= 0) return '';
+  return ` — ${e.reclaimed}T ${COMMODITIES[e.contract.commodity].name.toUpperCase()} RECLAIMED`;
+}
+
 export function contractMessage(e: ContractEvent, systems: StarSystem[]): ContractMessage {
   switch (e.kind) {
     case 'paid':
@@ -296,9 +358,17 @@ export function contractMessage(e: ContractEvent, systems: StarSystem[]): Contra
         sound: 'contractPaid',
       };
     case 'incomplete':
-      return { text: 'CONSIGNMENT INCOMPLETE — CONTRACT VOID', seconds: 5, sound: null };
+      return {
+        text: `CONSIGNMENT INCOMPLETE — CONTRACT VOID${reclaimedClause(e)}`,
+        seconds: 5,
+        sound: null,
+      };
     case 'expired':
-      return { text: 'CONTRACT EXPIRED', seconds: 4, sound: 'contractExpired' };
+      return {
+        text: `CONTRACT EXPIRED${reclaimedClause(e)}`,
+        seconds: 4,
+        sound: 'contractExpired',
+      };
     case 'accepted':
       return {
         text: `ACCEPTED: ${describeContract(e.contract, systems).toUpperCase()}`,
