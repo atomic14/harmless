@@ -504,8 +504,17 @@ export class WorldStep {
       out.push(say('FUEL SCOOPING', 0.4));
     }
 
+    // ...and NO NEW SAVE CAPTURES A COUNTDOWN (docs/TODO/116). Restore clears one
+    // that is already on the shelf; this stops the ring writing another. The two
+    // are not redundant — the clear fixes yesterday's saves, this keeps the shelf
+    // clean for anything else that reads a snapshot.
+    //
+    // The timer is deliberately NOT rearmed when the write is skipped: it stays
+    // due, so the first frame after the jump resolves writes immediately. Rearming
+    // it would cost a whole interval per jump, and a commander who jumps often
+    // would starve a ring that is only FLIGHT_RING slots deep.
     session.autoSaveTimer -= dt;
-    if (session.autoSaveTimer <= 0) {
+    if (session.autoSaveTimer <= 0 && session.hyperCountdown < 0) {
       session.autoSaveTimer = AUTOSAVE_INTERVAL;
       this.host.autoSave();
     }

@@ -80,6 +80,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 111 — [The chart shows the danger it already reports](111-the-chart-shows-the-danger-it-reports.md) — GitHub #10, first slice
 - [x] 114 — [The chart shows where the trade is](114-the-chart-shows-where-the-trade-is.md) — closed GitHub #10
 - [x] 115 — [Point at a lane and it tells you what it carries](115-point-at-a-lane-and-it-tells-you-what-it-carries.md) — hover and cursor detail, lanes faded by traffic
+- [x] 116 — [A loaded save jumps on its own](116-a-loaded-save-jumps-on-its-own.md) — restore puts the hyperspace countdown back at rest, and the in-flight ring will not write one down
 
 <!-- append-completed-todos-here -->
 

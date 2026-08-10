@@ -46,7 +46,7 @@ import {
   TORUS_MULTIPLIER, MASS_LOCK_STATION, MASS_LOCK_PLANET_ALTITUDE, MASS_LOCK_SHIP,
 } from '../src/constants/torus.ts';
 import { PLANET_CRASH_ALTITUDE, WITCHPOINT_RADII } from '../src/constants/planet.ts';
-import { WITCHSPACE_ESCAPE_COST } from '../src/constants/jump.ts';
+import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../src/constants/jump.ts';
 import {
   STRANDED_HINT_FIRST, STRANDED_HINT_REPEAT,
 } from '../src/constants/witchspace.ts';
@@ -214,6 +214,34 @@ console.log('\nheadless world step');
       check(`...and the next one an interval later (${(at[1] - at[0]).toFixed(1)}s)`,
         Math.abs(at[1] - at[0] - AUTOSAVE_INTERVAL) < 0.2);
     }
+    // ...and the ring does not write a jump down (docs/TODO/116). The other half
+    // of that item is test/persistence.test.ts, which proves a save carrying a
+    // countdown loads without one; this is the half that stops another being
+    // written. Both are needed — the clear repairs the shelf, this keeps it
+    // clean.
+    {
+      const jumping = arrival(20_260_810);
+      const idle = { demand: { rollRate: 0, pitchRate: 0, throttle: 0, fire: false },
+        handsOn: false };
+      jumping.state.session.autoSaveTimer = 0.05;         // a write is due NOW...
+      jumping.state.session.hyperCountdown = COUNTDOWN;   // ...and H has just been pressed
+      let i = 0;
+      while (jumping.state.session.hyperCountdown >= 0 && i < 200) {
+        jumping.step.step(0.1, i * 0.1, idle);
+        i += 1;
+      }
+      check(`the countdown really ran its ${COUNTDOWN} seconds (${(i * 0.1).toFixed(1)}s)`,
+        i > 0 && Math.abs(i * 0.1 - COUNTDOWN) < 0.2);
+      check('...and the ring wrote nothing while it did', jumping.log.saves === 0);
+      // THE STARVATION CHECK. Skipping must not rearm the timer: the write is
+      // still due, so it lands on the very next frame rather than a whole
+      // AUTOSAVE_INTERVAL later — which a commander who jumps often would pay
+      // every jump, out of a ring only FLIGHT_RING slots deep.
+      jumping.step.step(0.1, i * 0.1, idle);
+      check('...and writes on the first frame after the jump resolves',
+        jumping.log.saves === 1);
+    }
+
     check('...and nothing it reported is anything but an event',
       events.every((e) => {
         switch (e.kind) {

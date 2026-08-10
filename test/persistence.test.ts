@@ -37,6 +37,8 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
+import { distanceTenths } from '../src/galaxy/navigation.ts';
+import { COUNTDOWN } from '../src/constants/jump.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe world comes back as it went in');
@@ -91,6 +93,81 @@ function roundTrip(launch: boolean): { before: Record<string, unknown>;
   check('the docked fixture had a market and a board to lose',
     (docked.before.market as unknown[]).length > 0
     && (docked.before.contractOffers as unknown[]).length > 0);
+}
+
+// --- ...but a countdown is not part of the world it was written in -----------
+//
+// The report (docs/TODO/116): "I go to /play, I'm flying and head straight into
+// hyperspace", with no key pressed. `session` is walked generically, so a
+// snapshot taken during the COUNTDOWN seconds after `H` brought the RUNNING
+// countdown back with it, and the world step finished the jump moments after
+// the load — the fare spent, and a system the player never chose.
+//
+// It was not rare: the in-flight ring writes every AUTOSAVE_INTERVAL and the
+// countdown is COUNTDOWN long, so about one jump in four left a save that
+// re-jumped every time it was opened, and went on doing so until that ring slot
+// rotated out. Which is why it seemed to come and go.
+//
+// The block above cannot see this. A round trip compares a save with itself, and
+// a resumed countdown round-trips perfectly; what is wrong is what happens NEXT.
+// So this one flies the restored world for longer than the countdown and asks
+// where the commander ended up.
+console.log('\na loaded save never jumps on its own');
+{
+  const flown = withoutSaving(() => {
+    seedWorld(20_260_810);
+    const g = new Game(() => headlessShell());
+    dismissBriefing(g);
+    g.launch();
+
+    // A jump the rules actually allow: the cheapest neighbour inside the tank,
+    // chosen off the metric rather than hard-coded, so this survives a galaxy
+    // that is generated rather than written down.
+    const { systems } = g.state;
+    const here = g.state.commander.systemIndex;
+    let target = -1;
+    for (let i = 0; i < systems.length; i++) {
+      if (i === here) continue;
+      const cost = distanceTenths(systems[here], systems[i]);
+      if (cost <= g.state.commander.fuel
+        && (target < 0 || cost < distanceTenths(systems[here], systems[target]))) target = i;
+    }
+    g.state.chart.targetIndex = target;
+    g.startHyperspace();
+    g.update(1 / 60, 0);            // one frame, so the countdown is live
+
+    const fuel = g.state.commander.fuel;
+    const snap = g.captureSnapshot();
+    const captured = (snap.session as { hyperCountdown: number }).hyperCountdown;
+    g.restoreSnapshot(structuredClone(snap) as never);
+    const onLoad = g.state.session.hyperCountdown;
+    // longer than the countdown, by enough that a resumed one has finished and
+    // been reported: five seconds of warning, eight seconds of flying
+    for (let i = 0; i < 8 * 60; i++) g.update(1 / 60, (i + 1) / 60);
+
+    return {
+      here, target, fuel, captured, onLoad,
+      mode: g.mode,
+      system: g.state.commander.systemIndex,
+      fuelAfter: g.state.commander.fuel,
+      chartTarget: g.state.chart.targetIndex,
+    };
+  }).value;
+
+  // Not vacuous: the fixture really did have a jump running when it was written
+  // down. Without this line every assertion below passes on a world at rest.
+  check(`the save was taken mid-countdown (${flown.captured.toFixed(2)}s of ${COUNTDOWN})`,
+    flown.captured > 0 && flown.captured <= COUNTDOWN && flown.target >= 0);
+
+  eq('...and it loads with the drive at rest', flown.onLoad, -1);
+  eq('...so eight seconds later the commander is in the system they loaded into',
+    flown.system, flown.here);
+  eq('...with the fare unspent', flown.fuelAfter, flown.fuel);
+  eq('...and still flying it', flown.mode, 'flight');
+  // The target is a decision made on the chart, and it is NOT what was wrong:
+  // clearing it would cost the player their plan to fix a bug about the drive.
+  eq('the chart target survives, so pressing H again costs one keystroke',
+    flown.chartTarget, flown.target);
 }
 
 // --- ...and the station you left is the station you come back to -------------

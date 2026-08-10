@@ -188,6 +188,19 @@ export class Persistence {
     s.living = new LivingGalaxy(s.systems);
     s.living.load(snap.galaxyState as Parameters<LivingGalaxy['load']>[0]);
     restoreState(s.session as unknown as Record<string, unknown>, snap.session);
+    // A LOADED SAVE NEVER RESUMES A COUNTDOWN (docs/TODO/116). `session` is
+    // walked generically, so the five seconds after `H` were saved along with
+    // everything else: load one of those and the world step finished the jump a
+    // moment later, spending the fare and arriving somewhere the player never
+    // chose. A save is a place and a moment; a jump nobody pressed is neither.
+    // Back to the at-rest value `freshSession` starts at, and NOT conditionally:
+    // that is what also repairs the saves already on the shelf, and it means a
+    // countdown arriving as junk cannot be mistaken for a live one — the door
+    // leaves `session` opaque on purpose (snapshot.ts). The player keeps their
+    // decision either way: `chartTarget` is its own field, so `H` costs one
+    // keystroke. In witch-space the same clear lands a ship its pilot controls,
+    // still in limbo, with the escape jump one press away.
+    s.session.hyperCountdown = -1;
     this.host.buildWorld();
     if (s.session.witchspace) this.host.enterWitchspace();
 
