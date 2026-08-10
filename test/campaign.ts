@@ -17,7 +17,8 @@
 
 import { generateGalaxy, generateMarket, COMMODITIES, type StarSystem } from '../src/galaxy/galaxy.ts';
 import { LivingGalaxy } from '../src/galaxy/living.ts';
-import { generateContractOffers, chartDistanceTenths, settleContracts, acceptContract } from '../src/game/contracts.ts';
+import { generateContractOffers, chartDistanceTenths } from '../src/game/contract-offers.ts';
+import { settleContracts, acceptContract } from '../src/game/contracts.ts';
 import { applyMarketPressure, marketEstimate } from '../src/game/market.ts';
 import { MAX_CONTRACTS, SMUGGLE_DELIVERY_NOTORIETY } from '../src/constants/contracts.ts';
 import { pirateThreat, markOf, memberTier } from '../src/game/threat.ts';
@@ -86,6 +87,19 @@ interface CareerResult {
    * is nothing left here to count.
    */
   tonnesReclaimed: number;
+  /**
+   * The other half of a failed freight run (docs/TODO/113): tonnage that could
+   * NOT be handed back, and the credits the shipper took for it.
+   *
+   * These two are the falsifiable claim of that milestone. Arriving short was
+   * worth 295 Cr a career to this cohort when the goods stayed in the hold
+   * (issue #17); 112 took the goods back, and this is what says the remainder
+   * is a cost rather than an opportunity — a bot that never sells a consignment
+   * on purpose still loses ~38 t/career to pirates, and every tonne of it is
+   * now billed.
+   */
+  tonnesShort: number;
+  creditsBilled: number;
   cargoLost: number;
   equipment: string[];
   /** credits + what the fitted equipment cost — the honest wealth measure */
@@ -155,6 +169,8 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
   let contractsDone = 0;
   let contractsFailed = 0;
   let tonnesReclaimed = 0;
+  let tonnesShort = 0;
+  let creditsBilled = 0;
   let cargoLost = 0;
   let firstUpgradeLeg: number | null = null;
   let bankruptAtLeg: number | null = null;
@@ -218,7 +234,17 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
         // (docs/TODO/112). The event carries the tonnage because the hold no
         // longer does: without reading it here the line this harness prints
         // would report zero abandoned goods whether or not the rule works.
-        if (e.kind === 'expired' || e.kind === 'incomplete') tonnesReclaimed += e.reclaimed;
+        if (e.kind === 'expired' || e.kind === 'incomplete' || e.kind === 'billed') {
+          tonnesReclaimed += e.reclaimed;
+        }
+        // ...and what could not go back was billed (docs/TODO/113). Read off
+        // the event for the same reason: settlement has already taken the
+        // credits by the time this loop sees them, so nothing in the commander
+        // says what the charge was for.
+        if (e.kind === 'billed') {
+          tonnesShort += e.tonnes;
+          creditsBilled += e.charged;
+        }
       }
     }
 
@@ -491,6 +517,8 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
     contractsDone,
     contractsFailed,
     tonnesReclaimed,
+    tonnesShort,
+    creditsBilled,
     cargoLost,
     equipment: EQUIPMENT_CATALOGUE
       .filter((e) => e.id !== 'missile' && e.id !== 'trumble' && equipmentOwned(e.id, c))
@@ -707,6 +735,9 @@ function report(label: string, careers: CareerResult[], strategy: Strategy): voi
   console.log(`CONTRACT ${num(careers.map((r) => r.contractsDone)).toFixed(1)} completed · ` +
     `${num(careers.map((r) => r.contractsFailed)).toFixed(1)} failed per career · ` +
     `${num(careers.map((r) => r.tonnesReclaimed)).toFixed(1)}t handed back on failure`);
+  console.log(`SHORTFALL ${num(careers.map((r) => r.tonnesShort)).toFixed(1)}t never arrived · ` +
+    `billed ${cr(num(careers.map((r) => r.creditsBilled)))} Cr per career ` +
+    `(base value, capped at what was in the account)`);
   console.log(`COMBAT   ${num(careers.map((r) => r.kills)).toFixed(1)} kills · ` +
     `${num(careers.map((r) => r.cargoLost)).toFixed(1)}t cargo lost to pirates per career`);
   console.log(`RATING   median ${rating(Math.round(median(careers.map((r) => r.combatScore))))}`);

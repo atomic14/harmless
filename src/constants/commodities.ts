@@ -11,7 +11,7 @@
  * Ordinary goods — the unremarkable legal cargo plain trade is made of:
  * food, textiles, liquor, machinery, alloys, minerals.
  *
- * A contract's consignment is drawn from it (game/contracts.ts), a generation
+ * A contract's consignment is drawn from it (game/contract-offers.ts), a generation
  * ship sheds it and a wreck spills it (game/spawning.ts). ORDER AND LENGTH ARE
  * LOAD-BEARING: consumers index it with a seeded draw, so reordering it
  * reorders every seeded outcome even though the set is unchanged.

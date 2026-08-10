@@ -61,13 +61,16 @@ Two intentional quirks:
 - `src/game/threat.ts` computes pirate count, group tier and organisation from
   visible value and reputation. `ship-specs.ts` maps tiers to hulls. The campaign
   simulator calls the same rules.
-- `src/game/contracts.ts` owns the bulletin board: what work a station offers,
-  what accepting it costs the hold, what delivering it pays. `src/game/market.ts`
-  owns what a station charges. Both are pure and shared with the campaign
-  simulator (invariant 10). A smuggling run's consequences are split by where the
-  state lives: settlement applies the commander's disrepute itself, and the
-  orchestrators (`Game.applyContracts`, the campaign's settle site) apply the
-  destination's regional heat from the `paid` event — once each (invariant 15).
+- `src/game/contract-offers.ts` owns what the bulletin board offers today and how
+  each job reads; `src/game/contracts.ts` owns the rest of a contract's life —
+  what accepting it costs the hold, what delivering it pays, and what failing it
+  costs (the freight goes back, and the part you cannot hand back is billed).
+  `src/game/market.ts` owns what a station charges. All three are pure and shared
+  with the campaign simulator (invariant 10). A contract's consequences are split
+  by where the state lives: settlement applies the commander's disrepute and
+  credits itself, and the orchestrators (`Game.applyContracts`, the campaign's
+  settle site) apply the destination's regional heat from the `paid` event —
+  once each (invariant 15).
 
 ## Conventions
 

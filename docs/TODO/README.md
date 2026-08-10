@@ -13,15 +13,12 @@ active context:
 
 ## Execution queue
 
-Empty — 112 landed; issue #17 stays open for its second milestone, 113.
-`QUEUE.json` agrees. The backlog below is in priority order; promoting its head
-is what makes the next execution item.
+Empty — 113 landed and closed GitHub #17 with it. `QUEUE.json` agrees. The
+backlog below is in priority order; promoting its head is what makes the next
+execution item.
 
 ## Backlog
 
-- [ ] 113 — [What you cannot hand back, you are billed for](113-what-you-cannot-hand-back-you-are-billed-for.md)
-      — GitHub #17, second milestone; 112 has landed, so this is unblocked and
-      is the head of the backlog
 - [ ] 111 — [The chart shows the danger it already reports](111-the-chart-shows-the-danger-it-reports.md)
       — GitHub #10, first slice; trade-flow follows if it reads well
 - [ ] 93 — [One home for the phosphor](93-one-home-for-the-phosphor.md)

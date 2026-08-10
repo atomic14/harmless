@@ -4,7 +4,7 @@
 // correct and none of them the owner:
 //
 //   ui/screens.ts   distanceTenths       — what the charts and the game used
-//   game/contracts.ts chartDistanceTenths — what the campaign simulator used
+//   game/contract-offers.ts chartDistanceTenths — what the campaign used
 //   game/game.ts    galacticJump()        — hand-inlined, squared, to pick the
 //                                           nearest system in the new galaxy
 //

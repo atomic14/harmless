@@ -1,14 +1,15 @@
-// What the bulletin board may OFFER: how far a job can send you, and what each
-// kind of work is made of.
+// What the bulletin board may OFFER: how far a job can send you, what each kind
+// of work is made of, and how it reads on the board.
 //
-// The other half of the board is test/contracts.test.ts — what taking a job
-// costs the hold and what delivering it pays. These were one file until the
-// smuggling kind landed (docs/TODO/110) and it crossed the size ceiling; they
-// share no fixture, only the module. The distinction that matters: everything
-// here is a property of `generateContractOffers`, measured out of the REAL
-// generator over the whole galaxy at TWO sample sizes rather than probed at its
-// own literals, so a re-inlined bound or a re-cut roll goes red here and the
-// settlement tests stay green.
+// The other half of the board is test/contracts.test.ts (what settling a job
+// pays and what failing it costs) and test/contract-acceptance.test.ts (what
+// taking one costs the hold). These were one file until the smuggling kind
+// landed (docs/TODO/110) and it crossed the size ceiling; they share no fixture,
+// only the module. The distinction that matters: everything here is a property
+// of `game/contract-offers.ts`, measured out of the REAL generator over the
+// whole galaxy at TWO sample sizes rather than probed at its own literals, so a
+// re-inlined bound or a re-cut roll goes red here and the settlement tests stay
+// green.
 //
 // CONTRACT_RANGE is MAX_FUEL now (resolved 2026-08-05 — the tank is the
 // rule): the check pins the bound exactly, from both sides — the furthest
@@ -16,9 +17,11 @@
 // destinations just beyond it that are never offered, so widening OR
 // narrowing the filter moves the measurement.
 
-import { generateGalaxy } from '../src/galaxy/galaxy.ts';
+import { generateGalaxy, generateMarket } from '../src/galaxy/galaxy.ts';
 import { distanceTenths } from '../src/galaxy/navigation.ts';
-import { generateContractOffers } from '../src/game/contracts.ts';
+import { generateContractOffers, describeContract } from '../src/game/contract-offers.ts';
+import { settleContracts } from '../src/game/contracts.ts';
+import { newCommander, type CommanderData, type Contract } from '../src/game/commander.ts';
 import { CONTRACT_RANGE } from '../src/constants/contracts.ts';
 import { ORDINARY_GOODS } from '../src/constants/commodities.ts';
 import { CONTRABAND } from '../src/constants/law.ts';
@@ -42,6 +45,32 @@ console.log('\nthe bulletin board\'s reach');
   check(`the bound excludes real destinations (${justBeyond} pairs sit in `
     + `(${CONTRACT_RANGE}, ${CONTRACT_RANGE + 5}])`, justBeyond > 0);
 
+  /**
+   * What one freight job is worth SOLD instead of delivered, in ledger tenths.
+   *
+   * `sell the consignment at the far end, arrive empty, eat the bill` against
+   * `deliver it and take the fee`. The bill is not transcribed here — the job is
+   * driven through the REAL `settleContracts` with an empty hold and an account
+   * deep enough that the cap never bites, so the charge is whatever settlement
+   * charges. The sale is the real market at the destination.
+   *
+   * Positive means arriving short pays, which is the thing docs/TODO/113 is
+   * measured against.
+   */
+  const theftMarginFor = (k: Contract, fluctuation: number): number => {
+    const c: CommanderData = {
+      ...newCommander(), systemIndex: k.destination, day: 0,
+      credits: 1e9, contracts: [k],
+    } as CommanderData;
+    const ev = settleContracts(c);
+    const bill = ev[0]?.kind === 'billed' ? ev[0].charged : 0;
+    const market = generateMarket(systems[k.destination], fluctuation);
+    // whole credits with one decimal on the screen, tenths in the ledger — the
+    // conversion game/screens/trade.ts makes when it pays you
+    const sale = k.qty * Math.round(market[k.commodity].price * 10);
+    return sale - bill - k.reward;
+  };
+
   // the sweep, read at two sizes (CLAUDE.md: read the set, not the sample) —
   // the answer must be the same one at both
   const sweep = (passes: number) => {
@@ -59,10 +88,19 @@ console.log('\nthe bulletin board\'s reach');
     let cargoTonnes = 0;
     let smuggleFee = 0;
     let smuggleTonnes = 0;
+    let freight = 0;
+    let theftWins = 0;
+    let theftMargin = 0;
     for (let p = 0; p < passes; p += 1) {
       for (const sys of systems) {
         for (const k of generateContractOffers(sys, systems, 0, rng)) {
           offers += 1;
+          if (k.kind === 'cargo' || k.kind === 'smuggle') {
+            freight += 1;
+            const margin = theftMarginFor(k, Math.floor(rng() * 256));
+            theftMargin += margin;
+            if (margin > 0) theftWins += 1;
+          }
           const d = distanceTenths(sys, systems[k.destination]);
           if (d > maxD) maxD = d;
           if (k.kind === 'cargo' && !ORDINARY_GOODS.includes(k.commodity)) strayCommodity += 1;
@@ -85,6 +123,7 @@ console.log('\nthe bulletin board\'s reach');
       maxD, offers, strayCommodity, passengers, strayQty, strayGoods,
       smuggles, strayLegal, strayLoad,
       cargoFee, cargoTonnes, smuggleFee, smuggleTonnes,
+      freight, theftWins, theftMargin,
     };
   };
   const small = sweep(3);
@@ -163,4 +202,52 @@ console.log('\nthe bulletin board\'s reach');
     + `(${smuggleRate(small).toFixed(1)} and ${smuggleRate(large).toFixed(1)} Cr/t)`,
   [small, large].every((s) => smuggleRate(s) > 1.5 * cargoRate(s)
     && smuggleRate(s) < 3 * cargoRate(s)));
+
+  // --- and that theft does not pay (docs/TODO/113) ---------------------------
+  //
+  // THE falsifiable claim of the bill, and the reason it is measured here rather
+  // than in the campaign: the campaign's bots hold every consignment back on
+  // purpose, so a harness of them can show what being robbed COSTS (it does —
+  // the SHORTFALL line) and can never show whether selling the freight would
+  // have paid. This can, because it asks the real settlement for the charge on
+  // every real offer the generator makes.
+  //
+  // Issue #17 measured the same question before any of this landed: the goods
+  // were worth more than the fee on 61% of offers, and the best trade on the
+  // board was a job you never delivered. The rule is not that theft is
+  // impossible — a dear market for a short haul still beats a small fee, and
+  // that is the deliberate outlaw play the plan wants left open — but that it
+  // is the exception rather than the default.
+  const theftShare = (s: ReturnType<typeof sweep>) => s.theftWins / s.freight;
+  const theftMean = (s: ReturnType<typeof sweep>) => s.theftMargin / s.freight / 10;
+  check(`selling a consignment beats delivering it only rarely `
+    + `(${(100 * theftShare(small)).toFixed(1)}% of ${small.freight} and `
+    + `${(100 * theftShare(large)).toFixed(1)}% of ${large.freight} freight jobs)`,
+  [small, large].every((s) => theftShare(s) < 0.1));
+  check(`...and costs, on average, more than it makes `
+    + `(${theftMean(small).toFixed(1)} and ${theftMean(large).toFixed(1)} Cr per job)`,
+  [small, large].every((s) => theftMean(s) < 0));
+
+  // --- and how a job reads on the board --------------------------------------
+  //
+  // `describeContract` ends on the BOUNTY line as a fallback, not a default: a
+  // kind with no line of its own is silently described as a pirate hunt.
+  {
+    const job = (over: Partial<Contract>): Contract => ({
+      kind: 'cargo', destination: 7, commodity: 0, qty: 5,
+      reward: 500, deadlineDay: 10, progress: 0, ...over,
+    });
+    check('a passenger job is described as passengers, not as a pirate hunt',
+      describeContract(job({ kind: 'passenger', qty: 2 }), systems)
+        === 'Carry 2 passengers to LAVE');
+    check('...and one passenger is not two',
+      describeContract(job({ kind: 'passenger', qty: 1 }), systems)
+        === 'Carry 1 passenger to LAVE');
+    // The board says what the job is. A smuggling run described as a pirate
+    // hunt — the fallback's failure mode — would have the player accept a
+    // police scan without being told there was one to accept.
+    check('a smuggling run names the goods and admits what it is',
+      describeContract(job({ kind: 'smuggle', commodity: CONTRABAND[1], qty: 4 }), systems)
+        === 'Move 4t Narcotics to LAVE — no questions asked');
+  }
 }

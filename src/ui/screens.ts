@@ -20,7 +20,7 @@ import { EQUIPMENT_CATALOGUE } from '../constants/shop.ts';
 import {
   saveLabel, type LiveRun, type LoadCost, type SaveSummary,
 } from '../game/save-file.ts';
-import { describeContract } from '../game/contracts.ts';
+import { describeContract } from '../game/contract-offers.ts';
 import type { MarketEstimate } from '../game/market.ts';
 import type { ChartState } from '../game/chart-state.ts';
 import {
@@ -990,8 +990,8 @@ export function renderSystemData(
   `);
 }
 
-// describeContract lives in game/contracts.ts with the rest of the contract
-// rules (invariant 10) — a job's one-line description is not a property of the
+// describeContract lives in game/contract-offers.ts with the board itself
+// (invariant 10) — a job's one-line description is not a property of the
 // screen that happens to draw it. Re-exported so the screens' importers, and
 // this file's own two uses below, still read naturally.
 export { describeContract };

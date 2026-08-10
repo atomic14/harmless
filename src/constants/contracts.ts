@@ -2,8 +2,9 @@
 // may send you, what a berth costs the hold, and what notoriety a delivery of
 // illicit freight leaves behind at the far end.
 //
-// The board itself — pay, deadlines, settlement — is game/contracts.ts, whose
-// reward formula stays there, pinned in aggregate by `npm run campaign`.
+// The board itself is game/contract-offers.ts — pay and deadlines, whose reward
+// formula stays there, pinned in aggregate by `npm run campaign` — and
+// settlement is game/contracts.ts.
 
 import { MAX_FUEL } from './commander.ts';
 

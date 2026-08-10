@@ -125,14 +125,94 @@ attached — good money now, paid for later.
 
 ## Acceptance
 
-- Arriving short charges the base value of the missing tonnes, capped at what
-  the commander has, and marks the name.
-- An honest late failure charges nothing and marks nothing.
-- The HUD names the bill; no contract can produce both `billed` and
-  `incomplete`.
-- `npm run campaign` shows arriving short is no longer a net gain for the
-  trader cohort.
-- Full gates: `npm test`, `npm run campaign`, `npm run constants:check`.
+- [x] Arriving short charges the base value of the missing tonnes — exactly the
+      missing ones, not the consignment — capped at what the commander has, and
+      marks the name. Zeroing the charge or dropping the `afterDeed` call
+      reddens the checks that pin each.
+- [x] An honest late failure charges nothing and marks nothing: the same job,
+      the same missing tonnes, one day past the deadline, asserted beside the
+      billed case.
+- [x] The HUD names the bill — `CONSIGNMENT SHORT — BILLED 93.6 Cr FOR 2T
+      MACHINERY — 3T RECLAIMED` — and a contract produces `billed` or
+      `incomplete`, never both.
+- [x] `npm run campaign` shows arriving short is a cost and never a gain: the
+      new SHORTFALL line reports 6.2 t never arriving and 88.4 Cr billed per
+      trader career, and the sweep below shows the sale would not have covered
+      it either.
+- [x] Full gates: `npm run check` (lint, 3,427 tests, sizes, constants, the
+      generated catalogues) exits 0, and `npm run campaign` passes.
+
+## What the ledger said
+
+**Theft no longer pays, and it is measured where the campaign cannot see it.**
+The campaign's bots hold every consignment back on purpose, so a cohort of them
+can show what being robbed *costs* and can never show whether selling the
+freight would have *paid*. So the falsifiable claim is asserted in
+`test/contract-offers.test.ts`, over every offer the real generator makes, with
+the bill taken from the real `settleContracts` rather than transcribed: sell the
+consignment at the destination, arrive empty, pay the invoice, against simply
+delivering it.
+
+| | offers where selling beats delivering | mean margin |
+|---|---|---|
+| issue #17, before 112 | **61%** (goods vs fee) | +11.5 Cr/t of free goods |
+| after 112, with no bill | **46.3% / 44.2%** | −0.2 / −0.6 Cr |
+| after 113 | **0.7% / 0.7%** | **−163.1 / −163.7 Cr** |
+
+Both figures are read at the file's two sample sizes (1,155 and 5,658 freight
+jobs). The middle row is this milestone's gate proving it can fail: neutering
+the charge alone takes the share from 0.7% to 46%. The 0.7% that survives is
+the deliberate outlaw play the plan wanted left open — a dear market on a short
+haul, where the fee was small — so no surcharge multiplier is needed, which was
+the lever this measurement was meant to decide.
+
+**The campaign, 1,000 careers × 60 legs, against the same run on `main`:**
+
+| cohort | before | after | shorted | billed |
+|---|---|---|---|---|
+| trader | 6,886.9 Cr | 6,557.7 Cr (−4.8%) | 6.2 t | 88.4 Cr |
+| privateer | 8,777.6 Cr | 8,101.9 Cr (−7.7%) | 10.8 t | 220.1 Cr |
+| bounty hunter | 628.4 Cr | 628.4 Cr | 0.0 t | 0.0 Cr |
+
+The bounty hunter is *identical to the digit* — the control: it takes no
+freight. The privateer pays most because it flies as bait and is robbed most,
+which is the shape the plan predicted and wanted: liability is what makes a
+shield worth money. The cost to a career is several times the credits billed
+(329 Cr of net worth for 88 Cr of invoice) because the charge lands early and
+compounds through the cargo it would have bought. Read again at a second size —
+500 careers × 120 legs — the trader goes 23,921 → 23,272 Cr (−2.7%), so the
+effect does not grow with career length. Both are comfortably clear of the
+5,000 Cr wealth floor.
+
+## Also landed
+
+- **The module split.** `game/contracts.ts` crossed the 400-line ceiling with
+  the bill in it, so what the board OFFERS and how a job READS moved to
+  `game/contract-offers.ts` (169 lines) — the seam the tests had already found
+  in 110, and one-way: settlement imports `describeContract`, nothing there
+  imports settlement. `test/contracts.test.ts` crossed too, and what TAKING a
+  job costs the hold is `test/contract-acceptance.test.ts` now; the
+  `describeContract` phrasing checks went with their function.
+- **`tonnesShort` and `creditsBilled` at the campaign's settle site**, printed
+  as a SHORTFALL line. `billed` also carries `reclaimed`, which the plan did not
+  ask for: without it the tonnage handed back on a short arrival would have
+  vanished from the harness's ledger the moment `billed` replaced `incomplete`.
+- **`DISREPUTE_CONTRABAND_SALE` gained a rule id too.** The plan asked for one on
+  the new deed because the two share the value 5; `separateRules` only frees a
+  pair when *both* carry ids, so one id would have been half a fix.
+
+## Decisions taken while building
+
+- **The deed marks the act, not the payment.** A commander with nothing in the
+  account is charged nothing — the cap says so — but is still marked, and the
+  event falls back to `incomplete` because a `BILLED 0.0 Cr` invoice says
+  nothing. Tying the deed to the charge instead would have made spending down
+  before the door a way to launder a shorted consignment into a free one.
+- **The HUD names the commodity once.** `reclaimedClause` was not reused for the
+  bill line: it would have printed the goods twice on a part-reclaimed,
+  part-billed arrival, and the plan's caution about the wording is exactly that
+  the line must read as the shipper's invoice, not as the station taking an
+  interest in what was aboard.
 
 ## Verify
 
@@ -143,3 +223,8 @@ Confirmed by reading, 2026-08-10: `fineFor`'s cap-at-credits shape at
 (`contracts.ts:205`) and its three call sites (`game.ts:998`,
 `station.ts:214`, `campaign.ts:191`); `basePrice` as a raw byte scaled by 4/10
 into credits at `galaxy.ts:142-171`.
+
+Confirmed by measurement, 2026-08-10: the two tables above, each read at two
+sample sizes; both new gates shown failing when the rule they protect is broken
+(the `afterDeed` call removed → 3 disrepute checks red; the charge zeroed →
+the theft-share check red at 46.3%/44.2%).

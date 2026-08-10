@@ -76,6 +76,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 109 — [Passenger berths on the board](109-passenger-berths-on-the-board.md)
 - [x] 110 — [Smuggling runs price the scan](110-smuggling-runs-price-the-scan.md)
 - [x] 112 — [The consignment goes back](112-the-consignment-goes-back.md)
+- [x] 113 — [What you cannot hand back, you are billed for](113-what-you-cannot-hand-back-you-are-billed-for.md) — closed GitHub #17
 
 <!-- append-completed-todos-here -->
 

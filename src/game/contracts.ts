@@ -1,9 +1,11 @@
-// Station bulletin-board contracts: what work a station offers today, what
-// taking it costs your hold, and what delivering it pays.
+// Station bulletin-board contracts: what taking work costs your hold, what
+// delivering it pays, and what failing it costs.
 //
-// What a station CHARGES is game/market.ts — the two halves of this file were
-// unrelated subjects sharing a name, and it crossed the size ceiling when
-// passenger work landed (docs/TODO/109).
+// What is ON the board, and how a job reads, is game/contract-offers.ts — the
+// two left when docs/TODO/113's bill took the pair over the size ceiling, along
+// the seam the tests had already found. What a station CHARGES is
+// game/market.ts; those two were unrelated subjects sharing a name, and split
+// when passenger work landed (docs/TODO/109).
 //
 // Pure functions, deliberately free of three.js and DOM so that both the
 // game (src/game/game.ts) and the headless campaign simulator
@@ -16,143 +18,17 @@
 // .ts extension: this module is run directly by Node (--experimental-strip-types)
 // for the campaign simulator, and COMMODITIES is a value import, not a type.
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
-import { random } from './rng.ts';
-import { distanceTenths } from '../galaxy/navigation.ts';
 import {
   cargoCapacity, cargoTonnes, formatCredits,
   type CommanderData, type Contract,
 } from './commander.ts';
 import type { SoundName } from './sounds.ts';
+import { describeContract } from './contract-offers.ts';
+import { MAX_CONTRACTS, PASSENGER_BERTH_TONNES } from '../constants/contracts.ts';
 import {
-  CONTRACT_RANGE, MAX_CONTRACTS, PASSENGER_BERTH_TONNES,
-} from '../constants/contracts.ts';
-import { ORDINARY_GOODS } from '../constants/commodities.ts';
-import { CONTRABAND } from '../constants/law.ts';
-import { DISREPUTE_CONTRABAND_SALE } from '../constants/character.ts';
+  DISREPUTE_CONTRABAND_SALE, DISREPUTE_SHORTED_CONSIGNMENT,
+} from '../constants/character.ts';
 import { afterDeed } from './character.ts';
-
-/** Chart distance in tenths of a light-year (the original's metric). */
-// Was a second copy of the chart metric. It now comes from the one owner, and
-// keeps the old name so the campaign harness's imports still read naturally.
-export { distanceTenths as chartDistanceTenths };
-/**
- * Work on offer at a station today. Deliberately more generous than the
- * original, which gated every mission behind a high combat rating: a new
- * commander should always have somewhere to be. Rewards were tuned against
- * the autonomous playtest agent's ledger (see docs/DEVLOG.md).
- */
-export function generateContractOffers(
-  sys: StarSystem,
-  systems: StarSystem[],
-  day: number,
-  rng: () => number = random,
-): Contract[] {
-  const reachable = systems.filter((s) => {
-    const d = distanceTenths(sys, s);
-    return s.index !== sys.index && d > 0 && d <= CONTRACT_RANGE;
-  });
-  if (!reachable.length) return [];
-
-  const offers: Contract[] = [];
-  const count = 2 + Math.floor(rng() * 3);
-  for (let i = 0; i < count; i++) {
-    const dest = reachable[Math.floor(rng() * reachable.length)];
-    const dist = distanceTenths(sys, dest);
-    const roll = rng();
-    // One roll cuts all five kinds, so any re-cut moves every seeded board.
-    // Cargo and courier gave up the slice passengers occupy; smuggling's 0.10
-    // then came off cargo and bounty together, leaving illicit freight the
-    // narrowest slice on the board — it is meant to be the job you notice, not
-    // the job you plan a career around — and bounty still wide enough that the
-    // combat ladder is fed by the board as well as the ledger.
-    if (roll < 0.4) {
-      // cargo run: they supply the goods, you supply the nerve
-      const commodity = ORDINARY_GOODS[Math.floor(rng() * ORDINARY_GOODS.length)];
-      const qty = 3 + Math.floor(rng() * 8);
-      offers.push({
-        kind: 'cargo',
-        destination: dest.index,
-        commodity,
-        qty,
-        // The per-tonne term was `22 + dist * 1.6` until docs/TODO/112, which is
-        // 11.4 Cr/t of fee to haul goods worth 24.5 Cr/t at the far end — a fee
-        // nobody would take a hold slot for once the consignment goes back on
-        // failure instead of staying sold-able in the hold. 2.45x makes the fee
-        // the whole of the reward, at ~25 Cr/t. The pair was SET by the campaign
-        // rather than argued: over 1,000 trader careers the reclaim alone costs
-        // the cohort 6,981 -> 4,454 Cr of median net worth, and this is what puts
-        // it back (6,887 Cr). The flat term and the deadline are unchanged, and
-        // so is the roll above, so the fee and 110's share change stay legible
-        // apart in the ledger.
-        reward: Math.round(qty * (54 + dist * 3.9) + 90),
-        deadlineDay: day + 4 + Math.ceil(dist / 12),
-        progress: 0,
-      });
-    } else if (roll < 0.6) {
-      offers.push({
-        kind: 'courier',
-        destination: dest.index,
-        commodity: 0,
-        qty: 0,
-        reward: Math.round(240 + dist * 6.0),
-        deadlineDay: day + 3 + Math.ceil(dist / 16),
-        progress: 0,
-      });
-    } else if (roll < 0.75) {
-      // passengers: a berth apiece out of the same hold freight wants, and a
-      // courier's deadline, because people notice being late in a way that a
-      // crate does not.
-      const qty = 1 + Math.floor(rng() * 3);
-      offers.push({
-        kind: 'passenger',
-        destination: dest.index,
-        commodity: 0,
-        qty,
-        reward: Math.round(qty * (90 + dist * 3) + 120),
-        deadlineDay: day + 3 + Math.ceil(dist / 16),
-        progress: 0,
-      });
-    } else if (roll < 0.85) {
-      // Illicit freight (docs/TODO/110). A cargo run in every mechanical
-      // respect — the consignment is loaded on accept and must still be aboard
-      // at the far end — but drawn from the law's own `CONTRABAND`, so from the
-      // moment you accept it the police scan (world-step.ts), the pirates'
-      // appetite (threat.ts) and the hermit outlet all apply with no new code.
-      // Small loads: it is a job you hide, not a hold you fill.
-      const commodity = CONTRABAND[Math.floor(rng() * CONTRABAND.length)];
-      const qty = 2 + Math.floor(rng() * 4);
-      offers.push({
-        kind: 'smuggle',
-        destination: dest.index,
-        commodity,
-        qty,
-        // A FLAT formula, deliberately not `marketEstimate`: the estimate's own
-        // docstring records that the Narcotics mean lies (byte wrap), and
-        // pricing a reward off it would import that lie. Roughly twice the
-        // per-tonne rate of an ordinary cargo run above, which is what the
-        // existing punishment ladder is worth taking on. Scaled by the same
-        // 2.45x as cargo in docs/TODO/112 (`80 + dist * 2` before it), so the
-        // premium illicit freight carries is the one 110 measured and not a
-        // second change riding along with the reclaim.
-        reward: Math.round(qty * (195 + dist * 4.9) + 200),
-        deadlineDay: day + 4 + Math.ceil(dist / 12),
-        progress: 0,
-      });
-    } else {
-      const qty = 2 + Math.floor(rng() * 3);
-      offers.push({
-        kind: 'bounty',
-        destination: dest.index,
-        commodity: 0,
-        qty,
-        reward: Math.round(qty * 170 + dist * 4),
-        deadlineDay: day + 6 + Math.ceil(dist / 10),
-        progress: 0,
-      });
-    }
-  }
-  return offers;
-}
 
 
 // --- taking work, and being paid for it -------------------------------------
@@ -182,28 +58,19 @@ export type ContractEvent =
   | { kind: 'paid'; contract: Contract }
   /** delivered here, on time — but the goods are no longer aboard */
   | { kind: 'incomplete'; contract: Contract; reclaimed: number }
+  /**
+   * ...and the shipper charged you for the part you could not hand back
+   * (docs/TODO/113). A new KIND rather than a field on `incomplete`, because a
+   * new thing happened: money left the account and the name was marked. It
+   * carries `reclaimed` as well so the ledger a failure feeds is the same one
+   * whichever of the two lands — `tonnes` is what was missing, `reclaimed` what
+   * was still aboard, and the two add up to the consignment.
+   */
+  | { kind: 'billed'; contract: Contract; reclaimed: number; tonnes: number; charged: number }
   | { kind: 'expired'; contract: Contract; reclaimed: number }
   | { kind: 'accepted'; contract: Contract }
   | { kind: 'refused'; reason: 'tooMuchWork' | 'noHoldSpace' };
 
-/** One line describing a job, for the board and the station menu. */
-export function describeContract(k: Contract, systems: StarSystem[]): string {
-  const dest = systems[k.destination].name.toUpperCase();
-  if (k.kind === 'cargo') return `Deliver ${k.qty}t ${COMMODITIES[k.commodity].name} to ${dest}`;
-  if (k.kind === 'courier') return `Carry sealed data to ${dest}`;
-  // The final line is the BOUNTY fallback, not a default: a kind with no line
-  // of its own here is described as a pirate hunt, silently and wrongly.
-  if (k.kind === 'passenger') {
-    return `Carry ${k.qty} passenger${k.qty === 1 ? '' : 's'} to ${dest}`;
-  }
-  // Says what it is. The board never pretends a smuggling run is freight — the
-  // player is choosing to take the law on, and cannot choose what they were not
-  // told (`ui/screens.ts` marks the row amber to match).
-  if (k.kind === 'smuggle') {
-    return `Move ${k.qty}t ${COMMODITIES[k.commodity].name} to ${dest} — no questions asked`;
-  }
-  return `Destroy ${k.qty} pirates around ${dest}`;
-}
 
 /**
  * Take a failed consignment back off the ship, and say how much that was.
@@ -230,6 +97,32 @@ function reclaim(c: CommanderData, k: Contract): number {
 }
 
 /**
+ * Bill the commander for the tonnes that never arrived, and say what was taken
+ * (docs/TODO/113).
+ *
+ * `basePrice * 4` is a tonne's base value in ledger tenths — the same scaling
+ * `generateMarket` applies before its `/10` into whole credits
+ * (`galaxy/galaxy.ts`). Base price rather than the local quote for two reasons:
+ * `settleContracts` takes only the commander, so a local quote would mean
+ * threading a market lookup through all three of its call sites into a function
+ * whose purity is what invariant 10 is protecting; and the base is *below* what
+ * a dear market pays, which is the leniency that keeps the robbed-by-pirates
+ * case survivable — settlement cannot see WHY a hold is short, so it charges
+ * the sold and the robbed alike and the gentleness has to live in the price.
+ *
+ * Capped at what the commander has, the shape `fineFor` uses (`law.ts`), so a
+ * broke commander is never trapped: the cost is the credits, not the
+ * impossibility. Spelled out here rather than imported, because this is the
+ * shipper's invoice and not the Government's fine.
+ */
+function billShortfall(c: CommanderData, k: Contract, tonnes: number): number {
+  const owed = tonnes * COMMODITIES[k.commodity].basePrice * 4;
+  const charged = Math.min(c.credits, owed);
+  c.credits -= charged;
+  return charged;
+}
+
+/**
  * Pay out anything delivered here, drop anything overdue, and take back the
  * freight that was riding on it (`reclaim`, docs/TODO/112).
  *
@@ -241,7 +134,9 @@ function reclaim(c: CommanderData, k: Contract): number {
  *
  * Disrepute is the newest of those (docs/TODO/110) and worth saying out loud,
  * because the campaign's numbers move once settlement starts applying deeds:
- * landing a smuggling run marks the name exactly as a dirty market sale does.
+ * landing a smuggling run marks the name exactly as a dirty market sale does,
+ * and so does arriving short (docs/TODO/113). Being LATE does neither — that
+ * is an honest failure, and 112 already priced it by taking the freight back.
  * The regional heat that goes with it is `LivingGalaxy` state this pure module
  * cannot see, so the orchestrators apply that from the `paid` event.
  *
@@ -262,7 +157,18 @@ export function settleContracts(c: CommanderData): ContractEvent[] {
         // as voidable as freight, because what you sold at a better price on
         // the way is the temptation the job is built around
         if (c.cargo[k.commodity] < k.qty) {
-          events.push({ kind: 'incomplete', contract: k, reclaimed: reclaim(c, k) });
+          // What is still aboard goes back (112); what is not, you are billed
+          // for and remembered for (113). The deed marks the act, not the
+          // payment: a commander with nothing in the account pays nothing —
+          // the cap says so — but spending down before docking must not launder
+          // a shorted consignment into a free one.
+          const reclaimed = reclaim(c, k);
+          const tonnes = k.qty - reclaimed;
+          const charged = billShortfall(c, k, tonnes);
+          c.disrepute = afterDeed(c.disrepute ?? 0, DISREPUTE_SHORTED_CONSIGNMENT);
+          events.push(charged > 0
+            ? { kind: 'billed', contract: k, reclaimed, tonnes, charged }
+            : { kind: 'incomplete', contract: k, reclaimed });
           continue;
         }
         c.cargo[k.commodity] -= k.qty;
@@ -360,6 +266,18 @@ export function contractMessage(e: ContractEvent, systems: StarSystem[]): Contra
     case 'incomplete':
       return {
         text: `CONSIGNMENT INCOMPLETE — CONTRACT VOID${reclaimedClause(e)}`,
+        seconds: 5,
+        sound: null,
+      };
+    case 'billed':
+      // Says what was taken and what it was for, and names the goods ONCE —
+      // this is an invoice from the shipper, not the station taking an interest
+      // in what a smuggler was carrying. No sound of its own: it is the same
+      // failure `incomplete` is, with a charge attached.
+      return {
+        text: `CONSIGNMENT SHORT — BILLED ${formatCredits(e.charged)} FOR `
+          + `${e.tonnes}T ${COMMODITIES[e.contract.commodity].name.toUpperCase()}`
+          + (e.reclaimed > 0 ? ` — ${e.reclaimed}T RECLAIMED` : ''),
         seconds: 5,
         sound: null,
       };

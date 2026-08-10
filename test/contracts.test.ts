@@ -1,26 +1,25 @@
-// Contracts: what taking a job off the bulletin board costs the hold, and what
-// delivering it pays.
+// Settling contracts: what delivering work pays, what failing it costs, and
+// what the HUD says about either.
 //
 // Contract rules live in game/contracts.ts (invariant 10) so the headless
 // campaign runs the same code the game does — these drive that module directly.
 // The Navy mission and trumbles were here too and are test/missions.test.ts now;
 // what the board may OFFER is test/contract-offers.test.ts, which left when the
-// smuggling kind (docs/TODO/110) took the pair over the size ceiling.
+// smuggling kind (docs/TODO/110) took the pair over the size ceiling, and what
+// TAKING a job costs the hold is test/contract-acceptance.test.ts, which left
+// when the bill for a shorted consignment (docs/TODO/113) took it over again.
 
 import {
-  newCommander, cargoCapacity, cargoTonnes, type Contract,
+  newCommander, cargoTonnes, type Contract,
 } from '../src/game/commander.ts';
 import type { CommanderData } from '../src/game/commander.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
-import {
-  settleContracts,
-  acceptContract,
-  contractMessage,
-  describeContract,
-} from '../src/game/contracts.ts';
-import { MAX_CONTRACTS, PASSENGER_BERTH_TONNES } from '../src/constants/contracts.ts';
+import { settleContracts, contractMessage } from '../src/game/contracts.ts';
+import { PASSENGER_BERTH_TONNES } from '../src/constants/contracts.ts';
 import { CONTRABAND } from '../src/constants/law.ts';
-import { DISREPUTE_CONTRABAND_SALE } from '../src/constants/character.ts';
+import {
+  DISREPUTE_CONTRABAND_SALE, DISREPUTE_SHORTED_CONSIGNMENT,
+} from '../src/constants/character.ts';
 import { carryingContraband } from '../src/game/law.ts';
 import { check } from './harness.ts';
 
@@ -74,12 +73,11 @@ console.log('\ncontracts');
     c.contracts = [cargoRun()];
     c.cargo[0] = 4;              // sold one on the way
     const ev = settleContracts(c);
-    check('a short consignment is void, not paid', ev[0]?.kind === 'incomplete');
-    check('...pays nothing', c.credits === 1000);
+    check('a short consignment is void, not paid', ev[0]?.kind === 'billed');
     // WHAT IS THERE, not what was owed: 4t aboard against a 5t job leaves the
     // hold empty and reports 4, which is also what stops the hold going negative
     check('...hands back what is aboard, not what was owed',
-      c.cargo[0] === 0 && ev[0]?.kind === 'incomplete' && ev[0].reclaimed === 4);
+      c.cargo[0] === 0 && ev[0]?.kind === 'billed' && ev[0].reclaimed === 4);
     check('...and is off the list for good', c.contracts.length === 0);
   }
   {
@@ -88,7 +86,72 @@ console.log('\ncontracts');
     c.cargo[0] = 2;              // 2t against a 5t job — the plan's own case
     const ev = settleContracts(c);
     check('...a 2t hold against a 5t job hands back 2t and reports it',
-      ev[0]?.kind === 'incomplete' && ev[0].reclaimed === 2 && c.cargo[0] === 0);
+      ev[0]?.kind === 'billed' && ev[0].reclaimed === 2 && c.cargo[0] === 0);
+  }
+  // --- ...and what you cannot hand back you are billed for (docs/TODO/113) ---
+  //
+  // 112 could close the honest failure and no more: arriving SHORT means the
+  // freight was sold, jettisoned or lost, and there is nothing left to reclaim.
+  // The shipper invoices the difference at the commodity's base value —
+  // `basePrice * 4` ledger tenths, the same scaling generateMarket applies —
+  // capped at what the commander has, and the name is marked.
+  //
+  // The numbers below are written out rather than recomputed from COMMODITIES,
+  // so a change to the valuation rule fails here instead of agreeing with
+  // itself: Machinery's base price is 0x75 = 117, so a tonne bills 468 tenths
+  // (46.8 Cr) and Food's 0x13 = 19 bills 76 (7.6 Cr).
+  {
+    const c = cmdr();
+    c.contracts = [cargoRun({ commodity: 8, qty: 5 })];   // Machinery
+    c.cargo[8] = 3;              // two tonnes light at the door
+    const ev = settleContracts(c);
+    // EXACTLY the missing tonnes: billing the whole 5t consignment would be
+    // 2,340 tenths, more than she has, and would empty the account instead.
+    check('a short consignment is billed for the missing tonnes, not the whole job',
+      ev[0]?.kind === 'billed' && ev[0].tonnes === 2 && ev[0].charged === 2 * 468);
+    check('...and the money actually leaves the account', c.credits === 1000 - 936);
+    check('...while the three tonnes still aboard go back as before',
+      ev[0]?.kind === 'billed' && ev[0].reclaimed === 3 && c.cargo[8] === 0);
+    check(`...and it marks the name at DISREPUTE_SHORTED_CONSIGNMENT `
+      + `(${DISREPUTE_SHORTED_CONSIGNMENT})`,
+    c.disrepute === DISREPUTE_SHORTED_CONSIGNMENT);
+  }
+  {
+    // The `fineFor` shape: capped at what you can pay, so a commander who sold
+    // the consignment to buy a laser is poor, not trapped. 5t of Machinery is
+    // 2,340 tenths against 500 in the account.
+    const c = cmdr({ credits: 500 });
+    c.contracts = [cargoRun({ commodity: 8, qty: 5 })];
+    const ev = settleContracts(c);
+    check('a bill bigger than the account takes everything and no more',
+      ev[0]?.kind === 'billed' && ev[0].charged === 500 && c.credits === 0);
+    check('...and the ledger never goes negative', c.credits >= 0);
+  }
+  {
+    // ...and at zero there is nothing to take. The line falls back to the plain
+    // void — a `BILLED 0.0 CR` invoice says nothing — but the DEED still lands,
+    // or spending down before the door would launder a shorted consignment into
+    // a free one.
+    const c = cmdr({ credits: 0 });
+    c.contracts = [cargoRun({ commodity: 8, qty: 5 })];
+    const ev = settleContracts(c);
+    check('a commander with nothing is not billed, and the two lines never both fire',
+      ev.length === 1 && ev[0]?.kind === 'incomplete' && c.credits === 0);
+    check('...but being broke does not buy the deed off',
+      c.disrepute === DISREPUTE_SHORTED_CONSIGNMENT);
+  }
+  {
+    // THE honest/dishonest split, and the reason 112 and 113 are two milestones:
+    // late is a failure, short is a deed. Same job, same missing tonnes, one day
+    // apart — and only one of them is charged or remembered.
+    const c = cmdr({ day: 11 });
+    c.contracts = [cargoRun({ commodity: 8, qty: 5 })];
+    c.cargo[8] = 3;
+    const ev = settleContracts(c);
+    check('an honest late failure charges nothing and marks nothing',
+      ev[0]?.kind === 'expired' && c.credits === 1000 && (c.disrepute ?? 0) === 0);
+    check('...it just takes the freight back', ev[0]?.kind === 'expired'
+      && ev[0].reclaimed === 3 && c.cargo[8] === 0);
   }
   {
     // Goods are fungible and the hold keeps no per-contract provenance, so a
@@ -222,19 +285,21 @@ console.log('\ncontracts');
   }
   {
     // THE temptation the job exists for: narcotics sell, and a hold that sold
-    // them has nothing to hand over. Void, not paid — and no deed either,
-    // because the sale that marked the name happened at the market screen.
+    // them has nothing to hand over. Void, not paid — and billed for the tonne
+    // that is missing exactly as freight is (docs/TODO/113): the shipper wants
+    // paying whether or not the goods were legal to carry. Narcotics' base
+    // price is 0xeb = 235, so the one missing tonne bills 940 tenths.
     const c = cmdr();
     c.contracts = [smuggleRun()];
     c.cargo[CONTRABAND[1]] = 3;
     const ev = settleContracts(c);
-    check('a smuggling run sold off en route is incomplete, not paid',
-      ev[0]?.kind === 'incomplete' && c.credits === 1000);
+    check('a smuggling run sold off en route is void, not paid',
+      ev[0]?.kind === 'billed' && ev[0].charged === 940 && c.credits === 60);
     check('...hands back the 3t still aboard and leaves the list',
-      ev[0]?.kind === 'incomplete' && ev[0].reclaimed === 3
+      ev[0]?.kind === 'billed' && ev[0].reclaimed === 3
       && c.cargo[CONTRABAND[1]] === 0 && c.contracts.length === 0);
-    check('...and settlement adds no deed of its own for a job it did not pay',
-      (c.disrepute ?? 0) === 0);
+    check('...and the shorted consignment is the deed, not the smuggling',
+      c.disrepute === DISREPUTE_SHORTED_CONSIGNMENT);
   }
   {
     // Illicit freight is reclaimed exactly like freight — the hermit outlet
@@ -249,22 +314,6 @@ console.log('\ncontracts');
     check('...leaving the hold clean', c.cargo[CONTRABAND[1]] === 0
       && !carryingContraband(c.cargo));
   }
-  {
-    // ...and accepting one loads it, which is the ENTIRE mechanism: from here
-    // `carryingContraband` is true, so the scan, the pirates' appetite and the
-    // hermit outlet apply with no code of their own.
-    const c = cmdr();
-    const offers = [smuggleRun({ destination: 8 })];
-    check('accepting a smuggling run loads the contraband on the spot',
-      acceptContract(c, offers, 0)[0]?.kind === 'accepted'
-      && c.cargo[CONTRABAND[1]] === 4 && offers.length === 0);
-    check('...and that is what makes it contraband aboard, with no new rule',
-      carryingContraband(c.cargo));
-    const full = cmdr();
-    full.cargo[0] = cargoCapacity(full);
-    check('...and a hold with no room refuses it like any consignment',
-      acceptContract(full, [smuggleRun({ destination: 8 })], 0)[0]?.kind === 'refused');
-  }
 
   {
     const c = cmdr();
@@ -272,77 +321,6 @@ console.log('\ncontracts');
     c.cargo[0] = 5; c.cargo[1] = 5;
     check('several jobs settle in one dock', settleContracts(c).length === 2);
     check('...and both rewards are paid', c.credits === 1800);
-  }
-
-  // --- taking it on --------------------------------------------------------
-  {
-    const c = cmdr();
-    const offers = [cargoRun({ destination: 8 })];
-    const ev = acceptContract(c, offers, 0);
-    check('accepting a cargo run loads the consignment on the spot',
-      ev[0]?.kind === 'accepted' && c.cargo[0] === 5);
-    check('...puts it on your list', c.contracts.length === 1);
-    check('...and takes it off the board', offers.length === 0);
-  }
-  {
-    const c = cmdr();
-    c.contracts = [cargoRun(), cargoRun(), cargoRun()];   // MAX_CONTRACTS
-    const offers = [cargoRun({ destination: 8 })];
-    const ev = acceptContract(c, offers, 0);
-    check(`no more than ${MAX_CONTRACTS} jobs at once`,
-      ev[0]?.kind === 'refused' && ev[0].reason === 'tooMuchWork');
-    check('...and a refusal changes nothing at all',
-      c.contracts.length === 3 && offers.length === 1 && c.cargo[0] === 0);
-  }
-  {
-    const c = cmdr();
-    c.cargo[0] = cargoCapacity(c);   // hold already full
-    const offers = [cargoRun({ destination: 8 })];
-    const ev = acceptContract(c, offers, 0);
-    check('a consignment that will not fit is refused',
-      ev[0]?.kind === 'refused' && ev[0].reason === 'noHoldSpace');
-    check('...and nothing is loaded', c.cargo[0] === cargoCapacity(c) && offers.length === 1);
-  }
-  {
-    check('accepting nothing is nothing', acceptContract(cmdr(), [], 0).length === 0);
-  }
-
-  // --- berths compete with freight for the same bays -----------------------
-  //
-  // The mirror of the cargo `noHoldSpace` case above, and the whole point of
-  // passenger work: a berth is hold space, so a hold with room for one more
-  // tonne cannot take a passenger who needs two.
-  {
-    const c = cmdr();
-    const berths = 3 * PASSENGER_BERTH_TONNES;
-    c.cargo[0] = cargoCapacity(c) - berths;
-    const offers = [passengerJob({ destination: 8 })];
-    check('a passenger job that exactly fills the hold is taken',
-      acceptContract(c, offers, 0)[0]?.kind === 'accepted');
-    check('...charges the hold for the berths, loading nothing',
-      cargoTonnes(c) === cargoCapacity(c) && c.cargo[0] === cargoCapacity(c) - berths);
-    check('...and fills it: there is no room left for a tonne of freight',
-      cargoTonnes(c) + 1 > cargoCapacity(c));
-  }
-  {
-    const c = cmdr();
-    c.cargo[0] = cargoCapacity(c) - 3 * PASSENGER_BERTH_TONNES + 1;  // one tonne short
-    const offers = [passengerJob({ destination: 8 })];
-    const ev = acceptContract(c, offers, 0);
-    check('passengers with nowhere to sleep are refused',
-      ev[0]?.kind === 'refused' && ev[0].reason === 'noHoldSpace');
-    check('...and a refusal changes nothing at all',
-      c.contracts.length === 0 && offers.length === 1);
-  }
-  {
-    // berths already taken are hold already used — the two jobs compete, and
-    // this fails if `cargoTonnes` reads the cargo array alone
-    const c = cmdr();
-    c.contracts = [passengerJob({ qty: 3, destination: 9 })];
-    c.cargo[0] = cargoCapacity(c) - 4 * PASSENGER_BERTH_TONNES;
-    const offers = [passengerJob({ qty: 2, destination: 8 })];
-    check('a booked berth is counted against the next booking',
-      acceptContract(c, offers, 0)[0]?.kind === 'refused');
   }
 
   // --- phrasing lives with the rule, away from the AudioContext -------------
@@ -373,18 +351,16 @@ console.log('\ncontracts');
     check('a short delivery says the same of the part it handed over',
       contractMessage({ kind: 'incomplete', contract: cargoRun({ commodity: 0 }), reclaimed: 2 },
         systems).text === 'CONSIGNMENT INCOMPLETE — CONTRACT VOID — 2T FOOD RECLAIMED');
-    // `describeContract` ends on the BOUNTY line as a fallback, not a default:
-    // a kind with no line of its own is silently described as a pirate hunt.
-    check('a passenger job is described as passengers, not as a pirate hunt',
-      describeContract(passengerJob({ qty: 2, destination: 7 }), systems)
-        === 'Carry 2 passengers to LAVE');
-    check('...and one passenger is not two', describeContract(
-      passengerJob({ qty: 1, destination: 7 }), systems) === 'Carry 1 passenger to LAVE');
-    // The board says what the job is. A smuggling run described as a pirate
-    // hunt — the fallback's failure mode — would have the player accept a
-    // police scan without being told there was one to accept.
-    check('a smuggling run names the goods and admits what it is',
-      describeContract(smuggleRun({ qty: 4, destination: 7 }), systems)
-        === 'Move 4t Narcotics to LAVE — no questions asked');
+    // ...and a billed one names the charge, the tonnage it is for and the goods
+    // ONCE: this is the shipper's invoice, and a line that named the commodity
+    // twice would read as the station taking an interest in what was aboard.
+    const billed = contractMessage({ kind: 'billed', contract: cargoRun({ commodity: 8, qty: 5 }),
+      reclaimed: 3, tonnes: 2, charged: 936 }, systems);
+    check('a shorted consignment is invoiced on the HUD',
+      billed.text === 'CONSIGNMENT SHORT — BILLED 93.6 Cr FOR 2T MACHINERY — 3T RECLAIMED');
+    check('...and says nothing of a reclaim that did not happen',
+      contractMessage({ kind: 'billed', contract: cargoRun({ commodity: 8, qty: 5 }),
+        reclaimed: 0, tonnes: 5, charged: 2340 }, systems).text
+        === 'CONSIGNMENT SHORT — BILLED 234.0 Cr FOR 5T MACHINERY');
   }
 }

@@ -35,7 +35,7 @@ import { slotNormal } from '../world/slot.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { formatCredits } from './commander.ts';
 import { LAUNCH_STANDOFF, LAUNCH_SPEED } from '../constants/station.ts';
-import { generateContractOffers, describeContract } from './contracts.ts';
+import { generateContractOffers, describeContract } from './contract-offers.ts';
 import { makeLocalMarket } from './market.ts';
 import { stepMissionAtDock, missionHeadline, constrictorWarning } from './missions.ts';
 import type { Ordnance } from './ordnance.ts';

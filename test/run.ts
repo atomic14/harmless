@@ -32,6 +32,7 @@ import './economy.test.ts';
 import './character.test.ts';
 import './contracts.test.ts';
 import './contract-offers.test.ts';
+import './contract-acceptance.test.ts';
 import './missions.test.ts';
 import './trade.test.ts';
 import './world.test.ts';
