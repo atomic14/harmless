@@ -9,7 +9,8 @@
 // standing with the Galactic Government is still decided here and nowhere else.
 
 import {
-  CLEAN, CONTRABAND, FUGITIVE, FUGITIVE_FINE, OFFENDER, OFFENDER_FINE,
+  CLEAN, CONTRABAND, FUGITIVE, FUGITIVE_FINE, LAW_ROLE_NAMES, LEGAL_NAMES,
+  OFFENDER, OFFENDER_FINE,
 } from '../constants/law.ts';
 
 /** Is this commodity illegal to carry? */
@@ -48,6 +49,50 @@ export function recordCleared(
   if (legalStatus <= CLEAN) return null;
   const paid = fineFor(legalStatus, credits);
   return { paid, creditsLeft: credits - paid };
+}
+
+/**
+ * Does a ship of this role come after a commander at this legal status, on the
+ * record alone?
+ *
+ * The other half of the ladder `offenceFor` climbs, and the only home of it:
+ * `npc.ts`'s `isHostileToPlayer` spends this to decide who attacks, and the
+ * console spends it to say what a record has just cost you. Written out in
+ * both places, the message would be free to lie about the rule.
+ *
+ * Police hunt **Fugitives**; bounty hunters take an interest in **Offenders**.
+ * That split is deliberate and it is why the Viper that scans a smuggler goes
+ * back to patrolling: contraband is a fine-level offence, not shoot-on-sight.
+ * Provocation is not this function's business — shooting at anything makes it
+ * personal, whatever your record says.
+ */
+export function lawTakesInterest(role: string, legalStatus: number): boolean {
+  if (role === 'police') return legalStatus >= FUGITIVE;
+  if (role === 'hunter') return legalStatus >= OFFENDER;
+  return false;
+}
+
+/**
+ * A record, in the one line the console has: the status you hold and who that
+ * brings after you.
+ *
+ * The reason it exists is a flight report — a smuggler was scanned, read
+ * CONTRABAND DETECTED, and watched the Viper that scanned him carry on
+ * patrolling. Nothing was wrong; the consequence was simply invisible, because
+ * `raiseLegal`'s own LEGAL STATUS line is overwritten by the scan's in the same
+ * frame. So the world says what it did instead of shrugging.
+ *
+ * Assembled from `lawTakesInterest` rather than written out, which is what
+ * stops it promising a fight the rules will not deliver — and what makes it
+ * still true if the ladder is ever re-cut. A Clean commander is told nothing
+ * beyond the status, because nobody is coming.
+ */
+export function recordVerdict(legalStatus: number): string {
+  const status = `RECORD: ${(LEGAL_NAMES[legalStatus] ?? '?').toUpperCase()}`;
+  const hunting = LAW_ROLE_NAMES
+    .filter(([role]) => lawTakesInterest(role, legalStatus))
+    .map(([, called]) => called);
+  return hunting.length ? `${status} — ${hunting.join(' AND ')} WILL ENGAGE` : status;
 }
 
 /**

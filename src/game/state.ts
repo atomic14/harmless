@@ -131,6 +131,8 @@ export function freshSession(): SessionState {
     autoSaveTimer: AUTOSAVE_INTERVAL,
     energyLowTimer: 0,
     policeScanned: false,
+    scanWarnTimer: 0,
+    scanVerdictTimer: 0,
     defenceLaunched: false,
     hermitTrading: false,
     hermitCooldown: false,

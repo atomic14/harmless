@@ -50,7 +50,13 @@ import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../src/constants/jump.ts';
 import {
   STRANDED_HINT_FIRST, STRANDED_HINT_REPEAT,
 } from '../src/constants/witchspace.ts';
-import { CONTRABAND, SCAN_RANGE } from '../src/constants/law.ts';
+import {
+  CLEAN, CONTRABAND, FUGITIVE, LEGAL_NAMES, OFFENDER, SCAN_LINE_SECONDS,
+  SCAN_RANGE, SCAN_WARN_RANGE, SCAN_WARN_REPEAT,
+} from '../src/constants/law.ts';
+import { SCANNER_RANGE } from '../src/constants/console.ts';
+import { recordVerdict } from '../src/game/law.ts';
+import { isHostileToPlayer } from '../src/game/npc.ts';
 import { DISREPUTE_CAUGHT } from '../src/constants/character.ts';
 import { check } from './harness.ts';
 
@@ -132,7 +138,15 @@ console.log('\nheadless world step');
       destroyNpc: (npc) => { combat.destroy(state.commander, npc); },
       wreckNpc: (npc) => { combat.wreck(npc); },
       fireLaser: () => { log.shots += 1; },
-      raiseLegal: () => { log.legal += 1; },
+      // Counted AND applied. The step reads `commander.legalStatus` back now —
+      // the line that says what a scan cost you names the status you ended up
+      // holding — so a stub that only counted would let that line say CLEAN
+      // while the real Game said OFFENDER. Raises and never lowers, which is
+      // game.ts's rule.
+      raiseLegal: (level) => {
+        log.legal += 1;
+        if (level > state.commander.legalStatus) state.commander.legalStatus = level;
+      },
       die: (reason) => { log.deaths.push(reason); },
       dock: () => { log.docks += 1; },
       completeHyperspace: () => {},
@@ -667,6 +681,168 @@ console.log('\nheadless world step');
         }
         check(`the law reads your hold at exactly SCAN_RANGE (measured ${lo.toFixed(2)})`,
           Math.abs(lo - SCAN_RANGE) < 0.1);
+      }
+    }
+
+    // --- THE TELEGRAPH (docs/TODO/122) ---------------------------------------
+    //
+    // Everything above is the verdict. What the first real flight found is that
+    // the verdict was ALL there was: a silent proximity test that resolved, so
+    // there was no moment at which the player knew it was coming and therefore
+    // no decision to make. The band above SCAN_RANGE is that moment.
+    {
+      const messages = (events: StepEvent[]): string[] => events
+        .filter((e): e is { kind: 'message'; text: string; seconds: number } =>
+          e.kind === 'message').map((e) => e.text);
+      const WARNING = 'POLICE PATROL CLOSING';
+      const SCAN = 'POLICE SCAN: CONTRABAND DETECTED';
+
+      /**
+       * Fly nothing: the cop pinned at `d` off the nose and the commander
+       * stopped, so what is being measured is the RANGE RULE and not two ships
+       * drifting. Both still move during the step — the pin is re-applied
+       * before each one, which bounds the drift at a step's worth.
+       */
+      const holding = (r: ReturnType<typeof patrol>, d: number, steps: number) => {
+        const cop = r.state.world.npcs.find((n) => n.role === 'police');
+        const events: StepEvent[] = [];
+        r.state.player.speed = 0;
+        for (let i = 0; i < steps; i++) {
+          cop?.object.position.copy(r.state.player.position)
+            .add(new THREE.Vector3(0, 0, -d));
+          cop?.object.updateMatrixWorld(true);
+          events.push(...r.step.step(1 / 60, i / 60, {
+            demand: { rollRate: 0, pitchRate: 0, throttle: 0, fire: false }, handsOn: false,
+          }));
+        }
+        return messages(events);
+      };
+
+      {
+        // The claim of the whole milestone: warned, and not yet convicted.
+        const r = patrol(4_265, 3, SCAN_WARN_RANGE * 0.9);
+        const was = r.state.commander.disrepute ?? 0;
+        const said = holding(r, SCAN_WARN_RANGE * 0.9, 1);
+        check('a police ship inside the warning band says so', said.includes(WARNING));
+        check('...and has read nothing: no scan, no record, no name',
+          !said.includes(SCAN) && r.log.legal === 0 && !r.state.session.policeScanned
+          && (r.state.commander.disrepute ?? 0) === was);
+      }
+      {
+        const r = patrol(4_266, 3, SCAN_WARN_RANGE * 1.1);
+        check('a police ship beyond the band says nothing at all',
+          !holding(r, SCAN_WARN_RANGE * 1.1, 60).includes(WARNING));
+      }
+      {
+        // The scan owns the frame it fires on. Warning a player about a scan
+        // that has already happened is the same class of bug as #19.
+        const r = patrol(4_267, 3, SCAN_RANGE * 0.5);
+        const said = holding(r, SCAN_RANGE * 0.5, 1);
+        check('the scan and the warning never share a frame',
+          said.includes(SCAN) && !said.includes(WARNING));
+      }
+      {
+        // The control that matters: a clean hold is never told the law is near,
+        // which is what makes the message mean something when it does come.
+        const r = patrol(4_268, 0, SCAN_WARN_RANGE * 0.9);
+        check('a clean hold is never warned, however close the law flies',
+          !holding(r, SCAN_WARN_RANGE * 0.9, 600).includes(WARNING));
+      }
+      {
+        // It repeats while the condition holds — the ENERGY LOW pattern — and
+        // the latch silences it: once your hold has been read there is nothing
+        // left to warn about.
+        const seconds = 9;
+        const r = patrol(4_269, 3, SCAN_WARN_RANGE * 0.9);
+        const warnings = holding(r, SCAN_WARN_RANGE * 0.9, seconds * 60)
+          .filter((t) => t === WARNING).length;
+        const wanted = Math.floor(seconds / SCAN_WARN_REPEAT) + 1;
+        check(`the warning repeats every SCAN_WARN_REPEAT (${warnings} in ${seconds}s,`
+          + ` wanted ${wanted})`, warnings === wanted);
+        check('...and the scan is still ahead of the commander, not behind',
+          !r.state.session.policeScanned);
+
+        holding(r, SCAN_RANGE * 0.5, 1);       // ...and now it happens
+        check('...and once the hold has been read the warning goes quiet for good',
+          r.state.session.policeScanned
+          && !holding(r, SCAN_WARN_RANGE * 0.9, 600).includes(WARNING));
+      }
+
+      // The band's edge, bisected the same way the scan's is above: measured
+      // out of the shipped step rather than probed at the constant ± 1.
+      {
+        const warns = (d: number): boolean => {
+          const r = patrol(4_270, 3, d);
+          r.state.player.speed = 0;
+          return r.step.step(1e-4, 0, {
+            demand: { rollRate: 0, pitchRate: 0, throttle: 0, fire: false }, handsOn: false,
+          }).some((e) => e.kind === 'message' && e.text === WARNING);
+        };
+        let lo = SCAN_RANGE + 1, hi = 40_000;
+        if (!warns(lo) || warns(hi)) {
+          check('the warning bisection has a bracket to work in', false);
+        } else {
+          while (hi - lo > 1e-2) {
+            const mid = (lo + hi) / 2;
+            if (warns(mid)) lo = mid; else hi = mid;
+          }
+          check(`the warning band ends at exactly SCAN_WARN_RANGE (measured ${lo.toFixed(2)})`,
+            Math.abs(lo - SCAN_WARN_RANGE) < 0.1);
+        }
+      }
+
+      // The rule the value must obey, rather than the value: you are never
+      // warned about a ship you cannot see. Below SCANNER_RANGE the blip is on
+      // the scanner, so "which one?" has an answer; above it the message would
+      // be a jump scare with nothing behind it.
+      check(`SCAN_RANGE < SCAN_WARN_RANGE <= SCANNER_RANGE (${SCAN_RANGE} <`
+        + ` ${SCAN_WARN_RANGE} <= ${SCANNER_RANGE})`,
+        SCAN_RANGE < SCAN_WARN_RANGE && SCAN_WARN_RANGE <= SCANNER_RANGE);
+
+      // --- and what the scan COST you ----------------------------------------
+      //
+      // The other half of the flight's finding. Being caught makes you an
+      // Offender, police hunt Fugitives, so the Viper that read your hold flies
+      // on — correct, and indistinguishable from nothing having happened. The
+      // console now says who DOES come.
+      {
+        const r = patrol(4_271, 3, SCAN_RANGE * 0.5);
+        const frame = holding(r, SCAN_RANGE * 0.5, 1);
+        check('the scan has the console to itself on the frame it fires',
+          frame.length === 1 && frame[0] === SCAN);
+
+        const after = holding(r, SCAN_RANGE * 0.5, Math.round(SCAN_LINE_SECONDS * 60) + 2)
+          .filter((t) => t.startsWith('RECORD:'));
+        check(`the verdict follows the line it explains (${after.join(' / ') || 'nothing'})`,
+          after.length === 1 && after[0] === recordVerdict(r.state.commander.legalStatus));
+        check('...and it names the record the scan actually left',
+          r.state.commander.legalStatus === OFFENDER
+          && after[0]?.includes('OFFENDER') === true);
+        check('...and it is said once, not on a timer that re-arms',
+          holding(r, SCAN_RANGE * 0.5, 600).filter((t) => t.startsWith('RECORD:')).length === 0);
+      }
+
+      // ...and it cannot promise a fight the rules will not deliver: the roles
+      // it names are exactly the ones `isHostileToPlayer` turns on for that
+      // record, asked of real ships rather than of the same table twice.
+      {
+        const r = arrival(4_272);
+        r.state.world.clearNpcs();
+        const at = r.state.player.position.clone().add(new THREE.Vector3(0, 0, -3000));
+        const ships: [string, string][] = [
+          ['police', 'POLICE'], ['hunter', 'BOUNTY HUNTERS'],
+        ];
+        const fleet = ships.map(([role]) => r.state.world.spawn(role as 'police', at, 5));
+        for (const status of [CLEAN, OFFENDER, FUGITIVE]) {
+          const hostile = ships
+            .filter(([, ], i) => isHostileToPlayer(fleet[i], status))
+            .map(([, called]) => called);
+          const line = recordVerdict(status);
+          const named = ships.filter(([, called]) => line.includes(called))
+            .map(([, called]) => called);
+          check(`at ${LEGAL_NAMES[status]} the line names exactly who engages`
+            + ` — "${line}"`, named.join(',') === hostile.join(','));
+        }
       }
     }
   }

@@ -28,6 +28,15 @@ export interface SessionState {
   autoSaveTimer: number;
   energyLowTimer: number;
   policeScanned: boolean;
+  /** counts down to the next POLICE PATROL CLOSING while a cop is in the band */
+  scanWarnTimer: number;
+  /**
+   * Counts down from the scan to the line that says what the scan cost you,
+   * and rests at 0. Not folded into `policeScanned`: the latch is a fact about
+   * this system visit and survives in the save, while this is a message on its
+   * way to the console.
+   */
+  scanVerdictTimer: number;
   defenceLaunched: boolean;
   hermitTrading: boolean;
   hermitCooldown: boolean;

@@ -33,6 +33,7 @@ import {
 import { TACTICS, type TacticId } from '../constants/tactics.ts';
 import { chooseTactic, tacticSwitchReason, type TacticHull } from './tactic-choice.ts';
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
+import { lawTakesInterest } from './law.ts';
 import { separationFrom } from './separation.ts';
 import { SEPARATION_PUSH } from '../constants/separation.ts';
 import type { BrainSelection } from './brain-names.ts';
@@ -301,11 +302,15 @@ export function isHostileToPlayer(npc: NpcShip, legalStatus: number): boolean {
   if (npc.state.satisfied) return false;
   return (
     npc.role === 'pirate' || npc.role === 'thargoid' || npc.role === 'thargon' ||
+    // The law's two roles: they come for you on the record (`lawTakesInterest`,
+    // game/law.ts, which owns which status each of them reads) or because you
+    // shot at them.
+    //
     // provokedByPlayer, not provoked: takeDamage() flags `provoked` for damage
     // from any source, so reading it would let a Viper trading fire with a
     // pirate turn on a clean commander as though he were a fugitive.
-    (npc.role === 'police' && (legalStatus >= 2 || npc.state.provokedByPlayer)) ||
-    (npc.role === 'hunter' && (legalStatus >= 1 || npc.state.provokedByPlayer))
+    ((npc.role === 'police' || npc.role === 'hunter')
+      && (npc.state.provokedByPlayer || lawTakesInterest(npc.role, legalStatus)))
   );
 }
 

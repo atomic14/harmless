@@ -26,8 +26,10 @@ import { HUD, rgb24 } from '../palette.ts';
 import type { FlightDemand } from '../player.ts';
 import { cargoCapacity, cargoTonnes } from './commander.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
-import { carryingContraband } from './law.ts';
-import { SCAN_RANGE } from '../constants/law.ts';
+import { carryingContraband, recordVerdict } from './law.ts';
+import {
+  OFFENDER, SCAN_LINE_SECONDS, SCAN_RANGE, SCAN_WARN_RANGE, SCAN_WARN_REPEAT,
+} from '../constants/law.ts';
 import { afterDeed } from './character.ts';
 import { hermitRefuses } from './market.ts';
 import { DISREPUTE_CAUGHT } from '../constants/character.ts';
@@ -560,19 +562,55 @@ export class WorldStep {
       }
     }
 
-    // police scan for illegal cargo
-    if (!session.policeScanned && !session.witchspace) {
-      if (carryingContraband(commander.cargo)) {
-        const policeNear = world.npcs.some((n) =>
-          n.state.alive && n.role === 'police' &&
-          n.object.position.distanceTo(player.position) < SCAN_RANGE);
-        if (policeNear) {
-          session.policeScanned = true;
-          this.host.raiseLegal(1);
-          // caught smuggling: the fine clears, but the name does not
-          commander.disrepute = afterDeed(commander.disrepute ?? 0, DISREPUTE_CAUGHT);
-          out.push(say('POLICE SCAN: CONTRABAND DETECTED', 4));
+    // police scan for illegal cargo, and the telegraph that opens a window
+    // before it. One block: they are the same geometry — the nearest live
+    // police ship — read at two ranges, and the scan must win the frame it
+    // fires on rather than being announced as still coming.
+    let copInBand = false;
+    if (!session.policeScanned && !session.witchspace
+      && carryingContraband(commander.cargo)) {
+      let nearest = Infinity;
+      for (const npc of world.npcs) {
+        if (npc.state.alive && npc.role === 'police') {
+          nearest = Math.min(nearest, npc.object.position.distanceTo(player.position));
         }
+      }
+      if (nearest < SCAN_RANGE) {
+        session.policeScanned = true;
+        this.host.raiseLegal(OFFENDER);
+        // caught smuggling: the fine clears, but the name does not
+        commander.disrepute = afterDeed(commander.disrepute ?? 0, DISREPUTE_CAUGHT);
+        out.push(say('POLICE SCAN: CONTRABAND DETECTED', SCAN_LINE_SECONDS));
+        // ...and what that cost you, queued behind the line it explains
+        session.scanVerdictTimer = SCAN_LINE_SECONDS;
+      } else {
+        copInBand = nearest < SCAN_WARN_RANGE;
+      }
+    }
+    if (copInBand) {
+      session.scanWarnTimer -= dt;
+      if (session.scanWarnTimer <= 0) {
+        session.scanWarnTimer = SCAN_WARN_REPEAT;
+        // half the period on the console and half off, the duty cycle ENERGY
+        // LOW flashes at above — one rule, not a second constant
+        out.push(say('POLICE PATROL CLOSING', SCAN_WARN_REPEAT / 2));
+      }
+    } else {
+      // out of the band, already scanned, jumping, or a clean hold: re-armed,
+      // so the next patrol to close is announced on the frame it does rather
+      // than after the remains of a countdown that has stopped meaning anything
+      session.scanWarnTimer = 0;
+    }
+
+    // The verdict, once the scan's own line has had the console. Police hunt
+    // Fugitives, so the Viper that reads your hold goes back to patrolling and
+    // a conviction looks from the cockpit exactly like nothing happening;
+    // `recordVerdict` (law.ts) asks the rule who IS coming.
+    if (session.scanVerdictTimer > 0) {
+      session.scanVerdictTimer -= dt;
+      if (session.scanVerdictTimer <= 0) {
+        session.scanVerdictTimer = 0;
+        out.push(say(recordVerdict(commander.legalStatus), SCAN_LINE_SECONDS));
       }
     }
 
