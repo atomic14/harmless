@@ -1,7 +1,13 @@
 // Tiny WebAudio synth — bleeps and zaps in the spirit of the BBC sound chip.
 // The context is created lazily on the first user gesture.
+//
+// One-shot noises only. The docking waltz is `music.ts` — a score, four
+// instruments and a clock, which is a different subject and was pushing this
+// file past the size ceiling. This file still owns the CONTEXT, and hands it to
+// the player, so "created lazily on the first gesture" stays one rule.
 
 import { COUNTDOWN } from './constants/jump.ts';
+import { dockingScore, playScore } from './music.ts';
 
 let ctx: AudioContext | null = null;
 
@@ -59,127 +65,7 @@ function noiseBurst(duration: number, gain: number, lowpass = 4000): void {
   src.start();
 }
 
-// --- docking music -----------------------------------------------------------
-//
-// The Commodore 64 Elite played "An der schönen blauen Donau" while you docked
-// — Strauss's own nod having been borrowed by 2001. The waltz is from 1866 and
-// is comfortably public domain, so it is synthesised here from note data rather
-// than shipping audio from the original game: this repo deliberately contains
-// no assets from Elite, and a SID rip would be exactly that.
-//
-// THAT RULE COVERS THE ARRANGEMENT, NOT ONLY THE BYTES, and it is worth being
-// plain about because the shortcut is tempting. The composition is Strauss's
-// and free to anyone; a 1985 transcription of it for three SID voices is a
-// separate work with its own copyright, and lifting its note data would be the
-// rip in a different container. Crediting it would not change that — attribution
-// is not a licence. So the notes below are written from the public-domain waltz,
-// and the SOUND is imitated rather than copied: nothing about how a chip made a
-// tone is anybody's property.
-//
-// Two voices, and what each is made of is the answer to "it is nowhere near as
-// nice as the C64":
-//
-//   the melody   a detuned PAIR of squares through one envelope, with vibrato.
-//                One square wave is a buzzer; the SID's trick was sweeping a
-//                pulse's width while it sounded, and WebAudio has no such knob,
-//                so the restlessness is bought with beating and a wobble instead.
-//   the waltz    oom-pah-pah, where the pah is a real triad. It was a single
-//                note, which is the bass again an octave up — a metronome, not
-//                an accompaniment.
-
-/** Semitone offsets from A4 (440 Hz) for the notes the theme uses. */
-const NOTE: Record<string, number> = {
-  A3: -12, B3: -10, D4: -7, E4: -5, Fs4: -4, G4: -2, A4: 0, B4: 2, D5: 5, Fs5: 9,
-};
-const hz = (n: string): number => 440 * Math.pow(2, NOTE[n] / 12);
-
-/** [note or rest, beats] — the opening of the waltz theme, in D major. */
-const BLUE_DANUBE: [string | null, number][] = [
-  ['D4', 1], ['Fs4', 1], ['A4', 1],           // the rising arpeggio everyone knows
-  ['A4', 2], [null, 1],
-  ['B4', 0.5], ['B4', 0.5], [null, 2],        // dum dum
-  ['B4', 0.5], ['B4', 0.5], [null, 2],        // dum dum
-  ['D4', 1], ['Fs4', 1], ['A4', 1],
-  ['A4', 2], [null, 1],
-  ['G4', 0.5], ['G4', 0.5], [null, 2],
-  ['G4', 0.5], ['G4', 0.5], [null, 2],
-  ['B3', 1], ['E4', 1], ['G4', 1],
-  ['G4', 2], [null, 1],
-  ['Fs4', 0.5], ['Fs4', 0.5], [null, 2],
-  ['A3', 1], ['D4', 1], ['Fs4', 1],
-  ['Fs4', 2], [null, 1],
-  ['D5', 1], [null, 2],
-];
-/**
- * The melody's held level, and how long it takes to let go of a note.
- *
- * The release is a CEILING rather than a fixed time — a half-beat note is
- * shorter than it, so it is clamped to a fraction of the note instead
- * (`Math.min` at the call site). Without that, the quick `dum dum` pairs would
- * be all release and no note.
- */
-const MELODY_GAIN = 0.05;
-const MELODY_RELEASE = 0.07;
-
-/**
- * How far apart the melody's two oscillators are tuned, in cents.
- *
- * WHY THERE ARE TWO. One square wave is a buzzer. The C64's sound came off a
- * chip that could sweep a pulse wave's width while it played, which makes the
- * tone shimmer and move; WebAudio's oscillator has no pulse width to sweep, so
- * the same restlessness is bought the other way — two squares a few cents
- * apart beat against each other at a few hertz. It is not the SID, and this
- * file is not pretending to be: it is what a plain oscillator lacks most.
- *
- * Small on purpose. Past about fifteen cents it stops reading as one voice with
- * body and starts reading as two instruments slightly out of tune.
- */
-const DETUNE_CENTS = 6;
-
-/**
- * The wobble on a held note: how fast, and how deep as a FRACTION of the note's
- * own frequency — so an octave up wobbles by the same musical interval rather
- * than the same number of hertz, which is what makes it sound like one
- * instrument across the range.
- *
- * It comes in after `VIBRATO_DELAY` rather than from the attack, which is how a
- * played instrument does it: the note arrives straight, then sings.
- */
-const VIBRATO_HZ = 5.5;
-const VIBRATO_DEPTH = 0.004;
-const VIBRATO_DELAY = 0.12;
-
-/**
- * The harmony, one chord a bar: its root and whether it is minor.
- *
- * It was a list of single notes, which is why the accompaniment read as a
- * metronome rather than a waltz — an oom-pah-pah whose pah is one note is just
- * the oom again, higher. A triad is what the ear is listening for underneath
- * this tune, and it is the other half of "nowhere near as nice".
- *
- * The qualities are the key's own: D major and A major, B and E minor. Nothing
- * here is transcribed from anybody's arrangement — the waltz is Strauss's, 1866
- * and public domain, and these are the chords it is written over.
- */
-const CHORDS: [string, 'maj' | 'min'][] = [
-  ['D4', 'maj'], ['A3', 'maj'], ['D4', 'maj'], ['A3', 'maj'],
-  ['B3', 'min'], ['E4', 'min'], ['A3', 'maj'], ['D4', 'maj'],
-];
-
-/** Semitones above the root for each triad. */
-const TRIAD: Record<'maj' | 'min', readonly number[]> = {
-  maj: [0, 4, 7],
-  min: [0, 3, 7],
-};
-
-/** The bass's two levels: the root on the downbeat, the chord on two and three. */
-const BASS_GAIN = 0.045;
-const CHORD_GAIN = 0.016;
-
-/** `hz`, moved by a musical interval rather than a number of hertz. */
-const cents = (frequency: number, n: number): number => frequency * Math.pow(2, n / 1200);
-const semitones = (frequency: number, n: number): number => frequency * Math.pow(2, n / 12);
-
+/** The teardown for the waltz while it is playing, or null when it is not. */
 let musicStop: (() => void) | null = null;
 
 export const sfx = {
@@ -259,92 +145,10 @@ export const sfx = {
   dockingMusic(): void {
     const a = ac();
     if (!a || musicStop) return;
-    const beat = 0.34;
-    const voices: OscillatorNode[] = [];
-    let t = a.currentTime + 0.05;
+    const { voices, until } = playScore(a, dockingScore(), a.currentTime + 0.05);
 
-    for (const [note, beats] of BLUE_DANUBE) {
-      if (note) {
-        const dur = beats * beat * 0.92;
-        // ONE envelope, TWO oscillators. Attack, HOLD, release — not a single
-        // ramp across the whole note.
-        //
-        // It used to decay exponentially from the attack straight to silence at
-        // `t + dur`, which is a 500-fold fall spread over the note: a minim was
-        // 27 dB down by its own midpoint and inaudible well before it ended. The
-        // waltz therefore played as a string of blips with the long notes
-        // missing, which is what "the notes seem weirdly truncated" is. A held
-        // level and a short release at the end is what makes a 2-beat note last
-        // 2 beats.
-        const release = Math.min(MELODY_RELEASE, dur * 0.4);
-        const amp = a.createGain();
-        amp.gain.setValueAtTime(0.0001, t);
-        amp.gain.exponentialRampToValueAtTime(MELODY_GAIN, t + 0.02);
-        amp.gain.setValueAtTime(MELODY_GAIN, t + dur - release);
-        amp.gain.exponentialRampToValueAtTime(0.0001, t + dur);
-        amp.connect(a.destination);
-
-        const base = hz(note);
-        // The wobble, shared by the pair so they stay in step with each other:
-        // depth is a fraction of THIS note's frequency, so the interval is the
-        // same at either end of the tune.
-        const lfo = a.createOscillator();
-        const depth = a.createGain();
-        lfo.frequency.setValueAtTime(VIBRATO_HZ, t);
-        depth.gain.setValueAtTime(0.0001, t);
-        depth.gain.exponentialRampToValueAtTime(
-          base * VIBRATO_DEPTH, Math.min(t + VIBRATO_DELAY, t + dur));
-        lfo.connect(depth);
-        lfo.start(t);
-        lfo.stop(t + dur);
-        voices.push(lfo);
-
-        for (const detune of [-DETUNE_CENTS, DETUNE_CENTS]) {
-          const o = a.createOscillator();
-          o.type = 'square';
-          o.frequency.setValueAtTime(cents(base, detune), t);
-          depth.connect(o.frequency);
-          o.connect(amp);
-          o.start(t);
-          o.stop(t + dur);
-          voices.push(o);
-        }
-      }
-      t += beats * beat;
-    }
-
-    // oom-pah-pah underneath, one CHORD a bar
-    const bars = Math.ceil((t - a.currentTime) / (3 * beat));
-    for (let bar = 0; bar < bars; bar++) {
-      const [root, quality] = CHORDS[bar % CHORDS.length];
-      for (let step = 0; step < 3; step++) {
-        const bt = a.currentTime + 0.05 + (bar * 3 + step) * beat;
-        const dur = beat * (step === 0 ? 0.5 : 0.28);
-        // The downbeat is the root an octave down and alone — that is the
-        // "oom". Two and three are the whole triad, which is the "pah-pah" and
-        // is what a single note could never be: an accompaniment that is one
-        // note is the bass again, higher up, and reads as a metronome.
-        const pitches = step === 0
-          ? [hz(root) / 2]
-          : TRIAD[quality].map((n) => semitones(hz(root), n));
-        const level = step === 0 ? BASS_GAIN : CHORD_GAIN;
-        for (const f of pitches) {
-          const o = a.createOscillator();
-          const g = a.createGain();
-          o.type = 'triangle';
-          o.frequency.setValueAtTime(f, bt);
-          g.gain.setValueAtTime(0.0001, bt);
-          g.gain.exponentialRampToValueAtTime(level, bt + 0.015);
-          g.gain.exponentialRampToValueAtTime(0.0001, bt + dur);
-          o.connect(g).connect(a.destination);
-          o.start(bt);
-          o.stop(bt + dur);
-          voices.push(o);
-        }
-      }
-    }
-
-    const clear = window.setTimeout(() => { musicStop = null; }, (t - a.currentTime) * 1000 + 200);
+    const clear = window.setTimeout(() => { musicStop = null; },
+      (until - a.currentTime) * 1000 + 200);
     musicStop = () => {
       window.clearTimeout(clear);
       for (const o of voices) { try { o.stop(); } catch { /* already stopped */ } }

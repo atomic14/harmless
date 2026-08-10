@@ -7,6 +7,8 @@ import { check, eq } from './harness.ts';
 /** A gain node, as the automation scheduled on it. */
 interface Amp {
   events: [number, number][];
+  /** the node this envelope feeds — a track's filter, which IS that track's identity */
+  out?: unknown;
 }
 
 interface Tone {
@@ -31,6 +33,8 @@ interface Tone {
 }
 
 const tones: Tone[] = [];
+const filters: { type: string; frequency: { value: number }; Q: { value: number } }[] = [];
+const panners: { pan: { value: number } }[] = [];
 
 /** The level a voice was asked for — the top of its envelope. */
 const peak = (t: Tone): number =>
@@ -78,11 +82,39 @@ class FakeAudioContext {
     const mark = (value: number, at: number): void => { amp.events.push([value, at - 10]); };
     return {
       __amp: amp,
-      gain: { setValueAtTime: mark, exponentialRampToValueAtTime: mark },
+      // `value` for the static track level, the two schedulers for an envelope.
+      gain: { value: 0, setValueAtTime: mark, exponentialRampToValueAtTime: mark },
+      connect(target?: { connect?: unknown }) {
+        amp.out = target;
+        return target?.connect ? target : { connect() {} };
+      },
+    };
+  }
+
+  /** A static lowpass per track — its settings are read back, not automated. */
+  createBiquadFilter() {
+    const node = {
+      type: '',
+      frequency: { value: 0 },
+      Q: { value: 0 },
       connect(target?: { connect?: unknown }) {
         return target?.connect ? target : { connect() {} };
       },
     };
+    filters.push(node);
+    return node;
+  }
+
+  /** Stereo placement. Present here, so the "no panner" fallback needs its own test. */
+  createStereoPanner() {
+    const node = {
+      pan: { value: 0 },
+      connect(target?: { connect?: unknown }) {
+        return target?.connect ? target : { connect() {} };
+      },
+    };
+    panners.push(node);
+    return node;
   }
 
   resume() {}
@@ -177,105 +209,110 @@ for (const [name, [frequency, duration]] of Object.entries(expected)) {
 // its full level most of the way through itself. Restating the envelope's
 // arithmetic here would pass whatever audio.ts said.
 
-console.log('\nthe docking waltz holds its notes');
+console.log('\nthe docking waltz');
 {
   tones.length = 0;
+  filters.length = 0;
+  panners.length = 0;
   sfx.dockingMusic();
   const played = [...tones];
 
-  // Three kinds of oscillator, told apart by wave: the melody's squares, the
-  // accompaniment's triangles, and the vibrato LFOs, which are never given a
-  // type because they are never heard — they bend a frequency, not the air.
-  const melody = played.filter((t) => t.type === 'square');
-  const bass = played.filter((t) => t.type === 'triangle');
-  const lfos = played.filter((t) => t.type === 'sine');
-  check(`it is two voices — ${melody.length} melody oscillators over ${bass.length} accompaniment`,
-    melody.length > 20 && bass.length > 20);
+  // --- the engine ----------------------------------------------------------
+  //
+  // Four voices, each through its own lowpass and its own place in the stereo
+  // field. audio.ts had no concept of either until the palette Chris put
+  // together arrived: a bare square and a bare triangle, mono, unfiltered.
+  eq('four tracks, four filters', filters.length, 4);
+  check('...every one a lowpass, and none of them wide open',
+    filters.every((f) => f.type === 'lowpass' && f.frequency.value > 0
+      && f.frequency.value < 20_000 && f.Q.value > 0));
+  eq('...and four places in the stereo field', panners.length, 4);
+  check('...which are not all the same place',
+    new Set(panners.map((p) => p.pan.value)).size > 1
+    && panners.every((p) => Math.abs(p.pan.value) <= 1));
 
-  /** How far through a note the gain was last at its full level, as a fraction. */
-  const holdsTo = (t: Tone): number => {
-    const events = t.amp?.events ?? [];
-    const top = peak(t);
-    const last = events.filter(([v]) => v >= top).pop();
-    return last ? (last[1] - t.at) / t.duration : 0;
+  // A track's filter IS its identity — the graph is followed rather than the
+  // wave type guessed at, because three of the four instruments use triangles.
+  const byTrack = new Map<unknown, Tone[]>();
+  for (const t of played) {
+    if (t.amp?.out) byTrack.set(t.amp.out, [...(byTrack.get(t.amp.out) ?? []), t]);
+  }
+  eq('every voice belongs to one of them', byTrack.size, 4);
+
+  // --- the notes hold ------------------------------------------------------
+  //
+  // The reported bug, generalised past the envelope that caused it: a note
+  // must HOLD a level rather than decay across its own length. It used to ramp
+  // from the attack straight to silence, so a minim was 27 dB down by its own
+  // midpoint and the theme played as blips.
+  const sustainOf = (t: Tone): number => {
+    const ev = t.amp?.events ?? [];
+    // a plateau: two consecutive events at the same level, at different times
+    for (let i = 1; i < ev.length; i++) {
+      if (ev[i][0] === ev[i - 1][0] && ev[i][1] > ev[i - 1][1]) return ev[i][0];
+    }
+    return 0;
   };
-
-  // 60% is the TIGHT bound, not a comfortable one: the shortest notes — the
-  // `dum dum` quavers — are the ones whose release is clamped to a fraction of
-  // themselves, and that fraction is 40%. Everything longer holds to ~78% or
-  // ~89%, because their release is the fixed ceiling instead. Hence the epsilon.
-  const worst = melody.reduce((w, t) => Math.min(w, holdsTo(t)), 1);
-  check(`every melody note is still sounding 60% of the way through it (worst ${(worst * 100).toFixed(0)}%)`,
-    worst >= 0.6 - 1e-9);
+  const unheld = played.filter((t) => sustainOf(t) <= 0);
+  check(`every voice in the piece holds a level (${played.length} voices, ${unheld.length} do not)`,
+    played.length > 100 && unheld.length === 0);
+  const shallow = played.filter((t) => sustainOf(t) < peak(t) * 0.1);
+  check(`...and it is a real sustain, not a fade (${shallow.length} below a tenth of the peak)`,
+    shallow.length === 0);
 
   // The control, and it is the bug itself: attack, then one ramp to silence
-  // across the whole note. That is what the file used to do, and it must fail
-  // the check above — otherwise the check is measuring nothing.
+  // across the whole note. It must fail the check above, or the check is
+  // measuring nothing.
   const asItWas: Tone = {
     type: 'square', frequency: 440, duration: 0.313, at: 0.05,
     amp: { events: [[0.0001, 0.05], [0.05, 0.07], [0.0001, 0.363]] },
   };
-  check(`...and the envelope it replaced does not (${(holdsTo(asItWas) * 100).toFixed(0)}%)`,
-    holdsTo(asItWas) < 0.6);
+  check('...and the envelope it replaced holds nothing', sustainOf(asItWas) === 0);
 
-  // ...and the long notes really are long: the theme's minims last about twice
-  // its crotchets, which is the other half of "truncated".
-  const lengths = [...new Set(melody.map((t) => Number(t.duration.toFixed(4))))].sort((a, b) => a - b);
-  check(`three note lengths, in the ratio the waltz is written in (${lengths.join(', ')})`,
-    lengths.length === 3
-    && Math.abs(lengths[1] / lengths[0] - 2) < 0.01
-    && Math.abs(lengths[2] / lengths[0] - 4) < 0.01);
-
-  // --- what the note is made of ---------------------------------------------
+  // --- the lead is a layered voice, tuned apart ----------------------------
   //
-  // "Nowhere near as nice as the C64" was about the VOICE, not the tune: one
-  // bare square wave, and an accompaniment whose off-beats were a single note.
-  // What is asserted here is the shape of the answer, not its settings — the
-  // numbers are audio.ts's to tune by ear, and a test that pinned them would
-  // just make tuning a two-file job.
+  // One oscillator is a buzzer. Only the lead uses sawtooths, so they are how
+  // it is found without naming a filter setting.
+  const lead = [...byTrack.values()].find((v) => v.some((t) => t.type === 'sawtooth')) ?? [];
+  const saws = lead.filter((t) => t.type === 'sawtooth');
+  check(`the lead is layered (${new Set(lead.map((t) => t.type)).size} wave types)`,
+    new Set(lead.map((t) => t.type)).size > 1 && saws.length > 20);
 
-  // A note is a PAIR, tuned apart, through ONE envelope: that is what gives a
-  // plain oscillator body, standing in for the pulse-width sweep WebAudio has
-  // no knob for.
-  const pairs = new Map<Amp, Tone[]>();
-  for (const t of melody) {
-    if (t.amp) pairs.set(t.amp, [...(pairs.get(t.amp) ?? []), t]);
-  }
-  check(`every melody note is two oscillators through one envelope (${pairs.size} notes)`,
-    pairs.size > 20 && [...pairs.values()].every((v) => v.length === 2));
-  const spreads = [...pairs.values()].map(([a, b]) => Math.abs(a.frequency - b.frequency));
-  check('...tuned apart, and never in unison',
-    spreads.every((d) => d > 0) && spreads.length > 20);
-  // Apart by an INTERVAL rather than a fixed number of hertz — the same
-  // musical distance at either end of the tune, which is what keeps it one
-  // instrument. A fixed-hertz detune would give a constant difference here.
-  const ratios = [...pairs.values()].map(([a, b]) => Math.max(a.frequency, b.frequency)
+  // Its pair is detuned by an INTERVAL, not a fixed number of hertz, so the
+  // same musical width holds at either end of the tune.
+  const together = new Map<string, Tone[]>();
+  for (const t of saws) together.set(t.at.toFixed(4), [...(together.get(t.at.toFixed(4)) ?? []), t]);
+  const chords2 = [...together.values()].filter((v) => v.length === 2);
+  eq('...two sawtooths to a note', chords2.length, together.size);
+  const ratios = chords2.map(([a, b]) => Math.max(a.frequency, b.frequency)
     / Math.min(a.frequency, b.frequency));
-  check(`...by a constant RATIO, not a constant gap (${ratios[0].toFixed(5)})`,
-    ratios.every((r) => Math.abs(r - ratios[0]) < 1e-9)
-    && new Set(spreads.map((d) => d.toFixed(3))).size > 1);
+  const gaps = chords2.map(([a, b]) => Math.abs(a.frequency - b.frequency));
+  check(`...apart by a constant RATIO, not a constant gap (${ratios[0].toFixed(5)})`,
+    ratios.every((r) => Math.abs(r - ratios[0]) < 1e-9) && ratios[0] > 1
+    && new Set(gaps.map((g) => g.toFixed(3))).size > 1);
 
-  // The wobble: one LFO a note, and its depth scales with the note, for the
-  // same reason.
-  eq('every melody note has a vibrato of its own', lfos.length, pairs.size);
-  const depths = lfos.map((l) => peak(l));
-  check(`...whose depth follows the note rather than a fixed hertz (${new Set(depths.map((d) => d.toFixed(3))).size} distinct)`,
-    new Set(depths.map((d) => d.toFixed(4))).size > 1 && depths.every((d) => d > 0));
+  // The pitch parser, read off the tune: the waltz opens on a D4.
+  const first = saws.map((t) => t.frequency).sort((a, b) => a - b);
+  check(`...and it is written in real pitches — the opening D4 is near 293.66 Hz (${first[0].toFixed(2)})`,
+    Math.abs(Math.min(...saws.map((t) => t.at)) - 0.05) < 1e-9
+    && saws.filter((t) => Math.abs(t.at - 0.05) < 1e-9)
+      .every((t) => Math.abs(t.frequency - 293.66) < 1.5));
 
-  // The accompaniment: oom on the downbeat, a REAL triad on two and three. A
-  // one-note off-beat is the bass again an octave up, which is a metronome.
-  const byTime = new Map<string, Tone[]>();
-  for (const t of bass) byTime.set(t.at.toFixed(4), [...(byTime.get(t.at.toFixed(4)) ?? []), t]);
-  const beats = [...byTime.values()];
-  const oom = beats.filter((b) => b.length === 1);
-  const pah = beats.filter((b) => b.length === 3);
-  check(`each bar is one oom and two triads (${oom.length} oom, ${pah.length} triads)`,
-    oom.length > 0 && pah.length === oom.length * 2 && oom.length + pah.length === beats.length);
-  check('...and a triad really is three different pitches',
-    pah.every((b) => new Set(b.map((t) => t.frequency.toFixed(3))).size === 3));
-  // ...and it is a CHORD, not three notes in a row: they sound together.
-  check('...sounded together, not arpeggiated',
-    pah.every((b) => new Set(b.map((t) => t.at.toFixed(4))).size === 1));
+  // --- THE DEFECT THE PALETTE ARRIVED WITH ---------------------------------
+  //
+  // Its score had the bass and the chords stop at bar 9 while the tune ran to
+  // bar 13 — four bars, nearly a third of the piece, of melody over silence.
+  // Ours derives the accompaniment's length from the melody's, so it cannot be
+  // written that way; this is what says so, because the next arrangement may
+  // not be generated the same way.
+  const lastOf = (v: Tone[]): number => Math.max(...v.map((t) => t.at));
+  const leadEnds = lastOf(lead);
+  const short = [...byTrack.values()].filter((v) => v !== lead && lastOf(v) < leadEnds - 1);
+  check(`no voice stops before the tune does (lead ends ${leadEnds.toFixed(1)}s)`,
+    short.length === 0,
+    short.map((v) => `one ends at ${lastOf(v).toFixed(1)}s`).join(', '));
+  check('...and they all start with it',
+    [...byTrack.values()].every((v) => Math.min(...v.map((t) => t.at)) < 1));
 
   // Documented behaviour: re-engaging the autopilot must not stack voices.
   sfx.stopDockingMusic();
