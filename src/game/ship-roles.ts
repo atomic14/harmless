@@ -105,22 +105,6 @@ const CANDIDATES: Record<NpcRole, readonly ShipDesignId[]> = {
   generation: idsFor(ROLE_BANDS.generation),
 };
 
-/**
- * Every role there is, in declaration order.
- *
- * Derived from `CANDIDATES` rather than written out again: that record is
- * `Record<NpcRole, ...>`, so the compiler already refuses one that misses a
- * role, and reading its keys means this list cannot fall behind the union. A
- * second hand-written list would be the thing this file's header warns about,
- * one level up.
- */
-export const NPC_ROLES = Object.keys(CANDIDATES) as readonly NpcRole[];
-
-/** Is this a role the game knows? For validating what a save or a file claims. */
-export function isNpcRole(value: unknown): value is NpcRole {
-  return typeof value === 'string' && (NPC_ROLES as readonly string[]).includes(value);
-}
-
 /** The bands a role draws from — empty for the two Harmless inventions. */
 export function roleSourceBands(role: NpcRole): readonly SourceSlotBand[] {
   return ROLE_BANDS[role];

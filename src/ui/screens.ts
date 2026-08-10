@@ -1598,7 +1598,12 @@ const LEVERS_OFF = 'THE LEVERS BELOW DO NOTHING UNTIL TEST MODE IS ON';
  * the mode has ever been switched on.
  */
 export function renderTestMode(p: TestModePanel): void {
-  const rows = p.rows.map((r, i) => `<tr class="${i === p.selected ? 'sel' : ''} pick"
+  // The heading is a `<tr>` with NO `data-row`, so a click on it walks up to a
+  // table that has none either and is ignored — the row indices stay exactly
+  // the panel's. Same construction as the trainer's setup rows.
+  const rows = p.rows.map((r, i) => `${r.heading
+    ? `<tr class="grouphead"><td colspan="2">${r.heading}</td></tr>` : ''}
+      <tr class="${i === p.selected ? 'sel' : ''} pick"
         data-row="${i}" ${r.dim ? 'style="opacity:0.45"' : ''}>
         <td>${r.label}</td><td class="num">${r.value}</td>
       </tr>`).join('');

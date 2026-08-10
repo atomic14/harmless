@@ -142,7 +142,6 @@ export class Persistence {
       // shipped ones.
       brains: { ...s.brains },
       cheat: s.cheat,
-      cheatRole: s.cheatRole,
       session: serialiseState(s.session as unknown as Record<string, unknown>),
       rng: rngState(),
       chartTarget: s.chart.targetIndex,
@@ -253,7 +252,6 @@ export class Persistence {
     this.ordnance.armed = snap.missileArmed;
     s.brains = { ...snap.brains };
     s.cheat = snap.cheat;
-    s.cheatRole = snap.cheatRole;
     s.world.station.quaternion.set(...snap.stationQuat);
     s.world.station.updateMatrixWorld(true);
     this.host.enterMode(snap.mode);

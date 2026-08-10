@@ -165,13 +165,17 @@ const OUTSIDE: readonly Group[] = [
       + ' hold a copy of "17 to 24 means pirate", and moving it to a public home would'
       + ' undo that. The other three are keyed on `NpcRole`, a type this directory may'
       + ' not import, and two of them are catalogue lookups computed once at load rather'
-      + ' than rules — the same shape as `MISSILE_HULL` above. `NPC_ROLES` is the same'
-      + ' argument once more: it is `Object.keys(CANDIDATES)`, so it is derived from a'
-      + ' record this directory may not hold rather than a list of its own',
+      + ' than rules — the same shape as `MISSILE_HULL` above',
     files: {
-      'game/ship-roles.ts': [
-        'BAND_SLOTS', 'ROLE_BANDS', 'CANDIDATES', 'MISSION_TARGET_DESIGNS', 'NPC_ROLES',
-      ],
+      'game/ship-roles.ts': ['BAND_SLOTS', 'ROLE_BANDS', 'CANDIDATES', 'MISSION_TARGET_DESIGNS'],
+      // The same argument, twice over, for what test mode's fit-out reads:
+      // `LASER_TYPES` orders the `LaserType` union it sits beside, and
+      // `FITTINGS` is `Object.keys(defaultEquipment())` minus the one field
+      // that is not a toggle — a DERIVATION over a record this directory may
+      // not import, not a list. Both would become second homes the moment they
+      // moved: the union and the record are where a fitting is really declared.
+      'game/commander.ts': ['LASER_TYPES'],
+      'game/screens/test-mode.ts': ['FITTINGS'],
     },
   },
 
@@ -378,7 +382,10 @@ const OUTSIDE: readonly Group[] = [
       + ' the scenario file\'s remainder is typed tables (`SCENARIOS`, `WAVE_STEPS`,'
       + ' `MODES`, `OPPOSITION_ROLES`, `SIM_BRAINS`), brain-name reads, a derivation'
       + ' over a table (`WAVE_SATURATION`) and the custom picker\'s private seed'
-      + ' stride; the notes are prose; the setup rows are typed lists',
+      + ' stride; the notes are prose; the setup rows are typed lists. `LASERS` left'
+      + ' this list in docs/TODO/121: test mode\'s fit-out walks the same three guns in'
+      + ' the same order, so the ladder is `LASER_TYPES` beside the `LaserType` it'
+      + ' orders, and the trainer reads it',
     files: {
       'game/combat-sim-compare.ts': ['IDENTITY', 'PER_OPPONENT', 'GROUPS'],
       'game/combat-sim-opening.ts': [
@@ -395,7 +402,7 @@ const OUTSIDE: readonly Group[] = [
       'game/screens/combat-sim-notes.ts': [
         'MODE_BLURB',
       ],
-      'game/screens/combat-sim-setup.ts': ['MODES', 'TIERS', 'LASERS', 'PIRATE_CHOICES'],
+      'game/screens/combat-sim-setup.ts': ['MODES', 'TIERS', 'PIRATE_CHOICES'],
     },
   },
 

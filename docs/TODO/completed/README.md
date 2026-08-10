@@ -89,7 +89,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 117 — [The galaxy was trading before you arrived](117-the-galaxy-was-trading-before-you-arrived.md) — a new career inherits 30 days of trade, and a galactic jump arrives in a galaxy of its own
 - [x] 119 — [A constant that names nothing, and the exports around it](119-a-constant-that-names-nothing.md) — `BRAIN_HANDOVER_RANGE` and the prose asserting a handover no pilot makes; two dead functions, two dead re-exports, eleven narrowed visibilities
 - [x] 120 — [The port marker says LINED UP when you are rolled wrong](120-the-port-marker-says-lined-up-when-you-are-rolled-wrong.md) — three states off the slot's own two tests, decided in the model: green now means the dock test would pass
-- [x] 121 — [The test mode that has no door](121-the-test-mode-that-has-no-door.md) — closed GitHub #18. `GameState.cheat` was built, saved and unreachable; ⇧T at the station is the door, seven levers are behind it, ⇧S drops a ship off your nose and the jump stops asking about fuel. A career that switches it on is marked for good
+- [x] 121 — [The test mode that has no door](121-the-test-mode-that-has-no-door.md) — closed GitHub #18. `GameState.cheat` was built, saved and unreachable; ⇧T at the station is the door and twenty levers are behind it — the commander's fuel, credits, legal status and Character, and a FIT-OUT that takes equipment OFF, which no shop in the game can. The jump stops asking about fuel. A career that switches it on is marked for good. A SPAWN key was built for M3 and removed at Chris's word; the plan doc records the amendment
 
 <!-- append-completed-todos-here -->
 

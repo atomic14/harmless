@@ -10,7 +10,7 @@
 // functions an arrow key drives, and asserts the spec that comes out — the whole
 // screen minus the keyboard, under node.
 
-import type { CommanderData, LaserType } from '../commander.ts';
+import { LASER_TYPES, type CommanderData, type LaserType } from '../commander.ts';
 import { MAX_MISSILES } from '../../constants/commander.ts';
 import type { ExerciseFit } from '../combat-sim.ts';
 import {
@@ -63,7 +63,6 @@ export interface SimSetupPanel {
 export const MODES: readonly SimMode[] = ['scenario', 'sparring', 'waves'];
 
 const TIERS = ['0 OPPORTUNISTS', '1 PROFESSIONALS', '2 ORGANISED GANG'];
-const LASERS: readonly LaserType[] = ['pulse', 'beam', 'military'];
 
 /**
  * What the pirates can be set to fly — the two CODE pilots a commander can meet:
@@ -304,8 +303,8 @@ export function setupCells(d: SimDraft): SetupCell[] {
       heading: 'YOUR SHIP',
       label: 'YOUR LASER',
       value: f.laser.toUpperCase(),
-      change: (n) => { f.laser = step(LASERS, f.laser, n); },
-      jump: (n) => { f.laser = endOf(LASERS, n); },
+      change: (n) => { f.laser = step(LASER_TYPES, f.laser, n); },
+      jump: (n) => { f.laser = endOf(LASER_TYPES, n); },
     },
     {
       label: 'YOUR REAR LASER',

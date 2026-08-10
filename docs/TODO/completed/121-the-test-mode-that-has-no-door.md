@@ -3,27 +3,51 @@
 **Kind:** feature / tooling · **Severity:** medium · **Size:** medium (three
 milestones) · **Depends on:** none · **GitHub:** #18
 
-**Landed 2026-08-10** in three commits (`de0dab3`, `fb046c7`, `7b2164d`). All
-three milestones are in the tree — M3 was NOT cut — and `npm run check` is
-green at 3,689 assertions.
+**Landed 2026-08-10** in three commits (`de0dab3`, `fb046c7`, `7b2164d`), then
+**amended the same day** at Chris's word: *"we don't need to spawn anything. But
+we do need to be able to select whatever equipment we want."* M3's SPAWN half
+was taken back out and the fit-out rows the ask names went in instead. What
+shipped is the door, the commander levers, the fit-out, and JUMP ANYWHERE.
 
-**Two decisions the code made that the plan did not.**
+**The amendment, and why it is not a reversal.** M3 read "put a chosen ship off
+your nose", and that is what was built — a ⇧S binding, `GameState.cheatRole`, a
+`game/test-mode.ts` calling the arena's own placement. It worked and it was not
+wanted, so all of it is gone, including the two exports (`NPC_ROLES`,
+`isNpcRole`) that existed only to serve it and the save field, which never
+reached a shipped save. What went in instead is the thing the plan assumed was
+already covered by `cheat`:
+
+> **The outfitter can only ever FIT.** With `cheat` on it fits anything, free,
+> at any tech level — but `equipmentOwned` gates a row you already own, and the
+> gun ladder only climbs. There was no way to fly the same commander WITHOUT a
+> piece of kit once it was aboard, and no way back down from a military laser,
+> which is most of what a test fit-out is for.
+
+So the ship block writes `Equipment`'s fields directly, in both directions, and
+the rows are DERIVED from the record — `Object.keys(defaultEquipment())` minus
+the one field that is not a toggle — so a fitting added to `Equipment` gets a
+lever the day it is added. Their names come from `EQUIPMENT_CATALOGUE`, whose
+ids already agree with the field names.
+
+**Three decisions the code made that the plan did not.**
 
 1. **`TestModeContext` is the whole `GameState`**, where every other screen
    takes a hand-picked field list. Writing state is what this screen is for,
    and a narrow context needs one setter per lever — which would put half of
    every lever in `game.ts`, the one place none of them belongs.
-2. **The SPAWN choice is `GameState.cheatRole`**, a saved field, because the
-   row that picks it is at the station and the key that reads it is in the
-   cockpit. Kept on the screen it would have been a rule read from somewhere no
-   test can reach and no save carries, which is invariant 12 by another name.
+2. **The fit-out rows read `Equipment`, not the shop.** A row per catalogue
+   item would have meant a second id→field mapping beside `equipmentOwned`'s
+   and `buyEquipment`'s, which are already two.
+3. **`LASER_TYPES` moved to `commander.ts`.** Two screens now walk the gun
+   ladder; it was private to the trainer's setup panel, and the second walker
+   would have been a second copy.
 
 **What is NOT here, by the plan's own answers:** no cockpit badge, no filtering
 of marked careers out of the rating or the campaign, and no numeric entry. The
 mark is a status-screen line and the outfitters' existing amber banner.
 
 **Flown by tests, not by hand.** Every claim below is a headless assertion in
-`test/test-mode.test.ts`; nobody has yet sat in the cockpit and pressed ⇧S.
+`test/test-mode.test.ts`; nobody has yet sat in the cockpit with the mode on.
 What plays wrong becomes a GitHub issue and a new plan.
 
 ## Where we are
@@ -99,6 +123,14 @@ and every one of them refusing to act unless `cheat` is on:
   This row is what lets somebody fly them, which is the debt that plan left.
 
 ### M3 — the flight levers
+
+> **AMENDED after landing.** SPAWN was built and then removed at Chris's word
+> — see the note at the top. What is left of M3 in the tree is JUMP ANYWHERE,
+> and `NOT_IN_THE_SIMULATOR` needed no new entry for it: it lifts a refusal on
+> the two jump commands, and both were already off the simulator's table.
+> The fit-out rows that replaced SPAWN are on the STATION screen, so nothing
+> about them reaches an exercise.
+
 
 Two things #18 needs that the station menu cannot give:
 

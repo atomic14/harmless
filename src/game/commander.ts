@@ -21,6 +21,16 @@ import { PASSENGER_BERTH_TONNES } from '../constants/contracts.ts';
 
 export type LaserType = 'pulse' | 'beam' | 'military';
 
+/**
+ * The front gun, worst to best — the order the outfitter's ladder climbs and
+ * the order a picker walks.
+ *
+ * Exported because two screens walk it: the trainer's fit-out rows and test
+ * mode's. It was private to the first of them, which meant the second would
+ * have been a second copy of the same three words in the same order.
+ */
+export const LASER_TYPES: readonly LaserType[] = ['pulse', 'beam', 'military'];
+
 export interface Equipment {
   largeBay: boolean;
   ecm: boolean;

@@ -3,8 +3,10 @@
 // `GameState.cheat` already had a passing test — test/trade.test.ts fits a
 // galactic drive with no money — and nothing in the shipped game could set it.
 // So what is asserted here is the half that was missing: that the SCREEN sets
-// it, that switching it on marks the career for good, and that a save written
-// before the mark existed reads as an unmarked one rather than as undefined.
+// it, that switching it on marks the career for good, that a save written
+// before the mark existed reads as an unmarked one rather than as undefined —
+// and that the fit-out rows do the thing no shop in the game can, which is take
+// equipment OFF again.
 //
 // Everything runs headlessly through the real Screen interface: the screen is
 // given a context, driven with taps the way `ScreenHost` drives it, and the
@@ -12,7 +14,12 @@
 
 import { TestModeScreen, type TestModeContext } from '../src/game/screens/test-mode.ts';
 import { freshState } from '../src/game/state.ts';
-import { markTested, newCommander, type CommanderData } from '../src/game/commander.ts';
+import {
+  defaultEquipment, markTested, newCommander, LASER_TYPES,
+  type CommanderData, type Equipment,
+} from '../src/game/commander.ts';
+import { buyEquipment, type TradeContext } from '../src/game/screens/trade.ts';
+import { EQUIPMENT_CATALOGUE } from '../src/constants/shop.ts';
 import { characterName } from '../src/game/character.ts';
 import { isHostileToPlayer } from '../src/game/npc.ts';
 import { BINDINGS } from '../src/game/controls.ts';
@@ -24,11 +31,8 @@ import {
 } from '../src/constants/commander.ts';
 import { CLEAN, FUGITIVE, LEGAL_NAMES, OFFENDER } from '../src/constants/law.ts';
 import { CHARACTER } from '../src/constants/character.ts';
-import { spawnCheatShip } from '../src/game/test-mode.ts';
 import { checkJump, resolveJump } from '../src/game/hyperspace.ts';
 import { distanceTenths } from '../src/galaxy/navigation.ts';
-import { isNpcRole, NPC_ROLES } from '../src/game/ship-roles.ts';
-import { seedWorld } from '../src/game/rng.ts';
 import type { Input } from '../src/engine/input.ts';
 import { check, cmds, eq, eqc } from './harness.ts';
 import { installStore } from './save-fixtures.ts';
@@ -121,9 +125,9 @@ console.log('\nthe screen is what sets GameState.cheat');
 /**
  * A screen over a fresh career, and a hand to pull its levers with.
  *
- * `pull` finds the row BY LABEL rather than by index, so re-ordering the panel
- * — which M3 will do — moves these tests with it instead of silently pointing
- * them at the wrong lever.
+ * `pull` finds the row BY LABEL rather than by index, so a panel that grows or
+ * is re-grouped — it has done both — moves these tests with it instead of
+ * silently pointing them at the wrong lever.
  */
 function rig(cheat: boolean): {
   screen: TestModeScreen;
@@ -210,6 +214,67 @@ console.log('\nthe commander levers, with the door open');
   eq('every pull was written to the shelf', saves(), 11);
 }
 
+// --- the fit-out, which is the half the outfitter cannot do ------------------
+
+console.log('\nthe fit-out rows take equipment OFF, which no shop in the game can');
+{
+  const { screen, state, pull } = rig(true);
+  const c = state.commander;
+  const ctx: TradeContext = {
+    commander: c,
+    system: g1[7],
+    market: [],
+    atHermit: false,
+    cheat: true,                      // the outfitter at its most permissive
+    message: () => {},
+    addNotoriety: () => {},
+    checkpoint: () => {},
+    leaveHermit: () => {},
+  };
+
+  // Every fitting the commander HAS is a row, derived from the record rather
+  // than from a list here: a field added to `Equipment` gets a lever the day it
+  // is added, and this is what says so.
+  const labels = screen.panel().rows.map((r) => r.label);
+  const missing = (Object.keys(defaultEquipment()) as (keyof Equipment)[])
+    .filter((k) => k !== 'laser')
+    .filter((k) => !labels.includes(
+      (EQUIPMENT_CATALOGUE.find((i) => i.id === k)?.name ?? k).toUpperCase()));
+  check(`every fitting on the commander has a row (${labels.length} rows)`,
+    missing.length === 0, missing.join(', '));
+
+  // THE GAP, stated as the two halves it has. The outfitter fits it...
+  buyEquipment('ecm', ctx);
+  check('the outfitter fits an E.C.M. free with the mode on', c.equipment.ecm);
+  // ...and then will not touch it again, because `equipmentOwned` gates the row.
+  buyEquipment('ecm', ctx);
+  check('...and buying it again cannot take it off (it never could)', c.equipment.ecm);
+  pull('E.C.M. SYSTEM');
+  check('the test-mode row DOES take it off', !c.equipment.ecm);
+  pull('E.C.M. SYSTEM');
+  check('...and puts it back', c.equipment.ecm);
+
+  // The same asymmetry on the gun: the shop's ladder only ever climbs.
+  buyEquipment('military', ctx);
+  eq('the outfitter climbs the gun ladder', c.equipment.laser, 'military');
+  pull('FRONT LASER', 'ArrowLeft');
+  eq('...and the row walks back down it, which the shop cannot',
+    c.equipment.laser, LASER_TYPES[LASER_TYPES.indexOf('military') - 1]);
+  pull('FRONT LASER');
+  eq('...and round again', c.equipment.laser, 'military');
+  pull('FRONT LASER');
+  eq('...wrapping to the gun a fresh commander flies', c.equipment.laser, LASER_TYPES[0]);
+
+  // The one shelf item that is a quantity. The shop sells one and there is no
+  // way back short of a hot cabin.
+  buyEquipment('trumble', ctx);
+  eq('the outfitter sells you a trumble', c.trumbles, 1);
+  pull('TRUMBLES', 'ArrowLeft');
+  eq('...and the row is the only way to be rid of it', c.trumbles, 0);
+  pull('TRUMBLES', 'ArrowLeft');
+  eq('...and it cannot go negative', c.trumbles, 0);
+}
+
 console.log('\n...and with the door shut, every one of them is a no-op');
 {
   const { screen, state, saves, pull } = rig(false);
@@ -251,60 +316,11 @@ console.log('\nthe legal-status lever is the one 122 and 123 are tested through'
     isHostileToPlayer(police, state.commander.legalStatus));
 }
 
-// --- the flight levers -------------------------------------------------------
-
-console.log('\nSPAWN puts the chosen ship off your nose — and only with the door open');
-{
-  seedWorld(20_260_810);
-  const { state, pull } = rig(false);
-
-  check('the sky starts empty', state.world.npcs.length === 0);
-  check('with the mode off the key does nothing at all',
-    spawnCheatShip(state) === null && state.world.npcs.length === 0);
-
-  state.cheat = true;
-  eq('a fresh career spawns the ship #18 is about', state.cheatRole, 'pirate');
-  const pirate = spawnCheatShip(state);
-  eq('...and one arrives, in the role that was asked for', pirate?.role, 'pirate');
-  eq('...one of it, not a wave', state.world.npcs.length, 1);
-  // Off your NOSE: the arena's cone is built round the facing it is given, so a
-  // ship placed at the origin looking down -Z lands in front, never behind.
-  check('...in front of the commander, not behind',
-    pirate!.object.position.z < 0
-    && pirate!.object.position.distanceTo(state.player.position) > 0);
-
-  // The row on the screen is the choice the key reads — the two halves of one
-  // lever, which is why the choice is state and not a field of the screen.
-  const next = NPC_ROLES[(NPC_ROLES.indexOf(state.cheatRole) + 1) % NPC_ROLES.length];
-  pull('SPAWN');
-  eq('the SPAWN row moves the choice on', state.cheatRole, next);
-  eq('...and the key spawns THAT', spawnCheatShip(state)?.role, next);
-  check('...over every role the roster has, and no invented one',
-    NPC_ROLES.length >= 9 && NPC_ROLES.every((r) => isNpcRole(r)));
-
-  // Invariant 11: the placement is drawn from the world's seeded stream, so the
-  // same seed puts it in the same place twice. Nothing here calls Math.random.
-  const where = (): string => {
-    seedWorld(4242);
-    const s = freshState(newCommander());
-    s.cheat = true;
-    return spawnCheatShip(s)!.object.position.toArray().map((n) => n.toFixed(3)).join(',');
-  };
-  eq('the same seed drops it in the same place', where(), where());
-}
-
-console.log('\n...and an exercise cannot have a ship dropped into it');
-{
-  check('SPAWN is not in the simulator table',
-    !BINDINGS.simulator.some((b) => b.command === 'cheatSpawn'));
-  check('...but it is in the cockpit\'s (the control)',
-    BINDINGS.flight.some((b) => b.command === 'cheatSpawn'));
-  // The other flight lever needs no entry of its own: it lifts a refusal on the
-  // two jump commands, and both were already off the simulator's table.
-  check('...and the jumps it frees were already off that table',
-    !BINDINGS.simulator.some((b) => b.command === 'startHyperspace')
-    && !BINDINGS.simulator.some((b) => b.command === 'galacticJump'));
-}
+// --- the flight lever -------------------------------------------------------
+//
+// One, not two. A SPAWN key was built here and taken out again at Chris's word
+// ("we don't need to spawn anything"), so what is left in the cockpit is the
+// jump — and it is not a binding at all, but a refusal that stops applying.
 
 console.log('\nJUMP ANYWHERE lifts the fuel refusal, and nothing else');
 {

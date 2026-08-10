@@ -186,7 +186,6 @@ joystick the original supported.
 | I | commander status |
 | P | pause |
 | V | mouse flight — pointer-locked analogue stick, left button fires |
-| ⇧S | test mode only — drop the chosen ship off your nose; ⇧T at the station picks it |
 | ? | controls guide |
 
 Views on 1-4 (the original used F0-F3) and screens on letters (were F4-F9),

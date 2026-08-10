@@ -157,10 +157,6 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     section: 'flight',
   },
   jettison5: { what: 'jettison five tonnes at once', section: 'flight' },
-  cheatSpawn: {
-    what: 'test mode only — drop the chosen ship off your nose (⇧T at the station picks it)',
-    section: 'combat',
-  },
 
   // --- the training simulator ------------------------------------------------
   endExercise: { what: 'end the exercise — nothing in it reaches your commander' },

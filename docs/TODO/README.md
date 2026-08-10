@@ -14,12 +14,19 @@ active context:
 ## Execution queue
 
 Two plans left of the three triaged from the GitHub inbox on 2026-08-10 with
-Chris's decisions in them. In order; `QUEUE.json` agrees. 121 landed whole —
-all three milestones, M3 not cut: ⇧T at the station is the door onto
-`GameState.cheat`, seven levers are behind it (the mode, fuel, missiles,
-credits, legal status, Character and which ship to spawn), ⇧S drops that ship
-off your nose, and the jump stops asking about fuel. A career that switches it
-on carries `commander.tested` for good and says so on its status screen.
+Chris's decisions in them. In order; `QUEUE.json` agrees. 121 landed: ⇧T at the
+station is the door onto `GameState.cheat`, and twenty levers are behind it —
+fuel, missiles, credits, legal status, Character, and the fit-out, which is the
+half the outfitter never had. It only ever FITS: `cheat` already made everything
+free at any tech level, but an owned item is refused and the gun ladder only
+climbs, so nothing could take a piece of kit back OFF. These rows write
+`Equipment` directly, both ways. In flight, the jump stops asking about fuel.
+A career that switches any of it on carries `commander.tested` for good and says
+so on its status screen.
+
+M3's SPAWN key was built and then removed at Chris's word — *"we don't need to
+spawn anything. But we do need to be able to select whatever equipment we
+want."* The plan doc records what went and what replaced it.
 
 **Nobody has flown it.** Every claim in 121 is a headless test; what plays
 wrong in a cockpit becomes a GitHub issue.

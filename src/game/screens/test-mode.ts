@@ -19,7 +19,9 @@
 // report.
 
 import type { GameState } from '../state.ts';
-import { formatCredits, markTested } from '../commander.ts';
+import {
+  defaultEquipment, formatCredits, markTested, LASER_TYPES, type Equipment,
+} from '../commander.ts';
 import { characterName } from '../character.ts';
 import { renderTestMode } from '../../ui/screens.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
@@ -29,7 +31,7 @@ import {
 } from '../../constants/commander.ts';
 import { LEGAL_NAMES } from '../../constants/law.ts';
 import { CHARACTER } from '../../constants/character.ts';
-import { NPC_ROLES } from '../ship-roles.ts';
+import { EQUIPMENT_CATALOGUE } from '../../constants/shop.ts';
 
 /**
  * The slice of the Game this screen is allowed to see.
@@ -58,6 +60,14 @@ export interface TestModeRow {
   value: string;
   /** shown, but inert — the levers do nothing until the mode is on */
   dim?: boolean;
+  /**
+   * A faint group heading painted ABOVE this row.
+   *
+   * A property of the row it introduces rather than an entry in the list, for
+   * `SimSetupRow`'s reason: the cursor and every click index THIS list, so a
+   * heading that was an entry would be a selectable row that does nothing.
+   */
+  heading?: string;
 }
 
 /** The whole panel, as the renderer needs it. */
@@ -82,6 +92,36 @@ interface TestCell extends TestModeRow {
 const cycle = (n: number, len: number, d: number): number => (n + d + len) % len;
 const clamp = (n: number, lo: number, hi: number): number => Math.max(lo, Math.min(hi, n));
 const onOff = (b: boolean): string => (b ? 'ON' : 'OFF');
+const yesNo = (b: boolean): string => (b ? 'FITTED' : '—');
+
+/**
+ * Every fitting that is a YES/NO, read off `Equipment` itself.
+ *
+ * `defaultEquipment()` returns an `Equipment`, so its keys ARE the interface's,
+ * and dropping the one field that is not a boolean leaves exactly the toggles.
+ * A fitting added to the record therefore gets a lever the day it is added, and
+ * no list here can fall behind it — which is the whole reason this reads the
+ * record rather than naming thirteen fields.
+ */
+const FITTINGS = Object.keys(defaultEquipment())
+  .filter((k) => k !== 'laser') as Fitting[];
+
+/** A field of `Equipment` that is a plain on/off — everything but the gun. */
+type Fitting = Exclude<keyof Equipment, 'laser'>;
+
+/**
+ * What to call a fitting: the outfitter's own words for it where the shelf
+ * sells one, and the field's name where it does not.
+ *
+ * The catalogue's ids and `Equipment`'s field names already agree for all
+ * thirteen — that is not a coincidence, it is how `equipmentOwned` reads them —
+ * so this is a lookup rather than a mapping table, and a fitting the shop never
+ * sells still gets a row rather than being quietly missing from the one screen
+ * whose job is to fit anything.
+ */
+const fittingName = (field: string): string =>
+  (EQUIPMENT_CATALOGUE.find((item) => item.id === field)?.name
+    ?? field.replace(/([A-Z])/g, ' $1')).toUpperCase();
 
 /**
  * Which rung of the character ladder a disrepute score is standing on — the
@@ -169,13 +209,16 @@ export class TestModeScreen implements Screen {
   private cells(): TestCell[] {
     const { state } = this.ctx();
     const c = state.commander;
+    const e = c.equipment;
     return [
       {
+        heading: 'THE DOOR',
         label: 'TEST MODE',
         value: onOff(state.cheat),
         act: () => this.setCheat(!state.cheat),
       },
       this.lever({
+        heading: 'THE COMMANDER',
         label: 'FILL TANK',
         value: `${(c.fuel / 10).toFixed(1)} / ${(MAX_FUEL / 10).toFixed(1)} LY`,
         act: () => { c.fuel = MAX_FUEL; },
@@ -209,18 +252,6 @@ export class TestModeScreen implements Screen {
         act: (d) => { c.legalStatus = cycle(c.legalStatus, LEGAL_NAMES.length, d); },
       }),
       this.lever({
-        // The COCKPIT lever's half that a station screen can hold: which ship
-        // ⇧S drops. The key itself is game/test-mode.ts's, and this row is why
-        // its caption can say "the chosen ship" — no numeric entry, no picker
-        // in flight, just a ring over the roles the roster has.
-        label: 'SPAWN',
-        value: state.cheatRole.toUpperCase(),
-        act: (d) => {
-          state.cheatRole = NPC_ROLES[cycle(NPC_ROLES.indexOf(state.cheatRole),
-            NPC_ROLES.length, d)];
-        },
-      }),
-      this.lever({
         // docs/TODO/96 shipped DISREPUTE_HEAT, COURTESY_RATE and HERMIT_FAVOUR
         // as unflown STARTING VALUES and closed on the campaign rather than on a
         // cockpit. This row is what lets somebody fly them.
@@ -231,6 +262,38 @@ export class TestModeScreen implements Screen {
         label: 'CHARACTER',
         value: `${characterName(c.disrepute ?? 0).toUpperCase()} (${Math.round(c.disrepute ?? 0)})`,
         act: (d) => { c.disrepute = CHARACTER[cycle(rungOf(c.disrepute ?? 0), CHARACTER.length, d)][0]; },
+      }),
+
+      // --- the fit-out, in BOTH directions ---------------------------------
+      //
+      // This is the half the outfitter cannot do. With `cheat` on it already
+      // fits anything, free, at any tech level — but it only ever FITS: it
+      // refuses an item you own (`equipmentOwned` gates the row) and the gun
+      // ladder only climbs. So there was no way to fly the same commander
+      // WITHOUT a piece of kit once it was aboard, which is most of what a
+      // test fit-out is for. These rows write the field directly, so they take
+      // things off as readily as they put them on.
+      this.lever({
+        heading: 'THE SHIP',
+        label: 'FRONT LASER',
+        value: e.laser.toUpperCase(),
+        act: (d) => {
+          e.laser = LASER_TYPES[cycle(LASER_TYPES.indexOf(e.laser), LASER_TYPES.length, d)];
+        },
+      }),
+      ...FITTINGS.map((field) => this.lever({
+        label: fittingName(field),
+        value: yesNo(e[field]),
+        act: () => { e[field] = !e[field]; },
+      })),
+      this.lever({
+        // The one shelf item that is a QUANTITY rather than a fitting, and the
+        // one the outfitter can only ever sell you (commander.ts keeps it out
+        // of `Equipment` for that reason). They breed; ← is how a test gets
+        // rid of them without waiting for the heat.
+        label: 'TRUMBLES',
+        value: String(c.trumbles),
+        act: (d) => { c.trumbles = Math.max(0, c.trumbles + d); },
       }),
     ];
   }
