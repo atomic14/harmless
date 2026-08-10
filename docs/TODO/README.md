@@ -13,16 +13,13 @@ active context:
 
 ## Execution queue
 
-Four plans, triaged from the GitHub inbox on 2026-08-10 with Chris's decisions
-in them. In order; `QUEUE.json` agrees.
+Three plans, triaged from the GitHub inbox on 2026-08-10 with Chris's decisions
+in them. In order; `QUEUE.json` agrees. 120 landed: the port marker has the dock
+test's three states, decided in `hud-model.ts` where a test can reach the
+choice, so green now means the slot would take you and `ROLL` says which of the
+two stick inputs is wrong.
 
-1. [ ] [120 — the port marker says LINED UP when you are rolled
-   wrong](120-the-port-marker-says-lined-up-when-you-are-rolled-wrong.md) ·
-   **#19** · bug, small. The marker goes green off `inSlot`, the lateral test
-   alone, so it promises a dock the roll check is about to refuse. `rollOk` is
-   computed beside it in `hud-model.ts` and nobody reads it. Three states, and
-   the choice moves into the model where a test can reach it.
-2. [ ] [121 — the test mode that has no door](121-the-test-mode-that-has-no-door.md)
+1. [ ] [121 — the test mode that has no door](121-the-test-mode-that-has-no-door.md)
    · **#18** · tooling, medium. `GameState.cheat` is saved, validated, wired
    into the outfitters and covered by a passing test — and nothing in the
    shipped game can set it, because the globals purge deleted `window.__cheat`
@@ -30,14 +27,14 @@ in them. In order; `QUEUE.json` agrees.
    career; M2 the commander levers (fuel, credits, legal status, Character);
    M3 the flight levers. Ahead of the law work because it is what lets somebody
    fly it.
-3. [ ] [122 — the police scan arrives with no warning](122-the-scan-arrives-with-no-warning.md)
+2. [ ] [122 — the police scan arrives with no warning](122-the-scan-arrives-with-no-warning.md)
    · **#20** · balance, small. Proximity is already required (`SCAN_RANGE`
    2,600); the telegraph is not there, so the scan is a silent verdict rather
    than a decision. Warning only, no new flying, at Chris's call. M2 is the
    player's half of that window: `dumpCargo` takes the most valuable thing
    first, which puts Slaves 14th of 17 — the dump key throws the profit
    overboard while the evidence stays aboard.
-4. [ ] [123 — you cannot buy off the law](123-you-cannot-buy-off-the-law.md) ·
+3. [ ] [123 — you cannot buy off the law](123-you-cannot-buy-off-the-law.md) ·
    **#21** · feature, medium. `satisfied` already ends a ship's interest in you
    for every role; only the offer is missing. M1 buys off the inspection inside
    122's window, M2 calls off the vipers already on you, M3 is the cop who says

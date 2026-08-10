@@ -154,17 +154,25 @@ export function dockingAid(
   station.worldToLocal(local);
   scratch.q.copy(station.quaternion).invert().multiply(playerQuat);
   const right = scratch.a.set(1, 0, 0).applyQuaternion(scratch.q);
+  // The slot's own rules, not a copy of them: this used to hardcode the
+  // channel and the roll tolerance, so the aid and the dock test could —
+  // and, when the letterbox turned upright, would — disagree.
+  const inSlot = inSlotChannel(local.x, local.y);
+  const rollOk = rollAlignedWithSlot(right.x, right.y);
   return {
     slotMarker,
     dockAid: {
       x: local.x,
       y: local.y,
-      // The slot's own rules, not a copy of them: this used to hardcode the
-      // channel and the roll tolerance, so the aid and the dock test could —
-      // and, when the letterbox turned upright, would — disagree.
       roll: slotRollOffset(right.x, right.y),
-      inSlot: inSlotChannel(local.x, local.y),
-      rollOk: rollAlignedWithSlot(right.x, right.y),
+      inSlot,
+      rollOk,
+      // The CHOICE lives here rather than in the painter: green has to mean
+      // the dock test would pass, and `inSlot` alone is the lateral half of
+      // it, so a ship centred in the letterbox and rolled 30° out was being
+      // told LINED UP one moment before `dockingOutcome` returned 'slotMiss'.
+      // A canvas cannot be asserted against; this can (docs/TODO/120).
+      port: !inSlot ? 'off' : rollOk ? 'lined' : 'roll',
     },
   };
 }

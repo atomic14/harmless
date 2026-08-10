@@ -88,6 +88,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 116 — [A loaded save jumps on its own](116-a-loaded-save-jumps-on-its-own.md) — restore puts the hyperspace countdown back at rest, and the in-flight ring will not write one down
 - [x] 117 — [The galaxy was trading before you arrived](117-the-galaxy-was-trading-before-you-arrived.md) — a new career inherits 30 days of trade, and a galactic jump arrives in a galaxy of its own
 - [x] 119 — [A constant that names nothing, and the exports around it](119-a-constant-that-names-nothing.md) — `BRAIN_HANDOVER_RANGE` and the prose asserting a handover no pilot makes; two dead functions, two dead re-exports, eleven narrowed visibilities
+- [x] 120 — [The port marker says LINED UP when you are rolled wrong](120-the-port-marker-says-lined-up-when-you-are-rolled-wrong.md) — three states off the slot's own two tests, decided in the model: green now means the dock test would pass
 
 <!-- append-completed-todos-here -->
 

@@ -3,6 +3,20 @@
 **Kind:** bug / UI · **Severity:** medium · **Size:** small
 **Depends on:** none · **GitHub:** #19
 
+**Landed 2026-08-10.** `port: 'off' | 'roll' | 'lined'` is decided in
+`hud-model.ts` and painted in `hud.ts`; `inSlot` and `rollOk` stay as they were.
+Five assertions in `test/hud-model.test.ts` fly a real approach pose built the
+way `planDocking` builds one, and the last of them holds the marker against
+`dockingOutcome` rather than against itself. Restoring `inSlot ? 'lined' : 'off'`
+takes two of them red, checked. `npm run check` green (3,622 assertions).
+
+Two departures from the plan as written, both recorded here rather than argued
+again: `PortState` is a named exported type, because the three states are spelt
+in two places and a repeated union is the same duplicate the plan is about; and
+`hud.ts` is 577 lines rather than 567, the ten lines being the type, its
+reasoning and the label mapping, offset by deleting the `render()` comment that
+restated the `dockAid` doc four lines above the call it annotated.
+
 ## Where we are
 
 The docking port marker paints two states off one boolean:

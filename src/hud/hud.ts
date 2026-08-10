@@ -27,6 +27,12 @@ export interface ScannerContact {
   kind: ContactKind;
 }
 
+/** What the port marker should say: off the channel, in it but rolled, or in
+ *  and rolled right. Decided in hud-model.ts rather than by a ternary here,
+ *  because the two-state version painted LINED UP over a slot about to refuse
+ *  you and no test could reach the choice to say so (docs/TODO/120). */
+export type PortState = 'off' | 'roll' | 'lined';
+
 /**
  * The roll and pitch pointers travel ±45% either side of centre, so a fraction
  * outside -1..1 walks them off the end of their own bar. `HudState` declares the
@@ -97,13 +103,15 @@ export interface HudState {
   /**
    * Docking state. Once drove a separate corner overlay; that is gone — the
    * port marker says whether you are lined up, and saying it twice in two
-   * places was worse than saying it once. Only `inSlot` is read now.
+   * places was worse than saying it once. Only `port` is read now.
    *
    * `roll` is how far the wings are off the slot's long axis, in radians —
    * unsigned, and zero when lined up. It was a signed bearing when the slot was
    * horizontal; game/docking.ts owns the measurement either way.
    */
-  dockAid: { x: number; y: number; roll: number; inSlot: boolean; rollOk: boolean } | null;
+  dockAid: {
+    x: number; y: number; roll: number; inSlot: boolean; rollOk: boolean; port: PortState;
+  } | null;
   /**
    * Where the docking slot is on screen (NDC), when you're close and on the
    * right side of the station. `behind` means it's off past the edge of the
@@ -255,12 +263,8 @@ export class Hud {
 
     this.drawExercise(frame.exercise);
 
-    // No separate docking-aid overlay: the port marker already says whether
-    // you are lined up, and two things telling you the same thing in different
-    // corners of the screen is worse than one. dockAid survives purely as the
-    // source of that lined-up state.
     this.drawTargets(frame.targets);
-    this.drawSlotMarker(frame.slotMarker, frame.dockAid?.inSlot ?? false);
+    this.drawSlotMarker(frame.slotMarker, frame.dockAid?.port ?? 'off');
     this.drawThreatMarker(frame.threatMarker);
     this.drawScanner(frame.playerPos, frame.playerQuat, frame.contacts);
     this.drawCompass(frame.playerPos, frame.playerQuat, frame.compassTarget);
@@ -439,12 +443,15 @@ export class Hud {
     this.drawEdgeArrow(marker, RED, marker.count > 1 ? `THREAT x${marker.count}` : 'THREAT');
   }
 
-  private drawSlotMarker(marker: HudState['slotMarker'], inSlot: boolean): void {
+  private drawSlotMarker(marker: HudState['slotMarker'], port: PortState): void {
     if (!marker) return;
     const ctx = this.reticle;
     const w = ctx.canvas.width;
     const h = ctx.canvas.height;
-    const colour = inSlot ? GREEN : AMBER;
+    // Green ONLY where the dock test would pass. Two colours for three states:
+    // amber already means "not yet", and the WORD says which of the two things
+    // is wrong, which is all a third palette entry would have bought.
+    const colour = port === 'lined' ? GREEN : AMBER;
     ctx.strokeStyle = colour;
     ctx.fillStyle = colour;
     ctx.lineWidth = 2;
@@ -464,7 +471,10 @@ export class Hud {
         ctx.stroke();
       }
       ctx.font = '10px Menlo, Consolas, monospace';
-      ctx.fillText(inSlot ? 'DOCKING PORT — LINED UP' : 'DOCKING PORT', x - r, y - r - 6);
+      const label = port === 'lined' ? 'DOCKING PORT — LINED UP'
+        : port === 'roll' ? 'DOCKING PORT — ROLL'
+        : 'DOCKING PORT';
+      ctx.fillText(label, x - r, y - r - 6);
       return;
     }
 
