@@ -1924,8 +1924,13 @@ export class Game {
       sfx.refused();
       return;
     }
+    // Out of the back, clear of your own scoop reach — `cargo.jettison`, not
+    // `cargo.spawn`, which scatters a wreck's hold where it fell. Dropped at
+    // the nose it landed inside SCOOP_RANGE and a commander with fuel scoops
+    // fitted collected it again on the next frame.
+    const nose = this.state.player.getForward(this.tmp);
     for (const commodity of dumped.tonnes) {
-      this.state.world.cargo.spawn(this.state.player.position.clone(), 1, [commodity]);
+      this.state.world.cargo.jettison(this.state.player.position, nose, commodity);
     }
     this.state.session.jettisonedValue += dumped.value;
     sfx.cargoJettisoned();

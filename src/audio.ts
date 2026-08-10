@@ -94,6 +94,17 @@ const BLUE_DANUBE: [string | null, number][] = [
   ['Fs4', 2], [null, 1],
   ['D5', 1], [null, 2],
 ];
+/**
+ * The melody's held level, and how long it takes to let go of a note.
+ *
+ * The release is a CEILING rather than a fixed time — a half-beat note is
+ * shorter than it, so it is clamped to a fraction of the note instead
+ * (`Math.min` at the call site). Without that, the quick `dum dum` pairs would
+ * be all release and no note.
+ */
+const MELODY_GAIN = 0.05;
+const MELODY_RELEASE = 0.07;
+
 /** Waltz bass: root on the downbeat, chord on two and three. */
 const BASS: string[] = ['D4', 'A3', 'D4', 'A3', 'B3', 'E4', 'A3', 'D4'];
 
@@ -187,8 +198,19 @@ export const sfx = {
         o.type = 'square';
         o.frequency.setValueAtTime(hz(note), t);
         const dur = beats * beat * 0.92;
+        // Attack, HOLD, release — not a single ramp across the whole note.
+        //
+        // It used to decay exponentially from the attack straight to silence at
+        // `t + dur`, which is a 500-fold fall spread over the note: a minim was
+        // 27 dB down by its own midpoint and inaudible well before it ended. The
+        // waltz therefore played as a string of blips with the long notes
+        // missing, which is what "the notes seem weirdly truncated" is. A held
+        // level and a short release at the end is what makes a 2-beat note last
+        // 2 beats.
+        const release = Math.min(MELODY_RELEASE, dur * 0.4);
         g.gain.setValueAtTime(0.0001, t);
-        g.gain.exponentialRampToValueAtTime(0.05, t + 0.02);
+        g.gain.exponentialRampToValueAtTime(MELODY_GAIN, t + 0.02);
+        g.gain.setValueAtTime(MELODY_GAIN, t + dur - release);
         g.gain.exponentialRampToValueAtTime(0.0001, t + dur);
         o.connect(g).connect(a.destination);
         o.start(t);

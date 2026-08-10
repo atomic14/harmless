@@ -351,7 +351,9 @@ const OUTSIDE: readonly Group[] = [
       + ' because it is painted twice — once live and once as the invisible ghost that'
       + ' holds its height (docs/TODO/121); the'
       + ' inert painter\'s DOM plumbing; the cockpit beams\' convergence depth; the'
-      + ' Blue Danube; and the manual\'s prose rows',
+      + ' Blue Danube — whose two envelope numbers are how a note SOUNDS and not'
+      + ' what anything in the world does, the same test the tunnel effect\'s'
+      + ' squash passes; and the manual\'s prose rows',
     files: {
       'hud/hud.ts': ['CONTACT_COLORS', 'VIEW_NAMES', 'SCORE_LABELS'],
       'ui/screens.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES', 'LEVERS_OFF'],
@@ -365,7 +367,7 @@ const OUTSIDE: readonly Group[] = [
       'engine/keymap.ts': ['LAYOUTS', 'STORAGE_KEY'],
       'engine/inert-dom.ts': ['STYLE_METHODS'],
       'engine/render-stack.ts': ['BEAM_Z'],
-      'audio.ts': ['NOTE', 'BLUE_DANUBE', 'BASS'],
+      'audio.ts': ['NOTE', 'BLUE_DANUBE', 'BASS', 'MELODY_GAIN', 'MELODY_RELEASE'],
       'manual.ts': ['FLIGHT'],
     },
   },

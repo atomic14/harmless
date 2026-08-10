@@ -33,6 +33,7 @@ import { recommendedProfileIdFor } from './ship-identity.ts';
 import { random, randomDirection, randomInt } from './rng.ts';
 import type { CanisterSnapshot } from './snapshot.ts';
 import { SCOOP_RANGE } from '../constants/scoop.ts';
+import { JETTISON_CLEARANCE } from '../constants/jettison.ts';
 
 export interface Canister {
   object: THREE.Object3D;
@@ -102,14 +103,49 @@ export class CargoField {
       const object = build('cargo');
       object.position.copy(at)
         .add(randomDirection(new THREE.Vector3()).multiplyScalar(20 + i * 15));
-      this.add(object, {
-        commodity: commodities[randomInt(commodities.length)],
-        velocity: randomDirection(new THREE.Vector3()).multiplyScalar(15 + random() * 30),
-        spinAxis: randomDirection(new THREE.Vector3()),
-        kind: 'cargo',
-        energy: canisterMaxEnergy('cargo'),
-      });
+      this.adrift(object, commodities[randomInt(commodities.length)]);
     }
+  }
+
+  /**
+   * A tonne over the side: CLEAR of the ship that dropped it, and behind.
+   *
+   * Not `spawn`, and the difference is the whole point. `spawn` scatters a
+   * destroyed ship's hold around the wreck, where 20 units is right; a tonne
+   * you threw out of your own hold has to leave your own scoop reach, or you
+   * collect it again on the next frame and the bribe you just paid a pirate is
+   * undone before he has seen it. The distance is `SCOOP_RANGE` plus a stated
+   * margin (`JETTISON_CLEARANCE`) rather than a number of its own, so it cannot
+   * fall back inside a reach that grows.
+   *
+   * BEHIND the nose, not in a random direction, and that is not decoration: a
+   * random bearing puts it in front of you about as often as not, and flying
+   * forward through your own jettisoned cargo scoops it back just as surely.
+   *
+   * @param nose the ship's forward direction — the drop goes the other way
+   */
+  jettison(from: THREE.Vector3, nose: THREE.Vector3, commodity: number): void {
+    const object = build('cargo');
+    object.position.copy(from)
+      .addScaledVector(nose, -(SCOOP_RANGE + JETTISON_CLEARANCE));
+    this.adrift(object, commodity);
+  }
+
+  /**
+   * Give a built canister its drift, its spin and its bank, and add it.
+   *
+   * The one home for what a loose tonne IS, shared by the wreck scatter and the
+   * jettison — the draws happen in the same order either way, so neither caller
+   * can quietly diverge from the other on the seeded stream (invariant 11).
+   */
+  private adrift(object: THREE.Object3D, commodity: number): void {
+    this.add(object, {
+      commodity,
+      velocity: randomDirection(new THREE.Vector3()).multiplyScalar(15 + random() * 30),
+      spinAxis: randomDirection(new THREE.Vector3()),
+      kind: 'cargo',
+      energy: canisterMaxEnergy('cargo'),
+    });
   }
 
   /**
