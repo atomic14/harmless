@@ -13,15 +13,19 @@ active context:
 
 ## Execution queue
 
-Four plans. In order; `QUEUE.json` agrees. The first two came out of the GitHub
-inbox on 2026-08-10; the last two came out of the first real flight the same
-day, once 121's test mode and 124's quit key made one possible.
+Four plans. In order; `QUEUE.json` agrees. Three came out of the GitHub inbox on
+2026-08-10; the fourth came out of the first real flight the same day, once
+121's test mode and 124's quit key made one possible.
 
 121 landed before them: ⇧T at the station is the door onto `GameState.cheat`,
 twenty levers are behind it — fuel, missiles, credits, legal status, Character
 and a fit-out that takes equipment OFF, which no shop in the game can — and the
 jump stops asking about fuel. 124 gave the cockpit a way out: P then Q gives up
 a flight and puts you back at the station autosave you launched from.
+
+The GitHub inbox is empty of untriaged work: #20, #21 and #22 are the three
+plans below that have one, each labelled `planned` with its disposition on the
+issue. #18 closed with 121. 126 has no issue — it came out of a flight.
 
 **That flight found six things.** Two were bugs and are fixed (`1067e87`):
 jettisoned cargo landed inside your own scoop reach, so pressing Y dumped a
@@ -48,15 +52,18 @@ The remaining two are 126 and 127 below.
    no, weighted by Character. A bribe never clears a record and always costs
    your name.
 3. [ ] [127 — the survivor is handed over without asking](127-the-survivor-is-handed-over-without-asking.md)
-   · feature, medium. You scoop someone out of a capsule and docking files them
+   · **#22** · feature, medium. You scoop someone out of a capsule and docking files them
    with station medical in the same breath as resetting your shields — no
    choice, no payment, no consequence. Chris: force the choice, and let it be a
    dirty one. M1 is the prompt and the decent answer; M2 sells them at the
    station's own Slaves price or takes a bribe to let them go, priced against
    the Character ladder 96 built; M3 is the law's half. Ahead of 126 because it
-   is the one that gives that ladder something to say.
+   is the one that gives that ladder something to say. #22 and the flight asked
+   for it separately and differ: the issue wants two options and says the legal
+   status must move, the flight added a third option and did not — so between
+   them the law's half is decided rather than deferred.
 4. [ ] [126 — the docking computer turns the ship without flying it](126-the-docking-computer-flies-by-fiat.md)
-   · bug, medium. It writes `player.quaternion` through a shortest-arc slerp
+   · no issue — found in flight · bug, medium. It writes `player.quaternion` through a shortest-arc slerp
    instead of producing a `FlightDemand`, so it pivots about an axis no stick
    can produce, never writes the rates the HUD reads, and obeys its own turn
    limit rather than the hull's. Two file headers already claim otherwise.

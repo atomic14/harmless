@@ -1,12 +1,23 @@
 # 127 — The survivor is handed over without asking
 
 **Kind:** feature · **Severity:** medium · **Size:** medium (three milestones) ·
-**Depends on:** none (reads docs/TODO/96's Character ladder) · **GitHub:** none —
-asked by Chris from a real flight, 2026-08-10: *"I picked up a survivor and when
-I docked they were handed to medical — this should be a choice we give the
-player: do they want to be good or bad? They could sell the survivor as a slave
-— let's force them to make that choice. And maybe there's a third option — take
-a bribe to let the survivor go."*
+**Depends on:** none (reads docs/TODO/96's Character ladder) · **GitHub:** #22
+
+Asked twice, and the two askings are not identical — which is useful, because
+between them they answer a question either alone would have left open.
+
+**#22:** *"When you dock, you should be given a choice — set the 'passengers'
+free or sell them — at that point your legal status should change."*
+
+**Chris, from a real flight, 2026-08-10:** *"I picked up a survivor and when I
+docked they were handed to medical — this should be a choice we give the player:
+do they want to be good or bad? They could sell the survivor as a slave — let's
+force them to make that choice. And maybe there's a third option — take a bribe
+to let the survivor go."*
+
+The issue asks for two options; the flight added the third. The issue also says
+the LEGAL STATUS should move, which the flight version did not — so that is
+decided rather than deferred (see M3).
 
 ## Where we are
 
@@ -39,6 +50,10 @@ place in the game to ask it.
 - **Chris, 2026-08-10:** the choice is FORCED — a docking with a survivor aboard
   asks before it resolves. Three options: hand them to medical, sell them as a
   slave, or take a bribe to let them go.
+- **The law moves on a sale** (#22: *"at that point your legal status should
+  change"*). This was an open question in the first draft of this plan and is
+  not one now: selling a person is an offence, and M3 applies it rather than
+  weighing whether to.
 
 ## What to do
 
@@ -72,13 +87,26 @@ deeds, and both are settled by the campaign rather than by argument.
 
 ### M3 — the law's half
 
-Selling a person is a crime the Galactic Government would notice. The cheapest
-honest answer is that it is a CONTRABAND SALE — `saleFallout` (game/market.ts)
-already owns what a dirty sale does to your name and to the system's heat, and
-routing the sale through it means no new rule. Whether it also sets a legal
-status is Chris's call and is deliberately left for M3 rather than assumed.
+Selling a person is a crime the Galactic Government would notice, and #22 says
+so outright. Two rules, both already written:
 
-**M3 is the milestone to cut** if the first two land and the appetite is gone.
+- **The fallout** is a CONTRABAND SALE. `saleFallout` (game/market.ts) already
+  owns what a dirty sale does to your name and to the destination's heat, and
+  routing the sale through it means no new rule and no second copy of one.
+- **The record** is `raiseLegal(1)` — Offender, the same rung a police scan
+  gives a smuggler who is caught. Not Fugitive: that is what destroying a
+  lawful ship costs (`offenceFor`), and a sale made over a counter should not
+  outrank killing someone.
+
+**Which raises the question 122 is already carrying** — police hunt Fugitives,
+bounty hunters take an interest in Offenders — so an Offender walks out of the
+station unmolested. That is the same legibility problem, and it should be
+answered once, in 122, rather than twice.
+
+**M3 is NO LONGER the milestone to cut**, because it is the half #22 asked for
+in as many words. If appetite runs out, cut the BRIBE option in M2 instead: it
+is the one that came from the flight rather than the issue, and the good and the
+dirty answer stand without it.
 
 ## Open questions — answered here
 
