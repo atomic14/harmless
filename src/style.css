@@ -377,6 +377,31 @@ body.screen-open #message {
 }
 
 /*
+ * The key prompts, directly under the message line and quieter than it.
+ *
+ * Dim rather than amber, and smaller: a prompt is an answer offered, not an
+ * event announced, and it must never read as the more urgent of the two lines
+ * when both are up. Same centring and the same z-index band as #message, so a
+ * prompt raised while a screen is open is not painted underneath it.
+ */
+#prompts {
+  position: absolute;
+  left: 50%; bottom: 23vh;
+  transform: translateX(-50%);
+  z-index: 20;
+  font-size: 13px;
+  letter-spacing: 2px;
+  color: var(--hud-dim);
+  pointer-events: none;
+  white-space: nowrap;
+  text-align: center;
+}
+#prompts .prompt-key {
+  color: var(--hud-amber);
+  text-shadow: 0 0 8px rgba(var(--hud-amber-rgb), 0.7);
+}
+
+/*
  * The exercise strip — top left, under the topbar.
  *
  * Deliberately away from the middle of the screen and away from the bottom:

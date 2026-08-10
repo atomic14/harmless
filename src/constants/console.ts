@@ -19,6 +19,23 @@ export const SCANNER_RANGE = 6000;
 /** Ships further out than this get no bracket — the HUD would be a mess. */
 export const TARGET_BRACKET_RANGE = 5000;
 
+/**
+ * How many key prompts the cockpit offers at once (`game/prompts.ts`).
+ *
+ * TWO, and the number is the design rather than a fitting: one prompt is an
+ * instruction, two is a choice — pay him or dump the evidence — and three is a
+ * menu, which is not a thing to read while something closes on you. The rule
+ * module ranks by urgency and this takes the top of that list, so the cap can
+ * never hide the most pressing one.
+ *
+ * It shares the value 2 with `FUGITIVE` (a legal rung), `MISSILE_RELOAD`
+ * (seconds), `CHART_Y_SQUASH` and a dozen other counts; this one is a number of
+ * offers on a screen, and none of them moves with it.
+ *
+ * @rule console.promptLimit
+ */
+export const PROMPT_LIMIT = 2;
+
 /** Closer than this to the sun, the compass switches to it for a sun-skim. */
 export const SUNSKIM_COMPASS_RANGE = 130_000;
 

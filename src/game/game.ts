@@ -50,6 +50,7 @@ import { buildHudFrame } from '../hud/hud-binding.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
 import { sfx } from '../audio.ts';
 import { nearestEngaging, nearestNpc, NpcShip } from './npc.ts';
+import { flightPrompts } from './prompts.ts';
 import { npcImpactDamage } from './impact-damage.ts';
 import { IMPACT } from '../constants/impact.ts';
 import { dealToNpc } from './damage-dealt.ts';
@@ -155,7 +156,7 @@ import {
   hideScreen, renderDockedMenu, renderNewGameConfirm,
   renderGameOver,
 } from '../ui/screens.ts';
-import { boundKey, paintCommandGuide } from '../ui/key-help.ts';
+import { boundKey, keyIfBound, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
 
 
@@ -2142,6 +2143,38 @@ export class Game {
     pos.needsUpdate = true;
   }
 
+  /**
+   * The prompt line: what a key can do about what is happening, with the key
+   * the table actually binds in front of it.
+   *
+   * The join between a pure rule and invariant 9. `prompts.ts` decides WHICH
+   * commands are worth offering and what each is worth right now; `boundKey`
+   * answers what to press, from `controls.ts`, which is the one home of that —
+   * so rebinding a command rewrites its own prompt and no letter is ever
+   * written out in prose. Only in flight: the station menu already renders its
+   * own keys from the same table.
+   *
+   * @internal — public so a test can read what the cockpit is offering without
+   * scraping the painted line, the way `jettisonCargo` is driven directly.
+   */
+  keyPrompts(): string[] {
+    const mode = this.controlMode();
+    if (this.mode !== 'flight' || !mode) return [];
+    return flightPrompts({
+      commander: this.state.commander,
+      playerPos: this.state.player.position,
+      npcs: this.state.world.npcs,
+      policeScanned: this.state.session.policeScanned,
+      witchspace: this.state.session.witchspace,
+    }).flatMap((p) => {
+      // `keyIfBound`, not `boundKey`: the arena's table subtracts eight of the
+      // cockpit's commands, so an unbound one here is an ordinary answer — the
+      // prompt simply does not appear — rather than a build failure.
+      const key = keyIfBound(mode, p.command);
+      return key ? [`${key} ${p.what}`] : [];
+    });
+  }
+
   private renderHud(dt: number): void {
     this.updateSight();
     const frame = buildHudFrame({
@@ -2167,6 +2200,7 @@ export class Game {
       ecmDetected: this.state.ecmDetectedTimer > 0,
       messageText: this.state.session.messageText,
       messageTimer: this.state.session.messageTimer,
+      prompts: this.keyPrompts(),
       // Null in career flight, and gated on the same `active` that decides the
       // exercise owns the keyboard (controlMode) — the strip is the exercise's
       // own view of itself, not a second opinion about one.

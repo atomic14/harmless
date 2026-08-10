@@ -22,6 +22,14 @@
       </div>
       <div id="message"></div>
       <!--
+        What a key can do about what is happening right now — see
+        game/prompts.ts, which decides WHICH commands, and game.ts, which puts
+        the bound key in front of each. A line of its own rather than the
+        message line, because a prompt is true while the situation is and the
+        console is deliberately one line.
+      -->
+      <div id="prompts"></div>
+      <!--
         The exercise strip: shown for as long as a training exercise is being
         flown, and never in career flight. Painted by hud/hud.ts from the
         exercise's own recorder — see game/combat-sim-strip.ts.

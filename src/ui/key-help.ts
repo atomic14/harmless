@@ -46,9 +46,24 @@ const LABELS: Record<string, string> = {
  * quoting a key nothing answers should fail the build, not ship.
  */
 export function boundKey(mode: ControlMode, command: Command): string {
+  const key = keyIfBound(mode, command);
+  if (key === null) throw new Error(`boundKey: '${command}' is not bound in '${mode}'`);
+  return key;
+}
+
+/**
+ * The same lookup, answering `null` instead of throwing.
+ *
+ * For the cockpit's key PROMPTS (game/prompts.ts), where an unbound command is
+ * an ordinary answer rather than a mistake: the training arena subtracts eight
+ * commands from the flight table (`NOT_IN_THE_SIMULATOR`), and a prompt for a
+ * key that mode does not bind must simply not appear. Prose still uses
+ * `boundKey`, which fails the build — the difference is that a sentence is
+ * written once and a prompt is raised by a situation.
+ */
+export function keyIfBound(mode: ControlMode, command: Command): string | null {
   const b = [...BINDINGS[mode], ...GLOBAL_BINDINGS].find((x) => x.command === command);
-  if (!b) throw new Error(`boundKey: '${command}' is not bound in '${mode}'`);
-  return keyLabel(b.key, b.shift);
+  return b ? keyLabel(b.key, b.shift) : null;
 }
 
 /** What to print for a `KeyboardEvent.code`, with the modifier the table wants. */

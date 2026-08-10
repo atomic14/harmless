@@ -23,6 +23,7 @@ import { random, seedWorld } from '../src/game/rng.ts';
 import {
   inspectionPrice, patrolPrice, refusalChance,
 } from '../src/game/law.ts';
+import { formatCredits } from '../src/game/commander.ts';
 import { isHostileToPlayer, type NpcShip } from '../src/game/npc.ts';
 import {
   CLEAN, CONTRABAND, FUGITIVE, SCAN_RANGE, SCAN_WARN_RANGE,
@@ -248,6 +249,25 @@ console.log('...and an escort you cannot pay for keeps shooting');
   eq('...and not a tenth is spent', c.credits, was);
   check('...and he is still hostile', isHostileToPlayer(cop, c.legalStatus)
     && !cop.state.satisfied);
+}
+
+console.log('\n...and the cockpit says so while the window is open');
+{
+  // docs/TODO/128: the offer is only a feature if a pilot knows it is there.
+  // The prompt line is read straight off the Game, so this is the same list the
+  // painter is handed — with the key the binding table gives it.
+  const { g, fly } = smuggling(20_260_821, 3, SCAN_WARN_RANGE * 0.9);
+  const c = g.state.commander;
+  c.credits = 100_000;
+  fly(1);
+  const offered = g.keyPrompts();
+  check(`the cockpit offers both answers (${offered.join(' \u00b7 ') || 'nothing'})`,
+    offered.length === 2 && offered[0] === `L PAY ${formatCredits(inspectionPrice(c.cargo))}`
+    && offered[1].startsWith('O '));
+
+  nextOffer('taken');
+  g.bribePolice();
+  eq('...and stops the moment there is nothing left to buy', g.keyPrompts().length, 0);
 }
 
 console.log('\na refused offer is an offence, and the scan still comes');

@@ -41,6 +41,7 @@ import './trade.test.ts';
 import './jettison.test.ts';
 import './bribe.test.ts';
 import './bribe-flight.test.ts';
+import './prompts.test.ts';
 import './world.test.ts';
 import './docking.test.ts';
 import './observation.test.ts';

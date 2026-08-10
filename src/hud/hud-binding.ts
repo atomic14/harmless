@@ -58,6 +58,15 @@ export interface HudSources {
   readonly messageText: string;
   readonly messageTimer: number;
   /**
+   * The key prompts, already rendered — see `HudState.prompts`.
+   *
+   * Arrives finished for the same reason the exercise strip does: WHICH keys
+   * are worth offering is `game/prompts.ts`, and which letter each is bound to
+   * is the binding table's answer through `boundKey`, which lives in `ui/` and
+   * so cannot be reached from a rule module. The dashboard is handed the line.
+   */
+  readonly prompts: readonly string[];
+  /**
    * The training exercise in progress, or null in career flight.
    *
    * Arrives finished from the exercise's own recorder — see
@@ -147,6 +156,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
   return {
     messageText: s.messageText,
     messageTimer: s.messageTimer,
+    prompts: s.prompts,
     playerPos: s.playerPos,
     playerQuat: s.playerQuat,
     contacts: scannerContacts(
