@@ -38,6 +38,15 @@ export function inertElement(): HTMLElement {
     classList: {
       add: () => {}, remove: () => {}, toggle: () => false, contains: () => false,
     },
+    // Same bargain as `style`: a real element always has a `dataset`, and the
+    // short-range chart both reads and deletes one key of it to decide whether
+    // its portrait needs repainting. Reads give undefined, so the sink always
+    // says "the cursor moved" and the painter always repaints — nowhere.
+    dataset: new Proxy({}, {
+      get: () => undefined,
+      set: () => true,
+      deleteProperty: () => true,
+    }),
     setAttribute: () => {},
     appendChild: () => {},
     addEventListener: () => {},

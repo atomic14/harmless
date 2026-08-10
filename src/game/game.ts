@@ -239,6 +239,8 @@ export class Game {
       chart: this.state.chart,
       viewData: (sys) => { this.dataSubject = sys; },
       priceMultiplier: (index, commodity) => this.state.living.priceMultiplier(index, commodity),
+      // the read-only accessor, never state(): see ChartContext.danger
+      danger: (index) => this.state.living.danger(index),
     };
   }
   // the combat computer's TRAINED seat — dormant (defenceBrain() is null);

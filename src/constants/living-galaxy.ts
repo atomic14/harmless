@@ -29,3 +29,23 @@ export const HEAT_DECAY = 0.06;
  * by government, so a corporate state recovers up to four times as fast.
  */
 export const DANGER_DECAY = 0.015;
+
+/**
+ * The danger above which a system's piracy problem is public knowledge — the
+ * one threshold two surfaces read, so they can never disagree: the system data
+ * screen's "Merchants report heavy pirate activity" headline
+ * (`galaxy/living.ts`) and the red ring both charts draw
+ * (`galaxy/danger-overlay.ts`). Move it and both move together.
+ *
+ * 0.4 is roughly two convoy losses in an anarchy that have not yet decayed —
+ * high enough that the flagged set stays a sparse handful of the 256 dots, low
+ * enough that a route the player would actually notice getting worse crosses
+ * it. A new commander's Lave sits well under it.
+ *
+ * Its own rule id: it shares 0.4 with several unrelated fractions (a missile
+ * last-stand hull fraction, a docking speed retention) and none of them should
+ * follow it anywhere.
+ *
+ * @rule living.dangerVisible
+ */
+export const DANGER_VISIBLE = 0.4;

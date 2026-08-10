@@ -34,6 +34,12 @@ export const MISSILE_MAX_RANGE = 3200;
 /**
  * Hull fraction below which a ship stops saving its missiles for later: a
  * missile it never launches is worth nothing.
+ *
+ * Its own rule id: it shares 0.4 with unrelated fractions elsewhere (a refuel
+ * price, a collision's retained speed, a danger threshold) and answers only to
+ * how desperate a damaged ship should get.
+ *
+ * @rule ordnance.missileLastStandHull
  */
 export const MISSILE_LAST_STAND_HULL = 0.4;
 /**

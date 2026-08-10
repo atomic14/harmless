@@ -34,7 +34,9 @@ Two intentional quirks:
   from the same seed.
 - `src/galaxy/living.ts` advances off-screen trade in whole days and stores only
   deltas: convoys, danger and bounded price pressure. `populateSystem` turns
-  arriving records into ships.
+  arriving records into ships. `src/galaxy/danger-overlay.ts` is the read-only
+  model behind the charts' red rings: it decides which systems are flagged and
+  `ui/screens.ts` only paints them.
 - Released ship data is generated under `src/game/elite-a/`; lookup and combat
   profiles enter through its catalogue. Hull lookup enters through
   `src/ships/registry.ts`.

@@ -10,6 +10,11 @@ import { LARGE_BAY_TONNES } from './commander.ts';
  * What refuelling costs, in tenths of a credit per tenth of a LY. The single
  * home for the rule. Deliberately 2x the 1984 manual's implied 0.2 — see
  * docs/GAP-ANALYSIS.md.
+ *
+ * Its own rule id: 0.4 also spells a missile's last stand and a danger
+ * threshold, and the price of fuel follows neither.
+ *
+ * @rule shop.fuelPrice
  */
 export const FUEL_PRICE = 0.4;
 

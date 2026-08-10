@@ -623,19 +623,30 @@ export function renderChart(
   systems: StarSystem[],
   c: CommanderData,
   chart: ChartState,
+  danger: ReadonlySet<number>,
 ): void {
   show(`
     <h2>GALACTIC CHART ${c.galaxy}</h2>
     <div class="rule"></div>
     <canvas id="chart-canvas" width="780" height="400"></canvas>
     <div class="keyline" id="chart-info"></div>
-    <div class="keyline">CLICK A SYSTEM TO TARGET IT &middot; ARROWS MOVE &middot; ENTER TARGET &middot; D DATA ON SYSTEM &middot; M MARKET &middot; F FIND &middot; ESC EXIT</div>
+    <div class="keyline">CLICK A SYSTEM TO TARGET IT &middot; ARROWS MOVE &middot; ENTER TARGET &middot; D DATA ON SYSTEM &middot; M MARKET &middot; F FIND &middot; ESC EXIT &middot; RED RING: PIRATE ACTIVITY</div>
   `);
-  drawChart(systems, c, chart);
+  drawChart(systems, c, chart, danger);
 }
 
-/** Redraw only the canvas + info line (cheap, for cursor moves). */
-export function drawChart(systems: StarSystem[], c: CommanderData, chart: ChartState): void {
+/**
+ * Redraw only the canvas + info line (cheap, for cursor moves).
+ *
+ * `danger` is the flagged set from `galaxy/danger-overlay.ts` — decided there,
+ * only painted here.
+ */
+export function drawChart(
+  systems: StarSystem[],
+  c: CommanderData,
+  chart: ChartState,
+  danger: ReadonlySet<number>,
+): void {
   const canvas = maybeById('chart-canvas') as HTMLCanvasElement | null;
   if (!canvas) return;
   const ctx = canvas.getContext('2d')!;
@@ -669,6 +680,18 @@ export function drawChart(systems: StarSystem[], c: CommanderData, chart: ChartS
     ctx.fillStyle = within ? '#7dff88' : '#46b354';
     const r = s.index === c.systemIndex ? 4.5 : 2.5;
     ctx.fillRect(px(s) - r / 2, py(s) - r / 2, r, r);
+  }
+
+  // Pirate activity: the same fact the system data screen prints in words.
+  // Drawn over the dots so a flagged world reads at a glance, in the red the
+  // cursor already uses rather than a colour of its own.
+  ctx.strokeStyle = '#ff4d4d';
+  for (const index of danger) {
+    const s = systems[index];
+    if (!s) continue;
+    ctx.beginPath();
+    ctx.arc(px(s), py(s), 5, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   // current system crosshair
@@ -719,6 +742,7 @@ export function renderLocalChart(
   systems: StarSystem[],
   c: CommanderData,
   chart: ChartState,
+  danger: ReadonlySet<number>,
 ): void {
   show(`
     <h2>SHORT RANGE CHART</h2>
@@ -727,15 +751,16 @@ export function renderLocalChart(
       <canvas id="local-canvas" width="${LOCAL_CANVAS}" height="${LOCAL_CANVAS}"></canvas>
       <div class="info" id="local-info"></div>
     </div>
-    <div class="keyline">CLICK A SYSTEM TO TARGET IT &middot; ARROWS MOVE &middot; ENTER TARGET &middot; D DATA ON SYSTEM &middot; M MARKET &middot; F FIND &middot; ESC EXIT</div>
+    <div class="keyline">CLICK A SYSTEM TO TARGET IT &middot; ARROWS MOVE &middot; ENTER TARGET &middot; D DATA ON SYSTEM &middot; M MARKET &middot; F FIND &middot; ESC EXIT &middot; RED RING: PIRATE ACTIVITY</div>
   `, true);
-  drawLocalChart(systems, c, chart);
+  drawLocalChart(systems, c, chart, danger);
 }
 
 export function drawLocalChart(
   systems: StarSystem[],
   c: CommanderData,
   chart: ChartState,
+  danger: ReadonlySet<number>,
 ): void {
   const canvas = maybeById('local-canvas') as HTMLCanvasElement | null;
   if (!canvas) return;
@@ -777,6 +802,21 @@ export function drawLocalChart(
     ctx.fill();
     ctx.fillStyle = within ? '#8affa0' : '#3f9950';
     ctx.fillText(s.name.toUpperCase(), x + 7, y - 6);
+  }
+
+  // Pirate activity, as on the galactic chart. Same cull as the dots above:
+  // a ring for a system this zoom has scrolled off would be drawn at a
+  // coordinate outside the canvas anyway.
+  ctx.strokeStyle = '#ff4d4d';
+  for (const index of danger) {
+    const s = systems[index];
+    if (!s) continue;
+    const x = px(s);
+    const y = py(s);
+    if (x < -20 || x > w + 20 || y < -12 || y > h + 12) continue;
+    ctx.beginPath();
+    ctx.arc(x, y, 6, 0, Math.PI * 2);
+    ctx.stroke();
   }
 
   // current system crosshair

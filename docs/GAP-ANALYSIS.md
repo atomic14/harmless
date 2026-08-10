@@ -50,9 +50,12 @@ what is ours is one table in [ELITE-A.md](ELITE-A.md).
    technology, government and galaxy is a swap of that policy and nothing else.
 4. **Contract variety** — the bulletin board covers cargo, courier and
    bounty work; passenger berths and smuggling runs would widen it.
-5. **Surfacing the living galaxy** — the simulation runs, but the player
-   only sees it as prices, spawns and one news line. Trade-route and danger
-   overlays on the charts would make it legible.
+5. **Surfacing the living galaxy** — the danger overlay has landed: both charts
+   ring the systems the data screen calls dangerous, off the same threshold, so
+   piracy is visible across all 256 worlds at once instead of one world at a
+   time. What is still invisible is the trade itself — which routes are moving
+   goods, and where prices have diverged. That needs an accessor over the
+   convoy list and some density filtering before an edge overlay would read.
 
 ## Deliberate deviations
 

@@ -25,6 +25,7 @@ import type { CommanderData } from '../commander.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
 import { marketEstimate } from '../market.ts';
+import { dangerousSystems } from '../../galaxy/danger-overlay.ts';
 import { sfx } from '../../audio.ts';
 import { LOCAL_SCALE, CHART_SPAN_X } from '../../constants/chart-metric.ts';
 
@@ -39,6 +40,12 @@ export interface ChartContext {
   viewData(sys: StarSystem): void;
   /** the living galaxy's ±25% price pressure THERE, for the market estimate */
   priceMultiplier(systemIndex: number, commodity: number): number;
+  /**
+   * That system's pirate reputation, 0..1, for the danger overlay. The
+   * READ-ONLY accessor: `LivingGalaxy.state()` would insert an entry for every
+   * system a redraw looks at, which is a draw path mutating the world.
+   */
+  danger(systemIndex: number): number;
 }
 
 export class ChartScreen implements Screen {
@@ -67,15 +74,27 @@ export class ChartScreen implements Screen {
 
   render(): void {
     const { systems, commander, chart } = this.ctx();
-    if (this.local) renderLocalChart(systems, commander, chart);
-    else renderChart(systems, commander, chart);
+    const flagged = this.dangerous();
+    if (this.local) renderLocalChart(systems, commander, chart, flagged);
+    else renderChart(systems, commander, chart, flagged);
+  }
+
+  /**
+   * Which systems get the red ring, recomputed per repaint. Cheap and always
+   * current: the charts repaint on open, cursor move or click, never per frame,
+   * and the galaxy only drifts when the clock moves.
+   */
+  private dangerous(): Set<number> {
+    const { systems, danger } = this.ctx();
+    return dangerousSystems(systems, danger);
   }
 
   /** Repaint the canvas only, keeping the surrounding chrome. */
   private redraw(): void {
     const { systems, commander, chart } = this.ctx();
-    if (this.local) drawLocalChart(systems, commander, chart);
-    else drawChart(systems, commander, chart);
+    const flagged = this.dangerous();
+    if (this.local) drawLocalChart(systems, commander, chart, flagged);
+    else drawChart(systems, commander, chart, flagged);
     if (this.find !== null) {
       const info = document.getElementById(this.local ? 'local-info' : 'chart-info');
       if (info) info.textContent = `FIND: ${this.find}_`;

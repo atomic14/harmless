@@ -21,7 +21,7 @@
 import { COMMODITIES, type StarSystem } from './galaxy.ts';
 import { distanceTenths, daysForJump } from './navigation.ts';
 import { random } from '../game/rng.ts';
-import { DANGER_DECAY, HEAT_DECAY, PRESSURE_DECAY } from '../constants/living-galaxy.ts';
+import { DANGER_DECAY, DANGER_VISIBLE, HEAT_DECAY, PRESSURE_DECAY } from '../constants/living-galaxy.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 
 /** A trade run in flight between two systems. */
@@ -297,7 +297,9 @@ export class LivingGalaxy {
     const st = this.states.get(systemIndex);
     if (!st) return '';
     if (st.recentLosses >= 2) return 'Trade convoys have been lost to pirates recently.';
-    if (st.danger > 0.4) return 'Merchants report heavy pirate activity in this system.';
+    // The same threshold the charts ring in red (galaxy/danger-overlay.ts):
+    // a system cannot be reported dangerous here and unmarked there.
+    if (st.danger > DANGER_VISIBLE) return 'Merchants report heavy pirate activity in this system.';
     if (st.recentArrivals >= 3) return 'The docks are busy with incoming trade.';
     let dearest = -1;
     let worst = 0.08;

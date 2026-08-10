@@ -272,6 +272,10 @@ hyperspace target · **D data on system** (the full statistics page with the
 original's procedurally generated planet description) · M market estimate ·
 F find a system by name · ESC exit
 
+A **red ring** marks a system merchants are reporting heavy pirate activity
+in — the living galaxy's own losses, on the same threshold that world's data
+screen reports in words, so the map and the news can never disagree.
+
 ### Docking and the console
 
 Fly into the station's docking port with your wings matched to its rotation.
