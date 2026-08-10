@@ -23,7 +23,8 @@ import * as THREE from 'three';
 
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
 import { HUD, rgb24 } from '../palette.ts';
-import type { FlightDemand } from '../player.ts';
+import { rampFlightRate, type FlightDemand } from '../player.ts';
+import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { cargoCapacity, cargoTonnes } from './commander.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 import { carryingContraband, patrolReach, recordVerdict } from './law.ts';
@@ -43,9 +44,8 @@ import {
   PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN, THARGON_DEPLOY_RANGE,
   TRADER_ARRIVAL_RANGE,
 } from '../constants/spawn-placement.ts';
-import { planDocking, dockingOutcome } from './docking.ts';
+import { planDocking, dockingOutcome, dockingSticks } from './docking.ts';
 import { NPC_HULL_BOX_MARGIN } from '../constants/docking.ts';
-import { DC_TURN_RATE, DC_THROTTLE_GAIN } from '../constants/docking-computer.ts';
 import { BOUNCE_STANDOFF } from '../constants/station.ts';
 import { regenerate, updateCabinTemp, scoopFuel, energyLow } from './systems.ts';
 import { SUN_KILL_DIST } from '../constants/sun.ts';
@@ -67,9 +67,6 @@ import type { SoundEvent, SoundName } from './sounds.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
 import type { GameState } from './state.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
-
-/** the origin, for `lookAt` — scratch that must never be written to */
-const ZERO = new THREE.Vector3();
 
 /**
  * A warhead going off, as the 24-bit number the effects layer takes.
@@ -224,7 +221,6 @@ export class WorldStep {
   private readonly tmp = new THREE.Vector3();
   private readonly tmp2 = new THREE.Vector3();
   private readonly tmpQ = new THREE.Quaternion();
-  private readonly tmpM = new THREE.Matrix4();
   /** scratch for collisions.ts, so a per-frame call allocates nothing */
   private readonly scratch = { a: new THREE.Vector3(), b: new THREE.Vector3() };
 
@@ -271,8 +267,12 @@ export class WorldStep {
    */
   private flyPlayer(dt: number, elapsed: number, pilot: PilotInput, out: StepEvent[]): void {
     const { player, session, world } = this.state;
-    player.update(dt, pilot.demand);
-    if (session.dcEngaged) this.dockingComputerStep(dt, pilot.handsOn, out);
+    // WHOSE demand. The docking computer produces one now (docs/TODO/126) — it
+    // used to write the quaternion after the fact — so it is decided before the
+    // ship flies rather than applied on top of it. When it hands the ship back
+    // mid-frame the pilot's own demand stands, exactly as before.
+    const dc = session.dcEngaged ? this.dockingComputerStep(dt, pilot, out) : null;
+    player.update(dt, dc ?? pilot.demand);
 
     // torus drive
     if (session.torusEngaged) {
@@ -293,26 +293,55 @@ export class WorldStep {
   }
 
   /**
-   * One frame of the docking computer. Steers and throttles only — the actual
-   * docking is still decided by checkStation()'s slot and roll test, exactly
-   * as it is when you fly in by hand. The autopilot has to genuinely thread
-   * the letterbox; it gets no dispensation.
+   * One frame of the docking computer, as a `FlightDemand` — pitch, roll and
+   * throttle, which `PlayerShip.update` flies exactly as it flies a pair of
+   * hands.
+   *
+   * It steers and throttles only: the actual docking is still decided by
+   * `checkStation`'s slot and roll test, as it is when you fly in by hand. The
+   * autopilot has to genuinely thread the letterbox; it gets no dispensation.
+   *
+   * It used to write `player.quaternion` directly, through a shortest-arc slerp
+   * toward a `lookAt` orientation — a turn about an axis no stick can produce,
+   * which never wrote the rates the HUD reads and obeyed a turn limit of its
+   * own rather than the hull's (docs/TODO/126). `dockingSticks` decides which
+   * way to move each stick; the CAPS and the RAMP are the commander's own, and
+   * the ramp reads the ship's current rates, so a save taken mid-approach
+   * carries the manoeuvre rather than restarting it.
+   *
+   * @returns the demand, or null when it has just handed the ship back.
    */
-  private dockingComputerStep(dt: number, handsOn: boolean, out: StepEvent[]): void {
+  private dockingComputerStep(
+    dt: number, pilot: PilotInput, out: StepEvent[],
+  ): FlightDemand | null {
     const { player, session, world } = this.state;
-    if (handsOn) {
+    if (pilot.handsOn) {
       session.dcEngaged = false;
       out.push({ kind: 'dockingMusic', on: false });
       out.push(say('MANUAL OVERRIDE', 2));
-      return;
+      return null;
     }
-    const station = world.station;
-    const plan = planDocking(
-      player.position, station, world.stationDockZ, player.maxSpeed, this.state.dockPlan);
-    this.tmpM.lookAt(ZERO, plan.heading, plan.up);
-    this.tmpQ.setFromRotationMatrix(this.tmpM);
-    player.quaternion.rotateTowards(this.tmpQ, DC_TURN_RATE * dt);
-    player.speed += (plan.speed - player.speed) * Math.min(1, dt * DC_THROTTLE_GAIN);
+    const plan = planDocking(player.position, world.station, world.stationDockZ,
+      player.maxSpeed, this.state.dockPlan);
+    const sticks = dockingSticks(player.quaternion, plan);
+    // Bang-bang on the throttle, with a deadband of one frame's thrust: a
+    // demand can only ask for full ahead, full astern or coast — that is all a
+    // throttle IS (player.ts) — so the plan's speed is held by cutting to coast
+    // inside the last frame's worth of it rather than by a gain of its own.
+    const gap = plan.speed - player.speed;
+    const band = PLAYER_FLIGHT.accel * dt;
+    return {
+      pitchRate: rampFlightRate(
+        player.pitchRate, sticks.pitch * PLAYER_FLIGHT.maxPitch, sticks.pitch !== 0, dt),
+      rollRate: rampFlightRate(
+        player.rollRate, sticks.roll * PLAYER_FLIGHT.maxRoll, sticks.roll !== 0, dt),
+      throttle: gap > band ? 1 : gap < -band ? -1 : 0,
+      // The trigger stays the pilot's: an autopilot has no business deciding to
+      // shoot, and `stepShipSystems` reads the pilot's own demand for it anyway.
+      fire: pilot.demand.fire,
+      // ...and it must not sail past the plan's speed while accelerating to it.
+      limits: { accel: PLAYER_FLIGHT.accel, maxSpeed: Math.max(1, plan.speed) },
+    };
   }
 
   /** Everyone else: decisions, despawns, collisions, and who else turns up. */

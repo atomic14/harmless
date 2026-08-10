@@ -120,15 +120,15 @@ const OUTSIDE: readonly Group[] = [
   },
 
   {
-    why: 'the step\'s two, and a file may only appear in one group. `ZERO` is a scratch'
-      + ' THREE.Vector3, exactly as in the group above and for the same reason.'
-      + ' `WARHEAD_FLASH` is not a declaration but a READ — HUD.amber from'
-      + ' src/palette.ts, converted once to the 24-bit number the effects layer takes'
-      + ' (docs/TODO/93, which found the value written out twice here). The conversion'
-      + ' is done at the call site rather than by adding a second spelling of amber to'
-      + ' the palette',
+    why: 'the step\'s one. `WARHEAD_FLASH` is not a declaration but a READ —'
+      + ' HUD.amber from src/palette.ts, converted once to the 24-bit number the'
+      + ' effects layer takes (docs/TODO/93, which found the value written out twice'
+      + ' here). The conversion is done at the call site rather than by adding a'
+      + ' second spelling of amber to the palette. Its `ZERO` scratch vector went'
+      + ' with the docking computer\'s `lookAt` (docs/TODO/126): the autopilot builds'
+      + ' no orientation of its own any more, so there is nothing to look FROM',
     files: {
-      'game/world-step.ts': ['ZERO', 'WARHEAD_FLASH'],
+      'game/world-step.ts': ['WARHEAD_FLASH'],
     },
   },
 

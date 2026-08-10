@@ -10,6 +10,7 @@
 // slotMiss, hull) is test/world.test.ts's docking section; this file is about
 // WHERE the edges are.
 
+import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import {
   dockingOutcome, planDocking, makeDockPlan, type DockingOutcome,
@@ -18,9 +19,7 @@ import {
   GATE_HALF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN, NPC_HULL_BOX_MARGIN,
   SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE,
 } from '../src/constants/docking.ts';
-import {
-  DC_TURN_RATE, DC_THROTTLE_GAIN,
-} from '../src/constants/docking-computer.ts';
+import { PLAYER_FLIGHT } from '../src/constants/player-flight.ts';
 import { BOUNCE_STANDOFF } from '../src/constants/station.ts';
 import { WorldStep, type StepHost } from '../src/game/world-step.ts';
 import { Ordnance } from '../src/game/ordnance.ts';
@@ -110,6 +109,12 @@ console.log('\ndocking thresholds');
     near(gate, DOCK_Z * GATE_HALF_WIDTHS, 1e-6));
 }
 
+/**
+ * `THREE.Quaternion` methods that only READ — everything else on the player's
+ * orientation is a write, and a write is the bug docs/TODO/126 fixed.
+ */
+const READ_ONLY_QUATERNION = ['clone', 'angleTo', 'dot', 'length', 'lengthSq'];
+
 // --- the computer's hand, solved out of a real WorldStep frame ---------------
 
 // A stub host and a real world: these three blocks fly the actual step, so the
@@ -140,6 +145,11 @@ function makeRun() {
   return { state, step, hits, coast };
 }
 
+// THE AUTOPILOT FLIES, rather than being teleported round its own axis
+// (docs/TODO/126). It used to write `player.quaternion` through a shortest-arc
+// slerp: a turn about an axis no stick can produce, which wrote neither of the
+// rates the HUD reads and obeyed a turn cap of its own rather than the hull's.
+// What is pinned here is that it asks for the two things a hand asks for.
 {
   const { state, step, coast } = makeRun();
   const station = state.world.station;
@@ -150,27 +160,64 @@ function makeRun() {
   state.player.speed = 0;
   state.session.dcEngaged = true;
 
-  // predict the target orientation from the same public plan the step reads
   const plan = planDocking(
     state.player.position, station, state.world.stationDockZ, state.player.maxSpeed,
     makeDockPlan());
-  const target = new THREE.Quaternion().setFromRotationMatrix(
-    new THREE.Matrix4().lookAt(new THREE.Vector3(), plan.heading, plan.up));
-  const q0 = state.player.quaternion.clone();
   const dt = 1 / 60;
-  check('the fixture opens far enough off-heading that the turn cap binds',
-    q0.angleTo(target) > DC_TURN_RATE * dt * 2);
+  const nose = new THREE.Vector3(0, 0, -1).applyQuaternion(state.player.quaternion);
+  check(`the fixture opens far enough off-heading to need a real turn (${
+    nose.angleTo(plan.heading).toFixed(3)} rad)`,
+    nose.angleTo(plan.heading) > PLAYER_FLIGHT.maxRoll * dt * 4);
   check('...and with a plan speed to throttle toward', plan.speed > 1);
 
   step.step(dt, 0, { demand: coast, handsOn: false });
 
-  const turned = q0.angleTo(state.player.quaternion);
-  check(`the computer turns at DC_TURN_RATE (${(turned / dt).toFixed(6)} rad/s)`,
-    near(turned / dt, DC_TURN_RATE, 1e-6));
+  // THE REPORTED SYMPTOM, as an assertion: a ship that is turning says so on
+  // the rates every instrument reads. Both, because turning a ship with no yaw
+  // axis onto a heading off to one side IS pitch and roll together.
+  check(`the turn is on the rates the HUD reads (pitch ${
+    state.player.pitchRate.toFixed(3)}, roll ${state.player.rollRate.toFixed(3)})`,
+    state.player.pitchRate !== 0 && state.player.rollRate !== 0);
+  // ...and it is the commander's own envelope, not a cap of the autopilot's.
+  check('...inside the hull\'s own caps',
+    Math.abs(state.player.pitchRate) <= PLAYER_FLIGHT.maxPitch
+    && Math.abs(state.player.rollRate) <= PLAYER_FLIGHT.maxRoll);
+  // The throttle is the hull's thrust, not a gain of the autopilot's: one
+  // frame of `PLAYER_FLIGHT.accel` from a standing start.
+  check(`...and the throttle is the ship's own thrust (${state.player.speed.toFixed(4)})`,
+    near(state.player.speed, PLAYER_FLIGHT.accel * dt, 1e-9));
 
-  const gain = state.player.speed / (plan.speed * dt);
-  check(`...and closes the speed gap at DC_THROTTLE_GAIN (${gain.toFixed(6)}/s)`,
-    near(gain, DC_THROTTLE_GAIN, 1e-6));
+  // A heading dead ahead asks for neither: the demand is a response to the
+  // error and not a permanent stirring of the stick.
+  {
+    const r = makeRun();
+    const s2 = r.state;
+    const plan2 = planDocking(s2.player.position, s2.world.station, s2.world.stationDockZ,
+      s2.player.maxSpeed, makeDockPlan());
+    s2.player.quaternion.setFromRotationMatrix(
+      new THREE.Matrix4().lookAt(new THREE.Vector3(), plan2.heading, plan2.up));
+    s2.session.dcEngaged = true;
+    r.step.step(dt, 0, { demand: r.coast, handsOn: false });
+    check(`on the heading and rolled with the slot, it asks for nothing (pitch ${
+      s2.player.pitchRate.toFixed(4)}, roll ${s2.player.rollRate.toFixed(4)})`,
+      Math.abs(s2.player.pitchRate) < 1e-6 && Math.abs(s2.player.rollRate) < 1e-6);
+  }
+}
+
+// ...and NOTHING in the step writes the player's orientation any more. The
+// source scan is docs/TODO/49's idiom: the rule is about how the ship is
+// steered everywhere, not about the one call site a behaviour test can reach.
+{
+  const src = readFileSync(new URL('../src/game/world-step.ts', import.meta.url), 'utf8')
+    .replace(/^\s*(\/\/|\*|\/\*).*$/gm, '');
+  const writes = [...src.matchAll(/player\.quaternion\s*\.\s*([a-zA-Z]+)/g)]
+    .map((m) => m[1])
+    .filter((call) => !READ_ONLY_QUATERNION.includes(call));
+  check(`world-step.ts never turns the ship by hand (${writes.join(', ') || 'nothing'})`,
+    writes.length === 0);
+  // ...and the scan can fail: the call the fix deleted is one of the ones it hunts.
+  check('the scan catches the write this item removed',
+    !READ_ONLY_QUATERNION.includes('rotateTowards'));
 }
 
 // --- what a fluffed slot does to you, through the same step ------------------

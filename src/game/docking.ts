@@ -25,6 +25,10 @@ import {
   GATE_HALF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN,
   SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE,
 } from '../constants/docking.ts';
+import { DC_SLOT_MARGIN } from '../constants/docking-computer.ts';
+import {
+  pitchOnto, rollErrorTo, steerStick, type StickCommand,
+} from './pitch-roll-steer.ts';
 
 export type DockPhase =
   /** off the axis or too far out — fly to the gate, a point straight out from the slot */
@@ -132,6 +136,78 @@ export function makeDockPlan(): DockPlan {
     phase: 'gate',
     arrived: false,
     lateral: 0,
+  };
+}
+
+
+// --- flying the plan --------------------------------------------------------
+//
+// The plan says where to point; this says what to do with the stick. They are
+// separate because the approach was never the problem: the player's docking
+// computer flew a correct plan by writing `player.quaternion` through a
+// shortest-arc slerp, which pivots about an axis no stick can produce, wrote
+// neither of the rates the HUD reads, and obeyed a turn limit of its own rather
+// than the hull's (docs/TODO/126).
+//
+// NPC traders do not come through here. They dock with `steerToward`, which
+// builds an orientation from `lookAt` — an NPC has yaw and can afford to.
+
+const _wings = new THREE.Vector3();
+const _nose = new THREE.Vector3();
+const _turn = new THREE.Vector3();
+
+/**
+ * The pitch and roll a pilot would ask for this frame to fly `plan`.
+ *
+ * Sticks in −1..1, exactly what a hand at the keyboard produces: the caller
+ * ramps them into rates against whatever envelope it is flying, so the
+ * autopilot's turning reaches the HUD needles like anybody else's.
+ *
+ * ONE stick, TWO jobs, and the whole difficulty of the thing. A ship with no
+ * yaw axis turns by ROLLING the target into its pitch plane and pulling — and
+ * the letterbox demands that same roll be something else entirely, the wings
+ * lined up with the slot's long axis. They cannot both be satisfied while the
+ * nose is off the heading.
+ *
+ * The reconciliation is the slot's own tolerance. `ROLL_TOLERANCE` is how far
+ * from lined up a ship may be and still fit, so the roll the TURN wants is
+ * simply clamped into a window that wide around the roll the SLOT wants: bank
+ * as hard as the turn asks, right up to the edge of what the letterbox will
+ * take, and no further. Far out the window opens to a half turn — nothing about
+ * a slot matters from there — and it closes as the ship comes onto the axis,
+ * which is `plan.lateral` crossing from `LINED_UP_LATERAL` to the channel's own
+ * half-width. One control law with one equilibrium, rather than two rival ones
+ * mixed: mixing them was measured rolling at a steady 1 rad/s all the way into
+ * the hull, because a fixed blend of two laws that disagree never reaches zero.
+ *
+ * The wings want the slot's long axis, and `plan.up` is the station's local X —
+ * the same hint the old `lookAt` orientation was built from, so the attitude
+ * being flown to is unchanged and only the way of reaching it is new.
+ */
+export function dockingSticks(quat: THREE.Quaternion, plan: DockPlan): StickCommand {
+  _nose.set(0, 0, -1).applyQuaternion(quat);
+  // Where the ship's +X has to end up to fit through: perpendicular to the slot
+  // normal and to the up-hint, which is what `lookAt(heading, up)` used to build.
+  _wings.copy(plan.up).cross(_turn.copy(plan.heading).negate());
+  // ...and where it would have to be for the TURN: perpendicular to the error,
+  // so the heading falls into the ship's pitch plane and can be pulled onto.
+  _turn.crossVectors(_nose, plan.heading);
+
+  const slotErr = rollErrorTo(quat, _wings);
+  const turnErr = rollErrorTo(quat, _turn);
+  // How much of the letterbox's tolerance the turn may spend. Not all of it:
+  // arriving at the very edge of what fits leaves nothing for the last second
+  // of drift, and the slot is still turning while you come in.
+  const onAxis = Math.max(0, Math.min(1,
+    (LINED_UP_LATERAL - plan.lateral) / (LINED_UP_LATERAL - SLOT_HALF_ACROSS)));
+  const budget = Math.PI / 2 + (ROLL_TOLERANCE * DC_SLOT_MARGIN - Math.PI / 2) * onAxis;
+
+  return {
+    // Ungated: `pitchOnto` measures the error in the plane the ship is ACTUALLY
+    // in, so pulling always shortens it. `bankToTurn`'s gate is right for a
+    // controller that owns the roll axis, and this one does not.
+    pitch: pitchOnto(quat, plan.heading),
+    roll: steerStick(Math.min(Math.max(turnErr, slotErr - budget), slotErr + budget)),
   };
 }
 

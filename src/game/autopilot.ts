@@ -8,7 +8,9 @@
 // nothing to do with each other in game.ts and everything to do with each other
 // in fact: both are bought, both are engaged with one key, both hand the ship
 // back the moment the pilot touches the controls, and both end up as a
-// `FlightDemand` that `PlayerShip.update` flies.
+// `FlightDemand` that `PlayerShip.update` flies. (That last claim was false of
+// the docking computer for a long time — it wrote `player.quaternion` and this
+// header said otherwise, which is how docs/TODO/126 was found. It is true now.)
 //
 // So they share a file, and it follows the project's pattern: this DECIDES and
 // reports `AutopilotEvent`s, and the Game says them out loud. The sounds are

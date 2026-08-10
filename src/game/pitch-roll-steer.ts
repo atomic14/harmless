@@ -163,3 +163,89 @@ export function bankToTurn(
 
   return { pitch, roll };
 }
+
+/**
+ * The roll stick that brings the ship's WINGS onto `wanted`, with the nose
+ * where it is.
+ *
+ * `bankToTurn` above answers "which way is the nose"; this answers the other
+ * question a pilot has, and the docking computer is the caller that has it:
+ * the slot is a letterbox on a spinning hull, so arriving pointed at it is only
+ * half of getting in (docs/TODO/126, `rollAlignedWithSlot` in docking.ts).
+ *
+ * A roll of `r` about the ship's own +Z carries local +X toward local +Y, so
+ * the error is just where `wanted` sits in that pair — and it is folded to a
+ * QUARTER TURN either way, because a letterbox takes a ship upside down as
+ * happily as the right way up and rolling 180 degrees to prefer one of them
+ * would be a manoeuvre for nothing.
+ *
+ * The same `STEER_SATURATION` band as the pitch and roll above, so the whole
+ * controller asks for full stick at one angle rather than three.
+ *
+ * @param wanted where the ship's +X should end up, in world space; near-parallel
+ *   to the nose it carries no roll information and the answer is 0.
+ */
+/**
+ * A stick deflection for an error in radians: the proportional ask every
+ * controller in this file makes, saturating to ±1 at `STEER_SATURATION`.
+ *
+ * Exported so a caller that works in ANGLES — the docking computer clamps its
+ * roll into the letterbox's tolerance before asking for it (docking.ts) — can
+ * do the arithmetic where the geometry is and still hand the ship the same
+ * deflection for the same error as everything else here.
+ */
+export function steerStick(errorRad: number): number {
+  return stick(errorRad);
+}
+
+/**
+ * The pitch stick that pulls the nose onto `dir` WITHOUT banking — the vertical
+ * half of the error, in the ship's own pitch plane.
+ *
+ * `bankToTurn`'s pitch is gated by how far its own roll plan still has to go,
+ * which is right when roll is being spent on the turn and wrong when it is
+ * being spent on something else. The docking computer is that caller: once its
+ * wings are committed to the letterbox (`rollOnto` above) the gate reads a roll
+ * that is never going to happen and the nose stops being corrected at all —
+ * measured, drifting from 6 to 15 degrees off over a run and into the hull.
+ *
+ * What it cannot do is the sideways half: a ship with no yaw axis and its wings
+ * spoken for can only pull. That is the honest limit of the pairing, and it is
+ * survivable here because the slot's own rotation sweeps the pitch plane round
+ * as the approach runs.
+ */
+export function pitchOnto(quat: THREE.Quaternion, dir: THREE.Vector3): number {
+  if (dir.lengthSq() < 1e-12) return 0;
+  dirNorm.copy(dir).normalize();
+  up.set(0, 1, 0).applyQuaternion(quat);
+  fwd.set(0, 0, -1).applyQuaternion(quat);
+  return stick(Math.atan2(dirNorm.dot(up), dirNorm.dot(fwd)));
+}
+
+export function rollOnto(quat: THREE.Quaternion, wanted: THREE.Vector3): number {
+  return stick(rollErrorTo(quat, wanted));
+}
+
+/**
+ * ...and the same thing in RADIANS, for a caller that has to reason about the
+ * angle before it asks — the docking computer clamps this into the letterbox's
+ * roll tolerance so that turning and fitting through the slot can share one
+ * stick (docking.ts).
+ *
+ * Signed, and folded to a quarter turn either way: a letterbox takes a ship
+ * upside down as happily as the right way up, so rolling 180 degrees to prefer
+ * one of them would be a manoeuvre for nothing.
+ */
+export function rollErrorTo(quat: THREE.Quaternion, wanted: THREE.Vector3): number {
+  if (wanted.lengthSq() < 1e-12) return 0;
+  dirNorm.copy(wanted).normalize();
+  right.set(1, 0, 0).applyQuaternion(quat);
+  up.set(0, 1, 0).applyQuaternion(quat);
+  const x = dirNorm.dot(right);
+  const y = dirNorm.dot(up);
+  if (Math.hypot(x, y) < 1e-6) return 0;
+  const err = Math.atan2(y, x);
+  if (err > Math.PI / 2) return err - Math.PI;
+  if (err < -Math.PI / 2) return err + Math.PI;
+  return err;
+}

@@ -10,7 +10,9 @@
 // horizontal plane, which is the limit cycle the sphere probe caught.
 
 import * as THREE from 'three';
-import { bankToTurn, freshSteerMemory } from '../src/game/pitch-roll-steer.ts';
+import {
+  bankToTurn, freshSteerMemory, pitchOnto, rollErrorTo, rollOnto, steerStick,
+} from '../src/game/pitch-roll-steer.ts';
 import { PlayerShip, rampFlightRate } from '../src/player.ts';
 import { PLAYER_FLIGHT } from '../src/constants/player-flight.ts';
 import { check } from './harness.ts';
@@ -182,3 +184,43 @@ const WITHIN_A_GUN_CONE = 0.05; // ~2.9 degrees
     Math.abs(farRoll) > 0.99);
 }
 
+
+// --- pointing the WINGS, which is the other half of flying with two axes ----
+//
+// `rollOnto`/`rollErrorTo` and `pitchOnto` are what the docking computer flies
+// on (docs/TODO/126): a letterbox on a spinning hull needs the wings in a
+// particular place, and the roll axis cannot be spent entirely on turning.
+{
+  const level = new THREE.Quaternion();
+  const right = new THREE.Vector3(1, 0, 0);
+  const up = new THREE.Vector3(0, 1, 0);
+
+  check('wings already where they are wanted ask for nothing',
+    rollErrorTo(level, right) === 0);
+  // A quarter turn is the FURTHEST a roll error can be: past that, the other
+  // way up is nearer, and a letterbox takes a ship either way up.
+  const quarter = rollErrorTo(level, up);
+  check(`a quarter turn away is a quarter turn to make (${quarter.toFixed(4)})`,
+    Math.abs(Math.abs(quarter) - Math.PI / 2) < 1e-9);
+  const past = rollErrorTo(level, new THREE.Vector3(-1, 0.1, 0));
+  check(`...and upside down is the SHORT way round, not 180 degrees (${past.toFixed(3)})`,
+    Math.abs(past) < 0.2);
+  check('a target along the nose carries no roll information',
+    rollErrorTo(level, new THREE.Vector3(0, 0, -1)) === 0);
+  check('the stick is the same proportional ask as everything else here',
+    Math.abs(rollOnto(level, up) - steerStick(rollErrorTo(level, up))) < 1e-12);
+
+  // ...and the pitch half: the vertical component of the error, ungated by any
+  // roll plan, because the docking computer's roll is spoken for.
+  const above = new THREE.Vector3(0, Math.sin(0.2), -Math.cos(0.2));
+  const below = new THREE.Vector3(0, -Math.sin(0.2), -Math.cos(0.2));
+  check(`something above pulls the nose UP (${pitchOnto(level, above).toFixed(3)})`,
+    pitchOnto(level, above) > 0);
+  check('...and something below pushes it down, by as much',
+    Math.abs(pitchOnto(level, below) + pitchOnto(level, above)) < 1e-12);
+  check('dead ahead asks for no pitch', pitchOnto(level, new THREE.Vector3(0, 0, -1)) === 0);
+  // The honest limit of the pairing: a target straight off the wingtip is not
+  // something PITCH can do anything about, and the docking law knows it.
+  check('a target dead abeam asks for no pitch at all',
+    pitchOnto(level, right) === 0);
+}
