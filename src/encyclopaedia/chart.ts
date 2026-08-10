@@ -10,6 +10,7 @@
 // `generateGalaxy`, so the shape of the sky is the same shape the game flies.
 
 import { CHART_SPAN_X, CHART_SPAN_Y } from '../constants/chart-metric.ts';
+import { MAX_PIXEL_RATIO } from '../constants/render.ts';
 import { DOC, alpha } from '../palette.ts';
 import type { Entry } from './entry.ts';
 
@@ -76,7 +77,10 @@ export class Chart {
   }
 
   resize(): void {
-    const dpr = Math.min(window.devicePixelRatio || 1, 2);
+    // The clamp is the shared rule (constants/render.ts); the `|| 1` is this
+    // surface's own defensiveness — a 2D canvas on a page anything may open,
+    // where a missing ratio would collapse it to nothing.
+    const dpr = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
     const w = this.canvas.clientWidth;
     const h = this.canvas.clientHeight;
     this.canvas.width = Math.round(w * dpr);

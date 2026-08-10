@@ -15,6 +15,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { BLOOM, MAX_PIXEL_RATIO } from '../constants/render.ts';
 
 import { createStarfield } from '../world/starfield.ts';
 
@@ -29,19 +30,20 @@ export interface Stage {
 export function createStage(): Stage {
   const canvas = document.getElementById('scene') as HTMLCanvasElement;
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
   const scene = new THREE.Scene();
   // 55 degrees, NOT the game's CAMERA_FOV of 60, and 200,000 rather than
   // CAMERA_FAR. Nowhere records whether the difference is deliberate, so they
   // stay literals: reaching for the game's constants here would reframe both
   // dev pages, and that is a decision to MAKE having looked at the two rather
-  // than a side effect of tidying. The bloom and pixel-ratio clamp two lines
-  // up are byte-identical to engine/render-stack.ts and belong with it; that
-  // one is real and is written up in docs/TODO/93 for its own item.
+  // than a side effect of tidying. The bloom and the pixel-ratio clamp DID
+  // belong with engine/render-stack.ts, and went there: they are
+  // `constants/render.ts` now, read by both (docs/TODO/118).
   const camera = new THREE.PerspectiveCamera(55, 1, 1, 200000);
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.5, 0.15));
+  composer.addPass(new UnrealBloomPass(
+    new THREE.Vector2(1, 1), BLOOM.strength, BLOOM.radius, BLOOM.threshold));
 
   const resize = (): void => {
     renderer.setSize(window.innerWidth, window.innerHeight);

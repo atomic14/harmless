@@ -15,6 +15,7 @@ import * as THREE from 'three';
 import { EffectComposer } from 'three/addons/postprocessing/EffectComposer.js';
 import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
+import { BLOOM, MAX_PIXEL_RATIO } from '../constants/render.ts';
 import { CAMERA_FOV, CAMERA_NEAR, CAMERA_FAR } from '../constants/camera.ts';
 import { SIGHT_Y } from '../constants/console.ts';
 
@@ -44,13 +45,14 @@ export function createRenderStack(canvas: HTMLCanvasElement, scene: THREE.Scene)
   // No logarithmic depth buffer: it would defeat the polygonOffset trick that
   // keeps hull fills behind wireframe edges (docs/INVARIANTS.md invariant 6).
   const renderer = new THREE.WebGLRenderer({ canvas, antialias: true });
-  renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+  renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
 
   const camera = new THREE.PerspectiveCamera(CAMERA_FOV, 1, CAMERA_NEAR, CAMERA_FAR);
 
   const composer = new EffectComposer(renderer);
   composer.addPass(new RenderPass(scene, camera));
-  composer.addPass(new UnrealBloomPass(new THREE.Vector2(1, 1), 0.55, 0.5, 0.15));
+  composer.addPass(new UnrealBloomPass(
+    new THREE.Vector2(1, 1), BLOOM.strength, BLOOM.radius, BLOOM.threshold));
 
   const beamGeo = new THREE.BufferGeometry();
   beamGeo.setAttribute('position', new THREE.Float32BufferAttribute([

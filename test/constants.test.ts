@@ -836,3 +836,47 @@ const diagnosticsFor = (entries: ConstantEntry[], changed: ConstantEntry[]) =>
   check('a duplicated @rule id fails', ruleDiagnostics(duplicateRules).some((item) =>
     item.level === 'error' && item.message.includes('2 owners')));
 }
+
+// 6. THE PICTURE'S OWN NUMBERS HAVE ONE HOME TOO (docs/TODO/118).
+//
+// A different shape of duplicate from everything above: these were never
+// DECLARED twice, they were written out twice as literals inside a call — the
+// bloom pass and the pixel clamp in `engine/render-stack.ts` and
+// `viewer/stage.ts`, byte-identical, with the clamp again in the
+// encyclopaedia's chart. The scan at the top of this file cannot see a literal
+// argument, so this is the gate that keeps them from coming back.
+//
+// The cockpit and the ship viewer are supposed to look the same; that is what
+// the viewer is FOR. Agreeing by coincidence is the failure being closed.
+console.log('\nthe render numbers are not written out again');
+{
+  const RENDER_HOME = 'constants/render.ts';
+  const literals: [string, RegExp][] = [
+    ['the bloom pass arguments', /0\.55\s*,\s*0\.5\s*,\s*0\.15/],
+    ['a pixel-ratio clamp', /devicePixelRatio[^)]*,\s*2\s*\)/],
+  ];
+  // EVERY file under src/, not just the ones with constants of their own:
+  // `viewer/stage.ts` declares none, and it is one of the two the duplicate
+  // lived in.
+  const offenders: string[] = [];
+  for (const { rel, url } of FILES) {
+    if (rel === RENDER_HOME) continue;
+    const src = code(url);
+    for (const [what, pattern] of literals) {
+      if (pattern.test(src)) offenders.push(`${rel}: ${what}`);
+    }
+  }
+  check(`no file writes the bloom or the clamp out again (${
+    offenders.join(' · ') || 'none'})`, offenders.length === 0);
+
+  // ...and the patterns are real: the home still spells both, which is what the
+  // scan would catch anywhere else. Without this the check above passes on a
+  // typo in the regex.
+  const home = readFileSync(new URL(`../src/${RENDER_HOME}`, import.meta.url), 'utf8');
+  check('the scan can fail — the home itself matches the bloom pattern',
+    /0\.55[\s\S]*0\.5[\s\S]*0\.15/.test(home));
+  check('...and the readers reach for it rather than for a number',
+    ['engine/render-stack.ts', 'viewer/stage.ts', 'encyclopaedia/chart.ts'].every((rel) =>
+      readFileSync(new URL(`../src/${rel}`, import.meta.url), 'utf8')
+        .includes("from '../constants/render.ts'")));
+}

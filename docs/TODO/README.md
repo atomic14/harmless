@@ -78,15 +78,5 @@ is invisible is indistinguishable from nothing happening.
 
 ## Backlog
 
-Not executable yet. In priority order; promoting the head is what makes the
-next execution item, once it has a plan doc.
-
-- [ ] 118 — The bloom and the pixel-ratio clamp are still written out twice
-      — `(0.55, 0.5, 0.15)` and `min(devicePixelRatio, 2)` are byte-identical
-      in `engine/render-stack.ts` and `viewer/stage.ts` (the clamp again in
-      `encyclopaedia/chart.ts`). docs/TODO/93 tried to take these and backed
-      out: their home is `src/constants/`, and putting them there makes the
-      catalogue's duplicate-value policy demand `@rule` ids on nineteen
-      unrelated constants across ten modules, because 0.5 and 2 are popular
-      numbers. That policy call is the actual work and it is not a colour
-      question. Needs a plan doc before it is executable.
+Empty. Promoting the head is what makes the next execution item, once it has a
+plan doc; 118 was the last entry and landed on 2026-08-10.
