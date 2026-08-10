@@ -38,6 +38,36 @@ One correction to the issue title, for the record: the scan makes you an
 `DISREPUTE_CAUGHT` on your name. That balance is not what #20 is about and is
 left alone.
 
+## A finding from the first real flight (2026-08-10)
+
+Chris, flying it: *"I got 'police scan - contraband detected' but didn't get
+attacked by the viper - I thought that should be automatic?"*
+
+**Not a bug — but the reason is invisible, and it belongs to this plan.** The
+scan calls `raiseLegal(1)`, so being caught makes you an **Offender**. And
+`isHostileToPlayer` (`npc.ts`) splits the two roles deliberately:
+
+```ts
+(npc.role === 'police' && (legalStatus >= 2 || npc.state.provokedByPlayer)) ||
+(npc.role === 'hunter' && (legalStatus >= 1 || npc.state.provokedByPlayer))
+```
+
+Police hunt **Fugitives**; bounty hunters take an interest in **Offenders**. So
+a smuggler who is caught has a record, will be fined at the door and is now
+worth a hunter's time — and the Viper that scanned him carries on patrolling.
+
+That is defensible as a rule: contraband is a fine-level offence, not
+shoot-on-sight. What is NOT defensible is that the player cannot tell any of it
+happened beyond one line of text — which is exactly this item's subject. The
+scan says CONTRABAND DETECTED and then the world appears to shrug.
+
+**So it is scope for this plan, not a new one.** Whichever way it goes, the
+window has to say what it did: either the consequence is legible (you are an
+Offender, here is what that now means for you) or the police do engage, and then
+`offenceFor`'s ladder is what moves. **Chris's call**, and worth taking before
+M1 is written, because it decides whether the telegraph is a warning about the
+scan or a warning about the fight after it.
+
 ## What to do
 
 ### M1 — the warning
