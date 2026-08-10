@@ -19,6 +19,23 @@
 export const ORDINARY_GOODS: readonly number[] = [0, 1, 4, 8, 9, 12];
 
 /**
+ * Slaves — the row a rescued survivor is sold on, and the only commodity index
+ * named on its own (docs/TODO/127).
+ *
+ * A person scooped out of a capsule is NOT cargo (`CommanderData.survivors`,
+ * docs/TODO/108) and never enters the hold; what the market pays for this row
+ * is only ever READ, to price a transaction that moves no tonnage. Named
+ * because `commodity 3` appeared in four comments explaining what it was, and
+ * a bare 3 in the middle of a sale is the sort of thing a re-ordered table
+ * turns into a quiet bug.
+ *
+ * It is also `CONTRABAND[0]` (constants/law.ts). Not read from there: that list
+ * is what the law will fine you for CARRYING, in an order its own consumers
+ * index, and this is a price lookup.
+ */
+export const SLAVES = 3;
+
+/**
  * What a mined asteroid yields: minerals three draws in five, else gold or
  * platinum. A WEIGHTED draw written as repeated indices — `cargo.spawn` picks
  * uniformly, so the repetition is the distribution.

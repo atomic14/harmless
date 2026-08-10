@@ -163,14 +163,14 @@ export class Station {
     s.session.ccEngaged = false;
     this.ordnance.armed = false;
     effects.push({ kind: 'presentation', action: 'releaseMouseFlight' });
-    // Hand over anyone you pulled out of a capsule. Without this they occupy
-    // a bay for the rest of the career, which is the failure mode the old
-    // `cargo[3]` at least avoided by being sellable.
-    if (c.survivors > 0) {
-      const n = c.survivors;
-      c.survivors = 0;
-      messages.push(say(`${n} SURVIVOR${n > 1 ? 'S' : ''} HANDED TO STATION MEDICAL`, 4));
-    }
+    // ANYONE YOU PULLED OUT OF A CAPSULE IS NOT RESOLVED HERE any more. Docking
+    // used to file them with station medical in the same breath as resetting
+    // the shields — no choice, no consequence, no payment — which made the one
+    // genuinely moral act in the game free and meaningless. It is a forced
+    // question now (`screens/survivors.ts`, opened by `enterDocked`), and the
+    // rule behind it is `game/survivors.ts`. The leak this plugged is still
+    // plugged: the question cannot be escaped, so nobody rides along for a
+    // career.
 
     // The record is NOT cleared on docking any more. The station is a neutral
     // trading port: a fugitive may dock and trade, and clearing your name is a

@@ -231,6 +231,35 @@ export function renderBriefing(page: number): void {
   `);
 }
 
+/**
+ * The forced choice on docking with somebody in your crew spaces
+ * (docs/TODO/127).
+ *
+ * No ESC row in the keyline, because there is no ESC: this is the one screen in
+ * the game with no way out but an answer, and advertising one it does not have
+ * would be the cruellest kind of wrong. `game/screens/survivors.ts` refuses the
+ * key; this is what makes the refusal read as deliberate.
+ */
+export function renderSurvivors(people: number): void {
+  const many = people > 1;
+  show(`
+    <h2>${people} SURVIVOR${many ? 'S' : ''} ABOARD</h2>
+    <div class="rule"></div>
+    <div class="info" style="text-align:center; line-height:2">
+      Station control is holding your clearance until the
+      ${many ? `${people} people` : 'person'} you scooped out of
+      ${many ? 'their capsules' : 'a capsule'} ${many ? 'are' : 'is'} accounted for.<br/>
+      <span style="opacity:0.8; font-size:11px">
+        WHAT HAPPENS TO THEM IS YOUR DECISION, AND THE STATION WILL WAIT FOR IT.
+      </span>
+    </div>
+    <div class="buttons">
+      <button data-key="KeyM">M &mdash; HAND THEM TO STATION MEDICAL</button>
+    </div>
+    <div class="keyline hints"><span>M MEDICAL &mdash; NO PAYMENT, NO QUESTIONS</span></div>
+  `);
+}
+
 export function renderNewGameConfirm(sys: StarSystem, c: CommanderData): void {
   show(`
     <h2>NEW COMMANDER</h2>

@@ -137,6 +137,8 @@ import { nextOverlay, type ChartOverlay } from './chart-overlay.ts';
 import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts';
 import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
 import { QuitScreen, type QuitContext } from './screens/quit.ts';
+import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
+import { handOverSurvivors, survivorMessage, type SurvivorEvent } from './survivors.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 import { BEAM_Z } from '../engine/render-stack.ts';
 
@@ -636,6 +638,10 @@ export class Game {
         // which is what this puts back.
         keepFlying: () => { this.state.session.paused = true; },
       } satisfies QuitContext)),
+      new SurvivorsScreen(() => ({
+        people: this.state.commander.survivors,
+        handOver: () => this.answerForSurvivors(handOverSurvivors(this.state.commander)),
+      } satisfies SurvivorsContext)),
     ]) this.screens.register(screen);
 
     this.buildWorld();
@@ -907,6 +913,13 @@ export class Game {
     if (brief) this.state.commander.briefingSeen = BRIEFING_VERSION;
     this.applyStation(this.station.dock(arrival));
     if (brief) this.screens.open('briefing');
+    // ...and the question the station will not proceed without an answer to,
+    // pushed LAST so it is on TOP (docs/TODO/127). Both can be due at once — a
+    // save from before the briefing marker, restored with somebody aboard — and
+    // the order is decided here rather than left to whichever happens to open:
+    // the forced choice is what is holding the clearance up, and the briefing
+    // is reading matter that will still be there behind it.
+    if (this.state.commander.survivors > 0) this.screens.open('survivors');
   }
 
   /**
@@ -1162,6 +1175,18 @@ export class Game {
       this.contracts_.selected = Math.max(0, this.contracts_.selected - 1);
     }
     this.applyStation(this.applyContracts(events));
+  }
+
+  /**
+   * The survivors rule decided; the Game says it (docs/TODO/127).
+   *
+   * Same shape as `applyContracts` and for the same reason: `survivors.ts` is
+   * pure, and everything a choice touches outside the commander — the console,
+   * and in M3 the region's heat and the Government's opinion — lands here.
+   */
+  private answerForSurvivors(e: SurvivorEvent | null): void {
+    if (!e) return;
+    this.showMessage(survivorMessage(e), 4);
   }
 
   /** Pay out anything delivered here; drop anything overdue. */
