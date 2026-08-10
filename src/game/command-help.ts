@@ -157,6 +157,10 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     section: 'flight',
   },
   jettison5: { what: 'jettison five tonnes at once', section: 'flight' },
+  quitFlight: {
+    what: 'give up this flight — asks first, then puts you back at the station autosave you launched from',
+    section: 'flight',
+  },
 
   // --- the training simulator ------------------------------------------------
   endExercise: { what: 'end the exercise — nothing in it reaches your commander' },

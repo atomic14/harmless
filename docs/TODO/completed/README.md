@@ -90,6 +90,7 @@ its rationale is relevant; do not load this directory wholesale.
 - [x] 119 — [A constant that names nothing, and the exports around it](119-a-constant-that-names-nothing.md) — `BRAIN_HANDOVER_RANGE` and the prose asserting a handover no pilot makes; two dead functions, two dead re-exports, eleven narrowed visibilities
 - [x] 120 — [The port marker says LINED UP when you are rolled wrong](120-the-port-marker-says-lined-up-when-you-are-rolled-wrong.md) — three states off the slot's own two tests, decided in the model: green now means the dock test would pass
 - [x] 121 — [The test mode that has no door](121-the-test-mode-that-has-no-door.md) — closed GitHub #18. `GameState.cheat` was built, saved and unreachable; ⇧T at the station is the door and twenty levers are behind it — the commander's fuel, credits, legal status and Character, and a FIT-OUT that takes equipment OFF, which no shop in the game can. The jump stops asking about fuel. A career that switches it on is marked for good. A SPAWN key was built for M3 and removed at Chris's word; the plan doc records the amendment
+- [x] 124 — [There is no way out of a flight](124-no-way-out-of-a-flight.md) — asked directly by Chris. **Q** in the cockpit gives up the flight and puts you back at the station autosave you launched from, asking first. It costs what dying costs and lands where dying lands, which is why it is offered to every pilot rather than gated behind test mode
 
 <!-- append-completed-todos-here -->
 

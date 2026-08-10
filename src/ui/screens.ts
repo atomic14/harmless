@@ -1577,6 +1577,38 @@ export function renderCombatSimCompare(p: SimComparePanel): void {
   `);
 }
 
+// --- giving up on a flight ---------------------------------------------------
+
+/**
+ * The quit confirmation: what it costs, and where you wake up.
+ *
+ * Deliberately the SAME sentence the game-over screen offers, off the same
+ * `SaveSummary`, because it is the same save and the same promise — a player
+ * who has read one has read the other. What differs is only the reason they are
+ * looking at it.
+ */
+export function renderQuit(offer: SaveSummary | null): void {
+  show(`
+    <h2>QUIT THIS FLIGHT?</h2>
+    <div class="rule"></div>
+    <div class="info" style="text-align:center">
+      ${offer
+        ? `You go back to <b>${offer.place} STATION</b> as you left it &mdash;
+           ${offer.when}, ${formatCredits(offer.credits)}, day ${offer.day}`
+        : 'NO STATION AUTOSAVE WAS FOUND &mdash; you will start again at Lave'}
+    </div>
+    <div class="info" style="text-align:center;color:var(--hud-amber)">
+      EVERYTHING SINCE YOU LAUNCHED IS LOST &mdash; CARGO, KILLS, DAMAGE AND FUEL.
+      THIS IS WHAT DYING COSTS, WITHOUT THE DYING.
+    </div>
+    <div class="buttons">
+      <button data-key="KeyY">Y &mdash; QUIT THE FLIGHT</button>
+      <button data-key="Escape">ESC &mdash; KEEP FLYING</button>
+    </div>
+    <div class="keyline hints"><span>Y QUIT</span><span>N / ESC KEEP FLYING</span></div>
+  `);
+}
+
 // --- test mode ---------------------------------------------------------------
 
 /**

@@ -67,6 +67,10 @@ console.log('\ncombat simulator — the simulator binding table');
   for (const escape of [
     'startHyperspace', 'galacticJump', 'distressBeacon', 'jettison1', 'jettison5',
     'toggleDockingComputer',
+    // Not a way out of the ARENA but out of the career: it restores the docked
+    // checkpoint, the one thing an exercise must never touch. Q is the arena's
+    // own way out, and this filter is what stops the cockpit's Q shadowing it.
+    'quitFlight',
   ] as const) {
     check(`the simulator has no ${escape}`, !sim.includes(escape));
     check(`...and the cockpit still does (the control)`,
@@ -75,7 +79,7 @@ console.log('\ncombat simulator — the simulator binding table');
   eq('...and that is exactly the list controls.ts states',
     [...NOT_IN_THE_SIMULATOR].sort().join(','),
     ['distressBeacon', 'galacticJump', 'jettison1', 'jettison5', 'startHyperspace',
-      'toggleDockingComputer'].sort().join(','));
+      'toggleDockingComputer', 'quitFlight'].sort().join(','));
 
   // Everything else is kept: an exercise is meant to be the real ship.
   for (const kept of [

@@ -133,6 +133,7 @@ import { ChartScreen, type ChartContext } from './screens/chart.ts';
 import { nextOverlay, type ChartOverlay } from './chart-overlay.ts';
 import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts';
 import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
+import { QuitScreen, type QuitContext } from './screens/quit.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 import { BEAM_Z } from '../engine/render-stack.ts';
 
@@ -583,6 +584,10 @@ export class Game {
         state: this.state,
         checkpoint: () => { this.persistence.checkpoint(); },
       } satisfies TestModeContext)),
+      new QuitScreen(() => ({
+        checkpoint: checkpointSummary(this.savesContext()),
+        abandon: () => this.abandonFlight(),
+      } satisfies QuitContext)),
     ]) this.screens.register(screen);
 
     this.buildWorld();
@@ -978,6 +983,27 @@ export class Game {
     this.baseMode = 'dead';
     this.showMessage(reason, 6);
     renderGameOver(this.state.commander, checkpointSummary(this.savesContext()));
+  }
+
+  /**
+   * Give up on this flight and take the way back — the confirmed half of
+   * `screens/quit.ts`.
+   *
+   * `forgetFlight` FIRST, and it is the same first move `die()` makes: the
+   * in-flight ring must not outlive the flight it recorded, or the next boot
+   * would resume the run that was just abandoned. `clearFlightSaves` re-aims
+   * the boot pointer at the checkpoint on its way past, which is what makes the
+   * `respawn()` below land on the station rather than on a guess.
+   *
+   * It costs what dying costs because it lands where dying lands. That is the
+   * whole reason it can be offered to every pilot rather than only to a marked
+   * career: there is nothing to gain by quitting that flying home would not
+   * have paid better.
+   */
+  abandonFlight(): void {
+    this.persistence.forgetFlight();
+    this.respawn();
+    this.showMessage('FLIGHT ABANDONED', 4);
   }
 
   /**
@@ -1706,6 +1732,7 @@ export class Game {
     startHyperspace: () => this.startHyperspace(),
     galacticJump: () => this.galacticJump(),
     distressBeacon: () => this.sendDistressBeacon(),
+    quitFlight: () => this.screens.open('quit'),
     jettison1: () => this.jettisonCargo(1),
     jettison5: () => this.jettisonCargo(5),
     // --- the training simulator -------------------------------------------

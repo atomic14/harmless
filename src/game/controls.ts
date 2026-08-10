@@ -86,6 +86,7 @@ export type Command =
   | 'distressBeacon'
   | 'jettison1'
   | 'jettison5'
+  | 'quitFlight'
   // --- the training simulator ---------------------------------------------
   | 'endExercise'
   // --- after the end ------------------------------------------------------
@@ -170,6 +171,12 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'KeyY', shift: true, command: 'jettison5' },
   { key: 'KeyY', command: 'jettison1' },
   { key: 'KeyJ', command: 'toggleTorus' },
+  // Q for QUIT — free in the cockpit, and the same letter that backs out of the
+  // new-commander confirmation at the station and ends an exercise in the
+  // arena. Three per-mode tables, one meaning: this is the key that gives up on
+  // what you are doing. It asks first (screens/quit.ts), so a mis-press costs a
+  // keystroke rather than the flight.
+  { key: 'KeyQ', command: 'quitFlight' },
 ];
 
 /**
@@ -187,6 +194,10 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
  *    hold is deliberately EMPTY, so the key can only ever mislead.
  *  - `toggleDockingComputer` — it flies you at a station 77,000 units away and
  *    docking is the one transition that writes the save.
+ *  - `quitFlight` — it restores the CAREER's docked checkpoint, which is the one
+ *    thing an exercise must never touch. The arena has its own way out on the
+ *    same key, and the filter below is what stops the cockpit's binding
+ *    shadowing it: a spread entry is matched before the two appended ones.
  *
  * Everything else the cockpit has is kept: the four views, the whole missile
  * cycle, the E.C.M., the energy bomb, the combat computer, mouse flight and the
@@ -194,7 +205,7 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
  */
 export const NOT_IN_THE_SIMULATOR: readonly Command[] = [
   'startHyperspace', 'galacticJump', 'distressBeacon', 'jettison1', 'jettison5',
-  'toggleDockingComputer',
+  'toggleDockingComputer', 'quitFlight',
 ];
 
 /**
