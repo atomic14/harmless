@@ -13,9 +13,11 @@ active context:
 
 ## Execution queue
 
-Two plans. In order; `QUEUE.json` agrees. One came out of the GitHub inbox on
-2026-08-10; the other came out of the first real flight the same day, once
-121's test mode and 124's quit key made one possible.
+Three plans. In order; `QUEUE.json` agrees. One came out of the GitHub inbox on
+2026-08-10, one came out of the first real flight the same day — once 121's test
+mode and 124's quit key made one possible — and the third came from Chris
+reading what 122 and 123 had just shipped and asking who is supposed to find
+it.
 
 121 landed before them: ⇧T at the station is the door onto `GameState.cheat`,
 twenty levers are behind it — fuel, missiles, credits, legal status, Character
@@ -25,7 +27,8 @@ a flight and puts you back at the station autosave you launched from.
 
 The GitHub inbox is empty of untriaged work: **#22** is the only plan below with
 one, labelled `planned` with its disposition on the issue. #18 closed with 121,
-#20 with 122, **#21 with 123**. 126 has no issue — it came out of a flight.
+#20 with 122, **#21 with 123**. 126 and 128 have no issue — one came out of a
+flight, the other out of what that flight's fixes still do not tell a pilot.
 
 **That flight found six things.** Two were bugs and are fixed (`1067e87`):
 jettisoned cargo landed inside your own scoop reach, so pressing Y dumped a
@@ -34,7 +37,9 @@ waltz decayed to silence across its own length, so the theme played as blips.
 One was already planned and has now landed (bribing a Viper is 123). One was a
 finding recorded on 122 and landed with it: being scanned makes you an Offender,
 police hunt Fugitives, so the Viper that scanned you carried on patrolling with
-nothing on the console to say why. The remaining two are 126 and 127 below.
+nothing on the console to say why. The remaining two are 126 and 127 below —
+and 128 is above both, because the keys those fixes added are still unadvertised
+at the moment they matter.
 
 122 and 123 landed before these two. A patrol closing on a dirty hold now says
 **POLICE PATROL CLOSING** for the 1,800 units before it can read you, and the
@@ -46,7 +51,18 @@ not happen, or a Viper already shooting breaks off, and neither touches your
 record while both cost your name. He can also refuse and report you, less often
 the worse your name already is.
 
-1. [ ] [127 — the survivor is handed over without asking](127-the-survivor-is-handed-over-without-asking.md)
+1. [ ] [128 — the cockpit never says what to press](128-the-cockpit-never-says-what-to-press.md)
+   · no issue — asked by Chris · feature, medium. `POLICE PATROL CLOSING` names
+   a problem and no answer: the keys that deal with it are in the `?` guide, the
+   manual and the README, which are three places you are not looking while a
+   Viper closes on your narcotics. A prompt line of its own says what a key can
+   do about what is happening right now, priced — `L PAY 141.0 Cr` — for every
+   moment a key is the answer. It carries a `Command`, never a letter: the
+   label comes from the binding table, which also fixes the two messages that
+   hand-write one today (`world-step.ts:550`, `game.ts:611`) and lie the moment
+   anything is rebound. First, at Chris's call: a feature nothing points at is a
+   feature nobody finds.
+2. [ ] [127 — the survivor is handed over without asking](127-the-survivor-is-handed-over-without-asking.md)
    · **#22** · feature, medium. You scoop someone out of a capsule and docking files them
    with station medical in the same breath as resetting your shields — no
    choice, no payment, no consequence. Chris: force the choice, and let it be a
@@ -57,7 +73,7 @@ the worse your name already is.
    for it separately and differ: the issue wants two options and says the legal
    status must move, the flight added a third option and did not — so between
    them the law's half is decided rather than deferred.
-2. [ ] [126 — the docking computer turns the ship without flying it](126-the-docking-computer-flies-by-fiat.md)
+3. [ ] [126 — the docking computer turns the ship without flying it](126-the-docking-computer-flies-by-fiat.md)
    · no issue — found in flight · bug, medium. It writes `player.quaternion` through a shortest-arc slerp
    instead of producing a `FlightDemand`, so it pivots about an axis no stick
    can produce, never writes the rates the HUD reads, and obeys its own turn
