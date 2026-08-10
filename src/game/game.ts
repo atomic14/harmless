@@ -764,6 +764,13 @@ export class Game {
       this.state.lastThreat = plan.threat;
       this.state.session.jettisonedValue = 0;
       this.state.session.arrivalCargoValue = markOf(this.state.commander).cargoValue;
+      // The carrot half of a bad name (docs/TODO/96): somebody out there
+      // recognised it and called the reception off. Said aloud, because a
+      // reception that never forms is otherwise indistinguishable from a quiet
+      // system and the player would never learn the rule.
+      if (plan.threat.passed) {
+        this.showMessage('PIRATE CHANNEL: "LEAVE THAT ONE"', 4);
+      }
     }
     if (built.generationShip) this.state.session.genShipSeen = false;
     if (built.missionTarget) {

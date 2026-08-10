@@ -10,8 +10,9 @@ import { isContraband } from './law.ts';
 import { random } from './rng.ts';
 import { npcCombatProfileById, type NpcCombatProfileId } from './ship-identity.ts';
 import {
-  CHALLENGE_RATE, CURATED_TIER, DEFENCE_WEIGHT, FAME_FULL, GANG_SCORE,
-  LASER_WEIGHT, PRIZE_SATURATION, PROFESSIONAL_SCORE,
+  CHALLENGE_RATE, COURTESY_RATE, CURATED_TIER, DEFENCE_WEIGHT, DISREPUTE_DRAW,
+  DISREPUTE_FULL, DISREPUTE_HEAT, FAME_FULL, GANG_SCORE, LASER_WEIGHT,
+  PRIZE_SATURATION, PROFESSIONAL_SCORE,
 } from '../constants/threat.ts';
 import { HOLD_TONNES, LARGE_BAY_TONNES } from '../constants/commander.ts';
 import { VALUE_PER_TONNE } from '../constants/jettison.ts';
@@ -43,6 +44,14 @@ export interface Mark {
   laser: 'pulse' | 'beam' | 'military';
   /** 0..1 regional heat from your recent big or dirty sales nearby */
   notoriety: number;
+  /**
+   * Your CHARACTER, raw off the commander (game/character.ts) — the galaxy's
+   * memory of what you are, where `notoriety` is one region's memory of what
+   * you just did. Raw like `combatScore` and for the same reason: what a pirate
+   * observes is a fact, and the curve over it (`DISREPUTE_FULL`) is policy that
+   * belongs in `pirateThreat` with the rest of the policy.
+   */
+  disrepute: number;
 }
 
 /** Read a commander the way a pirate's scanner would. */
@@ -51,6 +60,7 @@ export function markOf(
     cargo: number[];
     kills: number;
     combatScore?: number;
+    disrepute?: number;
     equipment: { laser: string; largeBay: boolean };
   },
   notoriety = 0,
@@ -72,6 +82,11 @@ export function markOf(
     combatScore: c.combatScore ?? c.kills,
     laser: (c.equipment.laser as Mark['laser']) ?? 'pulse',
     notoriety,
+    // Read off the CAREER commander the caller handed us — which is why the
+    // trainer needs no knob for it: `ThreatContext` already carries the real
+    // commander, so "as they come" sizes its reception against your real name
+    // while the clone still flies with no cargo and no reputation.
+    disrepute: c.disrepute ?? 0,
   };
 }
 
@@ -152,10 +167,22 @@ export interface PirateThreat {
   organised: boolean;
   /** 0..1 how attractive you looked — exposed for tuning and tests */
   appeal: number;
-  /** 0..1 how much of this reception came for your reputation rather than your hold */
+  /**
+   * 0..1 how much of this reception came for your REPUTATION rather than your
+   * hold — combat fame and a criminal name together, since both are reasons to
+   * come for the pilot instead of the cargo. It is combat fame alone whenever
+   * `disrepute` is 0, which is every lawful commander.
+   */
   fame: number;
   /** true when this lot came looking for you specifically, not for your cargo */
   challenged: boolean;
+  /**
+   * True when a reception that would have formed was called off because
+   * somebody recognised the name (`COURTESY_RATE`). `count` is 0 and the tier
+   * is meaningless; the Game says so on arrival, because an ambush the player
+   * never hears about is a mechanic that does not exist.
+   */
+  passed: boolean;
 }
 
 /**
@@ -181,9 +208,16 @@ export function pirateThreat(
   const deter = Math.min(0.5, mark.combatScore / 150)
     + (mark.laser === 'military' ? 0.3 : mark.laser === 'beam' ? 0.12 : 0);
 
+  // How visibly KNOWN you are: this region's memory of your last big or dirty
+  // sale, plus the galaxy's memory of your name. One channel, because to a
+  // pirate they are one fact — and because a fourth independent term would
+  // stop this being a model of how you are SEEN and start being a list.
+  const infamy = Math.min(1, mark.disrepute / DISREPUTE_FULL);
+  const known = Math.min(1, mark.notoriety + DISREPUTE_HEAT * infamy);
+
   // Deterrence is weighted heavily: looking dangerous is the main lever the
   // player has against this system, and it should visibly work.
-  const appeal = Math.max(0, Math.min(1, prize - 0.7 * deter + 0.6 * mark.notoriety));
+  const appeal = Math.max(0, Math.min(1, prize - 0.7 * deter + 0.6 * known));
 
   // ...but fame cuts both ways. A reputation scares off thieves looking for
   // easy cargo, and simultaneously draws people who want to be the ones who
@@ -193,16 +227,38 @@ export function pirateThreat(
   // ladder. Instead it rolls — at Dangerous, about a third of receptions are
   // someone coming for the reputation rather than the cargo.
   const fame = Math.max(0, Math.min(1, mark.combatScore / FAME_FULL));
-  const challenged = rng() < CHALLENGE_RATE * fame;
+  // A criminal name draws them for the other reason: not the kill, the fact
+  // that robbing you carries no consequence anyone will chase.
+  const renown = Math.min(1, fame + DISREPUTE_DRAW * infamy);
+  const challenged = rng() < CHALLENGE_RATE * renown;
+
+  // ...and cuts the other way too. Professional courtesy: occasionally someone
+  // recognises the name and calls the whole thing off. Rolled only when there
+  // IS a name, so an honest commander consumes exactly the draws off the world
+  // stream that they did before this existed and every seeded outcome after it
+  // stands (invariant 11).
+  const passed = infamy > 0 && !challenged && rng() < COURTESY_RATE * infamy;
+
   const draw = challenged ? 1 : appeal;
 
   // Sub-linear: a fat commander draws about one extra attacker, not five.
-  // Fame adds its own challengers on top.
-  const count = Math.max(0, Math.round(place + appeal * 1.5 + fame * 1.2 + rng() * 2 - 1));
+  // Reputation adds its own challengers on top — and it is `renown` rather
+  // than `fame`, so a reception summoned by your name arrives with bodies in it.
+  const count = Math.max(0, Math.round(place + appeal * 1.5 + renown * 1.2 + rng() * 2 - 1));
   // Thresholds, not the prize curve, set how often each tier appears — keeping
   // saturation high preserves the gap between a good load and a fat one.
   const tier: 0 | 1 | 2 = draw < 0.28 ? 0 : draw < 0.5 ? 1 : 2;
   // A gang needs both a reason and the numbers to bother forming.
   const organised = tier === 2 && count >= 3 && rng() < 0.4 + 0.5 * draw;
-  return { count, tier, organised, appeal, fame, challenged };
+  // A reception that was called off is no reception: the numbers above are
+  // still computed so the draw order does not depend on the outcome.
+  return {
+    count: passed ? 0 : count,
+    tier: passed ? 0 : tier,
+    organised: !passed && organised,
+    appeal,
+    fame: renown,
+    challenged,
+    passed,
+  };
 }

@@ -34,9 +34,13 @@ import {
 } from '../src/constants/market.ts';
 import { MarketScreen, type TradeContext } from '../src/game/screens/trade.ts';
 import { DISREPUTE_CONTRABAND_SALE } from '../src/constants/character.ts';
+import { characterName } from '../src/game/character.ts';
 import { LivingGalaxy } from '../src/galaxy/living.ts';
 import { pirateThreat, markOf, memberTier, type Mark } from '../src/game/threat.ts';
-import { CHALLENGE_RATE, PRIZE_SATURATION } from '../src/constants/threat.ts';
+import {
+  CHALLENGE_RATE, COURTESY_RATE, DISREPUTE_DRAW, DISREPUTE_FULL, DISREPUTE_HEAT,
+  PRIZE_SATURATION,
+} from '../src/constants/threat.ts';
 import { VALUE_PER_TONNE } from '../src/constants/jettison.ts';
 import { HOLD_TONNES, LARGE_BAY_TONNES } from '../src/constants/commander.ts';
 import { cargoCapacity, cargoTonnes } from '../src/game/commander.ts';
@@ -330,7 +334,7 @@ console.log('\npirate economics');
   {
     const bare = (over: Partial<Mark>): Mark => ({
       cargoValue: 0, contraband: 0, capacity: 20, combatScore: 0,
-      laser: 'pulse', notoriety: 0, ...over,
+      laser: 'pulse', notoriety: 0, disrepute: 0, ...over,
     });
 
     // The prize term: with nothing else on the mark, appeal is the prize
@@ -387,6 +391,154 @@ console.log('\npirate economics');
     check(`the big-bay bonus steps exactly once, above the standard hold `
       + `(at ${steps.join(',')})`,
     steps.length === 1 && steps[0] === HOLD_TONNES + 1);
+
+    // --- your NAME on the mark (docs/TODO/96, M2) --------------------------
+    //
+    // Same discipline as everything above: each of the four numbers is solved
+    // back out of the real pirateThreat rather than probed at its constant.
+
+    // DISREPUTE_FULL: with nothing else on the mark, appeal rises with the name
+    // until infamy saturates and then stops. The smallest disrepute at which it
+    // stops IS the saturation point — and it has to be a rung of the ladder,
+    // not a number of its own.
+    const appealAtDisrepute = (disrepute: number) => pirateThreat(
+      lave, 0, bare({ cargoValue: PRIZE_SATURATION * 0.3, disrepute }), fixed).appeal;
+    const ceiling = appealAtDisrepute(1 << 20);
+    let dLo = 0;
+    let dHi = 1 << 20;
+    while (dLo + 1 < dHi) {
+      const mid = (dLo + dHi) >> 1;
+      if (appealAtDisrepute(mid) >= ceiling) dHi = mid; else dLo = mid;
+    }
+    eq('a name stops counting for more at DISREPUTE_FULL', dHi, DISREPUTE_FULL);
+    check(`...which is the character ladder's Notorious rung (${dHi})`,
+      characterName(dHi) === 'Notorious' && characterName(dHi - 1) !== 'Notorious');
+
+    // DISREPUTE_HEAT, measured as what it MEANS: the regional heat that makes a
+    // spotless commander exactly as attractive as a fully notorious one with no
+    // heat at all. Nothing here needs to know the appeal formula's weights.
+    const notorious = appealAtDisrepute(DISREPUTE_FULL);
+    let hLo = 0;
+    let hHi = 1;
+    for (let i = 0; i < 60; i += 1) {
+      const mid = (hLo + hHi) / 2;
+      const asHeat = pirateThreat(
+        lave, 0, bare({ cargoValue: PRIZE_SATURATION * 0.3, notoriety: mid }), fixed).appeal;
+      if (asHeat >= notorious) hHi = mid; else hLo = mid;
+    }
+    check(`a full name is worth DISREPUTE_HEAT of regional heat (measured ${hHi})`,
+      Math.abs(hHi - DISREPUTE_HEAT) < 1e-9);
+
+    // DISREPUTE_DRAW: at full infamy and no combat fame at all, the challenge
+    // roll's threshold is CHALLENGE_RATE scaled by the draw a criminal name has.
+    const infamous = bare({ disrepute: DISREPUTE_FULL });
+    let cLo = 0;
+    let cHi = 1;
+    for (let i = 0; i < 60; i += 1) {
+      const mid = (cLo + cHi) / 2;
+      if (pirateThreat(lave, 0, infamous, () => mid).challenged) cLo = mid; else cHi = mid;
+    }
+    check(`a name draws challengers at DISREPUTE_DRAW of fame's rate (measured `
+      + `${(cHi / CHALLENGE_RATE).toFixed(6)})`,
+    Math.abs(cHi / CHALLENGE_RATE - DISREPUTE_DRAW) < 1e-9);
+
+    // COURTESY_RATE: the second draw, so the roll needs a scripted stream — a
+    // constant rng would answer the challenge roll with the same number and
+    // never let the courtesy roll happen.
+    const scripted = (...values: number[]) => {
+      let i = 0;
+      return () => values[Math.min(i++, values.length - 1)];
+    };
+    let uLo = 0;
+    let uHi = 1;
+    for (let i = 0; i < 60; i += 1) {
+      const mid = (uLo + uHi) / 2;
+      // first draw 1: never challenged, so the courtesy roll is reached
+      if (pirateThreat(lave, 0, infamous, scripted(1, mid, 0)).passed) uLo = mid; else uHi = mid;
+    }
+    check(`a full name is passed by at COURTESY_RATE (measured ${uHi})`,
+      Math.abs(uHi - COURTESY_RATE) < 1e-9);
+  }
+
+  // --- what the name does, as behaviour ---------------------------------
+  {
+    const bare = (over: Partial<Mark>): Mark => ({
+      cargoValue: 0, contraband: 0, capacity: 20, combatScore: 0,
+      laser: 'pulse', notoriety: 0, disrepute: 0, ...over,
+    });
+
+    // A worse name is never a better reception, and somewhere in the range it
+    // is a visibly worse one: the same hold that draws professionals for an
+    // honest pilot draws a gang for a Dodgy one.
+    const DODGY = 25;
+    let stepped = 0;
+    let worse = true;
+    for (let value = 0; value <= PRIZE_SATURATION; value += PRIZE_SATURATION / 40) {
+      const honest = pirateThreat(lave, 0, bare({ cargoValue: value }), fixed);
+      const dodgy = pirateThreat(lave, 0, bare({ cargoValue: value, disrepute: DODGY }), fixed);
+      if (dodgy.appeal < honest.appeal || dodgy.tier < honest.tier) worse = false;
+      if (dodgy.tier > honest.tier) stepped += 1;
+    }
+    check(`a Dodgy pilot never draws a softer reception than an honest one`, worse);
+    check(`...and a harder one across ${stepped} of the 41 holds sampled`, stepped > 0);
+
+    // ...and the carrot: over a seeded run, a Cutthroat is occasionally left
+    // alone by pirates who would have robbed anyone else. An honest commander
+    // never is — the roll is not even taken.
+    const rolls = (disrepute: number) => {
+      const rng = makeRng(96);
+      let passed = 0;
+      for (let i = 0; i < 400; i += 1) {
+        if (pirateThreat(lave, 0.1, bare({ cargoValue: 8000, disrepute }), rng).passed) passed += 1;
+      }
+      return passed;
+    };
+    const cutthroat = rolls(120);
+    check(`a Cutthroat is waved off sometimes (${cutthroat}/400)`,
+      cutthroat > 20 && cutthroat < 120);
+    eq('an honest commander never is', rolls(0), 0);
+  }
+
+  // --- lawful play did not move (docs/TODO/96, M2) -------------------------
+  //
+  // The promise the whole milestone rests on: at disrepute 0 every expression
+  // collapses to the one it replaced, and the courtesy roll is not even drawn,
+  // so an honest commander takes the same numbers off the world stream as
+  // before. These rows were computed with the code as it stood at the M1
+  // commit; if lawful play ever moves, this is what says so. They are NOT
+  // decoration on the current implementation — regenerate them only from a
+  // release that deliberately re-tunes the reception.
+  {
+    const mk = (cargo: Record<number, number>, kills = 0, laser = 'pulse', largeBay = false) => {
+      const c = new Array(17).fill(0);
+      for (const [i, q] of Object.entries(cargo)) c[+i] = q;
+      return { cargo: c, kills, equipment: { laser, largeBay } };
+    };
+    const golden: [string, ReturnType<typeof mk>, number, number, number[][]][] = [
+      ['an empty hold in a quiet system', mk({}), 0, 0,
+        [[1, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0], [2, 0, 0, 0, 0, 0], [1, 0, 0, 0, 0, 0],
+          [2, 0, 0, 0, 0, 0]]],
+      ['a full hold of computers', mk({ 7: 35 }, 0, 'pulse', true), 0.1, 0,
+        [[3, 2, 0, 0.9624, 0, 0], [4, 2, 1, 0.9624, 0, 0], [3, 2, 1, 0.9624, 0, 0],
+          [3, 2, 1, 0.9624, 0, 0], [4, 2, 1, 0.9624, 0, 0]]],
+      ['armed and famous', mk({ 7: 35 }, 150, 'military', true), 0.1, 0.3,
+        [[2, 2, 0, 0.5824, 0.058594, 1], [4, 2, 1, 0.5824, 0.058594, 0],
+          [3, 2, 1, 0.5824, 0.058594, 0], [4, 2, 1, 0.5824, 0.058594, 0],
+          [4, 2, 1, 0.5824, 0.058594, 0]]],
+      ['a smuggler with regional heat', mk({ 6: 10 }), 0.2, 0.6,
+        [[3, 2, 0, 0.986, 0, 0], [4, 2, 1, 0.986, 0, 0], [4, 2, 1, 0.986, 0, 0],
+          [4, 2, 1, 0.986, 0, 0], [4, 2, 1, 0.986, 0, 0]]],
+    ];
+    for (const [name, commander, danger, noto, expected] of golden) {
+      const rng = makeRng(7);
+      const got = Array.from({ length: 5 }, () => {
+        const t = pirateThreat(lave, danger, markOf(commander, noto), rng);
+        return [t.count, t.tier, t.organised ? 1 : 0, +t.appeal.toFixed(6),
+          +t.fame.toFixed(6), t.challenged ? 1 : 0];
+      });
+      eq(`${name} meets the reception it always did`,
+        JSON.stringify(got), JSON.stringify(expected));
+    }
   }
 
   // --- the scanner, the toll and the shop agree about a hold ----------------

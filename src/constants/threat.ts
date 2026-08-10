@@ -5,6 +5,7 @@
 // change here has to answer to.
 
 import { RATINGS } from './rating.ts';
+import { CHARACTER } from './character.ts';
 
 /**
  * Combat score at which fame is fully "worth coming for" — the rating ladder's
@@ -19,6 +20,72 @@ export const FAME_FULL = RATINGS.find(([, name]) => name === 'Dangerous')![0];
  * ~99% of receptions gangs at Dangerous and erased the tier ladder.
  */
 export const CHALLENGE_RATE = 0.35;
+
+/**
+ * Disrepute at which your NAME is as bad as it needs to get for a pirate — the
+ * character ladder's Notorious rung, so moving the rung moves this with it.
+ * Expressed rather than typed, the same trick and the same reason as
+ * `FAME_FULL` above: the one home for the ladder stays constants/character.ts.
+ *
+ * Notorious rather than the ceiling (`DISREPUTE_MAX`, a little past Cutthroat):
+ * a pirate is not grading you finely at the top end. One hermit kill puts you
+ * halfway up this curve and two put you at the top of it, which is the
+ * resolution the reception actually needs (docs/TODO/96). What the saturated
+ * curve is then WORTH, as regional heat and as a draw, is the two weights
+ * below.
+ */
+export const DISREPUTE_FULL = CHARACTER.find(([, name]) => name === 'Notorious')![0];
+
+/**
+ * What a fully notorious name is worth as HEAT — the same channel a region's
+ * memory of your last big sale feeds (`Mark.notoriety`), because to a pirate
+ * they are the same fact: how visibly known you are.
+ *
+ * Half, so a Notorious pilot flying clean through a quiet system looks about as
+ * interesting as an honest one who just sold a fat cargo here. Folding it in
+ * rather than adding a fourth independent term is the decision the plan records
+ * — one "how you're seen" model, not two.
+ *
+ * Owner confirmed as the threat model rather than character.ts: the ladder and
+ * what moves a commander up it belong there, but what a rung is WORTH to a
+ * pirate sizing up a reception is this file's business, beside the fame weight
+ * it sits next to.
+ *
+ * Its own rule id: it shares the value 0.5 with `DISREPUTE_DRAW` below, and the
+ * two are answers to different questions — how KNOWN a bad name makes you, and
+ * how much it makes someone come looking. Either may move alone.
+ *
+ * @rule threat.disreputeHeat
+ */
+export const DISREPUTE_HEAT = 0.5;
+
+/**
+ * How much a criminal name draws challengers, against combat fame's 1. Half:
+ * people come for a Dangerous commander because killing them is worth
+ * something, and for a Cutthroat because robbing them is safe — the second is
+ * a real draw and the weaker one.
+ *
+ * Its own rule id, for the reason given on `DISREPUTE_HEAT` above: same value,
+ * different question, and they must stay free to move apart.
+ *
+ * @rule threat.disreputeDraw
+ */
+export const DISREPUTE_DRAW = 0.5;
+
+/**
+ * Professional courtesy: the share of receptions that never form at all
+ * because someone recognised a name they would rather not cross. The carrot
+ * half of a criminal reputation, and the reason infamy is NOT also folded into
+ * `deter` — a term in appeal and a term in deterrence would partly cancel into
+ * one coefficient, which is the same rule written twice. This is a distinct
+ * event with a distinct texture: more of them want you, and occasionally one
+ * calls it off.
+ *
+ * Only rolled when there is a name to recognise, so an honest commander draws
+ * exactly the numbers off the world stream that they did before this existed
+ * (invariant 11).
+ */
+export const COURTESY_RATE = 0.15;
 
 /**
  * Cargo value, in tenths of a credit, at which the prize term saturates
