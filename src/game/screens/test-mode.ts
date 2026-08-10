@@ -29,6 +29,7 @@ import {
 } from '../../constants/commander.ts';
 import { LEGAL_NAMES } from '../../constants/law.ts';
 import { CHARACTER } from '../../constants/character.ts';
+import { NPC_ROLES } from '../ship-roles.ts';
 
 /**
  * The slice of the Game this screen is allowed to see.
@@ -206,6 +207,18 @@ export class TestModeScreen implements Screen {
         label: 'LEGAL STATUS',
         value: LEGAL_NAMES[c.legalStatus].toUpperCase(),
         act: (d) => { c.legalStatus = cycle(c.legalStatus, LEGAL_NAMES.length, d); },
+      }),
+      this.lever({
+        // The COCKPIT lever's half that a station screen can hold: which ship
+        // ⇧S drops. The key itself is game/test-mode.ts's, and this row is why
+        // its caption can say "the chosen ship" — no numeric entry, no picker
+        // in flight, just a ring over the roles the roster has.
+        label: 'SPAWN',
+        value: state.cheatRole.toUpperCase(),
+        act: (d) => {
+          state.cheatRole = NPC_ROLES[cycle(NPC_ROLES.indexOf(state.cheatRole),
+            NPC_ROLES.length, d)];
+        },
       }),
       this.lever({
         // docs/TODO/96 shipped DISREPUTE_HEAT, COURTESY_RATE and HERMIT_FAVOUR

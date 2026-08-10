@@ -133,6 +133,7 @@ import { ChartScreen, type ChartContext } from './screens/chart.ts';
 import { nextOverlay, type ChartOverlay } from './chart-overlay.ts';
 import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts';
 import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
+import { spawnCheatShip } from './test-mode.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 import { BEAM_Z } from '../engine/render-stack.ts';
 
@@ -1076,7 +1077,10 @@ export class Game {
       return;
     }
     const check = checkJump(this.state.commander, this.state.systems, this.state.chart.targetIndex,
-      this.state.session.witchspace, this.state.session.hyperCountdown >= 0);
+      this.state.session.witchspace, this.state.session.hyperCountdown >= 0,
+      // JUMP ANYWHERE (docs/TODO/121): the flag goes IN, and the refusal stays
+      // where it was decided. Nothing here reads the tank.
+      this.state.cheat);
     if (!check.ok) {
       if (check.reason === 'alreadyJumping') return;
       this.showMessage(refusalMessage(check.reason, this.state.session.witchspace), 4);
@@ -1705,6 +1709,7 @@ export class Game {
     distressBeacon: () => this.sendDistressBeacon(),
     jettison1: () => this.jettisonCargo(1),
     jettison5: () => this.jettisonCargo(5),
+    cheatSpawn: () => this.cheatSpawn(),
     // --- the training simulator -------------------------------------------
     endExercise: () => this.endExercise(),
     // --- after the end ----------------------------------------------------
@@ -1833,6 +1838,25 @@ export class Game {
   }
 
 
+
+  /**
+   * Test mode's cockpit key: drop the chosen ship off your nose.
+   *
+   * The RULE is `game/test-mode.ts`'s, including the refusal — this applies the
+   * consequences an orchestrator owns, which are the noise and the line saying
+   * what arrived. A press with the mode off says so rather than doing nothing
+   * silently: the key is bound for everybody, and a key that appears dead is a
+   * bug report.
+   */
+  private cheatSpawn(): void {
+    const ship = spawnCheatShip(this.state);
+    if (!ship) {
+      this.showMessage('TEST MODE IS OFF', 2);
+      sfx.refused();
+      return;
+    }
+    this.showMessage(`SPAWNED ${ship.role.toUpperCase()}`, 2);
+  }
 
   /**
    * Dump a tonne over the side. Pirates came for cargo, not for you — give

@@ -86,6 +86,7 @@ export type Command =
   | 'distressBeacon'
   | 'jettison1'
   | 'jettison5'
+  | 'cheatSpawn'
   // --- the training simulator ---------------------------------------------
   | 'endExercise'
   // --- after the end ------------------------------------------------------
@@ -170,6 +171,11 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'KeyY', shift: true, command: 'jettison5' },
   { key: 'KeyY', command: 'jettison1' },
   { key: 'KeyJ', command: 'toggleTorus' },
+  // ⇧S — test mode's one cockpit key, and shifted for the reason ⇧T is at the
+  // station: a development lever should not sit on a bare letter beside the
+  // weapons. Plain S is unbound in flight (it opens the commander file docked
+  // and after death), so there is no fallback entry for it to come before.
+  { key: 'KeyS', shift: true, command: 'cheatSpawn' },
 ];
 
 /**
@@ -187,6 +193,9 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
  *    hold is deliberately EMPTY, so the key can only ever mislead.
  *  - `toggleDockingComputer` — it flies you at a station 77,000 units away and
  *    docking is the one transition that writes the save.
+ *  - `cheatSpawn` — an exercise that can have a ship dropped into it is not an
+ *    exercise: the report counts what it sent at you, and a fight with an extra
+ *    Anaconda in it would be measured as the fight the scenario described.
  *
  * Everything else the cockpit has is kept: the four views, the whole missile
  * cycle, the E.C.M., the energy bomb, the combat computer, mouse flight and the
@@ -194,7 +203,7 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
  */
 export const NOT_IN_THE_SIMULATOR: readonly Command[] = [
   'startHyperspace', 'galacticJump', 'distressBeacon', 'jettison1', 'jettison5',
-  'toggleDockingComputer',
+  'toggleDockingComputer', 'cheatSpawn',
 ];
 
 /**

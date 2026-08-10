@@ -67,6 +67,9 @@ console.log('\ncombat simulator — the simulator binding table');
   for (const escape of [
     'startHyperspace', 'galacticJump', 'distressBeacon', 'jettison1', 'jettison5',
     'toggleDockingComputer',
+    // Not a way OUT but the same argument: an exercise a ship can be dropped
+    // into is not the exercise the report says it was (docs/TODO/121 M3).
+    'cheatSpawn',
   ] as const) {
     check(`the simulator has no ${escape}`, !sim.includes(escape));
     check(`...and the cockpit still does (the control)`,
@@ -75,7 +78,7 @@ console.log('\ncombat simulator — the simulator binding table');
   eq('...and that is exactly the list controls.ts states',
     [...NOT_IN_THE_SIMULATOR].sort().join(','),
     ['distressBeacon', 'galacticJump', 'jettison1', 'jettison5', 'startHyperspace',
-      'toggleDockingComputer'].sort().join(','));
+      'toggleDockingComputer', 'cheatSpawn'].sort().join(','));
 
   // Everything else is kept: an exercise is meant to be the real ship.
   for (const kept of [

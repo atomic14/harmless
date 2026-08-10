@@ -24,6 +24,7 @@ import type { ShipSystems } from './systems.ts';
 import type { DockPlan } from './docking.ts';
 import type { ChartState } from './chart-state.ts';
 import type { SessionState } from './session.ts';
+import type { NpcRole } from './ship-roles.ts';
 import { World } from './world.ts';
 import { PlayerShip } from '../player.ts';
 import * as THREE from 'three';
@@ -101,6 +102,15 @@ export interface GameState {
    * field, so only its SOURCE was ever the problem.
    */
   cheat: boolean;
+  /**
+   * Which ship test mode's SPAWN key puts off your nose (`game/test-mode.ts`).
+   *
+   * State rather than a field of the screen that picks it, for the reason
+   * beside `cheat`: the screen is at the station and the key is in the cockpit,
+   * so a choice kept on the screen would be a rule read from somewhere no test
+   * can reach and no save carries. It is inert unless `cheat` is on.
+   */
+  cheatRole: NpcRole;
 
   // --- what is on offer ---------------------------------------------------
   market: MarketEntry[];
@@ -177,6 +187,9 @@ export function freshState(commander: CommanderData): GameState {
     ecmDetectedTimer: 0,
     brains: { ...SHIPPED_BRAINS },
     cheat: false,
+    // The most useful ship to drop in front of a commander, and the one #18 is
+    // about: something that shoots back.
+    cheatRole: 'pirate',
     market: [],
     hermitMarket: [],
     contractOffers: [],

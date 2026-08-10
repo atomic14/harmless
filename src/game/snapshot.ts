@@ -18,6 +18,7 @@ import type { CommanderData } from './commander.ts';
 import type { ShipSystems } from './systems.ts';
 import type { EncounterTimers } from './encounters.ts';
 import type { BrainSelection } from './brain-names.ts';
+import { isNpcRole, type NpcRole } from './ship-roles.ts';
 import {
   requirePlayerHullId, requireShipDesignId, requireNpcCombatProfileId,
 } from './ship-identity.ts';
@@ -163,6 +164,8 @@ export interface WorldSnapshot {
   brains: BrainSelection;
   /** the playtest fit-anything override — see GameState.cheat */
   cheat: boolean;
+  /** which ship test mode's SPAWN key drops — see GameState.cheatRole */
+  cheatRole: NpcRole;
   /** every flight-session flag and timer, walked generically — see SessionState */
   session: Record<string, unknown>;
   /**
@@ -312,6 +315,10 @@ export function parseSnapshot(raw: unknown): WorldSnapshot {
   finite(s.ecmDetectedTimer, 'ecmDetectedTimer');
   record(s.brains, 'brains');
   if (typeof s.cheat !== 'boolean') bad('cheat is not a boolean');
+  // A role, not any string: the sky is built from it and `SPECS` is keyed on
+  // it, so a hand-edited file naming a role that does not exist would spawn
+  // nothing and say nothing.
+  if (!isNpcRole(s.cheatRole)) bad(`cheatRole '${String(s.cheatRole)}' is not a role`);
   record(s.session, 'session');
 
   const rng = record(s.rng, 'rng');

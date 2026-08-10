@@ -32,6 +32,13 @@ export function jumpCost(
  * May the drive spin up? Pure — it answers, it does not start anything.
  *
  * @param target the chart's selected system, or null
+ * @param free test mode's JUMP ANYWHERE (docs/TODO/121) — the tank stops being
+ *   a reason to refuse. Read HERE, where the refusal is decided, rather than
+ *   copied into the chart screen, so the rule keeps one home and a test can ask
+ *   it both ways as an argument. It lifts ONLY the fuel refusal: no target is
+ *   still no target, and a countdown already running is still already running.
+ *   The jump is charged either way — `resolveJump` takes what is in the tank —
+ *   because a free jump that also left the gauge full would be two changes.
  */
 export function checkJump(
   commander: CommanderData,
@@ -39,13 +46,14 @@ export function checkJump(
   target: number | null,
   witchspace: boolean,
   countdownRunning: boolean,
+  free = false,
 ): { ok: true; cost: number } | { ok: false; reason: Refusal } {
   if (countdownRunning) return { ok: false, reason: 'alreadyJumping' };
   if (target === null || target === commander.systemIndex) {
     return { ok: false, reason: 'noTarget' };
   }
   const cost = jumpCost(systems[commander.systemIndex], systems[target], witchspace);
-  if (cost > commander.fuel) return { ok: false, reason: 'noFuel' };
+  if (cost > commander.fuel && !free) return { ok: false, reason: 'noFuel' };
   return { ok: true, cost };
 }
 
@@ -84,7 +92,12 @@ export function resolveJump(
     // escaping limbo costs a flat rate, and cannot itself mis-jump
     commander.fuel -= Math.min(commander.fuel, WITCHSPACE_ESCAPE_COST);
   } else {
-    commander.fuel -= distanceTenths(here, systems[target]);
+    // Floored, as the escape jump above already is. Ordinarily it changes
+    // nothing — `checkJump` has refused anything the tank cannot cover — but
+    // test mode's free jump reaches here with a cost it cannot pay, and a
+    // NEGATIVE tank is a number no gauge, shop or chart in the game reads
+    // correctly. It takes what is there and no more.
+    commander.fuel -= Math.min(commander.fuel, distanceTenths(here, systems[target]));
     if (rng() < witchspaceChance(commander.mission.stage)) {
       return { misjump: true, days: 0 };
     }

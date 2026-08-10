@@ -165,9 +165,13 @@ const OUTSIDE: readonly Group[] = [
       + ' hold a copy of "17 to 24 means pirate", and moving it to a public home would'
       + ' undo that. The other three are keyed on `NpcRole`, a type this directory may'
       + ' not import, and two of them are catalogue lookups computed once at load rather'
-      + ' than rules — the same shape as `MISSILE_HULL` above',
+      + ' than rules — the same shape as `MISSILE_HULL` above. `NPC_ROLES` is the same'
+      + ' argument once more: it is `Object.keys(CANDIDATES)`, so it is derived from a'
+      + ' record this directory may not hold rather than a list of its own',
     files: {
-      'game/ship-roles.ts': ['BAND_SLOTS', 'ROLE_BANDS', 'CANDIDATES', 'MISSION_TARGET_DESIGNS'],
+      'game/ship-roles.ts': [
+        'BAND_SLOTS', 'ROLE_BANDS', 'CANDIDATES', 'MISSION_TARGET_DESIGNS', 'NPC_ROLES',
+      ],
     },
   },
 

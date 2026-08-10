@@ -24,9 +24,15 @@ import {
 } from '../src/constants/commander.ts';
 import { CLEAN, FUGITIVE, LEGAL_NAMES, OFFENDER } from '../src/constants/law.ts';
 import { CHARACTER } from '../src/constants/character.ts';
+import { spawnCheatShip } from '../src/game/test-mode.ts';
+import { checkJump, resolveJump } from '../src/game/hyperspace.ts';
+import { distanceTenths } from '../src/galaxy/navigation.ts';
+import { isNpcRole, NPC_ROLES } from '../src/game/ship-roles.ts';
+import { seedWorld } from '../src/game/rng.ts';
 import type { Input } from '../src/engine/input.ts';
 import { check, cmds, eq, eqc } from './harness.ts';
 import { installStore } from './save-fixtures.ts';
+import { g1 } from './fixtures.ts';
 
 // --- the door ----------------------------------------------------------------
 
@@ -243,6 +249,94 @@ console.log('\nthe legal-status lever is the one 122 and 123 are tested through'
   eq('two pulls and you are a Fugitive', state.commander.legalStatus, FUGITIVE);
   check('...and the same police ship now comes for you',
     isHostileToPlayer(police, state.commander.legalStatus));
+}
+
+// --- the flight levers -------------------------------------------------------
+
+console.log('\nSPAWN puts the chosen ship off your nose — and only with the door open');
+{
+  seedWorld(20_260_810);
+  const { state, pull } = rig(false);
+
+  check('the sky starts empty', state.world.npcs.length === 0);
+  check('with the mode off the key does nothing at all',
+    spawnCheatShip(state) === null && state.world.npcs.length === 0);
+
+  state.cheat = true;
+  eq('a fresh career spawns the ship #18 is about', state.cheatRole, 'pirate');
+  const pirate = spawnCheatShip(state);
+  eq('...and one arrives, in the role that was asked for', pirate?.role, 'pirate');
+  eq('...one of it, not a wave', state.world.npcs.length, 1);
+  // Off your NOSE: the arena's cone is built round the facing it is given, so a
+  // ship placed at the origin looking down -Z lands in front, never behind.
+  check('...in front of the commander, not behind',
+    pirate!.object.position.z < 0
+    && pirate!.object.position.distanceTo(state.player.position) > 0);
+
+  // The row on the screen is the choice the key reads — the two halves of one
+  // lever, which is why the choice is state and not a field of the screen.
+  const next = NPC_ROLES[(NPC_ROLES.indexOf(state.cheatRole) + 1) % NPC_ROLES.length];
+  pull('SPAWN');
+  eq('the SPAWN row moves the choice on', state.cheatRole, next);
+  eq('...and the key spawns THAT', spawnCheatShip(state)?.role, next);
+  check('...over every role the roster has, and no invented one',
+    NPC_ROLES.length >= 9 && NPC_ROLES.every((r) => isNpcRole(r)));
+
+  // Invariant 11: the placement is drawn from the world's seeded stream, so the
+  // same seed puts it in the same place twice. Nothing here calls Math.random.
+  const where = (): string => {
+    seedWorld(4242);
+    const s = freshState(newCommander());
+    s.cheat = true;
+    return spawnCheatShip(s)!.object.position.toArray().map((n) => n.toFixed(3)).join(',');
+  };
+  eq('the same seed drops it in the same place', where(), where());
+}
+
+console.log('\n...and an exercise cannot have a ship dropped into it');
+{
+  check('SPAWN is not in the simulator table',
+    !BINDINGS.simulator.some((b) => b.command === 'cheatSpawn'));
+  check('...but it is in the cockpit\'s (the control)',
+    BINDINGS.flight.some((b) => b.command === 'cheatSpawn'));
+  // The other flight lever needs no entry of its own: it lifts a refusal on the
+  // two jump commands, and both were already off the simulator's table.
+  check('...and the jumps it frees were already off that table',
+    !BINDINGS.simulator.some((b) => b.command === 'startHyperspace')
+    && !BINDINGS.simulator.some((b) => b.command === 'galacticJump'));
+}
+
+console.log('\nJUMP ANYWHERE lifts the fuel refusal, and nothing else');
+{
+  const systems = g1;
+  const here = 7;                            // Lave
+  /** The furthest system in the galaxy — nothing has the range for it. */
+  const far = systems.reduce((worst, s, i) => (
+    distanceTenths(systems[here], s) > distanceTenths(systems[here], systems[worst]) ? i : worst
+  ), 0);
+  const cmdr = (fuel: number) => ({ ...newCommander(), systemIndex: here, fuel });
+
+  check('the far target really is out of range',
+    distanceTenths(systems[here], systems[far]) > MAX_FUEL);
+  check('a full tank is refused for it', (() => {
+    const r = checkJump(cmdr(MAX_FUEL), systems, far, false, false);
+    return !r.ok && r.reason === 'noFuel';
+  })());
+  check('...and test mode takes it', checkJump(cmdr(MAX_FUEL), systems, far, false, false, true).ok);
+
+  // What it must NOT lift. A free jump is still a jump, and both of these are
+  // refusals about something other than the tank.
+  check('no target is still no target',
+    !checkJump(cmdr(MAX_FUEL), systems, null, false, false, true).ok);
+  check('...and a countdown already running still refuses',
+    !checkJump(cmdr(MAX_FUEL), systems, far, false, true, true).ok);
+
+  // The jump is CHARGED either way; what it may not do is leave a negative
+  // tank, which is a number no gauge, shop or chart reads correctly.
+  const broke = cmdr(1);
+  resolveJump(broke, systems, far, false, () => 1);
+  eq('a free jump empties the tank rather than overdrawing it', broke.fuel, 0);
+  eq('...and it still arrives', broke.systemIndex, far);
 }
 
 console.log('\nthe mark is one way, wherever it is asked for');
