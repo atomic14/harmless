@@ -16,6 +16,9 @@ active context:
 1. [ ] 116 — [A loaded save jumps on its own](116-a-loaded-save-jumps-on-its-own.md)
    — reported by Chris and reproduced: a snapshot taken during a hyperspace
    countdown resumes it on load, so the ship jumps unasked
+2. [ ] 117 — [The galaxy was trading before you arrived](117-the-galaxy-was-trading-before-you-arrived.md)
+   — pre-warm the living galaxy so a new commander inherits a history. A
+   SIMULATION change: the campaign must be re-run against it
 
 `QUEUE.json` agrees. The backlog below is in priority order; promoting its head
 is what makes the next execution item.
