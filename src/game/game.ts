@@ -151,12 +151,12 @@ import {
   type Contract,
 } from './commander.ts';
 import {
-  LEGAL_NAMES, CLEAN, DEFENCE_RANGE,
+  LEGAL_NAMES, CLEAN, DEFENCE_RANGE, SCAN_LINE_SECONDS,
 } from '../constants/law.ts';
 import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
 import {
   bribeOffered, carryingContraband, inspectionPrice, patrolPrice, patrolReach,
-  recordCleared,
+  recordCleared, recordVerdict,
 } from './law.ts';
 import { afterDecay, characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
@@ -1200,13 +1200,25 @@ export class Game {
    * and in M3 the region's heat and the Government's opinion — lands here.
    */
   private answerForSurvivors(choice: SurvivorChoice): void {
-    const before = this.state.commander.disrepute ?? 0;
-    const e = resolveSurvivors(this.state.commander, choice, this.survivorOffers());
+    const c = this.state.commander;
+    const before = c.disrepute ?? 0;
+    const e = resolveSurvivors(c, choice, this.survivorOffers());
     if (!e) return;
+    // The law and the region first, so the SALE has the console after them:
+    // `raiseLegal` says LEGAL STATUS as it moves the record, and the line the
+    // player needs to read is the one explaining what they just did.
+    if (e.kind === 'sold') {
+      this.state.living.addNotoriety(c.systemIndex, e.heat);
+      this.raiseLegal(e.offence);
+    }
     this.showMessage(survivorMessage(e), 4);
-    // ...and what it did to your name, behind the line that explains it — the
-    // same rule every other deed spends (docs/TODO/129).
-    this.markName(before, this.state.commander.disrepute ?? 0);
+    // ...then what the record now means, and what it did to your name — both
+    // queued behind the receipt that caused them (docs/TODO/122, docs/TODO/129).
+    // `recordVerdict` rather than a second sentence about being an Offender:
+    // police hunt Fugitives, so a sale leaves you walking out unmolested, and
+    // the console has to say who DOES come.
+    if (e.kind === 'sold') this.queueMessage(recordVerdict(c.legalStatus), SCAN_LINE_SECONDS);
+    this.markName(before, c.disrepute ?? 0);
   }
 
   /** Pay out anything delivered here; drop anything overdue. */
@@ -1335,6 +1347,13 @@ export class Game {
    * sight of the station and Vipers launch from the slot.
    */
   private callStationDefence(): void {
+    // ...MISBEHAVE, which means in the sky. `raiseLegal` is reachable from the
+    // station now — selling a survivor is an offence filed over a counter
+    // (docs/TODO/127 M3) — and a docked ship is parked INSIDE the range test
+    // below, so without this the sale would scramble Vipers into a world the
+    // player is not in and cannot see. The record still moves; the fleet is
+    // what waits until there is a ship to launch at.
+    if (this.baseMode !== 'flight') return;
     if (this.state.session.witchspace || this.state.session.defenceLaunched) return;
     if (this.state.player.position.distanceTo(this.state.world.station.position) > DEFENCE_RANGE) return;
     this.state.session.defenceLaunched = true;

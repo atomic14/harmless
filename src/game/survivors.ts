@@ -14,10 +14,12 @@
 import type { CommanderData } from './commander.ts';
 import { afterDeed } from './character.ts';
 import { formatCredits } from './commander.ts';
-import { priceInTenths } from './market.ts';
+import { priceInTenths, saleFallout } from './market.ts';
 import {
   DISREPUTE_SLAVE_SALE, DISREPUTE_SURVIVOR_RELEASED,
 } from '../constants/character.ts';
+import { SLAVES } from '../constants/commodities.ts';
+import { OFFENDER } from '../constants/law.ts';
 import { SURVIVOR_RELEASE_SHARE } from '../constants/survivors.ts';
 
 /** The three answers to "there is somebody in your crew spaces". */
@@ -27,8 +29,15 @@ export type SurvivorChoice = 'medical' | 'sold' | 'released';
 export type SurvivorEvent =
   /** handed to station medical: no payment, no mark, no questions */
   | { kind: 'handed'; people: number }
-  /** sold on the Slaves row: paid, and the name pays too */
-  | { kind: 'sold'; people: number; paid: number }
+  /**
+   * Sold on the Slaves row: paid, and the name pays too — plus the two the
+   * orchestrator applies, because neither is the commander's own field.
+   *
+   * `heat` is what the region makes of it and `offence` is what the Government
+   * does, both decided here so the pure rule stays the one home of "selling a
+   * person is a crime" (invariant 15).
+   */
+  | { kind: 'sold'; people: number; paid: number; heat: number; offence: number }
   /** paid to look the other way and let them walk */
   | { kind: 'released'; people: number; paid: number };
 
@@ -82,7 +91,25 @@ export function resolveSurvivors(
   c.credits += paid;
   c.disrepute = afterDeed(c.disrepute ?? 0,
     sold ? DISREPUTE_SLAVE_SALE : DISREPUTE_SURVIVOR_RELEASED);
-  return { kind: sold ? 'sold' : 'released', people, paid };
+  if (!sold) return { kind: 'released', people, paid };
+
+  // THE LAW'S HALF (docs/TODO/127 M3). A sale is a CONTRABAND SALE like any
+  // other, so what it does to the region is `saleFallout`'s rule and not a
+  // second copy of one — the same call the market counter makes, on the same
+  // row, at the price this one fetched.
+  //
+  // Its `disrepute` term is deliberately NOT added on top: that is what a tonne
+  // of narcotics costs a name, `DISREPUTE_SLAVE_SALE` is what a PERSON costs
+  // one, and charging both would price the same deed twice under two names.
+  //
+  // OFFENDER, not Fugitive: destroying a lawful ship is what makes a Fugitive
+  // (`offenceFor`), and a sale made over a counter must not outrank killing
+  // somebody.
+  return {
+    kind: 'sold', people, paid,
+    heat: saleFallout(SLAVES, people, paid).notoriety,
+    offence: OFFENDER,
+  };
 }
 
 /** What the console says about it. Phrasing beside the rule, as ever. */

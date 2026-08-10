@@ -20,7 +20,9 @@ import {
   resolveSurvivors, survivorMessage, survivorOffers,
 } from '../src/game/survivors.ts';
 import { SurvivorsScreen, type SurvivorsContext } from '../src/game/screens/survivors.ts';
-import { priceInTenths } from '../src/game/market.ts';
+import { priceInTenths, saleFallout } from '../src/game/market.ts';
+import { offenceFor, recordVerdict } from '../src/game/law.ts';
+import { CLEAN, FUGITIVE, OFFENDER } from '../src/constants/law.ts';
 import { characterName } from '../src/game/character.ts';
 import { generateMarket } from '../src/galaxy/galaxy.ts';
 import { SLAVES } from '../src/constants/commodities.ts';
@@ -95,6 +97,24 @@ console.log('\n...and the two that do not');
   eq('selling pays the station\'s own Slaves price, per person',
     c.credits - before.credits, 2 * priceInTenths(quote));
   check('the event says what was paid', e?.kind === 'sold' && e.paid === offers.sale);
+
+  // --- the law's half (M3) ---------------------------------------------------
+  //
+  // Asserted against the rules themselves rather than against copies: the heat
+  // is what `saleFallout` says a contraband sale of that size does, and the
+  // record is the rung `offenceFor` gives a shot fired at a lawful ship — one
+  // BELOW the rung it gives a kill, because a sale over a counter must not
+  // outrank killing somebody.
+  check('the sale is a CONTRABAND SALE to the region, at the shared rule\'s own figure',
+    e?.kind === 'sold' && e.heat === saleFallout(SLAVES, 2, offers.sale).notoriety
+    && e.heat > 0);
+  check('...and it files you as an Offender, not a Fugitive',
+    e?.kind === 'sold' && e.offence === OFFENDER
+    && e.offence === offenceFor('trader', false) && e.offence < FUGITIVE);
+  // ...and the name is marked ONCE. `saleFallout` prices a tonne of narcotics;
+  // this deed has a constant of its own, and charging both would price it twice.
+  eq('the name pays the person\'s weight and not also the cargo\'s',
+    c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
   eq('...and it marks the name at the career-marking weight',
     c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
   eq('one sale takes an Honest commander to Dodgy', characterName(c.disrepute ?? 0), 'Dodgy');
@@ -109,6 +129,10 @@ console.log('\n...and the two that do not');
   const paid = resolveSurvivors(go.c, 'released', go.offers)!;
   check('a release pays less than the sale', paid.kind === 'released'
     && paid.paid === go.offers.release && paid.paid < go.offers.sale);
+  // ...and it is not a sale, so the law has nothing to file and the region has
+  // nothing to talk about. Only the name knows.
+  check('...and there is no record and no heat in it', paid.kind === 'released'
+    && !('offence' in paid) && !('heat' in paid));
   eq('...at the share the rule sets',
     go.offers.release, Math.round(go.offers.sale * SURVIVOR_RELEASE_SHARE));
   eq('...and costs less of the name', go.c.disrepute ?? 0, DISREPUTE_SURVIVOR_RELEASED);
@@ -223,7 +247,39 @@ console.log('...and the sale is priced off the market that station rolled');
   eq('...and the name pays the career-marking weight', c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
   // The name's own line is QUEUED behind the receipt (docs/TODO/129), so the
   // rung it crossed is waiting rather than shouting over it.
-  check(`the crossing is queued behind it (${g.state.session.queued.map((q) => q.text).join()})`,
-    g.state.session.queued.some((q) => q.text === 'CHARACTER: DODGY'));
+  const queued = g.state.session.queued.map((q) => q.text);
+  check(`the crossing is queued behind it (${queued.join(' / ')})`,
+    queued.includes('CHARACTER: DODGY'));
   eq('...and the prompt is gone', g.screens.topId, null);
+
+  // --- and the law, through the real Game (M3) -------------------------------
+  eq('the sale filed a record', c.legalStatus, OFFENDER);
+  check(`...and the region heard about it (heat ${g.state.living.state(c.systemIndex).heat})`,
+    g.state.living.state(c.systemIndex).heat > 0);
+  // Police hunt Fugitives, so an Offender walks out unmolested and the console
+  // has to say who DOES come — the same line a scan leaves behind (TODO/122).
+  check(`...and the console says what the record means (${queued.join(' / ')})`,
+    queued.includes(recordVerdict(OFFENDER)) && recordVerdict(OFFENDER).includes('HUNTER'));
+  // The station does not scramble Vipers at a docked ship: the record moved,
+  // the fleet waits until there is something to launch at.
+  check('...and no defence launched at a ship on the pad',
+    !g.state.session.defenceLaunched && g.state.world.npcs.length === 0);
+
+  // THE CONTROL: the decent answer files nothing at all.
+  const good = withoutSaving(() => {
+    seedWorld(20_270_812);
+    const game = new Game(() => headlessShell());
+    dismissBriefing(game);
+    return game;
+  }).value;
+  good.state.commander.survivors = 1;
+  withoutSaving(() => { good.enterDocked('resumed'); });
+  const heatBefore = good.state.living.state(good.state.commander.systemIndex).heat;
+  const kb2 = taps();
+  kb2.press('KeyM');
+  good.screens.update(kb2.input);
+  eq('handing them over is nobody\'s business legally',
+    good.state.commander.legalStatus, CLEAN);
+  eq('...and nothing was said about you here',
+    good.state.living.state(good.state.commander.systemIndex).heat, heatBefore);
 }
