@@ -85,6 +85,13 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     what: 'combat training simulator — free, and nothing in it reaches your commander',
     menu: 'COMBAT TRAINING',
   },
+  openTestMode: {
+    what: 'test mode — development levers; the career that uses them is marked for good',
+    // The keyline, not a menu row: the keyline is for keys that work here but
+    // are not controls you arrow onto (see CommandHelp.keyline), which is the
+    // right shelf for a development door.
+    keyline: 'TEST MODE',
+  },
   payFine: { what: 'pay your fine — clear an Offender or Fugitive record', menu: 'PAY FINE' },
   exportSave: { what: 'export a save file', keyline: 'EXPORT' },
   importSave: { what: 'import a save file', keyline: 'IMPORT' },

@@ -39,6 +39,7 @@ import type {
   CompareGroup, SimComparePanel,
 } from '../game/combat-sim-compare.ts';
 import type { SimSetupPanel, SimSetupRow } from '../game/screens/combat-sim-setup.ts';
+import type { TestModePanel } from '../game/screens/test-mode.ts';
 import { elementById, inertElement } from '../engine/inert-dom.ts';
 import { TORUS_MULTIPLIER } from '../constants/torus.ts';
 import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH } from '../constants/chart-metric.ts';
@@ -595,6 +596,9 @@ export function renderStatus(
       ${c.trumbles > 0 ? `<span style="color:var(--hud-red)">Trumbles: ${c.trumbles}</span><br/>` : ''}
       Kills: ${c.kills}<br/>
       Rating: <span style="color:var(--hud-amber)">${rating(c.combatScore ?? c.kills).toUpperCase()}</span>
+      ${c.tested ?? false
+        ? '<br/><span style="color:var(--hud-amber)">Test mode: used in this career</span>'
+        : ''}
     </div>
     <div class="buttons"><button data-key="Escape">BACK</button></div>
   `);
@@ -1569,6 +1573,39 @@ export function renderCombatSimCompare(p: SimComparePanel): void {
       <span>C COPY PAIR</span><span>X EXPORT PAIR</span>
       ${c.comparable ? '<span>&Delta; IS THAT MINUS THIS</span><span>PP IS PERCENTAGE POINTS</span>' : ''}
       <span>ESC BACK</span>
+    </div>
+  `);
+}
+
+// --- test mode ---------------------------------------------------------------
+
+/**
+ * The development levers, and the amber warning above them.
+ *
+ * A row list rather than a named field per lever, for the setup panel's reason:
+ * `game/screens/test-mode.ts` decides what is in it and this paints it. The
+ * banner is unconditional — it says what the screen COSTS, which is true before
+ * the mode has ever been switched on.
+ */
+export function renderTestMode(p: TestModePanel): void {
+  const rows = p.rows.map((r, i) => `<tr class="${i === p.selected ? 'sel' : ''} pick"
+        data-row="${i}" ${r.dim ? 'style="opacity:0.45"' : ''}>
+        <td>${r.label}</td><td class="num">${r.value}</td>
+      </tr>`).join('');
+  show(`
+    <h2>TEST MODE</h2>
+    <div class="rule"></div>
+    <div class="info" style="text-align:center;color:var(--hud-amber)">
+      DEVELOPMENT LEVERS &mdash; A CAREER THAT HAS SWITCHED THIS ON
+      SAYS SO ON ITS STATUS SCREEN, FOR GOOD
+    </div>
+    <table>${rows}</table>
+    <div class="buttons">
+      <button data-key="Escape">ESC &mdash; DONE</button>
+    </div>
+    <div class="keyline hints">
+      <span>CLICK A ROW</span><span>&uarr;&darr; SELECT</span>
+      <span>&larr;&rarr; OR ENTER CHANGE</span><span>ESC DONE</span>
     </div>
   `);
 }

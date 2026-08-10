@@ -56,6 +56,7 @@ export type Command =
   | 'openSaves'
   | 'openSystemData'
   | 'openCombatSim'
+  | 'openTestMode'
   | 'payFine'
   | 'exportSave'
   | 'importSave'
@@ -222,6 +223,12 @@ export const BINDINGS: Record<ControlMode, readonly Binding[]> = {
     // screen. Reports the system you are standing on.
     { key: 'KeyD', command: 'openSystemData' },
     { key: 'KeyI', command: 'openStatus' },
+    // ⇧T beside T, because the development levers and the simulator are the two
+    // things on this menu that are not the career. It must come FIRST for its
+    // key: the plain entry is the fallback and would eat the tap (see Binding).
+    // It is a keyline caption rather than a menu row, so its position in this
+    // list decides where it sits on the keyline and not the menu's shape.
+    { key: 'KeyT', shift: true, command: 'openTestMode' },
     // T for TRAINING. Free on this menu, and it arms a missile in FLIGHT —
     // which is the established per-mode convention, not a clash: C is contracts
     // docked and the docking computer in flight, M is the market docked and

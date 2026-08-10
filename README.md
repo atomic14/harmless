@@ -199,6 +199,7 @@ because browsers claim the function keys.
 | M / C / E | market · contracts · equip ship |
 | N / G / D / I | local chart · galactic chart · data on system · status |
 | **T** | **combat training simulator** — practise a fight; nothing in it reaches your commander |
+| ⇧T | test mode — development levers; a career that switches them on says so on its status screen, for good |
 | H | new pilot's briefing |
 | P | pay your fine — clear an Offender or Fugitive record |
 | B | switch keyboard layout |

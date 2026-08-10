@@ -155,6 +155,21 @@ export interface CommanderData {
    * ONLY field of the career that has moved.
    */
   furthestWave: number;
+  /**
+   * Test mode has been switched on in this career, ever.
+   *
+   * A ONE-WAY LATCH, and the reason is a bug report: docs/TODO/96 closed on the
+   * understanding that what plays wrong becomes a GitHub issue, and a report
+   * from a career that spent an afternoon with free equipment fitted is a
+   * different report. `GameState.cheat` is live and can be switched off before
+   * a screenshot; this cannot, so the status screen can say what happened.
+   *
+   * Read `?? false` the way `disrepute` is read `?? 0` — a save written before
+   * this field existed has no key for it, and `repairCommander` spreads
+   * `newCommander()` under whatever it loaded, so an old career reads false
+   * rather than undefined.
+   */
+  tested: boolean;
   contracts: Contract[];
   /** living-galaxy deltas (prices, danger, convoys in flight) */
   galaxyState?: GalaxyStateSave;
@@ -184,6 +199,7 @@ export function newCommander(): CommanderData {
     day: 0,
     briefingSeen: 0,
     furthestWave: 0,
+    tested: false,
     contracts: [],
   };
 }
@@ -202,6 +218,24 @@ export function recordFurthestWave(c: CommanderData, wave: number): boolean {
   const best = Math.max(0, Math.floor(wave));
   if (!(best > (c.furthestWave ?? 0))) return false;
   c.furthestWave = best;
+  return true;
+}
+
+/**
+ * Test mode was switched on. Mark the career, for good.
+ *
+ * A rule rather than an assignment at the call site for `recordFurthestWave`'s
+ * reason: it is a MONOTONIC record, and a monotonic record written out twice is
+ * one that eventually goes backwards. Switching test mode off is not a second
+ * call to make — there is no unmark — so the one-way-ness is stated here, once,
+ * and every caller gets it.
+ *
+ * @returns whether it moved, so a caller with somewhere to write it knows there
+ * is something new to write.
+ */
+export function markTested(c: CommanderData): boolean {
+  if (c.tested ?? false) return false;
+  c.tested = true;
   return true;
 }
 

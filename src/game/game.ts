@@ -132,6 +132,7 @@ import { ContractsScreen, type ContractsContext } from './screens/contracts.ts';
 import { ChartScreen, type ChartContext } from './screens/chart.ts';
 import { nextOverlay, type ChartOverlay } from './chart-overlay.ts';
 import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts';
+import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 import { BEAM_Z } from '../engine/render-stack.ts';
 
@@ -576,6 +577,12 @@ export class Game {
       new ChartScreen('chart', () => this.chartContext()),
       new ChartScreen('local', () => this.chartContext()),
       this.combatSim_,
+      // The development levers. It takes the whole state because writing the
+      // state is what it is for — see TestModeContext.
+      new TestModeScreen(() => ({
+        state: this.state,
+        checkpoint: () => { this.persistence.checkpoint(); },
+      } satisfies TestModeContext)),
     ]) this.screens.register(screen);
 
     this.buildWorld();
@@ -1652,6 +1659,7 @@ export class Game {
     openSaves: () => this.openSaves(),
     openSystemData: () => this.openSystemData(this.system, 'docked'),
     openCombatSim: () => this.screens.open('combat-sim'),
+    openTestMode: () => this.screens.open('test-mode'),
     payFine: () => this.payFine(),
     exportSave: () => this.exportSave(),
     importSave: () => this.importSave(),
