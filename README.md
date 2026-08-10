@@ -184,7 +184,7 @@ joystick the original supported.
 | B | distress beacon — GalCop tows you out of witch-space, for your cargo |
 | Y / ⇧Y | jettison a tonne of cargo / five at once — pirates came for the goods, not for you |
 | O | jettison a tonne of the ILLEGAL cargo — the evidence, which is rarely the most valuable thing aboard |
-| L | offer the police ship in front of you money — it never clears your record, and it always costs your name |
+| L | offer the police ship in front of you money — he may refuse and report you; it never clears your record, and it always costs your name |
 | I | commander status |
 | P | pause |
 | Q | **while paused only** — quit this flight; asks first, then puts you back at the station autosave you launched from |

@@ -10,11 +10,11 @@
 
 import { COMMODITIES } from '../galaxy/galaxy.ts';
 import {
-  BRIBE_FLOOR, BRIBE_SHARE, CLEAN, CONTRABAND, FUGITIVE, FUGITIVE_FINE,
-  LAW_ROLE_NAMES, LEGAL_NAMES, OFFENDER, OFFENDER_FINE, PATROL_BRIBE_FINES,
-  SCAN_RANGE, SCAN_WARN_RANGE,
+  BRIBE_FLOOR, BRIBE_REFUSED, BRIBE_SHARE, CLEAN, CONTRABAND, FUGITIVE,
+  FUGITIVE_FINE, LAW_ROLE_NAMES, LEGAL_NAMES, OFFENDER, OFFENDER_FINE,
+  PATROL_BRIBE_FINES, SCAN_RANGE, SCAN_WARN_RANGE,
 } from '../constants/law.ts';
-import { DISREPUTE_BRIBE } from '../constants/character.ts';
+import { DISREPUTE_BRIBE, DISREPUTE_MAX } from '../constants/character.ts';
 import { VALUE_PER_TONNE } from '../constants/jettison.ts';
 import { afterDeed } from './character.ts';
 
@@ -108,38 +108,60 @@ export function patrolPrice(legalStatus: number): number {
   return PATROL_BRIBE_FINES * (legalStatus >= FUGITIVE ? FUGITIVE_FINE : OFFENDER_FINE);
 }
 
-/** What an offer of `price` does: taken and paid for, or short by this much. */
+/**
+ * How likely this commander is to be refused and reported, from their
+ * Character.
+ *
+ * A ramp, not a rung: `BRIBE_REFUSED` at Honest, falling to nothing at the
+ * ladder's own ceiling, so every point of disrepute is worth something rather
+ * than four thresholds mattering and the rest being decoration. `DISREPUTE_MAX`
+ * is the scale for the same reason `hermitFavour` uses the hermit's own
+ * refusal point: the credential is measured against the thing it is a
+ * credential for, and this one is "how completely is your name made".
+ */
+export function refusalChance(disrepute: number): number {
+  return BRIBE_REFUSED * (1 - Math.min(1, Math.max(0, disrepute) / DISREPUTE_MAX));
+}
+
+/** What an offer of `price` does. Exactly one of three things. */
 export type BribeAnswer =
-  | { readonly bought: false; readonly price: number; readonly short: number }
+  /** you cannot cover it: nothing said, nothing spent */
+  | { readonly outcome: 'short'; readonly price: number; readonly short: number }
+  /** he will not take it, and you asked in front of him */
+  | { readonly outcome: 'refused'; readonly price: number; readonly disrepute: number }
   | {
-    readonly bought: true; readonly price: number;
+    readonly outcome: 'paid'; readonly price: number;
     readonly creditsLeft: number; readonly disrepute: number;
   };
 
 /**
- * Offer it: what a commander is left with, or what they are short.
+ * Offer it: what a commander is left with, what they are short, or what it
+ * costs to be turned down.
  *
  * The same shape as `recordCleared` above and for the same reason — the rule
  * works out the arithmetic and the caller writes it down (invariant 10). What
- * it will not do is half-work: an offer you cannot cover buys nothing and
- * spends nothing, which is what makes the shortfall worth printing.
+ * it will not do is half-work: an offer you cannot cover buys nothing, spends
+ * nothing and is never made, which is why the shortfall is worth printing and
+ * why it does not consume the roll.
  *
- * **It always costs your name.** `DISREPUTE_BRIBE` is applied here rather than
- * left to the caller, so no future half of this feature can quietly ship the
- * version where money makes consequences go away. The record is untouched:
- * buying your name back is `recordCleared` at a station, by choice, and it is
- * the only thing that clears one.
+ * `roll` is a draw the CALLER takes off the world's seeded stream (invariant
+ * 11) — this file has no randomness of its own, so the same seed replays the
+ * same refusals.
+ *
+ * **It always costs your name, refusal included.** `DISREPUTE_BRIBE` is applied
+ * here rather than left to the caller, so no future half of this feature can
+ * quietly ship the version where money makes consequences go away — and a
+ * refusal costs it too, because the deed is the asking. The record is
+ * untouched either way: buying your name back is `recordCleared` at a station,
+ * by choice, and it is the only thing that clears one.
  */
 export function bribeOffered(
-  price: number, credits: number, disrepute: number,
+  price: number, credits: number, disrepute: number, roll: number,
 ): BribeAnswer {
-  if (credits < price) return { bought: false, price, short: price - credits };
-  return {
-    bought: true,
-    price,
-    creditsLeft: credits - price,
-    disrepute: afterDeed(disrepute, DISREPUTE_BRIBE),
-  };
+  if (credits < price) return { outcome: 'short', price, short: price - credits };
+  const paid = afterDeed(disrepute, DISREPUTE_BRIBE);
+  if (roll < refusalChance(disrepute)) return { outcome: 'refused', price, disrepute: paid };
+  return { outcome: 'paid', price, creditsLeft: credits - price, disrepute: paid };
 }
 
 /**

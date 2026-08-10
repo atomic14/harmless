@@ -1956,8 +1956,8 @@ export class Game {
    * with no `raiseLegal`, so the scan does not happen and the Government's
    * paperwork stays spotless; the fight buys one ship out of one fight and
    * leaves you exactly as Fugitive as you were. The name pays for both
-   * (`bribeOffered`). That asymmetry is the whole feature: a bribe never clears
-   * a record and never buys one back.
+   * (`bribeOffered`), refusals included. That asymmetry is the whole feature: a
+   * bribe never clears a record and never buys one back.
    *
    * @internal — driven by test/playtest.js
    */
@@ -1973,17 +1973,14 @@ export class Game {
     const hunter = nearestEngaging(this.state.world.npcs, this.state.player.position,
       c.legalStatus, 'police');
     if (hunter) {
-      const offer = bribeOffered(patrolPrice(c.legalStatus), c.credits, c.disrepute ?? 0);
-      if (!offer.bought) { this.wantMore(offer.short); return; }
-      c.credits = offer.creditsLeft;
-      c.disrepute = offer.disrepute;
+      const paid = this.offerTo(hunter.npc, patrolPrice(c.legalStatus));
+      if (paid === null) return;
       // The same field the jettisoned cargo sets, honoured by the same line of
       // `isHostileToPlayer` — this ship is done with you. The RECORD is not
       // touched: you are still a Fugitive, the next patrol is a fresh problem,
       // and the station still wants its money.
       hunter.npc.state.satisfied = true;
-      this.showMessage(
-        `PATROL BREAKS OFF — ${formatCredits(offer.price)} AND YOUR NAME`, 4);
+      this.showMessage(`PATROL BREAKS OFF — ${formatCredits(paid)} AND YOUR NAME`, 4);
       return;
     }
 
@@ -1994,13 +1991,11 @@ export class Game {
       (npc) => npc.role === 'police');
     if (!session.policeScanned && !session.witchspace && carryingContraband(c.cargo)
       && cop && patrolReach(cop.distance) !== 'none') {
-      const offer = bribeOffered(inspectionPrice(c.cargo), c.credits, c.disrepute ?? 0);
-      if (!offer.bought) { this.wantMore(offer.short); return; }
-      c.credits = offer.creditsLeft;
-      c.disrepute = offer.disrepute;
+      const paid = this.offerTo(cop.npc, inspectionPrice(c.cargo));
+      if (paid === null) return;
       session.policeScanned = true;
       this.showMessage(
-        `PATROL LOOKS THE OTHER WAY — ${formatCredits(offer.price)} AND YOUR NAME`, 4);
+        `PATROL LOOKS THE OTHER WAY — ${formatCredits(paid)} AND YOUR NAME`, 4);
       return;
     }
 
@@ -2009,15 +2004,41 @@ export class Game {
   }
 
   /**
-   * An offer that was not enough, in the pirate bribe's own words.
+   * Put the money in front of one ship: what it cost, or null if it bought
+   * nothing.
    *
-   * Shared by both halves rather than written twice: "not enough, and here is
-   * the figure" is one answer, and a second phrasing of it would read as a
-   * second rule.
+   * Both halves of the key go through here, so neither can acquire an answer
+   * the other does not have — the shortfall, the refusal and the name are one
+   * rule about offering money to a policeman, and only the CONSEQUENCE of a
+   * taken offer differs between them.
+   *
+   * The roll comes off the world's seeded stream (invariant 11), and only when
+   * an offer is actually made: a commander who cannot cover the price has not
+   * said anything out loud, so nothing is spent and no draw is consumed.
+   *
+   * A refusal is an offence in front of a witness. `provokedByPlayer` — not
+   * `provoked`, which is damage from any source — so he engages under the rule
+   * that already exists, and the name is charged for the asking.
    */
-  private wantMore(short: number): void {
-    this.showMessage(`THEY WANT MORE (${formatCredits(Math.ceil(short))})`, 3);
-    sfx.refused();
+  private offerTo(target: NpcShip, price: number): number | null {
+    const c = this.state.commander;
+    const offer = bribeOffered(price, c.credits, c.disrepute ?? 0, random());
+    if (offer.outcome === 'short') {
+      // the pirate bribe's own words for the same failure, rather than a second
+      // way of saying "not enough, and here is the figure"
+      this.showMessage(`THEY WANT MORE (${formatCredits(Math.ceil(offer.short))})`, 3);
+      sfx.refused();
+      return null;
+    }
+    c.disrepute = offer.disrepute;
+    if (offer.outcome === 'refused') {
+      target.state.provokedByPlayer = true;
+      this.showMessage('THE OFFER IS REFUSED — AND REPORTED', 4);
+      sfx.refused();
+      return null;
+    }
+    c.credits = offer.creditsLeft;
+    return offer.price;
   }
 
   /**

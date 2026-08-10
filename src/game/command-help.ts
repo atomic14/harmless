@@ -162,7 +162,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     section: 'flight',
   },
   bribePolice: {
-    what: 'offer the police ship in front of you money — it never clears your record, and it always costs your name',
+    what: 'offer the police ship in front of you money — he may refuse and report you; it never clears your record, and it always costs your name',
     section: 'flight',
   },
   quitFlight: {

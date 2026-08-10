@@ -157,6 +157,31 @@ export const BRIBE_FLOOR = 500;
 export const PATROL_BRIBE_FINES = 4;
 
 /**
+ * How often an HONEST commander's offer is refused and reported — the top of a
+ * ramp that runs down to nothing at `DISREPUTE_MAX`, weighted by Character in
+ * `game/law.ts`.
+ *
+ * A Notorious pilot knows who to ask; an honest one asks the wrong man. This is
+ * `disrepute` as a CREDENTIAL, the same shape docs/TODO/96 built for the rock
+ * hermit — a credential up to a point — rather than a third idea about what a
+ * bad name is for. It is why the offer is a gamble and not a purchase: a bribe
+ * that always worked would be a price list, and the interesting version of this
+ * feature is the one where a clean-handed smuggler thinks twice.
+ *
+ * A third, and not a half: refused more often than not, a key nobody presses.
+ *
+ * Its own rule id: it shares the value 0.35 with an alpha, two steering angles
+ * and — the two worth naming, because they ARE rates a reader could think were
+ * this one — `HUNTER_CHANCE_ARRIVAL` (how often a bounty hunter is in the sky
+ * you arrive into) and `CHALLENGE_RATE` (how often a reception comes for your
+ * reputation rather than your cargo). Three different questions about chance;
+ * any of them may move alone.
+ *
+ * @rule law.bribeRefused
+ */
+export const BRIBE_REFUSED = 0.35;
+
+/**
  * How long the scan's own line holds the console — and so how long the verdict
  * that explains it waits behind it.
  *
