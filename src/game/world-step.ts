@@ -29,6 +29,7 @@ import { MAX_FUEL } from '../constants/commander.ts';
 import { carryingContraband } from './law.ts';
 import { SCAN_RANGE } from '../constants/law.ts';
 import { afterDeed } from './character.ts';
+import { hermitRefuses } from './market.ts';
 import { DISREPUTE_CAUGHT } from '../constants/character.ts';
 import { playerVsNpcs, npcVsNpcs, npcsVsStation } from './collisions.ts';
 import { assignNpcTargets } from './npc-targeting.ts';
@@ -672,7 +673,16 @@ export class WorldStep {
           out.push(say('ROCK HERMIT — SLOW TO 20 AND CLOSE TO TRADE', 2));
         }
         if (dist < 320 && player.speed < 40 && this.host.inFlight() && !session.hermitCooldown) {
-          this.host.openHermitTrade();
+          // A hermit-killer gets as far as the tunnel mouth and no further
+          // (docs/TODO/96). The cooldown is what the trade path sets on the way
+          // out, and it does the same job here: say it once, and make them
+          // leave and come back to hear it again.
+          if (hermitRefuses(this.state.commander.disrepute ?? 0)) {
+            session.hermitCooldown = true;
+            out.push(say('ROCK HERMIT: "WE KNOW WHAT YOU DID" — NO TRADE', 4));
+          } else {
+            this.host.openHermitTrade();
+          }
         }
       } else if (npc.role === 'generation' && dist < 6000 && !session.genShipSeen) {
         session.genShipSeen = true;

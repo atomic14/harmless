@@ -29,6 +29,12 @@ export const HUNTER_CHANCE_ARRIVAL = 0.35;
 /**
  * ...and the lower chance when you launch from its station instead — the safe
  * half of the pair, since nobody organised anything for a ship parked in the bay.
+ *
+ * Its own rule id since docs/TODO/96: it shares the value 0.2 with
+ * `HERMIT_FAVOUR` (constants/hermit-market.ts), a probability beside a price
+ * discount, and the two must stay free to move apart.
+ *
+ * @rule population.hunterChanceLaunch
  */
 export const HUNTER_CHANCE_LAUNCH = 0.2;
 

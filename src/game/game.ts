@@ -1552,7 +1552,10 @@ export class Game {
     this.state.session.hermitTrading = true;
     // what the miner charges is a price rule, and price rules live in
     // contracts.ts so the headless campaign can reach them (invariant 10)
-    this.state.hermitMarket = hermitMarket(this.system);
+    // What the miner charges depends on who is asking: a known smuggler gets
+    // mates' rates (docs/TODO/96). Whether he opens the door at all was decided
+    // before this — `world-step.ts` never calls this for a refused pilot.
+    this.state.hermitMarket = hermitMarket(this.system, this.state.commander.disrepute ?? 0);
     this.state.market = this.state.hermitMarket;
 
     // ONE push, because `open()` already renders — a second push would stack

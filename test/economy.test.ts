@@ -28,7 +28,10 @@ import {
   FUGITIVE_FINE,
 } from '../src/constants/law.ts';
 import { generateGalaxy, generateMarket, COMMODITIES } from '../src/galaxy/galaxy.ts';
-import { hermitMarket, marketEstimate, saleFallout } from '../src/game/market.ts';
+import {
+  hermitMarket, hermitRefuses, marketEstimate, saleFallout,
+} from '../src/game/market.ts';
+import { HERMIT_FAVOUR, HERMIT_REFUSES_AT } from '../src/constants/hermit-market.ts';
 import {
   FLUCTUATIONS, SALE_NOTORIETY_CONTRABAND, SALE_NOTORIETY_MAX, SALE_NOTORIETY_REVENUE,
 } from '../src/constants/market.ts';
@@ -138,7 +141,8 @@ console.log('\nmarket estimate');
 console.log('\nrock hermit prices');
 {
   const base = generateMarket(g1[7], 0);
-  const hermit = hermitMarket(g1[7], 0);
+  // (spotless commander, fluctuation 0 — the favour band is exercised below)
+  const hermit = hermitMarket(g1[7], 0, 0);
   const row = (name: string) => {
     const i = base.findIndex((m) => m.name === name);
     check(`${name} is a commodity the hermit rule can find`, i >= 0);
@@ -164,6 +168,54 @@ console.log('\nrock hermit prices');
     base.every((m, i) => touched.has(m.name)
       || (hermit[i].price === m.price && hermit[i].quantity === m.quantity)));
   check('a hermit sells ore below the station price', hermit[12].price < base[12].price);
+
+  // --- and who he deals with (docs/TODO/96, M3) ----------------------------
+  //
+  // One number with a cliff at the end of it: a name is a credential out here
+  // until it is the reason the door is bolted. Both halves are measured out of
+  // the real rule — the threshold bisected, the favour solved out of a price.
+  {
+    let lo = 0;
+    let hi = 1 << 20;
+    while (lo + 1 < hi) {
+      const mid = (lo + hi) >> 1;
+      if (hermitRefuses(mid)) hi = mid; else lo = mid;
+    }
+    eq('the door shuts at HERMIT_REFUSES_AT', hi, HERMIT_REFUSES_AT);
+    check(`...which is the character ladder's Dodgy rung (${hi})`,
+      characterName(hi) === 'Dodgy' && characterName(hi - 1) !== 'Dodgy');
+    check('a spotless commander is always welcome', !hermitRefuses(0));
+
+    // The favour, solved out of the market rather than restated: at the widest
+    // it is HERMIT_FAVOUR off the ore and the same again onto the supplies.
+    // Gold and Machinery, because the tenth-of-a-credit rounding is noise at
+    // their prices and half the rule at Food's.
+    const favoured = hermitMarket(g1[7], HERMIT_REFUSES_AT, 0);
+    const gold = base.findIndex((m) => m.name === 'Gold');
+    const machinery = base.findIndex((m) => m.name === 'Machinery');
+    const oreCut = 1 - favoured[gold].price / hermit[gold].price;
+    const supplyRise = favoured[machinery].price / hermit[machinery].price - 1;
+    check(`a full favour takes HERMIT_FAVOUR off the ore (measured ${oreCut.toFixed(4)})`,
+      Math.abs(oreCut - HERMIT_FAVOUR) < 0.005);
+    check(`...and adds it to the supplies they buy (measured ${supplyRise.toFixed(4)})`,
+      Math.abs(supplyRise - HERMIT_FAVOUR) < 0.005);
+
+    // It has to be a ramp, not a step, or "how dirty is too dirty" is not a
+    // decision the player can steer by.
+    let rising = true;
+    for (let d = 1; d < HERMIT_REFUSES_AT; d += 1) {
+      const here = hermitMarket(g1[7], d, 0)[gold].price;
+      const before = hermitMarket(g1[7], d - 1, 0)[gold].price;
+      if (here > before) rising = false;
+    }
+    check('the favour grows with the name all the way to the door', rising
+      && hermitMarket(g1[7], HERMIT_REFUSES_AT - 1, 0)[gold].price < hermit[gold].price);
+
+    // ...and an honest commander pays exactly what they always did, which is
+    // what the whole block above this one is still asserting.
+    check('a spotless commander is quoted the plain hermit prices',
+      hermitMarket(g1[7], 0, 0).every((m, i) => m.price === hermit[i].price));
+  }
 }
 
 // --- what a sale is noticed as ----------------------------------------------

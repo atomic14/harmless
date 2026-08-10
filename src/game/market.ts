@@ -31,8 +31,8 @@ import {
 } from '../constants/market.ts';
 import { DISREPUTE_CONTRABAND_SALE } from '../constants/character.ts';
 import {
-  HERMIT_ORE, HERMIT_ORE_GLUT, HERMIT_ORE_PRICE, HERMIT_SUPPLIES,
-  HERMIT_SUPPLY_PRICE,
+  HERMIT_FAVOUR, HERMIT_ORE, HERMIT_ORE_GLUT, HERMIT_ORE_PRICE, HERMIT_REFUSES_AT,
+  HERMIT_SUPPLIES, HERMIT_SUPPLY_PRICE,
 } from '../constants/hermit-market.ts';
 
 /**
@@ -193,20 +193,48 @@ export function marketEstimate(
  */
 export function hermitMarket(
   system: StarSystem,
+  disrepute = 0,
   fluctuation: number = randomInt(FLUCTUATIONS),
 ): MarketEntry[] {
+  const favour = HERMIT_FAVOUR * hermitFavour(disrepute);
   return generateMarket(system, fluctuation).map((m) => {
     if (HERMIT_ORE.has(m.name)) {
       return {
         ...m,
         quantity: m.quantity + HERMIT_ORE_GLUT,
-        price: +(m.price * HERMIT_ORE_PRICE).toFixed(1),
+        price: +(m.price * HERMIT_ORE_PRICE * (1 - favour)).toFixed(1),
       };
     }
     if (HERMIT_SUPPLIES.has(m.name)) {
-      return { ...m, price: +(m.price * HERMIT_SUPPLY_PRICE).toFixed(1) };
+      return { ...m, price: +(m.price * HERMIT_SUPPLY_PRICE * (1 + favour)).toFixed(1) };
     }
     return m;
   });
+}
+
+/**
+ * Will this hermit deal with you at all?
+ *
+ * The direct, thematic price of cracking rocks: the one market that never asks
+ * what is in your hold is also the one that remembers what you did to the last
+ * miner. Binary, above `HERMIT_REFUSES_AT` — the beacon still blinks and the
+ * hail still calls you in, and the door shuts at the tunnel mouth
+ * (game/world-step.ts).
+ */
+export function hermitRefuses(disrepute: number): boolean {
+  return disrepute >= HERMIT_REFUSES_AT;
+}
+
+/**
+ * How much of a credential your name is out here: 0 for a spotless commander,
+ * 1 for one standing at the very edge of what a hermit will tolerate.
+ *
+ * The same threshold as the refusal, deliberately. A miner's opinion of you is
+ * one number with a cliff at the end of it: known enough to be one of us, right
+ * up until you are the reason we bolt the door. Scaled by `HERMIT_FAVOUR` into
+ * a price; clamped, so the unreachable range above the door has no meaning.
+ */
+export function hermitFavour(disrepute: number): number {
+  return Math.min(1, Math.max(0, disrepute) / HERMIT_REFUSES_AT);
 }
 
