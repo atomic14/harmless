@@ -98,6 +98,15 @@ already computed somewhere and a phrase.
 Every one is gated on the equipment actually being aboard: a prompt for a key
 that will answer `NOT FITTED` is worse than silence.
 
+**M2 also names the second cost.** M1 shipped `L PAY 141.0 Cr`, which is half
+the truth: every bribe also costs `DISREPUTE_BRIBE` off your Character, and the
+console only says so *after* the key is pressed (`— 141.0 Cr AND YOUR NAME`).
+The prompt should say it before, `L PAY 141.0 Cr AND YOUR NAME`, because the
+whole design of that feature is that the money is not the expensive half. It is
+words in `prompts.ts` and nothing else — no rule moves — and it is the reason
+129 sits next to this plan rather than inside it: the prompt can say a name will
+be spent, but only 129 can say what it bought you.
+
 ## Decisions already made
 
 - **Every moment a key is the answer** (Chris, 2026-08-10), not the police
@@ -159,6 +168,9 @@ milestone that the line appears and clears with the situation.
 - **M2** — one pure case per moment, each with its control (no ECM fitted → no
   E.C.M. prompt; no docking computer → no docking prompt; empty hold → no
   jettison prompt). Flown: the strand prompt replaces the deleted message.
+- **M2's second cost** — the bribe prompt names the name as well as the money,
+  and the assertion reads `DISREPUTE_BRIBE` rather than the words, so retuning
+  the constant cannot leave the prompt quoting a stale claim.
 - **M2 cap** — with three conditions true at once, exactly the cap's worth
   appear, and they are the most urgent ones.
 - **M3** — a source scan: no message string in `src/game/` names a key. Prove it
