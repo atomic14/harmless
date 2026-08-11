@@ -1,0 +1,15 @@
+{
+  "note": "Provenance for the verbatim pack in ./source. Regenerate with `npm run generate:danube`.",
+  "files": [
+    {
+      "name": "elite_blue_danube.json",
+      "bytes": 1013616,
+      "sha256": "a5c0e44d23d86ad3843713d475ce5201acaa4414d9656f37898545122cf846cb"
+    },
+    {
+      "name": "elite_blue_danube_player.html",
+      "bytes": 517703,
+      "sha256": "410da15fa7166694cb77e3b84809da0d42cb987794da2c21b171bbda73bc1751"
+    }
+  ]
+}

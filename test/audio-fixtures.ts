@@ -21,12 +21,24 @@ export interface Amp {
 
 export interface Tone {
   type: OscillatorType;
+  /**
+   * The pitch it was FIRST set to, which is the written one.
+   *
+   * "First" rather than "last" because the SID player writes the frequency
+   * again for every step of a voice's vibrato — up to a dozen times on a long
+   * note — and `frequency` meaning "wherever the wobble left it" would make
+   * every vibrato voice look mistuned. The whole sequence is `pitches`.
+   */
   frequency: number;
+  /** every scheduled pitch, as `[hz, at]` — one entry unless the voice vibratos */
+  pitches: [number, number][];
   /** cents away from `frequency`, as the layer asked for */
   detune: number;
   duration: number;
   /** when it starts, in seconds from `currentTime` */
   at: number;
+  /** true if it was given a PeriodicWave rather than one of the four built-ins */
+  periodic: boolean;
   /**
    * The gain node this oscillator plays THROUGH, found by following the
    * connection rather than by guessing from creation order.
@@ -43,7 +55,22 @@ export interface Tone {
 }
 
 export const tones: Tone[] = [];
-export const filters: { type: string; frequency: { value: number }; Q: { value: number } }[] = [];
+
+/**
+ * A filter, with whatever was AUTOMATED on its cutoff as well as its settings.
+ *
+ * The waltz sweeps one shared filter per voice rather than building a fresh one
+ * per note, so "what cutoff was this note played through" is a question about a
+ * schedule and not about a value. `sweep` is that schedule, as `[hz, at]`.
+ */
+export interface Filter {
+  type: string;
+  frequency: { value: number };
+  sweep: [number, number][];
+  Q: { value: number };
+}
+
+export const filters: Filter[] = [];
 export const panners: { pan: { value: number } }[] = [];
 
 /**
@@ -92,15 +119,25 @@ class FakeAudioContext {
 
   createOscillator() {
     const recorded: Tone = {
-      type: 'sine', frequency: 0, detune: 0, duration: 0, at: 0, amp: null,
+      type: 'sine', frequency: 0, pitches: [], detune: 0, duration: 0, at: 0,
+      periodic: false, amp: null,
     };
     tones.push(recorded);
     const node = {
       type: 'sine' as OscillatorType,
       frequency: {
-        setValueAtTime(value: number) { recorded.frequency = value; },
+        setValueAtTime(value: number, at = 10) {
+          if (!recorded.pitches.length) recorded.frequency = value;
+          recorded.pitches.push([value, at - 10]);
+        },
         exponentialRampToValueAtTime() {},
       },
+      /**
+       * A pulse wave. The fake keeps no spectrum — what a test can ask is
+       * whether this voice was given a custom wave AT ALL, which is the whole
+       * of the claim "the SID's pulse is not a Web Audio square".
+       */
+      setPeriodicWave() { recorded.periodic = true; },
       /** cents, the oscillator's own parameter — recorded so a layer's offset is readable */
       detune: { value: 0 },
       connect(target?: { __amp?: Amp; connect?: unknown }) {
@@ -135,8 +172,15 @@ class FakeAudioContext {
     const mark = (value: number, at: number): void => { amp.events.push([value, at - 10]); };
     return {
       __amp: amp,
-      // `value` for the static track level, the two schedulers for an envelope.
-      gain: { value: 0, setValueAtTime: mark, exponentialRampToValueAtTime: mark },
+      // `value` for the static track level, the three schedulers for an
+      // envelope — the SID player's decay is a LINEAR ramp, where the old score
+      // player only ever ramped exponentially.
+      gain: {
+        value: 0,
+        setValueAtTime: mark,
+        exponentialRampToValueAtTime: mark,
+        linearRampToValueAtTime: mark,
+      },
       connect(target?: { connect?: unknown }) {
         amp.out = target;
         return target?.connect ? target : { connect() {} };
@@ -144,11 +188,16 @@ class FakeAudioContext {
     };
   }
 
-  /** A static lowpass per track — its settings are read back, not automated. */
+  /** One lowpass per voice — a static Q, and a cutoff that is swept. */
   createBiquadFilter() {
-    const node = {
+    const sweep: [number, number][] = [];
+    const node: Filter & { connect(target?: { connect?: unknown }): unknown } = {
       type: '',
-      frequency: { value: 0 },
+      frequency: {
+        value: 0,
+        setValueAtTime(value: number, at = 10) { sweep.push([value, at - 10]); },
+      } as Filter['frequency'] & { setValueAtTime(value: number, at?: number): void },
+      sweep,
       Q: { value: 0 },
       connect(target?: { connect?: unknown }) {
         return target?.connect ? target : { connect() {} };
@@ -157,6 +206,9 @@ class FakeAudioContext {
     filters.push(node);
     return node;
   }
+
+  /** Pulse waves. The player builds one per pulse note; nothing reads it back. */
+  createPeriodicWave() { return {}; }
 
   /** Stereo placement. Present here, so the "no panner" fallback needs its own test. */
   createStereoPanner() {

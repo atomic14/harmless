@@ -1,13 +1,14 @@
 // Tiny WebAudio synth — bleeps and zaps in the spirit of the BBC sound chip.
 // The context is created lazily on the first user gesture.
 //
-// One-shot noises only. The docking waltz is `music.ts` — a score, four
-// instruments and a clock, which is a different subject and was pushing this
-// file past the size ceiling. This file still owns the CONTEXT, and hands it to
-// the player, so "created lazily on the first gesture" stays one rule.
+// One-shot noises only. The docking waltz is `music.ts` — three SID voices, a
+// 50 Hz clock and the arrangement in `music-danube.ts`, which is a different
+// subject and was pushing this file past the size ceiling. This file still owns
+// the CONTEXT, and hands it to the player, so "created lazily on the first
+// gesture" stays one rule.
 
 import { COUNTDOWN } from './constants/jump.ts';
-import { dockingScore, playScore } from './music.ts';
+import { playDanube } from './music.ts';
 
 let ctx: AudioContext | null = null;
 
@@ -145,7 +146,7 @@ export const sfx = {
   dockingMusic(): void {
     const a = ac();
     if (!a || musicStop) return;
-    const { voices, until } = playScore(a, dockingScore(), a.currentTime + 0.05);
+    const { voices, until } = playDanube(a, a.currentTime + 0.05);
 
     const clear = window.setTimeout(() => { musicStop = null; },
       (until - a.currentTime) * 1000 + 200);

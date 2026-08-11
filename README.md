@@ -414,11 +414,15 @@ detected — as on the original's dashboard.
   NPC AI (traders/pirates/police), commander state + saves.
 - `src/hud/`, `src/ui/` — scanner/compass/gauges console and the full-page
   screens (station menu, market, chart, status).
-- `src/audio.ts` — WebAudio synth in the spirit of the BBC sound chip,
-  including the docking waltz. The Commodore 64 Elite played *An der schönen
-  blauen Donau* while you docked; the tune is Strauss, 1866, and comfortably
-  public domain, so it is synthesised here from note data rather than shipping
-  audio from the original game — this repo contains no assets from Elite.
+- `src/audio.ts` — WebAudio synth in the spirit of the BBC sound chip. The
+  docking waltz is `src/music.ts`, a three-voice SID player, and
+  `src/music-danube.ts`, the arrangement it plays. The Commodore 64 Elite
+  played *An der schönen blauen Donau* while you docked, and what plays here is
+  that performance: Julie Dunn's 1985 arrangement for three SID voices, decoded
+  from the C64 release's music data and re-synthesised through Web Audio. No
+  audio is shipped, but the arrangement is not ours and is not public domain —
+  the 1866 waltz underneath it is. See
+  [reference/danube/README.md](reference/danube/README.md).
 - `src/ai-training/` + `train/` — render-free combat simulator, tiny MLP policies
   (1.9k params, keyboard-style discrete actions) and a neuroevolution
   self-play trainer. `src/ai-training/brains/` ships empty (only a `.gitkeep`):
@@ -446,7 +450,16 @@ This project is affiliated with none of them. The galaxy generator and the
 ship tables both follow long-published descriptions of the original data —
 the hulls were hand-made approximations until 2026-08, and are now generated
 from a vendored analysis pack of the released ship files
-([docs/ELITE-A.md](docs/ELITE-A.md)). This repo contains no assets from Elite.
+([docs/ELITE-A.md](docs/ELITE-A.md)).
+
+This repo ships no audio, textures or binaries from Elite. It does contain one
+piece of the original that is not merely a description of it: the docking
+music. `src/music-danube.ts` is Julie Dunn's 1985 arrangement of *The Blue
+Danube* for three SID voices, decoded from the Commodore 64 release's music
+data. The waltz is Strauss and public domain; that arrangement of it is a
+separate work and is not. It is included as a deliberate decision, and
+[reference/danube/README.md](reference/danube/README.md) sets out what it is
+and where it came from.
 
 ## Roadmap
 

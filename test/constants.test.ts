@@ -352,14 +352,18 @@ const OUTSIDE: readonly Group[] = [
       + ' holds its height (docs/TODO/121); the'
       + ' inert painter\'s DOM plumbing; the cockpit beams\' convergence depth; the'
       + ' Blue Danube, which left audio.ts for music.ts when it grew an engine.'
-      + ' music.ts keeps the note-name table its pitch parser reads, the tempo the'
-      + ' game plays at and the level the whole thing sits under the game at;'
-      + ' music-score.ts is GENERATED and is the arrangement itself — four'
-      + ' instruments and 1,051 notes of a public-domain waltz. Every one is how a'
-      + ' note SOUNDS and not what anything in the world does, which is the same'
-      + ' test the tunnel effect\'s squash passes, and they are tuned BY EAR —'
-      + ' pinning an audible judgement in src/constants/ would make every tweak a'
-      + ' two-file edit; and the manual\'s prose rows',
+      + ' music.ts is the SID player: the chip\'s clock and the driver\'s vibrato'
+      + ' table, which are FACTS ABOUT A 1982 SOUND CHIP and not settings anyone'
+      + ' may tune; and the level, peak, stereo places, filter shaping and pulse'
+      + ' floor, which are how a note SOUNDS and are tuned by ear against the'
+      + ' reference player in reference/danube/source. music-danube.ts is'
+      + ' GENERATED and is the arrangement itself — 454 frames, 916 triggers and'
+      + ' the 44 envelopes they point at, none of it hand-written. Not one of them'
+      + ' says what anything in the world DOES, which is the same test the tunnel'
+      + ' effect\'s squash passes; pinning an audible judgement in src/constants/'
+      + ' would make every tweak a two-file edit, and pinning the chip\'s clock'
+      + ' there would file a hardware constant under game rules; and the manual\'s'
+      + ' prose rows',
     files: {
       'hud/hud.ts': ['CONTACT_COLORS', 'VIEW_NAMES', 'SCORE_LABELS'],
       'ui/screens.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES', 'LEVERS_OFF'],
@@ -373,10 +377,14 @@ const OUTSIDE: readonly Group[] = [
       'engine/keymap.ts': ['LAYOUTS', 'STORAGE_KEY'],
       'engine/inert-dom.ts': ['STYLE_METHODS'],
       'engine/render-stack.ts': ['BEAM_Z'],
-      'music.ts': ['STEP', 'MUSIC_GAIN', 'WALTZ_BPM'],
-      'music-score.ts': [
-        'MELODY', 'HARMONY', 'BASS', 'STRINGS',
-        'MELODY_NOTES', 'HARMONY_NOTES', 'BASS_NOTES', 'STRINGS_NOTES',
+      'music.ts': [
+        'SID_CLOCK_HZ', 'VIBRATO', 'PAN', 'MUSIC_GAIN', 'VOICE_PEAK',
+        'CUTOFF_SCALE', 'CUTOFF_MIN', 'CUTOFF_MAX', 'FILTER_Q',
+        'DUTY_MIN', 'DUTY_MAX',
+      ],
+      'music-danube.ts': [
+        'SAW', 'TRI', 'PLS', 'DANUBE_ADSR', 'DANUBE_FRAMES',
+        'DANUBE_TICK_HZ', 'DANUBE_SECONDS',
       ],
       'manual.ts': ['FLIGHT'],
     },
