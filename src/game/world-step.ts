@@ -27,7 +27,7 @@ import { rampFlightRate, type FlightDemand } from '../player.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { cargoCapacity, cargoTonnes } from './commander.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
-import { carryingContraband, patrolReach, recordVerdict } from './law.ts';
+import { carryingContraband, patrolReach } from './law.ts';
 import {
   OFFENDER, SCAN_LINE_SECONDS, SCAN_WARN_REPEAT,
 } from '../constants/law.ts';
@@ -604,18 +604,18 @@ export class WorldStep {
       const reach = patrolReach(nearest);
       if (reach === 'scan') {
         session.policeScanned = true;
+        // ...which queues what the record now means, behind the line below that
+        // explains it: police hunt Fugitives, so the Viper that reads your hold
+        // flies on and a conviction looks from the cockpit exactly like nothing
+        // happening. That verdict used to be written out here too, and it is
+        // `raiseLegal`'s one job now (docs/TODO/130).
         this.host.raiseLegal(OFFENDER);
         // caught smuggling: the fine clears, but the name does not
         const was = commander.disrepute ?? 0;
         commander.disrepute = afterDeed(was, DISREPUTE_CAUGHT);
         out.push(say('POLICE SCAN: CONTRABAND DETECTED', SCAN_LINE_SECONDS));
-        // ...and what that cost you, both of it, queued behind the line each
-        // explains. Police hunt Fugitives, so the Viper that reads your hold
-        // flies on and a conviction looks from the cockpit exactly like nothing
-        // happening; `recordVerdict` (law.ts) asks the rule who IS coming, and
-        // `characterVerdict` says it if the same scan moved your name onto a
+        // ...and then what it cost your NAME, if the same scan moved it onto a
         // new rung (docs/TODO/129).
-        queueMessage(session, recordVerdict(commander.legalStatus), SCAN_LINE_SECONDS);
         const named = characterVerdict(was, commander.disrepute);
         if (named) queueMessage(session, named, CHARACTER_LINE_SECONDS);
       } else {

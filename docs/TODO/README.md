@@ -13,9 +13,9 @@ active context:
 
 ## Execution queue
 
-**One plan, and it is half-finished on purpose.** 127 and 126 landed on
-2026-08-10 alongside 129's first milestone; what is left of 129 is a number
-nobody has flown, and flying it is Chris's.
+**One plan, and it is half-finished on purpose.** 130 emptied the backlog on
+2026-08-11; 127 and 126 landed the day before, alongside 129's first milestone.
+What is left of 129 is a number nobody has flown, and flying it is Chris's.
 
 The GitHub inbox is empty: **#22** closed with 127, as #18 did with 121, #20
 with 122 and #21 with 123. Nothing below has an issue.
@@ -53,6 +53,17 @@ prompts before it were for.
 121's CHARACTER lever (⇧T at the station) is the cockpit that settles all of
 them: twenty levers behind one door, including the Character score itself.
 
+## What landed on 2026-08-11
+
+**130** — the third sighting of one defect, and the last one the console had
+left. `raiseLegal` said `LEGAL STATUS: FUGITIVE` and `callStationDefence` took
+the console away three lines later, so becoming a Fugitive was never read by
+anybody. It is `recordVerdict`, queued, behind a launch that queues too: **what
+you did → what the sky did about it → where you now stand**. The string is
+deleted rather than moved, and so are the two copies of the verdict the scan and
+the survivor sale had written out for themselves — one home now, spent by five
+deeds.
+
 ## What landed on 2026-08-10
 
 Eight plans in a day, and they are one argument in sequence: a consequence that
@@ -81,13 +92,4 @@ is invisible is indistinguishable from nothing happening.
 Not executable yet. In priority order; promoting the head is what makes the
 next execution item, once it has a plan doc.
 
-- [ ] 130 — `LEGAL STATUS: FUGITIVE` is erased by the line after it. Found while
-      flying docs/TODO/129's tests: destroy a lawful ship near a station and
-      `raiseLegal` says the status, then `callStationDefence` says STATION
-      DEFENCE LAUNCHED in the same frame, so the record moving is never on the
-      console at all. It is exactly the defect 122 fixed for the scan and 129
-      fixed for the name — a real consequence that looks like nothing happening
-      — and the machinery to fix it now exists: `session.queued`, and
-      `recordVerdict`, which 127's sale already queues behind its own receipt.
-      Small. Needs a plan doc before it is executable, mostly to decide which of
-      the two lines is the cause and which is the consequence.
+**Empty.** 130 was the only entry and it landed on 2026-08-11 (see below).

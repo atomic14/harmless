@@ -23,16 +23,14 @@ import {
   CHARACTER, CHARACTER_LINE_SECONDS, DISREPUTE_BRIBE, DISREPUTE_MURDER,
 } from '../src/constants/character.ts';
 import { FUGITIVE } from '../src/constants/law.ts';
-import { check, dismissBriefing, eq } from './harness.ts';
+import { check, consoleWatcher, dismissBriefing, eq } from './harness.ts';
 
 /**
  * A commander in flight with an empty sky, and a way to watch the console.
  *
- * `fly(steps)` returns the lines that APPEARED on the console during those
- * frames, in order — a new line is one that differs from what was showing on
- * the frame before, which is what a player sees. Reading the event stream
- * instead would miss the whole subject of this file: a queued line reaches the
- * console seconds after the event that owed it.
+ * The watcher is `consoleWatcher` (harness.ts), shared with
+ * test/record-line.test.ts: both files are about the ORDER lines reach a pilot
+ * in, so both have to agree on what "a pilot saw this" means.
  */
 function flying(seed: number): { g: Game; fly: (steps: number) => string[] } {
   const g = withoutSaving(() => {
@@ -42,18 +40,7 @@ function flying(seed: number): { g: Game; fly: (steps: number) => string[] } {
     game.launch();
     return game;
   }).value;
-  let at = 0;
-  let last = '';
-  const fly = (steps: number): string[] => {
-    const said: string[] = [];
-    for (let f = 0; f < steps; f++) {
-      g.step(1 / 60, at += 1 / 60);
-      const now = g.state.session.messageText;
-      if (now && now !== last) said.push(now);
-      last = now;
-    }
-    return said;
-  };
+  const fly = consoleWatcher(g);
   fly(400);                                  // past the launch tunnel
   // An empty sky and a ship at rest: a fight in the same seconds as the deed
   // would put its own lines on the console and make the ORDER ambiguous, which
@@ -178,11 +165,12 @@ console.log('\na kill names the rung it landed on, not each one it passed');
   eq(`the console names where you ARE (${said.join(' / ')})`, line, 'CHARACTER: DODGY');
   check('...and never names the rung it passed through',
     !said.includes('CHARACTER: DUBIOUS'));
-  // ...and it did not take the console away from the kill's own lines. (Which
-  // of those a player reads is not this plan's business: `raiseLegal`'s LEGAL
-  // STATUS line is itself overwritten by STATION DEFENCE LAUNCHED in the same
-  // frame, the same defect one rung up. The claim here is only that the name
-  // waited its turn.)
+  // ...and it did not take the console away from the kill's own lines. Which of
+  // those a player reads was NOT this plan's business and is docs/TODO/130's:
+  // `raiseLegal`'s line was itself overwritten by STATION DEFENCE LAUNCHED in
+  // the same frame, the same defect one rung up, and test/record-line.test.ts
+  // is the file that holds the order those two arrive in. The claim here stays
+  // what it always was — the name waited its turn.
   eq('the kill made you a Fugitive', c.legalStatus, FUGITIVE);
   check(`...and something else had the console first (${said[0]})`,
     named(said).at > 0);

@@ -29,7 +29,9 @@ this file is a map.
   scan cost your record, what a deed cost your name — is queued rather than
   said, and `tickMessage` promotes it when the console falls quiet, docked or
   flying. Message events carry `queued` so a pure module can ask for the same
-  thing.
+  thing. The running order a deed gets is **what you did → what the sky did
+  about it → where you now stand**: `Game.raiseLegal` says nothing over its own
+  cause, and is the one home of what a moved record says (`recordVerdict`).
 
 Laser fire, spawning and the hyperspace transition still remain in `game.ts`.
 

@@ -126,3 +126,38 @@ export function dismissBriefing(g: {
   g.input.injectPress('Escape');
   g.step(1 / 60, now);
 }
+
+/**
+ * Watch the console the way a pilot does: `fly(steps)` steps the game and
+ * returns the lines that APPEARED during those frames, in order.
+ *
+ * A new line is one that differs from the frame before, which is the only
+ * definition that matches what is read. Reading the event stream instead would
+ * miss the whole subject of the two files that use this: a QUEUED line
+ * (`session.queued`) reaches the console seconds after the event that owed it,
+ * and one said over its own cause never reaches it at all.
+ *
+ * Shared by test/character-line.test.ts (what a deed cost your name,
+ * docs/TODO/129) and test/record-line.test.ts (what it cost your record,
+ * docs/TODO/130) — the same instrument, and a second copy of it would be free
+ * to disagree about what "a player saw this" means.
+ *
+ * Structural type rather than `Game`, for the reason above.
+ */
+export function consoleWatcher(g: {
+  step(dt: number, now: number): void;
+  state: { session: { messageText: string } };
+}): (steps: number) => string[] {
+  let at = 0;
+  let last = '';
+  return (steps: number): string[] => {
+    const said: string[] = [];
+    for (let f = 0; f < steps; f++) {
+      g.step(1 / 60, at += 1 / 60);
+      const now = g.state.session.messageText;
+      if (now && now !== last) said.push(now);
+      last = now;
+    }
+    return said;
+  };
+}

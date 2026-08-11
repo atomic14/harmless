@@ -191,9 +191,14 @@ export function lawTakesInterest(role: string, legalStatus: number): boolean {
  *
  * The reason it exists is a flight report — a smuggler was scanned, read
  * CONTRABAND DETECTED, and watched the Viper that scanned him carry on
- * patrolling. Nothing was wrong; the consequence was simply invisible, because
- * `raiseLegal`'s own LEGAL STATUS line is overwritten by the scan's in the same
- * frame. So the world says what it did instead of shrugging.
+ * patrolling. Nothing was wrong; the consequence was simply invisible. So the
+ * world says what it did instead of shrugging.
+ *
+ * **It is what a moved record says, everywhere.** This was written out at the
+ * two call sites that wanted it — the scan and the survivor sale — while
+ * `raiseLegal` said a bare LEGAL STATUS line that `callStationDefence` erased in
+ * the same frame, so a murder announced nothing at all. `raiseLegal` (game.ts)
+ * queues this and only this now (docs/TODO/130).
  *
  * Assembled from `lawTakesInterest` rather than written out, which is what
  * stops it promising a fight the rules will not deliver — and what makes it

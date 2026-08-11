@@ -49,7 +49,7 @@ import {
 import { PLANET_CRASH_ALTITUDE, WITCHPOINT_RADII } from '../src/constants/planet.ts';
 import { COUNTDOWN } from '../src/constants/jump.ts';
 import {
-  CLEAN, CONTRABAND, FUGITIVE, LEGAL_NAMES, OFFENDER, SCAN_LINE_SECONDS,
+  CLEAN, CONTRABAND, FUGITIVE, LEGAL_NAMES, OFFENDER,
   SCAN_RANGE, SCAN_WARN_RANGE, SCAN_WARN_REPEAT,
 } from '../src/constants/law.ts';
 import { SCANNER_RANGE } from '../src/constants/console.ts';
@@ -813,23 +813,25 @@ console.log('\nheadless world step');
       //
       // The other half of the flight's finding. Being caught makes you an
       // Offender, police hunt Fugitives, so the Viper that read your hold flies
-      // on — correct, and indistinguishable from nothing having happened. The
-      // console now says who DOES come.
+      // on — correct, and indistinguishable from nothing having happened.
+      //
+      // WHAT THE STEP OWES, AND NOTHING MORE. The step's half is that the scan
+      // fires, takes the frame it fires on, and asks the host to mark the
+      // record; the VERDICT the console then says is `raiseLegal`'s, and the
+      // host here is a stub (docs/TODO/130). Asserting the wording against a
+      // stub that had to reproduce `raiseLegal` to pass would be asserting a
+      // copy of the rule against itself, so that claim is flown for real in
+      // test/record-line.test.ts instead.
       {
         const r = patrol(4_271, 3, SCAN_RANGE * 0.5);
         const frame = holding(r, SCAN_RANGE * 0.5, 1);
         check('the scan has the console to itself on the frame it fires',
           frame.length === 1 && frame[0] === SCAN);
-
-        const after = holding(r, SCAN_RANGE * 0.5, Math.round(SCAN_LINE_SECONDS * 60) + 2)
-          .filter((t) => t.startsWith('RECORD:'));
-        check(`the verdict follows the line it explains (${after.join(' / ') || 'nothing'})`,
-          after.length === 1 && after[0] === recordVerdict(r.state.commander.legalStatus));
-        check('...and it names the record the scan actually left',
-          r.state.commander.legalStatus === OFFENDER
-          && after[0]?.includes('OFFENDER') === true);
-        check('...and it is said once, not on a timer that re-arms',
-          holding(r, SCAN_RANGE * 0.5, 600).filter((t) => t.startsWith('RECORD:')).length === 0);
+        check('...and it asked the host to mark the record, once',
+          r.log.legal === 1 && r.state.commander.legalStatus === OFFENDER);
+        check('...and the step says nothing further about the record itself',
+          holding(r, SCAN_RANGE * 0.5, 600)
+            .filter((t) => t.startsWith('RECORD:')).length === 0);
       }
 
       // ...and it cannot promise a fight the rules will not deliver: the roles

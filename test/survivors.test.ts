@@ -257,9 +257,15 @@ console.log('...and the sale is priced off the market that station rolled');
   check(`...and the region heard about it (heat ${g.state.living.state(c.systemIndex).heat})`,
     g.state.living.state(c.systemIndex).heat > 0);
   // Police hunt Fugitives, so an Offender walks out unmolested and the console
-  // has to say who DOES come — the same line a scan leaves behind (TODO/122).
+  // has to say who DOES come — the same line a scan leaves behind (TODO/122),
+  // queued by `raiseLegal` rather than written out here (TODO/130). ONCE: this
+  // file used to add its own copy beside that one, and two identical lines in a
+  // row are invisible on the console — it simply holds the sentence twice as
+  // long — so the count is only checkable here, in the queue.
   check(`...and the console says what the record means (${queued.join(' / ')})`,
     queued.includes(recordVerdict(OFFENDER)) && recordVerdict(OFFENDER).includes('HUNTER'));
+  eq('...exactly once, from one home',
+    queued.filter((t) => t.startsWith('RECORD:')).length, 1);
   // The station does not scramble Vipers at a docked ship: the record moved,
   // the fleet waits until there is something to launch at.
   check('...and no defence launched at a ship on the pad',

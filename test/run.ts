@@ -34,6 +34,7 @@ import './encyclopaedia.test.ts';
 import './economy.test.ts';
 import './character.test.ts';
 import './character-line.test.ts';
+import './record-line.test.ts';
 import './contracts.test.ts';
 import './contract-offers.test.ts';
 import './contract-acceptance.test.ts';

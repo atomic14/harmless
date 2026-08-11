@@ -151,7 +151,7 @@ import {
   type Contract,
 } from './commander.ts';
 import {
-  LEGAL_NAMES, CLEAN, DEFENCE_RANGE, SCAN_LINE_SECONDS,
+  CLEAN, DEFENCE_RANGE, SCAN_LINE_SECONDS,
 } from '../constants/law.ts';
 import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
 import {
@@ -1205,19 +1205,15 @@ export class Game {
     const e = resolveSurvivors(c, choice, this.survivorOffers());
     if (!e) return;
     // The law and the region first, so the SALE has the console after them:
-    // `raiseLegal` says LEGAL STATUS as it moves the record, and the line the
-    // player needs to read is the one explaining what they just did.
+    // `raiseLegal` QUEUES what the record now means (docs/TODO/130), so the
+    // line the player reads first is the one explaining what they just did.
     if (e.kind === 'sold') {
       this.state.living.addNotoriety(c.systemIndex, e.heat);
       this.raiseLegal(e.offence);
     }
     this.showMessage(survivorMessage(e), 4);
-    // ...then what the record now means, and what it did to your name — both
-    // queued behind the receipt that caused them (docs/TODO/122, docs/TODO/129).
-    // `recordVerdict` rather than a second sentence about being an Offender:
-    // police hunt Fugitives, so a sale leaves you walking out unmolested, and
-    // the console has to say who DOES come.
-    if (e.kind === 'sold') this.queueMessage(recordVerdict(c.legalStatus), SCAN_LINE_SECONDS);
+    // ...then the record, waiting behind the receipt that caused it
+    // (docs/TODO/122), and then what it did to your name (docs/TODO/129).
     this.markName(before, c.disrepute ?? 0);
   }
 
@@ -1312,14 +1308,39 @@ export class Game {
    */
   massLocked(): boolean { return massLocked(this.state); }
 
-  /** @internal — driven by test/playtest.js */
+  /**
+   * The record moves — and the console says where it left you, once the deed
+   * that moved it has been read (docs/TODO/130).
+   *
+   * THE ONE HOME of what a moved record says. It used to say `LEGAL STATUS: X`
+   * on the spot, and `callStationDefence` three lines below erased it before a
+   * frame was drawn, so becoming a Fugitive was never on the console at all;
+   * the scan and the survivor sale had each already written out their own
+   * `recordVerdict` because this line was no use to them. One rule now, said in
+   * the console's running order: **what you did, what the sky did about it,
+   * where you now stand.** Nothing here takes the console from its own cause.
+   *
+   * `recordVerdict` (law.ts) rather than the status alone, because the half a
+   * player needs is who is coming — and it is assembled from the rule that
+   * decides that, so it cannot promise a fight the sky will not deliver.
+   *
+   * **Only a MOVE speaks.** Every laser hit that lands on a trader reaches here
+   * (combat.ts); a line per hit would shout the same record down the length of
+   * a fight. A record that did not move is nothing happening, and nothing
+   * happening is worth no line.
+   *
+   * @internal — driven by test/playtest.js
+   */
   raiseLegal(level: number): void {
     if (level <= CLEAN) return;   // shooting a pirate is nobody's business
-    if (this.state.commander.legalStatus < level) {
-      this.state.commander.legalStatus = level;
-      this.showMessage(`LEGAL STATUS: ${LEGAL_NAMES[level].toUpperCase()}`, 3);
-    }
+    const moved = this.state.commander.legalStatus < level;
+    if (moved) this.state.commander.legalStatus = level;
+    // The sky first: Vipers leaving the slot are happening NOW, and a pilot
+    // being shot at wants that ahead of a sentence about paperwork.
     this.callStationDefence();
+    if (moved) {
+      this.queueMessage(recordVerdict(this.state.commander.legalStatus), SCAN_LINE_SECONDS);
+    }
   }
 
   /**
@@ -1358,7 +1379,14 @@ export class Game {
     if (this.state.player.position.distanceTo(this.state.world.station.position) > DEFENCE_RANGE) return;
     this.state.session.defenceLaunched = true;
     launchStationDefence(this.state.world, this.tmp);
-    this.showMessage('STATION DEFENCE LAUNCHED', 4);
+    // Queued, because this used to erase the line that explained it —
+    // ESCAPE CAPSULE DESTROYED and STATION HULL HIT both reach here through
+    // `raiseLegal` (docs/TODO/130). It is not a delay where it matters: with a
+    // quiet console `tickMessage` promotes it on the next step, so it waits
+    // only when something is already speaking, which is when it should.
+    this.queueMessage('STATION DEFENCE LAUNCHED', 4);
+    // ...but the SOUND is immediate, so the speaker and the sky agree on the
+    // frame the Vipers actually leave the slot.
     sfx.stationDefenceLaunched();
   }
 
