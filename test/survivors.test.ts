@@ -22,11 +22,13 @@ import {
 import { SurvivorsScreen, type SurvivorsContext } from '../src/game/screens/survivors.ts';
 import { priceInTenths, saleFallout } from '../src/game/market.ts';
 import { offenceFor, recordVerdict } from '../src/game/law.ts';
-import { CLEAN, FUGITIVE, OFFENDER } from '../src/constants/law.ts';
+import { CLEAN, FUGITIVE, OFFENDER, OFFENDER_FINE } from '../src/constants/law.ts';
 import { characterName } from '../src/game/character.ts';
-import { generateMarket } from '../src/galaxy/galaxy.ts';
+import { generateGalaxy, generateMarket } from '../src/galaxy/galaxy.ts';
 import { SLAVES } from '../src/constants/commodities.ts';
-import { SURVIVOR_RELEASE_SHARE } from '../src/constants/survivors.ts';
+import {
+  SURVIVOR_RELEASE_SHARE, SURVIVOR_SALE_TONNES,
+} from '../src/constants/survivors.ts';
 import {
   DISREPUTE_SLAVE_SALE, DISREPUTE_SURVIVOR_RELEASED,
 } from '../src/constants/character.ts';
@@ -86,16 +88,17 @@ console.log('\nhanding a survivor over costs nothing and pays nothing');
 
 console.log('\n...and the two that do not');
 {
-  // SELL: the station's own Slaves quote, per person, and a career-marking
-  // deed. The price is read off `generateMarket` rather than written down, so
-  // this is the rule and not a copy of it.
+  // SELL: the station's own Slaves quote, per person, at what a PERSON is worth
+  // on that row, and a career-marking deed. The price is read off
+  // `generateMarket` rather than written down, so this is the rule and not a
+  // copy of it.
   const quote = generateMarket(g1[7], 0)[SLAVES].price;
   const { c, offers } = aboard(2, quote);
   const before = { credits: c.credits, hold: cargoTonnes(c) };
 
   const e = resolveSurvivors(c, 'sold', offers);
   eq('selling pays the station\'s own Slaves price, per person',
-    c.credits - before.credits, 2 * priceInTenths(quote));
+    c.credits - before.credits, 2 * priceInTenths(quote) * SURVIVOR_SALE_TONNES);
   check('the event says what was paid', e?.kind === 'sold' && e.paid === offers.sale);
 
   // --- the law's half (M3) ---------------------------------------------------
@@ -148,6 +151,73 @@ console.log('\n...and the two that do not');
   check(`the quote is the market's, and it varies (${g1[7].name} ${quote}`
     + ` vs ${dear.name} ${generateMarket(dear, 0)[SLAVES].price})`,
     survivorOffers(1, generateMarket(dear, 0)[SLAVES].price).sale > survivorOffers(1, quote).sale);
+}
+
+console.log('\n...and the sale is a choice rather than a mistake');
+{
+  // WHAT `SURVIVOR_SALE_TONNES` IS FOR. Priced at one tonne each, a person
+  // fetched 2–16 Cr and the sale filed an Offender record costing OFFENDER_FINE
+  // (25 Cr) to clear, on top of a career-marking hit to the name. The deed did
+  // not cover its own cleanup at ANY market in ANY galaxy, so 127's forced
+  // choice had a branch no commander could rationally take.
+  //
+  // The floor is asserted here as a RULE — measured over the whole galaxy, off
+  // `generateMarket` and `OFFENDER_FINE` rather than off remembered numbers —
+  // so re-tuning the multiple cannot quietly take the choice away again. How far
+  // ABOVE the floor a person sits is a taste and is the playtest's; that is why
+  // the bar below is the median market and not the best one.
+  // Measured across three galaxies, not one: the multiple is a single number
+  // for the whole game, and galaxy 1's median quote (10 Cr) is dearer than
+  // galaxy 2's and 8's (8 Cr). A floor argued from Lave alone would be a floor
+  // that fails everywhere else.
+  const spread = (g: number) => {
+    const quotes = generateGalaxy(g).map((sys) => generateMarket(sys, 0)[SLAVES].price)
+      .sort((a, b) => a - b);
+    return {
+      cheapest: quotes[0], median: quotes[Math.floor(quotes.length / 2)],
+      dearest: quotes[quotes.length - 1],
+    };
+  };
+  const GALAXIES = [1, 2, 8];
+  const sale = (q: number, tonnes = SURVIVOR_SALE_TONNES) =>
+    survivorOffers(1, q).sale / SURVIVOR_SALE_TONNES * tonnes;
+
+  for (const g of GALAXIES) {
+    const { cheapest, median, dearest } = spread(g);
+    check(`galaxy ${g}: the quote spans it (${cheapest}–${dearest} Cr, median`
+      + ` ${median})`, cheapest < median && median < dearest);
+    check(`galaxy ${g}: a sale at a MEDIAN market covers the record it files`
+      + ` (${(sale(median) / 10).toFixed(1)} Cr vs a`
+      + ` ${(OFFENDER_FINE / 10).toFixed(1)} Cr fine)`, sale(median) >= OFFENDER_FINE);
+    // THE CONTROL, and the half that keeps the market worth reading: a person
+    // must NOT be worth selling everywhere. If the cheapest row cleared the fine
+    // too, where you are docked would stop deciding anything and
+    // `survivorOffers` would have no reason to read a quote at all.
+    check(`galaxy ${g}: ...but at the cheapest it is still not worth a name`
+      + ` (${(sale(cheapest) / 10).toFixed(1)} Cr)`, sale(cheapest) < OFFENDER_FINE);
+  }
+
+  // ...AND IT IS THE SMALLEST MULTIPLE THAT DOES. This is the check that says
+  // the value was reasoned rather than chosen: one less fails the floor in a
+  // galaxy, so 4 is where the rule lands and not a number somebody liked. An
+  // unflown value belongs at the bottom of its bracket — the playtest can raise
+  // it on evidence, and this gate will say if that breaks the control above.
+  const shortfall = GALAXIES
+    .filter((g) => sale(spread(g).median, SURVIVOR_SALE_TONNES - 1) < OFFENDER_FINE);
+  check(`${SURVIVOR_SALE_TONNES} is the SMALLEST multiple that clears the floor`
+    + ` — at ${SURVIVOR_SALE_TONNES - 1} it fails in ${shortfall.length} of`
+    + ` ${GALAXIES.length} galaxies`, shortfall.length > 0);
+
+  // And the decent answer is never the one that pays: at the DEAREST market in
+  // the game, where the temptation is strongest, handing them over still costs
+  // and earns nothing. That is what stops the floor above becoming an income.
+  const best = Math.max(...GALAXIES.map((g) => spread(g).dearest));
+  const decent = aboard(1, best);
+  const beforeCredits = decent.c.credits;
+  eq(`handing them over pays nothing even at ${best} Cr a tonne`,
+    resolveSurvivors(decent.c, 'medical', decent.offers)?.kind, 'handed');
+  eq('...not a tenth of it', decent.c.credits, beforeCredits);
+  eq('...and not a point of the name', decent.c.disrepute ?? 0, 0);
 }
 
 // --- the keyboard ------------------------------------------------------------
@@ -240,10 +310,12 @@ console.log('...and the sale is priced off the market that station rolled');
   kb.press('KeyV');
   g.screens.update(kb.input);
 
-  eq('the money is this station\'s Slaves quote', c.credits - before, priceInTenths(quote));
+  const worth = priceInTenths(quote) * SURVIVOR_SALE_TONNES;
+  eq('the money is this station\'s Slaves quote, at a person\'s weight on it',
+    c.credits - before, worth);
   eq('...and the console says what was done and what it paid',
     g.state.session.messageText,
-    `1 SOLD ON THE SLAVE ROW — ${formatCredits(priceInTenths(quote))}`);
+    `1 SOLD ON THE SLAVE ROW — ${formatCredits(worth)}`);
   eq('...and the name pays the career-marking weight', c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
   // The name's own line is QUEUED behind the receipt (docs/TODO/129), so the
   // rung it crossed is waiting rather than shouting over it.

@@ -20,7 +20,7 @@ import {
 } from '../constants/character.ts';
 import { SLAVES } from '../constants/commodities.ts';
 import { OFFENDER } from '../constants/law.ts';
-import { SURVIVOR_RELEASE_SHARE } from '../constants/survivors.ts';
+import { SURVIVOR_RELEASE_SHARE, SURVIVOR_SALE_TONNES } from '../constants/survivors.ts';
 
 /** The three answers to "there is somebody in your crew spaces". */
 export type SurvivorChoice = 'medical' | 'sold' | 'released';
@@ -51,12 +51,17 @@ export type SurvivorEvent =
  * from a Democracy. The release is `SURVIVOR_RELEASE_SHARE` of the sale, so the
  * two move together and the dirtier answer always pays better.
  *
+ * `SURVIVOR_SALE_TONNES` is what a PERSON is worth on that row, and it is what
+ * makes the sale a choice rather than a mistake: at one tonne each the deed paid
+ * 2–16 Cr and filed a record costing 25 Cr to clear, so it was never the answer
+ * anywhere. The constant carries the measurement and the floor it argues.
+ *
  * @param quote the local price of a tonne of Slaves, as the market states it
  */
 export function survivorOffers(
   people: number, quote: number,
 ): { sale: number; release: number } {
-  const sale = people * priceInTenths(quote);
+  const sale = people * priceInTenths(quote) * SURVIVOR_SALE_TONNES;
   return { sale, release: Math.round(sale * SURVIVOR_RELEASE_SHARE) };
 }
 

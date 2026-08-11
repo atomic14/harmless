@@ -44,16 +44,32 @@ prompts before it were for.
   96's three unflown starting values. Is a Dodgy pilot's reception too hard, does
   being waved off read as a mechanic or as a bug, is the discount worth the
   detour?
-- **What a person fetches** — 127's finding. A tonne of Slaves is 6 Cr at Lave
-  and 16 at the dearest system in galaxy 1, so selling a rescued pilot pays
-  6–16 Cr against 40 disrepute. As shipped, the dirty answer is not a
-  temptation, and the price being the market's is the decision that makes it
-  interesting elsewhere — so the lever is a multiplier on top of the quote.
+- ~~**What a person fetches**~~ — **answered by measurement, 131.** It was not a
+  matter of taste: a sale paid 2–16 Cr and filed a record costing 25 Cr to
+  clear, so it was never correct at any market in any galaxy.
+  `SURVIVOR_SALE_TONNES` (4) is the multiplier 127 asked for, bracketed by two
+  measured rules — the deed must cover its own cleanup at a median market, and
+  must NOT at the cheapest, or where you dock stops deciding. It sits at the
+  bottom of that bracket, 4–12, so the playtest can raise it on evidence.
 
 121's CHARACTER lever (⇧T at the station) is the cockpit that settles all of
 them: twenty levers behind one door, including the Character score itself.
 
+**The two above cannot be simulated, and this is measured rather than assumed.**
+`test/campaign.ts` abstracts flight entirely — no bribe, scan, hermit or murder
+ever runs in it — so a 60-commander bounty-hunter cohort over 80 legs ends with
+a median career peak disrepute of **0.0**. The harness can only see the trade
+half of the ladder. What is missing is not a number the machine can find; it is
+how often a person chooses to press the key, and only a person can say.
+
 ## What landed on 2026-08-11
+
+**131** — 127's own finding, and it turned out to be arithmetic rather than
+feel, so it did not have to wait. Selling a rescued pilot paid 2–16 Cr and filed
+a record costing 25 Cr to clear: strictly dominated, so the forced choice 127
+built had three branches and two answers. `SURVIVOR_SALE_TONNES` is what a
+person is worth on the Slaves row, and its value is bracketed from both sides by
+measured rules rather than chosen.
 
 **130** — the third sighting of one defect, and the last one the console had
 left. `raiseLegal` said `LEGAL STATUS: FUGITIVE` and `callStationDefence` took
