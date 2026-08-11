@@ -79,11 +79,25 @@
 // ship can dock cleanly while still pointing and rolled several degrees off, and
 // nothing else here can see that. The first was 13.6 degrees before the approach
 // gained a straight run in — "it feels quite tight into the slot so the angle
-// seems a bit too much" — and the second is the one still worth work: the wings
-// arrive 7.5 degrees off the slot against the old approach's 1.7, because the
-// roll hunts around any bank it holds and arrives wherever the hunt happens to
-// be. That is `dockingSticks` rather than the plan, it is the same on a
-// dead-straight run in, and docs/TODO/137 is the item for it.
+// seems a bit too much" — and the second is what docs/TODO/137 then went after:
+// the wings arrived 7.5 degrees off the slot against the old approach's 1.7,
+// because the roll hunted around any bank it held and went through the letterbox
+// wherever the hunt happened to be. That was `dockingSticks` rather than the
+// plan — the same ring on a dead-straight run in, and the same either side of
+// 136:
+//
+//   before      504/504   median 16.4s   31.6s worst   0 scrapes
+//               roll: median 18 reversals, 1.9 turns swept · pitch 4 and 8
+//               through the letterbox: 5.4 degrees off the axis, 7.5 off the slot
+//   after       504/504   median 16.4s   31.5s worst   0 scrapes
+//               roll: median 12 reversals, 0.9 turns swept · pitch 4 and 9
+//               through the letterbox: 6.3 degrees off the axis, 4.4 off the slot
+//
+// Both roll columns had to move together and did — a ship flying a curve HAS to
+// hold a bank, so the reversal count alone would have been satisfied by a
+// controller that simply gave up. What the wings cost the NOSE is the honest
+// half of it: 0.9 degrees more in the median, 2.7 less at worst, because the
+// bank the turn may spend is the same bank that makes the correction.
 //
 // The ship starts at rest in one of four attitudes (`Facing`), including the
 // world -Z the old grid always assumed, which is deliberately unhelpful: the

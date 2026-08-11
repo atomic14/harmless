@@ -44,7 +44,8 @@ import {
   PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN, THARGON_DEPLOY_RANGE,
   TRADER_ARRIVAL_RANGE,
 } from '../constants/spawn-placement.ts';
-import { planDocking, dockingOutcome, dockingSticks } from './docking.ts';
+import { planDocking, dockingOutcome } from './docking.ts';
+import { dockingSticks } from './docking-sticks.ts';
 import { NPC_HULL_BOX_MARGIN } from '../constants/docking.ts';
 import { BOUNCE_STANDOFF } from '../constants/station.ts';
 import { regenerate, updateCabinTemp, scoopFuel, energyLow } from './systems.ts';
@@ -323,7 +324,7 @@ export class WorldStep {
     }
     const plan = planDocking(player.position, world.station, world.stationDockZ,
       player.maxSpeed, this.state.dockPlan);
-    const sticks = dockingSticks(player.quaternion, plan);
+    const sticks = dockingSticks(player.quaternion, plan, player.rollRate);
     // Bang-bang on the throttle, with a deadband of one frame's thrust: a
     // demand can only ask for full ahead, full astern or coast — that is all a
     // throttle IS (player.ts) — so the plan's speed is held by cutting to coast

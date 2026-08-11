@@ -13,15 +13,10 @@ active context:
 
 ## Execution queue
 
-1. [137 — the roll rings around any bank it holds](137-the-roll-rings-around-any-bank-it-holds.md)
-   · the residue of #23, and the last thing in the docking computer that still
-   moves when nothing asks it to. `dockingSticks` overshoots any roll it is asked
-   to HOLD and hunts around it at about a reversal a second, ±1.0–1.5 rad/s
-   against a hull cap of 2.5 — measured identically before and after 136, and on
-   a dead-straight run down the axis, so it is the hand and not the approach.
-   134 fixed the case where the turn's axis is meaningless; this is the case
-   where the demand is real. A proportional ask behind a rate ramp with no
-   damping term.
+**Empty.** 137 landed on 2026-08-11 and nothing has been promoted behind it.
+Promoting the head of the backlog is what makes the next execution item, and the
+backlog is empty too — so the next item comes from a GitHub issue, from flying
+the game, or from the one open question below.
 
 The GitHub inbox is empty: **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
@@ -76,6 +71,23 @@ channel and each other instead.
 
 ## What landed on 2026-08-11
 
+**137** — the last thing in the docking computer that still moved when nothing
+asked it to. The roll overshot every bank it was given and rang round it at about
+a reversal a second: a proportional ask driving a rate ramp is a second-order
+loop with **no damping term**, sitting at a damping ratio of 0.38. `DC_ROLL_LEAD`
+asks for where the error WILL be a tenth of a second ahead, and the median
+approach goes from 18 roll reversals and 1.9 turns swept to **12 and 0.9**, on
+two independent grids. The second half is what the ring had been hiding: damping
+it alone took the wings at the letterbox from 7.5 degrees off the slot to 8.8,
+and that was the fix working — 7.5 was a ±40-degree swing sampled wherever the
+letterbox caught it, not a ship sitting 7.5 degrees off, and a ship that sits
+where it is asked sits at whatever `DC_SLOT_MARGIN` allows. So the margin became
+measurable for the first time and moved with it, 0.5 → 0.30, chosen at the knee
+rather than the floor. **The wings arrive 4.4 degrees off the slot in a median
+approach and 13.8 at worst, from 7.5 and 30.0**, with docked, scrapes, seconds
+and the plan's jump column unmoved and traffic still clean. It cost the NOSE 0.9
+degrees in the median — the same bank spending itself twice. Not yet flown.
+
 **136** — the approach is a PATH now, and the defect Chris reported by parking on
 the far side of the station is gone: **no approach in 504 has a plan that jumps
 more than 20 degrees, against 223 of them, and the worst went from a full 180 to
@@ -90,8 +102,7 @@ reversals 5 → 4, and traffic collisions 1 in 80 → 0. Two rounds of Chris fly
 it are in the plan and in two new columns of the probe — how far off the slot the
 ship is still POINTING as it goes through (13.6° → 5.4°) and how far its WINGS
 are off the letterbox (20.4° → 7.5°, against 37° of tolerance and the old
-approach's 1.7°). That last gap is the roll ring, which is 137 at the head of the
-queue.
+approach's 1.7°). That last gap was the roll ring, which is 137 above.
 
 **134** — #23, and the one thing `dock-probe` was never asked to measure. The
 autopilot rolled hard over and back every 0.45s while its nose was dead on the

@@ -48,6 +48,7 @@ import './prompts.test.ts';
 import './world.test.ts';
 import './docking.test.ts';
 import './docking-computer.test.ts';
+import './dock-path.test.ts';
 import './observation.test.ts';
 import './threat-lock.test.ts';
 import './spawning.test.ts';

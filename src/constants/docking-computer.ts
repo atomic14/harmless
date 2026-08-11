@@ -11,9 +11,10 @@
 // letterbox's roll tolerance the turn may spend, the off-nose angle over which
 // it may spend anything at all — a fade rather than a cap, because the axis the
 // turn steers its roll against goes degenerate as the nose arrives
-// (docs/TODO/134) — and how far along the approach path the follower looks.
-// The geometry itself — the gate, the stand-off, the corridor, the slot — is
-// constants/docking.ts.
+// (docs/TODO/134) — how far ahead the roll reads its own rate, which is what
+// lets it hold a bank rather than ring around one (docs/TODO/137), and how far
+// along the approach path the follower looks. The geometry itself — the gate,
+// the stand-off, the corridor, the slot — is constants/docking.ts.
 //
 // TWO CONSTANTS IT NO LONGER HAS, both retired by docs/TODO/126 rather than
 // retuned, because the flying they described stopped existing:
@@ -50,17 +51,40 @@ export const DOCK_COMPUTER_RANGE = 3500;
  *
  * Not the whole window, because arriving at the exact edge of what fits leaves
  * nothing for the last second: the slot is on a hull that is still turning, and
- * the ship is still drifting when it reaches the mouth. Half of it is the
- * margin, which leaves ~19 degrees of banking authority on the axis — enough to
- * hold a line, far short of enough to be turning on the way in.
+ * the ship is still drifting when it reaches the mouth.
  *
- * Its own rule id: it shares the value 0.5 with `BRIBE_SHARE`,
- * `SURVIVOR_RELEASE_SHARE` and two fractions of the heat bar. Five unrelated
- * halves, and this is the only one that is an angle.
+ * IT IS WHAT THE WINGS ARRIVE WITH, which was not knowable until the roll
+ * stopped ringing (`DC_ROLL_LEAD`, docs/TODO/137). The path keeps a small
+ * correction alive the whole way in — the nose sits 5 or 6 degrees off, which is
+ * `DC_TURN_FADE_ANGLE` or more, so the turn holds its full claim right up to the
+ * mouth and banks by exactly this much. Undamped, the ship swung through ±40
+ * degrees around that bank and the letterbox caught it wherever the swing
+ * happened to be; damped, it sits where it is asked, and `ROLL_TOLERANCE` times
+ * this is the answer. Over `npm run dock-probe`'s 504 approaches, at a lead of
+ * 0.10, the median approach goes through the slot 3.1, 3.8, 4.3, 5.0 and 5.5
+ * degrees off its long axis at 0.25, 0.28, 0.30, 0.33 and 0.35 — a straight line
+ * through this constant, which is the mechanism showing itself.
+ *
+ * SO IT IS CHOSEN AT THE KNEE RATHER THAN AS LOW AS IT WILL GO. Below 0.30 the
+ * median keeps falling and the WORST case blows out past where it started — 33.5
+ * degrees at 0.25 and 34.3 at 0.28, against 30.0 before this item — on a second,
+ * independent grid as well as the shipped one, so it is a signal and not one
+ * unlucky approach. That is the turn being refused a bank it genuinely needs:
+ * the correction goes unmade, the ship arrives off the axis and rolls hard at
+ * the mouth. Below 0.15 it is scrapes and a plan jumping again.
+ *
+ * Half of the tolerance was the old value and the argument for it was the same
+ * sentence — "enough to hold a line, far short of enough to be turning on the
+ * way in". The first half was true and the second was not: the ship spent all
+ * 19 degrees of it turning, every approach.
+ *
+ * Its own rule id: it shares the value with `HERMIT_CHANCE`, `GANG_SHARE`, the
+ * two `SPEED_KEPT` fractions and three more — eight unrelated three-tenths, of
+ * which this is the only share of an ANGLE, and the only one a pilot could see.
  *
  * @rule docking.slotMargin
  */
-export const DC_SLOT_MARGIN = 0.5;
+export const DC_SLOT_MARGIN = 0.30;
 
 /**
  * The off-nose angle, in radians, over which the TURN's claim on the roll axis
@@ -97,9 +121,10 @@ export const DC_SLOT_MARGIN = 0.5;
  * turn back its authority as soon as there is a real turn to make. Separate rule
  * ids either way — a gun cone's number and a letterbox's.
  *
- * Its own rule id: it shares the value 0.1 with `DECISION_INTERVAL` and
- * `CORRIDOR_START`, which are a duration in seconds and a share of a journey.
- * Three unrelated tenths, and this is the only one that is an angle.
+ * Its own rule id: it shares the value 0.1 with `DECISION_INTERVAL`,
+ * `CORRIDOR_START` and `DC_ROLL_LEAD` below — a duration in seconds, a share of
+ * a journey, and a lead time in seconds belonging to the very same control law.
+ * Four unrelated tenths, and this is the only one that is an angle.
  *
  * There is deliberately no floor to match `ROLL_FADE_FLOOR`. The co-pilot keeps
  * a fraction of its roll near the nose because it has nothing else to do with
@@ -109,6 +134,62 @@ export const DC_SLOT_MARGIN = 0.5;
  * @rule docking.turnFadeAngle
  */
 export const DC_TURN_FADE_ANGLE = 0.10;
+
+/**
+ * How far ahead IN TIME the roll ask reads the rate it is already rolling at,
+ * in seconds. The damping term, and the whole of docs/TODO/137.
+ *
+ * WHAT IT FIXES is a controller that could choose a bank and not hold one. A
+ * proportional ask (`steerStick`, saturating at `STEER_SATURATION`) driving a
+ * rate ramp (`PLAYER_FLIGHT.rateRamp`) is a second-order loop with no damping
+ * term at all: full stick at 0.35 rad against a cap of 2.5 rad/s is a gain of
+ * about 7 per second, against a ramp time constant of a quarter of a second,
+ * which puts the loop at a damping ratio of 0.38 — 25% overshoot and a ring at
+ * roughly a reversal a second. On the run in the ring was ±40 degrees, because
+ * the disturbance never stops: the ship rolls past the bank, its pitch plane
+ * sweeps with it, the heading error moves in its own frame and the roll is asked
+ * for again. Held on a fixture with the demand standing still, a 30-degree bank
+ * overshoots by 7.6 degrees, reverses twice and takes 1.5s to settle; with this
+ * term it overshoots by 1.8, reverses once and settles in 1.0s, and a 10-degree
+ * bank does not reverse at all (`test/docking-computer.test.ts`).
+ *
+ * Ahead IN TIME rather than a gain, because that is what makes it a number a
+ * person can argue with: at the rate the ship is rolling now, where will the
+ * error be in a tenth of a second, and ask for THAT. The arithmetic behind the
+ * value is the same: this times the gain is the damping the loop was missing,
+ * and 0.23s would be critical damping on its own.
+ *
+ * IT IS NOT SET AS HIGH AS THE RING ALONE WOULD WANT, and the reason is the
+ * measurement that mattered. Over `npm run dock-probe` the roll reversals fall
+ * monotonically with it — 18 with no term at all, 14 at 0.06, 12 at 0.10, 10 at
+ * 0.16, 9 at 0.28 — and so does the roll swept, 1.9 turns to 0.9. But past about
+ * 0.10 it starts costing the NOSE (median 5.4 degrees off the slot axis going
+ * in, 6.3 here, 6.6 at 0.16) and it costs the last of the ring's usefulness: the
+ * ship stops correcting until the error is large. Past 0.28 the plan itself
+ * starts jumping and the sweep scrapes. Two grids agree on 0.08–0.12 as the flat
+ * part of the trade.
+ *
+ * A FEEDFORWARD FOR THE STATION'S OWN SPIN WAS BUILT HERE AND MEASURED AWAY.
+ * The letterbox turns at `STATION_SPIN` forever, so holding the wings on it is a
+ * standing roll rate, which a proportional law can only produce by holding a
+ * standing error — 1.8 degrees, and this term adds to it (3.3 at 0.10, 4.8 at
+ * 0.20). Crediting the roll the slot itself asks for removes the added lag
+ * exactly, and on the fixture it does: the standing error stays 1.8 at any lead.
+ * In flight it is worth 0.1 degrees at the letterbox on both grids, because what
+ * the wings arrive with is set by the bank the turn is holding (`DC_SLOT_MARGIN`)
+ * and not by the lag. It cost a field on the plan, an import of the station's
+ * spin into the flight law and a gate for the phase, so it is not here. If the
+ * turn's claim at the mouth is ever made to fade properly, look at it again.
+ *
+ * Its own rule id: it shares the value 0.1 with `DC_TURN_FADE_ANGLE` two
+ * definitions up — which is an ANGLE IN RADIANS to this one's SECONDS, and the
+ * pair is worth keeping straight: that one says how far off the nose has to be
+ * before the turn may bank at all, this one how far ahead the bank reads itself.
+ * Also with `DECISION_INTERVAL` and `CORRIDOR_START`.
+ *
+ * @rule docking.rollLead
+ */
+export const DC_ROLL_LEAD = 0.10;
 
 /**
  * How far ahead ALONG THE PATH the follower aims, in station half-widths.
