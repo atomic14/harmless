@@ -168,8 +168,9 @@ The defect Chris reported is characterised and measured but **NOT fixed**: 223 o
 504 approaches still have a plan that jumps, and the worst still reverses through
 180 degrees.
 
-**To see it:** `npm run dock-probe`, and read the rows labelled `180°` and
-`135°` — those are the bearings behind the station, and the jump column is the
-last one. The `facing at` rows are Chris's own reproduction, the ship parked on
-the far side pointing at the station. The whole-sweep summary is the last three
-lines.
+**To see it:** `npm run dock-probe | grep -E '· 180° +·'`. Those are the bearings
+directly astern — mind the label, `45°/180°` is a 45-degree bearing at azimuth
+180 and not the same thing — and every one of them jumps 170 to 180 degrees, with
+9 to 11 pitch reversals and around 28 seconds against a 19-second median. The
+`facing at` rows are Chris's own reproduction, parked on the far side pointing at
+the station. The whole-sweep summary is the last three lines of a full run.
