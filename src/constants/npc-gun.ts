@@ -18,13 +18,27 @@ export const NPC_LASER_RANGE = LASER_RANGE;
 
 /**
  * Time between an NPC's shots — a deliberate handicap, and NOT what limits an
- * NPC's damage: a pirate is only inside the firing gate for about 5% of a
- * fight, so it is waiting to be aimed, not waiting on the cooldown.
+ * NPC's damage: it is waiting to be aimed, not waiting on the cooldown.
+ *
+ * MEASURED since docs/TODO/139 M1 (`npm run aim-probe`), where it used to say
+ * "about 5% of a fight" from memory. This cadence allows 46.2 shots a minute;
+ * the shipped pursuit pilot gets 7.5 away one-on-one against a commander who
+ * knife-fights, 15 with four in the sky, and 26 chasing one who runs. So the
+ * clock is not the binding term in any fight the probe can stage, and the
+ * handicap this pair states is not the one that decides a fight.
  */
 export const NPC_COOLDOWN_LO = 0.9;
 export const NPC_COOLDOWN_SPREAD = 0.8;
 
-/** How near the nose a target must be before an NPC pulls the trigger. */
+/**
+ * How near the nose a target must be before an NPC pulls the trigger.
+ *
+ * What it admits, measured (`npm run aim-probe`, docs/TODO/139 M1): 12% of a
+ * one-on-one knife fight, 27% with four in the sky, and 55% of a chase. THE
+ * TWO FIGHTS FAIL DIFFERENTLY, which is why widening this is not obviously the
+ * fix — in the knife fight the mean bearing error is 85 degrees, seven times
+ * this gate, and in the chase the ship is lined up and out of range instead.
+ */
 export const NPC_FIRE_GATE = 0.25;
 
 /** Thargoids reload faster than anything else in the galaxy. */

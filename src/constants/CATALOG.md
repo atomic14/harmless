@@ -202,15 +202,15 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | missions | <code>CONSTRICTOR_BOUNTY</code> | <code>25_000</code> | What killing the Constrictor pays — 2,500 Cr, in tenths of a credit. |  | [missions.ts:25](./missions.ts#L25) |
 | missions | <code>COURIER_PAYMENT</code> | <code>15_000</code> | ...and what delivering the plans pays: 1,500 Cr. |  | [missions.ts:28](./missions.ts#L28) |
 | npc-gun | <code>NPC_LASER_RANGE</code> | <code>LASER_RANGE</code> | How far an NPC can shoot: the player's reach, derived from `LASER_RANGE` rather than restated as a second 3500. |  | [npc-gun.ts:17](./npc-gun.ts#L17) |
-| npc-gun | <code>NPC_COOLDOWN_LO</code> | <code>0.9</code> | Time between an NPC's shots — a deliberate handicap, and NOT what limits an NPC's damage: a pirate is only inside the firing gate for about 5% of a fight, so it is waiting to be aimed, not waiting on the cooldown. |  | [npc-gun.ts:24](./npc-gun.ts#L24) |
-| npc-gun | <code>NPC_COOLDOWN_SPREAD</code> | <code>0.8</code> |  |  | [npc-gun.ts:25](./npc-gun.ts#L25) |
-| npc-gun | <code>NPC_FIRE_GATE</code> | <code>0.25</code> | How near the nose a target must be before an NPC pulls the trigger. |  | [npc-gun.ts:28](./npc-gun.ts#L28) |
-| npc-gun | <code>THARGOID_FIRE_RATE</code> | <code>0.7</code> | Thargoids reload faster than anything else in the galaxy. |  | [npc-gun.ts:31](./npc-gun.ts#L31) |
-| npc-gun | <code>NPC_HIT_BASE</code> | <code>0.9</code> | Hit chance falls off with range, clamped at both ends. |  | [npc-gun.ts:34](./npc-gun.ts#L34) |
-| npc-gun | <code>NPC_HIT_FALLOFF</code> | <code>NPC_LASER_RANGE</code> | The slope of the falloff, a DENOMINATOR not a reach. |  | [npc-gun.ts:41](./npc-gun.ts#L41) |
-| npc-gun | <code>NPC_HIT_CAP</code> | <code>0.85</code> |  |  | [npc-gun.ts:42](./npc-gun.ts#L42) |
-| npc-gun | <code>NPC_HIT_FLOOR</code> | <code>0.15</code> | The far end of that curve: however long the shot, this fraction of it still connects, so distance thins a fight without ending it. | <code>npc.hitFloor</code> | [npc-gun.ts:52](./npc-gun.ts#L52) |
-| npc-gun | <code>NPC_VS_NPC_HIT</code> | <code>0.5</code> | Whether one ship's shot at another connects: a coin flip. |  | [npc-gun.ts:59](./npc-gun.ts#L59) |
+| npc-gun | <code>NPC_COOLDOWN_LO</code> | <code>0.9</code> | Time between an NPC's shots — a deliberate handicap, and NOT what limits an NPC's damage: it is waiting to be aimed, not waiting on the cooldown. |  | [npc-gun.ts:30](./npc-gun.ts#L30) |
+| npc-gun | <code>NPC_COOLDOWN_SPREAD</code> | <code>0.8</code> |  |  | [npc-gun.ts:31](./npc-gun.ts#L31) |
+| npc-gun | <code>NPC_FIRE_GATE</code> | <code>0.25</code> | How near the nose a target must be before an NPC pulls the trigger. |  | [npc-gun.ts:42](./npc-gun.ts#L42) |
+| npc-gun | <code>THARGOID_FIRE_RATE</code> | <code>0.7</code> | Thargoids reload faster than anything else in the galaxy. |  | [npc-gun.ts:45](./npc-gun.ts#L45) |
+| npc-gun | <code>NPC_HIT_BASE</code> | <code>0.9</code> | Hit chance falls off with range, clamped at both ends. |  | [npc-gun.ts:48](./npc-gun.ts#L48) |
+| npc-gun | <code>NPC_HIT_FALLOFF</code> | <code>NPC_LASER_RANGE</code> | The slope of the falloff, a DENOMINATOR not a reach. |  | [npc-gun.ts:55](./npc-gun.ts#L55) |
+| npc-gun | <code>NPC_HIT_CAP</code> | <code>0.85</code> |  |  | [npc-gun.ts:56](./npc-gun.ts#L56) |
+| npc-gun | <code>NPC_HIT_FLOOR</code> | <code>0.15</code> | The far end of that curve: however long the shot, this fraction of it still connects, so distance thins a fight without ending it. | <code>npc.hitFloor</code> | [npc-gun.ts:66](./npc-gun.ts#L66) |
+| npc-gun | <code>NPC_VS_NPC_HIT</code> | <code>0.5</code> | Whether one ship's shot at another connects: a coin flip. |  | [npc-gun.ts:73](./npc-gun.ts#L73) |
 | opposition-ring | <code>OPPOSITION_RANGE</code> | <code>3200</code> | The default ring radius, in units. |  | [opposition-ring.ts:19](./opposition-ring.ts#L19) |
 | opposition-ring | <code>OPPOSITION_RANGE_MAX</code> | <code>20_000</code> | A ceiling on the ring radius, so it cannot put a ship in the planet or station box however the numbers are passed in. |  | [opposition-ring.ts:26](./opposition-ring.ts#L26) |
 | opposition-ring | <code>OPPOSITION_CONE</code> | <code>0.5</code> | Half-angle of the cone, in radians, when a facing is known and the caller says no more. |  | [opposition-ring.ts:35](./opposition-ring.ts#L35) |

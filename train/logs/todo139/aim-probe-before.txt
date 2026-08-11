@@ -1,0 +1,98 @@
+
+> harmless@1.0.0 aim-probe
+> node --experimental-strip-types --no-warnings train/aim-probe.ts 200
+
+
+200 episodes per row · 45s · seed base 50000017
+a fitted commander in her own Cobra, flying back — train/aim-fight.ts is the fight
+
+## is it aimed at her?
+
+| she | pilot | gang | median range | lined up | in range | aim error | passes/ship | shots/pass | shots/min/ship |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| knife-fights | pursuit | 1 | 356 | 12.1% | 100.0% | 85.1° | 0.71 | — | 7.7 |
+| knife-fights | pursuit | 2 | 452 | 22.7% | 100.0% | 74.0° | 1.96 | 3.9 | 13.0 |
+| knife-fights | pursuit | 3 | 505 | 24.8% | 100.0% | 70.1° | 2.81 | 3.4 | 14.4 |
+| knife-fights | pursuit | 4 | 517 | 26.8% | 100.0% | 67.4° | 2.97 | 3.5 | 15.4 |
+| knife-fights | scripted | 1 | 365 | 11.7% | 100.0% | 85.1° | 0.69 | — | 7.6 |
+| knife-fights | scripted | 2 | 478 | 10.2% | 100.0% | 84.1° | 2.67 | 1.7 | 7.1 |
+| knife-fights | scripted | 3 | 544 | 10.3% | 100.0% | 82.1° | 3.59 | 1.4 | 7.4 |
+| knife-fights | scripted | 4 | 557 | 10.6% | 100.0% | 80.6° | 3.77 | 1.4 | 7.8 |
+| runs | pursuit | 1 | 3438 | 54.6% | 57.6% | 1.5° | 0.10 | — | 26.2 |
+| runs | pursuit | 2 | 3480 | 51.7% | 52.9% | 0.5° | 0.02 | — | 24.7 |
+| runs | pursuit | 3 | 3202 | 54.9% | 56.2% | 0.6° | 0.02 | — | 26.2 |
+| runs | pursuit | 4 | 3233 | 54.2% | 55.5% | 0.6° | 0.01 | — | 25.8 |
+| runs | scripted | 1 | 3415 | 44.2% | 63.4% | 12.3° | 0.28 | — | 21.7 |
+| runs | scripted | 2 | 3444 | 43.2% | 52.9% | 7.4° | 0.04 | — | 21.0 |
+| runs | scripted | 3 | 3269 | 43.7% | 55.2% | 7.6° | 0.02 | — | 21.3 |
+| runs | scripted | 4 | 3353 | 42.6% | 53.9% | 7.6° | 0.01 | — | 20.9 |
+
+lined up = inside its own gate AND its own range, over the ship-frames it
+was alive for. shots/min/ship has a ceiling of 46.2 — the mean reload, never
+out of the gate: the two columns move together, so the gate is the limit.
+a pass is a merge inside 400 and back out past 600 (constants/combat-record.ts),
+and a fight nobody closes in scores none — which is a reading, not a blank.
+
+## what the gun is worth
+
+| she | pilot | gang | hit rate | best case | effective | of best | gang laser | warheads | contact | all causes | a face down | destroyed |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| knife-fights | pursuit | 1 | 46.5% | 8.92/s | 0.71/s | 8.0% |  0.71/s |  2.49/s |  0.00/s |  3.20/s | 0.0% | 0.0% |
+| knife-fights | pursuit | 2 | 59.3% | 8.64/s | 1.75/s | 20.2% |  3.17/s |  3.23/s |  0.21/s |  6.60/s | 19.0% | 0.5% |
+| knife-fights | pursuit | 3 | 62.9% | 7.42/s | 1.69/s | 22.8% |  4.55/s |  3.83/s |  0.34/s |  8.72/s | 27.0% | 3.0% |
+| knife-fights | pursuit | 4 | 64.0% | 6.92/s | 1.73/s | 25.0% |  6.34/s |  3.75/s |  0.36/s | 10.45/s | 32.0% | 6.0% |
+| knife-fights | scripted | 1 | 46.8% | 8.91/s | 0.71/s | 8.0% |  0.71/s |  2.61/s |  0.00/s |  3.32/s | 0.0% | 0.0% |
+| knife-fights | scripted | 2 | 50.6% | 8.46/s | 0.72/s | 8.5% |  1.33/s |  3.32/s |  0.09/s |  4.73/s | 11.5% | 1.0% |
+| knife-fights | scripted | 3 | 55.0% | 7.36/s | 0.75/s | 10.2% |  2.08/s |  4.04/s |  0.15/s |  6.27/s | 24.0% | 2.5% |
+| knife-fights | scripted | 4 | 57.2% | 6.86/s | 0.74/s | 10.8% |  2.80/s |  4.27/s |  0.35/s |  7.42/s | 22.5% | 5.0% |
+| runs | pursuit | 1 | 29.4% | 7.79/s | 1.67/s | 21.5% |  1.67/s |  0.00/s |  0.00/s |  1.67/s | 0.5% | 0.0% |
+| runs | pursuit | 2 | 28.0% | 7.85/s | 1.48/s | 18.9% |  2.96/s |  0.00/s |  0.00/s |  2.96/s | 1.0% | 0.0% |
+| runs | pursuit | 3 | 30.3% | 7.08/s | 1.57/s | 22.2% |  4.71/s |  0.00/s |  0.00/s |  4.71/s | 3.5% | 0.0% |
+| runs | pursuit | 4 | 30.3% | 6.67/s | 1.41/s | 21.1% |  5.64/s |  0.00/s |  0.00/s |  5.64/s | 6.5% | 0.5% |
+| runs | scripted | 1 | 29.2% | 7.74/s | 1.33/s | 17.1% |  1.33/s |  0.26/s |  0.00/s |  1.59/s | 2.0% | 0.0% |
+| runs | scripted | 2 | 25.8% | 7.85/s | 1.17/s | 14.9% |  2.34/s |  0.03/s |  0.01/s |  2.38/s | 0.0% | 0.0% |
+| runs | scripted | 3 | 26.8% | 7.08/s | 1.15/s | 16.2% |  3.44/s |  0.00/s |  0.00/s |  3.44/s | 0.5% | 0.0% |
+| runs | scripted | 4 | 25.9% | 6.68/s | 0.97/s | 14.6% |  3.90/s |  0.00/s |  0.00/s |  3.90/s | 1.0% | 0.0% |
+
+best case = this build's own tabulated damage at point-blank hit chance
+over the mean reload — 100% time on aim. effective = the same points at the
+aim it actually got. gang laser is all of their guns together, against a
+SHIELD_REGEN of 8.925 points a second PER FACE: that comparison is what
+docs/TODO/139 is about, and it is the last four columns that have to move.
+
+the three causes are every way the world can bill her: the laser is tallied shot
+by shot, a warhead is 250 points (879 landed across the run), and contact is what
+is left. the aim columns above describe the FIRST of the three only — which
+is the point: read them beside the split, not instead of it.
+
+a face down and destroyed are train/survivability.ts's two outcome columns,
+watched its way — every step, because a face that was flattened and came
+back is still a face that was flattened. they are here so that a fight this
+tool stages and a row that tool prints can be read against each other.
+
+## by build — the shipped pilot, in the fight she can be caught in
+
+| build | points/hit | lined up | shots/min | hit rate | best case | effective | of best |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Asp Mk II | 29 | 24.3% | 14.2 | 67.3% | 18.96/s | 4.63/s | 24.4% |
+| Fer-de-Lance | 21 | 29.7% | 16.8 | 67.3% | 13.73/s | 3.96/s | 28.9% |
+| Monitor | 17 | 20.0% | 10.5 | 51.7% | 11.12/s | 1.54/s | 13.8% |
+| Python | 17 | 18.2% | 9.7 | 49.4% | 11.12/s | 1.36/s | 12.2% |
+| Bushmaster | 13 | 22.1% | 13.6 | 64.1% | 8.50/s | 1.88/s | 22.2% |
+| Cobra Mk III | 13 | 17.0% | 10.3 | 57.5% | 8.50/s | 1.28/s | 15.1% |
+| Krait | 13 | 26.1% | 14.8 | 64.0% | 8.50/s | 2.05/s | 24.2% |
+| Sidewinder | 13 | 22.2% | 13.3 | 62.9% | 8.50/s | 1.82/s | 21.4% |
+| Moray | 13 | 27.0% | 15.5 | 64.0% | 8.50/s | 2.14/s | 25.2% |
+| Gecko | 13 | 27.4% | 15.4 | 67.0% | 8.50/s | 2.23/s | 26.3% |
+| Cobra Mk I | 13 | 25.2% | 14.0 | 59.4% | 8.50/s | 1.81/s | 21.2% |
+| Mamba | 13 | 25.9% | 14.9 | 65.4% | 8.50/s | 2.12/s | 24.9% |
+| Iguana | 9 | 25.9% | 14.8 | 68.1% | 5.88/s | 1.51/s | 25.6% |
+| Chameleon | 9 | 26.2% | 14.5 | 65.5% | 5.88/s | 1.43/s | 24.2% |
+| Rattler | 9 | 22.5% | 13.3 | 63.0% | 5.88/s | 1.26/s | 21.4% |
+| Worm | 5 | 34.9% | 19.2 | 57.4% | 3.27/s | 0.92/s | 28.1% |
+| Ophidian | 5 | 22.5% | 13.7 | 64.0% | 3.27/s | 0.73/s | 22.3% |
+
+the best-case column is docs/TODO/139's table, re-derived from the pack
+and the constants rather than restated; the effective column beside it is
+what that build managed against a commander who was flying back.
+

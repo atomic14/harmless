@@ -68,6 +68,73 @@ defect, and it is arithmetic rather than feel.
   is a comment, not a measurement anything currently produces. **M1 is where it
   gets one.**
 
+## What M1 measured — `npm run aim-probe`, 2026-08-11
+
+600 episodes a row, confirmed at 200 on two independent seed bases; the tables
+are in `train/logs/todo139/`. The tool flies `train/aim-fight.ts` — a fitted
+commander in her own Cobra, armed, over 45 seconds, on two axes nothing else
+varies: how SHE flies (`knife-fights`, the hard-turning target closest to
+Chris's recorded envelope, or `runs`, survivability's defender that goes flat
+out once hurt) and which pilot they fly (`pursuit`, what ships, or `scripted`,
+the A/B control).
+
+**The 5% was a memory and it was wrong in both directions, because the two
+fights fail differently.** The shipped pilot is inside `NPC_FIRE_GATE` and in
+range for **11.9%** of a one-on-one knife fight and **26.5%** with four in the
+sky — but for **55%** of a chase. The gun gets 7.5 shots a minute away in the
+first case and 26.3 in the third, against the **46.2** this cadence allows, so
+the substance of the comment holds everywhere: it is waiting to be aimed.
+
+**What it is waiting for is not the same thing twice**, and this is what tells
+M3's two candidates apart:
+
+| she | median range | lined up | in range | mean aim error | hit rate |
+| --- | --- | --- | --- | --- | --- |
+| knife-fights, one | 364 | 11.9% | 100% | **85.6°** | 44.7% |
+| knife-fights, four | 516 | 26.5% | 100% | 67.5° | 63.8% |
+| runs, one | 3,456 | 55.0% | 57.8% | **1.4°** | 29.4% |
+| runs, four | 3,223 | 54.7% | 55.9% | 0.5° | 29.9% |
+
+In the knife fight the nose is 85 degrees off her — **six times the gate**, so
+widening `NPC_FIRE_GATE` cannot be the fix there. In the chase the nose is
+already on her and the ship is out of reach instead, at a median 3,456 against a
+3,500 gun, which is why the hit rate sits at the bottom of the range curve.
+
+**Nothing in the grid lands more laser on her than one face regenerates.** The
+highest laser figure anywhere — four `pursuit` attackers in a knife fight, every
+one of them shooting — is **6.31 points a second against `SHIELD_REGEN`'s
+8.925 per face**. Per attacker the effective rate is 7.4% of its own best case
+one-on-one and 24.8% with four, and by build it runs 12–29%: the Asp Mk II
+manages 4.94 of a possible 18.96, the Fer-de-Lance 3.92 of 13.73, and the
+thirteen-point builds 1.4–2.2 of 8.50.
+
+**So the plan's table was optimistic and the ordering it forced is confirmed.**
+Perfect aim would multiply the laser by three or four; the median build's best
+case is 8.50 and the shield's is 8.925, so aim alone cannot get there for
+fourteen of seventeen builds. Regen still moves first.
+
+### Three things the plan did not know
+
+- **The missile does more than the gun in the fight a player flies.** Warheads
+  cost her 2.53 points a second one-on-one against the laser's 0.67, and 3.99
+  against 6.31 with four. In the chase they cost **nothing at all** — nobody
+  ever gets a launch in. Contact is 0.0–0.5 either way, so the flight model is
+  not the threat; 136 and 137 hold. Her E.C.M. is fitted and never pressed by
+  either stand-in, so the warhead column is an upper bound.
+- **`npm run survivability` measures the chase, and the chase is the soft
+  case.** Its defender runs; its attackers are the control pilot. Against the
+  shipped pilot with her turning to fight, a gang of four costs **10.76 points a
+  second by all causes against 5.64**, flattens a shield face in **31.7% of
+  fights against 6.7%**, and destroys her in **7.8% against 0.2%**. M2's gate is
+  stated on survivability's rows; on this evidence it should be stated on the
+  knife fight, with survivability kept as the control.
+- **The destroyed column is not zero once she stands and fights.** 7.8% at four
+  attackers — mostly warheads. It is zero at one and two, which is what the
+  "a lone opportunist should still lose" decision asks for.
+
+M1 also put the measurement where the claim was: `constants/npc-gun.ts` states
+what its gate and its cadence actually admit, and cites the tool.
+
 ## Which of the three terms may move — and the ordering is forced
 
 **Damage may not move.** `npcLaserDamageToPlayer` returns the pack's own
@@ -110,27 +177,38 @@ it first would be measuring a term that is not binding.
 
 ## What to do
 
-**M1 — measure time on aim, because nothing does.** Extend the probe set with
-the number `npc-gun.ts` asserts from memory: over real fights, what fraction of
-the time is an attacker inside `NPC_FIRE_GATE` and in range, how many shots does
-it actually get away per pass, and what is the *effective* points-per-second
-against the player — as against the best case tabulated above. Baseline it before
-anything moves. This is 134's lesson and 136's: the probe comes first, or the fix
-is scored by columns that cannot see it.
+**M1 — measure time on aim, because nothing does. — LANDED 2026-08-11.**
+`npm run aim-probe` (`train/aim-probe.ts` and the fight it flies,
+`train/aim-fight.ts`), the baselines in `train/logs/todo139/`, the bounds a
+measurement may not cross in `test/aim-probe.test.ts`, and the findings above.
+This was 134's lesson and 136's: the probe comes first, or the fix is scored by
+columns that cannot see it. It earned that again — the fight `survivability`
+stages turned out not to be the fight the number is wanted about.
 
 **M2 — move the regen, on a sweep.** `SHIELD_REGEN_FRACTION` and
 `ENERGY_REGEN_FRACTION` are the pair the whole model is anchored on and the pair
 a retune moves — their own comment says so. Sweep both against
-`npm run survivability` and M1's effective rate, and state the rule the chosen
-value satisfies. Two candidate rules to test, and the plan should land on one:
-a tier-2 gang must be able to reach `LOW_ENERGY` inside a fight a player would
-sit through; and a lone tier-0 pirate must still lose while costing a face.
+`npm run aim-probe`'s knife-fight rows, **which is the correction M1 makes to
+this milestone**: this said survivability, and survivability stages the chase
+against the control pilot, where no warhead ever lands and the gang's laser is
+half what it is when she turns to fight. Keep survivability in the sweep as the
+control — one constant, before and after, is exactly what it is good for — and
+state the rule the chosen value satisfies against the fight a player flies. Two
+candidate rules to test, and the plan should land on one: a tier-2 gang must be
+able to reach `LOW_ENERGY` inside a fight a player would sit through; and a lone
+tier-0 pirate must still lose while costing a face. M1 says where the second one
+stands today: one attacker takes 3.19 points a second off her by every cause and
+flattens a face in 0.2% of fights.
 
-**M3 — the aim, separately and afterwards.** With M1's baseline in hand, decide
-whether the 5% is the flight model (`pursuit` never lines up) or the gate
-(`NPC_FIRE_GATE` 0.25 rad is too tight for the geometry the run produces). These
-are different fixes with different risks, and M1 is what tells them apart. **Do
-not move both regen and aim in one measurement.**
+**M3 — the aim, separately and afterwards.** M1 answers the question this
+milestone was to open with, and it is **both, in different fights**: chasing a
+commander who runs, the nose is 1.4° off her and the ship is out of reach — the
+gate is not the limit, `NPC_HIT_FALLOFF`'s curve is. Standing and fighting, the
+nose is 85.6° off — six times the gate, so widening `NPC_FIRE_GATE` would buy
+almost nothing and the flight model (`pursuitFly` against a hard-turning target)
+is the term. What is left for M3 is to decide whether that geometry is worth
+changing at all, now that the regen has moved. **Do not move both regen and aim
+in one measurement.**
 
 **M4 — re-baseline what depends on it.** The combat simulator's wave ramp
 (`docs/COMBAT-SIM.md`) and 138's roster probe are both scored against how hard a
@@ -170,9 +248,12 @@ and if both can be satisfied at once the plan takes that value.
   the rule this item exists to establish, it is what silently became false, and
   it must be shown to fail by temporarily restoring the old rate.
 - `npm run survivability` before and after, all four gang sizes, with the
-  destroyed column no longer 0% at the top end.
+  destroyed column no longer 0% at the top end — **and `npm run aim-probe`'s
+  knife-fight rows beside it**, where M1 found the destroyed column is 7.8% at
+  four attackers already. Baselines for both are in `train/logs/todo139/`.
 - M1's effective-points-per-second column before and after, so the claim is about
-  the fight and not about a constant.
+  the fight and not about a constant. The gate to beat is the one M1 states: no
+  row in the grid puts more laser on her than one face regenerates.
 - `npm run elite-a` unchanged, and `test/elite-a-live-defence.test.ts` in
   particular: **no damage number moves**, which is the guard on the parity claim.
 - `npm run check` green.

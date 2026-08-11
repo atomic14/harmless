@@ -28,7 +28,16 @@ active context:
    spent — so the levers are regen and time-on-aim, which are the two terms
    Harmless owns outright. **Regen moves first, and the arithmetic forces the
    ordering:** perfect aim cannot save a build whose best case at 100% time on
-   target still loses to the shield.
+   target still loses to the shield. **M1 landed on 2026-08-11** and the
+   measurement is harsher than the table it was checking: `npm run aim-probe`
+   flies both pilots against a commander who knife-fights and one who runs, and
+   **no row in the grid — any pilot, any behaviour, up to four attackers — lands
+   more laser on her than one face regenerates** (the highest is 6.31 a second
+   against 8.925). Two things the plan did not know: in the fight a player
+   actually flies the MISSILE does more than the gun, and `npm run survivability`
+   stages the soft case — its defender runs, so a gang of four costs her 5.64 a
+   second there and 10.76 when she turns to fight. M2's sweep moves onto the
+   knife fight, with survivability kept as the control.
 
 2. **138** — [Every system in every galaxy flies the same
    roster](138-every-system-flies-the-same-roster.md). The 23 released blueprint

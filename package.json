@@ -30,6 +30,7 @@
     "campaign": "node --experimental-strip-types --no-warnings test/campaign.ts",
     "survivability": "node --experimental-strip-types --no-warnings train/survivability.ts",
     "flight-probe": "node --experimental-strip-types --no-warnings train/flight-probe.ts",
+    "aim-probe": "node --experimental-strip-types --no-warnings train/aim-probe.ts",
     "ram-probe": "node --experimental-strip-types --no-warnings train/ram-probe.ts",
     "gap-probe": "node --experimental-strip-types --no-warnings train/gap-probe.ts",
     "defence-probe": "node --experimental-strip-types --no-warnings train/defence-probe.ts",
