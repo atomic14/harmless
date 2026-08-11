@@ -22,7 +22,7 @@
 import * as THREE from 'three';
 
 import {
-  GATE_HALF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN,
+  GATE_HALF_WIDTHS, STANDOFF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN,
   SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE,
 } from '../constants/docking.ts';
 import {
@@ -113,38 +113,37 @@ export function planDocking(
       // Too close and on the wrong side: heading straight for the gate would
       // cut across the hull, which is how the autopilot used to scrape its way
       // in. Stand off first, then come round.
+      //
+      // A KNOWN DEFECT, measured and left standing by docs/TODO/136 rather than
+      // fixed. The push is RADIAL, so it makes no progress — straight out from
+      // behind the station is still behind the station — and the branch releases
+      // the moment the ship crosses back out through its own entry radius, at
+      // which point the gate aim below pulls it straight in and the condition
+      // fires again. A threshold with no hysteresis, and every cycle costs a
+      // full-authority pitch reversal at the hull's 1.45 rad/s cap: the extreme
+      // pitch Chris reported by parking on the far side of the station and
+      // pointing at it. `npm run dock-probe` now flies that region — 180 degrees
+      // of plan reversal, on 223 of its 504 approaches — and the plan carries
+      // the four rewrites that were tried and what each of them cost.
       _aim.copy(pos).sub(station.position).normalize()
-        .multiplyScalar(gateDist * 1.15).add(station.position);
+        .multiplyScalar(gateDist * STANDOFF_WIDTHS).add(station.position);
     } else {
-      // The gate is a point to pass THROUGH, not a destination to arrive at,
-      // and treating it as the latter is what made the plan jump (docs/TODO/135).
-      // A ship converging on the gate from the side cuts the corner and ends up
-      // INSIDE it — measured at `along` 612 against a gate at 800 — so the aim
-      // was then pointing back OUT while the run, one frame later, points in.
-      // Every one of the 220 heading jumps over 20 degrees happened within 200
-      // units of this point, the median within 48.
+      // The gate is a point to pass THROUGH, not a destination to arrive at, and
+      // treating it as the latter is what made the plan jump (docs/TODO/135). A
+      // ship converging on the gate from the side cuts the corner and ends up
+      // INSIDE it, so the aim was then pointing back OUT while the run, one
+      // frame later, points in.
       //
-      // So the aim LEADS the ship down the axis instead — but only as far as it
-      // has EARNED by being lined up. Both halves are load-bearing and both were
-      // measured:
-      //
-      //   Aiming at the axis abeam, with no lookahead, does not fix anything:
-      //   the aim then sits `lateral` away — 44 units — and a heading toward a
-      //   point the ship is on top of is as ill-conditioned as the one it
-      //   replaced. The jump stayed at 42.8 degrees median.
-      //
-      //   Leading unconditionally fixes the jump (42.8 to 4.0 median) and ruins
-      //   the docking: 335 scrapes against 1, because a ship still well off the
-      //   axis that aims INWARD cuts the corner into the hull, which is the
-      //   failure the stand-off branch above exists to prevent.
-      //
-      // So the lookahead ramps in over the last stretch of lateral, from the
-      // width at which a committed run gives up (`LINED_UP_LATERAL * 2`) to the
-      // corridor itself. Far off the axis this is the gate, exactly as before; by
-      // the time the ship is lined up enough to commit, the aim has already swung
-      // round to point the way the run points, so committing changes the speed
-      // and the roll handover without changing where the ship is going.
-      const earned = Math.max(0, Math.min(1,
+      // So the aim LEADS the ship down the axis — but only as far as it has
+      // EARNED by being lined up, which means BOTH near the axis and on the slot
+      // side. Leading unconditionally was measured cutting the corner into the
+      // hull, 335 scrapes against 1; and `lateral` alone cannot say which side
+      // the ship is on, because it is measured perpendicular to the axis, so a
+      // ship directly behind the station reads 0 and looks perfectly lined up —
+      // earning the full lookahead and an aim just outside the slot, through the
+      // hull, at speed (docs/TODO/136).
+      const ahead = Math.max(0, Math.min(1, along / (dockZ * 2)));
+      const earned = ahead * Math.max(0, Math.min(1,
         (LINED_UP_LATERAL * 2 - lateral) / LINED_UP_LATERAL));
       const led = Math.max(dockZ, along - gateDist * DC_GATE_LOOKAHEAD);
       _aim.copy(station.position)
@@ -156,8 +155,13 @@ export function planDocking(
     out.speed = Math.max(25, Math.min(maxSpeed * 0.55, toGate * 0.45));
   }
 
-  // inside the slot mouth and still on the axis
-  out.arrived = along < dockZ && lateral < LINED_UP_LATERAL;
+  // Inside the slot mouth and still on the axis — and IN FRONT of the station,
+  // which was missing. `along` is signed, so a ship behind the hull satisfied
+  // `along < dockZ` trivially; a trader that drifted within `LINED_UP_LATERAL`
+  // of the axis LINE on the far side counted itself docked and despawned
+  // through the back of the station (game/npc.ts reads this). Found by the
+  // wrong-side sweep in docs/TODO/136.
+  out.arrived = along > 0 && along < dockZ && lateral < LINED_UP_LATERAL;
   return out;
 }
 

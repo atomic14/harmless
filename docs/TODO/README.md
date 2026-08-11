@@ -13,8 +13,17 @@ active context:
 
 ## Execution queue
 
-**Empty.** 135 landed on 2026-08-11, M1 and M2; its M3 is a decision for Chris
-rather than an open item, and the reasoning is in the plan.
+1. [136 — the approach has never been flown from behind](136-the-approach-has-never-been-flown-from-behind.md)
+   · found by Chris flying 135. **M1 landed and it is the finding:** every
+   approach `dock-probe` had ever flown started on the slot side, so "504/504
+   docked" meant "docked from in front". The grid is a real sweep now — five
+   bearings from the slot normal out to directly astern, four azimuths, three
+   ranges, three spins, four starting attitudes — and from behind the station the
+   plan reverses through **180 degrees** on 223 of its 504 approaches, because
+   the stand-off branch pushes radially (which makes no progress from astern) and
+   has no hysteresis. M2–M4 replace the reactive aim with a PATH the follower
+   flies, which is where traffic avoidance can later live. Four rewrites that
+   kept the reactive shape are recorded in the plan with what each cost.
 
 The GitHub inbox is empty: **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.

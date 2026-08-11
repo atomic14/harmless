@@ -10,7 +10,7 @@
 // nothing writes the quaternion by hand, what a fluffed slot costs — stayed with
 // the geometry they are solved out of.
 //
-// Two items live here. docs/TODO/134 (GitHub #23) is the roll: the turn's own
+// Three items live here. docs/TODO/134 (GitHub #23) is the roll: the turn's own
 // axis goes degenerate as the nose arrives, and the ship chased it at full
 // stick. docs/TODO/135 is the plan underneath it: the aim point used to teleport
 // when the run committed, so the ship was asked to reverse.
@@ -195,4 +195,46 @@ console.log('\nthe approach hands over without changing its mind');
       downTheAxis.toFixed(3)} of the heading is down the axis)`,
     downTheAxis > 0.9);
   }
+}
+
+
+// --- the far side of the station (docs/TODO/136) -----------------------------
+//
+// `along` is SIGNED and `lateral` is measured perpendicular to the slot axis, so
+// neither says on its own which side of the station a ship is on. Every check
+// above this one starts on the slot side, which is exactly the blind spot the
+// probe had: a whole hemisphere nobody measured.
+
+console.log('\nthe approach knows which side of the station it is on');
+{
+  const station = new THREE.Object3D();
+  station.updateMatrixWorld(true);
+  const DOCK_Z = 160;
+  // identity station: the slot normal is world -Z, so -Z is IN FRONT of the slot
+  // and +Z is behind the hull.
+  const plan = (x: number, z: number) =>
+    planDocking(new THREE.Vector3(x, 0, z), station, DOCK_Z, 400, makeDockPlan());
+
+  // THE BUG: a ship behind the station sits at a NEGATIVE `along`, which passes
+  // `along < dockZ` trivially, and on the axis line its `lateral` is 0. Both
+  // halves of "arrived" were true from the wrong side, so a trader that drifted
+  // there docked through the back of the station and despawned (game/npc.ts
+  // reads this flag, and it is the only reader).
+  check('a ship in the slot mouth has arrived', plan(0, -100).arrived);
+  check('...and the same distance BEHIND the hull has not',
+    !plan(0, 100).arrived);
+  check('...nor has one a long way behind, on the axis line',
+    !plan(0, 3_000).arrived);
+
+  // The OTHER half of the same blind spot is not asserted here, because it is
+  // not fixed: from behind, the plan still aims at a gate on the far side of the
+  // hull and only notices when it gets close, at which point the stand-off
+  // branch flaps. `planDocking` carries the diagnosis at the branch and
+  // docs/TODO/136 carries the four rewrites that were measured and rejected.
+  // A check was written for it and deleted rather than kept: it passed with the
+  // defect in place, because from directly behind BOTH the fixed and the broken
+  // aim point lie dead ahead through the station, and a heading cannot tell them
+  // apart. `npm run dock-probe` can — 223 of its 504 approaches — which is where
+  // that claim belongs until there is behaviour worth pinning.
+  check('the plan from behind is still the gate phase', plan(0, 2_000).phase === 'gate');
 }

@@ -16,19 +16,30 @@
 //
 // WHAT IT SPREADS OVER, and why each matters:
 //
-//   offset    dead on the axis, and 400 to 2,400 units off it in four
-//             directions. Off-axis is the case the roll term exists for: the
-//             ship has to bank round to the gate and then arrive rolled with
-//             the slot.
+//   bearing   WHERE THE SHIP STARTS, as an angle from the slot's own normal:
+//             dead in front of the slot, out to the side, and DIRECTLY BEHIND
+//             the station, at four azimuths around each. This replaced a grid
+//             of four cardinal offsets on 2026-08-11 and it is the whole reason
+//             docs/TODO/136 exists — every approach the probe had ever flown
+//             began on the slot side, so the two worst defects in the approach
+//             lived in a region nothing measured. "It docks 320/320" meant "it
+//             docks from in front".
 //   range     900 to 3,000 units out — inside the gate and well outside it, so
 //             both approach phases are exercised from cold.
-//   spin      the station turned by four different angles before the run, so
-//             the slot is not in the same place every time. A letterbox that
-//             only worked at one rotation would otherwise pass every case.
+//   spin      the station turned before the run, so the slot is not in the same
+//             place every time. A letterbox that only worked at one rotation
+//             would otherwise pass every case.
+//   facing    WHICH WAY THE SHIP IS POINTING when the computer takes over:
+//             at the station, away from it, across, and the world -Z the probe
+//             used to assume. Pointing AT the station is how Chris reproduced
+//             the pitch oscillation, and it was not a case the probe could
+//             express.
 //
-// 320 approaches, about a second. WHAT IT MEASURED, for docs/TODO/126: the old
-// quaternion slerp docked 320/320, median 15.2s, worst 36.3s, 2 scrapes; the
-// demand-flown autopilot docks 320/320, median 16.8s, worst 30.6s, 3 scrapes.
+// 504 approaches. WHAT IT MEASURED, for docs/TODO/126: the old quaternion slerp
+// docked 320/320, median 15.2s, worst 36.3s, 2 scrapes; the demand-flown
+// autopilot docks 320/320, median 16.8s, worst 30.6s, 3 scrapes. Those are on
+// the OLD grid, which flew only from the slot side, and they are kept for the
+// record rather than for comparison — the grid changed on 2026-08-11.
 //
 // AND WHAT THOSE COLUMNS COULD NOT SEE (docs/TODO/134, GitHub #23): whether the
 // ship rolls hard over and back the whole way in. Docking well and flying well
@@ -46,9 +57,18 @@
 // setting, 17 to 17 on another) while the reversal medians agreed on both. It is
 // a handful of approaches either side, not a trend.
 //
-// The ship starts at rest, pointing along world -Z whatever direction the
-// station happens to be, which is deliberately unhelpful: the first thing every
-// run has to do is turn.
+// ON THE 504-APPROACH GRID, which is the one that runs now: 504/504 docked,
+// median 19.4s, 38.6s worst, 1 scrape, median 10 roll reversals and worst 21 —
+// and 223 approaches whose PLAN jumps more than 20 degrees in a single frame,
+// the worst of them a full 180. That last column is docs/TODO/136's open defect
+// and it is almost entirely the wrong-side region this grid added: the ship
+// flaps its way round the hull because the stand-off branch has no hysteresis
+// and makes no progress. It is diagnosed in `planDocking` and in the plan; it is
+// not fixed.
+//
+// The ship starts at rest in one of four attitudes (`Facing`), including the
+// world -Z the old grid always assumed, which is deliberately unhelpful: the
+// first thing most runs have to do is turn.
 
 import * as THREE from 'three';
 
@@ -99,7 +119,12 @@ interface Run {
   headingJump: number;
 }
 
-function approach(seed: number, offAxis: THREE.Vector3, out: number, spin: number): Run {
+/** Where the ship points when the docking computer takes over. */
+type Facing = 'at' | 'away' | 'across' | 'world';
+
+function approach(
+  seed: number, bearing: THREE.Vector3, out: number, spin: number, facing: Facing,
+): Run {
   seedWorld(seed);
   const state = freshState(newCommander());
   state.world.build(state.systems[state.commander.systemIndex]);
@@ -118,9 +143,23 @@ function approach(seed: number, offAxis: THREE.Vector3, out: number, spin: numbe
   const station = state.world.station;
   station.rotateZ(spin);
   station.updateMatrixWorld(true);
-  const normal = new THREE.Vector3(0, 0, -1).applyQuaternion(station.quaternion);
-  state.player.position.copy(station.position).addScaledVector(normal, out).add(offAxis);
-  state.player.quaternion.identity();
+  // `bearing` is given in the STATION's frame, with -Z the slot normal, so a
+  // case means the same thing whatever the spin is.
+  const from = bearing.clone().applyQuaternion(station.quaternion).normalize();
+  state.player.position.copy(station.position).addScaledVector(from, out);
+
+  const toStation = new THREE.Vector3().subVectors(station.position, state.player.position)
+    .normalize();
+  const look = new THREE.Vector3();
+  if (facing === 'at') look.copy(toStation);
+  else if (facing === 'away') look.copy(toStation).negate();
+  else if (facing === 'across') {
+    look.crossVectors(toStation, new THREE.Vector3(0, 1, 0));
+    if (look.lengthSq() < 1e-9) look.set(1, 0, 0);
+    look.normalize();
+  } else look.set(0, 0, -1);
+  state.player.quaternion.setFromRotationMatrix(
+    new THREE.Matrix4().lookAt(new THREE.Vector3(), look, new THREE.Vector3(0, 1, 0)));
   state.player.speed = 0;
   state.session.dcEngaged = true;
 
@@ -175,22 +214,41 @@ function approach(seed: number, offAxis: THREE.Vector3, out: number, spin: numbe
   };
 }
 
-const OFFSETS: [string, THREE.Vector3][] = [
-  ['on-axis', new THREE.Vector3(0, 0, 0)],
-  ['right  ', new THREE.Vector3(1, 0, 0)],
-  ['left   ', new THREE.Vector3(-1, 0, 0)],
-  ['above  ', new THREE.Vector3(0, 1, 0)],
-  ['below  ', new THREE.Vector3(0, -1, 0)],
-];
+/**
+ * Start bearings in the station's own frame, as (angle from the slot normal,
+ * azimuth around it). -Z is the slot normal, so 0 degrees is dead in front of
+ * the letterbox and 180 is directly behind the station.
+ *
+ * Four azimuths on every ring that has one, because the slot is a LETTERBOX:
+ * coming at it from above is not the same problem as coming at it from the side,
+ * and the roll needed to fit differs by a quarter turn between them.
+ */
+const BEARINGS: [string, THREE.Vector3][] = [];
+for (const polar of [0, 45, 90, 135, 180]) {
+  const rad = polar * Math.PI / 180;
+  const azimuths = polar === 0 || polar === 180 ? [0] : [0, 90, 180, 270];
+  for (const az of azimuths) {
+    const a = az * Math.PI / 180;
+    // -Z is the slot normal; X and Y are the slot's across and along
+    BEARINGS.push([
+      `${String(polar).padStart(3)}°${polar === 0 || polar === 180 ? '    ' : `/${String(az).padStart(3)}°`}`,
+      new THREE.Vector3(
+        Math.sin(rad) * Math.cos(a), Math.sin(rad) * Math.sin(a), -Math.cos(rad)),
+    ]);
+  }
+}
 
-const cases = OFFSETS.flatMap(([name, dir]) =>
-  [400, 900, 1_500, 2_400].flatMap((off) =>
-    [900, 1_200, 2_000, 3_000].flatMap((out) =>
-      [0, 0.4, 0.9, 2.2].map((spin) => ({
-        label: `${name} ${String(off).padStart(4)} off · ${out} out · spin ${spin}`,
-        offAxis: dir.clone().multiplyScalar(off),
+const FACINGS: Facing[] = ['at', 'away', 'across', 'world'];
+
+const cases = BEARINGS.flatMap(([name, dir]) =>
+  [900, 2_000, 3_000].flatMap((out) =>
+    [0, 0.9, 2.2].flatMap((spin) =>
+      FACINGS.map((facing) => ({
+        label: `${name} · ${String(out).padStart(4)} out · spin ${spin} · facing ${facing}`,
+        bearing: dir,
         out,
         spin,
+        facing,
       })))));
 
 let docked = 0;
@@ -202,7 +260,7 @@ const pitches: number[] = [];
 const jumps: number[] = [];
 const deg = (rad: number): number => rad * 180 / Math.PI;
 for (const [i, c] of cases.entries()) {
-  const r = approach(90_100 + i, c.offAxis, c.out, c.spin);
+  const r = approach(90_100 + i, c.bearing, c.out, c.spin, c.facing);
   if (r.docked) { docked += 1; times.push(r.seconds); }
   scrapes += r.bumps;
   if (r.phaseDrops > 0) drops += 1;

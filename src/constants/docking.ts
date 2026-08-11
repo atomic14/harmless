@@ -20,6 +20,17 @@
 export const GATE_HALF_WIDTHS = 5;
 
 /**
+ * How far out a ship stands off while it comes ROUND to the slot side, as a
+ * multiple of the gate distance (and so, through it, of the station half-width).
+ *
+ * Slightly outside the gate, so the detour ends somewhere the ordinary approach
+ * can pick up from. It was an unnamed 1.15 beside an unnamed 0.95 that decided
+ * when the stand-off fired; docs/TODO/136 gave it a name on its way past, and
+ * left a comment on the branch itself saying why the branch is wrong.
+ */
+export const STANDOFF_WIDTHS = 1.15;
+
+/**
  * Off-axis error we insist on before committing to the run in, in world units.
  *
  * A ship that reaches the gate off-axis and then flies straight carries that
