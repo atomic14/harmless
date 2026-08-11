@@ -13,10 +13,34 @@ active context:
 
 ## Execution queue
 
-**Empty.** 137 landed on 2026-08-11 and nothing has been promoted behind it.
-Promoting the head of the backlog is what makes the next execution item, and the
-backlog is empty too — so the next item comes from a GitHub issue, from flying
-the game, or from the one open question below.
+1. **139** — [Nothing the galaxy sends can get through the
+   shield](139-nothing-the-galaxy-sends-gets-through-the-shield.md). Chris,
+   flying it: *"is our shield and energy recharging too fast — the laser hits
+   from pirates don't seem to do much damage — or they aren't very accurate at
+   shooting..."* All three guesses are live and the first is provable without a
+   flight. **Fourteen of the seventeen pirate builds in the roster can never
+   strip the front pool**, because their BEST case — point blank, capped hit
+   chance, never out of the gate, already flying the hardest build the source
+   filed for the job — is at or under `SHIELD_REGEN`'s 8.925 points a second per
+   face. The hardest thing in the galaxy needs 51 seconds of unbroken perfect
+   fire; the player's pulse laser kills a Sidewinder in 2.8 and the military in
+   0.7. Damage may not move — it is the parity claim, and selection is already
+   spent — so the levers are regen and time-on-aim, which are the two terms
+   Harmless owns outright. **Regen moves first, and the arithmetic forces the
+   ordering:** perfect aim cannot save a build whose best case at 100% time on
+   target still loses to the shield.
+
+2. **138** — [Every system in every galaxy flies the same
+   roster](138-every-system-flies-the-same-roster.md). The 23 released blueprint
+   sets `S.A`–`S.W` are all imported and the set dimension is then collapsed:
+   `SPECS` resolves its builds at import time, so a Krait is the same Krait in
+   all eight galaxies. The released rule is recovered and cited (tech level,
+   government, two random bits, plus Elite-A's galaxy addition), and bit 0 turns
+   out to be the rule that already picks the Dodo over the Coriolis — one home,
+   not two. Behind 139 because its M1 roster probe must not be baselined against
+   a fight that one-sided, and because a set-faithful build choice would have
+   weakened an opposition that already cannot bite — which is why 138 keeps
+   `role-variants.ts` ranking inside the set it chooses.
 
 The GitHub inbox is empty: **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
@@ -86,7 +110,9 @@ measurable for the first time and moved with it, 0.5 → 0.30, chosen at the kne
 rather than the floor. **The wings arrive 4.4 degrees off the slot in a median
 approach and 13.8 at worst, from 7.5 and 30.0**, with docked, scrapes, seconds
 and the plan's jump column unmoved and traffic still clean. It cost the NOSE 0.9
-degrees in the median — the same bank spending itself twice. Not yet flown.
+degrees in the median — the same bank spending itself twice. **Flown by Chris on
+2026-08-11 and confirmed good**, which closes the docking-computer sequence that
+ran from 126 through 134, 135 and 136 to here.
 
 **136** — the approach is a PATH now, and the defect Chris reported by parking on
 the far side of the station is gone: **no approach in 504 has a plan that jumps
