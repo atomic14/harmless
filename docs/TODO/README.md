@@ -13,37 +13,34 @@ active context:
 
 ## Execution queue
 
-**One plan, and it is half-finished on purpose.** 130 emptied the backlog on
-2026-08-11; 127 and 126 landed the day before, alongside 129's first milestone.
-What is left of 129 is a number nobody has flown, and flying it is Chris's.
+**Empty.** 129 M2 was the last open item and docs/TODO/132 closed it on
+2026-08-11 without the flight it was waiting for. `QUEUE.json` is `[]`, the
+backlog is empty, and the GitHub inbox is empty: **#22** closed with 127, as #18
+did with 121, #20 with 122 and #21 with 123.
 
-The GitHub inbox is empty: **#22** closed with 127, as #18 did with 121, #20
-with 122 and #21 with 123. Nothing below has an issue.
+Nothing in the project is now blocked on anything.
 
-1. [ ] [129 — your name changes and nothing says so](129-your-name-changes-in-silence.md)
-   · no issue — asked by Chris · feature, small. **M1 landed** (`8153086`):
-   eight deeds and the decay now say `CHARACTER: DUBIOUS` when a rung is
-   crossed, assembled from `characterName` so it cannot promise a rung the
-   status screen does not show, and queued behind the line that caused it.
-   Making that work replaced `scanVerdictTimer` with a real queue — a scan owes
-   the console two lines, the record and the name, and one slot silently ate the
-   second. **M2 is the `DISREPUTE_BRIBE` value and it stays open**: the whole
-   shape of the plan is *make it visible before retuning it*, and the input M2
-   needs is a flight.
+## What the playtest is now for
 
-## What the playtest is now carrying
+**It reports; it no longer blocks** (Chris, 2026-08-11: *"do not block things on
+my playtest, use sensible default values"*). Every number below is settled and
+gated. docs/TODO/132 has the reasoning: three of the four were never matters of
+feel, and the fourth stopped being a value at all.
 
-**A playtest is coming** (Chris, 2026-08-10) and it is the blocking input for
-every number below. Nothing in the character system should be retuned before
-somebody has seen it work — which is what 129 M1 was for, and what 128's priced
-prompts before it were for.
+What a flight is still worth is the part no measurement reaches — whether being
+waved off by a hermit reads as a mechanic or as a bug, and whether a bribe FEELS
+like it costs something. Those become GitHub issues, not blockers.
 
-- **`DISREPUTE_BRIBE` (12)** — 129 M2. One bribe takes an Honest commander to
-  Dubious. Too much, or the point?
-- **`DISREPUTE_HEAT` (0.5), `COURTESY_RATE` (0.15), `HERMIT_FAVOUR` (0.2)** —
-  96's three unflown starting values. Is a Dodgy pilot's reception too hard, does
-  being waved off read as a mechanic or as a bug, is the discount worth the
-  detour?
+- **`DISREPUTE_BRIBE` (12)** — settled by arithmetic, not feel. Over all 1,686
+  jumps galaxy 1 allows inside a full tank, a median jump forgives 6 disrepute;
+  the bribe is exactly twice that, so one bad afternoon washes off in two quiet
+  jumps and a bribe every system reaches Dodgy by the fourth. Unchanged, gated.
+- **`DISREPUTE_HEAT`** — no longer a number. Its own doc said it meant "as
+  interesting as a fat sale", which names `SALE_NOTORIETY_MAX`; it is that
+  constant now and cannot drift from the sentence that justifies it.
+- **`COURTESY_RATE` (0.15), `HERMIT_FAVOUR` (0.2)** — unchanged, and gated on
+  the design rather than the mechanism: the stick must outweigh the carrot, and
+  the hermit's welcome must stay a perk rather than a wholesale channel.
 - ~~**What a person fetches**~~ — **answered by measurement, 131.** It was not a
   matter of taste: a sale paid 2–16 Cr and filed a record costing 25 Cr to
   clear, so it was never correct at any market in any galaxy.
@@ -55,14 +52,20 @@ prompts before it were for.
 121's CHARACTER lever (⇧T at the station) is the cockpit that settles all of
 them: twenty levers behind one door, including the Character score itself.
 
-**The two above cannot be simulated, and this is measured rather than assumed.**
-`test/campaign.ts` abstracts flight entirely — no bribe, scan, hermit or murder
-ever runs in it — so a 60-commander bounty-hunter cohort over 80 legs ends with
-a median career peak disrepute of **0.0**. The harness can only see the trade
-half of the ladder. What is missing is not a number the machine can find; it is
-how often a person chooses to press the key, and only a person can say.
+**Do not reach for `npm run campaign` to re-open any of these.** It abstracts
+flight entirely — no bribe, scan, hermit or murder ever runs in it — so a
+60-commander bounty-hunter cohort over 80 legs ends with a median career peak
+disrepute of **0.0**. Measured, not assumed. The harness sees only the trade half
+of the ladder, which is why 132 anchored these against the decay, the sale
+channel and each other instead.
 
 ## What landed on 2026-08-11
+
+**132** — the four numbers that were holding the queue open, closed without the
+flight they were waiting for. Each already had an anchor in the codebase that
+nobody had gone and looked for. Nothing moved on taste: `DISREPUTE_HEAT` became
+`SALE_NOTORIETY_MAX` (its own doc named that constant in words), and the other
+three kept their values and gained gates.
 
 **131** — 127's own finding, and it turned out to be arithmetic rather than
 feel, so it did not have to wait. Selling a rescued pilot paid 2–16 Cr and filed

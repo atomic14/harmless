@@ -6,6 +6,7 @@
 
 import { RATINGS } from './rating.ts';
 import { CHARACTER } from './character.ts';
+import { SALE_NOTORIETY_MAX } from './market.ts';
 
 /**
  * Combat score at which fame is fully "worth coming for" — the rating ladder's
@@ -41,23 +42,26 @@ export const DISREPUTE_FULL = CHARACTER.find(([, name]) => name === 'Notorious')
  * memory of your last big sale feeds (`Mark.notoriety`), because to a pirate
  * they are the same fact: how visibly known you are.
  *
- * Half, so a Notorious pilot flying clean through a quiet system looks about as
+ * A Notorious pilot flying clean through a quiet system looks about as
  * interesting as an honest one who just sold a fat cargo here. Folding it in
  * rather than adding a fourth independent term is the decision the plan records
  * — one "how you're seen" model, not two.
+ *
+ * **EXPRESSED, NOT TYPED** (docs/TODO/132). That sentence names a number the
+ * game already has: `SALE_NOTORIETY_MAX` is the most a sale can put on this
+ * exact channel, so "as interesting as the fattest sale" IS that constant, and
+ * `infamy` is already normalised to 1 at Notorious. Written out as 0.5 the two
+ * were free to drift and the rationale above would have quietly become false —
+ * the same trick as `FAME_FULL` and `DISREPUTE_FULL` beside it. 96 shipped this
+ * as an unflown starting value and there is nothing left to fly: it is not a
+ * knob, it is an equivalence.
  *
  * Owner confirmed as the threat model rather than character.ts: the ladder and
  * what moves a commander up it belong there, but what a rung is WORTH to a
  * pirate sizing up a reception is this file's business, beside the fame weight
  * it sits next to.
- *
- * Its own rule id: it shares the value 0.5 with `DISREPUTE_DRAW` below, and the
- * two are answers to different questions — how KNOWN a bad name makes you, and
- * how much it makes someone come looking. Either may move alone.
- *
- * @rule threat.disreputeHeat
  */
-export const DISREPUTE_HEAT = 0.5;
+export const DISREPUTE_HEAT = SALE_NOTORIETY_MAX;
 
 /**
  * How much a criminal name draws challengers, against combat fame's 1. Half:

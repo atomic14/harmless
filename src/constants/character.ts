@@ -80,6 +80,17 @@ export const DISREPUTE_SURVIVOR_RELEASED = 10;
  * Two of them take an Honest commander past Dubious, five past Dodgy — a habit
  * makes a reputation, one bad afternoon does not.
  *
+ * **MEASURED AGAINST THE DECAY, which is what settles it** (docs/TODO/132).
+ * docs/TODO/129 M2 left this open for a flight; the flight was not the missing
+ * input, the other half of the arithmetic was. Over every jump galaxy 1 allows
+ * inside a full tank (1,686 of them), a jump takes 2–5 days, median 4 — so
+ * `DISREPUTE_DECAY` forgives 3–7.5 disrepute per jump, median 6. **This is
+ * twice that**, which is exactly the shape the paragraph above asks for: one
+ * bribe is gone after two quiet jumps, and a bribe every system compounds past
+ * Dodgy by the fourth and Shady by the eighth. Lower and the deed is free to a
+ * commander who travels; much higher and one bad afternoon is a career.
+ * `test/character.test.ts` pins that behaviour rather than the number.
+ *
  * Its own rule id: it shares the value 12 with `DEFENCE_WEIGHT`
  * (constants/threat.ts), which weighs how much shooting a hull survives, and
  * with `TACTIC_SLEEPER_SECONDS`, which is a duration. Coincidences, and nothing

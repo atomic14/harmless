@@ -12,8 +12,12 @@ import {
   characterName, characterVerdict, afterDeed, afterDecay, rungCrossed,
 } from '../src/game/character.ts';
 import {
-  CHARACTER, DISREPUTE_DECAY, DISREPUTE_MAX, DISREPUTE_HERMIT_KILL, DISREPUTE_MURDER,
+  CHARACTER, DISREPUTE_BRIBE, DISREPUTE_DECAY, DISREPUTE_MAX, DISREPUTE_HERMIT_KILL,
+  DISREPUTE_MURDER,
 } from '../src/constants/character.ts';
+import { MAX_FUEL } from '../src/constants/commander.ts';
+import { distanceTenths, daysForJump } from '../src/galaxy/navigation.ts';
+import { g1 } from './fixtures.ts';
 
 console.log('\ncharacter');
 {
@@ -44,6 +48,67 @@ console.log('\ncharacter');
   eq('...and neither does a NaN span', afterDecay(50, NaN), 50);
   check('a hermit kill is a fortnight-plus of honest flying to fully shed — slow, as memories are',
     DISREPUTE_HERMIT_KILL / DISREPUTE_DECAY > 14);
+}
+
+console.log('\na bribe is priced against the decay, not against a feeling');
+{
+  // WHAT SETTLED docs/TODO/129 M2 (docs/TODO/132). The plan parked
+  // `DISREPUTE_BRIBE` on a playtest, and the missing input turned out not to be
+  // a flight: a deed's weight only means something against the rate that
+  // forgives it, and nobody had put the two numbers side by side.
+  //
+  // Measured over the real galaxy rather than a remembered figure — every jump
+  // a full tank allows — because the decay is spent in DAYS and only the chart
+  // knows how many a jump costs.
+  const legs: number[] = [];
+  for (let i = 0; i < g1.length; i++) {
+    for (let j = 0; j < g1.length; j++) {
+      if (i === j) continue;
+      const d = distanceTenths(g1[i], g1[j]);
+      if (d > 0 && d <= MAX_FUEL) legs.push(daysForJump(d));
+    }
+  }
+  legs.sort((a, b) => a - b);
+  const medianJump = legs[Math.floor(legs.length / 2)];
+  const forgiven = medianJump * DISREPUTE_DECAY;
+  check(`the galaxy really is jumpable (${legs.length} legs, ${legs[0]}–`
+    + `${legs[legs.length - 1]} days, median ${medianJump})`,
+    legs.length > 1000 && legs[0] < medianJump && medianJump < legs[legs.length - 1]);
+
+  // THE RULE, in both directions. One bad afternoon must wash off, and a habit
+  // must not — which is a claim about the deed AND the decay together, so it is
+  // stated as flying rather than as arithmetic on one constant.
+  const quietJumps = (score: number, n: number) => {
+    let s = score;
+    for (let i = 0; i < n; i++) s = afterDecay(s, medianJump);
+    return s;
+  };
+  eq('one bribe marks an Honest commander',
+    characterName(afterDeed(0, DISREPUTE_BRIBE)), 'Dubious');
+  eq('...and two quiet jumps wash it off completely',
+    characterName(quietJumps(afterDeed(0, DISREPUTE_BRIBE), 2)), 'Honest');
+  check(`...because the deed is worth about two median jumps of decay`
+    + ` (${DISREPUTE_BRIBE} vs ${forgiven})`,
+    DISREPUTE_BRIBE > forgiven && DISREPUTE_BRIBE <= forgiven * 2.5);
+
+  // ...and the habit, which is the half that must NOT wash off: a bribe in every
+  // system, jumping between them, is a reputation being built on purpose.
+  let habit = 0;
+  const reached: Record<string, number> = {};
+  for (let n = 1; n <= 12; n++) {
+    habit = afterDeed(quietJumps(habit, 1), DISREPUTE_BRIBE);
+    const rung = characterName(habit);
+    if (reached[rung] === undefined) reached[rung] = n;
+  }
+  check(`a bribe every system reaches Dodgy by the 4th and Shady by the 8th`
+    + ` (${Object.entries(reached).map(([r, n]) => `${r}@${n}`).join(' ')})`,
+    reached.Dodgy !== undefined && reached.Dodgy <= 4
+    && reached.Shady !== undefined && reached.Shady <= 8);
+
+  // THE CONTROL: the habit is the thing, not the travelling. A commander who
+  // bribes once and then flies must not drift upward on his own.
+  check('...while one bribe and a career of honest flying stays Honest',
+    characterName(quietJumps(afterDeed(0, DISREPUTE_BRIBE), 40)) === 'Honest');
 }
 
 // --- and the moment the name changes (docs/TODO/129) -------------------------

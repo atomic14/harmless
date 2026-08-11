@@ -200,6 +200,20 @@ console.log('\nrock hermit prices');
     check(`...and adds it to the supplies they buy (measured ${supplyRise.toFixed(4)})`,
       Math.abs(supplyRise - HERMIT_FAVOUR) < 0.005);
 
+    // ...AND IT IS A PERK, NOT AN INCOME (docs/TODO/132). 96 shipped
+    // `HERMIT_FAVOUR` unflown, and the risk a re-tune runs is not that the
+    // discount stops working — the two checks above would catch that — but that
+    // it grows into a reason to BE disreputable, which would invert the whole
+    // ladder. The rule: even at the widest welcome, a hermit's ore must still
+    // cost more than the station price the honest commander pays for it is
+    // measured against, so the detour buys a margin and never a business.
+    check(`the widest favour is a discount and not a wholesale channel`
+      + ` (${(favoured[gold].price / base[gold].price).toFixed(2)}x the station)`,
+      favoured[gold].price < hermit[gold].price
+      && favoured[gold].price > base[gold].price / 2);
+    check('...and a spotless commander is not PUNISHED for it either',
+      hermitMarket(g1[7], 0, 0)[gold].price === hermit[gold].price);
+
     // It has to be a ramp, not a step, or "how dirty is too dirty" is not a
     // decision the player can steer by.
     let rising = true;
@@ -525,6 +539,25 @@ console.log('\npirate economics');
     }
     check(`a full name is passed by at COURTESY_RATE (measured ${uHi})`,
       Math.abs(uHi - COURTESY_RATE) < 1e-9);
+
+    // --- and the SHAPE those two rates make (docs/TODO/132) ------------------
+    //
+    // docs/TODO/96 shipped both as unflown starting values. The measurements
+    // above pin each to its constant, which is the mechanism; this is the
+    // DESIGN, and it is the half that would survive a re-tune wrongly. A
+    // criminal name is a bargain the game offers — more people want you, and
+    // occasionally one calls it off — and the bargain has to be a bad one, or
+    // being Notorious is simply a perk with no cost.
+    check(`the stick outweighs the carrot: a name draws challengers at`
+      + ` ${CHALLENGE_RATE} and is spared at ${COURTESY_RATE}`,
+      COURTESY_RATE < CHALLENGE_RATE * DISREPUTE_DRAW);
+    check('...and both are shares of a reception, not counts',
+      COURTESY_RATE > 0 && COURTESY_RATE < 1 && CHALLENGE_RATE > 0 && CHALLENGE_RATE < 1);
+    // ...and the carrot is occasional rather than a reliable screen: a name you
+    // could hide behind would make infamy a defence, which is the opposite of
+    // what every other term here does.
+    check(`courtesy spares a minority of receptions (${COURTESY_RATE})`,
+      COURTESY_RATE < 0.5);
   }
 
   // --- what the name does, as behaviour ---------------------------------

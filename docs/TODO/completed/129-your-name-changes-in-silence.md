@@ -163,7 +163,20 @@ The gates are proven able to fail both ways: hard-coding the line to one rung
 fails five pure boundaries and two flown ones, and making every move report a
 crossing fails sixteen and the control.
 
-**M2 IS STILL OPEN, and deliberately.** `DISREPUTE_BRIBE` is unchanged at 12.
+**M2 IS CLOSED — see docs/TODO/132.** Chris lifted the wait on 2026-08-11
+("do not block things on my playtest"), and it turned out not to need one. A
+deed's weight means nothing except against the rate that forgives it, and the
+two had never been put side by side: over all 1,686 jumps galaxy 1 allows inside
+a full tank, a median jump forgives 6 disrepute, and `DISREPUTE_BRIBE` is
+exactly twice that. One bribe is gone after two quiet jumps; a bribe every
+system reaches Dodgy by the fourth. The value is unchanged at 12 and
+`test/character.test.ts` pins the behaviour rather than the number. 96's three
+closed with it.
+
+The paragraph below is kept as written, because the rule it states was a good
+one and the reason it could be retired matters: nothing in 132 is a retune.
+
+**M2 WAS OPEN, and deliberately.** `DISREPUTE_BRIBE` is unchanged at 12.
 The whole shape of this plan is *make it visible before retuning it*, and
 nobody has flown it yet — the flight is the input M2 does not have. It is the
 same flight 96's three unflown values (`DISREPUTE_HEAT`, `COURTESY_RATE`,
