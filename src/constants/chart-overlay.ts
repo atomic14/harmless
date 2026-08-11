@@ -14,6 +14,12 @@
  * to nothing and the fade has silently become a second, invisible threshold on
  * top of `BUSY_LANE_CONVOYS`. At 0.35 a one-load lane is clearly there and
  * clearly quieter than an artery carrying five times as much.
+ *
+ * Its own rule id: it shares the value 0.35 with two steering angles, a spawn
+ * chance, a share of receptions and the docking follower's lookahead. Six
+ * unrelated 0.35s, and this is the only one that is an alpha.
+ *
+ * @rule chart.laneFadeFloor
  */
 export const LANE_FADE_FLOOR = 0.35;
 

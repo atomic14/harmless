@@ -57,14 +57,26 @@
 // setting, 17 to 17 on another) while the reversal medians agreed on both. It is
 // a handful of approaches either side, not a trend.
 //
-// ON THE 504-APPROACH GRID, which is the one that runs now: 504/504 docked,
-// median 19.4s, 38.6s worst, 1 scrape, median 10 roll reversals and worst 21 —
-// and 223 approaches whose PLAN jumps more than 20 degrees in a single frame,
-// the worst of them a full 180. That last column is docs/TODO/136's open defect
-// and it is almost entirely the wrong-side region this grid added: the ship
-// flaps its way round the hull because the stand-off branch has no hysteresis
-// and makes no progress. It is diagnosed in `planDocking` and in the plan; it is
-// not fixed.
+// ON THE 504-APPROACH GRID, which is the one that runs now, docs/TODO/136 M2-M3
+// replaced the reactive approach with a PATH and a follower on it:
+//
+//   before      504/504   median 19.4s   38.6s worst   1 scrape
+//               roll: median 10 reversals, 1.2 turns swept · pitch 5 and 12
+//               223 approaches jump over 20 degrees, worst 180.0
+//   after       504/504   median 15.6s   30.8s worst   0 scrapes
+//               roll: median 16 reversals, 1.7 turns swept · pitch 2 and 8
+//               NO approach jumps over 20 degrees, worst 3.4
+//
+// Read the two roll columns together, which is why the second one was added. The
+// plan column and the pitch column are the defect this item existed for, and
+// they are gone: from directly astern the old approach reversed its plan through
+// a half turn and pitched hard over ten times an approach, in 28 seconds; the
+// path arrives in 16 with one pitch reversal and a plan that moves a degree.
+// What went the other way is the ROLL, and it is the same ring in both — a
+// ship holding a bank hunts around it at about a reversal a second, on a curve
+// or on a dead-straight run in, in this version and the one before it. The path
+// spends more of the approach banked, so it collects more of it. That ring is
+// `dockingSticks`, not the plan, and it is the biggest thing left.
 //
 // The ship starts at rest in one of four attitudes (`Facing`), including the
 // world -Z the old grid always assumed, which is deliberately unhelpful: the
@@ -105,6 +117,17 @@ interface Run {
   rollReversals: number;
   /** the same for pitch, which is the control on the same stick that behaves */
   pitchReversals: number;
+  /**
+   * How far the ship ROLLED in total, in turns — the integral of the rate, which
+   * is the thing the reversal count above cannot see. The two answer different
+   * questions and both are needed: a ship flying a curve has to hold a bank, and
+   * a controller holding one rings around it, so a curved approach reverses more
+   * often than a straight one however gently. What #23 actually was is a full
+   * quarter turn each way at 1.3 rad/s; a two-degree wobble at the same
+   * frequency scores the same in the column beside this one and is not the same
+   * flying (docs/TODO/136).
+   */
+  rollSwept: number;
   /** run -> gate: an approach thrown far enough off the axis to start again */
   phaseDrops: number;
   /**
@@ -168,6 +191,7 @@ function approach(
   let rollReversals = 0;
   let pitchReversals = 0;
   let phaseDrops = 0;
+  let rollSwept = 0;
   let lastRoll = 0;
   let lastPitch = 0;
   let lastPhase = state.dockPlan.phase;
@@ -188,6 +212,7 @@ function approach(
     // The rates the ship is actually flying, which is what the pilot sees out
     // of the window — not the sticks, so a command that the envelope never
     // gets round to flying is not counted against it.
+    rollSwept += Math.abs(state.player.rollRate) * dt;
     if (reversed(state.player.rollRate, lastRoll)) rollReversals += 1;
     if (Math.abs(state.player.rollRate) >= STILL_ENOUGH) {
       lastRoll = Math.sign(state.player.rollRate);
@@ -210,7 +235,7 @@ function approach(
   }
   return {
     docked, seconds: frames / 60, bumps, rollReversals, pitchReversals, phaseDrops,
-    headingJump,
+    headingJump, rollSwept: rollSwept / (2 * Math.PI),
   };
 }
 
@@ -258,6 +283,7 @@ const times: number[] = [];
 const rolls: number[] = [];
 const pitches: number[] = [];
 const jumps: number[] = [];
+const swept: number[] = [];
 const deg = (rad: number): number => rad * 180 / Math.PI;
 for (const [i, c] of cases.entries()) {
   const r = approach(90_100 + i, c.bearing, c.out, c.spin, c.facing);
@@ -267,10 +293,12 @@ for (const [i, c] of cases.entries()) {
   rolls.push(r.rollReversals);
   pitches.push(r.pitchReversals);
   jumps.push(deg(r.headingJump));
+  swept.push(r.rollSwept);
   console.log(`${r.docked ? 'DOCKED' : 'FAILED'} ${r.seconds.toFixed(1).padStart(6)}s`
     + ` · ${String(r.bumps).padStart(2)} scrape(s)`
     + ` · ${String(r.rollReversals).padStart(3)} roll rev`
     + ` · ${String(r.pitchReversals).padStart(3)} pitch rev`
+    + ` · ${r.rollSwept.toFixed(1).padStart(4)} turns rolled`
     + ` · ${deg(r.headingJump).toFixed(0).padStart(3)}° jump · ${c.label}`);
 }
 const median = (xs: number[]): number => xs.slice().sort((a, b) => a - b)[xs.length >> 1];
@@ -279,6 +307,8 @@ times.sort((a, b) => a - b);
 console.log(`\n${docked}/${cases.length} docked · median ${
   times.length ? times[times.length >> 1].toFixed(1) : '—'}s · ${
   times.length ? times[times.length - 1].toFixed(1) : '—'}s worst · ${scrapes} scrapes`);
+console.log(`roll swept: median ${median(swept).toFixed(1)} turns`
+  + ` · worst ${worst(swept).toFixed(1)}`);
 console.log(`roll reversals: median ${median(rolls)} · worst ${worst(rolls)}`
   + ` · pitch: median ${median(pitches)} · worst ${worst(pitches)}`
   + ` · ${drops} run(s) fell back to the gate`);

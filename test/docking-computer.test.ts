@@ -13,7 +13,10 @@
 // Three items live here. docs/TODO/134 (GitHub #23) is the roll: the turn's own
 // axis goes degenerate as the nose arrives, and the ship chased it at full
 // stick. docs/TODO/135 is the plan underneath it: the aim point used to teleport
-// when the run committed, so the ship was asked to reverse.
+// when the run committed, so the ship was asked to reverse. docs/TODO/136 is
+// the last block, and it is the only one here that FLIES: a plan is a function
+// of where the ship is, so walking a point along whatever heading it is given
+// asks the whole question without a world to ask it in.
 
 import * as THREE from 'three';
 import {
@@ -23,8 +26,9 @@ import {
   DC_TURN_FADE_ANGLE, DC_SLOT_MARGIN,
 } from '../src/constants/docking-computer.ts';
 import {
-  GATE_HALF_WIDTHS, LINED_UP_LATERAL, ROLL_TOLERANCE,
+  GATE_HALF_WIDTHS, LINED_UP_LATERAL, ROLL_TOLERANCE, HULL_BOX_MARGIN, SLOT_HALF_ACROSS,
 } from '../src/constants/docking.ts';
+import { dockPath, makeDockPath } from '../src/game/dock-path.ts';
 import { STEER_SATURATION } from '../src/constants/combat-computer.ts';
 import { slotNormal } from '../src/world/slot.ts';
 import { check } from './harness.ts';
@@ -226,15 +230,121 @@ console.log('\nthe approach knows which side of the station it is on');
   check('...nor has one a long way behind, on the axis line',
     !plan(0, 3_000).arrived);
 
-  // The OTHER half of the same blind spot is not asserted here, because it is
-  // not fixed: from behind, the plan still aims at a gate on the far side of the
-  // hull and only notices when it gets close, at which point the stand-off
-  // branch flaps. `planDocking` carries the diagnosis at the branch and
-  // docs/TODO/136 carries the four rewrites that were measured and rejected.
-  // A check was written for it and deleted rather than kept: it passed with the
-  // defect in place, because from directly behind BOTH the fixed and the broken
-  // aim point lie dead ahead through the station, and a heading cannot tell them
-  // apart. `npm run dock-probe` can — 223 of its 504 approaches — which is where
-  // that claim belongs until there is behaviour worth pinning.
   check('the plan from behind is still the gate phase', plan(0, 2_000).phase === 'gate');
+}
+
+
+// --- the plan does not change its mind ANYWHERE (docs/TODO/136) --------------
+//
+// The check above this one could not be written while the defect stood, and the
+// reason is worth keeping: from DIRECTLY behind, the broken aim and a fixed one
+// both lie dead ahead through the station, so a single frame's heading cannot
+// tell them apart. What tells them apart is FLYING it — the ship moves off the
+// axis line, the stand-off branch fires, and the plan reverses.
+//
+// So this walks the plan instead of sampling it. A point is stepped along
+// whatever heading it is given, at the speed it is given, and what is asserted
+// is the largest the heading moved between two consecutive frames. It is the
+// same shape as `npm run dock-probe`'s jump column and it needs no world: the
+// question a plan is asked is a function of where the ship is.
+//
+// On the approach this replaced, the same walk from directly astern reverses
+// through 180 degrees.
+
+console.log('\nthe approach never reverses, from anywhere on the sphere');
+{
+  const station = new THREE.Object3D();
+  station.updateMatrixWorld(true);
+  const DOCK_Z = 160;
+  const dt = 1 / 60;
+
+  /** Fly the plan from `start` and return the worst single-frame heading turn. */
+  const walk = (start: THREE.Vector3): { jump: number; docked: boolean } => {
+    const pos = start.clone();
+    const plan = makeDockPlan();
+    const last = new THREE.Vector3();
+    let jump = 0;
+    let docked = false;
+    for (let frame = 0; frame < 120 * 60 && !docked; frame++) {
+      planDocking(pos, station, DOCK_Z, 400, plan);
+      if (frame > 0) jump = Math.max(jump, last.angleTo(plan.heading));
+      last.copy(plan.heading);
+      // A perfect pilot, which is the point: any wobble here would be the
+      // FOLLOWER's and this is a claim about the plan.
+      pos.addScaledVector(plan.heading, plan.speed * dt);
+      docked = plan.arrived;
+    }
+    return { jump: jump * 180 / Math.PI, docked };
+  };
+
+  // Directly astern, the case docs/TODO/136 exists for: `lateral` is 0, so
+  // nothing in the ship's own position says which way round to come.
+  {
+    const { jump, docked } = walk(new THREE.Vector3(0, 0, 2_000));
+    check('flown from directly astern, the approach arrives', docked);
+    check(`...without the plan ever reversing (worst ${jump.toFixed(1)}° in a frame)`,
+      jump < 20);
+  }
+
+  // ...and everywhere else. Four azimuths at each bearing, because the plane the
+  // ship comes round in is the station's own when it is on the axis line and its
+  // own when it is not, and the handover between them is the thing to break.
+  {
+    let worst = 0;
+    let worstAt = '';
+    let arrived = 0;
+    let flown = 0;
+    for (const polar of [0, 30, 60, 90, 120, 150, 180]) {
+      const azimuths = polar === 0 || polar === 180 ? [0] : [0, 90, 180, 270];
+      for (const az of azimuths) {
+        for (const range of [400, 900, 3_000]) {
+          const p = polar * Math.PI / 180;
+          const a = az * Math.PI / 180;
+          const { jump, docked } = walk(new THREE.Vector3(
+            Math.sin(p) * Math.cos(a), Math.sin(p) * Math.sin(a), -Math.cos(p),
+          ).multiplyScalar(range));
+          flown += 1;
+          if (docked) arrived += 1;
+          if (jump > worst) { worst = jump; worstAt = `${polar}°/${az}° at ${range}`; }
+        }
+      }
+    }
+    check(`every approach on the sphere arrives (${arrived}/${flown})`, arrived === flown);
+    check(`...and none of their plans jumps (worst ${worst.toFixed(1)}° at ${worstAt})`,
+      worst < 20);
+  }
+
+  // The path is what makes that true, so the path is what is asserted next: the
+  // aim is always a real distance ahead — never a point the ship is sitting on,
+  // which is the ill-conditioned heading docs/TODO/135 spent its whole budget
+  // removing — and it always leads the ship AROUND the hull rather than through
+  // it. Read off the shortest lookahead the walk ever gets, which is the last
+  // one before the slot.
+  {
+    const pos = new THREE.Vector3(0, 0, 2_000);
+    const plan = makeDockPlan();
+    const path = makeDockPath();
+    let closest = Infinity;
+    let widest = 0;
+    for (let frame = 0; frame < 120 * 60; frame++) {
+      planDocking(pos, station, DOCK_Z, 400, plan);
+      dockPath(pos, station, DOCK_Z, plan.swing, path);
+      closest = Math.min(closest, path.aim.distanceTo(pos));
+      // Inside `dockingOutcome`'s box there is nowhere to be but the channel.
+      const box = DOCK_Z + HULL_BOX_MARGIN;
+      if (Math.abs(pos.z) < box && Math.abs(pos.x) < box && Math.abs(pos.y) < box) {
+        widest = Math.max(widest, Math.hypot(pos.x, pos.y));
+      }
+      if (plan.arrived) break;
+      pos.addScaledVector(plan.heading, plan.speed * dt);
+    }
+    // The nearest it ever comes is the last third of a second, on the axis and
+    // inside the corridor, where the lookahead has shortened to what is left of
+    // the path — nothing like the gate, where an aim underfoot was a heading
+    // that swung through 42 degrees (docs/TODO/135).
+    check(`the aim is never underfoot (nearest ${closest.toFixed(1)} units)`,
+      closest > DOCK_Z / 8);
+    check(`...and the flown path is in the CHANNEL wherever it is in the box (${
+      widest.toFixed(1)} against ${SLOT_HALF_ACROSS})`, widest < SLOT_HALF_ACROSS);
+  }
 }

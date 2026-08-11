@@ -107,6 +107,18 @@ const OUTSIDE: readonly Group[] = [
   },
 
   {
+    why: 'STAYS: how finely the approach curve is WALKED, which is arithmetic about the'
+      + ' curve rather than a rule about docking. Nothing in the game changes if it goes'
+      + ' up: the error it controls is the sag of a chord against its own arc, a unit in'
+      + ' 800 at the value it holds, and the shape it is sampling — the gate, the turn in'
+      + ' and its exponent — is constants/docking.ts, where a shipyard could argue with'
+      + ' it. Same test as `BEAM_FLASH`: is this the game, or how the game is computed',
+    files: {
+      'game/dock-path.ts': ['STEPS'],
+    },
+  },
+
+  {
     why: 'per-module three.js vectors — scratch buffers and the fixed axes a rotation is'
       + ' taken about — hoisted so a per-frame path allocates nothing. docs/TODO/90'
       + ' rules them out by name: a THREE.Vector3 is MUTABLE, so a shared home would'

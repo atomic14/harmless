@@ -13,26 +13,27 @@ active context:
 
 ## Execution queue
 
-1. [136 — the approach has never been flown from behind](136-the-approach-has-never-been-flown-from-behind.md)
-   · found by Chris flying 135. **M1 landed and it is the finding:** every
-   approach `dock-probe` had ever flown started on the slot side, so "504/504
-   docked" meant "docked from in front". The grid is a real sweep now — five
-   bearings from the slot normal out to directly astern, four azimuths, three
-   ranges, three spins, four starting attitudes — and from behind the station the
-   plan reverses through **180 degrees** on 223 of its 504 approaches, because
-   the stand-off branch pushes radially (which makes no progress from astern) and
-   has no hysteresis. M2–M4 replace the reactive aim with a PATH the follower
-   flies, which is where traffic avoidance can later live. Four rewrites that
-   kept the reactive shape are recorded in the plan with what each cost.
+1. [137 — the roll rings around any bank it holds](137-the-roll-rings-around-any-bank-it-holds.md)
+   · the residue of #23, and the last thing in the docking computer that still
+   moves when nothing asks it to. `dockingSticks` overshoots any roll it is asked
+   to HOLD and hunts around it at about a reversal a second, ±1.0–1.5 rad/s
+   against a hull cap of 2.5 — measured identically before and after 136, and on
+   a dead-straight run down the axis, so it is the hand and not the approach.
+   134 fixed the case where the turn's axis is meaningless; this is the case
+   where the demand is real. A proportional ask behind a rate ramp with no
+   damping term.
 
 The GitHub inbox is empty: **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 **One question is open and it is Chris's, not the queue's:** whether the docking
-computer should avoid traffic at all. `npm run dock-traffic` now answers what it
-costs — one non-fatal collision in eighty approaches — and docs/TODO/135 argues
-against building avoidance for that, with the design bias recorded (wait, do not
-swerve) if the answer is yes anyway.
+computer should avoid traffic at all. `npm run dock-traffic` answers what it
+costs, and the answer got cheaper: it was one non-fatal collision in eighty
+approaches, and since 136 gave every ship the same path it is **none in eighty**.
+docs/TODO/135 argues against building avoidance for that, with the design bias
+recorded (wait, do not swerve) if the answer is yes anyway. 136 M4 is where it
+would go if it is ever wanted — the curve takes a plane as a parameter, so a path
+pushed off the traffic is still a path of the same shape.
 
 ## What the playtest is now for
 
@@ -74,6 +75,19 @@ of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
 
 ## What landed on 2026-08-11
+
+**136** — the approach is a PATH now, and the defect Chris reported by parking on
+the far side of the station is gone: **no approach in 504 has a plan that jumps
+more than 20 degrees, against 223 of them, and the worst went from a full 180 to
+3.4.** His own case took 28 seconds and ten full-authority pitch reversals; it
+takes 16 seconds and one. The shape is the whole of it — a fixed stand-off funnel
+holding the gate distance from a quarter turn round to astern, maximum'd with the
+ship's own way in through where it actually is, and an aim one lookahead along
+it, so the stand-off, the way round the hull and the run in stopped being three
+answers with thresholds between them. Everything else came with it: median 19.4s
+→ 15.6s, 1 scrape → 0, pitch reversals 5 → 2, and traffic collisions 1 in 80 → 0.
+Three things the measurements decided against what looked right are recorded in
+the plan; the one thing it did NOT fix is 137, at the head of the queue.
 
 **134** — #23, and the one thing `dock-probe` was never asked to measure. The
 autopilot rolled hard over and back every 0.45s while its nose was dead on the

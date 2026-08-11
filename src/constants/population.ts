@@ -23,6 +23,12 @@ export const MAX_TRADERS = 4;
 /**
  * Chance a bounty hunter is working the system when you arrive. Higher than the
  * launch figure because arriving is when the system gets to react to you.
+ *
+ * Its own rule id: it shares the value 0.35 with two steering angles, a lane
+ * alpha, a share of receptions and the docking follower's lookahead. Six
+ * unrelated 0.35s, and this is the only one that is a chance.
+ *
+ * @rule population.hunterChanceArrival
  */
 export const HUNTER_CHANCE_ARRIVAL = 0.35;
 

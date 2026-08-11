@@ -206,18 +206,14 @@ console.log('\nsnapshot round trip');
     check('the docking replay fixture has committed to the slot run',
       trader.state.dockPlan.phase === 'run');
     // A small disturbance after commitment is precisely why the phase latches:
-    // 85 is outside the 45-unit initial gate but inside the 90-unit run guard.
+    // 85 is outside the 45-unit initial gate but inside the 90-unit run guard,
+    // so a plan that kept the latch is still on the run here and a plan that
+    // lost it cannot re-commit — which is what the control below reads.
     //
-    // It was 60, and docs/TODO/135 had to move it — which is a finding rather
-    // than a fixture tweak, so it is recorded here. The control below needs
-    // resetting the latch to CHANGE something, and it used to change a great
-    // deal, because the two phases pointed opposite ways: the gate aimed at a
-    // fixed point 800 units out, so a ship inside that turned round. Now the
-    // gate leads down the axis and the phases AGREE on direction, differing only
-    // in speed and in who owns the roll — so at 60 the control drifted 5.4 units
-    // and no longer proved the fixture could tell. Further off the axis it still
-    // does (31.3), because that is where the lookahead has not been earned and
-    // the gate really does send you back out.
+    // It was 60, and has been moved twice by findings rather than by taste:
+    // docs/TODO/135 to 85, when the two phases stopped pointing opposite ways,
+    // and docs/TODO/136 changed what the control MEASURES for the same reason
+    // carried to its end — see the check itself.
     trader.state.pos.x = 85;
 
     const dockingWire = JSON.stringify(serialiseState(
@@ -251,7 +247,7 @@ console.log('\nsnapshot round trip');
 
     let despawnFrame = -1;
     let restoredDespawnFrame = -1;
-    let maxControlDrift = 0;
+    let controlDiverged = false;
     for (let frame = 0; frame < 1800; frame++) {
       const updateOne = (npc: NpcShip) => npc.update(1 / 60, makePlayer(at(0, 0, 0)), {
         station, dockZ: 160, fleet: [npc], playerLegal: 0, brains: SHIPPED_BRAINS, missileInbound: false,
@@ -264,8 +260,7 @@ console.log('\nsnapshot round trip');
       if (restoredTrader.state.wantsDespawn && restoredDespawnFrame < 0) {
         restoredDespawnFrame = frame;
       }
-      maxControlDrift = Math.max(
-        maxControlDrift, resetControl.state.pos.distanceTo(trader.state.pos));
+      controlDiverged ||= resetControl.state.docking !== trader.state.docking;
       if (despawnFrame >= 0 && restoredDespawnFrame >= 0) break;
     }
 
@@ -277,9 +272,19 @@ console.log('\nsnapshot round trip');
         trader.state as unknown as Record<string, unknown>,
         restoredTrader.state as unknown as Record<string, unknown>,
       ).length === 0);
-    check(`...where resetting only the latch makes the same fixture diverge `
-      + `(the control: ${maxControlDrift.toFixed(1)} units)`,
-      maxControlDrift > 10, `maximum drift ${maxControlDrift.toFixed(4)}`);
+    // THE CONTROL, and what it controls for changed under it. It used to be
+    // POSITION: a plan reset to `gate` turned round and flew back out, so a
+    // fixture that lost the latch drifted tens of units from one that kept it.
+    // docs/TODO/136 took the heading away from the phase — the approach is one
+    // curve now, and both phases fly the same one — so the drift went to exactly
+    // zero and the control stopped controlling for anything.
+    //
+    // What the latch still decides is the flag beside it, and it is not
+    // cosmetic: `collisions.ts` lets a trader on final approach INTO the station
+    // it is aiming at, so a save that forgot the phase would restore a trader
+    // that bounces off the slot it was cleared for.
+    check('...where resetting only the latch makes the same fixture diverge',
+      controlDiverged, 'the reset control stayed in step with the original');
   }
 
   // --- energy: an exact round trip ------------------------------------------

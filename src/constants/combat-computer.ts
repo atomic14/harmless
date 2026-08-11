@@ -39,6 +39,14 @@ export const CC_MAX_ROLL = 0.5 * TURN.roll;
  * bank-to-turn steering (`game/pitch-roll-steer.ts`). 0.35 rad (~20 degrees)
  * saturates soon enough that acquisition is not sluggish while staying
  * proportional in the last degrees so it settles rather than dithering.
+ *
+ * Its own rule id: it shares the value 0.35 with `ROLL_FADE_ANGLE` below — which
+ * is the same UNITS, radians off the nose, and still a separate rule, one being
+ * where the ask saturates and the other where the roll's authority ramps in —
+ * and with a lane alpha, a spawn chance, a share of receptions and the docking
+ * follower's lookahead.
+ *
+ * @rule combat.steerSaturation
  */
 export const STEER_SATURATION = 0.35;
 
@@ -65,6 +73,12 @@ export const STEER_PITCH_SATURATION = 0.08;
  * asks full roll for a tiny error and overshoots. Fading roll by the off-nose
  * angle scales the effort to the actual error. The floor keeps enough authority
  * to still arrive within a gun cone rather than dead centre.
+ *
+ * Its own rule id, for the reason `STEER_SATURATION` above states: the two are
+ * the same units and the same feel setting's neighbourhood, and moving one must
+ * not silently move the other.
+ *
+ * @rule combat.rollFadeAngle
  */
 export const ROLL_FADE_ANGLE = 0.35;
 export const ROLL_FADE_FLOOR = 0.5;

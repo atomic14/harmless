@@ -18,24 +18,31 @@
 // the roll tolerance — is constants/docking.ts, with the released slot
 // measurements beside the values. `test/world.test.ts` and
 // `test/docking.test.ts` pin the geometry.
+//
+// WHERE the ship is sent is `dock-path.ts` and is a curve; what is here is the
+// plan read off it — the heading, the speed, the roll handover and who counts as
+// docked. That split is docs/TODO/136: the approach used to be two rival aims
+// with a threshold between them, and the threshold is what reversed.
 
 import * as THREE from 'three';
 
 import {
-  GATE_HALF_WIDTHS, STANDOFF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN,
+  GATE_HALF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN,
   SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE,
 } from '../constants/docking.ts';
 import {
-  DC_SLOT_MARGIN, DC_TURN_FADE_ANGLE, DC_GATE_LOOKAHEAD,
+  DC_SLOT_MARGIN, DC_TURN_FADE_ANGLE,
 } from '../constants/docking-computer.ts';
+import { slotNormal } from '../world/slot.ts';
+import { dockPath, makeDockPath } from './dock-path.ts';
 import {
   pitchOnto, rollErrorTo, steerStick, type StickCommand,
 } from './pitch-roll-steer.ts';
 
 export type DockPhase =
-  /** off the axis or too far out — fly to the gate, a point straight out from the slot */
+  /** still coming round — the path is doing the flying */
   | 'gate'
-  /** lined up: run down the axis, rolled with the slot */
+  /** on the last leg: down the axis, rolled with the slot */
   | 'run';
 
 export interface DockPlan {
@@ -50,11 +57,18 @@ export interface DockPlan {
   arrived: boolean;
   /** distance off the slot axis, for HUD and tests */
   lateral: number;
+  /**
+   * The plane this ship is coming round in, held across frames — see
+   * `dock-path.ts`, which reads and writes it. Saved state like the phase: a
+   * ship reloaded mid-approach carries on the way round it was already going.
+   */
+  swing: THREE.Vector3;
 }
 
 const _rel = new THREE.Vector3();
 const _slotN = new THREE.Vector3();
-const _aim = new THREE.Vector3();
+/** the path is scratch, not state: everything held across frames is in DockPlan */
+const _path = makeDockPath();
 
 /**
  * One frame of a docking approach.
@@ -73,7 +87,7 @@ export function planDocking(
   out: DockPlan,
 ): DockPlan {
   // the slot faces along the station's local -Z, pointing outwards
-  _slotN.set(0, 0, -1).applyQuaternion(station.quaternion);
+  slotNormal(station, _slotN);
   _rel.copy(pos).sub(station.position);
   const along = _rel.dot(_slotN);
   // perpendicular distance from the axis
@@ -86,74 +100,58 @@ export function planDocking(
   out.up.set(1, 0, 0).applyQuaternion(station.quaternion);
 
   const gateDist = dockZ * GATE_HALF_WIDTHS;
-  // Commit to the run only when actually on the axis. Skipping the lateral
-  // test is the obvious mistake: a ship that reaches the gate 150 units
-  // off-axis and then flies straight carries that error into the hull instead
-  // of the slot.
+
+  // WHERE THE APPROACH GOES is `dock-path.ts`, and the whole of the answer here
+  // is a point one lookahead along it. There is no branch left: the stand-off,
+  // the way round the hull and the run in are one curve, and the aim moves along
+  // it continuously however sharply it turns. What used to be here — two rival
+  // aims and a threshold with no hysteresis between them — reversed the
+  // commanded heading through a half turn on 223 of 504 approaches, every one of
+  // them from behind the station (docs/TODO/136).
+  const path = dockPath(pos, station, dockZ, out.swing, _path);
+  // A zero-length heading is not reachable — the aim runs no deeper than the
+  // station's centre and `arrived` has fired by the slot mouth — but a plan that
+  // yields NaN steers every axis at once, so the last heading stands instead.
+  if (path.aim.distanceToSquared(pos) > 1e-6) {
+    out.heading.copy(path.aim).sub(pos).normalize();
+  }
+
+  // Speed is part of the manoeuvre and not a detail: three of the four rewrites
+  // in docs/TODO/136 hurt because the ship arrived somewhere too fast to turn.
+  // It is eased over the gate distance BEFORE the mouth rather than switched at
+  // it, so the roll has the length of the corridor to settle in, and the run's
+  // own speed is unchanged.
   //
-  // The phase LATCHES once committed (out.phase is per-ship state, reused
-  // across frames). Re-testing every frame looks harmless but isn't: as the
-  // ship runs in, `along` shrinks past any outside-the-hull guard, the test
-  // flips back to 'gate', and it turns round and flies out again — an
-  // oscillation that never docks, which is exactly what the first version did.
+  // A SECOND RULE WAS TRIED HERE AND MEASURED AWAY: capping the speed by how
+  // sharply the path bends, so that the nose's lag behind a turning demand stays
+  // inside `DC_TURN_FADE_ANGLE` and the roll is never handed a nearly-degenerate
+  // axis to hunt around. It reads well and it costs more than it buys — the ring
+  // it was aimed at is roughly one reversal a second whatever the speed, so
+  // slowing down simply buys more seconds of it: over the 504-approach sweep the
+  // median approach took 15.6s and 16 roll reversals unlimited, 18.0s and 17 at
+  // 0.20 rad/s, 23.9s and 20 at 0.12, and 34.3s and 25 at 0.08. What actually
+  // fixed the scraping that motivated it was the LOOKAHEAD — see
+  // `DC_PATH_LOOKAHEAD`, where the same sweep put the cliff.
+  const settled = Math.min(110, maxSpeed * 0.7);
+  const cruise = Math.max(settled, maxSpeed * 0.55);
+  const eased = Math.max(0, Math.min(1, (path.toGo - gateDist) / gateDist));
+  out.speed = Math.max(25, settled + (cruise - settled) * eased);
+
+  // The phase no longer decides anything about WHERE the ship is going: the
+  // path does, from end to end, and that is the point of it. What is left is the
+  // question `dockingSticks` asks — is this ship on the last leg, and has the
+  // slot's own roll started to matter — plus the flag NPC traders carry.
+  //
+  // Commit only when actually on the axis. Skipping the lateral test is the
+  // obvious mistake: a ship that reaches the gate 150 units off-axis and then
+  // flies straight carries that error into the hull instead of the slot. And it
+  // LATCHES: as the ship runs in, `along` shrinks past any outside-the-hull
+  // guard, so re-testing every frame would drop the roll handover just as the
+  // letterbox needs it.
   const committed = out.phase === 'run' && along > 0 && lateral < LINED_UP_LATERAL * 2;
   const linedUp = committed ||
     (lateral < LINED_UP_LATERAL && along > dockZ && along < gateDist * 1.5);
-
-  if (linedUp) {
-    out.phase = 'run';
-    _aim.copy(station.position);
-    out.heading.copy(_aim).sub(pos).normalize();
-    // slow enough that the roll has time to settle before the letterbox
-    out.speed = Math.min(110, maxSpeed * 0.7);
-  } else {
-    out.phase = 'gate';
-    const range = pos.distanceTo(station.position);
-    if (range < gateDist * 0.95 && along < dockZ * 2) {
-      // Too close and on the wrong side: heading straight for the gate would
-      // cut across the hull, which is how the autopilot used to scrape its way
-      // in. Stand off first, then come round.
-      //
-      // A KNOWN DEFECT, measured and left standing by docs/TODO/136 rather than
-      // fixed. The push is RADIAL, so it makes no progress — straight out from
-      // behind the station is still behind the station — and the branch releases
-      // the moment the ship crosses back out through its own entry radius, at
-      // which point the gate aim below pulls it straight in and the condition
-      // fires again. A threshold with no hysteresis, and every cycle costs a
-      // full-authority pitch reversal at the hull's 1.45 rad/s cap: the extreme
-      // pitch Chris reported by parking on the far side of the station and
-      // pointing at it. `npm run dock-probe` now flies that region — 180 degrees
-      // of plan reversal, on 223 of its 504 approaches — and the plan carries
-      // the four rewrites that were tried and what each of them cost.
-      _aim.copy(pos).sub(station.position).normalize()
-        .multiplyScalar(gateDist * STANDOFF_WIDTHS).add(station.position);
-    } else {
-      // The gate is a point to pass THROUGH, not a destination to arrive at, and
-      // treating it as the latter is what made the plan jump (docs/TODO/135). A
-      // ship converging on the gate from the side cuts the corner and ends up
-      // INSIDE it, so the aim was then pointing back OUT while the run, one
-      // frame later, points in.
-      //
-      // So the aim LEADS the ship down the axis — but only as far as it has
-      // EARNED by being lined up, which means BOTH near the axis and on the slot
-      // side. Leading unconditionally was measured cutting the corner into the
-      // hull, 335 scrapes against 1; and `lateral` alone cannot say which side
-      // the ship is on, because it is measured perpendicular to the axis, so a
-      // ship directly behind the station reads 0 and looks perfectly lined up —
-      // earning the full lookahead and an aim just outside the slot, through the
-      // hull, at speed (docs/TODO/136).
-      const ahead = Math.max(0, Math.min(1, along / (dockZ * 2)));
-      const earned = ahead * Math.max(0, Math.min(1,
-        (LINED_UP_LATERAL * 2 - lateral) / LINED_UP_LATERAL));
-      const led = Math.max(dockZ, along - gateDist * DC_GATE_LOOKAHEAD);
-      _aim.copy(station.position)
-        .addScaledVector(_slotN, gateDist + (led - gateDist) * earned);
-    }
-    out.heading.copy(_aim).sub(pos).normalize();
-    // ease off approaching the gate, or the ship sails past and has to loop
-    const toGate = _aim.distanceTo(pos);
-    out.speed = Math.max(25, Math.min(maxSpeed * 0.55, toGate * 0.45));
-  }
+  out.phase = linedUp ? 'run' : 'gate';
 
   // Inside the slot mouth and still on the axis — and IN FRONT of the station,
   // which was missing. `along` is signed, so a ship behind the hull satisfied
@@ -174,6 +172,7 @@ export function makeDockPlan(): DockPlan {
     phase: 'gate',
     arrived: false,
     lateral: 0,
+    swing: new THREE.Vector3(),
   };
 }
 

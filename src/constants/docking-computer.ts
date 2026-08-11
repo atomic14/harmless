@@ -7,11 +7,13 @@
 // you fly in by hand. The autopilot has to genuinely thread the letterbox; it
 // gets no dispensation.
 //
-// What is here is the HAND, not the approach: how much of the letterbox's roll
-// tolerance the turn may spend, and the off-nose angle over which it may spend
-// anything at all — a fade rather than a cap, because the axis the turn steers
-// its roll against goes degenerate as the nose arrives (docs/TODO/134). The
-// approach itself — the gate, the corridor, the slot — is constants/docking.ts.
+// What is here is the HAND, not the geometry it threads: how much of the
+// letterbox's roll tolerance the turn may spend, the off-nose angle over which
+// it may spend anything at all — a fade rather than a cap, because the axis the
+// turn steers its roll against goes degenerate as the nose arrives
+// (docs/TODO/134) — and how far along the approach path the follower looks.
+// The geometry itself — the gate, the stand-off, the corridor, the slot — is
+// constants/docking.ts.
 //
 // TWO CONSTANTS IT NO LONGER HAS, both retired by docs/TODO/126 rather than
 // retuned, because the flying they described stopped existing:
@@ -109,46 +111,48 @@ export const DC_SLOT_MARGIN = 0.5;
 export const DC_TURN_FADE_ANGLE = 0.10;
 
 /**
- * How far ahead of the ship the gate phase aims, as a share of the gate
+ * How far ahead ALONG THE PATH the follower aims, as a share of the gate
  * distance.
  *
- * The gate is a point to pass THROUGH, and the plan used to treat it as a point
- * to arrive AT: fly at a fixed point 800 units out from the slot, reach it, and
- * then — one frame later, on committing to the run — aim at the station instead.
- * A ship converging from the side cuts the corner and ends up INSIDE the gate,
- * so the two aims were on opposite sides of it and the commanded heading
- * reversed. All 220 single-frame heading jumps over 20 degrees in a 320-approach
- * sweep happened within 200 units of that point, the median within 48, and the
- * worst turned the plan through 162 degrees between one frame and the next
- * (docs/TODO/135).
+ * This is the whole of the follower (`dock-path.ts`): the approach is a curve
+ * from the ship to the slot mouth, and the ship flies at the point one of these
+ * along it. Everything the path buys is bought here — the aim is never a point
+ * the ship is sitting on, so the heading to it is well conditioned; it always
+ * moves forward along the curve, so the heading cannot reverse; and it rounds
+ * the curve's corners for free, because an aim point rounding a corner moves
+ * continuously even where the tangent does not.
  *
- * A lookahead fixes it twice over: the aim is never a point the ship is sitting
- * on, so the heading to it stays well conditioned, and it always points the way
- * the run points, so committing changes the speed and the roll handover without
- * changing where the ship is going.
+ * SPENT TWICE, against the same number: never further than this share of the
+ * gate, and never further than this share of what is LEFT of the path. The
+ * second clamp is not a refinement — without it, a ship inside the last
+ * lookahead is aimed at the END of the path, the station's own centre, and a
+ * ship flying straight at the centre holds its bearing instead of closing it. It
+ * arrives at the hull face carrying whatever it was off by: four scrapes an
+ * approach, measured, before the clamp went in.
  *
- * It is only spent as far as the ship has EARNED it by being lined up — see
- * `planDocking`, where a lookahead handed out unconditionally was measured
- * cutting the corner into the hull, 335 scrapes against 1.
+ * WHAT THE SWEEP SAYS, over `npm run dock-probe`'s 504 approaches, and it is a
+ * cliff on one side and a slope on the other. Too long and the ship cuts the
+ * corner — a pursuit flies inside a curve by roughly the square of the lookahead
+ * over twice the radius, which at half the gate is 100 units of the 800 the
+ * stand-off holds — and the scrapes go 0, 0, 0, 4, 36 at 0.30, 0.35, 0.40, 0.45
+ * and 0.50. Too short and it chases a point inside its own turn: the worst
+ * single-frame heading change is 10.9 degrees at 0.30 against 3.4 at 0.35, with
+ * no scrapes to show for it. The middle of what is left is this.
  *
- * A SHARE rather than a distance, because the cliff in the sweep is at a
- * fraction of the gate and not at a number of units: over 320 approaches the
- * worst single-frame heading change is 10.4 degrees at a quarter of the gate,
- * 6.2 at three eighths, **4.3 at a half**, and then 141 and 142 at three
- * quarters and the whole of it. Past about half, the ship is aimed so far inside
- * itself that an approach loses the corridor and gives up — and a run that gives
- * up changes its mind about where it is going, which is a jump by any measure.
- * A bigger station has a gate further out (`GATE_HALF_WIDTHS` is a multiple of
- * `dockZ`) and should lead by more, which a fixed 400 would not do.
+ * A SHARE rather than a distance, so a bigger station's longer approach is flown
+ * with a longer lookahead: `GATE_HALF_WIDTHS` is a multiple of the half-width,
+ * so this is one too, at one remove.
  *
- * Its own rule id: it shares the value 0.5 with `DC_SLOT_MARGIN` next door,
- * `BRIBE_SHARE`, `SURVIVOR_RELEASE_SHARE` and two fractions of the heat bar. Six
- * unrelated halves, and this is the only one that is a distance.
+ * It replaced a constant of the same name that meant something else — how far
+ * down the axis the old gate aim was allowed to LEAD, once the ship had earned
+ * it by being lined up. That was docs/TODO/135's fix to a plan that jumped when
+ * the run committed, and it is subsumed: with a path there is no commit to jump
+ * at, because the run is the last leg of the same curve.
  *
- * The same sweep is what says this is a plan-side fix and not a flying-side one:
- * the roll and pitch reversal counts docs/TODO/134 left behind barely move
- * across it (8-9 and 3), while the jump column moves by two orders of magnitude.
+ * Its own rule id: it shares the value 0.35 with two of the scripted co-pilot's
+ * steering angles, a lane alpha, a spawn chance and a share of receptions. Six
+ * unrelated 0.35s, and this is the only one that is a distance.
  *
- * @rule docking.gateLookahead
+ * @rule docking.pathLookahead
  */
-export const DC_GATE_LOOKAHEAD = 0.5;
+export const DC_PATH_LOOKAHEAD = 0.35;

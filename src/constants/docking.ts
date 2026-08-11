@@ -20,15 +20,28 @@
 export const GATE_HALF_WIDTHS = 5;
 
 /**
- * How far out a ship stands off while it comes ROUND to the slot side, as a
- * multiple of the gate distance (and so, through it, of the station half-width).
+ * How far round from the slot axis an approach turns in, in radians — the
+ * bearing at which `dock-path.ts`'s stand-off funnel reaches the gate distance.
  *
- * Slightly outside the gate, so the detour ends somewhere the ordinary approach
- * can pick up from. It was an unnamed 1.15 beside an unnamed 0.95 that decided
- * when the stand-off fired; docs/TODO/136 gave it a name on its way past, and
- * left a comment on the branch itself saying why the branch is wrong.
+ * Outside it the path holds the gate distance all the way round to astern;
+ * inside it the path dives for the slot. So it is the size of the last turn: a
+ * ship coming from behind flies round at the gate radius, and everything it has
+ * to do to get in happens over this much bearing.
+ *
+ * Bounded from ABOVE by the letterbox and measured against the hull. A dive
+ * that starts abeam is still level with the hull when it starts down, and
+ * enters `dockingOutcome`'s box 23 units off the axis against a channel 26 wide
+ * — inside it, but with nothing left for the ship's own tracking error, and over
+ * `npm run dock-probe`'s 504 approaches a third of a turn scrapes 126 times
+ * against none at a quarter (`test/docking.test.ts` holds the curve to the
+ * channel; the probe is what says the SHIP stays with the curve).
+ *
+ * Bounded from BELOW by the same two things in the other direction: the whole
+ * dive has to fit inside this much bearing, so a tighter one is a sharper turn
+ * flown closer in, and the ship starts cutting the corner of the box instead of
+ * the curve.
  */
-export const STANDOFF_WIDTHS = 1.15;
+export const TURN_IN = Math.PI / 4;
 
 /**
  * Off-axis error we insist on before committing to the run in, in world units.

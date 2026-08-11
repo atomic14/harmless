@@ -19,6 +19,12 @@ export const FAME_FULL = RATINGS.find(([, name]) => name === 'Dangerous')![0];
  * Share of receptions that are challengers, at full fame. An occasional
  * challenge, not a permanent tax — folding fame straight into the tier made
  * ~99% of receptions gangs at Dangerous and erased the tier ladder.
+ *
+ * Its own rule id: it shares the value 0.35 with two steering angles, a lane
+ * alpha, a spawn chance and the docking follower's lookahead. Six unrelated
+ * 0.35s, and this is the only one that is a share of a population.
+ *
+ * @rule threat.challengeRate
  */
 export const CHALLENGE_RATE = 0.35;
 

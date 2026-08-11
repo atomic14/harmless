@@ -21,6 +21,7 @@ import * as THREE from 'three';
 import {
   dockingOutcome, planDocking, makeDockPlan, type DockingOutcome,
 } from '../src/game/docking.ts';
+import { dockPath, dockPathRadius, makeDockPath } from '../src/game/dock-path.ts';
 import {
   GATE_HALF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN, NPC_HULL_BOX_MARGIN,
   SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE,
@@ -101,18 +102,48 @@ console.log('\ndocking thresholds');
   check(`a dock arrives within LINED_UP_LATERAL of the axis (${lateral.toFixed(3)})`,
     near(lateral, LINED_UP_LATERAL));
 
-  // Solve the gate distance back out of the heading. From (B, 0, -A) the gate
-  // phase aims at slotN * gateDist, so the heading's along/across ratio gives
-  // gateDist = A - B * (h.along / h.across) with nothing probed at a constant.
-  const A = 3000;
-  const B = 500;
-  const p = plan(B, -A);
-  check('far off the axis is the gate phase', p.phase === 'gate');
-  const hAlong = -p.heading.z;             // component along the slot normal
-  const hAcross = p.heading.x;
-  const gate = A - B * (hAlong / hAcross);
-  check(`the gate sits GATE_HALF_WIDTHS half-widths out (${(gate / DOCK_Z).toFixed(4)})`,
-    near(gate, DOCK_Z * GATE_HALF_WIDTHS, 1e-6));
+  // Solve the gate distance back out of where a ship is SENT. Abeam and close
+  // in, the approach cannot go straight at the slot — it is looking at the side
+  // of the hull — so the path it is given stands off at the gate distance, and
+  // the point the ship is aimed at sits on that stand-off.
+  //
+  // This used to solve the gate out of the heading's along/across ratio from
+  // (500, 0, -3000), which worked while the gate was a fixed point aimed AT.
+  // docs/TODO/136 replaced the two aims with one curve: from out there a ship is
+  // now given its own way in, through where it actually is, and the gate is the
+  // radius that curve HOLDS while it comes round the hull. So the fixture moved
+  // to where the constant is spent.
+  const abeam = new THREE.Vector3(DOCK_Z * 1.25, 0, 0);
+  const path = dockPath(abeam, station, DOCK_Z, new THREE.Vector3(), makeDockPath());
+  check('the ship is stood off, not aimed at the hull it is beside',
+    path.aim.length() > abeam.length());
+  // ...to within the sag of one chord: the follower WALKS the curve (`STEPS`),
+  // so the point it hands back is on a chord of the stand-off rather than on the
+  // arc itself, a quarter of a unit inside it here.
+  check(`...GATE_HALF_WIDTHS half-widths out (${(path.aim.length() / DOCK_Z).toFixed(4)})`,
+    near(path.aim.length(), DOCK_Z * GATE_HALF_WIDTHS, 1));
+  check('...and the phase is the one that is still coming round',
+    plan(DOCK_Z * 1.25, 0).phase === 'gate');
+
+  // THE PATH THREADS THE LETTERBOX, which is what `TURN_IN_SHAPE` is for and the
+  // only reason it is below 1. Everything inside `dockingOutcome`'s box is
+  // either the slot channel or the hull, so a curve that enters the box further
+  // off the axis than the channel is half-wide is a curve into the hull face —
+  // which is exactly what an exponent of 1 (a straight line to the centre) is.
+  {
+    let worst = 0;
+    for (let i = 0; i <= 2_000; i++) {
+      const share = i / 2_000;
+      const radius = dockPathRadius(share, Math.PI, 3_000, DOCK_Z * GATE_HALF_WIDTHS);
+      const phi = share * Math.PI;
+      const box = DOCK_Z + HULL_BOX_MARGIN;
+      const across = Math.abs(radius * Math.sin(phi));
+      if (Math.abs(radius * Math.cos(phi)) > box || across > box) continue;
+      worst = Math.max(worst, across);
+    }
+    check(`the path is inside the slot channel wherever it is inside the hull box (${
+      worst.toFixed(1)} against ${SLOT_HALF_ACROSS})`, worst < SLOT_HALF_ACROSS);
+  }
 }
 
 /**
