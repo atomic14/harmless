@@ -3,7 +3,7 @@
 > node --experimental-strip-types --no-warnings train/aim-probe.ts 200
 
 
-200 episodes per row · 45s · seed base 50000017
+200 episodes per row · 45s · seed base 50000017 · every threat tier
 a fitted commander in her own Cobra, flying back — train/aim-fight.ts is the fight
 
 ## is it aimed at her?
@@ -35,24 +35,24 @@ and a fight nobody closes in scores none — which is a reading, not a blank.
 
 ## what the gun is worth
 
-| she | pilot | gang | hit rate | best case | effective | of best | gang laser | warheads | contact | all causes | a face down | destroyed |
-| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
-| knife-fights | pursuit | 1 | 46.5% | 8.92/s | 0.71/s | 8.0% |  0.71/s |  2.49/s |  0.00/s |  3.20/s | 0.0% | 0.0% |
-| knife-fights | pursuit | 2 | 59.3% | 8.64/s | 1.75/s | 20.2% |  3.17/s |  3.23/s |  0.21/s |  6.60/s | 19.0% | 0.5% |
-| knife-fights | pursuit | 3 | 62.9% | 7.42/s | 1.69/s | 22.8% |  4.55/s |  3.83/s |  0.34/s |  8.72/s | 27.0% | 3.0% |
-| knife-fights | pursuit | 4 | 64.0% | 6.92/s | 1.73/s | 25.0% |  6.34/s |  3.75/s |  0.36/s | 10.45/s | 32.0% | 6.0% |
-| knife-fights | scripted | 1 | 46.8% | 8.91/s | 0.71/s | 8.0% |  0.71/s |  2.61/s |  0.00/s |  3.32/s | 0.0% | 0.0% |
-| knife-fights | scripted | 2 | 50.6% | 8.46/s | 0.72/s | 8.5% |  1.33/s |  3.32/s |  0.09/s |  4.73/s | 11.5% | 1.0% |
-| knife-fights | scripted | 3 | 55.0% | 7.36/s | 0.75/s | 10.2% |  2.08/s |  4.04/s |  0.15/s |  6.27/s | 24.0% | 2.5% |
-| knife-fights | scripted | 4 | 57.2% | 6.86/s | 0.74/s | 10.8% |  2.80/s |  4.27/s |  0.35/s |  7.42/s | 22.5% | 5.0% |
-| runs | pursuit | 1 | 29.4% | 7.79/s | 1.67/s | 21.5% |  1.67/s |  0.00/s |  0.00/s |  1.67/s | 0.5% | 0.0% |
-| runs | pursuit | 2 | 28.0% | 7.85/s | 1.48/s | 18.9% |  2.96/s |  0.00/s |  0.00/s |  2.96/s | 1.0% | 0.0% |
-| runs | pursuit | 3 | 30.3% | 7.08/s | 1.57/s | 22.2% |  4.71/s |  0.00/s |  0.00/s |  4.71/s | 3.5% | 0.0% |
-| runs | pursuit | 4 | 30.3% | 6.67/s | 1.41/s | 21.1% |  5.64/s |  0.00/s |  0.00/s |  5.64/s | 6.5% | 0.5% |
-| runs | scripted | 1 | 29.2% | 7.74/s | 1.33/s | 17.1% |  1.33/s |  0.26/s |  0.00/s |  1.59/s | 2.0% | 0.0% |
-| runs | scripted | 2 | 25.8% | 7.85/s | 1.17/s | 14.9% |  2.34/s |  0.03/s |  0.01/s |  2.38/s | 0.0% | 0.0% |
-| runs | scripted | 3 | 26.8% | 7.08/s | 1.15/s | 16.2% |  3.44/s |  0.00/s |  0.00/s |  3.44/s | 0.5% | 0.0% |
-| runs | scripted | 4 | 25.9% | 6.68/s | 0.97/s | 14.6% |  3.90/s |  0.00/s |  0.00/s |  3.90/s | 1.0% | 0.0% |
+| she | pilot | gang | hit rate | best case | effective | of best | gang laser | warheads | contact | all causes | a face down | ENERGY LOW | destroyed | they lost |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| knife-fights | pursuit | 1 | 46.5% | 8.92/s | 0.71/s | 8.0% |  0.71/s |  2.49/s |  0.00/s |  3.20/s | 0.0% | 0.0% | 0.0% | 0.80 |
+| knife-fights | pursuit | 2 | 59.3% | 8.64/s | 1.75/s | 20.2% |  3.17/s |  3.23/s |  0.21/s |  6.60/s | 19.0% | 4.0% | 0.5% | 0.95 |
+| knife-fights | pursuit | 3 | 62.9% | 7.42/s | 1.69/s | 22.8% |  4.55/s |  3.83/s |  0.34/s |  8.72/s | 27.0% | 10.5% | 3.0% | 0.73 |
+| knife-fights | pursuit | 4 | 64.0% | 6.92/s | 1.73/s | 25.0% |  6.34/s |  3.75/s |  0.36/s | 10.45/s | 32.0% | 11.5% | 6.0% | 0.74 |
+| knife-fights | scripted | 1 | 46.8% | 8.91/s | 0.71/s | 8.0% |  0.71/s |  2.61/s |  0.00/s |  3.32/s | 0.0% | 0.0% | 0.0% | 0.80 |
+| knife-fights | scripted | 2 | 50.6% | 8.46/s | 0.72/s | 8.5% |  1.33/s |  3.32/s |  0.09/s |  4.73/s | 11.5% | 3.5% | 1.0% | 0.81 |
+| knife-fights | scripted | 3 | 55.0% | 7.36/s | 0.75/s | 10.2% |  2.08/s |  4.04/s |  0.15/s |  6.27/s | 24.0% | 10.0% | 2.5% | 0.51 |
+| knife-fights | scripted | 4 | 57.2% | 6.86/s | 0.74/s | 10.8% |  2.80/s |  4.27/s |  0.35/s |  7.42/s | 22.5% | 9.0% | 5.0% | 0.47 |
+| runs | pursuit | 1 | 29.4% | 7.79/s | 1.67/s | 21.5% |  1.67/s |  0.00/s |  0.00/s |  1.67/s | 0.5% | 0.0% | 0.0% | 0.00 |
+| runs | pursuit | 2 | 28.0% | 7.85/s | 1.48/s | 18.9% |  2.96/s |  0.00/s |  0.00/s |  2.96/s | 1.0% | 0.0% | 0.0% | 0.00 |
+| runs | pursuit | 3 | 30.3% | 7.08/s | 1.57/s | 22.2% |  4.71/s |  0.00/s |  0.00/s |  4.71/s | 3.5% | 0.0% | 0.0% | 0.00 |
+| runs | pursuit | 4 | 30.3% | 6.67/s | 1.41/s | 21.1% |  5.64/s |  0.00/s |  0.00/s |  5.64/s | 6.5% | 0.5% | 0.5% | 0.01 |
+| runs | scripted | 1 | 29.2% | 7.74/s | 1.33/s | 17.1% |  1.33/s |  0.26/s |  0.00/s |  1.59/s | 2.0% | 0.0% | 0.0% | 0.00 |
+| runs | scripted | 2 | 25.8% | 7.85/s | 1.17/s | 14.9% |  2.34/s |  0.03/s |  0.01/s |  2.38/s | 0.0% | 0.0% | 0.0% | 0.00 |
+| runs | scripted | 3 | 26.8% | 7.08/s | 1.15/s | 16.2% |  3.44/s |  0.00/s |  0.00/s |  3.44/s | 0.5% | 0.0% | 0.0% | 0.00 |
+| runs | scripted | 4 | 25.9% | 6.68/s | 0.97/s | 14.6% |  3.90/s |  0.00/s |  0.00/s |  3.90/s | 1.0% | 0.0% | 0.0% | 0.00 |
 
 best case = this build's own tabulated damage at point-blank hit chance
 over the mean reload — 100% time on aim. effective = the same points at the
@@ -65,10 +65,12 @@ by shot, a warhead is 250 points (879 landed across the run), and contact is wha
 is left. the aim columns above describe the FIRST of the three only — which
 is the point: read them beside the split, not instead of it.
 
-a face down and destroyed are train/survivability.ts's two outcome columns,
-watched its way — every step, because a face that was flattened and came
-back is still a face that was flattened. they are here so that a fight this
-tool stages and a row that tool prints can be read against each other.
+a face down, destroyed and they lost are train/survivability.ts's own
+outcome columns, watched its way — every step, because a face that was
+flattened and came back is still a face that was flattened. ENERGY LOW is
+the console's own line (systems.ts `energyLow`): the last bank, where the
+shield stops recovering at all and a player is meant to break off. it is
+the term docs/TODO/139 M2 states its gate in, and today it is unreachable.
 
 ## by build — the shipped pilot, in the fight she can be caught in
 

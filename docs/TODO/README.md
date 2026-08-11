@@ -14,30 +14,28 @@ active context:
 ## Execution queue
 
 1. **139** — [Nothing the galaxy sends can get through the
-   shield](139-nothing-the-galaxy-sends-gets-through-the-shield.md). Chris,
-   flying it: *"is our shield and energy recharging too fast — the laser hits
-   from pirates don't seem to do much damage — or they aren't very accurate at
-   shooting..."* All three guesses are live and the first is provable without a
-   flight. **Fourteen of the seventeen pirate builds in the roster can never
-   strip the front pool**, because their BEST case — point blank, capped hit
-   chance, never out of the gate, already flying the hardest build the source
-   filed for the job — is at or under `SHIELD_REGEN`'s 8.925 points a second per
-   face. The hardest thing in the galaxy needs 51 seconds of unbroken perfect
-   fire; the player's pulse laser kills a Sidewinder in 2.8 and the military in
-   0.7. Damage may not move — it is the parity claim, and selection is already
-   spent — so the levers are regen and time-on-aim, which are the two terms
-   Harmless owns outright. **Regen moves first, and the arithmetic forces the
-   ordering:** perfect aim cannot save a build whose best case at 100% time on
-   target still loses to the shield. **M1 landed on 2026-08-11** and the
-   measurement is harsher than the table it was checking: `npm run aim-probe`
-   flies both pilots against a commander who knife-fights and one who runs, and
-   **no row in the grid — any pilot, any behaviour, up to four attackers — lands
-   more laser on her than one face regenerates** (the highest is 6.31 a second
-   against 8.925). Two things the plan did not know: in the fight a player
-   actually flies the MISSILE does more than the gun, and `npm run survivability`
-   stages the soft case — its defender runs, so a gang of four costs her 5.64 a
-   second there and 10.76 when she turns to fight. M2's sweep moves onto the
-   knife fight, with survivability kept as the control.
+   shield](139-nothing-the-galaxy-sends-gets-through-the-shield.md), **M1, M2 and
+   half of M4 landed 2026-08-11; M3 is what is left**. Chris, flying it: *"is our
+   shield and energy recharging too fast — the laser hits from pirates don't seem
+   to do much damage — or they aren't very accurate at shooting..."* All three
+   guesses were live. **Fourteen of the seventeen pirate builds could never strip
+   a shield face** — not slowly, ever — because their BEST case, point blank and
+   never out of the gate, was under `SHIELD_REGEN`'s 8.925 points a second.
+   `npm run aim-probe` (M1) then measured what a gun is really worth: **7–27% of
+   that best case**, so no gang of four in any fight the probe can stage landed
+   more laser than one face put back. **M2 cut `SHIELD_REGEN_FRACTION` 0.035 →
+   0.012** — a face in 83 seconds instead of 28.6 — on a sweep confirmed at two
+   sample sizes on two seed grids, and the value is the highest one that clears
+   the rule `test/role-variants.test.ts` now pins: no build the galaxy sends may
+   be one a face simply outruns. A tier-2 gang of three now reaches ENERGY LOW in
+   **49.5% of fights against 34.0%** and takes her down in **35.5% against 15.0%**;
+   `npm run survivability`'s destroyed column leaves zero for the first time.
+   Nothing else moved — not the bank, not a damage number, and not how anybody
+   flies. **What M3 has left** is the aim, and M1 already split it in two: chasing
+   a commander who runs, the nose is 1.4° off her and the ship is out of RANGE;
+   standing and fighting, it is 85.6° off — six times the gate — so widening
+   `NPC_FIRE_GATE` is not the fix and the flight model is the term. Whether that
+   is worth changing now the regen has moved is the open question.
 
 2. **138** — [Every system in every galaxy flies the same
    roster](138-every-system-flies-the-same-roster.md). The 23 released blueprint

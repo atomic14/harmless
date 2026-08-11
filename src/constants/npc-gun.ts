@@ -31,6 +31,18 @@ export const NPC_COOLDOWN_LO = 0.9;
 export const NPC_COOLDOWN_SPREAD = 0.8;
 
 /**
+ * What a shot costs a gun that never waits to be aimed — the LO plus half the
+ * spread, because `npcTriggerPull` draws uniformly across it.
+ *
+ * Derived here rather than at either reader, because both of them are comparing
+ * a gun with something: `gunnery.ts` turns it into the most a build can ever be
+ * worth per second (`npcBestCasePerSecond`, which the roster's test holds
+ * against `SHIELD_REGEN`), and `train/aim-probe.ts` prints the cadence ceiling
+ * a real fight is measured against. Two readers, one number.
+ */
+export const NPC_MEAN_COOLDOWN = NPC_COOLDOWN_LO + NPC_COOLDOWN_SPREAD / 2;
+
+/**
  * How near the nose a target must be before an NPC pulls the trigger.
  *
  * What it admits, measured (`npm run aim-probe`, docs/TODO/139 M1): 12% of a

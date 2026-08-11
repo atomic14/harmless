@@ -322,6 +322,13 @@ from `window.__game`.
      the record carries a `WaveEscalation` with the reason, because an
      escalation the pilot cannot see is indistinguishable from bad luck.
 
+     **A wave got harder on 2026-08-11 without the ramp changing a line.**
+     docs/TODO/139 cut `SHIELD_REGEN_FRACTION` from 0.035 to 0.012, so a
+     shield face that came back in 28.6 seconds now takes 83: the same wave
+     lands the same shots and the points stay off. A furthest-wave figure from
+     before that date is not comparable with one after it, and the ramp is
+     deliberately untouched — what moved is what a hit is worth over time.
+
      The furthest wave a run reaches is kept with the commander
      (`commander.furthestWave`) — the ONE exception to "nothing leaves the
      exercise", argued at its field and at the teardown that writes it. It is

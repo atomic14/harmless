@@ -255,8 +255,10 @@ console.log('\nship systems — recharge, and the TODO 28 bridge');
     return two.energy === one.energy && two.energyCarry === one.energyCarry;
   })());
 
-  // ANCHORED ON THE COBRA MK III: the bank still fills in 40 seconds and a
-  // shield face in 1/0.035, exactly as they did on the old 4-point scale.
+  // ANCHORED ON THE COBRA MK III: the bank still fills in 40 seconds, exactly
+  // as it did on the old 4-point scale. The FACE no longer does — it was
+  // 1/0.035 and is 1/0.012 since docs/TODO/139, because at the old rate a face
+  // put points back faster than most of the galaxy's guns could take them off.
   const seconds = (fill: (s: ShipSystems) => number, startEnergy: number): number => {
     const sys = freshSystems();
     sys.energy = startEnergy; sys.foreShield = 0; sys.aftShield = 0;
@@ -266,13 +268,14 @@ console.log('\nship systems — recharge, and the TODO 28 bridge');
   };
   // The two figures are written out rather than recomputed from the fractions
   // they are timing: `1 / ENERGY_REGEN_FRACTION` would be this loop's own input
-  // handed back to it, and would pass at any rate. 40 and 28.6 are the claim —
-  // "a Cobra flies the recharge it flew before the pools grew" — so moving
-  // either fraction has to cost a red line here.
+  // handed back to it, and would pass at any rate. 40 and 83.3 are the claim —
+  // the bank is "a Cobra flies the recharge it flew before the pools grew", the
+  // face is docs/TODO/139's rate — so moving either fraction has to cost a red
+  // line here. It did: this is the line that went red when the shield moved.
   //
   // The tolerance is 0.1s, which is the tick quantisation and nothing else: the
-  // bank measures 40.03 against an arithmetic 40.0 and the face 28.55 against
-  // 28.57, because `recharge` awards whole points on a sub-tick clock. A
+  // bank measures 40.03 against an arithmetic 40.0 and the face 83.30 against
+  // 83.33, because `recharge` awards whole points on a sub-tick clock. A
   // quarter of a percent off either fraction fails this — 0.025 to 0.0251 puts
   // the bank at 39.8. It was 0.2s and did not.
   const bank = seconds((s) => s.energy, 0);
@@ -281,8 +284,8 @@ console.log('\nship systems — recharge, and the TODO 28 bridge');
   // from a HEALTHY bank: the shields wait for one, which is the tactical rule
   // and not the recharge rate.
   const face = seconds((s) => s.foreShield, MAX_ENERGY);
-  check(`...and a shield face in ~28.6s (${face.toFixed(2)}s)`,
-    Math.abs(face - 28.6) < 0.1);
+  check(`...and a shield face in ~83.3s (${face.toFixed(2)}s)`,
+    Math.abs(face - 83.3) < 0.1);
 
   // The hull's rating and the energy unit, each applied EXACTLY ONCE.
   const cobraRate = energyRegenPerSecond(COBRA_MK_3_HULL_ID, false);

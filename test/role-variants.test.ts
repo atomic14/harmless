@@ -35,7 +35,10 @@ import {
   COBRA_MK_3_HULL_ID, PLAYER_HULL_IDS, isNpcCombatProfileId,
   npcCombatProfileById, playerHull, recommendedProfileIdFor,
 } from '../src/game/ship-identity.ts';
-import { npcLaserDamageToPlayer, npcWeaponByte } from '../src/game/gunnery.ts';
+import {
+  npcBestCasePerSecond, npcLaserDamageToPlayer, npcWeaponByte,
+} from '../src/game/gunnery.ts';
+import { SHIELD_REGEN } from '../src/constants/recharge.ts';
 import { eliteAVariantsOf } from '../src/game/elite-a/catalogue.ts';
 import { shipDisplayName } from '../src/ships/registry.ts';
 import { rngState, seedWorld } from '../src/game/rng.ts';
@@ -157,6 +160,28 @@ console.log('\nno combat role flies a gun that cannot hurt you');
   }
   check('every combat-role build takes points off a Cobra Mk III',
     toothless.length === 0, toothless.join(', '));
+
+  // ...AND NONE THAT THE SHIELD SIMPLY OUTRUNS (docs/TODO/139). Taking points
+  // off her is not enough if a face puts them back faster than the gun can land
+  // them: at a `SHIELD_REGEN` of 8.925 a second, fourteen of the seventeen
+  // pirate builds could never strip a face however perfectly they were flown,
+  // so a fight with one had no end state at all — which is the defect 139 was
+  // opened for, and it became true silently when the pools grew.
+  //
+  // THE COMPARISON IS A CEILING AGAINST A RATE. `npcBestCasePerSecond` is point
+  // blank, the capped hit chance and never a moment out of the firing gate;
+  // `npm run aim-probe` measures 7-27% of it in a real fight. So a build that
+  // loses HERE loses everywhere, at every range, however it is flown.
+  //
+  // It pins the RELATIONSHIP, not a value: put `SHIELD_REGEN_FRACTION` back to
+  // 0.035 and this red-lines with fourteen names in it.
+  const outrun = combatRostered.filter(([role, designId]) =>
+    npcBestCasePerSecond(
+      npcWeaponByte(roleCombatProfileId(role, designId)), COBRA_MK_3_HULL_ID)
+      <= SHIELD_REGEN);
+  check('...and none the shield simply outruns, at its own best case',
+    outrun.length === 0,
+    [...new Set(outrun.map(([, id]) => shipDisplayName(id)))].sort().join(', '));
 
   // The Cobra Mk III is the gate because it is the ship a career flies and the
   // only one this phase can fly. Across the OTHER fourteen hulls the answer is

@@ -8,6 +8,10 @@ damage — or they aren't very accurate at shooting..."*
 
 ## Where we are
 
+**This section is the state BEFORE M2**, kept as written because it is the
+argument the item was accepted on; the two sections after it are what was
+measured and what changed. `SHIELD_REGEN` is 3.06 today, not the 8.925 below.
+
 All three of those guesses are live, and the first one is provable without a
 flight.
 
@@ -135,6 +139,66 @@ fourteen of seventeen builds. Regen still moves first.
 M1 also put the measurement where the claim was: `constants/npc-gun.ts` states
 what its gate and its cadence actually admit, and cites the tool.
 
+## What M2 did — `SHIELD_REGEN_FRACTION` 0.035 → 0.012, 2026-08-11
+
+**A shield face recovers 3.06 points a second instead of 8.925, so a flattened
+one is back in 83 seconds instead of 28.6.** Nothing else moved: not the bank,
+not a damage number, not the flying. The sweep, the confirmations and the
+before/after pairs are in `train/logs/todo139/`, which also says how to take
+them again.
+
+**The rule the value satisfies, and it is now a test rather than a sentence:**
+no build the galaxy can send may be one a shield face simply outruns. The bound
+is the lightest gun in the roster — the Worm and the Ophidian, 3.27 points a
+second at point blank — so anything at or above 0.0128 leaves builds that can
+never strip a face however perfectly they are flown, which was the defect. 0.012
+is the highest value under that bound, and the measured outcomes are already
+flat there: between 0.014 and 0.010 the tier-2 columns move two or three points
+on either seed grid. **The knee, not the floor**, exactly as 137 chose.
+`test/role-variants.test.ts` pins the relationship and fails with fifteen names
+in it when the rate goes back.
+
+**What it bought, tier-2 gangs in a knife fight** (200 episodes, the fight a
+player flies, before → after):
+
+| gang | a face flattened | reached ENERGY LOW | she was destroyed |
+| --- | --- | --- | --- |
+| 1 | 0.5% → **3.5%** | 0% → 0% | 0% → 0% |
+| 2 | 58.5% → **84.5%** | 15.0% → **27.0%** | 4.0% → 8.5% |
+| 3 | 78.0% → **95.5%** | 34.0% → **49.5%** | 15.0% → 35.5% |
+| 4 | 87.5% → **97.5%** | 39.5% → **56.0%** | 23.5% → 45.5% |
+
+Over every tier at 600 episodes the same columns go 27.7% → 34.8% flattened,
+11.5% → 16.7% ENERGY LOW and 5.0% → 11.8% destroyed for three attackers. The
+aim columns are unchanged to a decimal place, which is the control: this moved
+what a hit is worth over time, not how anybody flies.
+
+**`npm run survivability`, the control**, moves the way its own header predicts
+it can barely move — its defender runs and its attackers are the A/B pilot: a
+shield flattened 1% → 8% at four attackers, and **the destroyed column leaves
+zero for the first time (0% → 1%)**. Pools stripped is unchanged at 8/14/18/24%,
+which is right and worth stating: that column is cumulative damage BILLED, and
+no regen rate changes what a gun landed.
+
+### Which of the two candidate rules governs
+
+**The tier-2 gang rule, and the tier-0 rule turned out not to be about this
+constant at all.** Swept across the whole range — 0.035 down to 0.007 — a lone
+tier-0 pirate never flattens a face, never reaches ENERGY LOW, never kills her,
+and dies itself in essentially every fight (1.00 attackers lost an episode). It
+cannot be otherwise: at 0.74 points a second it would need five and a half
+minutes to take a face off, and it does not live one. So "a lone opportunist
+should still lose" holds at every value, and "costing you a face" is decided by
+how long a fight lasts rather than by what a face costs to put back. What the
+regen does move for a lone attacker is the tier-2 one: 0.5% → 3.5%.
+
+### Recorded, because it will not be true forever
+
+Every shipped pilot flies hand-written code and `game/brains.ts` imports no
+weights, so **this is a retune and not a retrain** (invariant 5). The moment a
+trained policy ships, a change to this constant is a change to the world it was
+fitted in and the weights are stale.
+
 ## Which of the three terms may move — and the ordering is forced
 
 **Damage may not move.** `npcLaserDamageToPlayer` returns the pack's own
@@ -185,8 +249,11 @@ This was 134's lesson and 136's: the probe comes first, or the fix is scored by
 columns that cannot see it. It earned that again — the fight `survivability`
 stages turned out not to be the fight the number is wanted about.
 
-**M2 — move the regen, on a sweep.** `SHIELD_REGEN_FRACTION` and
-`ENERGY_REGEN_FRACTION` are the pair the whole model is anchored on and the pair
+**M2 — move the regen, on a sweep. — LANDED 2026-08-11**, 0.035 → 0.012, with
+the reasoning and the numbers in the section above and the evidence in
+`train/logs/todo139/`. What the milestone said to do:
+
+`SHIELD_REGEN_FRACTION` and `ENERGY_REGEN_FRACTION` are the pair the whole model is anchored on and the pair
 a retune moves — their own comment says so. Sweep both against
 `npm run aim-probe`'s knife-fight rows, **which is the correction M1 makes to
 this milestone**: this said survivability, and survivability stages the chase
@@ -210,9 +277,12 @@ is the term. What is left for M3 is to decide whether that geometry is worth
 changing at all, now that the regen has moved. **Do not move both regen and aim
 in one measurement.**
 
-**M4 — re-baseline what depends on it.** The combat simulator's wave ramp
-(`docs/COMBAT-SIM.md`) and 138's roster probe are both scored against how hard a
-fight is. Say what moved.
+**M4 — re-baseline what depends on it. — HALF DONE 2026-08-11.**
+`docs/COMBAT-SIM.md` says what moved: the wave ramp is untouched and every wave
+is harder anyway, so a `furthestWave` from before this date is not comparable
+with one after it. 138's roster probe does not exist yet — it is that item's M1,
+and it will be baselined in the world this left behind, which is the whole
+reason 139 went first in the queue.
 
 ## Watch out for
 

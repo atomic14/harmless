@@ -214,13 +214,23 @@ check(`...trading a higher damage RATE for a fight that ends`
 fought.taken / fought.seconds > fled.taken / fled.seconds
   && fought.seconds < fled.seconds * 0.85);
 
-// THE TRAP THE OLD OUTCOME FELL INTO, measured on the pair: winning the fight
-// early means healing for less of the clock, so the pilot that is hit LESS ends
-// the episode with LOWER terminal hp. Under recovery, terminal hp is close to
-// "how long since she was last hit" (docs/TODO/63).
-check(`...while ENDING with lower terminal hp (${pct(fought.hp)} against`
+// THE TRAP THE OLD OUTCOME FELL INTO, measured on the pair: terminal hp is
+// nearly BLIND to the difference between these two pilots. One destroys three
+// fifths of the attacking force and the other never fires, and they end the
+// episode within a point or two of each other, because under recovery terminal
+// hp answers "how long since she was last hit" (docs/TODO/63) and not "how much
+// was she hit".
+//
+// IT USED TO INVERT, and this line used to assert the inversion: the pilot that
+// cleared the fight healed for less of the clock and ended LOWER, which is the
+// sharpest possible statement of the defect. That was a consequence of a shield
+// face healing in 28.6 seconds; docs/TODO/139 slowed it to 83 and the inversion
+// went with it — the turret now ends a point and a half ABOVE the pacifist,
+// having taken 30 points fewer over ten fewer seconds. The blindness is what
+// survives a change of rate, so the blindness is what is asserted.
+check(`...while terminal hp barely tells them apart (${pct(fought.hp)} against`
   + ` ${pct(fled.hp)}, mean ${fought.seconds.toFixed(1)}s against`
-  + ` ${fled.seconds.toFixed(1)}s)`, fought.hp < fled.hp);
+  + ` ${fled.seconds.toFixed(1)}s)`, Math.abs(fought.hp - fled.hp) < 0.05);
 
 // --- the ordering ------------------------------------------------------------
 
@@ -239,16 +249,27 @@ check('...on the outcome, not only on the shaping',
 //
 // The ordering is decided by hp, because the shaped term never gets near its
 // clamp — 11 to 18 points, against a hp term worth 1000. So this is the trap
-// two lines above, priced: the pilot that clears the fight ends with less hull
-// than the one that never fired, and the old rule read that as the better
-// genome. `EPISODES` above carries why this fixture is the size it is, and how
-// much of the margin the vocabulary of tactics spent.
+// two lines above, priced: a pilot that destroys three fifths of the attacking
+// force and one that never fires a shot come out within a couple of per cent of
+// each other, and which way round they land is decided by noise the metric was
+// never measuring. It landed the WRONG way round until docs/TODO/139 slowed the
+// shield; it lands the right way round now, by an amount that is not a decision.
+// `EPISODES` above carries why this fixture is the size it is, and how much of
+// the margin the vocabulary of tactics spent.
 const oldScore = (hp: number, shaped: number): number =>
   hp * 1000 + Math.max(-499, Math.min(499, shaped));
-check(`the rule this replaced ranked them the other way round`
+const oldGap = Math.abs(oldScore(fought.hp, fought.shaped) - oldScore(fled.hp, fled.shaped))
+  / oldScore(fled.hp, fled.shaped);
+check(`the rule this replaced could barely separate them`
   + ` (${oldScore(fled.hp, fled.shaped).toFixed(1)} for the pacifist against`
-  + ` ${oldScore(fought.hp, fought.shaped).toFixed(1)})`,
-oldScore(fled.hp, fled.shaped) > oldScore(fought.hp, fought.shaped));
+  + ` ${oldScore(fought.hp, fought.shaped).toFixed(1)}, ${pct(oldGap)} apart)`,
+oldGap < 0.05);
+// ...where the rule that replaced it is decisive on the same pair, and for the
+// reason the old one could not see: she broke 80% of their banks and the
+// pacifist broke none.
+check(`...where this one is decisive on the same pair`
+  + ` (${((scoreFought - scoreFled) / scoreFled * 100).toFixed(0)}% apart)`,
+scoreFought > scoreFled * 1.25);
 
 // --- the ratio is stated, not inherited --------------------------------------
 

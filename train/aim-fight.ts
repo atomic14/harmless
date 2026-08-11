@@ -67,6 +67,7 @@ import {
 } from '../src/game/combat-sim-report.ts';
 import { NO_OPENING } from '../src/game/combat-sim-opening.ts';
 import { describeFlight } from '../src/game/break-off.ts';
+import { energyLow } from '../src/game/systems.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
 
 /** How long one fight runs — survivability's clock, so the rows pair. */
@@ -120,6 +121,15 @@ export interface Fight {
   /** survivability's two outcomes: a face at zero at any instant, and death */
   flattened: boolean;
   destroyed: boolean;
+  /**
+   * Whether the console ever said ENERGY LOW — `systems.ts`'s own `energyLow`,
+   * asked every step. It is the moment the shield stops recovering at all and
+   * the player is supposed to break off, and it is the term docs/TODO/139 M2
+   * states its gate in, so it is measured rather than inferred from a pool.
+   */
+  reachedLowEnergy: boolean;
+  /** attackers destroyed — the cost of the fight to them, survivability's column */
+  attackersLost: number;
 }
 
 export function flyAimFight(
@@ -191,12 +201,14 @@ export function flyAimFight(
   // every step, because a face that was flattened and came back is still a face
   // that was flattened, and the end-of-fight reading would miss it.
   let flattened = false;
+  let lowEnergy = false;
   while (!ep.done) {
     ep.step(FIXED_DT);
     for (let i = 0; i < ep.pirates.length; i++) {
       if (ep.pirates[i].alive) alive[i] += FIXED_DT;
     }
     if (her.sys.foreShield <= 0 || her.sys.aftShield <= 0) flattened = true;
+    if (energyLow(her.sys.energy)) lowEnergy = true;
     rec.tick(FIXED_DT, sample);
   }
 
@@ -216,6 +228,8 @@ export function flyAimFight(
     taken: her.damageTaken,
     flattened,
     destroyed: !her.alive,
+    reachedLowEnergy: lowEnergy,
+    attackersLost: ep.pirates.filter((p) => !p.alive).length,
     attackers: ep.pirates.map((p, i) => ({
       hull: p.name,
       damagePerHit: setup.pirates[i].damagePerHit,

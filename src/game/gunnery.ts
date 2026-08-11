@@ -30,6 +30,7 @@ import {
 import {
   NPC_COOLDOWN_LO, NPC_COOLDOWN_SPREAD, NPC_FIRE_GATE, NPC_HIT_BASE,
   NPC_HIT_CAP, NPC_HIT_FALLOFF, NPC_HIT_FLOOR, NPC_LASER_RANGE,
+  NPC_MEAN_COOLDOWN,
 } from '../constants/npc-gun.ts';
 import { playerPoolPoints, type PlayerPoolPoints } from './damage-units.ts';
 import {
@@ -264,5 +265,30 @@ export function npcTriggerPull(
 export function npcHitChance(dist: number): number {
   return Math.min(NPC_HIT_CAP,
     Math.max(NPC_HIT_FLOOR, NPC_HIT_BASE - dist / NPC_HIT_FALLOFF));
+}
+
+/**
+ * The MOST this build's gun can ever be worth against this hull, in her pool
+ * points a second: point blank (`npcHitChance(0)`, the cap), never out of the
+ * gate, never missing a reload.
+ *
+ * A ceiling, and the only honest way to compare a gun with a shield. Nothing in
+ * a fight reaches it — `npm run aim-probe` measures 7-27% of it — so a build
+ * whose BEST case loses to `SHIELD_REGEN` cannot strip a face at all, however
+ * it is flown. That is the comparison docs/TODO/139 is about, and it lives here
+ * rather than in the probe because a test pins it too: one rule, one home, and
+ * a retune of the reload or the hit curve moves both readers at once.
+ */
+export function npcBestCasePerSecond(weaponByte: number, shipId: PlayerHullId): number {
+  return bestCasePerSecond(npcLaserDamageToPlayer(weaponByte, shipId));
+}
+
+/**
+ * The same ceiling for a gun whose per-hit number is already known — what a
+ * fight carries, and what a table already holding the pack's answer for a
+ * (build, hull) pair should spend rather than looking the byte up again.
+ */
+export function bestCasePerSecond(damagePerHit: number): number {
+  return (damagePerHit * npcHitChance(0)) / NPC_MEAN_COOLDOWN;
 }
 

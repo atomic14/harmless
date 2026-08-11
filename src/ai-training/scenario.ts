@@ -282,9 +282,22 @@ const TARGET_HULLS: Record<TargetHullId, () => TargetHull> = {
  * rather than a fixed pair of hulls (TODO 29).
  */
 function pirateSpecFor(seed: number, index: number, count: number): NpcSpec {
+  return pirateSpecForTier(
+    memberTier(episodeTier(seed), index), (seed >>> 2) + index * 7 + count);
+}
+
+/**
+ * Which threat tier a seed stages — the rule above, named so a caller can ASK.
+ *
+ * It was inline, and a harness that wants a tier-2 gang (docs/TODO/139 M2
+ * states its gate against one) then had two ways to get it: restate `seed %`
+ * here, which is this rule with two homes, or fly every tier and average the
+ * one it wanted away. Exported, a caller filters the seeds it was going to use
+ * anyway and never has to know the rule's shape.
+ */
+export function episodeTier(seed: number): number {
   // one rung count, not a third spelling of it: tiers run 0..MAX_TIER
-  const tier = seed % (MAX_TIER + 1);
-  return pirateSpecForTier(memberTier(tier, index), (seed >>> 2) + index * 7 + count);
+  return (seed >>> 0) % (MAX_TIER + 1);
 }
 
 /**

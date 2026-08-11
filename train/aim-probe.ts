@@ -2,7 +2,7 @@
 // be worth if it never missed a gate — the number `constants/npc-gun.ts` states
 // from memory and nothing measures.
 //
-//   node --experimental-strip-types train/aim-probe.ts [episodes] [seed base]
+//   node --experimental-strip-types train/aim-probe.ts [episodes] [seed base] [tier]
 //   npm run aim-probe
 //
 // `npc-gun.ts` said, beside the cooldown it justifies, that "a pirate is only
@@ -41,14 +41,25 @@
 // A pilot that never lines up and one that lines up and cannot hurt you are
 // different defects with different fixes (139 M3), and one number cannot tell
 // them apart. That is why the aim and the damage are separate tables.
+//
+// ## One tier at a time, when a gate is stated about one
+//
+// An episode draws its threat tier from its seed (`scenario.ts`'s
+// `episodeTier`), so a row with no tier given pools all three — a Sidewinder's
+// fight averaged with a Monitor's. Name a tier and the run keeps only the seeds
+// that stage it: it is a FILTER over the seeds it was going to fly anyway, so
+// no rule about how a tier is drawn lives here. docs/TODO/139 M2 states its two
+// gates about a tier-2 gang and a lone tier-0 pirate, and neither can be read
+// off a pooled row.
 
 import {
   MAX_TIME, PILOTS, TARGETS, flyAimFight,
   type Attacker, type Pilot, type Target,
 } from './aim-fight.ts';
+import { episodeTier } from '../src/ai-training/scenario.ts';
 import { quantile } from '../src/game/combat-sim-report.ts';
-import { npcHitChance } from '../src/game/gunnery.ts';
-import { NPC_COOLDOWN_LO, NPC_COOLDOWN_SPREAD } from '../src/constants/npc-gun.ts';
+import { bestCasePerSecond } from '../src/game/gunnery.ts';
+import { NPC_MEAN_COOLDOWN } from '../src/constants/npc-gun.ts';
 import { PASS_CLOSE, PASS_FAR } from '../src/constants/combat-record.ts';
 import { IMPACT } from '../src/constants/impact.ts';
 import { SHIELD_REGEN } from '../src/constants/recharge.ts';
@@ -64,14 +75,8 @@ const AIM_BASE = 50_000_017;
 
 const GANGS = [1, 2, 3, 4];
 
-/**
- * The mean reload, which is what a best case spends between shots — the LO plus
- * half the spread, because `npcTriggerPull` draws uniformly across it.
- */
-export const MEAN_COOLDOWN = NPC_COOLDOWN_LO + NPC_COOLDOWN_SPREAD / 2;
-
 /** Shots a minute a gun could manage if it were never out of the gate. */
-const CADENCE_CEILING = 60 / MEAN_COOLDOWN;
+const CADENCE_CEILING = 60 / NPC_MEAN_COOLDOWN;
 
 /** A pooled cell: an `Attacker`'s fields, added up across ships and fights. */
 type Cell = Omit<Attacker, 'hull' | 'damagePerHit'> & {
@@ -97,18 +102,25 @@ type Cell = Omit<Attacker, 'hull' | 'damagePerHit'> & {
   fights: number;
   flattened: number;
   destroyed: number;
+  /** ...and the two docs/TODO/139 M2 states its gates in */
+  lowEnergy: number;
+  attackersLost: number;
 };
 
 const blank = (): Cell => ({
   frames: 0, linedUp: 0, inRange: 0, aimError: 0, aliveSeconds: 0,
   shots: 0, hits: 0, damage: 0, passes: 0, bestSeconds: 0, ships: 0,
   episodeSeconds: 0, medians: [], allDamage: 0, warheads: 0,
-  fights: 0, flattened: 0, destroyed: 0,
+  fights: 0, flattened: 0, destroyed: 0, lowEnergy: 0, attackersLost: 0,
 });
 
-/** What this build could do at 100% time on aim, point blank — the plan's table. */
-export const bestCase = (damagePerHit: number): number =>
-  (damagePerHit * npcHitChance(0)) / MEAN_COOLDOWN;
+/**
+ * What this build could do at 100% time on aim, point blank — the plan's table,
+ * and `gunnery.ts`'s rule rather than a second copy of it. A fight already
+ * carries the pack's answer for the (build, hull) pair it flew, so the ceiling
+ * is taken from that number and the byte is not looked up twice.
+ */
+export const bestCase = bestCasePerSecond;
 
 function add(into: Cell, a: Attacker): void {
   into.frames += a.frames;
@@ -138,7 +150,19 @@ const per = (n: number, d: number, dp = 2): string => (d ? (n / d).toFixed(dp) :
  * has a test beside it that must be able to import its helpers without flying
  * 3,200 episodes on the import.
  */
-function main(episodes: number, base: number): void {
+function main(episodes: number, base: number, tier: number | null): void {
+  /**
+   * The seeds this run flies: the same progression every table here has used,
+   * kept whole unless a tier was named — in which case the run keeps the seeds
+   * that stage it and walks further down the same progression to make up the
+   * count, rather than deriving a seed from the tier and inventing a rule.
+   */
+  const seeds: number[] = [];
+  for (let e = 0; seeds.length < episodes; e++) {
+    const seed = base + e * 7919;
+    if (tier === null || episodeTier(seed) === tier) seeds.push(seed);
+  }
+
   const cells = new Map<string, Cell>();
   const builds = new Map<string, Cell & { damagePerHit: number }>();
   let warheads = 0;
@@ -147,8 +171,8 @@ function main(episodes: number, base: number): void {
     for (const pilot of PILOTS) {
       for (const gang of GANGS) {
         const cell = blank();
-        for (let e = 0; e < episodes; e++) {
-          const fight = flyAimFight(pilot, target, gang, base + e * 7919);
+        for (const seed of seeds) {
+          const fight = flyAimFight(pilot, target, gang, seed);
           cell.episodeSeconds += fight.seconds;
           if (fight.median !== null) cell.medians.push(fight.median);
           cell.allDamage += fight.taken;
@@ -156,6 +180,8 @@ function main(episodes: number, base: number): void {
           cell.fights += 1;
           if (fight.flattened) cell.flattened += 1;
           if (fight.destroyed) cell.destroyed += 1;
+          if (fight.reachedLowEnergy) cell.lowEnergy += 1;
+          cell.attackersLost += fight.attackersLost;
           warheads += fight.warheads;
           for (const a of fight.attackers) {
             add(cell, a);
@@ -179,7 +205,8 @@ function main(episodes: number, base: number): void {
       (p) => GANGS.map((g) => [t, p, g, cells.get(`${t.label}:${p}:${g}`)!] as
         [Target, Pilot, number, Cell])));
 
-  console.log(`\n${episodes} episodes per row · ${MAX_TIME}s · seed base ${base}`);
+  console.log(`\n${episodes} episodes per row · ${MAX_TIME}s · seed base ${base}`
+    + (tier === null ? ' · every threat tier' : ` · tier-${tier} gangs only`));
   console.log('a fitted commander in her own Cobra, flying back —'
     + ' train/aim-fight.ts is the fight\n');
 
@@ -208,9 +235,10 @@ function main(episodes: number, base: number): void {
 
   console.log('\n## what the gun is worth\n');
   console.log('| she | pilot | gang | hit rate | best case | effective | of best |'
-    + ' gang laser | warheads | contact | all causes | a face down | destroyed |');
+    + ' gang laser | warheads | contact | all causes | a face down |'
+    + ' ENERGY LOW | destroyed | they lost |');
   console.log('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
-    + ' --- | --- |');
+    + ' --- | --- | --- | --- |');
   for (const [t, pilot, gang, c] of grid) {
     const best = c.aliveSeconds ? c.bestSeconds / c.aliveSeconds : 0;
     const effective = c.aliveSeconds ? c.damage / c.aliveSeconds : 0;
@@ -224,7 +252,8 @@ function main(episodes: number, base: number): void {
       + ` ${per(warheadPoints, c.episodeSeconds).padStart(5)}/s |`
       + ` ${per(contact, c.episodeSeconds).padStart(5)}/s |`
       + ` ${per(c.allDamage, c.episodeSeconds).padStart(5)}/s |`
-      + ` ${pct(c.flattened, c.fights)} | ${pct(c.destroyed, c.fights)} |`);
+      + ` ${pct(c.flattened, c.fights)} | ${pct(c.lowEnergy, c.fights)} |`
+      + ` ${pct(c.destroyed, c.fights)} | ${per(c.attackersLost, c.fights)} |`);
   }
   console.log('\nbest case = this build\'s own tabulated damage at point-blank hit chance');
   console.log('over the mean reload — 100% time on aim. effective = the same points at the');
@@ -238,10 +267,12 @@ function main(episodes: number, base: number): void {
     + ` (${warheads} landed across the run), and contact is what`);
   console.log('is left. the aim columns above describe the FIRST of the three only — which');
   console.log('is the point: read them beside the split, not instead of it.');
-  console.log('\na face down and destroyed are train/survivability.ts\'s two outcome columns,');
-  console.log('watched its way — every step, because a face that was flattened and came');
-  console.log('back is still a face that was flattened. they are here so that a fight this');
-  console.log('tool stages and a row that tool prints can be read against each other.');
+  console.log('\na face down, destroyed and they lost are train/survivability.ts\'s own');
+  console.log('outcome columns, watched its way — every step, because a face that was');
+  console.log('flattened and came back is still a face that was flattened. ENERGY LOW is');
+  console.log('the console\'s own line (systems.ts `energyLow`): the last bank, where the');
+  console.log('shield stops recovering at all and a player is meant to break off. it is');
+  console.log('the term docs/TODO/139 M2 states its gate in, and today it is unreachable.');
 
   console.log('\n## by build — the shipped pilot, in the fight she can be caught in\n');
   console.log('| build | points/hit | lined up | shots/min | hit rate | best case |'
@@ -263,5 +294,10 @@ function main(episodes: number, base: number): void {
 
 const isMain = process.argv[1]?.endsWith('aim-probe.ts') ?? false;
 if (isMain) {
-  main(Number(process.argv[2]) || 200, Number(process.argv[3]) || AIM_BASE);
+  const asked = Number(process.argv[4]);
+  main(
+    Number(process.argv[2]) || 200,
+    Number(process.argv[3]) || AIM_BASE,
+    Number.isInteger(asked) ? asked : null,
+  );
 }

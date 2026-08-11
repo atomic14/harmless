@@ -1,0 +1,18 @@
+
+> harmless@1.0.0 survivability
+> node --experimental-strip-types --no-warnings train/survivability.ts
+
+
+200 episodes per row · 45s · defender flies the scripted armed trader (a stand-in — see header)
+the commander's own pools: 765 points across two 255-point shields and the bank, recharging as the game does — see the header
+
+| gang | attackers | destroyed | pools stripped | a shield flattened | they lost |
+| --- | --- | --- | --- | --- | --- |
+| 1 | scripted run (stand-in) | 0% in 45.0s | 8% | 3% | 0.01/ep |
+| 2 | scripted run (stand-in) | 0% in 45.0s | 14% | 4% | 0.00/ep |
+| 3 | scripted run (stand-in) | 0% in 45.0s | 18% | 5% | 0.00/ep |
+| 4 | scripted run (stand-in) | 1% in 40.0s | 24% | 8% | 0.00/ep |
+
+pools stripped = mean share of fore + aft + bank gone when the fight ended
+they lost = attackers destroyed per episode, by her guns or their own flying
+
