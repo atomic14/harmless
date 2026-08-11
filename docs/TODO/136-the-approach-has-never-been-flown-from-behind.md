@@ -162,6 +162,14 @@ looks reasonable and the measurements are the only reason to believe otherwise.
 ## Where we are now
 
 **M1 landed** — the sweep, the two side-blindness fixes, and the diagnosis
-written where the defect is. M2–M4 are the path and are not started. The defect Chris reported is characterised and measured but NOT fixed:
-223 of 504 approaches still have a plan that jumps, and the worst still reverses
-through 180 degrees.
+written where the defect is. M2–M4 are the path and are not started.
+
+The defect Chris reported is characterised and measured but **NOT fixed**: 223 of
+504 approaches still have a plan that jumps, and the worst still reverses through
+180 degrees.
+
+**To see it:** `npm run dock-probe`, and read the rows labelled `180°` and
+`135°` — those are the bearings behind the station, and the jump column is the
+last one. The `facing at` rows are Chris's own reproduction, the ship parked on
+the far side pointing at the station. The whole-sweep summary is the last three
+lines.
