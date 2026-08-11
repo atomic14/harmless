@@ -87,6 +87,16 @@ interface Run {
   pitchReversals: number;
   /** run -> gate: an approach thrown far enough off the axis to start again */
   phaseDrops: number;
+  /**
+   * The largest the commanded HEADING moved in a single frame, in radians —
+   * docs/TODO/135. The two columns above measure the ship's answer; this
+   * measures the question, and the question was the one jumping: committing to
+   * the run swapped an aim point 800 units OUT from the slot for the station
+   * centre, which for a ship already inside the gate is a reversal. A plan that
+   * teleports is flown at full stick, because `pitchOnto` saturates at 20
+   * degrees of error and nothing in the loop damps what that builds up.
+   */
+  headingJump: number;
 }
 
 function approach(seed: number, offAxis: THREE.Vector3, out: number, spin: number): Run {
@@ -122,6 +132,9 @@ function approach(seed: number, offAxis: THREE.Vector3, out: number, spin: numbe
   let lastRoll = 0;
   let lastPitch = 0;
   let lastPhase = state.dockPlan.phase;
+  let headingJump = 0;
+  const lastHeading = new THREE.Vector3();
+  let haveHeading = false;
   /** The last direction an axis was MOVING in, held across a coast. */
   const reversed = (rate: number, last: number): boolean =>
     Math.abs(rate) >= STILL_ENOUGH && last !== 0 && Math.sign(rate) !== last;
@@ -146,9 +159,19 @@ function approach(seed: number, offAxis: THREE.Vector3, out: number, spin: numbe
     }
     if (lastPhase === 'run' && state.dockPlan.phase === 'gate') phaseDrops += 1;
     lastPhase = state.dockPlan.phase;
+
+    // The plan the step just flew — `state.dockPlan` is the live object
+    // `planDocking` wrote this frame, so this is the question the ship was
+    // asked, read after the answer.
+    if (haveHeading) {
+      headingJump = Math.max(headingJump, lastHeading.angleTo(state.dockPlan.heading));
+    }
+    lastHeading.copy(state.dockPlan.heading);
+    haveHeading = true;
   }
   return {
     docked, seconds: frames / 60, bumps, rollReversals, pitchReversals, phaseDrops,
+    headingJump,
   };
 }
 
@@ -176,6 +199,8 @@ let drops = 0;
 const times: number[] = [];
 const rolls: number[] = [];
 const pitches: number[] = [];
+const jumps: number[] = [];
+const deg = (rad: number): number => rad * 180 / Math.PI;
 for (const [i, c] of cases.entries()) {
   const r = approach(90_100 + i, c.offAxis, c.out, c.spin);
   if (r.docked) { docked += 1; times.push(r.seconds); }
@@ -183,10 +208,12 @@ for (const [i, c] of cases.entries()) {
   if (r.phaseDrops > 0) drops += 1;
   rolls.push(r.rollReversals);
   pitches.push(r.pitchReversals);
+  jumps.push(deg(r.headingJump));
   console.log(`${r.docked ? 'DOCKED' : 'FAILED'} ${r.seconds.toFixed(1).padStart(6)}s`
     + ` · ${String(r.bumps).padStart(2)} scrape(s)`
     + ` · ${String(r.rollReversals).padStart(3)} roll rev`
-    + ` · ${String(r.pitchReversals).padStart(3)} pitch rev · ${c.label}`);
+    + ` · ${String(r.pitchReversals).padStart(3)} pitch rev`
+    + ` · ${deg(r.headingJump).toFixed(0).padStart(3)}° jump · ${c.label}`);
 }
 const median = (xs: number[]): number => xs.slice().sort((a, b) => a - b)[xs.length >> 1];
 const worst = (xs: number[]): number => Math.max(...xs);
@@ -197,3 +224,6 @@ console.log(`\n${docked}/${cases.length} docked · median ${
 console.log(`roll reversals: median ${median(rolls)} · worst ${worst(rolls)}`
   + ` · pitch: median ${median(pitches)} · worst ${worst(pitches)}`
   + ` · ${drops} run(s) fell back to the gate`);
+console.log(`the plan's own heading jumps: median ${median(jumps).toFixed(1)}°`
+  + ` · worst ${worst(jumps).toFixed(1)}° in one frame`
+  + ` · ${jumps.filter((j) => j > 20).length} approach(es) over 20°`);

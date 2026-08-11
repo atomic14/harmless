@@ -13,11 +13,17 @@ active context:
 
 ## Execution queue
 
-**Empty.** 134 landed on 2026-08-11 and closed **#23**, the only open issue.
-`QUEUE.json` is `[]` and the GitHub inbox is empty again: #22 closed with 127, as
-#18 did with 121, #20 with 122 and #21 with 123.
+**Empty.** 135 landed on 2026-08-11, M1 and M2; its M3 is a decision for Chris
+rather than an open item, and the reasoning is in the plan.
 
-Nothing in the project is now blocked on anything.
+The GitHub inbox is empty: **#23** closed with 134, as #22 did with 127, #18 with
+121, #20 with 122 and #21 with 123.
+
+**One question is open and it is Chris's, not the queue's:** whether the docking
+computer should avoid traffic at all. `npm run dock-traffic` now answers what it
+costs — one non-fatal collision in eighty approaches — and docs/TODO/135 argues
+against building avoidance for that, with the design bias recorded (wait, do not
+swerve) if the answer is yes anyway.
 
 ## What the playtest is now for
 
@@ -120,11 +126,7 @@ is invisible is indistinguishable from nothing happening.
 Not executable yet. In priority order; promoting the head is what makes the
 next execution item, once it has a plan doc.
 
-- **A docking run that gives up and goes round again.** `planDocking`'s latch
-  lets a committed run fall back to `gate` when it drifts past
-  `LINED_UP_LATERAL * 2`, and it fires on a handful of approaches. docs/TODO/134
-  looked at it and could not say whether its own fix moved the number: 7 → 4 on
-  `dock-probe`'s grid, 17 → 24 on a second one at the same setting. It costs an
-  approach a lap rather than producing a symptom anybody has reported, and what
-  it needs first is a measurement that separates it from grid luck — the count is
-  currently noise. Not executable until that exists.
+**Empty.** The fall-back entry docs/TODO/134 left here was retired by 135
+without being worked: runs were giving up because the aim point teleported when
+they committed, so the count went to zero on the shipped grid the moment that was
+fixed. It was a symptom, not a defect.

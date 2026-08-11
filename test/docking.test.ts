@@ -1,5 +1,11 @@
-// Threading the slot: every threshold in constants/docking.ts and the docking
-// computer's hand, held to the real functions.
+// Threading the slot: every threshold in constants/docking.ts, held to the real
+// functions, plus what a real `WorldStep` frame does with them.
+//
+// The HAND that flies the approach is test/docking-computer.test.ts, split off
+// on 2026-08-11 along the seam the constants already have: this file is the
+// letterbox, that one is the autopilot asking for a stick. What stayed is what
+// needs a world — `makeRun` flies the actual step, so the constants are pinned
+// where they are SPENT.
 //
 // The shape throughout is the measured one (docs/TODO/90, slice 5): each
 // boundary is BISECTED out of `dockingOutcome`/`planDocking` or SOLVED back
@@ -13,14 +19,12 @@
 import { readFileSync } from 'node:fs';
 import * as THREE from 'three';
 import {
-  dockingOutcome, planDocking, makeDockPlan, dockingSticks, type DockingOutcome,
+  dockingOutcome, planDocking, makeDockPlan, type DockingOutcome,
 } from '../src/game/docking.ts';
-import { DC_TURN_FADE_ANGLE, DC_SLOT_MARGIN } from '../src/constants/docking-computer.ts';
 import {
   GATE_HALF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN, NPC_HULL_BOX_MARGIN,
   SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE,
 } from '../src/constants/docking.ts';
-import { STEER_SATURATION } from '../src/constants/combat-computer.ts';
 import { PLAYER_FLIGHT } from '../src/constants/player-flight.ts';
 import { BOUNCE_STANDOFF } from '../src/constants/station.ts';
 import { WorldStep, type StepHost } from '../src/game/world-step.ts';
@@ -109,115 +113,6 @@ console.log('\ndocking thresholds');
   const gate = A - B * (hAlong / hAcross);
   check(`the gate sits GATE_HALF_WIDTHS half-widths out (${(gate / DOCK_Z).toFixed(4)})`,
     near(gate, DOCK_Z * GATE_HALF_WIDTHS, 1e-6));
-}
-
-// --- the roll the computer asks for, near the heading (docs/TODO/134, #23) ---
-//
-// The turn measures its roll against `nose x heading`, whose LENGTH is the sine
-// of the off-nose angle: it vanishes as the controller succeeds, and a vanishing
-// vector still has a direction. The old law normalised it and asked for a
-// proportional roll, so a ship dead on the heading rolled full stick at
-// numerical residue. Held here at an angle where the plan flies, not at the
-// exact zero the guard in `rollErrorTo` already catches — the bug lived in the
-// NEIGHBOURHOOD of the heading, which is why the "asks for nothing" check below
-// passed all the way through it.
-
-console.log('\nthe docking computer near its own heading');
-{
-  const station = new THREE.Object3D();
-  station.updateMatrixWorld(true);
-  const DOCK_Z = 160;
-  /** on the axis and inside the corridor, so the run phase owns the roll */
-  const onTheRun = () => {
-    const p = makeDockPlan();
-    p.phase = 'run';
-    return planDocking(new THREE.Vector3(0, 0, -400), station, DOCK_Z, 400, p);
-  };
-
-  // Lined up for the letterbox — wings on the slot's long axis, nose on the
-  // plan — and then eased off the heading SIDEWAYS, about the ship's own +Y.
-  //
-  // Sideways is the whole point, and easing off about the pitch axis instead is
-  // the mistake that makes this fixture prove nothing: pitching off the heading
-  // leaves the axis the turn wants lying along the wings, where the two laws
-  // already agree and the roll ask is zero however it is computed. Off to one
-  // SIDE, the turn wants a quarter turn of roll for an arbitrarily small error —
-  // which is the bug, and full stick for a tenth of a degree is what it did.
-  const lined = (offNose: number) => {
-    const plan = onTheRun();
-    const q = new THREE.Quaternion().setFromRotationMatrix(
-      new THREE.Matrix4().lookAt(new THREE.Vector3(), plan.heading, plan.up));
-    q.multiply(new THREE.Quaternion()
-      .setFromAxisAngle(new THREE.Vector3(0, 1, 0), offNose));
-    return { plan, q };
-  };
-
-  {
-    const { plan, q } = lined(0);
-    const s = dockingSticks(q, plan);
-    check(`on the heading and rolled with the slot, no roll is asked for (${
-      s.roll.toFixed(6)})`, Math.abs(s.roll) < 1e-6);
-  }
-
-  // THE REPORTED SYMPTOM. A tenth of a degree off the heading is a ship flying
-  // its plan, not a ship that needs to bank; the turn axis is 0.002 long there
-  // and points nowhere in particular. Before this item the same geometry asked
-  // for as much as full stick.
-  {
-    const tiny = 0.1 * Math.PI / 180;
-    const { plan, q } = lined(tiny);
-    const s = dockingSticks(q, plan);
-    check(`a tenth of a degree off it, the roll ask stays small (${
-      s.roll.toFixed(4)})`, Math.abs(s.roll) < 0.05);
-    // ...and the pitch does not paper over it. A ship with no yaw axis cannot
-    // pull a SIDEWAYS error out, which `pitchOnto` says of itself; the slot's
-    // own rotation sweeps the pitch plane round as the run goes in and that is
-    // what reaches it. Pinned so that a future "fix" to the pitch half has to
-    // come and change this line deliberately.
-    check(`...and the pitch does not pretend to fix a sideways error (${
-      s.pitch.toFixed(6)})`, Math.abs(s.pitch) < 1e-9);
-  }
-
-  // ...and the fade gives the axis back for a turn that is real. Probed either
-  // side of the constant, and against the RATIO the fade claims rather than
-  // against a number of its own: a quarter of the way in, the turn gets a
-  // quarter of what it gets outside. Both ends move if the constant is
-  // re-inlined, and the ratio moves if the ramp stops being proportional.
-  {
-    const { plan: p1, q: q1 } = lined(DC_TURN_FADE_ANGLE / 4);
-    const { plan: p2, q: q2 } = lined(DC_TURN_FADE_ANGLE * 4);
-    const inside = dockingSticks(q1, p1).roll;
-    const outside = dockingSticks(q2, p2).roll;
-    check(`inside the fade the turn gets a quarter of the axis (${
-      inside.toFixed(4)} vs ${outside.toFixed(4)} outside it)`,
-    near(inside, outside / 4, 1e-6));
-    // ...and outside it, the turn is spending the letterbox's whole budget, so
-    // the fade is the only thing holding it back and not some other clamp.
-    check(`...and outside it spends the budget DC_SLOT_MARGIN allows (${
-      outside.toFixed(4)})`,
-    near(Math.abs(outside), ROLL_TOLERANCE * DC_SLOT_MARGIN / STEER_SATURATION, 1e-6));
-  }
-
-  // The GATE phase hands the whole axis to the turn: a slot on a spinning hull
-  // a corridor away is a target that never stops moving, and tracking it is a
-  // roll that never stops either.
-  {
-    const plan = planDocking(new THREE.Vector3(600, 0, -2000), station, DOCK_Z, 400,
-      makeDockPlan());
-    check('the fixture is off the axis, in the gate phase', plan.phase === 'gate');
-    // Nose on the gate heading, so there is nothing to turn for — and wings a
-    // long way off the slot's long axis, which is the whole question: out here
-    // the slot is on a hull that is still turning, so an attitude matched to it
-    // now is stale before the corridor and chasing it is a roll that never ends.
-    const q = new THREE.Quaternion().setFromRotationMatrix(
-      new THREE.Matrix4().lookAt(new THREE.Vector3(), plan.heading, plan.up));
-    q.multiply(new THREE.Quaternion()
-      .setFromAxisAngle(new THREE.Vector3(0, 0, 1), ROLL_TOLERANCE * 2));
-    const s = dockingSticks(q, plan);
-    check(`...so with the nose on the gate heading it holds the wings still (${
-      s.roll.toFixed(6)}), rolled ${(ROLL_TOLERANCE * 2).toFixed(2)} off the slot`,
-    Math.abs(s.roll) < 1e-6);
-  }
 }
 
 /**

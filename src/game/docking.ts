@@ -25,7 +25,9 @@ import {
   GATE_HALF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN,
   SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE,
 } from '../constants/docking.ts';
-import { DC_SLOT_MARGIN, DC_TURN_FADE_ANGLE } from '../constants/docking-computer.ts';
+import {
+  DC_SLOT_MARGIN, DC_TURN_FADE_ANGLE, DC_GATE_LOOKAHEAD,
+} from '../constants/docking-computer.ts';
 import {
   pitchOnto, rollErrorTo, steerStick, type StickCommand,
 } from './pitch-roll-steer.ts';
@@ -114,7 +116,39 @@ export function planDocking(
       _aim.copy(pos).sub(station.position).normalize()
         .multiplyScalar(gateDist * 1.15).add(station.position);
     } else {
-      _aim.copy(station.position).addScaledVector(_slotN, gateDist);
+      // The gate is a point to pass THROUGH, not a destination to arrive at,
+      // and treating it as the latter is what made the plan jump (docs/TODO/135).
+      // A ship converging on the gate from the side cuts the corner and ends up
+      // INSIDE it — measured at `along` 612 against a gate at 800 — so the aim
+      // was then pointing back OUT while the run, one frame later, points in.
+      // Every one of the 220 heading jumps over 20 degrees happened within 200
+      // units of this point, the median within 48.
+      //
+      // So the aim LEADS the ship down the axis instead — but only as far as it
+      // has EARNED by being lined up. Both halves are load-bearing and both were
+      // measured:
+      //
+      //   Aiming at the axis abeam, with no lookahead, does not fix anything:
+      //   the aim then sits `lateral` away — 44 units — and a heading toward a
+      //   point the ship is on top of is as ill-conditioned as the one it
+      //   replaced. The jump stayed at 42.8 degrees median.
+      //
+      //   Leading unconditionally fixes the jump (42.8 to 4.0 median) and ruins
+      //   the docking: 335 scrapes against 1, because a ship still well off the
+      //   axis that aims INWARD cuts the corner into the hull, which is the
+      //   failure the stand-off branch above exists to prevent.
+      //
+      // So the lookahead ramps in over the last stretch of lateral, from the
+      // width at which a committed run gives up (`LINED_UP_LATERAL * 2`) to the
+      // corridor itself. Far off the axis this is the gate, exactly as before; by
+      // the time the ship is lined up enough to commit, the aim has already swung
+      // round to point the way the run points, so committing changes the speed
+      // and the roll handover without changing where the ship is going.
+      const earned = Math.max(0, Math.min(1,
+        (LINED_UP_LATERAL * 2 - lateral) / LINED_UP_LATERAL));
+      const led = Math.max(dockZ, along - gateDist * DC_GATE_LOOKAHEAD);
+      _aim.copy(station.position)
+        .addScaledVector(_slotN, gateDist + (led - gateDist) * earned);
     }
     out.heading.copy(_aim).sub(pos).normalize();
     // ease off approaching the gate, or the ship sails past and has to loop

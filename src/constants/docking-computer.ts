@@ -107,3 +107,48 @@ export const DC_SLOT_MARGIN = 0.5;
  * @rule docking.turnFadeAngle
  */
 export const DC_TURN_FADE_ANGLE = 0.10;
+
+/**
+ * How far ahead of the ship the gate phase aims, as a share of the gate
+ * distance.
+ *
+ * The gate is a point to pass THROUGH, and the plan used to treat it as a point
+ * to arrive AT: fly at a fixed point 800 units out from the slot, reach it, and
+ * then — one frame later, on committing to the run — aim at the station instead.
+ * A ship converging from the side cuts the corner and ends up INSIDE the gate,
+ * so the two aims were on opposite sides of it and the commanded heading
+ * reversed. All 220 single-frame heading jumps over 20 degrees in a 320-approach
+ * sweep happened within 200 units of that point, the median within 48, and the
+ * worst turned the plan through 162 degrees between one frame and the next
+ * (docs/TODO/135).
+ *
+ * A lookahead fixes it twice over: the aim is never a point the ship is sitting
+ * on, so the heading to it stays well conditioned, and it always points the way
+ * the run points, so committing changes the speed and the roll handover without
+ * changing where the ship is going.
+ *
+ * It is only spent as far as the ship has EARNED it by being lined up — see
+ * `planDocking`, where a lookahead handed out unconditionally was measured
+ * cutting the corner into the hull, 335 scrapes against 1.
+ *
+ * A SHARE rather than a distance, because the cliff in the sweep is at a
+ * fraction of the gate and not at a number of units: over 320 approaches the
+ * worst single-frame heading change is 10.4 degrees at a quarter of the gate,
+ * 6.2 at three eighths, **4.3 at a half**, and then 141 and 142 at three
+ * quarters and the whole of it. Past about half, the ship is aimed so far inside
+ * itself that an approach loses the corridor and gives up — and a run that gives
+ * up changes its mind about where it is going, which is a jump by any measure.
+ * A bigger station has a gate further out (`GATE_HALF_WIDTHS` is a multiple of
+ * `dockZ`) and should lead by more, which a fixed 400 would not do.
+ *
+ * Its own rule id: it shares the value 0.5 with `DC_SLOT_MARGIN` next door,
+ * `BRIBE_SHARE`, `SURVIVOR_RELEASE_SHARE` and two fractions of the heat bar. Six
+ * unrelated halves, and this is the only one that is a distance.
+ *
+ * The same sweep is what says this is a plan-side fix and not a flying-side one:
+ * the roll and pitch reversal counts docs/TODO/134 left behind barely move
+ * across it (8-9 and 3), while the jump column moves by two orders of magnitude.
+ *
+ * @rule docking.gateLookahead
+ */
+export const DC_GATE_LOOKAHEAD = 0.5;

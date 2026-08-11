@@ -206,8 +206,19 @@ console.log('\nsnapshot round trip');
     check('the docking replay fixture has committed to the slot run',
       trader.state.dockPlan.phase === 'run');
     // A small disturbance after commitment is precisely why the phase latches:
-    // 60 is outside the 45-unit initial gate but inside the 90-unit run guard.
-    trader.state.pos.x = 60;
+    // 85 is outside the 45-unit initial gate but inside the 90-unit run guard.
+    //
+    // It was 60, and docs/TODO/135 had to move it — which is a finding rather
+    // than a fixture tweak, so it is recorded here. The control below needs
+    // resetting the latch to CHANGE something, and it used to change a great
+    // deal, because the two phases pointed opposite ways: the gate aimed at a
+    // fixed point 800 units out, so a ship inside that turned round. Now the
+    // gate leads down the axis and the phases AGREE on direction, differing only
+    // in speed and in who owns the roll — so at 60 the control drifted 5.4 units
+    // and no longer proved the fixture could tell. Further off the axis it still
+    // does (31.3), because that is where the lookahead has not been earned and
+    // the gate really does send you back out.
+    trader.state.pos.x = 85;
 
     const dockingWire = JSON.stringify(serialiseState(
       trader.state as unknown as Record<string, unknown>));

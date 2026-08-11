@@ -34,6 +34,7 @@
     "gap-probe": "node --experimental-strip-types --no-warnings train/gap-probe.ts",
     "defence-probe": "node --experimental-strip-types --no-warnings train/defence-probe.ts",
     "dock-probe": "node --experimental-strip-types --no-warnings train/dock-probe.ts",
+    "dock-traffic": "node --experimental-strip-types --no-warnings train/dock-traffic.ts",
     "portability": "node tools/portability.test.mjs && node tools/portability.mjs",
     "sizes": "node tools/sizes.mjs",
     "coverage": "node tools/coverage.mjs"
