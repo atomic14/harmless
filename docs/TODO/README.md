@@ -13,10 +13,9 @@ active context:
 
 ## Execution queue
 
-**Empty.** 129 M2 was the last open item and docs/TODO/132 closed it on
-2026-08-11 without the flight it was waiting for. `QUEUE.json` is `[]`, the
-backlog is empty, and the GitHub inbox is empty: **#22** closed with 127, as #18
-did with 121, #20 with 122 and #21 with 123.
+**Empty.** 134 landed on 2026-08-11 and closed **#23**, the only open issue.
+`QUEUE.json` is `[]` and the GitHub inbox is empty again: #22 closed with 127, as
+#18 did with 121, #20 with 122 and #21 with 123.
 
 Nothing in the project is now blocked on anything.
 
@@ -60,6 +59,16 @@ of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
 
 ## What landed on 2026-08-11
+
+**134** — #23, and the one thing `dock-probe` was never asked to measure. The
+autopilot rolled hard over and back every 0.45s while its nose was dead on the
+gate heading, chasing the direction of a vector whose length had gone to zero:
+`nose × heading` is degenerate exactly when the controller succeeds. It got past
+126 because the probe scored docked, seconds and scrapes and all three were fine
+— **docking well and flying well are different claims, and only the first had a
+number**. The fix is two gates rather than the one the plan predicted, because
+the obvious one alone only changes what the ship chases. Median approach: 17 roll
+reversals → 8; 320/320 docked either way.
 
 **132** — the four numbers that were holding the queue open, closed without the
 flight they were waiting for. Each already had an anchor in the codebase that
@@ -111,4 +120,11 @@ is invisible is indistinguishable from nothing happening.
 Not executable yet. In priority order; promoting the head is what makes the
 next execution item, once it has a plan doc.
 
-**Empty.** 130 was the only entry and it landed on 2026-08-11 (see below).
+- **A docking run that gives up and goes round again.** `planDocking`'s latch
+  lets a committed run fall back to `gate` when it drifts past
+  `LINED_UP_LATERAL * 2`, and it fires on a handful of approaches. docs/TODO/134
+  looked at it and could not say whether its own fix moved the number: 7 → 4 on
+  `dock-probe`'s grid, 17 → 24 on a second one at the same setting. It costs an
+  approach a lap rather than producing a symptom anybody has reported, and what
+  it needs first is a measurement that separates it from grid luck — the count is
+  currently noise. Not executable until that exists.

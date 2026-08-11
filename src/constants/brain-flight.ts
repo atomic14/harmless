@@ -23,6 +23,12 @@ export const BRAIN_RATE_DECAY = 5.2207;
  * How long a brain holds a decision before taking another — 10 Hz. The
  * integration runs every frame regardless, so the ship still flies smoothly
  * between decisions. One home for this rate.
+ *
+ * Its own rule id: it shares the value 0.1 with `CORRIDOR_START` and
+ * `DC_TURN_FADE_ANGLE`, which are a fraction of a route and an angle in radians.
+ * Three unrelated tenths, and this is the only one that is a duration.
+ *
+ * @rule flight.brain.decisionInterval
  */
 export const DECISION_INTERVAL = 0.1;
 

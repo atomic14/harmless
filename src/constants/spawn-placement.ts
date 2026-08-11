@@ -57,6 +57,12 @@ export const HERMIT_SCATTER = 14_000;
  * Where along the route from you to the station the nearest pirate can be, as a
  * fraction of that route. A fraction so the ambush scales with `WITCHPOINT_RADII`
  * (planet.ts). A tenth in, so nobody waits on top of the witchpoint.
+ *
+ * Its own rule id: it shares the value 0.1 with `DECISION_INTERVAL` and
+ * `DC_TURN_FADE_ANGLE`, which are a duration in seconds and an angle in radians.
+ * Three unrelated tenths, and this is the only one that is a share of a journey.
+ *
+ * @rule spawn.corridorStart
  */
 export const CORRIDOR_START = 0.1;
 
