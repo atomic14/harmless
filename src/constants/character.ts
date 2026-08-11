@@ -166,6 +166,11 @@ export const CHARACTER_LINE_SECONDS = 4;
 /**
  * How fast disrepute fades, per day — slower than the galaxy's `HEAT_DECAY`: a
  * cargo is forgotten in days, a reputation is not.
+ *
+ * Its own rule id: it shares the value 1.5 with one of the docking computer's
+ * distances, measured in station half-widths.
+ *
+ * @rule character.disreputeDecay
  */
 export const DISREPUTE_DECAY = 1.5;
 

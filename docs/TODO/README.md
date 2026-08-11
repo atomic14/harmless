@@ -79,15 +79,19 @@ channel and each other instead.
 **136** — the approach is a PATH now, and the defect Chris reported by parking on
 the far side of the station is gone: **no approach in 504 has a plan that jumps
 more than 20 degrees, against 223 of them, and the worst went from a full 180 to
-3.4.** His own case took 28 seconds and ten full-authority pitch reversals; it
+1.1.** His own case took 28 seconds and ten full-authority pitch reversals; it
 takes 16 seconds and one. The shape is the whole of it — a fixed stand-off funnel
 holding the gate distance from a quarter turn round to astern, maximum'd with the
-ship's own way in through where it actually is, and an aim one lookahead along
-it, so the stand-off, the way round the hull and the run in stopped being three
-answers with thresholds between them. Everything else came with it: median 19.4s
-→ 15.6s, 1 scrape → 0, pitch reversals 5 → 2, and traffic collisions 1 in 80 → 0.
-Three things the measurements decided against what looked right are recorded in
-the plan; the one thing it did NOT fix is 137, at the head of the queue.
+ship's own way in through where it actually is, a straight run in from three
+fifths of the gate, and an aim one lookahead along, so the stand-off, the way
+round the hull and the run in stopped being three answers with thresholds between
+them. Everything else came with it: median 19.4s → 16.4s, 1 scrape → 0, pitch
+reversals 5 → 4, and traffic collisions 1 in 80 → 0. Two rounds of Chris flying
+it are in the plan and in two new columns of the probe — how far off the slot the
+ship is still POINTING as it goes through (13.6° → 5.4°) and how far its WINGS
+are off the letterbox (20.4° → 7.5°, against 37° of tolerance and the old
+approach's 1.7°). That last gap is the roll ring, which is 137 at the head of the
+queue.
 
 **134** — #23, and the one thing `dock-probe` was never asked to measure. The
 autopilot rolled hard over and back every 0.45s while its nose was dead on the

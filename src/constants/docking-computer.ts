@@ -111,48 +111,48 @@ export const DC_SLOT_MARGIN = 0.5;
 export const DC_TURN_FADE_ANGLE = 0.10;
 
 /**
- * How far ahead ALONG THE PATH the follower aims, as a share of the gate
- * distance.
+ * How far ahead ALONG THE PATH the follower aims, in station half-widths.
  *
  * This is the whole of the follower (`dock-path.ts`): the approach is a curve
- * from the ship to the slot mouth, and the ship flies at the point one of these
- * along it. Everything the path buys is bought here — the aim is never a point
- * the ship is sitting on, so the heading to it is well conditioned; it always
- * moves forward along the curve, so the heading cannot reverse; and it rounds
- * the curve's corners for free, because an aim point rounding a corner moves
- * continuously even where the tangent does not.
+ * from the ship to the slot, and the ship flies at the point one of these along
+ * it from wherever it is on it. Everything the path buys is bought here — the
+ * aim is never a point the ship is sitting on, so the heading to it is well
+ * conditioned; it always moves forward along the curve, so the heading cannot
+ * reverse; and it rounds the curve's corners for free, because an aim point
+ * rounding a corner moves continuously even where the tangent does not.
  *
- * SPENT TWICE, against the same number: never further than this share of the
- * gate, and never further than this share of what is LEFT of the path. The
- * second clamp is not a refinement — without it, a ship inside the last
- * lookahead is aimed at the END of the path, the station's own centre, and a
- * ship flying straight at the centre holds its bearing instead of closing it. It
- * arrives at the hull face carrying whatever it was off by: four scrapes an
- * approach, measured, before the clamp went in.
+ * WHAT IT TRADES is the NOSE against the WINGS, and both are measured over
+ * `npm run dock-probe`'s 504 approaches, at the letterbox, where they are what a
+ * letterbox asks about. Short, and the ship tracks the curve tightly and arrives
+ * pointing straight but rolled: at one half-width the median approach goes
+ * through 3.4 degrees off the axis and 16.4 off the slot. Long, and it flies
+ * inside the curve — by roughly the square of this over twice the radius — so it
+ * arrives with more to correct, and correcting is an angle: at two half-widths,
+ * 7.9 off the axis and 12.1 off the slot, and 60 scrapes, which is the cliff.
+ * One and a half is between them and clear of it: 5.4 and 7.5, nothing scraping.
  *
- * WHAT THE SWEEP SAYS, over `npm run dock-probe`'s 504 approaches, and it is a
- * cliff on one side and a slope on the other. Too long and the ship cuts the
- * corner — a pursuit flies inside a curve by roughly the square of the lookahead
- * over twice the radius, which at half the gate is 100 units of the 800 the
- * stand-off holds — and the scrapes go 0, 0, 0, 4, 36 at 0.30, 0.35, 0.40, 0.45
- * and 0.50. Too short and it chases a point inside its own turn: the worst
- * single-frame heading change is 10.9 degrees at 0.30 against 3.4 at 0.35, with
- * no scrapes to show for it. The middle of what is left is this.
+ * IT DOES NOT VARY, and two rules that made it were tried and measured away.
+ * Clamping it to a share of what is LEFT of the path reads well and is what
+ * makes the last hundred units twitchy: a ship 7 units off a 26-wide channel was
+ * being asked for an 11-degree correction, because the aim had closed to 84
+ * units. Extending it to the path's END once the ship is on the straight leg
+ * gives the old approach's serene 2.9-degree entry and steps the aim 200 units
+ * when the projection crosses onto that leg — median jump 0.6 degrees to 13.9.
+ * A flat lookahead has neither and needs no case analysis.
  *
- * A SHARE rather than a distance, so a bigger station's longer approach is flown
- * with a longer lookahead: `GATE_HALF_WIDTHS` is a multiple of the half-width,
- * so this is one too, at one remove.
+ * IN HALF-WIDTHS, so a bigger station's approach is flown with a longer
+ * lookahead — and because the half-width is the scale of the thing being
+ * threaded, which is what this is really measured against.
  *
  * It replaced a constant of the same name that meant something else — how far
- * down the axis the old gate aim was allowed to LEAD, once the ship had earned
- * it by being lined up. That was docs/TODO/135's fix to a plan that jumped when
- * the run committed, and it is subsumed: with a path there is no commit to jump
- * at, because the run is the last leg of the same curve.
+ * down the axis the old gate aim was allowed to LEAD, once the ship had earned it
+ * by being lined up. That was docs/TODO/135's fix to a plan that jumped when the
+ * run committed, and it is subsumed: with a path there is no commit to jump at,
+ * because the run in is the last leg of the same curve.
  *
- * Its own rule id: it shares the value 0.35 with two of the scripted co-pilot's
- * steering angles, a lane alpha, a spawn chance and a share of receptions. Six
- * unrelated 0.35s, and this is the only one that is a distance.
+ * Its own rule id: it shares the value 1.5 with `DISREPUTE_DECAY`, which is a
+ * rate per jump.
  *
  * @rule docking.pathLookahead
  */
-export const DC_PATH_LOOKAHEAD = 0.35;
+export const DC_PATH_LOOKAHEAD = 1.5;

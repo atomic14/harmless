@@ -149,7 +149,7 @@ export function planDocking(
   // guard, so re-testing every frame would drop the roll handover just as the
   // letterbox needs it.
   const committed = out.phase === 'run' && along > 0 && lateral < LINED_UP_LATERAL * 2;
-  const linedUp = committed ||
+  const linedUp = committed || path.toGo <= gateDist ||
     (lateral < LINED_UP_LATERAL && along > dockZ && along < gateDist * 1.5);
   out.phase = linedUp ? 'run' : 'gate';
 

@@ -44,6 +44,38 @@ export const GATE_HALF_WIDTHS = 5;
 export const TURN_IN = Math.PI / 4;
 
 /**
+ * Where the approach stops curving and flies straight, in station half-widths:
+ * the radius at which `dock-path.ts`'s funnel meets the slot axis, and so the
+ * length of the RUN IN that follows it. Three fifths of the gate distance, which
+ * is three half-widths at both released stations.
+ *
+ * A ship should be pointing down the slot before it is in the slot. Without a
+ * straight leg the funnel dives all the way to the letterbox and the ship goes
+ * through it still turning: measured at 13.6 degrees off the axis in a median
+ * approach and 19.3 at worst — which is what a pilot feels as the slot arriving
+ * too fast and at an angle (Chris, flying docs/TODO/136: *"it feels quite tight
+ * into the slot so the angle seems a bit too much"*). With the leg it is 5.4 and
+ * 12.4, against 2.9 and 7.3 for the branch-and-corridor approach both replaced.
+ *
+ * Bounded BELOW by the hull, and that is what makes clearing it a property of the
+ * PATH rather than of the ship's tracking: the whole of `dockingOutcome`'s box is
+ * inside this radius, so the curve never enters the box at all and the straight
+ * leg enters it dead on the axis. Bounded ABOVE by the gate, because the funnel
+ * needs radius to spend on its dive — at four fifths the dive is squeezed into a
+ * corner the follower has to round, and the plan's own heading starts moving 12
+ * degrees in a frame where three fifths moves 0.7. Tied to `GATE_HALF_WIDTHS`
+ * rather than stated flat so that a bigger gate keeps the same shape of funnel.
+ *
+ * The interior optimum is real and was measured over `npm run dock-probe`'s 504
+ * approaches. Three fifths is the only one of the three that keeps everything:
+ * at 2.5 half-widths three approaches have a plan that jumps over 20 degrees in
+ * a frame — the worst 91.8 — and four scrape; at 3.5 the worst jump is 12.3, one
+ * scrapes, and the wings arrive 17.6 degrees off the slot against 7.5; at three
+ * fifths nothing jumps more than 1.1 degrees and nothing scrapes.
+ */
+export const RUN_IN_WIDTHS = GATE_HALF_WIDTHS * 0.6;
+
+/**
  * Off-axis error we insist on before committing to the run in, in world units.
  *
  * A ship that reaches the gate off-axis and then flies straight carries that

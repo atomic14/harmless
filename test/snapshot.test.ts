@@ -198,7 +198,7 @@ console.log('\nsnapshot round trip');
   // for exactly the omitted-state bug rather than for some unrelated default.
   {
     seedWorld(20_260_731);
-    const trader = new NpcShip('trader', at(0, 0, -700), 2);
+    const trader = new NpcShip('trader', at(0, 0, -1150), 2);
     trader.state.traderPhase = 'docking';
     trader.update(1 / 60, makePlayer(at(0, 0, 0)), {
       station, dockZ: 160, fleet: [trader], playerLegal: 0, brains: SHIPPED_BRAINS, missileInbound: false,
@@ -207,6 +207,8 @@ console.log('\nsnapshot round trip');
       trader.state.dockPlan.phase === 'run');
     // A small disturbance after commitment is precisely why the phase latches:
     // 85 is outside the 45-unit initial gate but inside the 90-unit run guard,
+    // and the fixture is far enough out that the corridor is what commits it
+    // rather than docs/TODO/136's gate-distance handover,
     // so a plan that kept the latch is still on the run here and a plan that
     // lost it cannot re-commit — which is what the control below reads.
     //

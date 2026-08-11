@@ -57,26 +57,33 @@
 // setting, 17 to 17 on another) while the reversal medians agreed on both. It is
 // a handful of approaches either side, not a trend.
 //
-// ON THE 504-APPROACH GRID, which is the one that runs now, docs/TODO/136 M2-M3
+// ON THE 504-APPROACH GRID, which is the one that runs now, docs/TODO/136
 // replaced the reactive approach with a PATH and a follower on it:
 //
 //   before      504/504   median 19.4s   38.6s worst   1 scrape
 //               roll: median 10 reversals, 1.2 turns swept · pitch 5 and 12
 //               223 approaches jump over 20 degrees, worst 180.0
-//   after       504/504   median 15.6s   30.8s worst   0 scrapes
-//               roll: median 16 reversals, 1.7 turns swept · pitch 2 and 8
-//               NO approach jumps over 20 degrees, worst 3.4
+//               through the letterbox: 2.9 degrees off the axis, 1.7 off the slot
+//   after       504/504   median 16.4s   31.6s worst   0 scrapes
+//               roll: median 18 reversals, 1.9 turns swept · pitch 4 and 8
+//               NO approach jumps over 20 degrees, worst 1.1
+//               through the letterbox: 5.4 degrees off the axis, 7.5 off the slot
 //
-// Read the two roll columns together, which is why the second one was added. The
-// plan column and the pitch column are the defect this item existed for, and
+// The plan column and the pitch column are the defect the item existed for and
 // they are gone: from directly astern the old approach reversed its plan through
 // a half turn and pitched hard over ten times an approach, in 28 seconds; the
-// path arrives in 16 with one pitch reversal and a plan that moves a degree.
-// What went the other way is the ROLL, and it is the same ring in both — a
-// ship holding a bank hunts around it at about a reversal a second, on a curve
-// or on a dead-straight run in, in this version and the one before it. The path
-// spends more of the approach banked, so it collects more of it. That ring is
-// `dockingSticks`, not the plan, and it is the biggest thing left.
+// path arrives in 16 with one pitch reversal and a plan that moves a degree over
+// a whole approach.
+//
+// THE TWO ENTRY COLUMNS ARE CHRIS'S, flying it, and they are why they exist: a
+// ship can dock cleanly while still pointing and rolled several degrees off, and
+// nothing else here can see that. The first was 13.6 degrees before the approach
+// gained a straight run in — "it feels quite tight into the slot so the angle
+// seems a bit too much" — and the second is the one still worth work: the wings
+// arrive 7.5 degrees off the slot against the old approach's 1.7, because the
+// roll hunts around any bank it holds and arrives wherever the hunt happens to
+// be. That is `dockingSticks` rather than the plan, it is the same on a
+// dead-straight run in, and docs/TODO/137 is the item for it.
 //
 // The ship starts at rest in one of four attitudes (`Facing`), including the
 // world -Z the old grid always assumed, which is deliberately unhelpful: the
@@ -89,6 +96,8 @@ import { newCommander } from '../src/game/commander.ts';
 import { WorldStep, type StepHost } from '../src/game/world-step.ts';
 import { Ordnance } from '../src/game/ordnance.ts';
 import { seedWorld } from '../src/game/rng.ts';
+import { slotRollOffset } from '../src/game/docking.ts';
+import { ROLL_TOLERANCE } from '../src/constants/docking.ts';
 
 /** Hands off the stick: the autopilot is the only pilot in these runs. */
 const COAST = { rollRate: 0, pitchRate: 0, throttle: 0, fire: false };
@@ -140,6 +149,25 @@ interface Run {
    * degrees of error and nothing in the loop damps what that builds up.
    */
   headingJump: number;
+  /**
+   * How far off the slot's own axis the ship was still POINTING as it went
+   * through the letterbox, in degrees — Chris, flying docs/TODO/136: *"it feels
+   * quite tight into the slot so the angle seems a bit too much sometimes."*
+   *
+   * The columns above could not see it. An approach that threads the slot while
+   * still turning into it scores a clean dock, no scrape and a steady plan, and
+   * is the one thing a pilot looking through the window actually watches. It is
+   * the ship's NOSE rather than its track, because that is what the window
+   * frames — and with no yaw axis the two are the same thing anyway.
+   */
+  entryAngle: number;
+  /**
+   * ...and how far off the slot's LONG AXIS the wings still were, in degrees —
+   * the other half of going through a letterbox, and the half the whole roll
+   * axis exists for (`rollAlignedWithSlot`). `ROLL_TOLERANCE` is what fits;
+   * this is what the autopilot actually arrives with.
+   */
+  entryRoll: number;
 }
 
 /** Where the ship points when the docking computer takes over. */
@@ -196,6 +224,12 @@ function approach(
   let lastPitch = 0;
   let lastPhase = state.dockPlan.phase;
   let headingJump = 0;
+  let entryAngle = 0;
+  let entryRoll = 0;
+  const inStation = new THREE.Quaternion();
+  const right = new THREE.Vector3();
+  const nose = new THREE.Vector3();
+  const slotN = new THREE.Vector3();
   const lastHeading = new THREE.Vector3();
   let haveHeading = false;
   /** The last direction an axis was MOVING in, held across a coast. */
@@ -232,10 +266,23 @@ function approach(
     }
     lastHeading.copy(state.dockPlan.heading);
     haveHeading = true;
+
+    // Read every frame inside the mouth and kept: the last one before the dock
+    // is the frame that went through, and reading it after the step would be
+    // reading a ship that has already been taken off the board.
+    slotN.set(0, 0, -1).applyQuaternion(station.quaternion);
+    const rel = state.player.position.clone().sub(station.position);
+    if (rel.dot(slotN) < state.world.stationDockZ * 2 && rel.dot(slotN) > 0) {
+      nose.set(0, 0, -1).applyQuaternion(state.player.quaternion);
+      entryAngle = nose.angleTo(slotN.negate()) * 180 / Math.PI;
+      inStation.copy(station.quaternion).invert().multiply(state.player.quaternion);
+      right.set(1, 0, 0).applyQuaternion(inStation);
+      entryRoll = slotRollOffset(right.x, right.y) * 180 / Math.PI;
+    }
   }
   return {
     docked, seconds: frames / 60, bumps, rollReversals, pitchReversals, phaseDrops,
-    headingJump, rollSwept: rollSwept / (2 * Math.PI),
+    headingJump, entryAngle, entryRoll, rollSwept: rollSwept / (2 * Math.PI),
   };
 }
 
@@ -284,6 +331,8 @@ const rolls: number[] = [];
 const pitches: number[] = [];
 const jumps: number[] = [];
 const swept: number[] = [];
+const entries: number[] = [];
+const rolls2: number[] = [];
 const deg = (rad: number): number => rad * 180 / Math.PI;
 for (const [i, c] of cases.entries()) {
   const r = approach(90_100 + i, c.bearing, c.out, c.spin, c.facing);
@@ -294,12 +343,15 @@ for (const [i, c] of cases.entries()) {
   pitches.push(r.pitchReversals);
   jumps.push(deg(r.headingJump));
   swept.push(r.rollSwept);
+  if (r.docked) { entries.push(r.entryAngle); rolls2.push(r.entryRoll); }
   console.log(`${r.docked ? 'DOCKED' : 'FAILED'} ${r.seconds.toFixed(1).padStart(6)}s`
     + ` · ${String(r.bumps).padStart(2)} scrape(s)`
     + ` · ${String(r.rollReversals).padStart(3)} roll rev`
     + ` · ${String(r.pitchReversals).padStart(3)} pitch rev`
     + ` · ${r.rollSwept.toFixed(1).padStart(4)} turns rolled`
-    + ` · ${deg(r.headingJump).toFixed(0).padStart(3)}° jump · ${c.label}`);
+    + ` · ${deg(r.headingJump).toFixed(0).padStart(3)}° jump`
+    + ` · ${r.entryAngle.toFixed(0).padStart(3)}° in`
+    + ` · ${r.entryRoll.toFixed(0).padStart(2)}° rolled · ${c.label}`);
 }
 const median = (xs: number[]): number => xs.slice().sort((a, b) => a - b)[xs.length >> 1];
 const worst = (xs: number[]): number => Math.max(...xs);
@@ -312,6 +364,11 @@ console.log(`roll swept: median ${median(swept).toFixed(1)} turns`
 console.log(`roll reversals: median ${median(rolls)} · worst ${worst(rolls)}`
   + ` · pitch: median ${median(pitches)} · worst ${worst(pitches)}`
   + ` · ${drops} run(s) fell back to the gate`);
+console.log(`still pointing this far off the slot axis going in: median ${
+  median(entries).toFixed(1)}° · worst ${worst(entries).toFixed(1)}°`);
+console.log(`...and this far off its long axis, against ${
+  (ROLL_TOLERANCE * 180 / Math.PI).toFixed(0)}° of tolerance: median ${
+  median(rolls2).toFixed(1)}° · worst ${worst(rolls2).toFixed(1)}°`);
 console.log(`the plan's own heading jumps: median ${median(jumps).toFixed(1)}°`
   + ` · worst ${worst(jumps).toFixed(1)}° in one frame`
   + ` · ${jumps.filter((j) => j > 20).length} approach(es) over 20°`);

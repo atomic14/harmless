@@ -160,12 +160,16 @@ console.log('\nthe approach hands over without changing its mind');
   station.updateMatrixWorld(true);
   const DOCK_Z = 160;
   const GATE = DOCK_Z * GATE_HALF_WIDTHS;
-  // The geometry the jump was measured at: inside the gate, and a hair off the
-  // corridor's edge, so one step across `LINED_UP_LATERAL` commits the run.
+  // A hair off the corridor's edge, so one step across `LINED_UP_LATERAL`
+  // commits the run — and far enough out that the corridor is what commits it.
+  // docs/TODO/136 hands the roll over a gate distance from the slot as well,
+  // measured: it gives the wings the length of the dive to settle on the
+  // letterbox instead of the length of the run in, and the approach goes
+  // through 7.5 degrees off the slot instead of 12.9.
   const at = (lateral: number, phase: DockPhase) => {
     const p = makeDockPlan();
     p.phase = phase;
-    return planDocking(new THREE.Vector3(lateral, 0, -(GATE * 0.77)), station,
+    return planDocking(new THREE.Vector3(lateral, 0, -(GATE * 1.4)), station,
       DOCK_Z, 400, p);
   };
 
@@ -182,9 +186,9 @@ console.log('\nthe approach hands over without changing its mind');
   // the aim along the slot normal — which points OUT of the slot — rather than as
   // an angle, so it cannot pass by being merely small.
   const outward = slotNormal(station);
-  check(`the gate phase inside the gate already points at the station (${
+  check(`the approach points at the station from either side of it (${
     before.heading.dot(outward).toFixed(3)} along the outward normal)`,
-  before.heading.dot(outward) < 0);
+  before.heading.dot(outward) < 0 && after.heading.dot(outward) < 0);
 
   // ...and the lookahead is real: the aim is never a point the ship is sitting
   // on, which is the OTHER half of the fix. Aiming abeam at the axis was

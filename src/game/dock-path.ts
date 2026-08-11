@@ -17,37 +17,37 @@
 // than a correction pushing against an aim that points through it.
 //
 // THE CURVE, in the plane that holds the ship, the station and the slot axis, as
-// a radius for every bearing round from the slot normal (`dockPathRadius`):
+// a radius for every bearing round from the slot normal (`dockPathRadius`), and
+// then straight down the axis:
 //
 //   the STAND-OFF, a fixed funnel that holds the gate distance from `TURN_IN`
-//   round to astern and dives to the slot inside it. Fixed is the point: a path
-//   that is re-rooted on the ship every frame has no restoring force, and a
-//   follower aimed a lookahead along a curve always flies INSIDE it — half a
-//   lookahead of radius per radian of bearing, which is 200 units a radian here
-//   and puts a ship that starts 900 out into the hull before it is halfway round
-//   (measured: 353 scrapes in one sweep, all of them from 900). Against a funnel
-//   that does not move, the same follower settles a BOUNDED distance inside
-//   instead — a lookahead squared over twice the radius, 100 units here — and the
-//   gate distance is far enough out to spend that and still clear the hull.
+//   round to astern and dives inside it. Fixed is the point: a path that is
+//   re-rooted on the ship every frame has no restoring force, and a follower
+//   aimed a lookahead along a curve always flies INSIDE it — half a lookahead of
+//   radius per radian of bearing, which puts a ship that starts 900 out into the
+//   hull before it is halfway round (measured: 353 scrapes in one sweep, all of
+//   them from 900). Against a funnel that does not move, the same follower
+//   settles a BOUNDED distance inside instead.
 //
 //   the DESCENT, `range * (bearing left / bearing at the ship)`, which is the
 //   ship's own way in: a spiral through where it actually is, so a ship a long
 //   way out comes in on a curve rather than diving at the funnel and turning
-//   hard when it arrives. Radius proportional to bearing arrives ALONG the axis
-//   (lateral offset falls off as the square of the radius), so the run in is the
-//   end of the same curve and not a leg spliced onto it.
+//   hard when it arrives. The path is the larger of these two, and they cross
+//   where they are equal, so there is no join to be continuous at.
 //
-// The path is the larger of the two, which is the descent while the ship is
-// outside the funnel and the funnel once it has come down to it. They cross where
-// they are equal, so there is no join to be continuous at.
+//   the RUN IN, straight down the axis from `RUN_IN_WIDTHS` to the slot. A ship
+//   should be POINTING down the slot before it is in the slot, and a funnel that
+//   dives all the way to the letterbox arrives across it: 13.6 degrees off the
+//   axis in a median approach before this leg existed, 3.4 after. The funnel's
+//   square root is what makes the join between them invisible — its slope goes
+//   to infinity as the bearing runs out, so the curve is already travelling down
+//   the axis when it meets it.
 //
-// The follower marches the curve rather than solving it. A closed form exists for
-// either piece alone and not for the pair, and the march is the honest way to
-// keep the shape free: `STEPS` samples from the ship's bearing to the axis,
-// accumulating length, taking the aim at one lookahead and the total as the
-// distance still to fly. The samples are a fixed FRACTION of the way round rather
-// than a fixed angle, so they move continuously as the ship does and nothing in
-// the aim jitters as one crosses a sample.
+// The follower is the plan's M3: put the ship on the path, and aim one
+// `DC_PATH_LOOKAHEAD` along from there. Where it is on the path is BLENDED
+// rather than chosen — the path's own start out where it is coming round, the
+// nearest point of it once it is lined up — and the reasoning for that, which is
+// two measured failures, is at the call.
 //
 // M4 in docs/TODO/136 is where traffic would live: a path is the structure that
 // makes avoidance cheap, because it can be replanned round an obstacle instead of
@@ -56,7 +56,9 @@
 
 import * as THREE from 'three';
 
-import { GATE_HALF_WIDTHS, TURN_IN } from '../constants/docking.ts';
+import {
+  GATE_HALF_WIDTHS, LINED_UP_LATERAL, RUN_IN_WIDTHS, TURN_IN,
+} from '../constants/docking.ts';
 import { DC_PATH_LOOKAHEAD } from '../constants/docking-computer.ts';
 import { slotNormal } from '../world/slot.ts';
 
@@ -96,23 +98,23 @@ const _turn = new THREE.Vector3();
  * @param bearing  the ship's bearing round from the slot normal, in radians
  * @param range    how far out the ship is
  * @param gateDist the gate distance — the radius the stand-off funnel holds
+ * @param runIn    where the funnel meets the axis and the straight run begins
  *
  * Exported for the tests, which is where the shape is pinned: a curve is worth
  * asserting about directly, and every claim the module makes about clearing the
  * hull and threading the channel is a claim about this function.
  */
 export function dockPathRadius(
-  share: number, bearing: number, range: number, gateDist: number,
+  share: number, bearing: number, range: number, gateDist: number, runIn: number,
 ): number {
-  // The SQUARE ROOT is the funnel's whole shape, and it is a hull-clearance rule
-  // rather than a preference: it is what makes the dive steep near the axis and
-  // shallow at the top. Everything inside `dockingOutcome`'s box is either the
-  // slot channel or the hull, so the path has to be inside the CHANNEL by the
-  // time it is inside the box — and the offset it enters at is `SLOT_HALF_ACROSS`
-  // at a power of 0.71 and twice that at a power of 1, which is a straight line
-  // into the hull face. A half leaves a factor of two in hand.
-  // `test/docking.test.ts` holds the curve to the channel and goes red at 1.
-  const standoff = gateDist * Math.min(1, Math.sqrt(share * bearing / TURN_IN));
+  // The SQUARE ROOT is the funnel's shape, and what it buys is the JOIN: its
+  // slope goes to infinity as the bearing runs out, so the curve is travelling
+  // straight down the slot axis by the time it meets it, and the run in is the
+  // same curve continuing rather than a leg spliced on at an angle. A power of 1
+  // — a straight line to the mouth — arrives across the axis instead, and the
+  // ship goes through the letterbox still turning into it.
+  const standoff = runIn
+    + (gateDist - runIn) * Math.min(1, Math.sqrt(share * bearing / TURN_IN));
   return Math.max(range * share, standoff);
 }
 
@@ -175,7 +177,7 @@ export function dockPath(
   }
   _held.normalize();
   _e.copy(_rel).multiplyScalar(off > 1e-9 ? 1 / off : 0);
-  const lookCap = gateDist * DC_PATH_LOOKAHEAD;
+  const lookCap = dockZ * DC_PATH_LOOKAHEAD;
   if (off >= lookCap) {
     // `swing` is the plane's normal: unit, both of these being unit and
     // perpendicular, so no normalise is needed and none is wanted — this runs
@@ -189,74 +191,166 @@ export function dockPath(
       .addScaledVector(_turn, Math.sin(angle));
   }
 
-  // --- march the curve, twice -----------------------------------------------
+  // --- walk the curve, and follow it ----------------------------------------
   //
-  // Once for its length, and once for the aim — because how far to look depends
-  // on how far there is left. A lookahead longer than the path remaining puts
-  // the aim on the END of it, the station's own centre, and a ship flying
-  // straight at the centre holds its BEARING rather than closing it: it arrives
-  // at the hull face carrying whatever it was off by, which is 4 scrapes an
-  // approach measured over the sweep. So the follower looks the same share of
-  // the way to the slot that it looks of the gate distance — one number, clamped
-  // twice — and the aim stays ON the curve all the way in.
-  const total = march(bearing, range, gateDist, Infinity);
-  march(bearing, range, gateDist, DC_PATH_LOOKAHEAD * Math.min(gateDist, total));
-  out.toGo = total;
+  // Sample it, find the nearest point on it to the ship, and aim a lookahead
+  // along from there. The projection is the part that cannot be skipped: the
+  // ship is ON the path only while its own descent is what the path is made of,
+  // and the moment the funnel or the run in takes over it is off to one side —
+  // inside the stand-off coming round the back, or short of the join on final
+  // approach. Taking the path's point at the ship's own BEARING instead is the
+  // cheap version, and it fails at exactly one place and badly: on the run in,
+  // where every point of the path has the same bearing, so the cheap projection
+  // lands at the far end of the leg and the aim a lookahead past THAT is astern
+  // of the ship. Measured, that is the plan reversing through 180 degrees as the
+  // ship crosses the join, and the approach flying out and starting again.
+  // Where the curve gives way to the straight run, and it FOLLOWS a ship that is
+  // already on that run — the one leg a ship can be PAST. Held at its own radius
+  // the whole path sits behind such a ship, and the aim, one lookahead along it,
+  // lands astern: the plan reverses through 180 degrees as the ship crosses the
+  // join. It follows by the same corridor membership the projection blends on,
+  // so the two move together and neither has a threshold in it.
+  const inCorridor = along > 0 ? Math.max(0, Math.min(1,
+    (LINED_UP_LATERAL * 3 - off) / (LINED_UP_LATERAL * 2))) : 0;
+  const runIn = dockZ * RUN_IN_WIDTHS
+    + (Math.min(along, dockZ * RUN_IN_WIDTHS) - dockZ * RUN_IN_WIDTHS) * inCorridor;
+  fill(bearing, range, gateDist, runIn);
+  // WHERE ON THE PATH THE SHIP IS, and the answer is blended rather than chosen.
+  // Coming round, it is at the path's own START by construction — the curve is
+  // sampled from its own bearing, and where that start sits OUTSIDE the ship is
+  // the whole of the stand-off: the aim is out on the funnel, and the heading to
+  // it leads the ship out and round. Lined up, that is wrong by as much as the
+  // ship has cut inside the funnel on the way in — 130 units, measured — and
+  // what it wants is the nearest point of the path it is actually flying.
+  //
+  // Neither can simply replace the other. A NEAREST-POINT projection is what the
+  // textbook says and it swaps for a ship deep inside the funnel, which is near
+  // two parts of it at once: the aim slid a quarter of the way round the station
+  // between two frames, and the plan moved 21 degrees. Switching between them on
+  // the run latch instead moves the aim 149 units in the frame it switches — 12
+  // degrees, on every approach. So the nearest point is spent only as far as the
+  // ship has EARNED it by being lined up, which is nothing at all out where the
+  // projection is unstable and all of it where the path passes through the ship.
+  const ahead = project(along, off) * inCorridor;
+  out.toGo = _total - ahead;
+  aimAlong(ahead + dockZ * DC_PATH_LOOKAHEAD);
   out.aim.copy(station.position).addScaledVector(_n, _aimX).addScaledVector(_e, _aimY);
   return out;
 }
 
-/** Where the last march put the aim, in the plane: along the normal, and off it. */
+/** Where the walk put the aim, in the plane: along the normal, and off it. */
 let _aimX = 0;
 let _aimY = 0;
 
 /**
- * Walk the curve from abeam the ship to the slot, and return its length.
+ * The sampled path, in the plane: along the slot normal, and off the axis.
  *
- * Abeam the ship, not the ship: the path's own point at the ship's bearing is
- * OUTSIDE the ship whenever the ship is inside the funnel, and that difference is
- * the whole of the stand-off — the aim is out on the funnel, and the heading to
- * it leads the ship out and round. Sampled in equal FRACTIONS of the bearing
- * still to come rather than at a fixed angle, so every sample moves continuously
- * with the ship and the aim cannot step as one is crossed.
- *
- * `_aimX`/`_aimY` are left at the point one `look` along, or at the station's
- * centre if the path is shorter than that.
+ * `STEPS + 2` points — one per sample of the curve, plus the station's own
+ * centre, which is where the straight run in ends. Preallocated because this
+ * runs every frame for every ship on approach.
  */
-function march(bearing: number, range: number, gateDist: number, look: number): number {
+const _px = new Float64Array(STEPS + 2);
+const _py = new Float64Array(STEPS + 2);
+/** How long the whole path is, set by the last projection. */
+let _total = 0;
+
+/**
+ * Sample the curve from the ship's bearing down to the slot axis, and then down
+ * the axis to the station's centre.
+ *
+ * Sampled in equal FRACTIONS of the bearing still to come rather than at a fixed
+ * angle, so every sample moves continuously as the ship does and nothing in the
+ * aim steps as one is crossed. The last leg is one segment, a straight line
+ * having no sag to sample away.
+ */
+function fill(bearing: number, range: number, gateDist: number, runIn: number): void {
   const step = bearing / STEPS;
   const cs = Math.cos(step);
   const sn = Math.sin(step);
   let cosPhi = Math.cos(bearing);
   let sinPhi = Math.sin(bearing);
-  let radius = dockPathRadius(1, bearing, range, gateDist);
-  let px = radius * cosPhi;
-  let py = radius * sinPhi;
+  for (let i = 0; i <= STEPS; i++) {
+    if (i > 0) {
+      const nextCos = cosPhi * cs + sinPhi * sn;
+      sinPhi = sinPhi * cs - cosPhi * sn;
+      cosPhi = nextCos;
+    }
+    const radius = dockPathRadius((STEPS - i) / STEPS, bearing, range, gateDist, runIn);
+    _px[i] = radius * cosPhi;
+    _py[i] = radius * sinPhi;
+  }
+  _px[STEPS + 1] = 0;
+  _py[STEPS + 1] = 0;
+}
+
+/**
+ * Put the ship on the path, and return how far there is left to fly from there.
+ *
+ * COMING ROUND, the ship is at the path's own start by construction: the curve
+ * is sampled from the ship's own bearing, and its first point is the ship
+ * whenever the ship's own descent is what the path is made of. When it is not —
+ * inside the stand-off, coming round the back — that first point is where the
+ * ship OUGHT to be at its bearing, and the difference is the whole of the
+ * stand-off: the aim is out on the funnel, and the heading to it leads the ship
+ * out and round.
+ *
+ * ON THE RUN, it is the nearest point of the straight leg, because there the
+ * ship is somewhere ALONG a leg rather than at the start of one.
+ *
+ * A NEAREST-POINT projection over the whole path was written first, which is the
+ * textbook follower and is wrong for this curve. A ship inside the funnel is
+ * near two parts of it at once — the piece at its own bearing and the piece
+ * further round — and the nearest of those SWAPS as it moves: measured, the aim
+ * slid a quarter of the way round the station between two frames and the
+ * commanded heading moved 21 degrees, which is the defect this whole item exists
+ * to have removed. A bearing cannot swap, because a ship has one of them.
+ */
+function project(along: number, off: number): number {
+  let best = Infinity;
+  let at = 0;
   let travelled = 0;
-  _aimX = 0;
-  _aimY = 0;
-  let found = false;
-  for (let i = STEPS - 1; i >= 0; i--) {
-    const nextCos = cosPhi * cs + sinPhi * sn;
-    sinPhi = sinPhi * cs - cosPhi * sn;
-    cosPhi = nextCos;
-    radius = dockPathRadius(i / STEPS, bearing, range, gateDist);
-    const qx = radius * cosPhi;
-    const qy = radius * sinPhi;
-    const dx = qx - px;
-    const dy = qy - py;
+  _total = 0;
+  for (let i = 0; i <= STEPS; i++) {
+    const dx = _px[i + 1] - _px[i];
+    const dy = _py[i + 1] - _py[i];
+    const len = Math.hypot(dx, dy);
+    const t = len > 1e-6
+      ? Math.max(0, Math.min(1,
+        ((along - _px[i]) * dx + (off - _py[i]) * dy) / len / len)) : 0;
+    const dist = Math.hypot(_px[i] + dx * t - along, _py[i] + dy * t - off);
+    if (dist < best) { best = dist; at = travelled + len * t; }
+    travelled += len;
+  }
+  _total = travelled;
+  return at;
+}
+
+/**
+ * Walk `look` along the path from where the projection landed, and leave the
+ * point there in `_aimX`/`_aimY` — or the station's centre, if the path runs out
+ * first, which is where every approach has pointed once it is lined up since
+ * there was an approach at all.
+ */
+function aimAlong(look: number): void {
+  let px = _px[0];
+  let py = _py[0];
+  let travelled = 0;
+  for (let i = 1; i <= STEPS + 1; i++) {
+    const dx = _px[i] - px;
+    const dy = _py[i] - py;
     const seg = Math.hypot(dx, dy);
-    if (!found && travelled + seg >= look) {
+    if (travelled + seg >= look) {
       const t = seg > 1e-9 ? (look - travelled) / seg : 0;
       _aimX = px + dx * t;
       _aimY = py + dy * t;
-      found = true;
+      return;
     }
     travelled += seg;
-    px = qx;
-    py = qy;
+    px = _px[i];
+    py = _py[i];
   }
-  return travelled;
+  _aimX = 0;
+  _aimY = 0;
 }
 
 /**

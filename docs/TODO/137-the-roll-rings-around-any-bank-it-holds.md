@@ -12,6 +12,16 @@ one reversal a second and ±1.0–1.5 rad/s against a hull cap of 2.5. It is not
 the approach: it is the same on a dead-straight run down the axis as on a curve,
 and it was the same BEFORE 136 replaced the approach with a path.
 
+**What it costs is measured at the letterbox** (Chris, flying 136: *"how closely
+do we match the rotation?"*). The wings arrive **7.5 degrees off the slot's long
+axis in a median approach and 30 at worst, against 37 degrees of tolerance** —
+so a median approach spends a fifth of what the letterbox allows on nothing, and
+the worst spends four fifths of it. The approach 136 replaced arrived at 1.7 and
+20: it flew its last thousand units dead straight with the nose settled, so the
+turn had no claim on the roll axis and the slot's own attitude was all that was
+left. A path is still correcting as it goes in, the turn keeps a claim, and the
+ring puts the wings wherever it happens to be at the mouth.
+
 Traced on the shipped code, a ship on the axis 500 units out, lined up, lateral
 5–8 units, nose 3 degrees off the plan:
 
@@ -35,11 +45,11 @@ to nothing there. This is the other case: a roll demand that is REAL, held, and
 overshot. The median approach went 17 → 8 reversals on 134's grid and it was
 read as fixed; the remaining 8 are this.
 
-**Why 136 made the column worse without making the flying worse.** A path curves,
+**Why 136 made the columns worse without making the flying worse.** A path curves,
 so the ship holds a bank for most of the approach and collects more of the ring;
 the reactive approach flew straight legs and reversed its PLAN instead. Over the
-504-approach sweep the median went 10 → 16 reversals and 1.2 → 1.7 turns of roll
-swept, while pitch reversals went 5 → 2 and plan reversals went 223 → 0.
+504-approach sweep the median went 10 → 18 reversals and 1.2 → 1.9 turns of roll
+swept, while pitch reversals went 5 → 4 and plan reversals went 223 → 0.
 
 ## The diagnosis, as far as it goes
 
@@ -103,7 +113,9 @@ zero scrapes, no single-frame heading jump over 20 degrees.
 ## Verification
 
 - **The steady-bank fixture** (M1): the roll settles rather than ringing.
-- **The sweep**: roll reversals and turns swept both down, with docked, scrapes,
-  time, pitch and the plan's jump column no worse.
+- **The sweep**: the wings arrive closer to the slot's long axis — 7.5 degrees in
+  a median approach today, 1.7 for the approach 136 replaced — with reversals and
+  turns swept down too, and docked, scrapes, time, pitch and the plan's own jump
+  column no worse.
 - **Fly it.** This is a feel defect first and a number second: the question is
   whether the ship comes round the hull like a ship or like a metronome.
