@@ -61,8 +61,7 @@ exactly two damage scales in the project and both are the released game's.
 ## The one Harmless rule
 
 Rows 4–10 are the paths where the released source says nothing at all. They
-share one named rule, stated in `src/constants/impact.ts` and recorded in
-`docs/GAP-ANALYSIS.md`:
+share one named rule, whose only home is `src/constants/impact.ts`:
 
 > An impact costs a **fixed whole number of source points**, stated separately
 > for a ship's energy bank and for the commander's pools, and is spent on

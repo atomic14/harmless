@@ -118,5 +118,9 @@ export const SLOT_DEPTH = 60;
  * Wings vs the slot's long axis, in radians — how badly you may be rolled and
  * still fit through the letterbox. A quarter turn's tolerance either side, and
  * symmetric: a ship upside down in the slot still fits.
+ *
+ * What the whole channel is worth, measured: over a uniform sample of approach
+ * offsets and rolls, the fraction that docks is 6.68%. That is the number to
+ * re-measure if this tolerance or the half-widths above ever move.
  */
 export const ROLL_TOLERANCE = 0.65;

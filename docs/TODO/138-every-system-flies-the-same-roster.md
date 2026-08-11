@@ -3,8 +3,7 @@
 **Kind:** feature · **Severity:** low · **Size:** medium · **Depends on:**
 **docs/TODO/139**, which this item's scoping found and which must land first —
 its M1 baseline is meaningless against a fight nothing can win · **GitHub:**
-none — raised by Chris after 137 flew, from docs/GAP-ANALYSIS.md's Remaining
-list
+none — raised by Chris after 137 flew
 
 ## Where we are
 
@@ -137,7 +136,7 @@ one decision below.
   would be shipped on top of a defect rather than in front of it. Every build
   selected is still an exact released row of the vendored pack, so no parity
   claim moves; what stays Harmless is the *policy*, which
-  docs/GAP-ANALYSIS.md already labels as ours.
+  `role-variants.ts` already states is ours.
   **This contradicts `docs/ELITE-A.md:241`**, which calls by-system selection "a
   swap of that policy and nothing else". The measurement above is why; that line
   gets corrected by this item.

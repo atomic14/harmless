@@ -138,8 +138,11 @@ export interface CommanderData {
   /**
    * Disrepute: the reputation for dirty dealing that clings after the fine is
    * paid. Shady deeds raise it, time erodes it; `game/character.ts` turns it
-   * into a name (Honest…Cutthroat). Drives nothing in the world yet — the label
-   * alone. 0 is Honest.
+   * into a name (Honest…Cutthroat). 0 is Honest.
+   *
+   * It is not just a label: `threat.ts` reads it as `infamy`, so a name draws
+   * people who want to be the ones who killed you, and a rock hermit refuses to
+   * trade with a commander carrying enough of it (`hermitRefuses`).
    */
   disrepute: number;
   mission: MissionState;
@@ -254,7 +257,9 @@ export function markTested(c: CommanderData): boolean {
  *
  * Weighting by tier rewards taking on the fights that are actually dangerous,
  * rather than farming the weakest thing you can find as the original allowed.
- * (Deliberate deviation; see docs/GAP-ANALYSIS.md.)
+ * (A deliberate deviation from the original, which scored every kill the same;
+ * `kills` is still the literal body count, `combatScore` is what the ladder
+ * reads, and the iconic 25,600 is untouched.)
  */
 export function killValue(tier: number): number {
   return tier >= 2 ? 5 : tier === 1 ? 2 : 1;

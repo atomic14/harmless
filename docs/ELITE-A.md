@@ -3,10 +3,10 @@
 What was imported, what it is used for, which numbers are the released game's
 and which are ours, and what a future shipyard will need.
 
-The two companion documents: [DAMAGE-PATHS.md](DAMAGE-PATHS.md) is the
-inventory of every way anything can be hurt, and
-[GAP-ANALYSIS.md](GAP-ANALYSIS.md) records every deliberate deviation from the
-1984 original. This file is about the DATA and the identities.
+The companion document is [DAMAGE-PATHS.md](DAMAGE-PATHS.md), the inventory of
+every way anything can be hurt. This file is about the DATA and the identities.
+A deliberate deviation from the 1984 original is recorded beside the constant
+that makes it, not in a list of its own.
 
 ## Source attribution and provenance
 

@@ -80,7 +80,8 @@ and save-on-dock.
 
 Then a research pass against **the original 1984 manual** (fetched over
 plain HTTP — the fan-site's certificate has expired) plus Wikipedia, written
-up as `docs/GAP-ANALYSIS.md`. That document drove everything after: cabin
+up as a gap analysis against the original. That document drove everything
+after: cabin
 temperature and sun-skimming, the energy bomb, ECM, cargo canisters and
 scooping, mining lasers, CLEAN → OFFENDER → FUGITIVE legal tiers with
 contraband scans, witch-space Thargoid ambushes, dodecahedral "Dodo"

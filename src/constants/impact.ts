@@ -1,7 +1,7 @@
 // What everything that is NOT a laser costs — the one Harmless rule for it.
 //
 // HARMLESS POLICY, not an Elite-A fact, and recorded as ours in
-// docs/GAP-ANALYSIS.md: the pack tabulates registered laser hits only, nothing
+// docs/DAMAGE-PATHS.md: the pack tabulates registered laser hits only, nothing
 // for a ram, a canister, a station wall, a warhead or an energy bomb. This file
 // is the rule's only home; nothing here may be presented as an Elite-A number.
 //

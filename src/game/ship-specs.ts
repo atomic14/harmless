@@ -71,7 +71,10 @@ const own = (o: HarmlessOverlay): ShipIdentity =>
  * The IDS only: a rock is generated (`buildAsteroid`) at a size drawn from its
  * seed, so it is the one design whose mesh and radius do not come from the
  * registry. A Harmless deviation (the released asteroid is one fixed 20-unit
- * lump), stated here and in docs/GAP-ANALYSIS.md rather than left silent.
+ * lump), stated here rather than left silent: a field where every rock is
+ * identical is worse to fly through, and the size variety is what makes one
+ * worth aiming at. The three exact designs stay registered and viewable — the
+ * deviation is which mesh the `asteroid` role spawns, not which designs exist.
  */
 export const ASTEROID_IDENTITY: ShipIdentity = eliteAShipIdentity(SOURCE_DESIGN.asteroid);
 

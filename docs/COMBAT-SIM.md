@@ -177,8 +177,7 @@ but not pitch or roll. Parameterising `PlayerShip` is a feature of its own AND
 changes the world every pirate brain was fitted in, since `scenario.ts` reads
 `PLAYER_FLIGHT` as its target. So v1 overrides your front and rear lasers,
 E.C.M., energy unit, energy bomb, missiles and the combat computer — `state.cheat`
-made legitimate and scoped — and the GAP-ANALYSIS entry says the hull is not
-selectable. The combat computer is a YES/NO fit like the rest: it is the one
+made legitimate and scoped — and the hull is not selectable. The combat computer is a YES/NO fit like the rest: it is the one
 pilot the game flies on your behalf rather than at you, so fitting it lets you
 watch it (launch, press K).
 
@@ -334,7 +333,7 @@ from `window.__game`.
 
 ## Deliberate deviation
 
-Not in the original; needs a `docs/GAP-ANALYSIS.md` entry saying so and why. The
+Not in the original, and this section is where that is recorded. The
 original had no way to practise, and a game whose opponents are trained wants
 one — so a player can learn the ships, and so the AI can be judged against a
 human instead of only against other AI.

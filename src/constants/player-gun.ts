@@ -106,6 +106,17 @@ export const POD_GRAZE = 16;
  *
  * The ring sight is drawn to this exact angle (see #crosshair in style.css), so
  * the reticle changes with it: the circle is the envelope, not decoration.
+ *
+ * WHY AN ALLOWANCE AT ALL, in the measured numbers that justify it. The shot is
+ * a ray against the actual mesh rather than a cone around a sphere, so a hull's
+ * shape decides how hard it is to hit: an Anaconda subtends 1.3 degrees nose-on
+ * and 2.5 broadside, a Sidewinder 1.6 across its wings and 0.6 vertically, and
+ * a Sidewinder at 500 units is 1.9 degrees. Holding a mouse inside that while
+ * both ships manoeuvre is most of why fights read as flailing, and it is the
+ * half of the combat problem that belongs to the player rather than to the AI.
+ * A cone sized from the target's MAXIMUM radius was the alternative and it
+ * makes every ship a ball — an Anaconda no easier to hit down its long flank
+ * than head-on, and shots landing on empty space beside thin hulls.
  */
 export const AIM_ASSIST = 0.035;
 export const ASSIST_FADE_START = 900;

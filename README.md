@@ -51,7 +51,6 @@ the [combat viewer](docs/TRAINING-LOG.md).*
 [AI design](docs/AI-TRAINING.md) ·
 [Training runs & results](docs/TRAINING-LOG.md) ·
 [Reproducing the training](train/README.md) ·
-[Gap analysis vs the 1984 original](docs/GAP-ANALYSIS.md) ·
 [The reference ship catalogue](docs/ELITE-A.md) ·
 [Every damage path](docs/DAMAGE-PATHS.md) ·
 [The combat trainer](docs/COMBAT-SIM.md) ·
@@ -463,10 +462,11 @@ and where it came from.
 
 ## Roadmap
 
-[docs/GAP-ANALYSIS.md](docs/GAP-ANALYSIS.md) tracks feature-by-feature parity
-with the original manual, and almost all of it is implemented — including the
-things this section used to list as outstanding: side laser mounts, mouse
-flight, the two-level living galaxy, and the purchasable combat computer.
+Feature-by-feature parity with the original manual is essentially done —
+including the things this section used to list as outstanding: side laser
+mounts, mouse flight, the two-level living galaxy, and the purchasable combat
+computer. Where this game deliberately differs from 1984, the reasoning is
+recorded beside the constant that makes the difference.
 
 Remaining: gamepad support, and a player shipyard (all 15 flyable hulls are
 imported and resolve; nothing can yet change which one you fly — see the

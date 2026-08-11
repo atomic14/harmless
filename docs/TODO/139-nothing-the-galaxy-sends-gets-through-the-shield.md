@@ -93,7 +93,7 @@ it first would be measuring a term that is not binding.
 ## Decisions already made
 
 - **A lone opportunist should still lose.** `threat.ts` deliberately sends
-  Sidewinders to poor commanders, and docs/GAP-ANALYSIS.md records the reasoning:
+  Sidewinders to poor commanders, and records the reasoning where it does it:
   threat grows sub-linearly with the prize so upgrades stay felt. The target is
   not "a Sidewinder can kill you"; it is that **an organised gang can**, and that
   a lone pirate costs you something you have to fly home with.

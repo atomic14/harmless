@@ -21,7 +21,7 @@
 //
 // Nothing else may reach for this. A hull that looks wrong at the ship scale is
 // wrong in the source or wrong in the scene; this is not a knob, it is one
-// stated decision about two objects, recorded in docs/GAP-ANALYSIS.md.
+// stated decision about two objects, and this file is where it is stated.
 
 import * as THREE from 'three';
 
