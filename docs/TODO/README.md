@@ -73,11 +73,10 @@ active context:
    player-facing pages he ruled out. One question is left open and it is his:
    whether commit messages and live plan docs join the list.
 
-The GitHub inbox holds one open issue, **#24**. Its plan is
-[140](completed/140-the-day-is-the-one-cost-nothing-shows.md). All four
-milestones landed on 2026-08-12, and Chris flew it the same day: *"display is
-good"*. So #24 is ready to close. Everything else is closed already: **#23**
-with 134, as #22 did with 127, #18 with 121, #20 with 122 and #21 with 123.
+The GitHub inbox is empty. **#24** closed on 2026-08-12 with
+[140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
+it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
+121, #20 with 122 and #21 with 123.
 
 **One question is open and it is Chris's, not the queue's:** whether the docking
 computer should avoid traffic at all. `npm run dock-traffic` answers what it
