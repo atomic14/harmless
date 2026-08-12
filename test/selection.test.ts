@@ -304,13 +304,27 @@ scoreFought > scoreFled * 1.25);
   check(`...and the turret/pacifist gap is ${pct(fought.outcome - fled.outcome)},`
     + ' which is inside that bar and so rests on the shaping being honest',
   fought.outcome - fled.outcome > 0.2);
-  // What it did contribute here — reported rather than bounded, because the
-  // share of a PARTICULAR score depends on how good the outcome was.
+  // What it did contribute here. The CLAIM is the comparison — shaping is a
+  // material part of a score now, where the formula this replaced clamped it to
+  // a rounding error — and the claim is what is bounded.
+  //
+  // IT USED TO BE BOUNDED AT A FIFTH, and that was a knife edge nobody had
+  // noticed. `shapedContribution` says in its own doc that it is for the log
+  // and not for a bound, because the share of a PARTICULAR score depends on how
+  // good the outcome was; here the shaped term and the outcome happen to land
+  // within a point of each other, which puts the contribution within a point of
+  // `SHAPED_SHARE` itself. It measured 20.4% with the bound at 20%. docs/TODO/139
+  // moved the world by a rate and left it at 20.0%, at which point the same
+  // commit passed on one platform and failed on another — the `Math.tanh`/`acos`
+  // drift train/README.md warns about, deciding a test. So the bound is on the
+  // claim: a sixth of the score is "material", fifteen times the old formula's
+  // share is the point being made, and neither is a coin flip.
   const contribution = shapedContribution('defend', fought.outcome, fought.shaped);
   const old = Math.max(-499, Math.min(499, fought.shaped))
     / oldScore(fought.hp, fought.shaped);
   check(`shaping is ${pct(contribution)} of the turret's score, where under the`
-    + ` old formula it was ${pct(old)} of it`, contribution > 0.2 && old < 0.03);
+    + ` old formula it was ${pct(old)} of it (${(contribution / old).toFixed(0)}x)`,
+  contribution > 0.15 && old < 0.03 && contribution > old * 10);
   eq('outcome and shaping sum to the whole score',
     +(((1 - SHAPED_SHARE) * fought.outcome
       + SHAPED_SHARE * Math.min(1, fought.shaped / SHAPED_FULL_SCALE.defend))
