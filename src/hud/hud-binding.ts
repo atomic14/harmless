@@ -189,6 +189,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     condition: !s.inFlight ? 'GREEN'
       : hostilesNear(world.npcs, playerPos, legal) ? 'RED' : 'YELLOW',
     credits: commander.credits,
+    day: commander.day,
     view: s.view,
     hasLaser: hasLaserInView(commander, s.view),
     shipId: s.inFlight

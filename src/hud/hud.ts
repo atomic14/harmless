@@ -104,6 +104,12 @@ export interface HudState {
   locked: boolean;
   condition: 'GREEN' | 'YELLOW' | 'RED';
   credits: number;
+  /**
+   * The commander's elapsed day — `commander.day`, never the living galaxy's
+   * `day`. The two drift apart on an old save (docs/TODO/140), and a contract
+   * deadline is measured against this one.
+   */
+  day: number;
   /** 0 front, 1 rear, 2 left, 3 right. */
   view: number;
   /** current view has a laser mount → show the crosshair */
@@ -211,6 +217,7 @@ export class Hud {
   private readonly indE = byId('ind-e');
   private readonly conditionEl = byId('condition');
   private readonly creditsEl = byId('credits-display');
+  private readonly dayEl = byId('day-display');
   private readonly messageEl = byId('message');
   private readonly promptsEl = byId('prompts');
   /** what the prompt line currently says, so a steady list is not repainted */
@@ -274,6 +281,7 @@ export class Hud {
     this.conditionEl.textContent = `CONDITION: ${frame.condition}`;
     this.conditionEl.style.color = frame.condition === 'RED' ? RED : '';
     this.creditsEl.textContent = formatCredits(frame.credits);
+    this.dayEl.textContent = `DAY ${frame.day}`;
 
     this.drawExercise(frame.exercise);
 

@@ -7,13 +7,18 @@ import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
 import { freshState } from '../src/game/state.ts';
 import { newCommander } from '../src/game/commander.ts';
+import { Game } from '../src/game/game.ts';
+import { headlessShell } from '../src/engine/shell.ts';
+import { withoutSaving } from '../src/game/storage.ts';
+import { seedWorld } from '../src/game/rng.ts';
+import { distanceTenths, daysForJump } from '../src/galaxy/navigation.ts';
 import { buildHudFrame, compassTarget, hasLaserInView } from '../src/hud/hud-binding.ts';
 import { energyLow } from '../src/game/systems.ts';
 import { ENERGY_BANKS, LOW_ENERGY, MAX_ENERGY } from '../src/constants/pools.ts';
 import {
   SUNSKIM_COMPASS_RANGE, STATION_COMPASS_RADII,
 } from '../src/constants/console.ts';
-import { check } from './harness.ts';
+import { check, dismissBriefing } from './harness.ts';
 
 console.log('\nhud binding');
 {
@@ -205,6 +210,29 @@ console.log('\nhud binding');
     check('...and that point is one bank, not a number the painter was told twice',
       at.energyFrac <= 1 / ENERGY_BANKS + 0.5 / MAX_ENERGY
       && at.energyFrac >= 1 / ENERGY_BANKS - 0.5 / MAX_ENERGY);
+
+    // THE ELAPSED DAY REACHES THE TOPBAR, AND IT IS THE COMMANDER'S (TODO 140).
+    //
+    // Two clocks are in scope in this game and they drift apart: the living
+    // galaxy's day catches up by at most 60 per load, so an old save has
+    // `living.day < commander.day` permanently. A deadline read off the wrong
+    // one is right for months and then silently wrong. The binding is where
+    // that choice is made, so it is asserted here rather than described.
+    const dated = (day: number) => {
+      const c = { ...state.commander, day };
+      return buildHudFrame({
+        commander: c, sys: state.sys, world,
+        camera: new THREE.PerspectiveCamera(), playerPos, playerQuat,
+        playerForward: V(0, 0, -1), viewDir: V(0, 0, -1),
+        missiles: [], canisters: [], targetLock: null, inFlight: false,
+        exercise: null,
+      } as unknown as Parameters<typeof buildHudFrame>[0], {
+        a: V(0, 0, 0), b: V(0, 0, 0), c: V(0, 0, 0), q: new THREE.Quaternion(),
+      });
+    };
+    check('the topbar is handed the commander\'s elapsed day', dated(0).day === 0);
+    check('...and it is read, not a constant the binding wrote once',
+      dated(34).day === 34 && dated(191).day === 191);
   }
 
   {
@@ -215,4 +243,78 @@ console.log('\nhud binding');
     check('play.html leaves the energy segments to the painter',
       /id="g-energy"><\/div>/.test(play));
   }
+}
+
+// ...and the same claim flown, because the reason to put the day in the topbar
+// is that the jump happens in FLIGHT: the number ticks in front of the pilot at
+// the one moment it changes. The block above pins the binding; this pins that a
+// real jump moves what the binding hands over, by the jump's own cost.
+console.log('\n...and a real jump moves it, by what the jump cost');
+{
+  const g = withoutSaving(() => {
+    seedWorld(20_290_815);
+    const game = new Game(() => headlessShell());
+    dismissBriefing(game);
+    game.launch();
+    return game;
+  }).value;
+  const step = (frames: number) => {
+    for (let f = 0; f < frames; f++) g.step(1 / 60, f / 60);
+  };
+  step(400);                                   // past the launch tunnel
+  g.state.world.clearNpcs();
+  g.state.player.speed = 0;
+
+  const c = g.state.commander;
+  const { systems } = g.state;
+  const here = c.systemIndex;
+  // The cheapest neighbour inside the tank, off the metric rather than written
+  // down — same rule as test/character-line.test.ts, so a regenerated galaxy
+  // does not decide whether this test runs.
+  let target = -1;
+  for (let i = 0; i < systems.length; i++) {
+    if (i === here) continue;
+    const cost = distanceTenths(systems[here], systems[i]);
+    if (cost <= c.fuel && (target < 0 || cost < distanceTenths(systems[here], systems[target]))) {
+      target = i;
+    }
+  }
+  check('there is a jump the rules allow', target >= 0);
+  const owed = daysForJump(distanceTenths(systems[here], systems[target]));
+  const before = c.day;
+
+  g.state.chart.targetIndex = target;
+  g.startHyperspace();
+  step(Math.ceil(15 * 60));
+  check(`the jump landed (${systems[here].name} → ${systems[c.systemIndex].name})`,
+    c.systemIndex === target);
+  check(`...and it cost ${owed} days`, c.day === before + owed);
+  check('...and the topbar is handed that number', dayOnTopbar(g) === c.day);
+
+  // THE TRAP, STAGED. The living galaxy's day is the other clock in scope, and
+  // it falls behind for good on a save left alone — the catch-up is capped at
+  // 60 days a load (game.ts). Driving the two apart by hand is the only way to
+  // tell the two readings apart, because on a fresh career they agree.
+  g.state.living.day = c.day + 500;
+  check('the topbar reads the commander\'s clock, never the living galaxy\'s',
+    dayOnTopbar(g) === c.day && g.state.living.day !== c.day);
+}
+
+/** What `buildHudFrame` would hand the topbar for a game as it stands. */
+function dayOnTopbar(g: Game): number {
+  const V = (x: number, y: number, z: number) => new THREE.Vector3(x, y, z);
+  return buildHudFrame({
+    commander: g.state.commander,
+    sys: g.state.sys,
+    world: g.state.world,
+    camera: new THREE.PerspectiveCamera(),
+    playerPos: g.state.player.position,
+    playerQuat: g.state.player.quaternion,
+    playerForward: V(0, 0, -1),
+    viewDir: V(0, 0, -1),
+    missiles: [], canisters: [], targetLock: null, inFlight: true,
+    exercise: null,
+  } as unknown as Parameters<typeof buildHudFrame>[0], {
+    a: V(0, 0, 0), b: V(0, 0, 0), c: V(0, 0, 0), q: new THREE.Quaternion(),
+  }).day;
 }

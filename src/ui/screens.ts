@@ -88,7 +88,7 @@ export function renderDockedMenu(sys: StarSystem, c: CommanderData, missionText 
     <div class="rule"></div>
     <div class="info" style="text-align:center">
       ${ECONOMY_NAMES[sys.economy]} &middot; ${GOVERNMENT_NAMES[sys.government]} &middot; TECH LEVEL ${sys.techLevel + 1}<br/>
-      ${formatCredits(c.credits)} &middot; FUEL ${(c.fuel / 10).toFixed(1)} LY &middot; MISSILES ${c.missiles}
+      ${formatCredits(c.credits)} &middot; FUEL ${(c.fuel / 10).toFixed(1)} LY &middot; MISSILES ${c.missiles} &middot; DAY ${c.day}
       ${missionText ? `<br/><span style="color:var(--hud-amber)">${missionText}</span>` : ''}
     </div>
     ${dockedMenuHtml()}
@@ -601,6 +601,13 @@ export function renderNewCommander(buffer: string, leaving = ''): void {
   `);
 }
 
+/**
+ * The COMMANDER screen.
+ *
+ * `Elapsed` sits between `Fuel` and `Cash` because that is the argument for it:
+ * fuel and days are the two things a jump spends, and cash is what a market
+ * spends. It was the one cost of a jump no screen named (docs/TODO/140).
+ */
 export function renderStatus(
   systems: StarSystem[],
   c: CommanderData,
@@ -625,6 +632,7 @@ export function renderStatus(
       Legal status: ${legalName}<br/>
       Character: ${characterName(c.disrepute ?? 0)}<br/>
       Fuel: ${(c.fuel / 10).toFixed(1)} / ${(MAX_FUEL / 10).toFixed(1)} light years<br/>
+      Elapsed: ${c.day} days<br/>
       Cash: ${formatCredits(c.credits)}<br/>
       Missiles: ${c.missiles}<br/>
       Equipment: ${equipmentLines}<br/>

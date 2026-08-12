@@ -13,7 +13,34 @@ active context:
 
 ## Execution queue
 
-1. **139** — [Nothing the galaxy sends can get through the
+1. **140** — [The day is the one cost nothing
+   shows](140-the-day-is-the-one-cost-nothing-shows.md), **GitHub #24**, and the
+   current item by Chris's call on 2026-08-12. **M1 landed 2026-08-12; M2, M3
+   and M4 are what is left.** A jump spends fuel, money and days; the chart
+   prices two of them and never names the third. `commander.day` moves on a jump
+   and on a mis-jump tow, and on nothing else — not a trade, not a fight, not a
+   dock — and it was on screen only where nobody consults it: a saves column,
+   the bulletin-board keyline, and the docked menu's first contract. **M1 put it
+   where the pilot already looks** — `Elapsed: N days` on the COMMANDER screen
+   between fuel and cash, `· DAY N` on the docked menu, and a fourth topbar span
+   so it ticks in flight, which is where a jump happens. No arithmetic moved:
+   `commander.day` was always right and four painters now read it. It also cost
+   a defect that was waiting: `test/ui.test.ts` left a half-built `document`
+   global behind, and M1's first real `Game` in a later test file died on it and
+   took the suite with it. **M2** adds the jump's cost in days to both chart info
+   lines, from `daysForJump`, which already exists. **M3** is the part with no
+   code anywhere today: no route search exists, so a destination beyond one tank
+   has no honest estimate. Dijkstra over full-tank edges answers it in days and
+   hops — a number, never a drawn path, so the pilot still chooses every jump.
+   **M4** marks a system you owe a contract to and prints the verdict beside it.
+   One trap is recorded and is the reason to read the plan before the code:
+   `ChartOverlays.day` is the LIVING galaxy's day, which catches up by at most
+   60 days a load, so a deadline computed from it is right for months and then
+   silently wrong on an old save. M1 stages that trap rather than describing it
+   — the two clocks are driven 500 days apart and the topbar still reads the
+   commander's.
+
+2. **139** — [Nothing the galaxy sends can get through the
    shield](139-nothing-the-galaxy-sends-gets-through-the-shield.md), **M1, M2 and
    half of M4 landed 2026-08-11; M3 is what is left**. Chris, flying it: *"is our
    shield and energy recharging too fast — the laser hits from pirates don't seem
@@ -37,7 +64,7 @@ active context:
    `NPC_FIRE_GATE` is not the fix and the flight model is the term. Whether that
    is worth changing now the regen has moved is the open question.
 
-2. **138** — [Every system in every galaxy flies the same
+3. **138** — [Every system in every galaxy flies the same
    roster](138-every-system-flies-the-same-roster.md). The 23 released blueprint
    sets `S.A`–`S.W` are all imported and the set dimension is then collapsed:
    `SPECS` resolves its builds at import time, so a Krait is the same Krait in
@@ -49,8 +76,9 @@ active context:
    weakened an opposition that already cannot bite — which is why 138 keeps
    `role-variants.ts` ranking inside the set it chooses.
 
-The GitHub inbox is empty: **#23** closed with 134, as #22 did with 127, #18 with
-121, #20 with 122 and #21 with 123.
+The GitHub inbox holds one open issue, **#24**, and 140 above is its plan.
+Everything else is closed: **#23** with 134, as #22 did with 127, #18 with 121,
+#20 with 122 and #21 with 123.
 
 **One question is open and it is Chris's, not the queue's:** whether the docking
 computer should avoid traffic at all. `npm run dock-traffic` answers what it

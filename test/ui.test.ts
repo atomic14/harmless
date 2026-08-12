@@ -14,6 +14,7 @@ import {
   globalCommands, BINDINGS, GLOBAL_BINDINGS, type ControlMode,
 } from '../src/game/controls.ts';
 import { renderDockedMenu } from '../src/ui/screens.ts';
+import { capture } from './screen-capture.ts';
 import { Autopilot, type AutopilotEvent } from '../src/game/autopilot.ts';
 import { DOCK_COMPUTER_RANGE } from '../src/constants/docking-computer.ts';
 import { CombatComputer } from '../src/game/combat-computer.ts';
@@ -33,10 +34,16 @@ import { CABIN_TEMP_FATAL } from '../src/constants/sun.ts';
 
 console.log('\nscreen host');
 {
-  // enough DOM for runMenuCursor to no-op
-  (globalThis as unknown as { document: unknown }).document = {
-    querySelectorAll: () => [],
-  };
+  // Enough DOM for runMenuCursor to no-op — and it is taken away again at the
+  // end of this block. It used to be installed and left, and `test/run.ts`
+  // imports every file into ONE process: a half-built `document` that outlives
+  // its block is a global every later file then runs under. It cost a real
+  // failure — a `new Game(...)` two files later found this object, asked it for
+  // `getElementById`, and the whole suite died on the first frame.
+  const globals = globalThis as unknown as { document?: unknown };
+  const hadDocument = 'document' in globals;
+  const documentBefore = globals.document;
+  globals.document = { querySelectorAll: () => [] };
 
   const made: string[] = [];
   const fake = (id: string, out: ScreenOutcome = 'stay'): Screen => ({
@@ -108,6 +115,14 @@ console.log('\nscreen host');
     const key = { dataset: { key: 'KeyB' } } as unknown as HTMLElement;
     check('a data-key click is consumed as a keystroke', h.click(key, noInput));
   }
+
+  // The KEY is present but undefined by the time this file runs — an earlier
+  // file restored a `previous` it had captured as undefined — so `delete` alone
+  // would have been a no-op here. Put back exactly what was found.
+  if (hadDocument) globals.document = documentBefore;
+  else delete globals.document;
+  check('the screen host block leaves no half-built document behind',
+    typeof document === 'undefined');
 }
 
 // --- the command layer ------------------------------------------------------
@@ -230,22 +245,16 @@ console.log('\ncommand layer');
 // table. So this goes menu-first, and is paired with a control below that aims
 // the same predicate at a row known to be dead.
 
+/** One system to paint a station screen for; nothing here reads its economy. */
+const LAVE = { name: 'Lave', economy: 0, government: 5, techLevel: 4 } as never;
+
 console.log('\nthe docked menu names keys the table has');
 {
-  const globals = globalThis as unknown as { document?: unknown };
-  const previous = globals.document;
-  const painted: string[] = [];
-  globals.document = {
-    getElementById: () => ({
-      set innerHTML(html: string) { painted.push(html); },
-      classList: { add: () => {}, remove: () => {}, toggle: () => {} },
-    }),
-    body: { classList: { add: () => {}, remove: () => {} } },
-  };
-  renderDockedMenu({ name: 'Lave', economy: 0, government: 5, techLevel: 4 } as never,
-    newCommander());
-  globals.document = previous;
-  const menu = painted.join('');
+  // `capture` is test/screen-capture.ts, which is the recording `document` this
+  // block used to carry its own copy of. One home: it installs the global and
+  // restores it in the same synchronous block, so nothing leaks into the files
+  // test/run.ts imports after this one.
+  const menu = capture(() => renderDockedMenu(LAVE, newCommander()));
 
   /** Every key the markup offers as a click, in order. */
   const rowKeys = (html: string): string[] =>
