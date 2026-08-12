@@ -1,18 +1,20 @@
 # The damage-path inventory
 
-Every way anything in HARMLESS can be hurt, what unit it is spent in, who owns
-the number, and whether the number is the released game's or ours.
+This file lists every way that anything in HARMLESS can be hurt. For each way it
+gives the unit that the damage is spent in, the owner of the number, and whether
+the number belongs to the released game or to us.
 
-Where the released numbers come from, and what the ids and the save schema look
-like, is [ELITE-A.md](ELITE-A.md); this file is the inventory.
+[ELITE-A.md](ELITE-A.md) says where the released numbers come from, and what the
+ids and the save schema look like. This file is the inventory.
 
-It exists because "which numbers are in which units" has to be a question with
-an answer. There are two damage scales and both are the released game's; this
-table maps every path to its unit, and `test/damage-paths.test.ts` asserts the
-table against the code rather than trusting it.
+It exists because "which numbers are in which units" has to be a question with an
+answer. There are two damage scales, and both belong to the released game. The
+table below maps every path to its unit. `test/damage-paths.test.ts` asserts the
+table against the code rather than trust it.
 
-**Two units, and only two** (`src/game/damage-units.ts`), both whole numbers on
-the released byte scale, both branded so one cannot be spent as the other:
+**Two units, and only two** (`src/game/damage-units.ts`). Both are whole numbers
+on the released byte scale. Both are branded, so nobody can spend one as the
+other:
 
 | unit | what it comes off | range |
 | --- | --- | --- |
@@ -20,12 +22,12 @@ the released byte scale, both branded so one cannot be spent as the other:
 | `PlayerPoolPoints` | the commander's 255-point facing shield, then the 255-point bank | 0–510 to strip both |
 
 **There is no normalized scale.** An episode's target is the commander, with
-`game/systems.ts`'s three 255-point pools, hit by `applyDamage` for
-`npcLaserDamageToPlayer` points off the firing build's own packed byte.
+`game/systems.ts`'s three 255-point pools. `applyDamage` hits her for
+`npcLaserDamageToPlayer` points, off the firing build's own packed byte.
 `TARGET_DAMAGE_LO`, `TARGET_DAMAGE_SPREAD`, `VICTIM_RAM_DAMAGE`,
-`targetShotDamage` and `targetHullForPoolPoints` do not exist anywhere, and
-`test/damage-paths.test.ts` asserts that none of the five comes back. There are
-exactly two damage scales in the project and both are the released game's.
+`targetShotDamage` and `targetHullForPoolPoints` do not exist anywhere.
+`test/damage-paths.test.ts` asserts that none of the five comes back. The project
+has exactly two damage scales, and both belong to the released game.
 
 ## The inventory
 
@@ -61,20 +63,20 @@ exactly two damage scales in the project and both are the released game's.
 ## The one Harmless rule
 
 Rows 4–10 are the paths where the released source says nothing at all. They
-share one named rule, whose only home is `src/constants/impact.ts`:
+share one named rule, and its only home is `src/constants/impact.ts`:
 
-> An impact costs a **fixed whole number of source points**, stated separately
-> for a ship's energy bank and for the commander's pools, and is spent on
-> whatever it hits without asking what that is.
+> An impact costs a **fixed whole number of source points**. The rule states that
+> number separately for a ship's energy bank and for the commander's pools. The
+> impact spends it on whatever it hits, and it never asks what that is.
 
-Two columns rather than one, because the two banks are not comparable: a
-released ship carries 2 to 255 energy, and the commander carries a 255-point
-facing shield in front of a 255-point bank. Fixed points rather than a share of
-the target, because a hull's size is meant to be worth something — a 44-point
-scrape is a third of a Sidewinder and a sixth of an Anaconda.
+There are two columns rather than one, because the two banks are not comparable.
+A released ship carries 2 to 255 energy. The commander carries a 255-point facing
+shield in front of a 255-point bank. The rule uses fixed points rather than a
+share of the target, because a hull's size is meant to be worth something. A
+44-point scrape is a third of a Sidewinder and a sixth of an Anaconda.
 
-**The anchors**, both the Cobra Mk III, and both re-derived from the catalogue by
-`test/damage-paths.test.ts` so a re-import cannot leave them stale:
+**The anchors** are both the Cobra Mk III. `test/damage-paths.test.ts` re-derives
+both from the catalogue, so a re-import cannot leave them stale:
 
 | impact | ship | severity against the 98-point NPC anchor | commander | severity against the 255-point shield face |
 | --- | --- | --- | --- | --- |
@@ -87,41 +89,43 @@ scrape is a third of a Sidewinder and a sixth of an Anaconda.
 ## The numbers these paths carry
 
 - **NPC-vs-NPC laser** is the firing build's own gun against the target's own
-  defence, so a Thargoid's crossfire and a Worm's are not identical (row 3).
-- **A warhead against a ship** is 250 points, so the five heaviest released
-  builds — the two Anacondas (252), the two Thargoid motherships (253) and the
-  `W:29` Dragon (255) — survive one at full energy by a sliver, and only an
-  actual kill pays a bounty (row 4). The roster's own Dragon is `D:29` at 247
-  and dies to one.
+  defence. A Thargoid's crossfire and a Worm's are therefore not identical
+  (row 3).
+- **A warhead against a ship** is 250 points. The five heaviest released builds
+  survive one at full energy, by a sliver: the two Anacondas (252), the two
+  Thargoid motherships (253) and the `W:29` Dragon (255). Only an actual kill
+  pays a bounty (row 4). The roster's own Dragon is `D:29` at 247, and it dies to
+  one.
 - **A warhead against the commander** is 250 pool points (row 5).
-- **Shooting a canister** resolves through the oracle against the object's own
-  8-point bank rather than deleting it unconditionally. Every laser the Cobra
-  Mk III can carry breaks one in a single hit (row 11).
+- **A shot at a canister** resolves through the oracle, against the object's own
+  8-point bank. It does not delete the canister unconditionally. Every laser the
+  Cobra Mk III can carry breaks one in a single hit (row 11).
 
 ## Rules this inventory encodes
 
 - **The Constrictor's halving and a station's immunity are properties of a
   PLAYER LASER**, not of the ship. They live on the target's profile
-  (`playerLaserMultiplier`, `laserImmune`) and are read by row 1 alone. Rows 3
-  to 10 never see them: `npcCrossfireDamage` deliberately does not consult
-  either, and no impact function is even given a target to ask.
+  (`playerLaserMultiplier`, `laserImmune`), and row 1 alone reads them. Rows 3 to
+  10 never see them. `npcCrossfireDamage` deliberately consults neither, and no
+  impact function even gets a target to ask.
 - **One rule, one home.** No damage number appears at a call site. Every one of
   them is in `elite-a/combat-math.ts` (source arithmetic),
   `elite-a/*.generated.ts` (source data) or `impact-damage.ts` (ours).
-- **Minting is restricted.** Only `gunnery.ts`, `npc-energy.ts` and
-  `impact-damage.ts` may call the two point constructors; the test asserts it.
-- **Both directions name their cause, and the two lists are not the same
-  list.** What can hurt the commander is `DamageSource` in `combat.ts` — the
-  five `applyPlayerDamage` sites, rows 2, 5, 8, 9 and 10. What the commander can
-  hurt a ship with is `DealtSource` in `damage-dealt.ts` — rows 1, 4, 6 and 7.
-  A station scrape and a canister have no outbound version and the energy bomb
-  has no inbound one, so one list would have to carry members that can never
-  occur in one of the directions. The three words they share are the same words
-  by construction (`Extract`).
-- **What is REPORTED is what came off the bank.** `dealToNpc` reads the
-  target's energy either side of the hit, so the figure in a training record is
-  the damage the ship took and never the points the impact spent: a 250-point
-  warhead into a Sidewinder with 73 energy is 73. That is the same measurement
-  the laser path makes (`combat-sim.ts` `pullTrigger`), which is what
-  makes the four buckets addable. The points spent are unaffected — a warhead
-  still destroys everything but the five heaviest builds.
+- **Only three modules may mint a point.** `gunnery.ts`, `npc-energy.ts` and
+  `impact-damage.ts` may call the two point constructors. Nothing else may. The
+  test asserts it.
+- **Both directions name their cause, and the two lists are not the same list.**
+  What can hurt the commander is `DamageSource` in `combat.ts`: the five
+  `applyPlayerDamage` sites, which are rows 2, 5, 8, 9 and 10. What the commander
+  can hurt a ship with is `DealtSource` in `damage-dealt.ts`: rows 1, 4, 6 and 7.
+  A station scrape and a canister have no outbound version, and the energy bomb
+  has no inbound one. One list would therefore have to carry members that can
+  never occur in one of the directions. The three words that the two lists share
+  are the same words by construction (`Extract`).
+- **What is REPORTED is what came off the bank.** `dealToNpc` reads the target's
+  energy on either side of the hit. The figure in a training record is therefore
+  the damage the ship took, and never the points the impact spent. A 250-point
+  warhead into a Sidewinder with 73 energy is 73. The laser path makes the same
+  measurement (`combat-sim.ts` `pullTrigger`), which is what makes the four
+  buckets addable. This does not change the points spent: a warhead still
+  destroys everything except the five heaviest builds.

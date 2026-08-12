@@ -1,34 +1,36 @@
 # 1. Plan
 
-GitHub is the public inbox, not the queue. Triage each issue against the README,
-the product that currently ships and the code that actually runs. Record one
-disposition on the issue:
+GitHub is the public inbox. It is not the queue. Triage each issue against three
+things: the README, the product that ships today, and the code that runs today.
+Record one disposition on the issue:
 
 - **planned** — accepted, but not the current execution item;
-- **needs information** or **needs investigation** — the outcome is not yet
-  understood well enough to plan;
-- **declined**, duplicate or already fixed — close it with the reason;
-- **in progress** — an executable plan is the current queue item and work has
+- **needs information** or **needs investigation** — nobody understands the
+  outcome well enough to plan it yet;
+- **declined**, duplicate or already fixed — close the issue with the reason;
+- **in progress** — an executable plan is the current queue item, and the work
   started.
 
-An issue is evidence, not a specification. One issue may become several
-milestones; several issues may have one root; some should produce no TODO at
-all. Do not copy the GitHub inbox into a local list.
+An issue is evidence. It is not a specification. One issue can become several
+milestones. Several issues can have one root. Some issues must produce no TODO
+item at all. Do not copy the GitHub inbox into a local list.
 
-Pick the next accepted outcome. Explore read-only and frugally: targeted
-searches and the specific files the change touches, not directory sweeps. The
-output is a numbered plan doc in `docs/TODO/` in the house shape
-(Kind/Severity/Size · Where we are · What to do · Decisions already made · Open
-questions · Watch out for) plus **Verification** — the evidence that will show
-the change works and plays right, named before the code exists, tiered to the
-change (see step 3). Milestones over ~40 tool-turns of work get split in the
-plan itself.
+Pick the next accepted outcome. Explore read-only, and explore frugally: use
+targeted searches and open the specific files that the change touches. Do not
+sweep a directory. The output is a numbered plan doc in `docs/TODO/`. It follows
+the house shape (Kind/Severity/Size · Where we are · What to do · Decisions
+already made · Open questions · Watch out for). It also has a **Verification**
+section: the evidence that will show that the change works and plays right. Name
+that evidence before the code exists, and tier it to the change (see step 3).
+Split a milestone of more than about 40 tool-turns in the plan itself.
 
-Answer open questions in the plan; one left open is a decision delegated.
-Chris's decisions land in "Decisions already made" and are not relitigated.
+Answer each open question in the plan. A question left open is a decision that
+you delegate. Chris's decisions land in "Decisions already made". Do not
+relitigate them.
 
 When a GitHub issue supplies the work, put `**GitHub:** #N` in the plan. When
-that plan becomes the current queue item, label the issue `in progress` and add
-a comment naming the numbered TODO. Partial overlap is mentioned in the issue
-but does not change its status. Close the issue only when the promised outcome
-has landed, or when triage decides not to pursue it.
+that plan becomes the current queue item, do two things: label the issue
+`in progress`, and add a comment that names the numbered TODO item. Mention a
+partial overlap in the issue, but do not change the status of the issue for it.
+Close the issue only after the promised outcome lands. Close it also when triage
+decides not to pursue it.

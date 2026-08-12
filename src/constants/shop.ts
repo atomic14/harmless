@@ -1,16 +1,17 @@
 // The shop: what things cost.
 //
-// Prices in tenths of a credit (invariant 8). The rules that spend them are
-// game/shop.ts and game/screens/trade.ts. Most rows carry the 1984 outfitter's
-// figures; the mining laser, combat computer and trumble are this game's own.
+// The prices are in tenths of a credit (invariant 8). The rules that spend them
+// are game/shop.ts and game/screens/trade.ts. Most rows carry the 1984
+// outfitter's figures. The mining laser, the combat computer and the trumble are
+// this game's own.
 
 import { LARGE_BAY_TONNES } from './commander.ts';
 
 /**
- * What refuelling costs, in tenths of a credit per tenth of a LY. The single
- * home for the rule, and deliberately 2x the 1984 manual's implied 0.2.
+ * What a refuel costs, in tenths of a credit per tenth of a LY. It is the single
+ * home for the rule, and it is deliberately twice the 1984 manual's implied 0.2.
  *
- * Its own rule id: 0.4 also spells a missile's last stand and a danger
+ * It has its own rule id. 0.4 also spells a missile's last stand and a danger
  * threshold, and the price of fuel follows neither.
  *
  * @rule shop.fuelPrice
@@ -18,15 +19,17 @@ import { LARGE_BAY_TONNES } from './commander.ts';
 export const FUEL_PRICE = 0.4;
 
 /**
- * What a pulse laser costs, wherever it is mounted — and therefore its trade-in
- * value: the laser upgrade path refunds the old gun at what it cost. The Large
- * Cargo Bay is also 4000 but is not this rule, left a literal in its row.
+ * What a pulse laser costs, wherever it is mounted. It is therefore also its
+ * trade-in value, because the laser upgrade path refunds the old gun at what it
+ * cost. The Large Cargo Bay is also 4000, but it is not this rule, so its row
+ * keeps a literal.
  */
 export const PULSE_LASER_PRICE = 4000;
 
 /**
- * The beam laser's price — named beside `PULSE_LASER_PRICE` because the trade-in
- * reads it too: upgrading beam-to-military refunds what the beam cost.
+ * The beam laser's price. It is named beside `PULSE_LASER_PRICE` because the
+ * trade-in reads it too: an upgrade from beam to military refunds what the beam
+ * cost.
  */
 export const BEAM_LASER_PRICE = 10000;
 
@@ -40,8 +43,8 @@ export interface EquipItem {
 
 /**
  * The outfitter's shelf, in the order the screen lists it. The Large Cargo Bay
- * label interpolates `LARGE_BAY_TONNES` so it cannot advertise a bay the game
- * does not fit.
+ * label interpolates `LARGE_BAY_TONNES`, so it cannot advertise a bay that the
+ * game does not fit.
  */
 export const EQUIPMENT_CATALOGUE: EquipItem[] = [
   { id: 'missile', name: 'Missile', price: 300, minTL: 1 },

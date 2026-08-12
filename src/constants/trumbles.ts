@@ -1,18 +1,19 @@
-// Trumbles, as numbers: how fast they breed, how much they eat, and what
-// drives them out. Elite's joke about buying something adorable at a station.
-// Spent by `stepTrumbles` in game/trumbles.ts; the shelf price is
+// Trumbles, as numbers: how fast they breed, how much they eat, and what drives
+// them out. They are Elite's joke about a purchase of something adorable at a
+// station. `stepTrumbles` in game/trumbles.ts spends these. The shelf price is
 // `EQUIPMENT_CATALOGUE`'s trumble row.
 
 /**
- * Cabin heat that drives them out — inside a sun-skim's working band (cabin
- * settles at 0.36 at scooping range, death is `CABIN_TEMP_FATAL` = 0.99 in
- * sun.ts), so the cure costs a deliberate dip into the hot zone, not the ship.
+ * The cabin heat that drives them out. It sits inside a sun-skim's working band:
+ * the cabin settles at 0.36 at scoop range, and death is `CABIN_TEMP_FATAL` =
+ * 0.99 in sun.ts. The cure therefore costs a deliberate dip into the hot zone.
+ * It does not cost the ship.
  */
 export const TRUMBLE_PURGE_TEMP = 0.55;
 
 /**
- * Seconds between broods — also the fresh session's countdown: `freshSession`
- * in game/state.ts starts `trumbleTimer` at exactly one interval.
+ * Seconds between broods. It is also the fresh session's countdown:
+ * `freshSession` in game/state.ts starts `trumbleTimer` at exactly one interval.
  */
 export const BREED_INTERVAL = 20;
 
@@ -26,7 +27,7 @@ export const MAX_TRUMBLES = 999;
 export const APPETITE_DIVISOR = 8;
 
 /**
- * Below this many, they are not worth mentioning — the console stays quiet so
- * the infestation is discovered rather than announced.
+ * Below this many, they are not worth a word. The console stays quiet, so the
+ * pilot discovers the infestation rather than hears it announced.
  */
 export const NOTICEABLE = 4;

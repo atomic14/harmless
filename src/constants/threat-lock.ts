@@ -1,15 +1,15 @@
-// How hard a defending ship holds on to the threat it is already fighting.
-// Spent by `ThreatLock` in game/threat-lock.ts.
+// How hard a defending ship holds on to the threat it already fights.
+// `ThreatLock` in game/threat-lock.ts spends these.
 
 /**
- * A rival threat must be this much NEARER than the one being fought before the
- * defender may switch to it — a sanity test ("actually overtaken, not a tie");
- * `THREAT_MIN_HOLD` does the real committing.
+ * A rival threat must be this much NEARER than the threat under fire before the
+ * defender may switch to it. It is a sanity test: the rival actually overtook,
+ * and it is not a tie. `THREAT_MIN_HOLD` does the real commitment.
  */
 export const THREAT_SWITCH_MARGIN = 2.0;
 
 /**
- * Seconds a threat is fought before the defender will consider a rival. A
- * threat that dies or leaves is replaced at once regardless.
+ * Seconds that the defender fights a threat before it considers a rival. A
+ * threat that dies or leaves is replaced at once, whatever this value is.
  */
 export const THREAT_MIN_HOLD = 5;

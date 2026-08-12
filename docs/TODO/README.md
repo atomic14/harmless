@@ -49,30 +49,6 @@ active context:
    weakened an opposition that already cannot bite — which is why 138 keeps
    `role-variants.ts` ranking inside the set it chooses.
 
-3. **141** — [Nobody reading a rule can ask what it
-   meant](141-nobody-reading-a-rule-can-ask-what-it-meant.md). Chris's call on
-   2026-08-12: rewrite the **technical** documentation in ASD-STE100 Simplified
-   Technical English, as a house style rather than a one-time pass, and **no
-   gate**. Last in the queue because nothing is blocked on it; promoting it is
-   Chris's to do. STE is a controlled language built for one reader — somebody
-   who must act on a written instruction and cannot ask what it meant — and that
-   reader is the one this repository has. `CLAUDE.md`, `INVARIANTS.md` and
-   `PROCESS.md` are read at the top of every session by an agent that will not
-   stop to ask, and the code then cites them **107 times by invariant number**.
-   **M1** is the four rule docs, about 2,200 words and the highest value per word
-   here. **M2** writes the convention into `CLAUDE.md` — deliberately second,
-   because M1 is where it becomes clear which rules bite in this repository.
-   **M3** is the six reference docs (~13,300 words), `DAMAGE-PATHS.md` last
-   because `test/damage-paths.test.ts` asserts its table. **M4** is the
-   constants' prose, edited at its source in `src/constants/*.ts` and
-   regenerated, because `CATALOG.md` discards a hand edit. Four surfaces are
-   excluded on the record rather than in silence: the 157,000-word plan archive
-   and the logs (a record, not an instruction), the **174,000 words of comments
-   in `src/`** (larger than every `.md` combined — the house style converts it
-   as files are edited), `README.md` (its opening is Chris's own words), and the
-   player-facing pages he ruled out. One question is left open and it is his:
-   whether commit messages and live plan docs join the list.
-
 The GitHub inbox is empty. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
@@ -127,6 +103,42 @@ of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
 
 ## What landed on 2026-08-12
+
+**141** — the house style, and the reader it is for. ASD-STE100 Simplified
+Technical English is a controlled language built for somebody who must act on a
+written instruction and cannot ask the author what it meant. That reader is the
+one this repository has. All four milestones landed in a day, over **four rule
+docs, six reference docs and all 61 files of `src/constants/`**.
+
+The four rule docs came first, because they are read at the top of every session
+and the code cites them **107 times by invariant number**. All 15 invariants keep
+their numbers and their claims, all 107 citations still resolve, and the seven
+doc paths that `src/`, `test/` and `tools/` name are unchanged at the same
+counts. The convention was written second on purpose, as a `## Prose` section in
+`CLAUDE.md`: M1 is where it becomes clear which rules bite here. The half that
+matters more is the list of what it never touches — code, an exact command or
+error string, anything quoted from a person, a record of what was decided or
+measured, `README.md`'s opening, the player-facing pages, and `CATALOG.md` by
+hand. `DAMAGE-PATHS.md` went last, and its 25-row inventory was not edited at
+all, because `test/damage-paths.test.ts` reads that table. The constants were
+edited at their source and regenerated: **374 exports and 54 rule ids**, both
+unchanged, which is what says the pass changed prose and not rules.
+
+Four things came out of it that the plan did not have, and all four are in the
+plan doc. A dated report pins its own text, so `JAMESON-TRIALS.md`'s "left as
+written" note now says what is true instead. `TACTICS` had no JSDoc, because
+`constants:check` is diff-scoped and an export can sit undocumented until
+somebody edits its file. **Two quotations attributed to `CLAUDE.md` are no longer
+in it** — the commit that slimmed the agent context took them out — and they are
+left verbatim, because a quotation rewritten is falsified. And `docs/PROCESS.md`
+still cites a "step 3" that went with the cycle orchestrator on 2026-08-09.
+
+**Two of those are Chris's to settle**, and neither blocks anything: whether the
+missing `CLAUDE.md` lines are restored or re-attributed, and what `PROCESS.md`'s
+step 3 should say. The plan's own open question is answered by `CLAUDE.md`: its
+`## Style` line already covered "TODO items", so the convention keeps them, and
+the "a record of what was decided or measured" exclusion is what holds the plan
+archive and the logs out. Commit messages are still unnamed either way.
 
 **140** — GitHub #24, and the one cost a jump spends that no screen named. All
 four milestones landed in a day. The day itself now sits between fuel and cash

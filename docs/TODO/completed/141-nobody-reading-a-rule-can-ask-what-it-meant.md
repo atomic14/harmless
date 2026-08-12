@@ -180,3 +180,77 @@ reading:
 - **What is NOT claimed.** STE compliance itself is not measured, because no
   checker is built. The claim this item can honestly make is "read against the
   rule table", not "gated".
+
+## What landed, 2026-08-12
+
+All four milestones. The rewrite covers **four rule docs, six reference docs and
+all 61 files of `src/constants/`**, and nothing outside the scope above moved.
+
+**M1 — the four rule docs.** `CLAUDE.md`, `docs/INVARIANTS.md`,
+`docs/PROCESS.md` and `docs/ARCHITECTURE.md`. All 15 invariants keep their
+numbers and their claims; the code's **107 citations by number still resolve**,
+and the cited set is 1–13 and 15, exactly as before. The seven doc paths that
+`src/`, `test/` and `tools/` name are unchanged, at the same counts.
+
+**M2 — the convention.** A `## Prose` section in `CLAUDE.md`: the countable
+rules as a table, the surfaces it covers, and the seven kinds of text it never
+touches. The one-line rule in `## Style` is deleted rather than kept in step, so
+the convention has one home.
+
+**M3 — the six reference docs.** `JAMESON-TRIALS`, `BROWSER-TRIALS`,
+`AI-TRAINING`, `ELITE-A`, `COMBAT-SIM`, then `DAMAGE-PATHS` last. Every table,
+every measured number and every quotation is untouched. `DAMAGE-PATHS.md`'s
+25-row inventory was not edited at all — only the prose around it — because
+`test/damage-paths.test.ts` reads that table.
+
+**M4 — the constants' prose.** All 61 files edited at the source, then
+`npm run generate:constants`. The catalogue still reports **374 exports and 54
+rule ids**, which is what says the pass changed prose and not rules.
+
+### Four things that came out of it, and none were in the plan
+
+1. **A dated report pins its own text.** `JAMESON-TRIALS.md` opens with "**A
+   dated report, left as written.**" Its note exists to say that two figures in
+   it are stale. An STE pass makes that sentence false, so the note now says what
+   is true: the language follows the house style, and no finding, number or
+   quotation moved.
+2. **`TACTICS` had no JSDoc, and `constants:check` is diff-scoped.** The gate
+   only checks constants the diff touched, so an export that predates the gate
+   can sit undocumented until somebody edits its file. M4 edited every file in
+   the directory, and this was the one it found.
+3. **Two quotations attributed to `CLAUDE.md` are no longer in it.**
+   `BROWSER-TRIALS.md` quotes *"prefer a fight a human flew to a bot-flown
+   measurement"* and *"a well-optimised pirate is a turret that hangs in space
+   and snipes"*, and `COMBAT-SIM.md` quotes "threat is not fun". The commit that
+   slimmed the agent context took all three out. Both files are left verbatim,
+   because a quotation rewritten is falsified — but the attribution is stale and
+   the fix is Chris's call: restore the lines to `CLAUDE.md`, or attribute them
+   to the archive.
+4. **`docs/PROCESS.md` cites a step it no longer has.** It says a plan's
+   Verification is "tiered to the change (see step 3)", and the file is only
+   "# 1. Plan". Steps 2–4 went with the cycle orchestrator on 2026-08-09. The
+   reference is left as written, because to invent the missing step is not a
+   language pass.
+
+### One question the plan left open is answered, and by `CLAUDE.md` itself
+
+The plan recorded commit messages and live plan docs as Chris's to rule on. The
+`## Style` line that the LSP commit added the same day already says "technical
+documents, comments and TODO items", so M2 keeps TODO items in the covered list.
+The exclusion that does the work beside it is "a record of what somebody decided
+or measured", which is what keeps the plan archive, `DEVLOG.md` and
+`TRAINING-LOG.md` out. Commit messages are still unnamed either way.
+
+### Verification, as run
+
+- `npm run check` — green. **4255 passed, 0 failed**, which covers lint, the
+  suite, the sizes, `constants:check`, `palette:check` and the three generator
+  drift checks.
+- `grep -rniE "invariant [0-9]+" src test tools` — **107**, unchanged, and every
+  number cited is one of the 15 headings.
+- `grep -rhoE "docs/[A-Z-]+\.md" src test tools` — the same seven files at the
+  same counts. No comment names a section anchor, so none could break.
+- `npm run generate:constants` then `npm run constants:check` — 374 exports, 54
+  rule ids, catalogue current. That is what proves M4 reached the source rather
+  than the generated file.
+- STE compliance is **not** measured, exactly as this plan said it would not be.
