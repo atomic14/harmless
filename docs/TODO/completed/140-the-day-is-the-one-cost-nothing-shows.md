@@ -5,7 +5,10 @@ nothing · **Blocks:** nothing · **GitHub:** #24 — *"It would be good to see 
 elapsed days in the status area. This would help when delivering contracts —
 maybe even when looking at the chart we could see an estimated travel days?"*
 
-**M1, M2 and M3 landed 2026-08-12.** M4 is what is left.
+**M1, M2, M3 and M4 all landed 2026-08-12. Chris flew it the same day and
+confirmed it: *"display is good"*.** That closes the Verification below. The
+fourth topbar span reads well in flight, and the contract marker does not crowd
+the chart.
 
 ## What M1 did
 
@@ -164,6 +167,75 @@ same on an empty tank as on a full one. Three breaks were run: a painter that
 estimates nothing, a plural that is never chosen, and an estimate priced on the
 fuel aboard.
 
+## What M4 did
+
+Both charts now answer the question the issue asked. A world you owe a contract
+to carries an amber diamond. The info line under the cursor ends
+`DUE IN 6 DAYS · 3 DAYS AWAY`, or `DUE IN 2 DAYS · 6 DAYS AWAY · TOO FAR` in
+red.
+
+`src/game/contract-eta.ts` is the new module. It is pure and it holds two
+functions. `contractDestinations` gives the systems to mark.
+`contractVerdict` gives the words and the colour. It takes the whole commander
+rather than a day number. That is the trap in "Watch out for", closed by the
+signature: the galaxy's day is also in scope in both painters, and it cannot be
+passed here by mistake.
+
+**The plan's red rule was one day out, and the code follows the game instead.**
+The plan said red when the days left are zero or fewer. `game/contracts.ts`
+calls a delivery late when `c.day > k.deadlineDay`, so arrival ON the deadline
+day pays. The rule is `daysAway > daysLeft`, which is exact at that boundary and
+covers an overdue job as well. A pilot who stands on the destination on the last
+day sees amber, and the delivery pays.
+
+### Five cases the plan did not word
+
+The plan gave one sentence: `DUE IN 6 DAYS · 3 DAYS AWAY`. Five more states
+exist and each one is reachable in play:
+
+1. `DUE TODAY`, when the deadline is this day.
+2. `OVERDUE BY 2 DAYS`. Settlement expires the job at the next landing anywhere,
+   so the chart can show one after a jump.
+3. `YOU ARE HERE`, in place of a journey, for the system you stand in.
+4. `NO ROUTE`, for a destination no chain of full-tank jumps reaches.
+5. `+1 MORE`, when two jobs share one destination. The tightest deadline is
+   priced, because it decides when the commander must leave. One marker covers
+   both jobs, so a line about one of them alone would mislead.
+
+`TOO FAR` is in the words as well as in the colour. The chart has four colours
+on it, and a reader who cannot separate amber from red must still get the
+verdict.
+
+### One journey, measured once
+
+`ui/screens.ts` gained a private `journey` function. It gives days, jumps and
+whether the number is an estimate. `daysTerm` spells it and `contractTerm`
+compares it against the deadline, so one line cannot price the same journey
+twice differently. `dayWord` moved to `game/commander.ts`, beside
+`formatCredits`: the commander owns a day count and a purse, and each one has
+one spelling.
+
+### Where M4's rules are pinned
+
+`test/contract-eta.test.ts`, in three parts. The verdict is checked as a
+function, because a painted chart cannot easily reach a missed deadline or an
+overdue job. Both charts are then painted and both info lines are read back,
+which is the M2 lesson: a correct wording function plus a painter that never
+calls it is the defect. The living galaxy is driven 500 days from the commander
+in every paint.
+
+**The marker needed a recording canvas, and there was none.**
+`engine/inert-dom.ts` gives a painter a context whose every method returns
+undefined, so a mark drawn nowhere and a mark never drawn looked the same.
+`test/screen-capture.ts` gained `captureCanvas`, which records every canvas call
+with the colours in force. It takes the canvas size, because both charts scale
+every coordinate by it and at zero the whole galaxy lands on one point.
+
+Seven breaks were run and each was caught: a painter that drops the term, on
+each chart in turn; a red rule one day out at the boundary; a ring in place of
+the diamond; a verdict read off the galaxy's day; the loosest deadline priced in
+place of the tightest; and a day count that is always plural.
+
 ## Where we are
 
 A jump spends three things: fuel, money and days. The chart prices two of them
@@ -270,7 +342,7 @@ The word ESTIMATE is earned, and the plan states why: `MISJUMP_CHANCE` is 0.09
 (`src/constants/jump.ts:48`), and a mis-jump costs the 3-day tow. Over a
 four-jump route the chance of at least one mis-jump is about 31%.
 
-### M4 — the chart answers the contract question
+### M4 — the chart answers the contract question — **LANDED**
 
 1. **A marker.** Draw a destination you owe a contract to, on both charts, in
    amber. It joins the danger ring as a fact that is always on rather than an

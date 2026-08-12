@@ -13,53 +13,7 @@ active context:
 
 ## Execution queue
 
-1. **140** — [The day is the one cost nothing
-   shows](140-the-day-is-the-one-cost-nothing-shows.md), **GitHub #24**, and the
-   current item by Chris's call on 2026-08-12. **M1, M2 and M3 landed
-   2026-08-12; M4 is what is left.** A jump spends fuel, money and days; the chart
-   priced two of them and never named the third. `commander.day` moves on a jump
-   and on a mis-jump tow, and on nothing else — not a trade, not a fight, not a
-   dock — and it was on screen only where nobody consults it: a saves column,
-   the bulletin-board keyline, and the docked menu's first contract. **M1 put it
-   where the pilot already looks** — `Elapsed: N days` on the COMMANDER screen
-   between fuel and cash, `· DAY N` on the docked menu, and a fourth topbar span
-   so it ticks in flight, which is where a jump happens. No arithmetic moved:
-   `commander.day` was always right and four painters now read it. It also cost
-   a defect that was waiting: `test/ui.test.ts` left a half-built `document`
-   global behind, and M1's first real `Game` in a later test file died on it and
-   took the suite with it. **M2 put the jump's cost in days on both chart info
-   lines.** `oneJumpDays` in `galaxy/navigation.ts` owns the rule, and one
-   private `daysTerm` in `ui/screens.ts` owns the words for both painters. It
-   gives no number for the system you stand in, because `daysForJump(0)` is 1.
-   It gives no number beyond the fuel aboard, because one jump cannot get there.
-   A third case was not in the plan and a shipped galaxy holds it: galaxies 4, 5
-   and 8 each put a pair of systems on one chart point, so the term must read
-   `1 DAY`. `test/chart-days.test.ts` paints both charts and reads the info line
-   back, across five home systems and all 256 systems of galaxy 1. **M3 priced
-   the journey one jump cannot make.** `src/galaxy/route.ts` is a Dijkstra over
-   full-tank edges — a full tank because fuel costs money and no days — and both
-   charts now say `EST 16 DAYS, 4 JUMPS` where they said nothing. It reports a
-   number and draws no path, so the pilot still chooses every jump. Three things
-   the plan did not have came out of it. The map is far sparser than the plan
-   estimated (6.6 neighbours a system, not 15), so a search costs 0.2 ms and a
-   chart repaints on a change rather than on a frame. **Some destinations have no
-   route at all, and shipped galaxies hold them**: nothing is within a full tank
-   of Oresrati in galaxy 8, and galaxy 7 splits 229 systems from 27. And the
-   numbers are large — Sori is 89 days and 21 jumps from Lave — so M4's verdict
-   will read TOO FAR across most of the chart, honestly. `test/route.test.ts`
-   checks the ANSWER and not the algorithm, by the shortest-path certificate: no
-   edge improves the answer, and every cost is a real route through some
-   neighbour. Six breaks were run, and **a lost tie-break on jumps is caught by
-   the symmetry check alone**.
-   **M4** marks a system you owe a contract to and prints the verdict beside it.
-   One trap is recorded and is the reason to read the plan before the code:
-   `ChartOverlays.day` is the LIVING galaxy's day, which catches up by at most
-   60 days a load, so a deadline computed from it is right for months and then
-   silently wrong on an old save. M1 stages that trap rather than describing it
-   — the two clocks are driven 500 days apart and the topbar still reads the
-   commander's.
-
-2. **139** — [Nothing the galaxy sends can get through the
+1. **139** — [Nothing the galaxy sends can get through the
    shield](139-nothing-the-galaxy-sends-gets-through-the-shield.md), **M1, M2 and
    half of M4 landed 2026-08-11; M3 is what is left**. Chris, flying it: *"is our
    shield and energy recharging too fast — the laser hits from pirates don't seem
@@ -83,7 +37,7 @@ active context:
    `NPC_FIRE_GATE` is not the fix and the flight model is the term. Whether that
    is worth changing now the regen has moved is the open question.
 
-3. **138** — [Every system in every galaxy flies the same
+2. **138** — [Every system in every galaxy flies the same
    roster](138-every-system-flies-the-same-roster.md). The 23 released blueprint
    sets `S.A`–`S.W` are all imported and the set dimension is then collapsed:
    `SPECS` resolves its builds at import time, so a Krait is the same Krait in
@@ -95,7 +49,7 @@ active context:
    weakened an opposition that already cannot bite — which is why 138 keeps
    `role-variants.ts` ranking inside the set it chooses.
 
-4. **141** — [Nobody reading a rule can ask what it
+3. **141** — [Nobody reading a rule can ask what it
    meant](141-nobody-reading-a-rule-can-ask-what-it-meant.md). Chris's call on
    2026-08-12: rewrite the **technical** documentation in ASD-STE100 Simplified
    Technical English, as a house style rather than a one-time pass, and **no
@@ -119,9 +73,11 @@ active context:
    player-facing pages he ruled out. One question is left open and it is his:
    whether commit messages and live plan docs join the list.
 
-The GitHub inbox holds one open issue, **#24**, and 140 above is its plan.
-Everything else is closed: **#23** with 134, as #22 did with 127, #18 with 121,
-#20 with 122 and #21 with 123.
+The GitHub inbox holds one open issue, **#24**. Its plan is
+[140](completed/140-the-day-is-the-one-cost-nothing-shows.md). All four
+milestones landed on 2026-08-12, and Chris flew it the same day: *"display is
+good"*. So #24 is ready to close. Everything else is closed already: **#23**
+with 134, as #22 did with 127, #18 with 121, #20 with 122 and #21 with 123.
 
 **One question is open and it is Chris's, not the queue's:** whether the docking
 computer should avoid traffic at all. `npm run dock-traffic` answers what it
@@ -170,6 +126,30 @@ flight entirely — no bribe, scan, hermit or murder ever runs in it — so a
 disrepute of **0.0**. Measured, not assumed. The harness sees only the trade half
 of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
+
+## What landed on 2026-08-12
+
+**140** — GitHub #24, and the one cost a jump spends that no screen named. All
+four milestones landed in a day. The day itself now sits between fuel and cash
+on the COMMANDER screen, on the docked menu, and in a fourth topbar span, so it
+ticks in flight where a jump moves it. Both charts price the jump under the
+cursor in days. Beyond the tank they estimate the whole journey, over a Dijkstra
+across full-tank edges in `src/galaxy/route.ts` — a full tank because fuel costs
+money and no days. And a world you owe a contract to carries an amber diamond
+and a verdict: `DUE IN 6 DAYS · 3 DAYS AWAY`, or `TOO FAR` in red.
+
+Four things the plan did not have came out of it, and all four are in the plan
+doc. The map is far sparser than the estimate, at 6.6 neighbours a system. Some
+destinations have no route at all, and shipped galaxies hold them. The plan's
+red rule was one day out, because settlement pays a delivery that arrives ON the
+deadline day. And the marker needed a recording canvas that did not exist:
+`inert-dom.ts` gives a painter a context that returns undefined, so a mark drawn
+nowhere and a mark never drawn looked the same from every test.
+
+**Flown by Chris on 2026-08-12 and confirmed good** — *"display is good"* — which
+was the last item of the plan's Verification. Two things needed a pilot rather
+than a probe: whether a fourth topbar span reads well in flight, and whether the
+contract marker crowds a chart that already draws eight things.
 
 ## What landed on 2026-08-11
 

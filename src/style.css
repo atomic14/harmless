@@ -129,6 +129,10 @@ body.screen-open #message {
 }
 #screen .chartrow .info .sysname .dist { letter-spacing: 1px; font-size: 13px; }
 #screen .chartrow .info .oor { color: var(--hud-red); letter-spacing: 1px; font-size: 12px; }
+/* The contract verdict, sized like OUT OF RANGE beside it. Its COLOUR is not
+   here: amber or red says whether the deadline can be met, and ui/screens.ts
+   decides that for both charts. One rule, one home. */
+#screen .chartrow .info .due { letter-spacing: 1px; font-size: 12px; }
 /* facts and portrait side by side. Floating the portrait instead squeezed the
    facts grid into its remaining width and wrapped "Poor Agricultural" in two. */
 #screen .chartrow .info .sysrow { display: flex; gap: 16px; align-items: flex-start; }

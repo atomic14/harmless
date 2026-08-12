@@ -95,6 +95,11 @@ Two intentional quirks:
   credits itself, and the orchestrators (`Game.applyContracts`, the campaign's
   settle site) apply the destination's regional heat from the `paid` event —
   once each (invariant 15).
+- `src/game/contract-eta.ts` owns what the CHARTS say about a job you hold: the
+  worlds to mark, the words of the verdict, and whether the deadline can still
+  be met. It is pure and it paints nothing. It takes the commander rather than a
+  day number, so a deadline cannot be measured from the living galaxy's day by
+  mistake.
 - `src/game/character.ts` owns the disrepute ladder: what a score is CALLED, how
   a deed and a quiet week move it, and whether a move crossed a rung worth
   telling the pilot about. Every deed in the game asks it the same question, so

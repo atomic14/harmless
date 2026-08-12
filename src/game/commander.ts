@@ -294,3 +294,17 @@ function berthTonnes(contracts: Contract[]): number {
 export function formatCredits(tenths: number): string {
   return `${(tenths / 10).toFixed(1)} Cr`;
 }
+
+/**
+ * A count of days in the game's voice: `3 DAYS`, and `1 DAY`.
+ *
+ * Beside `formatCredits` because the two are the same kind of thing. This
+ * commander owns a day count and a purse, and each one has one spelling.
+ *
+ * The singular is a rule and not decoration. Galaxies 4, 5 and 8 each put a
+ * pair of systems on one chart point, so the shortest jump in the game costs
+ * `JUMP_DAYS_BASE` alone. The charts and the contract verdict both print it.
+ */
+export function dayWord(days: number): string {
+  return `${days} DAY${days === 1 ? '' : 'S'}`;
+}

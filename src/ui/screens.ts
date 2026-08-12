@@ -9,8 +9,9 @@ import { distanceTenths, distanceSqToPoint, oneJumpDays } from '../galaxy/naviga
 import { routeEstimate } from '../galaxy/route.ts';
 import {
   type CommanderData, type Contract,
-  cargoTonnes, formatCredits, cargoCapacity,
+  cargoTonnes, formatCredits, cargoCapacity, dayWord,
 } from '../game/commander.ts';
+import { contractDestinations, contractVerdict } from '../game/contract-eta.ts';
 import { MAX_FUEL, STARTING_CREDITS } from '../constants/commander.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 import { rating } from '../game/rating.ts';
@@ -677,9 +678,40 @@ export function nearestSystem(
   return best;
 }
 
-/** `3 DAYS`, and `1 DAY` — a shipped galaxy puts two systems on one point. */
-function dayWord(days: number): string {
-  return `${days} DAY${days === 1 ? '' : 'S'}`;
+/** What the journey under the cursor costs, when the chart can price it. */
+interface Journey {
+  /** Days for the whole journey. 0 for the system you stand in. */
+  days: number;
+  /** Jumps it takes. 0 for the system you stand in. */
+  jumps: number;
+  /** More than one jump, so the number is a plan and not a certainty. */
+  estimate: boolean;
+}
+
+/**
+ * How far away the system under the cursor is, in days — or null when no chain
+ * of full-tank jumps reaches it.
+ *
+ * ONE HOME for that question, because two screens ask it in two ways. The days
+ * term below spells the number. The contract verdict compares it against a
+ * deadline. Two measurements would let one line say a journey takes 6 days and
+ * the next term call the same journey too far by one.
+ *
+ * `oneJumpDays` comes first, so a jump the pilot can make NOW is priced as a
+ * certainty. `routeEstimate` answers for everything beyond the tank.
+ */
+function journey(
+  systems: StarSystem[],
+  current: StarSystem,
+  near: StarSystem,
+  fuelTenths: number,
+): Journey | null {
+  if (near.index === current.index) return { days: 0, jumps: 0, estimate: false };
+  const one = oneJumpDays(current, near, fuelTenths);
+  if (one !== null) return { days: one, jumps: 1, estimate: false };
+  const route = routeEstimate(systems, current, near);
+  if (route === null) return null;
+  return { days: route.days, jumps: route.jumps, estimate: true };
 }
 
 /**
@@ -703,19 +735,71 @@ function dayWord(days: number): string {
  * The days term sits beside the distance. Both are costs of the journey. The
  * economy and the government are not.
  */
-function daysTerm(
+function daysTerm(trip: Journey | null): string {
+  if (trip === null || trip.days === 0) return '';
+  if (!trip.estimate) return ` &middot; ${dayWord(trip.days)}`;
+  return ` &middot; EST ${dayWord(trip.days)},`
+    + ` ${trip.jumps} JUMP${trip.jumps === 1 ? '' : 'S'}`;
+}
+
+/**
+ * ` &middot; DUE IN 6 DAYS &middot; 3 DAYS AWAY` for a system this commander
+ * owes a contract to, or nothing — on both charts.
+ *
+ * The board sold the job and the chart draws the world. The pilot held the
+ * subtraction between them (docs/TODO/140 M4).
+ *
+ * `game/contract-eta.ts` owns the words and the verdict. This function owns the
+ * markup only, so the two charts cannot word one commitment differently. It
+ * takes the whole commander for the reason that module states: the deadline is
+ * the commander's day, and the galaxy's day is also in scope here.
+ *
+ * Amber, because that is the colour of a thing you asked for, and it is the
+ * colour of the marker on the chart beside it. Red when the deadline cannot be
+ * met. The words say TOO FAR as well, so the colour is never the only signal.
+ */
+function contractTerm(c: CommanderData, near: StarSystem, trip: Journey | null): string {
+  const verdict = contractVerdict(c, near.index, trip === null ? null : trip.days);
+  if (verdict === null) return '';
+  const tint = verdict.late ? 'var(--hud-red)' : 'var(--hud-amber)';
+  return ` &middot; <span class="due" style="color:${tint}">${verdict.text}</span>`;
+}
+
+/**
+ * A diamond around every system this commander owes a contract to — on both
+ * charts.
+ *
+ * ALWAYS DRAWN, beside the danger ring and for the same reason: a commitment
+ * you accepted is a warning rather than a view, and 111's one-picture rule
+ * governs the overlays `T` cycles.
+ *
+ * A DIAMOND, and not a second amber circle. The jump target is already an amber
+ * circle, so a ring here would read as the target. The shape carries which fact
+ * it is, and the colour carries the tone. Both marks on one system still read,
+ * because the diamond's points sit outside the target ring.
+ */
+function drawContractMarks(
+  ctx: CanvasRenderingContext2D,
+  marks: ReadonlySet<number>,
   systems: StarSystem[],
-  current: StarSystem,
-  near: StarSystem,
-  fuelTenths: number,
-): string {
-  const days = oneJumpDays(current, near, fuelTenths);
-  if (days !== null) return ` &middot; ${dayWord(days)}`;
-  if (near.index === current.index) return '';
-  const route = routeEstimate(systems, current, near);
-  if (route === null) return '';
-  return ` &middot; EST ${dayWord(route.days)},`
-    + ` ${route.jumps} JUMP${route.jumps === 1 ? '' : 'S'}`;
+  px: (s: { x: number; y: number }) => number,
+  py: (s: { x: number; y: number }) => number,
+  reach: number,
+): void {
+  ctx.strokeStyle = HUD.amber;
+  for (const index of marks) {
+    const s = systems[index];
+    if (!s) continue;
+    const x = px(s);
+    const y = py(s);
+    ctx.beginPath();
+    ctx.moveTo(x, y - reach);
+    ctx.lineTo(x + reach, y);
+    ctx.lineTo(x, y + reach);
+    ctx.lineTo(x - reach, y);
+    ctx.closePath();
+    ctx.stroke();
+  }
 }
 
 /**
@@ -865,7 +949,10 @@ export function renderChart(
 const chartKeyline = (mode: ChartOverlay): string =>
   'CLICK A SYSTEM TO TARGET IT &middot; ARROWS MOVE &middot; ENTER TARGET'
   + ' &middot; D DATA ON SYSTEM &middot; M MARKET &middot; F FIND &middot; ESC EXIT'
-  + ` &middot; ${overlayLegend(mode)} &middot; RED RING: PIRATE ACTIVITY`;
+  + ` &middot; ${overlayLegend(mode)} &middot; RED RING: PIRATE ACTIVITY`
+  // Both marks that are always on are named here. A mark with no legend is a
+  // mystery, and the diamond is the ninth thing on this canvas.
+  + ' &middot; AMBER DIAMOND: CONTRACT DUE';
 
 /**
  * Redraw only the canvas + info line (cheap, for cursor moves).
@@ -932,6 +1019,8 @@ export function drawChart(
     ctx.stroke();
   }
 
+  drawContractMarks(ctx, contractDestinations(c), systems, px, py, 7);
+
   // current system crosshair
   ctx.strokeStyle = HUD.green;
   ctx.beginPath();
@@ -968,12 +1057,16 @@ export function drawChart(
     const near = nearestSystem(systems, chart.cursorX, chart.cursorY);
     if (near) {
       const d = distanceTenths(current, near);
+      const trip = journey(systems, current, near, c.fuel);
       info.innerHTML =
         `${near.name.toUpperCase()} &middot; ${(d / 10).toFixed(1)} LY` +
-        daysTerm(systems, current, near, c.fuel) +
+        daysTerm(trip) +
         ` &middot; ${ECONOMY_NAMES[near.economy]} &middot; ${GOVERNMENT_NAMES[near.government]}` +
         ` &middot; TL ${near.techLevel + 1}` +
-        (d > c.fuel ? ' &middot; <span style="color:var(--hud-red)">OUT OF RANGE</span>' : '');
+        (d > c.fuel ? ' &middot; <span style="color:var(--hud-red)">OUT OF RANGE</span>' : '') +
+        // Last, because it is the verdict on everything before it: the world,
+        // the distance and what the journey costs.
+        contractTerm(c, near, trip);
     } else {
       info.textContent = ' ';
     }
@@ -1071,6 +1164,8 @@ export function drawLocalChart(
     ctx.stroke();
   }
 
+  drawContractMarks(ctx, contractDestinations(c), systems, px, py, 8);
+
   // current system crosshair
   ctx.strokeStyle = HUD.green;
   ctx.beginPath();
@@ -1127,11 +1222,13 @@ export function drawLocalChart(
     const out = d > c.fuel && near.index !== c.systemIndex;
     const portrait = portraitUrl(near, c.galaxy);
     const more = systemDescription(near, c.galaxy);
+    const trip = journey(systems, current, near, c.fuel);
     info.innerHTML =
       `<div class="sysname">${near.name.toUpperCase()}` +
       `<span class="dist"> &middot; ${(d / 10).toFixed(1)} LY` +
-        `${daysTerm(systems, current, near, c.fuel)}</span>` +
+        `${daysTerm(trip)}</span>` +
       (out ? ' <span class="oor">OUT OF RANGE</span>' : '') +
+      contractTerm(c, near, trip) +
       '</div>' +
 `<div class="sysrow">` +
       `<dl class="sysfacts">

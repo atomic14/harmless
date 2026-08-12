@@ -124,6 +124,7 @@ import './input.test.ts';
 import './hud-binding.test.ts';
 import './elapsed-day.test.ts';
 import './chart-days.test.ts';
+import './contract-eta.test.ts';
 import './hud-model.test.ts';
 
 // --- the docked combat trainer ----------------------------------------------
