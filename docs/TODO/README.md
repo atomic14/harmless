@@ -76,6 +76,30 @@ active context:
    weakened an opposition that already cannot bite — which is why 138 keeps
    `role-variants.ts` ranking inside the set it chooses.
 
+4. **141** — [Nobody reading a rule can ask what it
+   meant](141-nobody-reading-a-rule-can-ask-what-it-meant.md). Chris's call on
+   2026-08-12: rewrite the **technical** documentation in ASD-STE100 Simplified
+   Technical English, as a house style rather than a one-time pass, and **no
+   gate**. Last in the queue because nothing is blocked on it; promoting it is
+   Chris's to do. STE is a controlled language built for one reader — somebody
+   who must act on a written instruction and cannot ask what it meant — and that
+   reader is the one this repository has. `CLAUDE.md`, `INVARIANTS.md` and
+   `PROCESS.md` are read at the top of every session by an agent that will not
+   stop to ask, and the code then cites them **107 times by invariant number**.
+   **M1** is the four rule docs, about 2,200 words and the highest value per word
+   here. **M2** writes the convention into `CLAUDE.md` — deliberately second,
+   because M1 is where it becomes clear which rules bite in this repository.
+   **M3** is the six reference docs (~13,300 words), `DAMAGE-PATHS.md` last
+   because `test/damage-paths.test.ts` asserts its table. **M4** is the
+   constants' prose, edited at its source in `src/constants/*.ts` and
+   regenerated, because `CATALOG.md` discards a hand edit. Four surfaces are
+   excluded on the record rather than in silence: the 157,000-word plan archive
+   and the logs (a record, not an instruction), the **174,000 words of comments
+   in `src/`** (larger than every `.md` combined — the house style converts it
+   as files are edited), `README.md` (its opening is Chris's own words), and the
+   player-facing pages he ruled out. One question is left open and it is his:
+   whether commit messages and live plan docs join the list.
+
 The GitHub inbox holds one open issue, **#24**, and 140 above is its plan.
 Everything else is closed: **#23** with 134, as #22 did with 127, #18 with 121,
 #20 with 122 and #21 with 123.
