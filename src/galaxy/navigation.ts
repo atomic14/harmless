@@ -121,6 +121,30 @@ export function daysForJump(tenths: number): number {
 }
 
 /**
+ * The cost in days of one jump to `to`, or null when one jump is not the answer.
+ *
+ * Two cases have no one-jump cost. A number in either case is wrong:
+ *
+ * 1. The system you stand in. `daysForJump(0)` is 1, not 0, because the base
+ *    day is the jump itself. You do not jump to where you are.
+ * 2. A system beyond `fuelTenths`. One jump cannot reach it. docs/TODO/140 M3
+ *    replaces this null with a route estimate across several jumps.
+ *
+ * The range test uses the fuel aboard, not `MAX_FUEL`. The same info line
+ * prints OUT OF RANGE from the same fuel, so the two answers must agree.
+ */
+export function oneJumpDays(
+  from: StarSystem,
+  to: StarSystem,
+  fuelTenths: number,
+): number | null {
+  if (to.index === from.index) return null;
+  const tenths = distanceTenths(from, to);
+  if (tenths > fuelTenths) return null;
+  return daysForJump(tenths);
+}
+
+/**
  * Chance a jump drops you into witch-space instead.
  *
  * Raised during the Constrictor mission's final stage — the ambush is the

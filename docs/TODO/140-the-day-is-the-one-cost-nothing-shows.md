@@ -5,7 +5,7 @@ nothing · **Blocks:** nothing · **GitHub:** #24 — *"It would be good to see 
 elapsed days in the status area. This would help when delivering contracts —
 maybe even when looking at the chart we could see an estimated travel days?"*
 
-**M1 landed 2026-08-12.** M2, M3 and M4 are what is left.
+**M1 and M2 landed 2026-08-12.** M3 and M4 are what is left.
 
 ## What M1 did
 
@@ -44,6 +44,47 @@ Two things came out of it that the plan did not predict:
   apart from the commander's, and the topbar still reads the commander's.
 
 All five gates were proven to fail by breaking the rule each protects.
+
+## What M2 did
+
+Both chart info lines give the days now. The galactic chart says
+`REORTE · 4.4 LY · 4 DAYS · Poor Agricultural · Dictatorship · TL 6`. The
+short-range chart puts the same term inside its distance span, after the light
+years.
+
+`galaxy/navigation.ts` gained `oneJumpDays(from, to, fuelTenths)`. It gives the
+number, or null when one jump is not the answer. The two null cases are the two
+the plan named: the system you stand in, and a system beyond the fuel aboard.
+`ui/screens.ts` gained one private `daysTerm` function for the words. Both
+painters call it, so the two charts cannot word the same cost differently.
+
+The plan named two special cases. A third one exists, and a shipped galaxy
+contains it. Galaxy 4 puts Riusbequ and Quzaarar on one chart point, and
+galaxies 5 and 8 hold two such pairs each. A jump between such a pair costs
+`JUMP_DAYS_BASE` alone, so the term must read `1 DAY` and not `1 DAYS`.
+
+### Where M2's rules are pinned
+
+`test/chart-days.test.ts` paints both charts through `test/screen-capture.ts`,
+then reads the info line back. It holds five rules:
+
+1. Every system on both charts gives the cost the distance says. The sweep uses
+   five home systems and all 256 systems of galaxy 1.
+2. The system you stand in gets no days term.
+3. A system out of range gets no days term, and still says OUT OF RANGE.
+4. The fuel aboard decides the range. A neighbour with a days term on exactly
+   enough fuel loses the term one tenth of a light year short.
+5. The singular case reads `1 DAY`.
+
+The expected number comes from `daysForJump` and the distance. It does not come
+from `oneJumpDays`, which is what the painter calls. So a constant put inside
+`oneJumpDays` fails rule 1, and that break was run.
+
+All five rules were proven to fail. Each break removed one rule from the code.
+
+`test/screen-capture.ts` gained `captureById`, and `capture` is one line of it
+now. A chart paints its canvas under one id and its info line under another, so
+the M1 helper could not reach the words.
 
 ## Where we are
 
@@ -119,7 +160,7 @@ Three painters, one number, no new arithmetic.
 The flight readout is the one that pays for itself: the jump happens in flight,
 so the day ticks in front of the pilot at the moment it changes.
 
-### M2 — the chart says what a jump costs in days
+### M2 — the chart says what a jump costs in days — **LANDED**
 
 Both info lines gain a days term: `LAVE · 4.7 LY · 3 DAYS · Rich Industrial
 · Democracy · TL 8`.

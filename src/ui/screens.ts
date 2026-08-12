@@ -5,7 +5,7 @@ import { planetDescription } from '../galaxy/goatsoup.ts';
 import { systemDescription } from '../galaxy/descriptions.ts';
 import { escapeHtml } from '../engine/escape-html.ts';
 import { HUD, TINT } from '../palette.ts';
-import { distanceTenths, distanceSqToPoint } from '../galaxy/navigation.ts';
+import { distanceTenths, distanceSqToPoint, oneJumpDays } from '../galaxy/navigation.ts';
 import {
   type CommanderData, type Contract,
   cargoTonnes, formatCredits, cargoCapacity,
@@ -677,6 +677,25 @@ export function nearestSystem(
 }
 
 /**
+ * ` &middot; 3 DAYS` for the jump under the cursor, or nothing — on both charts.
+ *
+ * A jump costs three things: fuel, money and days. Both info lines gave the
+ * first two and never gave the third (docs/TODO/140 M2). A pilot who owes a
+ * contract needs the third one.
+ *
+ * `oneJumpDays` owns the rule for when a jump has an honest cost. This function
+ * owns the words only.
+ *
+ * The days term sits beside the distance. Both are costs of the jump. The
+ * economy and the government are not.
+ */
+function daysTerm(current: StarSystem, near: StarSystem, fuelTenths: number): string {
+  const days = oneJumpDays(current, near, fuelTenths);
+  if (days === null) return '';
+  return ` &middot; ${days} DAY${days === 1 ? '' : 'S'}`;
+}
+
+/**
  * The trade lanes, faded by how much freight is on them — on both charts.
  *
  * Alpha rather than a second green: the busiest lane in the galaxy and the
@@ -928,6 +947,7 @@ export function drawChart(
       const d = distanceTenths(current, near);
       info.innerHTML =
         `${near.name.toUpperCase()} &middot; ${(d / 10).toFixed(1)} LY` +
+        daysTerm(current, near, c.fuel) +
         ` &middot; ${ECONOMY_NAMES[near.economy]} &middot; ${GOVERNMENT_NAMES[near.government]}` +
         ` &middot; TL ${near.techLevel + 1}` +
         (d > c.fuel ? ' &middot; <span style="color:var(--hud-red)">OUT OF RANGE</span>' : '');
@@ -1086,7 +1106,8 @@ export function drawLocalChart(
     const more = systemDescription(near, c.galaxy);
     info.innerHTML =
       `<div class="sysname">${near.name.toUpperCase()}` +
-      `<span class="dist"> &middot; ${(d / 10).toFixed(1)} LY</span>` +
+      `<span class="dist"> &middot; ${(d / 10).toFixed(1)} LY` +
+        `${daysTerm(current, near, c.fuel)}</span>` +
       (out ? ' <span class="oor">OUT OF RANGE</span>' : '') +
       '</div>' +
 `<div class="sysrow">` +

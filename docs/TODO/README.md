@@ -15,8 +15,8 @@ active context:
 
 1. **140** — [The day is the one cost nothing
    shows](140-the-day-is-the-one-cost-nothing-shows.md), **GitHub #24**, and the
-   current item by Chris's call on 2026-08-12. **M1 landed 2026-08-12; M2, M3
-   and M4 are what is left.** A jump spends fuel, money and days; the chart
+   current item by Chris's call on 2026-08-12. **M1 and M2 landed 2026-08-12;
+   M3 and M4 are what is left.** A jump spends fuel, money and days; the chart
    prices two of them and never names the third. `commander.day` moves on a jump
    and on a mis-jump tow, and on nothing else — not a trade, not a fight, not a
    dock — and it was on screen only where nobody consults it: a saves column,
@@ -27,11 +27,19 @@ active context:
    `commander.day` was always right and four painters now read it. It also cost
    a defect that was waiting: `test/ui.test.ts` left a half-built `document`
    global behind, and M1's first real `Game` in a later test file died on it and
-   took the suite with it. **M2** adds the jump's cost in days to both chart info
-   lines, from `daysForJump`, which already exists. **M3** is the part with no
-   code anywhere today: no route search exists, so a destination beyond one tank
-   has no honest estimate. Dijkstra over full-tank edges answers it in days and
-   hops — a number, never a drawn path, so the pilot still chooses every jump.
+   took the suite with it. **M2 put the jump's cost in days on both chart info
+   lines.** `oneJumpDays` in `galaxy/navigation.ts` owns the rule, and one
+   private `daysTerm` in `ui/screens.ts` owns the words for both painters. It
+   gives no number for the system you stand in, because `daysForJump(0)` is 1.
+   It gives no number beyond the fuel aboard, because one jump cannot get there.
+   A third case was not in the plan and a shipped galaxy holds it: galaxies 4, 5
+   and 8 each put a pair of systems on one chart point, so the term must read
+   `1 DAY`. `test/chart-days.test.ts` paints both charts and reads the info line
+   back, across five home systems and all 256 systems of galaxy 1. **M3** is the
+   part with no code anywhere today: no route search exists, so a destination
+   beyond one tank has no honest estimate. Dijkstra over full-tank edges answers
+   it in days and hops — a number, never a drawn path, so the pilot still
+   chooses every jump.
    **M4** marks a system you owe a contract to and prints the verdict beside it.
    One trap is recorded and is the reason to read the plan before the code:
    `ChartOverlays.day` is the LIVING galaxy's day, which catches up by at most
