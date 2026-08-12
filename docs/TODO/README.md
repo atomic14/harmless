@@ -15,9 +15,9 @@ active context:
 
 1. **140** — [The day is the one cost nothing
    shows](140-the-day-is-the-one-cost-nothing-shows.md), **GitHub #24**, and the
-   current item by Chris's call on 2026-08-12. **M1 and M2 landed 2026-08-12;
-   M3 and M4 are what is left.** A jump spends fuel, money and days; the chart
-   prices two of them and never names the third. `commander.day` moves on a jump
+   current item by Chris's call on 2026-08-12. **M1, M2 and M3 landed
+   2026-08-12; M4 is what is left.** A jump spends fuel, money and days; the chart
+   priced two of them and never named the third. `commander.day` moves on a jump
    and on a mis-jump tow, and on nothing else — not a trade, not a fight, not a
    dock — and it was on screen only where nobody consults it: a saves column,
    the bulletin-board keyline, and the docked menu's first contract. **M1 put it
@@ -35,11 +35,22 @@ active context:
    A third case was not in the plan and a shipped galaxy holds it: galaxies 4, 5
    and 8 each put a pair of systems on one chart point, so the term must read
    `1 DAY`. `test/chart-days.test.ts` paints both charts and reads the info line
-   back, across five home systems and all 256 systems of galaxy 1. **M3** is the
-   part with no code anywhere today: no route search exists, so a destination
-   beyond one tank has no honest estimate. Dijkstra over full-tank edges answers
-   it in days and hops — a number, never a drawn path, so the pilot still
-   chooses every jump.
+   back, across five home systems and all 256 systems of galaxy 1. **M3 priced
+   the journey one jump cannot make.** `src/galaxy/route.ts` is a Dijkstra over
+   full-tank edges — a full tank because fuel costs money and no days — and both
+   charts now say `EST 16 DAYS, 4 JUMPS` where they said nothing. It reports a
+   number and draws no path, so the pilot still chooses every jump. Three things
+   the plan did not have came out of it. The map is far sparser than the plan
+   estimated (6.6 neighbours a system, not 15), so a search costs 0.2 ms and a
+   chart repaints on a change rather than on a frame. **Some destinations have no
+   route at all, and shipped galaxies hold them**: nothing is within a full tank
+   of Oresrati in galaxy 8, and galaxy 7 splits 229 systems from 27. And the
+   numbers are large — Sori is 89 days and 21 jumps from Lave — so M4's verdict
+   will read TOO FAR across most of the chart, honestly. `test/route.test.ts`
+   checks the ANSWER and not the algorithm, by the shortest-path certificate: no
+   edge improves the answer, and every cost is a real route through some
+   neighbour. Six breaks were run, and **a lost tie-break on jumps is caught by
+   the symmetry check alone**.
    **M4** marks a system you owe a contract to and prints the verdict beside it.
    One trap is recorded and is the reason to read the plan before the code:
    `ChartOverlays.day` is the LIVING galaxy's day, which catches up by at most

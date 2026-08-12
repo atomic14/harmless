@@ -55,6 +55,10 @@ Two intentional quirks:
   `price-divergence.ts` — and `ui/screens.ts` only paints what they return.
   `game/chart-overlay.ts` names the modes `T` cycles and carries the result;
   the Game owns the current mode, so both charts show the same one.
+- `src/galaxy/navigation.ts` owns the chart metric and the cost of one jump.
+  `src/galaxy/route.ts` answers the same question for a journey of several
+  jumps. It searches over edges of one full tank, because fuel costs money and
+  no days. Both are pure; the charts print what they return.
 - Released ship data is generated under `src/game/elite-a/`; lookup and combat
   profiles enter through its catalogue. Hull lookup enters through
   `src/ships/registry.ts`.

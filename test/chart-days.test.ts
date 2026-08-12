@@ -41,6 +41,17 @@ const NO_OVERLAYS: ChartOverlays = {
  */
 const DAYS_TERM = /&middot; (\d+) DAYS?(?![A-Z])/;
 
+/**
+ * The estimate the charts paint beyond the tank: `&middot; EST 7 DAYS, 2 JUMPS`
+ * (docs/TODO/140 M3).
+ *
+ * A different shape from the term above, and deliberately so. One jump costs
+ * what it costs. A journey of several jumps is a plan the pilot has not made,
+ * and the two must not read alike. `DAYS_TERM` cannot match this string,
+ * because EST stands between the separator and the digits.
+ */
+const ESTIMATE_TERM = /&middot; EST (\d+) DAYS?, (\d+) JUMPS?(?![A-Z])/;
+
 /** Paint both charts with the cursor on `cursor`. Return the two info lines. */
 function infoLines(
   systems: StarSystem[],
@@ -68,6 +79,7 @@ console.log('\nboth charts give the cost of a jump in days');
   const homes = [7, 50, 111, 172, 233];
   let priced = 0;
   let silent = 0;
+  let estimated = 0;
   const values = new Set<number>();
   let wrong = '';
 
@@ -81,12 +93,28 @@ console.log('\nboth charts give the cost of a jump in days');
       // taken from the code under test agrees with a wrong answer too.
       const tenths = distanceTenths(current, s);
       const expected = (s.index === home || tenths > c.fuel) ? null : daysForJump(tenths);
+      // Beyond the tank the line owes an ESTIMATE instead. Every system in
+      // galaxy 1 is reachable from every other by full-tank jumps — the map has
+      // one connected part — so there is no third case here. Galaxy 8 strands
+      // Oresrati and galaxy 7 strands 27 systems; test/route.test.ts owns them.
+      const owesEstimate = s.index !== home && tenths > c.fuel;
       for (const [screen, line] of [['galactic', wide], ['short range', local]]) {
         const found = DAYS_TERM.exec(line);
         const said = found ? Number(found[1]) : null;
         if (said !== expected) {
           wrong ||= `${screen} chart at ${current.name}->${s.name}`
             + ` said ${said} days, wanted ${expected}: ${line.slice(0, 120)}`;
+        }
+        const guess = ESTIMATE_TERM.exec(line);
+        if (owesEstimate !== (guess !== null)) {
+          wrong ||= `${screen} chart at ${current.name}->${s.name}`
+            + ` ${guess ? 'estimated' : 'estimated nothing'}: ${line.slice(0, 120)}`;
+        }
+        // A journey takes at least one jump and at least one day. The numbers
+        // themselves belong to test/route.test.ts, which can check them against
+        // the map rather than against a painted string.
+        if (guess && (Number(guess[1]) < 1 || Number(guess[2]) < 1)) {
+          wrong ||= `${screen} chart estimated ${guess[0]} for ${current.name}->${s.name}`;
         }
         // No two systems in galaxy 1 share a chart point. So a cursor on one
         // system describes that system. A line about a different system would
@@ -97,6 +125,7 @@ console.log('\nboth charts give the cost of a jump in days');
       }
       if (expected === null) silent++;
       else { priced++; values.add(expected); }
+      if (owesEstimate) estimated++;
     }
   }
 
@@ -105,6 +134,7 @@ console.log('\nboth charts give the cost of a jump in days');
   // The control on the check above. A painter that gave a days term nowhere,
   // or one that gave a days term everywhere, also leaves `wrong` empty.
   check(`${priced} jumps got a days term and ${silent} did not`, priced > 0 && silent > 0);
+  check(`${estimated} journeys beyond the tank got an estimate instead`, estimated > 0);
   // The term is read, not written out. One constant passes every check above.
   check(`the term comes from the distance (${[...values].sort((a, b) => a - b).join(', ')} days seen)`,
     values.size >= 3);
@@ -130,6 +160,27 @@ console.log('\nthe two jumps with no honest one-jump cost');
     !DAYS_TERM.test(beyond.wide) && !DAYS_TERM.test(beyond.local));
   check('...and both charts still say OUT OF RANGE',
     beyond.wide.includes('OUT OF RANGE') && beyond.local.includes('OUT OF RANGE'));
+  // What M3 put in place of that silence. One jump cannot make the journey, so
+  // one jump's cost would be a lie; the route across several jumps is not.
+  check(`...and both charts estimate the journey instead`
+    + ` (${(ESTIMATE_TERM.exec(beyond.wide) ?? ['nothing'])[0]})`,
+  ESTIMATE_TERM.test(beyond.wide) && ESTIMATE_TERM.test(beyond.local));
+}
+
+console.log('\nthe estimate beyond the tank is priced on a full tank');
+{
+  // Fuel costs money and every station sells it. Fuel costs no days. So the
+  // journey a pilot is quoted must not get longer because the tank is low —
+  // that number would price a shortage the pilot can end at the fuel bay.
+  const lave = g1[7];
+  const far = g1.find((s) => distanceTenths(lave, s) > MAX_FUEL)!;
+  const full = infoLines(g1, standing(7, MAX_FUEL), far);
+  const dry = infoLines(g1, standing(7, 0), far);
+  const said = (line: string): string => (ESTIMATE_TERM.exec(line) ?? ['none'])[0];
+  check(`${far.name.toUpperCase()} costs ${said(full.wide)} on a full tank`,
+    ESTIMATE_TERM.test(full.wide));
+  check('...and the same on an empty one, on both charts',
+    said(dry.wide) === said(full.wide) && said(dry.local) === said(full.local));
 }
 
 console.log('\nthe fuel aboard decides the range');
@@ -149,6 +200,13 @@ console.log('\nthe fuel aboard decides the range');
   DAYS_TERM.test(full.wide) && DAYS_TERM.test(full.local));
   check('...and neither chart prices it one tenth of a light year short',
     !DAYS_TERM.test(dry.wide) && !DAYS_TERM.test(dry.local));
+  // It becomes an estimate of one jump instead: a full tank still reaches it in
+  // one, and the pilot buys the fuel at the bay. So the ONE JUMP is singular,
+  // and it is the fuel term that changed rather than the journey.
+  check(`...and both charts estimate one jump instead`
+    + ` (${(ESTIMATE_TERM.exec(dry.wide) ?? ['nothing'])[0]})`,
+  /&middot; EST \d+ DAYS?, 1 JUMP(?!S)/.test(dry.wide)
+    && /&middot; EST \d+ DAYS?, 1 JUMP(?!S)/.test(dry.local));
 }
 
 console.log('\na jump of no distance still costs one DAY, singular');

@@ -6,6 +6,7 @@ import { systemDescription } from '../galaxy/descriptions.ts';
 import { escapeHtml } from '../engine/escape-html.ts';
 import { HUD, TINT } from '../palette.ts';
 import { distanceTenths, distanceSqToPoint, oneJumpDays } from '../galaxy/navigation.ts';
+import { routeEstimate } from '../galaxy/route.ts';
 import {
   type CommanderData, type Contract,
   cargoTonnes, formatCredits, cargoCapacity,
@@ -676,6 +677,11 @@ export function nearestSystem(
   return best;
 }
 
+/** `3 DAYS`, and `1 DAY` — a shipped galaxy puts two systems on one point. */
+function dayWord(days: number): string {
+  return `${days} DAY${days === 1 ? '' : 'S'}`;
+}
+
 /**
  * ` &middot; 3 DAYS` for the jump under the cursor, or nothing — on both charts.
  *
@@ -683,16 +689,33 @@ export function nearestSystem(
  * first two and never gave the third (docs/TODO/140 M2). A pilot who owes a
  * contract needs the third one.
  *
- * `oneJumpDays` owns the rule for when a jump has an honest cost. This function
- * owns the words only.
+ * Beyond the tank the term becomes ` &middot; EST 7 DAYS, 2 JUMPS`
+ * (docs/TODO/140 M3). The word EST is the difference between the two answers
+ * and it is not decoration: one jump either happens or mis-jumps, and a route
+ * of several jumps is a plan the pilot has not made yet.
  *
- * The days term sits beside the distance. Both are costs of the jump. The
+ * Two systems get no term at all. The system you stand in costs nothing to
+ * reach. A system no chain of full-tank jumps reaches has no cost to state.
+ *
+ * `oneJumpDays` and `routeEstimate` own the two rules. This function owns the
+ * words only, so the two charts cannot word the same cost differently.
+ *
+ * The days term sits beside the distance. Both are costs of the journey. The
  * economy and the government are not.
  */
-function daysTerm(current: StarSystem, near: StarSystem, fuelTenths: number): string {
+function daysTerm(
+  systems: StarSystem[],
+  current: StarSystem,
+  near: StarSystem,
+  fuelTenths: number,
+): string {
   const days = oneJumpDays(current, near, fuelTenths);
-  if (days === null) return '';
-  return ` &middot; ${days} DAY${days === 1 ? '' : 'S'}`;
+  if (days !== null) return ` &middot; ${dayWord(days)}`;
+  if (near.index === current.index) return '';
+  const route = routeEstimate(systems, current, near);
+  if (route === null) return '';
+  return ` &middot; EST ${dayWord(route.days)},`
+    + ` ${route.jumps} JUMP${route.jumps === 1 ? '' : 'S'}`;
 }
 
 /**
@@ -947,7 +970,7 @@ export function drawChart(
       const d = distanceTenths(current, near);
       info.innerHTML =
         `${near.name.toUpperCase()} &middot; ${(d / 10).toFixed(1)} LY` +
-        daysTerm(current, near, c.fuel) +
+        daysTerm(systems, current, near, c.fuel) +
         ` &middot; ${ECONOMY_NAMES[near.economy]} &middot; ${GOVERNMENT_NAMES[near.government]}` +
         ` &middot; TL ${near.techLevel + 1}` +
         (d > c.fuel ? ' &middot; <span style="color:var(--hud-red)">OUT OF RANGE</span>' : '');
@@ -1107,7 +1130,7 @@ export function drawLocalChart(
     info.innerHTML =
       `<div class="sysname">${near.name.toUpperCase()}` +
       `<span class="dist"> &middot; ${(d / 10).toFixed(1)} LY` +
-        `${daysTerm(current, near, c.fuel)}</span>` +
+        `${daysTerm(systems, current, near, c.fuel)}</span>` +
       (out ? ' <span class="oor">OUT OF RANGE</span>' : '') +
       '</div>' +
 `<div class="sysrow">` +

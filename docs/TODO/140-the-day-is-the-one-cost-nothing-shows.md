@@ -5,7 +5,7 @@ nothing · **Blocks:** nothing · **GitHub:** #24 — *"It would be good to see 
 elapsed days in the status area. This would help when delivering contracts —
 maybe even when looking at the chart we could see an estimated travel days?"*
 
-**M1 and M2 landed 2026-08-12.** M3 and M4 are what is left.
+**M1, M2 and M3 landed 2026-08-12.** M4 is what is left.
 
 ## What M1 did
 
@@ -85,6 +85,84 @@ All five rules were proven to fail. Each break removed one rule from the code.
 `test/screen-capture.ts` gained `captureById`, and `capture` is one line of it
 now. A chart paints its canvas under one id and its info line under another, so
 the M1 helper could not reach the words.
+
+## What M3 did
+
+Beyond the tank the info line now says `TIBEDIED · 18.1 LY · EST 16 DAYS,
+4 JUMPS · Poor Industrial · Feudal · TL 9 · OUT OF RANGE`. M2 said nothing
+there, because one jump's cost is a lie about a journey one jump cannot make.
+
+`src/galaxy/route.ts` is the new module and it holds one function.
+`routeEstimate(systems, from, to)` gives days and jumps, or null. It is a
+Dijkstra over full-tank edges, with a linear scan for the next system instead of
+a heap. It draws no path and names no waypoint, so the pilot still chooses every
+jump.
+
+Cheapest in days first, then in jumps. The second key is not decoration: two
+routes of the same length in days are not the same offer, because each jump is
+another chance of a mis-jump. The tie-break has to be in the choice of the next
+system as well as in the relaxation. A system settled on the wrong side of a tie
+keeps its jump count for good.
+
+The painter's `daysTerm` owns the words for both charts, as M2 left it. It asks
+`oneJumpDays` first and `routeEstimate` second, so a jump the pilot can make now
+is still priced as a certainty.
+
+### Three things the plan did not have
+
+1. **The map is much sparser than the estimate.** The plan predicted about 15
+   neighbours per system and under 4,000 directed edges. Galaxy 1 has 843
+   undirected edges and 6.6 neighbours per system. A search costs 0.17–0.23 ms,
+   and `ChartScreen.redraw` runs on a change rather than on a frame, so the cost
+   is invisible.
+2. **Some destinations have no route, and shipped galaxies hold them.** No
+   system in galaxy 8 is within a full tank of Oresrati; the nearest is Biered at
+   8.2 LY. Galaxy 7 splits into a mainland of 229 systems and an island of 27.
+   Galaxies 3, 4 and 6 each strand a small group as well. Galaxies 1 and 5 are
+   whole. So `null` is an answer about the map, and both charts print no term
+   for it.
+3. **The numbers are bigger than the deadline half will like.** Sori is the
+   costliest destination from Lave at 89 days over 21 jumps, and the furthest,
+   Ribilebi at 98.3 LY, is 81 days over 19 jumps. A contract deadline is a few
+   tens of days, so M4's verdict will read `TOO FAR` across most of the chart.
+   That is the honest answer and not a defect.
+
+### Where M3's rules are pinned
+
+`test/route.test.ts` verifies the ANSWER rather than the algorithm. A second
+shortest-path search written in the test would be the same idea twice, and two
+copies of one idea agree on one wrong answer. So it applies the standard
+certificate for a shortest path, over every system of galaxy 1 and galaxy 5,
+from two homes in each:
+
+1. **No edge improves it.** For every pair within a full tank,
+   `days[to] <= days[from] + daysForJump`. A cheaper route would contain an edge
+   that fails this. The same rule catches a priced system next to an
+   unreachable one.
+2. **Every answer is a real route.** Each system's cost is exactly its cost
+   through some neighbour. Each leg costs at least one day, so those steps walk
+   strictly downwards and end at the home system's zero. The jump count is
+   checked against the same neighbours.
+
+Four more rules sit beside it: a system one jump away costs exactly
+`daysForJump` and one jump; the two stranded cases above give null in both
+directions; a journey costs the same both ways; and the journey to where you
+stand is 0 days and 0 jumps.
+
+Six breaks were run and each was caught. A relaxation that never improves, an
+answer one day too high, an edge budget of half a tank, a direction leak, and a
+zero in place of null all failed the two certificate rules. **A lost tie-break
+on jumps is caught by the symmetry check alone**, because the certificate reads
+the search's own answers and they stay self-consistent in one direction.
+
+`test/chart-days.test.ts` changed where the rule changed. M2's rule 3 said an
+out-of-range system gets no days term; it now gets an estimate instead, and the
+256-system sweep holds every one of them to it. Rule 4 gained the singular case:
+one tenth of a light year short of a neighbour, the chart estimates `1 JUMP`,
+because the pilot buys the fuel at the bay. A new rule says the estimate is the
+same on an empty tank as on a full one. Three breaks were run: a painter that
+estimates nothing, a plural that is never chosen, and an estimate priced on the
+fuel aboard.
 
 ## Where we are
 
@@ -174,7 +252,7 @@ that value:
 - **a system out of fuel range.** One jump cannot reach it, so one jump's cost
   is a lie. M2 prints no days term. M3 replaces it with a real estimate.
 
-### M3 — an estimate for anywhere, over more than one jump
+### M3 — an estimate for anywhere, over more than one jump — **LANDED**
 
 A new pure module, `src/galaxy/route.ts`. Dijkstra over the 256 systems. An
 edge joins two systems within `MAX_FUEL`; its weight is `daysForJump` of that

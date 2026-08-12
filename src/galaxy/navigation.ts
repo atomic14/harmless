@@ -127,8 +127,8 @@ export function daysForJump(tenths: number): number {
  *
  * 1. The system you stand in. `daysForJump(0)` is 1, not 0, because the base
  *    day is the jump itself. You do not jump to where you are.
- * 2. A system beyond `fuelTenths`. One jump cannot reach it. docs/TODO/140 M3
- *    replaces this null with a route estimate across several jumps.
+ * 2. A system beyond `fuelTenths`. One jump cannot reach it. `route.ts` prices
+ *    that journey across several jumps, and the charts print its estimate here.
  *
  * The range test uses the fuel aboard, not `MAX_FUEL`. The same info line
  * prints OUT OF RANGE from the same fuel, so the two answers must agree.
