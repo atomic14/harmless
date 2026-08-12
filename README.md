@@ -82,6 +82,12 @@ uv run tools/generate-species.py /tmp/g1.json --repo ../ultra-fast-image-gen --o
 uv run tools/posterise.py --size 256 --tones 6        # re-crush, no GPU needed
 ```
 
+> **Editor and agent setup.** This project uses TypeScript 7. That version is
+> a native compiler. It ships no `tsserver.js`. An editor or a coding agent
+> that starts `typescript-language-server` therefore fails with "Could not
+> find a valid TypeScript installation". Point the tool at the TypeScript 7
+> language server instead. The command is `npx tsc --lsp --stdio`.
+
 Two playtest harnesses back this up. `npm run campaign` plays hundreds of
 full commander careers headlessly — real galaxy, market, living-galaxy and
 contract code, with only flight abstracted — and reports whether the economy

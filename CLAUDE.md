@@ -4,6 +4,26 @@ HARMLESS is an unofficial, non-commercial browser tribute to Elite (1984),
 built with TypeScript, Vite and three.js. Preserve that framing and the
 MIT/fan-project notice.
 
+## Code intelligence
+
+LSP means Language Server Protocol. The LSP tool reads code structure.
+Prefer the LSP tool to Grep, Glob and Read for code navigation.
+
+- `goToDefinition` and `goToImplementation` jump to the source.
+- `findReferences` lists every use in the codebase.
+- `workspaceSymbol` finds a symbol by name.
+- `documentSymbol` lists every symbol in one file.
+- `hover` gives type information. It does not load the file.
+- `incomingCalls` and `outgoingCalls` give the call hierarchy.
+
+Use `findReferences` before you rename a function. Use it before you change
+a signature. It finds every call site.
+
+Use Grep and Glob for text searches only. Examples are comments, strings and
+config values. LSP does not help with those.
+
+The LSP server reports type errors after each edit. Fix an error at once.
+
 ## Sources of truth
 
 - Running code wins when documentation disagrees.
@@ -54,6 +74,7 @@ One world state; a fixed, seeded step advances it; rendering only reads it.
 
 ## Style
 
+- Write technical documents, comments and TODO items in ASD-STE100.
 - Prefer small, single-purpose files. Exceed the size ceiling only with a stated
   reason; never delete useful content merely to fit it.
 - Maintain module headers that state each file's purpose.
