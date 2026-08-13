@@ -45,3 +45,17 @@ git checkout src/constants/recharge.ts   # and put it back
 
 The rows to read are `knife-fights | pursuit` — the fight a player actually
 flies, per docs/TODO/139 M1. `runs` is survivability's chase, kept as a control.
+
+## M3 — the leg split
+
+| file | command |
+| --- | --- |
+| `aim-probe-legs-600.txt` | `npm run aim-probe -- 600` |
+| `aim-probe-legs-grid2.txt` | `npm run aim-probe -- 200 77000023` |
+| `aim-probe-legs-tier2.txt` | `npm run aim-probe -- 200 50000017 2` |
+
+The same commands as M1's, after the probe gained its fourth table. The table to
+read is WHAT LEG WAS IT FLYING WHEN IT WAS NOT AIMED, and M3 decided on it. **No
+game rule moved in M3**, so these files also re-take M2's own tables: every
+figure in them came back unchanged, which is what says the milestone changed the
+measurement alone.

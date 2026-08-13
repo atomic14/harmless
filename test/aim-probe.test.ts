@@ -38,8 +38,10 @@ check('the headline pilot is the one the game gives a pirate',
 
 // Three seeds and both fights: enough for every bound below to have been
 // exercised by a gang that closes and one that never gets in range.
-const attackers = TARGETS.flatMap(
-  (target) => [7, 8, 9].map((n) => flyAimFight('pursuit', target, 2, 50_000_017 + n * 7919)))
+const fights = TARGETS.flatMap(
+  (target) => [7, 8, 9].map((n) => flyAimFight('pursuit', target, 2, 50_000_017 + n * 7919)));
+
+const attackers = fights
   .flatMap((fight) => fight.attackers)
   // A pirate destroyed in the first frames has no rates to bound.
   .filter((a) => a.aliveSeconds > 1);
@@ -58,3 +60,21 @@ check('no attacker hits more often than it fires',
 
 check('no attacker is lined up in more frames than it was sampled in',
   attackers.every((a) => a.linedUp <= a.frames + 1 && a.inRange <= a.frames + 1));
+
+// ...and the leg split (docs/TODO/139 M3), which is the same frames a second
+// time. It carries one risk of its own, and it is the risk that decided the
+// milestone: a share read against the wrong denominator would say that a leg
+// which points the nose away is a smaller part of the fight than it is.
+check('the leg split covers exactly the frames the fight sampled',
+  fights.every((f) => {
+    const legFrames = [...f.doing.values()].reduce((a, s) => a + s.frames, 0);
+    const sampled = f.attackers.reduce((a, at) => a + at.frames, 0);
+    return legFrames === sampled;
+  }));
+
+// A bearing error is an angle between two directions, so it cannot leave
+// [0, pi]. The bound is on the SUM against the frames, because that is how the
+// tables divide it — and it is what catches a slice summed in degrees.
+check('no leg reports a bearing error outside half a turn',
+  fights.every((f) => [...f.doing.values()].every(
+    (s) => s.aimError >= 0 && s.aimError <= s.frames * Math.PI)));

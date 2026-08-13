@@ -48,8 +48,14 @@ export const NPC_MEAN_COOLDOWN = NPC_COOLDOWN_LO + NPC_COOLDOWN_SPREAD / 2;
  * What it admits, measured (`npm run aim-probe`, docs/TODO/139 M1): 12% of a
  * one-on-one knife fight, 27% with four in the sky, and 55% of a chase. THE TWO
  * FIGHTS FAIL DIFFERENTLY, which is why a wider gate is not obviously the fix. In
- * the knife fight the mean bearing error is 85 degrees, which is seven times this
- * gate. In the chase the ship is lined up and out of range instead.
+ * the chase the ship is lined up and out of range instead.
+ *
+ * In the knife fight the pooled bearing error is 85 degrees, and docs/TODO/139 M3
+ * took that figure apart by the leg the ship flew. A quarter of the fight is
+ * `passing` and `extending`. Those two legs carry the nose past her and away BY
+ * DESIGN, at 102 and 142 degrees. The legs that want the nose ON her are
+ * `closing`, at 64 degrees, and `on your six`, at 37. So a pooled figure is not
+ * evidence about this gate, and M3 decided against a wider one.
  */
 export const NPC_FIRE_GATE = 0.25;
 

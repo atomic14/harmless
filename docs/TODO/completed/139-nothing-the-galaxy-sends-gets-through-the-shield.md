@@ -199,6 +199,71 @@ weights, so **this is a retune and not a retrain** (invariant 5). The moment a
 trained policy ships, a change to this constant is a change to the world it was
 fitted in and the weights are stale.
 
+## What M3 decided — the aim does not move, 2026-08-13
+
+**The answer is no, and one measurement is why: the 85.6° that made the aim look
+broken is four legs, and two of them point the nose away BY DESIGN.**
+`npm run aim-probe` prints that split now. The rows below are the shipped pilot
+in the knife fight, pooled over the four gang sizes, at 600 episodes. 200
+episodes and a second seed grid put every share within 0.5 points and every
+angle within 0.3 degrees. The tier-2 rows the M2 gate is stated about are the
+same shape: `closing` 44.4% at 71.8°, `on your six` 33.3% at 37.6°, and the two
+legs that point away 22.2% between them.
+
+| leg | share of the fight | mean aim error |
+| --- | --- | --- |
+| `closing` | 42.6% | 64.1° |
+| `on your six` | 32.1% | 37.0° |
+| `extending` | 13.7% | 142.0° |
+| `passing` | 11.6% | 102.3° |
+
+**A quarter of the fight is `passing` and `extending`.** Those two legs carry the
+ship past her and open the range again, so a nose 102 and 142 degrees off her is
+the attack run working. They are a quarter of the frames and they hold the two
+widest angles, which is the whole of why the pooled figure reads as 85.
+
+**Neither of the two legs that DO want the nose on her is a pilot that cannot
+point.** Each is off for a reason its own file states:
+
+- `on your six` at 37° is PURE pursuit. `pursuitAim` returns the target's own
+  position and takes no lead, against a commander who out-turns the chaser. The
+  lag is what pure pursuit is.
+- `closing` at 64° aims BESIDE her on purpose (`pass-aim.ts`'s
+  `passMissDistance`), so the run clears the hull. The leg also starts with the
+  nose near 180° off, at the moment the run-out turns back in.
+
+So "widen `NPC_FIRE_GATE`" and "fix the aim" both mean "delete a designed
+behaviour", and neither is a repair. M1 had already ruled the gate out on the
+pooled figure; the split says the same thing for a better reason.
+
+### The four reasons the geometry stays where it is
+
+1. **The regen bought what the item was for.** The two decisions this plan
+   records are both met. A lone pirate is destroyed 0% of the time and loses
+   0.79 ships a fight, while it bills her 3.20 points a second — about 19% of her
+   765 over 45 seconds, which is the "costs you something you fly home with" the
+   plan asked for. A tier-2 gang of three reaches ENERGY LOW in 49.5% of fights
+   and destroys her in 35.5%, which is the "an organised gang can" half.
+2. **Aim is not a tune on top of that; it is a second change of the same size.**
+   The effective column runs 7–27% of best case, so the room between the gun
+   today and a perfect one is a factor of four to thirteen. The plan's own rule
+   is that regen and aim do not move in one measurement.
+3. **`pursuit.ts` is shared with the ship you fly.** The player's bought combat
+   computer steers on the same decisions (`game/scripted-co-pilot.ts`), so a lead
+   term on the six is two balance changes on one edit.
+4. **Invariant 5.** A constant was a retune. The flight model is the world every
+   pilot was fitted in, and 138's roster probe still has to be baselined once —
+   which is why 139 went first in the queue at all.
+
+### The lever, recorded so nobody has to find it twice
+
+If the aim is ever wanted, the term is **the missing lead on the six**, and it is
+one line in `pursuit.ts`: `pursuitAim` returns `targetPos`, where the attack
+run's closing leg leads with `leadTime`. It is the largest gain available,
+because the chaser holds a median 500 from her, where the hit curve still pays
+0.76. It is not a defect, it is not urgent, and it is not free: it moves the
+player's co-pilot with it. It needs its own item and its own sweep.
+
 ## Which of the three terms may move — and the ordering is forced
 
 **Damage may not move.** `npcLaserDamageToPlayer` returns the pack's own
@@ -276,6 +341,13 @@ almost nothing and the flight model (`pursuitFly` against a hard-turning target)
 is the term. What is left for M3 is to decide whether that geometry is worth
 changing at all, now that the regen has moved. **Do not move both regen and aim
 in one measurement.**
+
+**LANDED 2026-08-13, and the decision is NO.** The section above has the
+argument, the numbers and the lever if it is ever wanted. What the milestone
+changed is the measurement and not the game: `npm run aim-probe` prints a fourth
+table that splits its own aim column by the leg the ship was flying, and
+`test/aim-probe.test.ts` bounds it. No rule of any fight moved, so every M1 and
+M2 figure stands unaltered.
 
 **M4 — re-baseline what depends on it. — HALF DONE 2026-08-11.**
 `docs/COMBAT-SIM.md` says what moved: the wave ramp is untouched and every wave

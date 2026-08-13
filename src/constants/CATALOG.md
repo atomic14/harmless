@@ -205,13 +205,13 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | npc-gun | <code>NPC_COOLDOWN_LO</code> | <code>0.9</code> | Time between an NPC's shots. |  | [npc-gun.ts:30](./npc-gun.ts#L30) |
 | npc-gun | <code>NPC_COOLDOWN_SPREAD</code> | <code>0.8</code> |  |  | [npc-gun.ts:31](./npc-gun.ts#L31) |
 | npc-gun | <code>NPC_MEAN_COOLDOWN</code> | <code>NPC_COOLDOWN_LO + NPC_COOLDOWN_SPREAD / 2</code> | What a shot costs a gun that never waits to be aimed: the LO plus half the spread, because `npcTriggerPull` draws uniformly across it. |  | [npc-gun.ts:43](./npc-gun.ts#L43) |
-| npc-gun | <code>NPC_FIRE_GATE</code> | <code>0.25</code> | How near the nose a target must be before an NPC pulls the trigger. |  | [npc-gun.ts:54](./npc-gun.ts#L54) |
-| npc-gun | <code>THARGOID_FIRE_RATE</code> | <code>0.7</code> | Thargoids reload faster than anything else in the galaxy. |  | [npc-gun.ts:57](./npc-gun.ts#L57) |
-| npc-gun | <code>NPC_HIT_BASE</code> | <code>0.9</code> | Hit chance falls off with range, clamped at both ends. |  | [npc-gun.ts:60](./npc-gun.ts#L60) |
-| npc-gun | <code>NPC_HIT_FALLOFF</code> | <code>NPC_LASER_RANGE</code> | The slope of the falloff. |  | [npc-gun.ts:68](./npc-gun.ts#L68) |
-| npc-gun | <code>NPC_HIT_CAP</code> | <code>0.85</code> |  |  | [npc-gun.ts:69](./npc-gun.ts#L69) |
-| npc-gun | <code>NPC_HIT_FLOOR</code> | <code>0.15</code> | The far end of that curve. | <code>npc.hitFloor</code> | [npc-gun.ts:79](./npc-gun.ts#L79) |
-| npc-gun | <code>NPC_VS_NPC_HIT</code> | <code>0.5</code> | Whether one ship's shot at another connects: a coin flip. |  | [npc-gun.ts:86](./npc-gun.ts#L86) |
+| npc-gun | <code>NPC_FIRE_GATE</code> | <code>0.25</code> | How near the nose a target must be before an NPC pulls the trigger. |  | [npc-gun.ts:60](./npc-gun.ts#L60) |
+| npc-gun | <code>THARGOID_FIRE_RATE</code> | <code>0.7</code> | Thargoids reload faster than anything else in the galaxy. |  | [npc-gun.ts:63](./npc-gun.ts#L63) |
+| npc-gun | <code>NPC_HIT_BASE</code> | <code>0.9</code> | Hit chance falls off with range, clamped at both ends. |  | [npc-gun.ts:66](./npc-gun.ts#L66) |
+| npc-gun | <code>NPC_HIT_FALLOFF</code> | <code>NPC_LASER_RANGE</code> | The slope of the falloff. |  | [npc-gun.ts:74](./npc-gun.ts#L74) |
+| npc-gun | <code>NPC_HIT_CAP</code> | <code>0.85</code> |  |  | [npc-gun.ts:75](./npc-gun.ts#L75) |
+| npc-gun | <code>NPC_HIT_FLOOR</code> | <code>0.15</code> | The far end of that curve. | <code>npc.hitFloor</code> | [npc-gun.ts:85](./npc-gun.ts#L85) |
+| npc-gun | <code>NPC_VS_NPC_HIT</code> | <code>0.5</code> | Whether one ship's shot at another connects: a coin flip. |  | [npc-gun.ts:92](./npc-gun.ts#L92) |
 | opposition-ring | <code>OPPOSITION_RANGE</code> | <code>3200</code> | The default ring radius, in units. |  | [opposition-ring.ts:19](./opposition-ring.ts#L19) |
 | opposition-ring | <code>OPPOSITION_RANGE_MAX</code> | <code>20_000</code> | A ceiling on the ring radius, so it cannot put a ship in the planet box or the station box, however the numbers are passed in. |  | [opposition-ring.ts:26](./opposition-ring.ts#L26) |
 | opposition-ring | <code>OPPOSITION_CONE</code> | <code>0.5</code> | Half-angle of the cone, in radians, when a facing is known and the caller says no more. |  | [opposition-ring.ts:35](./opposition-ring.ts#L35) |

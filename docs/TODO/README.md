@@ -13,41 +13,18 @@ active context:
 
 ## Execution queue
 
-1. **139** — [Nothing the galaxy sends can get through the
-   shield](139-nothing-the-galaxy-sends-gets-through-the-shield.md), **M1, M2 and
-   half of M4 landed 2026-08-11; M3 is what is left**. Chris, flying it: *"is our
-   shield and energy recharging too fast — the laser hits from pirates don't seem
-   to do much damage — or they aren't very accurate at shooting..."* All three
-   guesses were live. **Fourteen of the seventeen pirate builds could never strip
-   a shield face** — not slowly, ever — because their BEST case, point blank and
-   never out of the gate, was under `SHIELD_REGEN`'s 8.925 points a second.
-   `npm run aim-probe` (M1) then measured what a gun is really worth: **7–27% of
-   that best case**, so no gang of four in any fight the probe can stage landed
-   more laser than one face put back. **M2 cut `SHIELD_REGEN_FRACTION` 0.035 →
-   0.012** — a face in 83 seconds instead of 28.6 — on a sweep confirmed at two
-   sample sizes on two seed grids, and the value is the highest one that clears
-   the rule `test/role-variants.test.ts` now pins: no build the galaxy sends may
-   be one a face simply outruns. A tier-2 gang of three now reaches ENERGY LOW in
-   **49.5% of fights against 34.0%** and takes her down in **35.5% against 15.0%**;
-   `npm run survivability`'s destroyed column leaves zero for the first time.
-   Nothing else moved — not the bank, not a damage number, and not how anybody
-   flies. **What M3 has left** is the aim, and M1 already split it in two: chasing
-   a commander who runs, the nose is 1.4° off her and the ship is out of RANGE;
-   standing and fighting, it is 85.6° off — six times the gate — so widening
-   `NPC_FIRE_GATE` is not the fix and the flight model is the term. Whether that
-   is worth changing now the regen has moved is the open question.
-
-2. **138** — [Every system in every galaxy flies the same
+1. **138** — [Every system in every galaxy flies the same
    roster](138-every-system-flies-the-same-roster.md). The 23 released blueprint
    sets `S.A`–`S.W` are all imported and the set dimension is then collapsed:
    `SPECS` resolves its builds at import time, so a Krait is the same Krait in
    all eight galaxies. The released rule is recovered and cited (tech level,
    government, two random bits, plus Elite-A's galaxy addition), and bit 0 turns
    out to be the rule that already picks the Dodo over the Coriolis — one home,
-   not two. Behind 139 because its M1 roster probe must not be baselined against
-   a fight that one-sided, and because a set-faithful build choice would have
-   weakened an opposition that already cannot bite — which is why 138 keeps
-   `role-variants.ts` ranking inside the set it chooses.
+   not two. It waited behind 139, because its M1 roster probe must not be
+   baselined against a fight that one-sided, and because a set-faithful build
+   choice would have weakened an opposition that already could not bite — which
+   is why 138 keeps `role-variants.ts` ranking inside the set it chooses. **139
+   closed on 2026-08-13, so the world that probe is taken in is settled.**
 
 The GitHub inbox is empty. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
@@ -101,6 +78,47 @@ flight entirely — no bribe, scan, hermit or murder ever runs in it — so a
 disrepute of **0.0**. Measured, not assumed. The harness sees only the trade half
 of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
+
+## What landed on 2026-08-13
+
+**139** — the item Chris found by flying it, and it closes on a decision NOT to
+change anything. M1 and M2 landed on 2026-08-11: the probe that measured time on
+aim, and the regen cut that made a shield face reachable. **M3 was the aim, and
+the answer is no.** The figure that made the aim look broken was 85.6° off her
+in a knife fight, which is six times the firing gate. `npm run aim-probe` prints
+a fourth table now, and it takes that figure apart by the leg the ship was
+flying:
+
+| leg | share of the fight | mean aim error |
+| --- | --- | --- |
+| `closing` | 42.6% | 64.1° |
+| `on your six` | 32.1% | 37.0° |
+| `extending` | 13.7% | 142.0° |
+| `passing` | 11.6% | 102.3° |
+
+**A quarter of the fight points the nose away by design.** `passing` and
+`extending` carry a ship past her and open the range again, so 102 and 142
+degrees is the attack run working. Neither of the two legs that DO want the nose
+on her is a pilot that cannot point: `on your six` is pure pursuit, which takes
+no lead against a commander who out-turns it, and `closing` aims beside her on
+purpose so that the run clears the hull. So "widen `NPC_FIRE_GATE`" and "fix the
+aim" both mean "delete a designed behaviour". Confirmed at 600 episodes, at 200,
+and on a second seed grid, with every share inside 0.5 points.
+
+**Four reasons it stays where it is**, and they are in the plan doc. The regen
+already bought both decisions the item recorded — a lone pirate still loses and
+bills her about 19% of her pools, and a tier-2 gang of three reaches ENERGY LOW
+in 49.5% of fights and kills her in 35.5%. A perfect gun is a further factor of
+four to thirteen, and the plan forbids a move to regen and aim in one
+measurement. `pursuit.ts` is shared with the player's own bought combat computer,
+so a lead term is two balance changes on one edit. And invariant 5 makes the
+flight model the world every pilot was fitted in, which a constant was not.
+
+**The lever is recorded so that nobody has to find it twice**: the missing lead
+in `pursuitAim`, which returns the target's own position where the attack run
+leads with `leadTime`. It is not a defect, it is not urgent, and it needs its own
+item. **No game rule moved in M3**, and the pairing proves it — the M2 tables came
+back byte-identical beside the new one.
 
 ## What landed on 2026-08-12
 

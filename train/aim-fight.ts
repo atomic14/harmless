@@ -50,6 +50,11 @@
 // every point she was billed by every cause, so a caller can show the split
 // rather than imply the laser was all of it.
 //
+// THE LEG SPLIT is the same aim angle again, grouped by the leg the ship was
+// flying (`flightLeg` below). The grouping is this file's; the angle and every
+// word are the game's. It is not a second aim rule, and it does not count LINED
+// UP, which stays the recorder's alone.
+//
 // ALIVE SECONDS, not the episode's: a pirate destroyed at 12 seconds did not
 // spend the other 33 failing to shoot, and dividing by 45 would report the
 // defender's gun as the attacker's aim.
@@ -67,6 +72,7 @@ import {
 } from '../src/game/combat-sim-report.ts';
 import { NO_OPENING } from '../src/game/combat-sim-opening.ts';
 import { describeFlight } from '../src/game/break-off.ts';
+import type { NpcState } from '../src/game/npc.ts';
 import { energyLow } from '../src/game/systems.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
 
@@ -87,6 +93,47 @@ export const TARGETS = [
   { how: 'scripted', label: 'runs' },
 ] as const;
 export type Target = (typeof TARGETS)[number];
+
+/**
+ * One LEG of a flight, pooled over the gang: how long the attackers spent in
+ * it, and how far off her their noses sat while they were.
+ *
+ * It is the split docs/TODO/139 M3 turns on. A mean bearing error over a whole
+ * fight pools legs that point the nose for opposite reasons: a run that closes
+ * wants the nose ON her, and the extend leg of the same run points AWAY by
+ * design. One number cannot tell a pilot that cannot aim from a pilot that is
+ * not aiming yet.
+ */
+export interface FlightSlice {
+  /** ship-frames in this leg — the denominator `Attacker.frames` counts */
+  frames: number;
+  /** their bearing error to her, in RADIANS, summed over those frames */
+  aimError: number;
+}
+
+/**
+ * What leg a ship is flying, for the split above — `game/break-off.ts`'s own
+ * words, and no new ones.
+ *
+ * It is NOT `describeFlight`, and the two differences are both deliberate:
+ *
+ *   1. `describeFlight` lets `evading` outrank the leg, because the strip a
+ *      player reads wants to say why a ship stopped flying its run. This table
+ *      wants the leg, so a ship under fire is counted in the leg it flew. The
+ *      run does not stop when it is shot at — `nextAttackPhase` cuts the extend
+ *      short and returns it to `closing` — so the leg is always a real one.
+ *   2. It drops the tactic prefix. A tactic decides how WIDE a pass steps and
+ *      how tight the run-out curves. It does not decide whether the leg points
+ *      the nose at her, which is the only question here.
+ *
+ * The pursuit dogfighter runs no attack-run phase at all, so its own word is
+ * kept whole, exactly as `describeFlight` keeps it.
+ */
+function flightLeg(state: NpcState): string {
+  return state.flownBy === 'scripted'
+    ? state.attackPhase
+    : describeFlight(state.flownBy, state.attackPhase, state.underFire, state.tactic);
+}
 
 /** One attacker's fight, in the terms a table is built from. */
 export interface Attacker {
@@ -130,6 +177,11 @@ export interface Fight {
   reachedLowEnergy: boolean;
   /** attackers destroyed — the cost of the fight to them, survivability's column */
   attackersLost: number;
+  /**
+   * The fight's ship-frames split by the leg the attacker was flying at the
+   * time, pooled over the gang. `flightLeg` is the key.
+   */
+  doing: Map<string, FlightSlice>;
 }
 
 export function flyAimFight(
@@ -174,6 +226,10 @@ export function flyAimFight(
   // this fight fed the recorder, per attacker.
   const frames = ep.pirates.map(() => 0);
   const alive = ep.pirates.map(() => 0);
+  // ...and the same frames again, split by what the ship was flying. It is
+  // counted HERE, beside the denominator it shares, so the split and the total
+  // cannot disagree about which frames they cover.
+  const doing = new Map<string, FlightSlice>();
   const sample = (): FrameSample => ({
     speed: her.speed,
     pitch: her.pitchRate,
@@ -184,14 +240,21 @@ export function flyAimFight(
     contacts: ep.pirates.flatMap((p, i) => {
       if (!p.alive) return [];
       frames[i] += 1;
+      const theirAim = aimAngle(p.pos, p.quat, her.pos);
+      const flight = describeFlight(
+        p.npc.state.flownBy, p.npc.state.attackPhase, p.npc.state.underFire,
+        p.npc.state.tactic);
+      const leg = flightLeg(p.npc.state);
+      const slice = doing.get(leg) ?? { frames: 0, aimError: 0 };
+      slice.frames += 1;
+      slice.aimError += theirAim;
+      doing.set(leg, slice);
       return [{
         opponent: i,
         dist: gap.copy(her.pos).sub(p.pos).length(),
         speed: p.speed,
-        theirAim: aimAngle(p.pos, p.quat, her.pos),
-        doing: describeFlight(
-          p.npc.state.flownBy, p.npc.state.attackPhase, p.npc.state.underFire,
-          p.npc.state.tactic),
+        theirAim,
+        doing: flight,
         yourAim: aimAngle(her.pos, her.quat, p.pos),
       }];
     }),
@@ -230,6 +293,7 @@ export function flyAimFight(
     destroyed: !her.alive,
     reachedLowEnergy: lowEnergy,
     attackersLost: ep.pirates.filter((p) => !p.alive).length,
+    doing,
     attackers: ep.pirates.map((p, i) => ({
       hull: p.name,
       damagePerHit: setup.pirates[i].damagePerHit,

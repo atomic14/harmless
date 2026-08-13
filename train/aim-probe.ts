@@ -19,12 +19,17 @@
 // fly, which numbers are the game recorder's and which are the fight's own, and
 // what is NOT in the laser columns. This file is the grid and the tables.
 //
-// ## The three tables
+// ## The four tables
 //
 // IS IT AIMED AT HER — the aim half, per pilot, per gang, per behaviour: how
 // much of the fight it spent inside its own gate and in range, how far off her
 // its nose sat, how many merges it completed and how many shots it got away
 // against the cadence's own ceiling.
+//
+// WHAT LEG WAS IT FLYING WHEN IT WAS NOT AIMED — that table's aim column taken
+// apart, by the leg the ship was flying at the time. The legs point the nose for
+// opposite reasons, so the pooled figure answers no question by itself. It is
+// the table docs/TODO/139 M3 decides on.
 //
 // WHAT THE GUN IS WORTH — the damage half. Effective points a second against
 // BEST CASE: this build's own tabulated damage against this hull, at
@@ -54,7 +59,7 @@
 
 import {
   MAX_TIME, PILOTS, TARGETS, flyAimFight,
-  type Attacker, type Pilot, type Target,
+  type Attacker, type FlightSlice, type Pilot, type Target,
 } from './aim-fight.ts';
 import { episodeTier } from '../src/ai-training/scenario.ts';
 import { quantile } from '../src/game/combat-sim-report.ts';
@@ -105,6 +110,8 @@ type Cell = Omit<Attacker, 'hull' | 'damagePerHit'> & {
   /** ...and the two docs/TODO/139 M2 states its gates in */
   lowEnergy: number;
   attackersLost: number;
+  /** the same frames again, split by what the attacker was flying */
+  doing: Map<string, FlightSlice>;
 };
 
 const blank = (): Cell => ({
@@ -112,7 +119,18 @@ const blank = (): Cell => ({
   shots: 0, hits: 0, damage: 0, passes: 0, bestSeconds: 0, ships: 0,
   episodeSeconds: 0, medians: [], allDamage: 0, warheads: 0,
   fights: 0, flattened: 0, destroyed: 0, lowEnergy: 0, attackersLost: 0,
+  doing: new Map<string, FlightSlice>(),
 });
+
+/** Pool one fight's flight split into a cell's. */
+function addDoing(into: Map<string, FlightSlice>, from: Map<string, FlightSlice>): void {
+  for (const [flight, slice] of from) {
+    const cell = into.get(flight) ?? { frames: 0, aimError: 0 };
+    cell.frames += slice.frames;
+    cell.aimError += slice.aimError;
+    into.set(flight, cell);
+  }
+}
 
 /**
  * What this build could do at 100% time on aim, point blank — the plan's table,
@@ -136,6 +154,7 @@ function add(into: Cell, a: Attacker): void {
   into.ships += 1;
 }
 
+const deg = (rad: number): number => rad * 180 / Math.PI;
 const pct = (n: number, d: number): string => (d ? `${((n / d) * 100).toFixed(1)}%` : '—');
 const per = (n: number, d: number, dp = 2): string => (d ? (n / d).toFixed(dp) : '—');
 
@@ -182,6 +201,7 @@ function main(episodes: number, base: number, tier: number | null): void {
           if (fight.destroyed) cell.destroyed += 1;
           if (fight.reachedLowEnergy) cell.lowEnergy += 1;
           cell.attackersLost += fight.attackersLost;
+          addDoing(cell.doing, fight.doing);
           warheads += fight.warheads;
           for (const a of fight.attackers) {
             add(cell, a);
@@ -232,6 +252,31 @@ function main(episodes: number, base: number, tier: number | null): void {
   console.log(`a pass is a merge inside ${PASS_CLOSE} and back out past ${PASS_FAR}`
     + ' (constants/combat-record.ts),');
   console.log('and a fight nobody closes in scores none — which is a reading, not a blank.');
+
+  console.log('\n## what leg was it flying when it was not aimed?\n');
+  console.log('| she | leg | share of the fight | mean aim error |');
+  console.log('| --- | --- | --- | --- |');
+  for (const t of TARGETS) {
+    // Pooled over the four gang sizes, because "what is the nose doing" is not a
+    // question about how many of them there are, and the shipped pilot only,
+    // because the A/B control flies a different run.
+    const pooled = new Map<string, FlightSlice>();
+    for (const gang of GANGS) addDoing(pooled, cells.get(`${t.label}:pursuit:${gang}`)!.doing);
+    const total = [...pooled.values()].reduce((a, s) => a + s.frames, 0);
+    for (const [flight, slice] of [...pooled].sort((a, b) => b[1].frames - a[1].frames)) {
+      console.log(`| ${t.label} | ${flight} | ${pct(slice.frames, total)} |`
+        + ` ${deg(slice.aimError / slice.frames).toFixed(1)}° |`);
+    }
+  }
+  console.log('\nthe aim error above is one column of the table before it, taken apart:');
+  console.log('the same frames, grouped by the leg the ship was flying (train/aim-fight.ts');
+  console.log('states what a leg is and why it is not the strip\'s own phrase). the shipped');
+  console.log('pilot is two flights, not one — it holds the six while it is astern of her,');
+  console.log('and it slashes past on the attack run once her nose comes round. the legs');
+  console.log('point the nose for opposite reasons: `closing` and `on your six` want it ON');
+  console.log('her, and `passing` and `extending` carry it past and away BY DESIGN. so a');
+  console.log('mean over the whole fight answers no question, which is what docs/TODO/139');
+  console.log('M3 is the decision about.');
 
   console.log('\n## what the gun is worth\n');
   console.log('| she | pilot | gang | hit rate | best case | effective | of best |'

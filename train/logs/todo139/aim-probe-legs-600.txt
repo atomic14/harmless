@@ -1,0 +1,123 @@
+
+> harmless@1.0.0 aim-probe
+> node --experimental-strip-types --no-warnings train/aim-probe.ts 600
+
+
+600 episodes per row · 45s · seed base 50000017 · every threat tier
+a fitted commander in her own Cobra, flying back — train/aim-fight.ts is the fight
+
+## is it aimed at her?
+
+| she | pilot | gang | median range | lined up | in range | aim error | passes/ship | shots/pass | shots/min/ship |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| knife-fights | pursuit | 1 | 364 | 11.9% | 100.0% | 85.6° | 0.73 | — | 7.5 |
+| knife-fights | pursuit | 2 | 456 | 23.1% | 100.0% | 73.7° | 2.01 | 3.9 | 13.2 |
+| knife-fights | pursuit | 3 | 504 | 25.1% | 100.0% | 69.8° | 2.76 | 3.4 | 14.5 |
+| knife-fights | pursuit | 4 | 518 | 26.7% | 100.0% | 67.3° | 2.92 | 3.5 | 15.4 |
+| knife-fights | scripted | 1 | 368 | 11.4% | 100.0% | 85.8° | 0.73 | — | 7.4 |
+| knife-fights | scripted | 2 | 478 | 10.2% | 100.0% | 84.0° | 2.67 | 1.7 | 7.1 |
+| knife-fights | scripted | 3 | 540 | 10.2% | 100.0% | 82.1° | 3.59 | 1.4 | 7.4 |
+| knife-fights | scripted | 4 | 560 | 10.8% | 100.0% | 80.4° | 3.72 | 1.5 | 7.8 |
+| runs | pursuit | 1 | 3456 | 55.0% | 57.8% | 1.4° | 0.07 | — | 26.3 |
+| runs | pursuit | 2 | 3404 | 52.2% | 53.5% | 0.6° | 0.01 | — | 24.8 |
+| runs | pursuit | 3 | 3247 | 54.6% | 55.8% | 0.5° | 0.01 | — | 26.0 |
+| runs | pursuit | 4 | 3223 | 54.8% | 56.0% | 0.5° | 0.01 | — | 26.1 |
+| runs | scripted | 1 | 3424 | 45.4% | 62.7% | 11.1° | 0.22 | — | 22.3 |
+| runs | scripted | 2 | 3438 | 43.3% | 53.2% | 7.5° | 0.04 | — | 21.1 |
+| runs | scripted | 3 | 3300 | 43.8% | 54.9% | 7.6° | 0.01 | — | 21.4 |
+| runs | scripted | 4 | 3322 | 43.3% | 54.8% | 7.7° | 0.01 | — | 21.1 |
+
+lined up = inside its own gate AND its own range, over the ship-frames it
+was alive for. shots/min/ship has a ceiling of 46.2 — the mean reload, never
+out of the gate: the two columns move together, so the gate is the limit.
+a pass is a merge inside 400 and back out past 600 (constants/combat-record.ts),
+and a fight nobody closes in scores none — which is a reading, not a blank.
+
+## what leg was it flying when it was not aimed?
+
+| she | leg | share of the fight | mean aim error |
+| --- | --- | --- | --- |
+| knife-fights | closing | 42.6% | 64.1° |
+| knife-fights | on your six | 32.1% | 37.0° |
+| knife-fights | extending | 13.7% | 142.0° |
+| knife-fights | passing | 11.6% | 102.3° |
+| runs | on your six | 97.5% | 0.3° |
+| runs | closing | 2.5% | 13.4° |
+| runs | passing | 0.0% | 69.8° |
+| runs | extending | 0.0% | 139.4° |
+
+the aim error above is one column of the table before it, taken apart:
+the same frames, grouped by the leg the ship was flying (train/aim-fight.ts
+states what a leg is and why it is not the strip's own phrase). the shipped
+pilot is two flights, not one — it holds the six while it is astern of her,
+and it slashes past on the attack run once her nose comes round. the legs
+point the nose for opposite reasons: `closing` and `on your six` want it ON
+her, and `passing` and `extending` carry it past and away BY DESIGN. so a
+mean over the whole fight answers no question, which is what docs/TODO/139
+M3 is the decision about.
+
+## what the gun is worth
+
+| she | pilot | gang | hit rate | best case | effective | of best | gang laser | warheads | contact | all causes | a face down | ENERGY LOW | destroyed | they lost |
+| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |
+| knife-fights | pursuit | 1 | 44.7% | 8.96/s | 0.67/s | 7.4% |  0.67/s |  2.53/s |  0.00/s |  3.19/s | 1.2% | 0.0% | 0.0% | 0.79 |
+| knife-fights | pursuit | 2 | 60.1% | 8.60/s | 1.79/s | 20.8% |  3.25/s |  3.16/s |  0.17/s |  6.58/s | 30.0% | 9.0% | 2.8% | 0.94 |
+| knife-fights | pursuit | 3 | 63.0% | 7.35/s | 1.71/s | 23.3% |  4.62/s |  3.78/s |  0.31/s |  8.71/s | 34.8% | 16.7% | 11.8% | 0.69 |
+| knife-fights | pursuit | 4 | 63.5% | 6.85/s | 1.70/s | 24.8% |  6.22/s |  3.81/s |  0.48/s | 10.50/s | 36.0% | 18.7% | 15.2% | 0.71 |
+| knife-fights | scripted | 1 | 44.7% | 8.95/s | 0.65/s | 7.3% |  0.65/s |  2.56/s |  0.00/s |  3.22/s | 1.0% | 0.0% | 0.0% | 0.79 |
+| knife-fights | scripted | 2 | 51.6% | 8.48/s | 0.74/s | 8.7% |  1.37/s |  3.57/s |  0.07/s |  5.01/s | 21.7% | 9.0% | 1.7% | 0.79 |
+| knife-fights | scripted | 3 | 56.1% | 7.32/s | 0.76/s | 10.3% |  2.12/s |  4.19/s |  0.20/s |  6.51/s | 30.2% | 17.3% | 5.3% | 0.46 |
+| knife-fights | scripted | 4 | 56.1% | 6.84/s | 0.74/s | 10.8% |  2.77/s |  4.34/s |  0.36/s |  7.48/s | 31.7% | 17.0% | 8.0% | 0.48 |
+| runs | pursuit | 1 | 29.3% | 7.81/s | 1.67/s | 21.4% |  1.67/s |  0.00/s |  0.00/s |  1.67/s | 1.8% | 0.0% | 0.0% | 0.00 |
+| runs | pursuit | 2 | 28.8% | 7.86/s | 1.60/s | 20.4% |  3.21/s |  0.00/s |  0.00/s |  3.21/s | 7.0% | 0.2% | 0.0% | 0.00 |
+| runs | pursuit | 3 | 29.4% | 7.11/s | 1.53/s | 21.5% |  4.58/s |  0.00/s |  0.00/s |  4.58/s | 11.2% | 1.2% | 0.3% | 0.00 |
+| runs | pursuit | 4 | 29.9% | 6.69/s | 1.41/s | 21.0% |  5.63/s |  0.00/s |  0.00/s |  5.63/s | 15.8% | 1.3% | 0.8% | 0.01 |
+| runs | scripted | 1 | 28.7% | 7.77/s | 1.36/s | 17.5% |  1.36/s |  0.14/s |  0.00/s |  1.50/s | 1.8% | 0.0% | 0.0% | 0.00 |
+| runs | scripted | 2 | 26.2% | 7.86/s | 1.23/s | 15.7% |  2.46/s |  0.03/s |  0.00/s |  2.50/s | 3.5% | 0.2% | 0.2% | 0.00 |
+| runs | scripted | 3 | 26.2% | 7.11/s | 1.12/s | 15.7% |  3.36/s |  0.00/s |  0.00/s |  3.36/s | 7.2% | 0.0% | 0.0% | 0.00 |
+| runs | scripted | 4 | 26.3% | 6.70/s | 1.01/s | 15.0% |  4.03/s |  0.00/s |  0.00/s |  4.03/s | 6.8% | 0.2% | 0.2% | 0.00 |
+
+best case = this build's own tabulated damage at point-blank hit chance
+over the mean reload — 100% time on aim. effective = the same points at the
+aim it actually got. gang laser is all of their guns together, against a
+SHIELD_REGEN of 3.060 points a second PER FACE: that comparison is what
+docs/TODO/139 is about, and it is the last four columns that have to move.
+
+the three causes are every way the world can bill her: the laser is tallied shot
+by shot, a warhead is 250 points (2638 landed across the run), and contact is what
+is left. the aim columns above describe the FIRST of the three only — which
+is the point: read them beside the split, not instead of it.
+
+a face down, destroyed and they lost are train/survivability.ts's own
+outcome columns, watched its way — every step, because a face that was
+flattened and came back is still a face that was flattened. ENERGY LOW is
+the console's own line (systems.ts `energyLow`): the last bank, where the
+shield stops recovering at all and a player is meant to break off. it is
+the term docs/TODO/139 M2 states its gate in, and today it is unreachable.
+
+## by build — the shipped pilot, in the fight she can be caught in
+
+| build | points/hit | lined up | shots/min | hit rate | best case | effective | of best |
+| --- | --- | --- | --- | --- | --- | --- | --- |
+| Asp Mk II | 29 | 26.3% | 15.2 | 66.6% | 18.96/s | 4.88/s | 25.7% |
+| Fer-de-Lance | 21 | 29.3% | 16.7 | 67.6% | 13.73/s | 3.94/s | 28.7% |
+| Monitor | 17 | 20.6% | 10.7 | 54.5% | 11.12/s | 1.66/s | 14.9% |
+| Python | 17 | 18.8% | 9.8 | 49.6% | 11.12/s | 1.38/s | 12.4% |
+| Bushmaster | 13 | 23.6% | 14.3 | 64.8% | 8.50/s | 2.01/s | 23.7% |
+| Cobra Mk III | 13 | 18.9% | 11.2 | 58.0% | 8.50/s | 1.41/s | 16.6% |
+| Krait | 13 | 24.0% | 13.9 | 62.7% | 8.50/s | 1.89/s | 22.3% |
+| Sidewinder | 13 | 22.0% | 13.2 | 63.0% | 8.50/s | 1.81/s | 21.2% |
+| Moray | 13 | 25.4% | 14.8 | 62.2% | 8.50/s | 1.99/s | 23.4% |
+| Gecko | 13 | 25.2% | 14.7 | 64.7% | 8.50/s | 2.06/s | 24.2% |
+| Cobra Mk I | 13 | 23.3% | 13.2 | 58.3% | 8.50/s | 1.67/s | 19.7% |
+| Mamba | 13 | 25.6% | 14.9 | 66.3% | 8.50/s | 2.15/s | 25.3% |
+| Iguana | 9 | 24.6% | 14.3 | 67.3% | 5.88/s | 1.44/s | 24.5% |
+| Chameleon | 9 | 26.3% | 14.6 | 65.6% | 5.88/s | 1.43/s | 24.4% |
+| Rattler | 9 | 23.7% | 13.8 | 62.9% | 5.88/s | 1.30/s | 22.0% |
+| Worm | 5 | 34.1% | 18.9 | 56.4% | 3.27/s | 0.89/s | 27.1% |
+| Ophidian | 5 | 23.1% | 14.0 | 64.3% | 3.27/s | 0.75/s | 22.9% |
+
+the best-case column is docs/TODO/139's table, re-derived from the pack
+and the constants rather than restated; the effective column beside it is
+what that build managed against a commander who was flying back.
+
