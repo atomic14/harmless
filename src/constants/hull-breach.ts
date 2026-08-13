@@ -20,6 +20,13 @@ export const EQUIPMENT_DAMAGE_CHANCE = 0.25;
  * This is reached only once `EQUIPMENT_DAMAGE_CHANCE` fires, and only when the
  * ship carries something. An empty hold loses a fitting outright, and a ship with
  * no fittings left loses cargo outright.
+ *
+ * It has its own rule id since docs/TODO/142, which is when a third constant
+ * arrived on the value. It shares 0.7 with `THARGOID_FIRE_RATE` (npc-gun.ts) and
+ * `STEREO_WIDTH` (audio.ts), and all three must stay free to move apart. This one
+ * is what a breach costs a full hold.
+ *
+ * @rule breach.cargoLossChance
  */
 export const CARGO_LOSS_CHANCE = 0.7;
 

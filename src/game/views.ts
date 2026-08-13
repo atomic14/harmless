@@ -38,3 +38,22 @@ export function viewDirection(
 ): THREE.Vector3 {
   return out.set(0, 0, -1).applyQuaternion(VIEW_QUATS[view]).applyQuaternion(quaternion);
 }
+
+/**
+ * Which way this view's RIGHT lies, in world space.
+ *
+ * The companion to `viewDirection`, and it is here for the ear (docs/TODO/142):
+ * a sound sits across the stereo field by how far it lies along this axis.
+ *
+ * It takes the VIEW rather than the hull, and that is the same argument
+ * `viewDirection` makes above. What the pilot acts through is the window they
+ * are looking out of, so a ship on the left of the screen is on the left in rear
+ * view as well. An ear bolted to the hull would put that ship in the wrong side
+ * of the cockpit the moment the pilot looked at it, which reads as a fault
+ * rather than as a frame of reference.
+ */
+export function viewRight(
+  quaternion: THREE.Quaternion, view: number, out: THREE.Vector3,
+): THREE.Vector3 {
+  return out.set(1, 0, 0).applyQuaternion(VIEW_QUATS[view]).applyQuaternion(quaternion);
+}

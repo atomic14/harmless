@@ -70,7 +70,13 @@ const say = (text: string, seconds: number): CombatEvent => ({ kind: 'message', 
 /** ...once the console is free of the line this one explains. */
 const later = (text: string, seconds: number): CombatEvent =>
   ({ kind: 'message', text, seconds, queued: true });
-const heard = (name: SoundName): CombatEvent => ({ kind: 'sound', name });
+/**
+ * @param at where in the world it happened, for a sound that did not happen in
+ * the cockpit (docs/TODO/142). Clone it: the caller may despawn what it belongs
+ * to before the Game reads it.
+ */
+const heard = (name: SoundName, at?: THREE.Vector3): CombatEvent =>
+  ({ kind: 'sound', name, at });
 
 /**
  * What hurt the player. Five things can, and this is the whole list — the five
@@ -156,7 +162,7 @@ export class Combat {
     });
 
     if (shot.kind === 'cargo') {
-      sounds.push(heard('hit'));
+      sounds.push(heard('hit', shot.cargo.object.position.clone()));
       // The HIT goes across, exactly as it does to a ship: the canister's own
       // released bank decides whether it breaks up (cargo.ts). Every laser a
       // flyable hull carries still breaks one in a single hit.
@@ -175,9 +181,12 @@ export class Combat {
     }
 
     if (shot.kind === 'station') {
-      sounds.push(heard('hit'));
-      // sparks off the hull, but the station itself shrugs it off
+      // sparks off the hull, but the station itself shrugs it off. The impact
+      // point is worked out before the bang rather than after it, because the
+      // bang is placed there now (docs/TODO/142) — a station is big enough that
+      // where you scraped it is not where its centre is.
       const impact = playerPos.clone().addScaledVector(viewDir, shot.distance);
+      sounds.push(heard('hit', impact));
       this.world.effects.explosion(impact, 0xd8ffcc, { count: 10, speed: 60, duration: 0.4 });
       // Offender, not fugitive: a stray shot while lining up a dock is easy to
       // make, and fugitive means every police ship in the galaxy hunts you
@@ -189,7 +198,7 @@ export class Combat {
     }
 
     if (shot.kind === 'ship') {
-      sounds.push(heard('hit'));
+      sounds.push(heard('hit', shot.ship.object.position.clone()));
       // impact flash at the target so hits read clearly
       this.world.effects.explosion(shot.ship.object.position.clone(), 0xd8ffcc,
         { count: 8, speed: 70, duration: 0.35 });
@@ -283,7 +292,10 @@ export class Combat {
    */
   wreck(npc: NpcShip): CombatEvent[] {
     const out: CombatEvent[] = [{ kind: 'wrecked', npc }];
-    this.world.effects.explosion(npc.object.position.clone());
+    // Taken before the despawn below, because the sound is placed here now and
+    // the ship is gone by the time the Game reads the event (docs/TODO/142).
+    const at = npc.object.position.clone();
+    this.world.effects.explosion(at.clone());
     this.world.despawn(npc);
 
     // wily traders and many pirates punch out at the last moment
@@ -308,7 +320,7 @@ export class Combat {
       }
       out.push(say('THARGONS DEACTIVATED', 3));
     }
-    return [heard('explosion'), ...out];
+    return [heard('explosion', at), ...out];
   }
 
   /**

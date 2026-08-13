@@ -27,7 +27,7 @@
 import { publish, installPolicyKit, installSimLog } from './console.ts';
 import { legacyHandles } from './game-handles.ts';
 import type { Shell, Presentation, ShellFactory } from '../engine/shell.ts';
-import { viewDirection, VIEW_QUATS } from './views.ts';
+import { viewDirection, viewRight, VIEW_QUATS } from './views.ts';
 import * as THREE from 'three';
 
 import { generateGalaxy, COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
@@ -48,7 +48,7 @@ import {
 import { Hud } from '../hud/hud.ts';
 import { buildHudFrame } from '../hud/hud-binding.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
-import { sfx } from '../audio.ts';
+import { sfx, type Place } from '../audio.ts';
 import { nearestEngaging, nearestNpc, NpcShip } from './npc.ts';
 import { flightPrompts, type Prompt } from './prompts.ts';
 import { npcImpactDamage } from './impact-damage.ts';
@@ -502,6 +502,16 @@ export class Game {
     c: new THREE.Vector3(), q: new THREE.Quaternion(),
   };
   private readonly tmpM = new THREE.Matrix4();
+  /**
+   * Scratch for placing a sound, and its OWN pair rather than `tmp`/`tmp2`.
+   *
+   * `playSound` is called from inside `applyStep`, `applyCombat`, `applyStation`
+   * and `applyOrdnance`, which run in the middle of a frame that is already
+   * holding a vector in each of those two. A shared scratch would make a bang
+   * corrupt whatever the frame was measuring, silently and only sometimes.
+   */
+  private readonly soundAt = new THREE.Vector3();
+  private readonly soundRight = new THREE.Vector3();
 
   /** The single write seam for every console message. */
   private showMessage(text: string, seconds = 3): void {
@@ -1551,8 +1561,50 @@ export class Game {
         if (e.on) sfx.dockingMusic();
         else sfx.stopDockingMusic();
         break;
-      case 'sound': sfx[e.name](); break;
+      case 'sound': {
+        // One call for every name, placed or not. A voice that takes no place is
+        // assignable to one that takes an optional place — fewer parameters is
+        // assignable to more — so a cockpit beep goes through the same line and
+        // ignores what it is handed. The alternative is a list of which names
+        // are placed, which is a second home for a fact audio.ts already states.
+        const voice: (place?: Place) => void = sfx[e.name];
+        voice(this.placeOf(e.at));
+        break;
+      }
     }
+  }
+
+  /**
+   * Where a sound happened, as the cockpit hears it (docs/TODO/142).
+   *
+   * Geometry only. How loud that is, and whether the sound cares at all, is
+   * `audio.ts`'s to decide — the same split the countdown's pitch made when it
+   * left the world step.
+   *
+   * `undefined` for a sound with no place, which is most of them: the beeps, the
+   * warnings, the dock and the launch all happen where the pilot is.
+   */
+  private placeOf(at?: THREE.Vector3): Place | undefined {
+    if (!at) return undefined;
+    const { player, session } = this.state;
+    const to = this.soundAt.subVectors(at, player.position);
+    const distance = to.length();
+    // A source AT the pilot has no direction, and normalising it would hand
+    // `pan.value` a NaN — which takes the voice out in silence rather than
+    // throwing, so nothing would report it. This is `nose × heading` again
+    // (docs/TODO/134): the degenerate case arrives exactly when the geometry
+    // succeeds.
+    //
+    // No emitter reaches it today, and that was checked rather than assumed:
+    // the closest is a warhead on your own hull, and `hitPlayer` carries the
+    // MISSILE's position, which is inside `MISSILE_HIT_RANGE` and never equal.
+    // The guard is here because the next emitter is one line of somebody else's
+    // work away, and the failure it prevents is a silence with no error.
+    const side = distance > 0
+      ? to.divideScalar(distance)
+        .dot(viewRight(player.quaternion, session.view, this.soundRight))
+      : 0;
+    return { distance, side };
   }
 
   private dockingComputer(): void {

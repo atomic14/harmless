@@ -116,6 +116,35 @@ class FakeAudioContext {
   currentTime = 10;
   state = 'running';
   destination = {};
+  /**
+   * Needed by `noiseBurst`, which sizes its buffer in samples.
+   *
+   * The two buffer members below arrived with docs/TODO/142, and their absence
+   * until then says something worth recording: NO TEST HAD EVER PLAYED A NOISE.
+   * `explosion`, `hit`, `damage`, `ecm`, `bomb`, `hyperspace` and `tunnel` all
+   * start with one, so every one of them threw on the first call under this
+   * fake. test/audio.test.ts never noticed because every sound it names is built
+   * from `tone`, which is a `sweep`.
+   *
+   * They record nothing. A noise has no pitch to assert, and what a test wants
+   * to know about one — did it play at all, and where was it placed — is
+   * readable from the `panners` its envelope built.
+   */
+  sampleRate = 44100;
+
+  createBuffer(_channels: number, length: number) {
+    return { getChannelData: () => new Float32Array(length) };
+  }
+
+  createBufferSource() {
+    return {
+      buffer: null as unknown,
+      connect(target?: { connect?: unknown }) {
+        return target?.connect ? target : { connect() {} };
+      },
+      start() {},
+    };
+  }
 
   createOscillator() {
     const recorded: Tone = {

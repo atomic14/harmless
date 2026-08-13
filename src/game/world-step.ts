@@ -138,8 +138,18 @@ export type StepEvent =
   | DealtEvent;
 
 const say = (text: string, seconds: number): StepEvent => ({ kind: 'message', text, seconds });
-/** A tone, in hertz. The occasions with a name of their own are `heard()`. */
-const heard = (name: SoundName): StepEvent => ({ kind: 'sound', name });
+/**
+ * An occasion that makes a noise. `audio.ts` decides what the noise is.
+ *
+ * The doc line here used to read "a tone, in hertz", which described a `beep`
+ * helper that went away when every sound took a name. It is corrected rather
+ * than moved: there is nothing left for it to describe.
+ *
+ * @param at where in the world it happened, for a sound that did not happen in
+ * the cockpit (docs/TODO/142). Omit it and the sound plays as it always has.
+ */
+const heard = (name: SoundName, at?: THREE.Vector3): StepEvent =>
+  ({ kind: 'sound', name, at });
 
 /**
  * The consequences the step cannot own, and asks the orchestrator for.
@@ -508,17 +518,19 @@ export class WorldStep {
           // no sound here: `destroyNpc` -> `Combat.wreck` plays the ship going up
           this.host.destroyNpc(e.npc);
         } else {
-          out.push(heard('explosion'));
+          out.push(heard('explosion', e.at.clone()));
         }
       } else if (e.kind === 'hitPlayer') {
         world.effects.explosion(e.at, 0xff8866);
-        out.push(heard('explosion'));
+        // Placed like any other, and it lands on the pilot's own hull. That is
+        // the degenerate case the guard in `Game.placeOf` is for.
+        out.push(heard('explosion', e.at.clone()));
         this.host.applyPlayerDamage(playerImpactDamage(IMPACT.warhead), e.at, 'missile');
       } else if (e.kind === 'ecmDefeated') {
         world.effects.explosion(e.at, WARHEAD_FLASH, { count: 12, duration: 0.8 });
         this.state.ecmDetectedTimer = 2;
         out.push(say('TARGET E.C.M. — MISSILE DESTROYED', 3));
-        out.push(heard('ecm'));
+        out.push(heard('ecm', e.at.clone()));
       } else {
         world.effects.explosion(e.at, WARHEAD_FLASH, { count: 12, duration: 0.8 });
       }
@@ -773,7 +785,12 @@ export class WorldStep {
       return;
     }
     if (shot.at === 'target') {
-      out.push(heard('enemyLaser'));
+      // Placed at the SHIP THAT FIRED, not at the bolt (docs/TODO/142). This
+      // branch is the only one that makes a noise — an NPC shooting another NPC
+      // draws a tracer and says nothing — so the sound already means "someone is
+      // shooting at YOU", and the beam always ends on the hull. The place says
+      // which side it came from. `audio.ts` is where it stays at full gain.
+      out.push(heard('enemyLaser', npc.object.position.clone()));
       // The visible bolt: to us on a hit, wide of us on a miss. The scatter is
       // drawn HERE, after the resolution — two `random()` draws that decide
       // nothing, and taking them earlier would move every seeded outcome after.

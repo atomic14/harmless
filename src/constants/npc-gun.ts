@@ -59,7 +59,16 @@ export const NPC_MEAN_COOLDOWN = NPC_COOLDOWN_LO + NPC_COOLDOWN_SPREAD / 2;
  */
 export const NPC_FIRE_GATE = 0.25;
 
-/** Thargoids reload faster than anything else in the galaxy. */
+/**
+ * Thargoids reload faster than anything else in the galaxy.
+ *
+ * It has its own rule id since docs/TODO/142, which is when a third constant
+ * arrived on the value. It shares 0.7 with `CARGO_LOSS_CHANCE` (hull-breach.ts)
+ * and `STEREO_WIDTH` (audio.ts), and all three must stay free to move apart. This
+ * one is seconds between shots.
+ *
+ * @rule npc.thargoidFireRate
+ */
 export const THARGOID_FIRE_RATE = 0.7;
 
 /** Hit chance falls off with range, clamped at both ends. */
