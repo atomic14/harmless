@@ -143,3 +143,54 @@ New gates:
 **Chris flies it.** The question no assertion reaches is whether the amber
 suffix reads as a warning or as clutter on a screen that already carries four
 columns and a fuel line.
+
+## What landed
+
+Both milestones landed on 2026-08-13. No game rule moved. No constant moved. The
+sale of a consignment is as legal as it was, at every market, a hermit's
+included.
+
+**M1 — the hold says what is spoken for.** `consignedTonnes` sits beside
+`berthTonnes` in `src/game/commander.ts` and is derived for the reason that one
+gives. It sums a `cargo` job and a `smuggle` job, and it skips the three kinds
+that carry no goods. `renderMarket` marks the `IN HOLD` cell:
+`10t · 5 CONSIGNED`, in `--hud-amber`. No colour was coined.
+
+**M2 — the sale asks once.** The first sell key on a marked row spends itself on
+`5T CONSIGNED — PRESS V AGAIN TO SELL`. One row is armed at a time. Four things
+take the arming down: a moved cursor, a click on a row, a purchase, and leaving
+the screen. `SELL ALL` arms the same way.
+
+`test/consigned-hold.test.ts` is 38 assertions. All three gates were shown to
+fail, in the three ways the plan named. `npm run check` passes at 4,413
+assertions, with zero constants findings and no unlisted oversize file.
+
+## What the milestones found that the plan did not have
+
+**The arming went into `input`, and the plan's warning names the wrong caller.**
+`test/playtest.js` never calls `sell` at all. It moves cargo out of the hold
+itself, and the only market call it makes is `g.buyCargo`. The path that DOES
+reach `sell` is `Game.sellCargo`, the `@internal` handle beside it. Either way
+the answer is the same one the plan offered second: the arming lives in the
+input handler, so `sell` stays the plain action a scripted caller needs.
+
+**A row already sold down to nothing still carries the mark.**
+`consignedTonnes` reports the JOB and never the hold, so an emptied row reads
+`- · 5 CONSIGNED`. That is deliberate, and it is the last warning the pilot
+gets: `settleContracts` bills exactly those five tonnes at the door. The screen
+test pins it.
+
+**The warning and the receipt take one door.** Both go through `ctx.message`, so
+a test that counts what the screen said counts the receipt too. The warning is
+counted by its words instead.
+
+**The message is allowed to spell a key, and one line of another gate is why.**
+`test/key-prose.test.ts` fails on any message in `src/game/` that writes a bound
+key in words. It excludes `src/game/screens/`, because a screen reads a raw code
+and prints its own keyline. `PRESS V AGAIN TO SELL` is inside that exclusion.
+
+**One message serves two buttons.** A click on `SELL ALL` arms the row and says
+`PRESS V AGAIN TO SELL`, which names the other key. The second press of either
+key sells, so the sentence is not wrong — but it is one door described by one of
+its two names. Left as it is, because the plan fixes the words and because two
+wordings for one warning is the thing "one word, one meaning" forbids.

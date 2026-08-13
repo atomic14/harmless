@@ -118,6 +118,13 @@ console.log('\nthe market screen marks the consigned tonnes');
   check('...behind the tonnage, not instead of it',
     consigned.startsWith(`10${COMMODITIES[FOOD].unit}`));
 
+  // A hold already sold down to nothing still carries the mark, because the
+  // suffix reports the JOB. `settleContracts` bills exactly those five tonnes
+  // at the door, so the row that says so is the last warning there is.
+  const emptied = holdCell(carrying([job({ qty: 5 })]), FOOD);
+  check(`a consignment already sold is still on the row (${emptied})`,
+    emptied.includes('5 CONSIGNED') && emptied.startsWith('-'));
+
   // The pooled hold, on the screen this time: 15t against a 5t job says 5.
   const pooled = holdCell(carrying([job({ qty: 5 })], { [FOOD]: 15 }), FOOD);
   check(`a pooled hold is not all spoken for (${pooled})`,

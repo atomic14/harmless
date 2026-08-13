@@ -13,30 +13,18 @@ active context:
 
 ## Execution queue
 
-Both items came out of the triage of 2026-08-13. Chris flew the game and filed
-two issues; neither is a rule that is wrong, and both are a consequence the
-cockpit does not carry. 142 closed the same day, so one is left.
+**Empty.** Both items of the triage of 2026-08-13 landed the same day. Chris flew
+the game and filed two issues; neither was a rule that is wrong, and both were a
+consequence the cockpit did not carry. 142 closed #25, and 143 closed #26.
 
-1. **[143 — The counter never says which tonnes are spoken for](143-the-counter-never-says-which-tonnes-are-spoken-for.md)**
-   · GitHub #26 · defect, small. The market screen's `IN HOLD` column does not
-   say which tonnes belong to a contract, and a rock hermit has no bulletin board
-   to check. The rule is correct and priced; the SCREEN is what changes.
-
-The GitHub inbox is **#26**, labelled `planned` on 2026-08-13. **#25** closed the
-same day with [142](completed/142-every-explosion-is-in-the-cockpit.md), after
-Chris flew it on headphones. **#24** closed on 2026-08-12 with
+The GitHub inbox is empty of planned work. **#26** closed on 2026-08-13 with
+[143](completed/143-the-counter-never-says-which-tonnes-are-spoken-for.md).
+**#25** closed the same day with
+[142](completed/142-every-explosion-is-in-the-cockpit.md), after Chris flew it on
+headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
-
-**What the triage of #26 settled by measurement.** The issue asks whether a
-contract consignment should be sellable at all. It should, and it already costs
-what it is worth. Over 138 freight jobs from 86 home systems of galaxy 1, selling
-the consignment at the DEAREST price the galaxy can roll and letting the job
-expire never beat delivering it, and delivering paid at least 2.24 times the
-sale. So the rule stays and the SCREEN changes. 143 holds the numbers, and it
-also records one asymmetry nobody has to find again: a shortfall is billed at the
-destination and free everywhere else.
 
 **One question is open and it is Chris's, not the queue's:** whether the docking
 computer should avoid traffic at all. `npm run dock-traffic` answers what it
@@ -87,6 +75,42 @@ of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
 
 ## What landed on 2026-08-13
+
+**143** — GitHub #26, and the rule the issue questions is correct. The triage
+answered it by measurement: over 138 freight jobs from 86 home systems of galaxy
+1, selling the consignment at the DEAREST price the galaxy can roll and letting
+the job expire never beat delivering it. The closest it came was delivering
+paying 2.24 times the sale. So the sale stays legal everywhere, a hermit's
+included, and the SCREEN is what changed.
+
+**The market screen says which tonnes are spoken for.** `consignedTonnes` is a
+derived reader beside `berthTonnes`, and the `IN HOLD` cell reads
+`10t · 5 CONSIGNED` in the amber an illicit job already uses. It reports the JOB
+and not a share of the hold, because goods are fungible: 15t against a 5t
+consignment says 5, and the other ten are hers. A `smuggle` run is freight and
+marks its row too. A berth, a bounty and a courier run carry no goods and mark
+nothing.
+
+**The sale asks once.** The first sell key on a marked row says
+`5T CONSIGNED — PRESS V AGAIN TO SELL`, and the second sells. `SELL ALL` arms the
+same way, so the fastest way to void a contract is not one keystroke. It is a
+warning rather than a refusal, and there is no hermit-only door: a rule with two
+homes is what `CLAUDE.md` forbids.
+
+**Four things came out of it that the plan did not have**, and all four are in
+the plan doc. The largest is where the arming had to live. The plan warned that
+`test/playtest.js` calls `sell` — it does not, it empties the hold itself and
+only ever calls `g.buyCargo` — but `Game.sellCargo` does, so the arming sits in
+the input handler and `sell` stays the plain action a scripted caller needs. A
+row already sold down to nothing still carries the mark, and that is the last
+warning there is before the door. `test/consigned-hold.test.ts` is 38
+assertions, and all three gates were shown to fail. `npm run check` passes at
+4,413 assertions.
+
+**One asymmetry is recorded rather than scheduled.** A shortfall is billed at the
+destination and free everywhere else. The same missing tonnes arriving LATE cost
+nothing, and settlement cannot see whether the hold is short because it was sold
+or because it was robbed.
 
 **142** — GitHub #25, and the sky stopped being mixed in the cockpit. All three
 milestones landed in a day, and Chris flew it on headphones the same day. A
