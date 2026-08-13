@@ -5,6 +5,58 @@
 its M1 baseline is meaningless against a fight nothing can win · **GitHub:**
 none — raised by Chris after 137 flew
 
+## What M1 did
+
+`npm run roster-probe` exists, and the baseline is taken. It walks all eight
+galaxies and all 2,048 systems, asks each one which roster it flies, and prices
+that reception against a Cobra Mk III. Every number comes through the runtime —
+`npcWeaponByte`, `npcLaserDamageToPlayer` and `npcBestCasePerSecond` — so the
+probe cannot disagree with the game about what a hit is worth.
+
+**The baseline, and the whole of it is that the tables are flat.** All eight
+galaxies report the same row:
+
+| galaxy | systems | sets | designs | builds | per hit mean/max | best case pts/s mean/max |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1–8 | 256 each | — | 17 | 17 | 13.2/29.0 | 8.7/19.0 |
+
+And the reception, by slot band, over the whole census:
+
+| band | designs | builds | per hit min/mean/max | best case pts/s min/mean/max | beat a face |
+| --- | --- | --- | --- | --- | --- |
+| trader | 17 | 17 | 0.0/10.0/29.0 | 0.0/6.5/19.0 | 14/17 |
+| pirate | 17 | 17 | 5.0/13.2/29.0 | 3.3/8.7/19.0 | 17/17 |
+| police | 1 | 1 | 17.0/17.0/17.0 | 11.1/11.1/11.1 | 1/1 |
+| hunter | 10 | 10 | 5.0/13.4/29.0 | 3.3/8.8/19.0 | 10/10 |
+| thargoid | 1 | 1 | 21.0/21.0/21.0 | 13.7/13.7/13.7 | 1/1 |
+| thargon | 1 | 1 | 9.0/9.0/9.0 | 5.9/5.9/5.9 | 1/1 |
+
+The variety claim is read at two sample sizes, 80 systems and 240, spread evenly
+across the eight galaxies. Both report **17 designs and 17 builds**, because
+every system flies the same roster. That is the number M3 has to raise, and the
+damage columns above are the guard it may not lower.
+
+### Three things M1 found that the plan did not have
+
+1. **`SHIELD_REGEN` is 3.06 points a second, not 8.925.** docs/TODO/139 M2 cut
+   the fraction from 3.5% to 1.2% after this plan was written, so the arithmetic
+   in "The measurement that has to come first" below is superseded. The probe's
+   `beat a face` column is the current answer: **17 of 17 pirate builds
+   out-damage one face at their best case**, where fourteen of them could not
+   before. The premise that opened this item is settled, and 139 settled it.
+2. **The floor is already tight, and a set can breach it.**
+   `constants/recharge.ts` states the bound in as many words: the lightest gun in
+   the roster is the Worm and the Ophidian at 3.27 points a second, against 3.06
+   of regeneration. `test/role-variants.test.ts` pins it — no build the galaxy
+   sends may be one a face simply outruns. A set that fills its pirate band with
+   light designs only would hand M3 a reception that breaches that gate, so the
+   gate is a constraint on the chooser and not only on the roster. M3 must say
+   what happens then.
+3. **The guard belongs on the three combat bands, not on all six.** The trader
+   band's per-hit minimum is 0, because a trader is unarmed and is meant to be.
+   A "damage must not fall" rule over that band would compare two numbers that
+   describe nothing.
+
 ## Where we are
 
 Elite-A did not ship one roster. It shipped **23**, the files `S.A` to `S.W`,
@@ -150,13 +202,21 @@ one decision below.
 
 ## What to do
 
-**M1 — the probe, before anything changes.** `npm run roster-probe`: for a
-sample of systems across all eight galaxies, report the set each would choose and
-what its reception is worth — designs by slot band, builds, damage per hit, and
-best-case points per second against the Cobra. Baseline it on today's collapsed
-roster first, so M3 has something to have changed. 134's lesson, and 136's:
-*docking well and flying well are different claims, and only the first had a
-number.*
+**M1 — the probe, before anything changes — LANDED.** `npm run roster-probe`:
+for a sample of systems across all eight galaxies, report the set each would
+choose and what its reception is worth — designs by slot band, builds, damage per
+hit, and best-case points per second against the Cobra. Baseline it on today's
+collapsed roster first, so M3 has something to have changed. 134's lesson, and
+136's: *docking well and flying well are different claims, and only the first had
+a number.*
+
+`rosterInForce(system, galaxy)` in `train/roster-probe.ts` is the seam M3
+replaces. It ignores both arguments today and hands back the one module-level
+roster. `test/roster-probe.test.ts` bounds what the probe may report: a role
+never widens past its slot band, the ceiling is `bestCasePerSecond` and not the
+probe's own arithmetic, a sample meets no more than the census holds, and the two
+Harmless overlays acquire no band. All three of those gates were shown to fail
+before they were believed.
 
 **M2 — the chooser.** `game/blueprint-set.ts`: a pure
 `(system, galaxy, bits) → set letter`, the table above, plus the galaxy addition

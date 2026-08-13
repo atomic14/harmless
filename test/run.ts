@@ -113,6 +113,7 @@ import './arena.test.ts';
 import './viewer-scenarios.test.ts';
 import './probe-rows.test.ts';
 import './aim-probe.test.ts';
+import './roster-probe.test.ts';
 
 // --- the shell --------------------------------------------------------------
 import './ui.test.ts';
