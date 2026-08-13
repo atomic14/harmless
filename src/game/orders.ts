@@ -19,7 +19,10 @@ import type { CommanderData } from './commander.ts';
 import { dayWord } from './commander.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { describeContract } from './contract-offers.ts';
-import { missionLeg } from './missions.ts';
+import {
+  contractDestinations, contractVerdict, type ContractVerdict,
+} from './contract-eta.ts';
+import { missionDestination, missionLeg } from './missions.ts';
 
 /** The Navy leg, named as an order. `MissionLeg` (missions.ts) is its source. */
 export interface NavyOrder {
@@ -98,6 +101,50 @@ export function standingOrders(
  *
  * '' when she is under no orders at all. The menu then draws nothing.
  */
+/**
+ * Every system a standing order sends this commander to.
+ *
+ * The charts draw a diamond on each one (docs/TODO/140 M4 built the marker for
+ * the contracts). The Navy target had been missing from it, which is the half
+ * of GitHub #27 that bites in FLIGHT: the chart is where a pilot picks a
+ * destination, and the Constrictor's system looked like any other world.
+ *
+ * A SET, because two jobs to one world are one diamond, and the Navy can send
+ * her to a world she already owes a delivery to.
+ */
+export function orderDestinations(c: CommanderData): ReadonlySet<number> {
+  const marks = new Set(contractDestinations(c));
+  const navy = missionDestination(c);
+  if (navy !== null) marks.add(navy);
+  return marks;
+}
+
+/**
+ * What the chart says about the system under the cursor, or null when nothing
+ * sends her there.
+ *
+ * A CONTRACT ANSWERS FIRST where one system carries both, and that is not
+ * arbitrary: a contract has a deadline and the Navy mission does not, so the
+ * contract is the line that tells her when she must leave.
+ *
+ * `daysAway` is the journey the painter measured, with the same three meanings
+ * `contractVerdict` gives it — a number of days, `0` for standing on it, and
+ * `null` for no chain of full-tank jumps that reaches it.
+ */
+export function orderVerdict(
+  c: CommanderData, systemIndex: number, daysAway: number | null,
+): ContractVerdict | null {
+  const owed = contractVerdict(c, systemIndex, daysAway);
+  if (owed) return owed;
+  if (missionDestination(c) !== systemIndex) return null;
+
+  // No deadline, so nothing here can be late. `NO ROUTE` is red all the same:
+  // it is not a deadline she will miss, it is a world she cannot reach.
+  if (daysAway === null) return { text: 'NAVY MISSION · NO ROUTE', late: true };
+  if (daysAway === 0) return { text: 'NAVY MISSION · YOU ARE HERE', late: false };
+  return { text: `NAVY MISSION · ${dayWord(daysAway)} AWAY`, late: false };
+}
+
 export function ordersSummary(orders: readonly StandingOrder[]): string {
   const parts: string[] = [];
 

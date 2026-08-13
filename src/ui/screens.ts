@@ -11,8 +11,7 @@ import {
   type CommanderData, type Contract,
   cargoTonnes, consignedTonnes, formatCredits, cargoCapacity, dayWord,
 } from '../game/commander.ts';
-import { contractDestinations, contractVerdict } from '../game/contract-eta.ts';
-import type { StandingOrder } from '../game/orders.ts';
+import { orderDestinations, orderVerdict, type StandingOrder } from '../game/orders.ts';
 import { MAX_FUEL, STARTING_CREDITS } from '../constants/commander.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 import { rating } from '../game/rating.ts';
@@ -800,31 +799,33 @@ function daysTerm(trip: Journey | null): string {
 }
 
 /**
- * ` &middot; DUE IN 6 DAYS &middot; 3 DAYS AWAY` for a system this commander
- * owes a contract to, or nothing — on both charts.
+ * ` &middot; DUE IN 6 DAYS &middot; 3 DAYS AWAY` for a system a standing order
+ * sends this commander to, or nothing — on both charts.
  *
  * The board sold the job and the chart draws the world. The pilot held the
- * subtraction between them (docs/TODO/140 M4).
+ * subtraction between them (docs/TODO/140 M4). docs/TODO/144 added the Navy
+ * mission to the same line, because the chart is where a pilot decides where to
+ * go and the Constrictor's system looked like any other world.
  *
- * `game/contract-eta.ts` owns the words and the verdict. This function owns the
+ * `game/orders.ts` owns the words and the verdict. This function owns the
  * markup only, so the two charts cannot word one commitment differently. It
- * takes the whole commander for the reason that module states: the deadline is
- * the commander's day, and the galaxy's day is also in scope here.
+ * takes the whole commander for the reason `contract-eta.ts` states: the
+ * deadline is the commander's day, and the galaxy's day is also in scope here.
  *
  * Amber, because that is the colour of a thing you asked for, and it is the
  * colour of the marker on the chart beside it. Red when the deadline cannot be
  * met. The words say TOO FAR as well, so the colour is never the only signal.
  */
 function contractTerm(c: CommanderData, near: StarSystem, trip: Journey | null): string {
-  const verdict = contractVerdict(c, near.index, trip === null ? null : trip.days);
+  const verdict = orderVerdict(c, near.index, trip === null ? null : trip.days);
   if (verdict === null) return '';
   const tint = verdict.late ? 'var(--hud-red)' : 'var(--hud-amber)';
   return ` &middot; <span class="due" style="color:${tint}">${verdict.text}</span>`;
 }
 
 /**
- * A diamond around every system this commander owes a contract to — on both
- * charts.
+ * A diamond around every system a standing order sends this commander to — on
+ * both charts. The set is `orderDestinations` (game/orders.ts).
  *
  * ALWAYS DRAWN, beside the danger ring and for the same reason: a commitment
  * you accepted is a warning rather than a view, and 111's one-picture rule
@@ -1076,7 +1077,7 @@ export function drawChart(
     ctx.stroke();
   }
 
-  drawContractMarks(ctx, contractDestinations(c), systems, px, py, 7);
+  drawContractMarks(ctx, orderDestinations(c), systems, px, py, 7);
 
   // current system crosshair
   ctx.strokeStyle = HUD.green;
@@ -1221,7 +1222,7 @@ export function drawLocalChart(
     ctx.stroke();
   }
 
-  drawContractMarks(ctx, contractDestinations(c), systems, px, py, 8);
+  drawContractMarks(ctx, orderDestinations(c), systems, px, py, 8);
 
   // current system crosshair
   ctx.strokeStyle = HUD.green;

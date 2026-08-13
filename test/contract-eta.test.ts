@@ -19,6 +19,7 @@ import { distanceTenths, daysForJump } from '../src/galaxy/navigation.ts';
 import { routeEstimate } from '../src/galaxy/route.ts';
 import { newCommander, type CommanderData, type Contract } from '../src/game/commander.ts';
 import { contractDestinations, contractVerdict } from '../src/game/contract-eta.ts';
+import { orderDestinations, orderVerdict } from '../src/game/orders.ts';
 import { MAX_FUEL } from '../src/constants/commander.ts';
 import {
   CHART_CANVAS_W, CHART_CANVAS_H, CHART_Y_SQUASH, LOCAL_CANVAS, LOCAL_SCALE,
@@ -271,4 +272,62 @@ console.log('\nthe chart marks the world you owe a delivery to');
   const rings = ops.filter((o) => o.method === 'arc' && o.strokeStyle === HUD.amber);
   check('a jump target with no contract on it draws a ring and no diamond',
     rings.length === 1 && diamonds(ops, 7).length === 0);
+}
+
+// --- and the other kind of standing order (docs/TODO/144 M4) ----------------
+//
+// The Navy mission sends a commander to a system exactly as a contract does,
+// and until now the chart drew it as any other world. That is the half of
+// GitHub #27 that bites in FLIGHT: the bulletin board does not open there, so
+// the chart is the only surface left that could have said where to go.
+//
+// `game/orders.ts` owns the union and the verdict. The rig above is this
+// block's as well, so the two kinds cannot be marked by two different rules.
+
+console.log('\nthe chart marks the world the Navy sent you to');
+{
+  const lave = g1[7];
+  const inside = g1.filter((s) => s.index !== 7 && distanceTenths(lave, s) <= MAX_FUEL)[0];
+  const away = daysForJump(distanceTenths(lave, inside));
+
+  /** A commander hunting the Constrictor at `target`. */
+  const hunting = (target: number): CommanderData => {
+    const c = standing(7, 10);
+    c.mission = { stage: 1, targetIndex: target };
+    return c;
+  };
+
+  const c = hunting(inside.index);
+  eq('the hunt marks the one world', orderDestinations(c).size, 1);
+  const drawn = marks(c);
+  check('...and both charts draw the diamond on it',
+    at(drawn.wide, widePoint(inside)) && at(drawn.local, localPoint(inside, lave)));
+
+  const line = infoLines(c, inside);
+  eq('the galactic chart names the mission and prices the journey',
+    painted(line.wide), `NAVY MISSION · ${away} DAY${away === 1 ? '' : 'S'} AWAY`);
+  eq('...and the short range chart agrees', painted(line.local), painted(line.wide));
+  check('...in amber, because a mission has no deadline to miss',
+    !inRed(line.wide) && !inRed(line.local));
+
+  const here = infoLines(hunting(7), lave);
+  eq('standing in the system it is hiding in says so',
+    painted(here.wide), 'NAVY MISSION · YOU ARE HERE');
+
+  // A CONTRACT ANSWERS FIRST where one world carries both, because a contract
+  // has a deadline and the mission does not.
+  const both = hunting(inside.index);
+  both.contracts = [job(inside.index, 40)];
+  eq('one world under two orders is still one marker', orderDestinations(both).size, 1);
+  check('...and the deadline is the line that is printed',
+    painted(infoLines(both, inside).wide).startsWith('DUE IN 30 DAYS'));
+
+  // Stage 2 is the gap between the kill and the next briefing, and stage 4 is
+  // over. `missionDestination` is what keeps a cleared `targetIndex` off the
+  // chart, rather than every caller knowing which stages mean anything.
+  const between = standing(7, 10);
+  between.mission = { stage: 2, targetIndex: null };
+  eq('between the two legs nothing is marked', orderDestinations(between).size, 0);
+  eq('...and a system nobody sent her to has no verdict',
+    orderVerdict(between, inside.index, 2), null);
 }
