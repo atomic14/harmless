@@ -13,9 +13,21 @@ active context:
 
 ## Execution queue
 
-**Empty.** Three issues have now closed on the same pattern in three days. Chris
-flew the game, and each time the rule was correct and the cockpit did not carry
-the consequence. 142 closed #25, 143 closed #26, and 144 closed #27.
+1. [145 — Two kinds of work, two screens](145-two-kinds-of-work-two-screens.md)
+   · Chris, 2026-08-13 · design · small.
+
+**145 is Chris's call on reading 144.** That item put every standing order on one
+screen, and the screen then overlapped the bulletin board: *"we have contracts
+and we have missions... should they be there?"* Split by kind. MISSIONS holds the
+Navy mission; CONTRACTS holds board work, and it opens in flight. Two smaller
+faults came out of the same look. **144 recorded a decision it never
+implemented** — the board's ACCEPTED table still renders `c.contracts` itself
+rather than the shared reader — and **two screens each have two names**, a row
+and a heading that disagree.
+
+**Three issues closed on one pattern in three days.** Chris flew the game, and
+each time the rule was correct and the cockpit did not carry the consequence.
+142 closed #25, 143 closed #26, and 144 closed #27.
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
