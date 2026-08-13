@@ -167,4 +167,76 @@ not apply.
 
 ## What landed
 
-Not started.
+All four milestones, on 2026-08-13. `npm run check` passes. Flown in the
+browser, and every surface below was read on screen.
+
+**M1 — MISSIONS is the Navy's alone.** It reads `missionLeg`, so one leg needs
+no table. Heading `NAVY MISSIONS`; the empty case says the Navy has no orders
+for her. The test asserts the split rather than assuming it: a contract held at
+the same time must NOT appear.
+
+**M2 — CONTRACTS opens in flight, on ⇧C.** `atStation` splits the screen. The
+ACCEPTED half travels; the board does not, and the accept key is refused rather
+than hidden.
+
+**M3 — one name each.** It was mostly carried by M2, because the flight case
+forced the heading: `LEESTI STATION BULLETIN BOARD` could not be the name of a
+screen opened between two stars.
+
+**M4 — one home for the days-left sum**, and it is smaller than this plan said.
+
+## What the milestones found that the plan did not have
+
+**1. M4's premise was wrong, and the plan was the thing at fault.** It said the
+board was *"a second, independent rendering"* that could word a job differently.
+It could not. `renderContracts` and `game/orders.ts` both call
+`describeContract`, which has been the one home of a job's words all along. What
+was genuinely written twice is the DAYS-LEFT SUBTRACTION, and that is what
+moved. The milestone is worth having for that alone — docs/TODO/140 M4 records
+what a deadline measured from the wrong day costs — but the claim that made it
+sound urgent was not true.
+
+**2. The accept-key refusal had no gate.** The test drew the screen and checked
+the button was absent. It never pressed the key. Proving each gate could fail is
+what caught it: breaking the refusal changed nothing that any assertion read.
+The assertion that drives `ContractsScreen.input` was written afterwards.
+
+**3. `controls.ts` crossed the size ceiling three times running**, because the
+click-path rule was written out at each binding that obeys it. It has ONE home
+now, in `ui/key-help.ts` beside `dockedMenuHtml` — which is the function the
+rule is about, and the one place in the codebase that writes `data-key`. That is
+better placement, not a smaller comment.
+
+**4. `ordersSummary` had lost its doc comment.** 144 M4 inserted two functions
+above it, and the comment stayed where it was — so `orderDestinations` carried
+the reasoning for the summary, and the function GitHub #27 is actually about had
+none.
+
+**5. `ContractOrder` carries its `job`.** The table needs two facts no summary
+does: whether the run is illicit, and how far along a bounty is. A field for
+each would put a second decision about what "illicit" MEANS next to the one in
+`renderContracts`.
+
+## Verified in the browser, 2026-08-13
+
+Docked at Leesti with 16 kills, a beam laser, a courier job and a part-finished
+bounty:
+
+1. `R` opens NAVY MISSIONS. It carries the order, the destination, the fee and
+   the gun warning — and **no contract**.
+2. `C` at the station opens CONTRACTS, with `WORK ON OFFER AT LEESTI` above the
+   two accepted jobs.
+3. `⇧C` in flight opens the same screen with the ACCEPTED table only: no board,
+   no ACCEPT control, and a keyline that reads `ESC EXIT` alone.
+4. The bounty's progress reads `Destroy 5 pirates around RIINUS (2/5)`, and the
+   tighter deadline is the first row.
+
+**One thing the browser session found that is not a game defect.** A tab in a
+background window has `document.hidden`, so `requestAnimationFrame` never fires
+and no key does anything. The docking tunnel then never finishes, and it holds
+input for as long as it runs. Both are correct behaviour; a verification session
+has to drive `Game.step` itself and let the tunnel finish before pressing
+anything.
+
+**No save was put at risk.** The page was switched to the harness namespace
+(invariant 3) before anything docked, and the seven player keys were untouched.
