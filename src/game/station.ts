@@ -329,14 +329,14 @@ export class Station {
   }
 
   /**
-   * The one line of standing orders under the station menu's header.
+   * The standing orders under the station menu's header, one line each.
    *
    * ONE ENTRY PER KIND. It used to return the first contract and stop, so two
    * jobs hid the Navy mission completely and the target system went with it
-   * (GitHub #27). `orders.ts` owns the words and the sort; the MISSIONS screen
-   * holds what this line has no room for.
+   * (GitHub #27). `orders.ts` owns the words, the sort and how many lines there
+   * are; the two screens hold the detail these lines do not carry.
    */
-  missionText(): string {
+  orderLines(): string[] {
     return ordersSummary(standingOrders(this.state.commander, this.state.systems));
   }
 }

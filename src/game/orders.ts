@@ -157,20 +157,33 @@ export function orderVerdict(
  * the order off the screen on its own, and the MISSIONS screen is one keystroke
  * away — which is what invariant 16 asks of an announcement.
  *
- * '' when she is under no orders at all. The menu then draws nothing.
+ * ONE LINE PER ENTRY, and the menu draws each on its own row. It was one joined
+ * string until Chris read it and said the width is not scarce: *"we don't need
+ * to keep it one line"* (2026-08-13). A joined line still WRAPPED at that
+ * width — it broke wherever the column ran out, which was usually mid-order.
+ *
+ * Empty when she is under no orders at all. The menu then draws nothing.
  */
-export function ordersSummary(orders: readonly StandingOrder[]): string {
-  const parts: string[] = [];
+export function ordersSummary(orders: readonly StandingOrder[]): string[] {
+  const lines: string[] = [];
 
   const navy = orders.find((o): o is NavyOrder => o.kind === 'navy');
-  if (navy) parts.push(navy.line);
+  if (navy) {
+    lines.push(navy.line);
+    // THE WARNING IS BACK, and the one-line budget is why it ever left.
+    // docs/TODO/144 M1 cut it because it is long enough to push the order off
+    // the row on its own — a length argument, and length stopped being the
+    // constraint. It is the one thing on this menu that a commander must not
+    // learn forty light years from here (`constrictorWarning`).
+    if (navy.warning) lines.push(navy.warning);
+  }
 
   const contracts = orders.filter((o): o is ContractOrder => o.kind === 'contract');
   const head = contracts[0];
   if (head) {
     const more = contracts.length - 1;
-    parts.push(`${head.line} — ${dayWord(head.daysLeft)}`
+    lines.push(`${head.line} — ${dayWord(head.daysLeft)}`
       + (more > 0 ? ` (+${more} MORE)` : ''));
   }
-  return parts.join(' · ');
+  return lines;
 }

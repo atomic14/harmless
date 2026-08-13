@@ -86,7 +86,7 @@ console.log('\nstanding orders — every kind the commander holds is named');
     eq('...the Navy sorts above the work, because it is briefed one time',
       orders[0]?.kind, 'navy');
 
-    const line = ordersSummary(orders);
+    const line = ordersSummary(orders).join(' | ');
     const target = systems[c.mission.targetIndex as number].name.toUpperCase();
     check('...and the summary still names the system she must fly to',
       line.includes(target));
@@ -97,17 +97,18 @@ console.log('\nstanding orders — every kind the commander holds is named');
 
   // 4. the everyday cases --------------------------------------------------
   {
-    eq('a commander under no orders gets no line', ordersSummary(standingOrders(cmdr(), systems)), '');
+    eq('a commander under no orders gets no line',
+      ordersSummary(standingOrders(cmdr(), systems)).length, 0);
 
     const one = cmdr({ contracts: [job()] });
-    const line = ordersSummary(standingOrders(one, systems));
+    const line = ordersSummary(standingOrders(one, systems)).join(' | ');
     check('one job reads as it always did', line.includes('SEALED DATA') && line.includes('6 DAYS'));
     check('...and does not count a job that is not there', !line.includes('MORE'));
 
     const tomorrow = cmdr({ contracts: [job({ deadlineDay: 101 })] });
+    const last = ordersSummary(standingOrders(tomorrow, systems)).join(' | ');
     check('the last day is a day, not days',
-      ordersSummary(standingOrders(tomorrow, systems)).includes('1 DAY —') === false
-      && ordersSummary(standingOrders(tomorrow, systems)).includes('— 1 DAY'));
+      !last.includes('1 DAY —') && last.includes('— 1 DAY'));
   }
 
   // 5. the contracts sort by deadline --------------------------------------
@@ -122,7 +123,7 @@ console.log('\nstanding orders — every kind the commander holds is named');
     check('the tightest deadline sorts first',
       orders[0].kind === 'contract' && orders[0].daysLeft === 4);
     check('...and it is the one the summary prices',
-      ordersSummary(orders).includes('4 DAYS'));
+      ordersSummary(orders).join(' | ').includes('4 DAYS'));
   }
 
   // 6. the warning is carried, and it is not on the summary -----------------
@@ -133,8 +134,13 @@ console.log('\nstanding orders — every kind the commander holds is named');
     const orders = standingOrders(c, systems);
     check('the Navy order carries what her gun is worth',
       orders[0].kind === 'navy' && orders[0].warning.includes('MILITARY'));
-    check('...and the summary carries the order rather than the warning',
-      !ordersSummary(orders).includes('MILITARY'));
+    // THE WARNING IS ON THE SUMMARY, on its own line. It was cut by 144 for
+    // length alone, and Chris released that constraint: "we don't need to keep
+    // it one line". It is the one thing a commander must not learn forty light
+    // years from the dock that briefed her.
+    check('...and the summary carries it, on a line of its own',
+      ordersSummary(orders).some((l) => l.includes('MILITARY'))
+      && !ordersSummary(orders)[0].includes('MILITARY'));
   }
 }
 
@@ -290,7 +296,7 @@ console.log('\nthe summary never drops a kind for another');
     for (const jobs of [0, 1, 2, 3]) {
       const c = held(navy, jobs);
       const orders = standingOrders(c, systems);
-      const line = ordersSummary(orders);
+      const line = ordersSummary(orders).join(' | ');
       const kinds = new Set(orders.map((o) => o.kind));
       const shown = new Set(
         orders.filter((o) => line.includes(o.line)).map((o) => o.kind),
@@ -322,4 +328,35 @@ console.log('\nR opens the standing orders in both modes, and takes nothing else
   eqc('...and in the cockpit', cmds('flight', ['KeyI'], []), ['openStatus']);
   eqc('a held shift does not turn R into something else',
     cmds('docked', ['KeyR'], ['ShiftLeft']), ['openMissions']);
+}
+
+// The SHAPE of the summary, which the joined assertions above cannot see.
+// Chris released the one-line constraint on 2026-08-13 — "we don't need to keep
+// it one line" — and a joined string wrapped wherever the column ran out, which
+// was usually mid-order.
+
+console.log('\nthe summary is one line per entry, not one wrapped run');
+{
+  const systems = generateGalaxy(1);
+  const c: CommanderData = {
+    ...newCommander(), kills: 16, galaxy: 1, systemIndex: 7, day: 100,
+    contracts: [{
+      kind: 'courier', destination: 42, commodity: 0, qty: 1,
+      reward: 5000, deadlineDay: 106, progress: 0,
+    }],
+    mission: { stage: 0, targetIndex: null },
+  };
+  c.equipment.laser = 'beam';
+  stepMissionAtDock(c, systems, () => 0.5);
+
+  const lines = ordersSummary(standingOrders(c, systems));
+  eq('a mission, its warning and a job are three lines', lines.length, 3);
+  check('the order comes first', lines[0].startsWith('NAVY MISSION'));
+  check('...then what her gun is worth against it', lines[1].includes('MILITARY LASER'));
+  check('...then the work she signed for', lines[2].includes('SEALED DATA'));
+  check('no line carries two orders', lines.every((l) => !l.includes(' · NAVY')));
+
+  const noWarning: CommanderData = { ...c, equipment: { ...c.equipment, laser: 'military' } };
+  eq('a commander with the right gun gets no warning line',
+    ordersSummary(standingOrders(noWarning, systems)).length, 2);
 }

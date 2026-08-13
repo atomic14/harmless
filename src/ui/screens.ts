@@ -87,14 +87,20 @@ function show(html: string, wide = false): void {
   body().classList.add('screen-open');
 }
 
-export function renderDockedMenu(sys: StarSystem, c: CommanderData, missionText = ''): void {
+export function renderDockedMenu(
+  sys: StarSystem, c: CommanderData, orderLines: readonly string[] = [],
+): void {
   show(`
     <h2>${sys.name.toUpperCase()} STATION</h2>
     <div class="rule"></div>
     <div class="info" style="text-align:center">
       ${ECONOMY_NAMES[sys.economy]} &middot; ${GOVERNMENT_NAMES[sys.government]} &middot; TECH LEVEL ${sys.techLevel + 1}<br/>
       ${formatCredits(c.credits)} &middot; FUEL ${(c.fuel / 10).toFixed(1)} LY &middot; MISSILES ${c.missiles} &middot; DAY ${c.day}
-      ${missionText ? `<br/><span style="color:var(--hud-amber)">${missionText}</span>` : ''}
+      ${orderLines.length
+    // One ROW per order rather than one wrapped run of them. A joined line broke
+    // wherever the column ran out, which was usually mid-order (docs/TODO/144).
+    ? `<br/><span style="color:var(--hud-amber)">${orderLines.join('<br/>')}</span>`
+    : ''}
     </div>
     ${dockedMenuHtml()}
   `);

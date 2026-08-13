@@ -972,7 +972,7 @@ export class Game {
           if (e.action === 'releaseMouseFlight') this.input.releaseMouseFlight();
           else if (e.action === 'tunnel') this.tunnel.start(1.4, e.way);
           else if (e.screen === 'docked') {
-            renderDockedMenu(this.system, this.state.commander, this.station.missionText());
+            renderDockedMenu(this.system, this.state.commander, this.station.orderLines());
           } else {
             hideScreen();
           }
@@ -2018,7 +2018,7 @@ export class Game {
     },
     cancelNewGame: () => {
       this.pendingNewGame = false;
-      renderDockedMenu(this.system, this.state.commander, this.station.missionText());
+      renderDockedMenu(this.system, this.state.commander, this.station.orderLines());
     },
     // --- shared between the menu and the cockpit --------------------------
     openChart: () => this.openChart(this.cameFrom()),
@@ -2074,7 +2074,7 @@ export class Game {
   private switchLayout(): void {
     const layout = toggleLayout();
     this.showMessage(`KEYBOARD: ${layout.toUpperCase()} LAYOUT`, 3);
-    renderDockedMenu(this.system, this.state.commander, this.station.missionText());
+    renderDockedMenu(this.system, this.state.commander, this.station.orderLines());
   }
 
   private disarmMissile(): void {
