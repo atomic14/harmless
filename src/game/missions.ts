@@ -176,18 +176,81 @@ export function constrictorWarning(commander: CommanderData): string {
     + ` SCORES ${g.perHit} A HIT, A ${g.best.toUpperCase()} LASER ${g.bestPerHit}`;
 }
 
+/**
+ * The standing order itself, without the gun warning that may ride with it.
+ *
+ * Split out of `missionHeadline` by docs/TODO/144. A screen row wants the order
+ * in one cell and the warning under it; one line wants both joined. The words
+ * stay here either way, which is the one home rule.
+ */
+export function missionOrderLine(
+  commander: CommanderData, systems: readonly StarSystem[],
+): string {
+  const m = commander.mission;
+  if (m.targetIndex === null) return '';
+  const where = systems[m.targetIndex].name.toUpperCase();
+  if (m.stage === 1) return `NAVY MISSION: DESTROY THE CONSTRICTOR — LAST SEEN AT ${where}`;
+  if (m.stage === 3) return `NAVY MISSION: DELIVER THE PLANS TO ${where}`;
+  return '';
+}
+
+/**
+ * Where the Navy is sending her, or null when it is sending her nowhere.
+ *
+ * The charts mark it (docs/TODO/144 M4), and the standing orders report it. It
+ * is deliberately NOT `mission.targetIndex` read directly: stage 2 and stage 4
+ * both clear that field, and a caller that reads it raw would have to know
+ * which stages mean anything.
+ */
+export function missionDestination(commander: CommanderData): number | null {
+  const m = commander.mission;
+  if (m.stage === 1 || m.stage === 3) return m.targetIndex;
+  return null;
+}
+
+/** The leg the Navy has her on: where, for how much, and what it needs. */
+export interface MissionLeg {
+  /** the order in words, upper case, WITHOUT the warning */
+  readonly line: string;
+  readonly destination: number;
+  /** what the leg pays on completion, in tenths of a credit */
+  readonly reward: number;
+  /** what her gun is worth against the target, or '' when it will do */
+  readonly warning: string;
+}
+
+/**
+ * Every fact about the running leg at once, or null when none runs.
+ *
+ * ONE reader rather than four, because the four cannot disagree: the line, the
+ * destination, the fee and the warning all answer for stages 1 and 3, and a
+ * caller that assembled them itself would have to handle three combinations
+ * that the machine cannot produce.
+ *
+ * The fee is read off the same two constants `stepMissionAtDock` and
+ * `constrictorDestroyed` pay from, so a screen cannot quote a price the mission
+ * does not settle. The warning is a stage 1 fact: it prices a gun against the
+ * Constrictor's hull, and by stage 3 that ship is wreckage.
+ */
+export function missionLeg(
+  commander: CommanderData, systems: readonly StarSystem[],
+): MissionLeg | null {
+  const destination = missionDestination(commander);
+  if (destination === null) return null;
+  const stage1 = commander.mission.stage === 1;
+  return {
+    line: missionOrderLine(commander, systems),
+    destination,
+    reward: stage1 ? CONSTRICTOR_BOUNTY : COURIER_PAYMENT,
+    warning: stage1 ? constrictorWarning(commander) : '',
+  };
+}
+
 /** The mission line for the docked menu, or '' when there is nothing to say. */
 export function missionHeadline(
   commander: CommanderData, systems: readonly StarSystem[],
 ): string {
-  const m = commander.mission;
-  if (m.stage === 1 && m.targetIndex !== null) {
-    const warning = constrictorWarning(commander);
-    return `NAVY MISSION: DESTROY THE CONSTRICTOR — LAST SEEN AT ${systems[m.targetIndex].name.toUpperCase()}`
-      + (warning ? ` · ${warning.replace('NAVY: ', '')}` : '');
-  }
-  if (m.stage === 3 && m.targetIndex !== null) {
-    return `NAVY MISSION: DELIVER THE PLANS TO ${systems[m.targetIndex].name.toUpperCase()}`;
-  }
-  return '';
+  const leg = missionLeg(commander, systems);
+  if (!leg) return '';
+  return leg.line + (leg.warning ? ` · ${leg.warning.replace('NAVY: ', '')}` : '');
 }
