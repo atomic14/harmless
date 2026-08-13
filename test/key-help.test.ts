@@ -25,16 +25,17 @@
 
 import { readFileSync } from 'node:fs';
 import {
-  BINDINGS, GLOBAL_BINDINGS, type Binding, type Command, type ControlMode,
+  BINDINGS, GLOBAL_BINDINGS, commandsFor,
+  type Binding, type Command, type ControlMode,
 } from '../src/game/controls.ts';
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import {
   ALL_BINDINGS, boundKey, dockedMenuHtml, guideSections, guideTableHtml, keyLabel,
-  manualCommandsHtml, paintCommandGuide,
+  manualCommandsHtml, menuRowsHtml, paintCommandGuide,
 } from '../src/ui/key-help.ts';
 import { BRIEFING } from '../src/ui/screens.ts';
-import { check, cmds, eq } from './harness.ts';
+import { check, clicks, eq, eqc } from './harness.ts';
 
 /** A binding's identity for these tests: the same key does the same thing. */
 const id = (b: Binding): string => `${keyLabel(b.key, b.shift)} → ${b.command}`;
@@ -148,22 +149,48 @@ console.log('\nthe station menu advertises exactly what is bound there');
   check('...and neither of those is vacuous',
     rowKeys.length >= 8 && keyline.includes('? CONTROLS GUIDE'));
 
-  // A ROW IS A CLICK TARGET, and `data-key` carries the key without the
-  // modifier — `ScreenHost.click` injects that key, and the menu cursor injects
-  // it again on Enter. So a SHIFTED row cannot keep invariant 13's promise that
-  // a click becomes the same keystroke as a key press: it presses the plain
-  // key, and the plain entry answers.
+  // A ROW IS A CLICK TARGET, so PRESS each one. Every rule above asks what a row
+  // ADVERTISES; this asks what it DOES, which is the half that was missing when
+  // `⇧I MISSIONS` shipped for an afternoon and clicked through to COMMANDER
+  // STATUS (docs/TODO/144 M6).
   //
-  // docs/TODO/144 shipped `⇧I MISSIONS` as a row for one afternoon, and
-  // clicking it opened the COMMANDER STATUS screen. Nothing here could see it:
-  // every rule above asks what is ADVERTISED, and none of them pressed a row.
-  // ⇧T is the case that always dodged this, by being a keyline caption.
+  // The tap carries the row's own shift (docs/TODO/146), so this is the proof
+  // that the mechanism works rather than a ban on writing a shifted row. It
+  // reads the RENDERED markup, not the table, because `data-shift` is what the
+  // browser will actually send.
+  const rendered = [...menu.matchAll(/data-key="([^"]+)"(?:\s+data-shift="([^"]*)")?/g)]
+    .map((m) => ({ key: m[1], shift: m[2] === '1' }));
+  const rowFor = (b: { key: string; shift?: boolean }) =>
+    rendered.find((r) => r.key === b.key && r.shift === (b.shift === true));
   const clicked = BINDINGS.docked
     .filter((b) => COMMAND_HELP[b.command].menu)
-    .filter((b) => !cmds('docked', [b.key], []).includes(b.command));
+    .filter((b) => {
+      const row = rowFor(b);
+      return !row || !commandsFor('docked', clicks([row])).includes(b.command);
+    });
   check('clicking a menu row asks for the command the row advertises',
     clicked.length === 0,
     clicked.map((b) => `${keyLabel(b.key, b.shift)} ${COMMAND_HELP[b.command].menu}`).join(', '));
+
+  // NO SHIPPED ROW IS SHIFTED TODAY — ⇧T is a keyline caption — so the loop
+  // above can only exercise the unshifted branch, and it read green through the
+  // whole of docs/TODO/144 M6 while the shifted case was broken. `menuRowsHtml`
+  // takes its bindings so the branch can be driven directly.
+  const shiftedRow = menuRowsHtml([{ key: 'KeyT', shift: true, command: 'openTestMode' }]);
+  check('a shifted row prints the modifier it will send',
+    shiftedRow.includes('data-key="KeyT"') && shiftedRow.includes('data-shift="1"')
+    && shiftedRow.includes('⇧T'), shiftedRow);
+  const plainRow = menuRowsHtml([{ key: 'KeyT', command: 'openCombatSim' }]);
+  check('an unshifted row prints no modifier', !plainRow.includes('data-shift'));
+
+  // ...and pressed through the REAL table. ⇧T and T are the station's one
+  // shifted pair, so this is the join the emitter alone cannot make: the row's
+  // modifier reaches `commandsFor` and picks the shifted entry over the plain
+  // one that shares its key.
+  eqc('a click carrying the row\'s shift asks for the shifted command',
+    commandsFor('docked', clicks([{ key: 'KeyT', shift: true }])), ['openTestMode']);
+  eqc('...and without it, the plain entry answers',
+    commandsFor('docked', clicks([{ key: 'KeyT' }])), ['openCombatSim']);
 }
 
 console.log('\nthe manual page is generated per mode');

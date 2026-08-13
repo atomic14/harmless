@@ -187,3 +187,104 @@ const readPerFrame = (i: Input, code: string, frames: number): number => {
     + ` catch-up (${MAX_STEPS_PER_FRAME})`,
   CARRY_LIMIT < MAX_STEPS_PER_FRAME);
 }
+
+// --- a tap carries its own shift (docs/TODO/146) ----------------------------
+//
+// A click has no keyboard behind it, so the tap it injects has to say whether
+// it was shifted. The alternative — a flag on the FRAME — is what this block
+// exists to forbid: `commandsFor` tests every binding in one pass, so one click
+// that set a frame-wide "shift is down" would arm every shifted binding in the
+// table. ⇧Y is five tonnes over the side; Y is one.
+
+console.log('\na tap carries its own shift, and never the frame\'s');
+{
+  const i = new Input();
+
+  i.injectPress('KeyI', true);
+  eq('an injected tap reports the shift it was given', i.tapShift('KeyI'), true);
+  check('...and reading it does NOT consume the tap', i.tapShift('KeyI') === true);
+  check('...the tap is still there to press', i.pressed('KeyI'));
+  eq('...and it is gone once pressed', i.tapShift('KeyI'), null);
+
+  i.injectPress('KeyC');
+  eq('an injected tap with no shift says so', i.tapShift('KeyC'), false);
+  i.pressed('KeyC');
+
+  eq('a code with no tap at all defers to `held`', i.tapShift('KeyQ'), null);
+
+  // THE FALSE FIRE, stated as this file can state it: one shifted tap must not
+  // make another key look shifted. `test/key-help.test.ts` presses the rows;
+  // this holds the layer underneath them.
+  const j = new Input();
+  j.injectPress('KeyI', true);
+  j.injectPress('KeyY');
+  eq('a shifted tap on one key leaves another unshifted', j.tapShift('KeyY'), false);
+  eq('...and the shifted one is still shifted', j.tapShift('KeyI'), true);
+
+  // Two taps of the SAME key, one shifted and one not, in order.
+  const k = new Input();
+  k.injectPress('KeyH', true);
+  k.injectPress('KeyH', false);
+  eq('taps queue in order — the shifted one is first', k.tapShift('KeyH'), true);
+  k.pressed('KeyH');
+  eq('...and the plain one is behind it', k.tapShift('KeyH'), false);
+}
+
+console.log('\na carried tap keeps the shift it arrived with');
+{
+  const i = new Input();
+  i.injectPress('KeyI', true);
+  i.injectPress('KeyI', true);
+  i.pressed('KeyI');          // read it, which is what earns the backlog a carry
+  i.endFrame();
+  eq('the carry keeps a shifted tap shifted', i.tapShift('KeyI'), true);
+  check('...and it is still pressable next frame', i.pressed('KeyI'));
+
+  // THE CARRY MUST DROP FROM THE BACK, and a backlog of ONE shift cannot say
+  // so — `slice(0, N)` and `slice(-N)` agree on every queue that is uniform or
+  // short. This one is neither: two shifted taps, then two plain, one read, and
+  // three of the remaining four survive. Taking the newest would hand the next
+  // frame a tap wearing another one's modifier.
+  // The queue has to be LONGER than the limit once one is read, or `slice(0, N)`
+  // and `slice(-N)` agree and the check proves nothing: two shifted, three
+  // plain, one read leaves four for a limit of three.
+  const j = new Input();
+  j.injectPress('KeyH', true);
+  j.injectPress('KeyH', true);
+  j.injectPress('KeyH', false);
+  j.injectPress('KeyH', false);
+  j.injectPress('KeyH', false);
+  j.pressed('KeyH');
+  j.endFrame();
+  eq('the OLDEST taps carry, so the queue keeps its order', j.tapShift('KeyH'), true);
+  eq(`...and only ${CARRY_LIMIT} of them survive`, j.pressedCount('KeyH'), CARRY_LIMIT);
+}
+
+console.log('\none shifted tap does not arm every shifted binding in the frame');
+{
+  // The failure this whole design exists to prevent, driven through the real
+  // table. `commandsFor` tests EVERY binding in one pass, so a frame-wide
+  // "shift is down" set by one click would make a plain Y satisfy ⇧Y — five
+  // tonnes over the side instead of one, from a click on a menu row.
+  //
+  // `KeyZ` is bound to nothing in the cockpit, so the scan runs past it and
+  // reaches the Y pair. It stands for whatever row was actually clicked.
+  const i = new Input();
+  i.injectPress('KeyZ', true);          // a shifted tap on some other control
+  i.injectPress('KeyY');                // ...and a plain Y in the same frame
+  const asked = commandsFor('flight', i);
+  eq('a plain Y still jettisons ONE tonne', asked.join('|'), 'jettison1');
+  check('...and never five', !asked.includes('jettison5'));
+
+  // ...and the shifted tap still works on its own key, with nobody's hands on
+  // the keyboard. This is the half that was broken before docs/TODO/146.
+  const j = new Input();
+  j.injectPress('KeyY', true);
+  eq('a shifted tap jettisons five, with no shift HELD',
+    commandsFor('flight', j).join('|'), 'jettison5');
+
+  // A real keydown is unchanged: `held` answers for it, exactly as before.
+  const k = new Input();
+  k.injectPress('KeyY');
+  eq('an injected plain tap is one tonne', commandsFor('flight', k).join('|'), 'jettison1');
+}

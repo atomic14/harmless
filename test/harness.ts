@@ -84,16 +84,48 @@ export function summarise(): void {
  * test can ask for a command with an object literal.
  */
 export function keys(down: string[], held: string[] = []): CommandInput {
-  const taps = new Map<string, number>();
-  for (const k of down) taps.set(k, (taps.get(k) ?? 0) + 1);
+  const taps = new Map<string, (boolean | null)[]>();
+  // `null` is a real keydown, so `held` answers for its modifier — which is
+  // what every entry of `down` is here. `clicks()` below is the other kind.
+  for (const k of down) taps.set(k, [...(taps.get(k) ?? []), null]);
   return {
     pressed: (code) => {
-      const n = taps.get(code) ?? 0;
-      if (n <= 0) return false;
-      taps.set(code, n - 1);
+      const q = taps.get(code);
+      if (!q || !q.length) return false;
+      q.shift();
       return true;
     },
     held: (...codes) => codes.some((c) => held.includes(c)),
+    tapShift: (code) => {
+      const q = taps.get(code);
+      return q && q.length ? q[0] : null;
+    },
+  };
+}
+
+/**
+ * The other kind of tap: injected, carrying its own shift, with NO keyboard
+ * behind it (docs/TODO/146). This is what a click on a menu row produces.
+ *
+ * `held` answers false for everything, deliberately. A click happens with
+ * nobody's hands on the keys, and a test that let it borrow a held modifier
+ * would prove the frame-wide rule this item exists to delete.
+ */
+export function clicks(taps: { key: string; shift?: boolean }[]): CommandInput {
+  const queue = new Map<string, boolean[]>();
+  for (const t of taps) queue.set(t.key, [...(queue.get(t.key) ?? []), t.shift === true]);
+  return {
+    pressed: (code) => {
+      const q = queue.get(code);
+      if (!q || !q.length) return false;
+      q.shift();
+      return true;
+    },
+    held: () => false,
+    tapShift: (code) => {
+      const q = queue.get(code);
+      return q && q.length ? q[0] : null;
+    },
   };
 }
 

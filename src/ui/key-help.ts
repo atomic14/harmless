@@ -177,6 +177,23 @@ export function manualCommandsHtml(): string {
 
 // --- the station menu -------------------------------------------------------
 
+
+/**
+ * The clickable rows themselves, taken as an argument.
+ *
+ * A SEAM, and it is there to be tested: `data-shift` is how a row sends what it
+ * SHOWS — the label reads ⇧I, so the click presses ⇧I (docs/TODO/146) — and no
+ * SHIPPED row is shifted today, so a test driving `dockedMenuHtml` alone could
+ * only ever exercise the unshifted branch. `guideTableHtml` takes its bindings
+ * for the same reason.
+ */
+export function menuRowsHtml(bindings: readonly Binding[]): string {
+  return bindings
+    .map((b) => `<div data-key="${b.key}"${b.shift ? ' data-shift="1"' : ''}>`
+      + `<b>${keyLabel(b.key, b.shift)}</b> ${COMMAND_HELP[b.command].menu}</div>`)
+    .join('\n      ');
+}
+
 /**
  * The docked menu's rows and the keyline under them.
  *
@@ -190,25 +207,19 @@ export function manualCommandsHtml(): string {
  * has a keyline one; `test/key-help.test.ts` asserts every docked binding has
  * exactly one of the two, so nothing bound at the station is unadvertised.
  *
- * **A ROW MAY NOT BIND A MODIFIER**, and this function is why: `data-key`
- * carries the KEY and nothing else, so `ScreenHost.click` injects a plain tap
- * and the unshifted entry answers it. `⇧I MISSIONS` shipped for an afternoon
- * and clicked through to the COMMANDER STATUS screen (docs/TODO/144 M6). The
- * menu cursor's Enter takes the same path, so arrowing onto the row failed the
- * same way. `test/key-help.test.ts` presses every row to hold the rule.
+ * **A ROW SENDS THE SHIFT IT PRINTS**, and this function is the one place that
+ * says so: `data-shift` beside `data-key`, read by `ScreenHost.click` and by
+ * the menu cursor's Enter, and carried on the TAP rather than set on the frame
+ * (docs/TODO/146).
  *
- * ⇧T is legal at the station because it is a KEYLINE caption, and the keyline
- * carries no `data-key`. The cockpit may bind a modifier freely: it has no
- * rows, and this is the one function in the codebase that writes `data-key`.
- * docs/TODO/146 is the item that would let a click carry a modifier and retire
- * the rule.
+ * It could not, once. `data-key` carried the key alone, so a click on a shifted
+ * row pressed the plain key and the unshifted entry answered — `⇧I MISSIONS`
+ * shipped for an afternoon and clicked through to COMMANDER STATUS
+ * (docs/TODO/144 M6). `test/key-help.test.ts` presses every row, and that
+ * assertion is now the proof this works rather than a ban on writing one.
  */
 export function dockedMenuHtml(): string {
-  const rows = BINDINGS.docked
-    .filter((b) => COMMAND_HELP[b.command].menu)
-    .map((b) => `<div data-key="${b.key}"><b>${keyLabel(b.key, b.shift)}</b> `
-      + `${COMMAND_HELP[b.command].menu}</div>`)
-    .join('\n      ');
+  const rows = menuRowsHtml(BINDINGS.docked.filter((b) => COMMAND_HELP[b.command].menu));
   // The keyline is not clickable, so it carries no data-key: these are keys
   // that work here, not controls you can arrow onto. `?` comes first because it
   // is the one that explains all the others.

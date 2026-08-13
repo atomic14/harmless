@@ -111,7 +111,7 @@ export type ControlMode = 'docked' | 'confirmNewGame' | 'flight' | 'simulator' |
 /**
  * The slice of `engine/input.ts` a binding needs.
  *
- * Two methods, structurally satisfied by `Input`. Nothing here knows what a
+ * Three methods, structurally satisfied by `Input`. Nothing here knows what a
  * keydown is.
  */
 export interface CommandInput {
@@ -119,6 +119,8 @@ export interface CommandInput {
   pressed(code: string): boolean;
   /** live key state — used for modifiers, and never consumed */
   held(...codes: string[]): boolean;
+  /** the shift the NEXT tap of this code carries, or null to ask `held` */
+  tapShift(code: string): boolean | null;
 }
 
 export interface Binding {
@@ -128,8 +130,9 @@ export interface Binding {
    * Require shift held (`true`) or ignore it (omitted). A shifted entry must
    * come FIRST for its key, since the plain one is the fallback.
    *
-   * A COCKPIT BINDING MAY TAKE A MODIFIER. A DOCKED MENU ROW MAY NOT, and
-   * `ui/key-help.ts` owns that rule beside the row it builds.
+   * A MENU ROW MAY TAKE ONE TOO, since docs/TODO/146: the row sends the shift
+   * it prints. `ui/key-help.ts` builds it and `test/key-help.test.ts` presses
+   * every row to prove it.
    */
   shift?: boolean;
   /**
@@ -360,10 +363,18 @@ export const BINDINGS: Record<ControlMode, readonly Binding[]> = {
  *
  * The modifier is checked FIRST, deliberately: `pressed()` consumes, so asking
  * about the key before the shift state would swallow ⇧H's tap on the plain-H
- * entry and lose the jump.
+ * entry and lose the jump. `tapShift` peeks for the same reason.
+ *
+ * A TAP ANSWERS FOR ITSELF WHERE IT CAN — a click carries the shift its row
+ * printed, a real keydown carries null and defers to `held`. `Input.tapped`
+ * says why that cannot be a flag on the frame (docs/TODO/146).
  */
 function fires(b: Binding, i: CommandInput): boolean {
-  if (b.shift !== undefined && b.shift !== i.held('ShiftLeft', 'ShiftRight')) return false;
+  if (b.shift !== undefined) {
+    const tap = i.tapShift(b.key);
+    const shifted = tap === null ? i.held('ShiftLeft', 'ShiftRight') : tap;
+    if (b.shift !== shifted) return false;
+  }
   return i.pressed(b.key);
 }
 

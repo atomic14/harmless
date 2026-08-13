@@ -37,8 +37,20 @@ import { CARRY_LIMIT } from '../constants/world-clock.ts';
 
 export class Input {
   private readonly down = new Set<string>();
-  /** taps waiting to be read: this frame's arrivals, plus whatever carried. */
-  private readonly tapped = new Map<string, number>();
+  /**
+   * Taps waiting to be read, oldest first, each carrying its own shift.
+   * This frame's arrivals, plus whatever carried.
+   *
+   * `null` is a REAL keydown: the live modifier state answers for it, exactly
+   * as it always has. `true`/`false` is an injected tap, which knows its own
+   * shift because a click has no keyboard behind it (docs/TODO/146).
+   *
+   * A queue rather than a count, and that is the whole design. The shift cannot
+   * be a flag on the frame: `commandsFor` tests every binding in one pass, so a
+   * frame-wide "shift is down" would let a plain Y satisfy ⇧Y and one click on
+   * a menu row would arm every shifted key in the table.
+   */
+  private readonly tapped = new Map<string, (boolean | null)[]>();
   /** codes something consumed this frame — the only ones whose backlog lives. */
   private readonly read = new Set<string>();
 
@@ -91,7 +103,7 @@ export class Input {
       // keydown itself isn't observable (e.g. synthetic events)
       const code = e.code === 'Slash' && e.shiftKey ? 'Question' : e.code;
       this.down.add(code);
-      this.tapped.set(code, (this.tapped.get(code) ?? 0) + 1);
+      this.queue(code).push(null);        // a real key: `held` answers for it
       if (e.code === 'Space' || e.code === 'Tab' || e.code === 'Slash') e.preventDefault();
     });
     window.addEventListener('keyup', (e) => {
@@ -107,8 +119,31 @@ export class Input {
    * physical key produces). Arrives THIS frame and is dropped at the end of it
    * unless something read that key, exactly as a keystroke is.
    */
-  injectPress(code: string): void {
-    this.tapped.set(code, (this.tapped.get(code) ?? 0) + 1);
+  injectPress(code: string, shift = false): void {
+    this.queue(code).push(shift);
+  }
+
+  /** The queue for a code, created empty on first use. */
+  private queue(code: string): (boolean | null)[] {
+    const q = this.tapped.get(code);
+    if (q) return q;
+    const made: (boolean | null)[] = [];
+    this.tapped.set(code, made);
+    return made;
+  }
+
+  /**
+   * Was the NEXT tap of this code an injected shifted one?
+   *
+   * `null` when it was a real keydown, or when there is no tap: both mean "ask
+   * `held`", which is what every physical press has always been answered by.
+   *
+   * IT PEEKS. `controls.ts` tests the modifier before it consumes the tap — see
+   * `fires` — so this must not take the tap it is reporting on.
+   */
+  tapShift(code: string): boolean | null {
+    const q = this.tapped.get(code);
+    return q && q.length ? q[0] : null;
   }
 
   held(...codes: string[]): boolean {
@@ -117,9 +152,9 @@ export class Input {
 
   /** True once per physical key press; consumed on read. */
   pressed(code: string): boolean {
-    const n = this.tapped.get(code) ?? 0;
-    if (n <= 0) return false;
-    this.tapped.set(code, n - 1);
+    const q = this.tapped.get(code);
+    if (!q || !q.length) return false;
+    q.shift();
     // somebody is draining this key, which is what earns its backlog a carry
     this.read.add(code);
     return true;
@@ -127,7 +162,7 @@ export class Input {
 
   /** Number of presses since last read; consumed on read. */
   pressedCount(code: string): number {
-    const n = this.tapped.get(code) ?? 0;
+    const n = this.tapped.get(code)?.length ?? 0;
     this.tapped.delete(code);
     return n;
   }
@@ -135,8 +170,8 @@ export class Input {
   /** All pressed key codes this frame (oldest first); consumed on read. */
   drainPresses(): string[] {
     const codes: string[] = [];
-    for (const [code, n] of this.tapped) {
-      for (let i = 0; i < n; i++) codes.push(code);
+    for (const [code, q] of this.tapped) {
+      for (let i = 0; i < q.length; i++) codes.push(code);
     }
     this.tapped.clear();
     return codes;
@@ -164,8 +199,11 @@ export class Input {
    * left; a key that was not keeps nothing. See the header for both limits.
    */
   endFrame(): void {
-    for (const [code, n] of [...this.tapped]) {
-      if (this.read.has(code) && n > 0) this.tapped.set(code, Math.min(n, CARRY_LIMIT));
+    for (const [code, q] of [...this.tapped]) {
+      // The carry keeps the OLDEST taps, so a carried one keeps the shift it
+      // arrived with. Dropping from the front would hand the next frame a tap
+      // wearing another one's modifier.
+      if (this.read.has(code) && q.length > 0) this.tapped.set(code, q.slice(0, CARRY_LIMIT));
       else this.tapped.delete(code);
     }
     this.read.clear();

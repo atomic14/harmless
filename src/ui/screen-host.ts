@@ -214,8 +214,11 @@ export class ScreenHost {
     // re-render on all sorts of events and would otherwise lose the highlight
     items.forEach((el, n) => el.classList.toggle('sel', n === this.menuSelected));
     if (i.pressed('Enter')) {
-      const key = items[this.menuSelected].dataset.key;
-      if (key) i.injectPress(key);
+      const row = items[this.menuSelected];
+      const key = row.dataset.key;
+      // Enter on a row is the row's keystroke, modifier included: arrowing onto
+      // a shifted row and pressing Enter took the same broken path as a click.
+      if (key) i.injectPress(key, row.dataset.shift === '1');
     }
   }
 
@@ -236,7 +239,10 @@ export class ScreenHost {
     const e = event as MouseEvent | undefined;
     const key = el.dataset.key;
     if (key !== undefined) {
-      i.injectPress(key);
+      // The row's own modifier travels with the tap. A click is the same
+      // keystroke as a key press (invariant 13), and that has to include the
+      // shift the row printed — see `injectPress` and docs/TODO/146.
+      i.injectPress(key, el.dataset.shift === '1');
       return true;
     }
     const row = el.dataset.row;
