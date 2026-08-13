@@ -13,7 +13,7 @@
 
 import { newCommander, type CommanderData, type Contract } from '../src/game/commander.ts';
 import { standingOrders, ordersSummary } from '../src/game/orders.ts';
-import { stepMissionAtDock } from '../src/game/missions.ts';
+import { constrictorDestroyed, stepMissionAtDock } from '../src/game/missions.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { renderMissions } from '../src/ui/screens.ts';
 import { keyPointer } from '../src/ui/key-help.ts';
@@ -232,6 +232,74 @@ console.log('\nthe station line and the briefing, through a real Game');
 // there. A shift HELD is not something `Input` learns without a real keydown
 // (see `Game.galacticJump`), so the binding is read off the table the way
 // test/ui.test.ts reads ⇧H.
+
+// --- the rule itself (docs/INVARIANTS.md invariant 16) ----------------------
+
+console.log('\nno stage of the mission has a target the orders do not carry');
+{
+  const systems = generateGalaxy(1);
+  const c: CommanderData = {
+    ...newCommander(), kills: 16, galaxy: 1, systemIndex: 7, day: 100,
+    contracts: [], mission: { stage: 0, targetIndex: null },
+  };
+
+  // Walk the machine end to end rather than set a stage by hand. A stage added
+  // later walks through here too, which a fixture per stage would not.
+  const seen: number[] = [];
+  let carried = 0;
+  for (let dock = 0; dock < 6 && c.mission.stage !== 4; dock++) {
+    stepMissionAtDock(c, systems, () => 0.5);
+    seen.push(c.mission.stage);
+    const target = c.mission.targetIndex;
+    if (target === null) continue;
+    const named = systems[target].name.toUpperCase();
+    check(`stage ${c.mission.stage} names ${named} in the standing orders`,
+      standingOrders(c, systems).some((o) => o.line.includes(named)));
+    carried += 1;
+    // fly there, then take the leg off the board. Stage 2 is the kill, and the
+    // machine cannot reach it on its own.
+    c.systemIndex = target;
+    if (c.mission.stage === 1) constrictorDestroyed(c);
+  }
+  check(`the walk reached every leg that has a target (${seen.join(' → ')})`, carried >= 2);
+  eq('...and the machine ran out at stage 4', c.mission.stage, 4);
+  eq('a finished mission is no standing order', standingOrders(c, systems).length, 0);
+}
+
+console.log('\nthe summary never drops a kind for another');
+{
+  const systems = generateGalaxy(1);
+  const base: CommanderData = {
+    ...newCommander(), kills: 16, galaxy: 1, systemIndex: 7, day: 100,
+    contracts: [], mission: { stage: 0, targetIndex: null },
+  };
+  const held = (navy: boolean, jobs: number): CommanderData => {
+    const c: CommanderData = { ...base, contracts: [], mission: { stage: 0, targetIndex: null } };
+    if (navy) stepMissionAtDock(c, systems, () => 0.5);
+    for (let n = 0; n < jobs; n++) {
+      c.contracts.push({
+        kind: 'courier', destination: 11 + n, commodity: 0, qty: 1,
+        reward: 5000, deadlineDay: c.day + 6 + n, progress: 0,
+      });
+    }
+    return c;
+  };
+
+  for (const navy of [false, true]) {
+    for (const jobs of [0, 1, 2, 3]) {
+      const c = held(navy, jobs);
+      const orders = standingOrders(c, systems);
+      const line = ordersSummary(orders);
+      const kinds = new Set(orders.map((o) => o.kind));
+      const shown = new Set(
+        orders.filter((o) => line.includes(o.line)).map((o) => o.kind),
+      );
+      check(`${navy ? 'a mission' : 'no mission'} and ${jobs} job(s):`
+        + ` every kind held is named (${kinds.size} held, ${shown.size} named)`,
+      kinds.size === shown.size);
+    }
+  }
+}
 
 console.log('\n⇧I is bound in both modes, and it does not eat the plain key');
 {

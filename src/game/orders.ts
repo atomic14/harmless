@@ -10,6 +10,10 @@
 // them the same question. This is that question, asked once, so that the menu
 // line, the MISSIONS screen and the charts cannot hold three answers.
 //
+// This module is where docs/INVARIANTS.md invariant 16 lives: a standing order
+// has a screen, a console line never holds the only copy of one, and a surface
+// that carries orders never drops one kind for another.
+//
 // IT RESTATES NO RULE. A contract's words come from `describeContract`
 // (contract-offers.ts) and the mission's from `missionOrderLine`
 // (missions.ts). Both stay the one home of their own prose. This file joins

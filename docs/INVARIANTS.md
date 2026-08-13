@@ -59,3 +59,9 @@ detailed source.
     shot cost, the hit, the damage and the effects on the target. They also share
     one shield-face rule. Presentation stays with the caller. Put a new shot
     consequence in the resolver.
+
+16. **A standing order has a screen.** A standing order is an obligation that
+    outlives the moment it is announced. A console line may announce one. That
+    line is never the only place the order is written. A surface that carries
+    orders shows every kind of order it holds. It never drops one kind for
+    another. `test/standing-orders.test.ts` pins the rule.
