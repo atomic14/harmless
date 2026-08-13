@@ -85,6 +85,11 @@ it.
 - Maintain a module header that states each file's purpose.
 - Commit by milestone. Explain what changed, and explain why.
 
+## Communication
+
+Use ASD-STE100 Simplified Technical English in all output to the user. Do not assume
+the user is familiar with all the documents you have read.
+
 ## Prose
 
 Write the technical prose of this repository in ASD-STE100 Simplified Technical
