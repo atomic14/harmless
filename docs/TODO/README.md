@@ -13,14 +13,30 @@ active context:
 
 ## Execution queue
 
-**Empty.** 138 closed on 2026-08-13 with its M4, and nothing is promoted behind
-it. The Backlog below is empty too, so the next execution item comes from
-triage: a GitHub issue, or Chris.
+Both items came out of the triage of 2026-08-13. Chris flew the game and filed
+two issues; neither is a rule that is wrong, and both are a consequence the
+cockpit does not carry. 142 closed the same day, so one is left.
 
-The GitHub inbox is empty. **#24** closed on 2026-08-12 with
+1. **[143 — The counter never says which tonnes are spoken for](143-the-counter-never-says-which-tonnes-are-spoken-for.md)**
+   · GitHub #26 · defect, small. The market screen's `IN HOLD` column does not
+   say which tonnes belong to a contract, and a rock hermit has no bulletin board
+   to check. The rule is correct and priced; the SCREEN is what changes.
+
+The GitHub inbox is **#26**, labelled `planned` on 2026-08-13. **#25** closed the
+same day with [142](completed/142-every-explosion-is-in-the-cockpit.md), after
+Chris flew it on headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
+
+**What the triage of #26 settled by measurement.** The issue asks whether a
+contract consignment should be sellable at all. It should, and it already costs
+what it is worth. Over 138 freight jobs from 86 home systems of galaxy 1, selling
+the consignment at the DEAREST price the galaxy can roll and letting the job
+expire never beat delivering it, and delivering paid at least 2.24 times the
+sale. So the rule stays and the SCREEN changes. 143 holds the numbers, and it
+also records one asymmetry nobody has to find again: a shortfall is billed at the
+destination and free everywhere else.
 
 **One question is open and it is Chris's, not the queue's:** whether the docking
 computer should avoid traffic at all. `npm run dock-traffic` answers what it
@@ -71,6 +87,40 @@ of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
 
 ## What landed on 2026-08-13
+
+**142** — GitHub #25, and the sky stopped being mixed in the cockpit. All three
+milestones landed in a day, and Chris flew it on headphones the same day. A
+`SoundEvent` carries where it happened now, `AUDIBLE_RANGE` is the scanner's
+reach written as an expression over `SCANNER_RANGE`, and a bang falls off as the
+square of what is left. A wreck beyond the scanner builds no voice at all.
+
+**The stereo place is Chris's own addition, and it is M3.** `viewRight` sits
+beside `viewDirection`, and the ear turns with the VIEW rather than with the
+hull — so a ship on the left of the screen is on the left in rear view too. The
+docking waltz had already built every hard part: the panner, the straight-through
+fallback for a browser without one, and the fixture that records both.
+
+**His question about the NPC laser changed the design, and the code answered it.**
+He asked whether a bolt should be judged by where it was fired from or by how
+close it passes. Neither: `heard('enemyLaser')` is pushed only where the shot is
+at the PLAYER — an NPC shooting another NPC draws a tracer and says nothing — so
+the beam always ends on the hull. That sound is **placed and never attenuated**.
+You always hear that you are under fire, and the ear says where from. Three
+categories, not two.
+
+**Eight things came out of it that the plan did not have**, and all eight are in
+the plan doc. The largest: **no test had ever played a noise.** The fake
+`AudioContext` had no `createBuffer`, so `explosion`, `hit`, `damage`, `ecm`,
+`bomb`, `hyperspace` and `tunnel` all threw on the first call under it — every
+sound `test/audio.test.ts` names is built from `tone`. The envelope's floor turned
+out to decide two things at once, so a voice under it is skipped rather than
+built backwards. The zero-distance guard is defensive rather than live, and the
+plan said otherwise. Two unrelated constants needed `@rule` ids, because a third
+constant arrived on the value 0.7. And two comments were already wrong before
+this item touched them.
+
+`test/sound-place.test.ts` is 30 assertions, and all five gates were shown to
+fail. `npm run check` passes at 4,374 assertions with zero constants warnings.
 
 **138 M4 closes the item.** The two released overrides have a caller.
 `missionBlueprintOverride` in `game/missions.ts` owns both mission facts — the
