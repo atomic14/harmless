@@ -13,15 +13,22 @@ active context:
 
 ## Execution queue
 
-**Empty.** Both items of the triage of 2026-08-13 landed the same day. Chris flew
-the game and filed two issues; neither was a rule that is wrong, and both were a
-consequence the cockpit did not carry. 142 closed #25, and 143 closed #26.
+1. [144 — A standing order with nowhere to live](144-a-standing-order-with-nowhere-to-live.md)
+   · GitHub #27 · defect · medium.
 
-The GitHub inbox holds no planned work. **#27** was filed on 2026-08-13, after
-Chris met the Constrictor with no memory of a briefing, and it waits for triage:
-the Navy's standing order loses the docked menu's one line to any contract, and
-the briefing itself is said once for five seconds. **#26** closed on 2026-08-13
-with
+**144 is the triage of #27, done on 2026-08-13.** A *standing order* is an
+obligation that outlives the moment it is announced, and the game has two kinds:
+a signed contract and the Navy mission. The issue is confirmed in the code that
+runs, and the triage found four things the report did not have. A contract has a
+durable home in the bulletin board's ACCEPTED table; the Navy mission is the only
+standing order with no screen. That home is a station, so in flight neither kind
+is readable. Both charts mark a contract destination and never the Navy target.
+And a census of every `say(...)` line says only two of them announce a standing
+order, so the wider half of the issue is a rule rather than a sweep. Five
+milestones: one reader, a MISSIONS screen on ⇧I, a summary line that hides no
+kind, a chart mark, and invariant 16 with a gate.
+
+The rest of the inbox is quiet. **#26** closed on 2026-08-13 with
 [143](completed/143-the-counter-never-says-which-tonnes-are-spoken-for.md).
 **#25** closed the same day with
 [142](completed/142-every-explosion-is-in-the-cockpit.md), after Chris flew it on
