@@ -17,7 +17,11 @@ active context:
 the game and filed two issues; neither was a rule that is wrong, and both were a
 consequence the cockpit did not carry. 142 closed #25, and 143 closed #26.
 
-The GitHub inbox is empty of planned work. **#26** closed on 2026-08-13 with
+The GitHub inbox holds no planned work. **#27** was filed on 2026-08-13, after
+Chris met the Constrictor with no memory of a briefing, and it waits for triage:
+the Navy's standing order loses the docked menu's one line to any contract, and
+the briefing itself is said once for five seconds. **#26** closed on 2026-08-13
+with
 [143](completed/143-the-counter-never-says-which-tonnes-are-spoken-for.md).
 **#25** closed the same day with
 [142](completed/142-every-explosion-is-in-the-cockpit.md), after Chris flew it on
