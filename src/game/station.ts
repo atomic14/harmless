@@ -35,9 +35,11 @@ import { slotNormal } from '../world/slot.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { formatCredits } from './commander.ts';
 import { LAUNCH_STANDOFF, LAUNCH_SPEED } from '../constants/station.ts';
-import { generateContractOffers, describeContract } from './contract-offers.ts';
+import { generateContractOffers } from './contract-offers.ts';
 import { makeLocalMarket } from './market.ts';
-import { stepMissionAtDock, missionHeadline, constrictorWarning } from './missions.ts';
+import { stepMissionAtDock, constrictorWarning } from './missions.ts';
+import { ordersSummary, standingOrders } from './orders.ts';
+import type { Command } from './controls.ts';
 import type { Ordnance } from './ordnance.ts';
 import { repairAtStation } from './systems.ts';
 import type { GameState } from './state.ts';
@@ -68,15 +70,42 @@ export type DockArrival = 'arrived' | 'fresh' | 'resumed';
 /** What the station reports for the orchestrator to say out loud. */
 export type StationEvent =
   | SoundEvent
-  /** `queued` waits for the console rather than taking it — see session.ts */
-  | { kind: 'message'; text: string; seconds: number; queued?: boolean }
+  /**
+   * `queued` waits for the console rather than taking it — see session.ts.
+   *
+   * `command` points the line at the screen that holds the rest of it, and it
+   * is a `Command` rather than a letter for the reason `game/prompts.ts` gives
+   * in full: `controls.ts` is the one home of what key asks for what, so a
+   * sentence with a letter in it is a help surface free to lie. The edge
+   * renders it (`game.ts`, `keyPointer`).
+   */
+  | {
+    kind: 'message'; text: string; seconds: number; queued?: boolean;
+    command?: Command;
+  }
   | { kind: 'persistence'; action: 'checkpoint' | 'forgetFlight' }
   | { kind: 'presentation'; action: 'releaseMouseFlight' }
   | { kind: 'presentation'; action: 'screen'; screen: 'docked' | 'hidden' }
   | { kind: 'presentation'; action: 'tunnel'; way: 'in' | 'out' };
 
-const say = (text: string, seconds: number): StationEvent =>
-  ({ kind: 'message', text, seconds });
+/**
+ * One console line. `command` points it at the screen that keeps what it says.
+ *
+ * A line said one time, for five seconds, is the whole of GitHub #27: the
+ * commander who was briefed for the Constrictor could not read the briefing
+ * again anywhere. Invariant 16 is the rule that came out of it.
+ */
+const say = (text: string, seconds: number, command?: Command): StationEvent =>
+  ({ kind: 'message', text, seconds, command });
+
+/**
+ * ...and one said BEHIND the line it explains (session.ts).
+ *
+ * The console is one line. A line pushed with `say` TAKES it, so an
+ * explanation said in the same breath as its cause deletes the cause.
+ */
+const later = (text: string, seconds: number): StationEvent =>
+  ({ kind: 'message', text, seconds, queued: true });
 const heard = (name: SoundName): StationEvent => ({ kind: 'sound', name });
 
 /**
@@ -187,17 +216,26 @@ export class Station {
     // FIRST of the dock's rng draws — it picks the next target.
     for (const e of stepMissionAtDock(c, s.systems)) {
       if (e.kind === 'briefed') {
-        messages.push(say('INCOMING NAVY TRANSMISSION', 5));
+        // POINTED AT THE SCREEN THAT KEEPS IT (invariant 16). This line is said
+        // one time, for five seconds, and it does not name the target system —
+        // so on its own it was the same as no briefing at all.
+        messages.push(say('INCOMING NAVY TRANSMISSION', 5, 'openMissions'));
         // What the job NEEDS, not just where it is. The Constrictor's armour
         // halves a player hit before its own defence subtracts, so a beam laser
         // does literally nothing to it and the commander would find that out
         // forty light years from here. missions.ts derives the line from her
         // actual fitted gun through the oracle, and returns '' when it will do.
+        //
+        // QUEUED, because it explains the line above it. Said with `say` it
+        // took the console away from the transmission in the same frame, so a
+        // commander with the wrong gun never saw that the Navy had called at
+        // all. Found by docs/TODO/144 M3; the rule is session.ts's own.
         const warning = constrictorWarning(c);
-        if (warning) messages.push(say(warning, 8));
+        if (warning) messages.push(later(warning, 8));
       }
       else if (e.kind === 'courierOrders') {
-        messages.push(say('NAVY: COURIER RUN — EXPECT THARGOID INTERFERENCE', 6));
+        messages.push(say(
+          'NAVY: COURIER RUN — EXPECT THARGOID INTERFERENCE', 6, 'openMissions'));
       } else if (e.kind === 'delivered') {
         messages.push(say(
           `PLANS DELIVERED — ${formatCredits(e.payment)}, RIGHT ON COMMANDER`, 6));
@@ -290,17 +328,15 @@ export class Station {
     return [{ kind: 'presentation', action: 'screen', screen: 'hidden' }];
   }
 
-  /** The one line of standing orders under the station menu's header. */
+  /**
+   * The one line of standing orders under the station menu's header.
+   *
+   * ONE ENTRY PER KIND. It used to return the first contract and stop, so two
+   * jobs hid the Navy mission completely and the target system went with it
+   * (GitHub #27). `orders.ts` owns the words and the sort; the MISSIONS screen
+   * holds what this line has no room for.
+   */
   missionText(): string {
-    const c = this.state.commander;
-    // contracts first — they're the everyday work
-    const k = c.contracts[0];
-    if (k) {
-      const more = c.contracts.length - 1;
-      return `${describeContract(k, this.state.systems).toUpperCase()}` +
-        ` — ${k.deadlineDay - c.day} DAYS` +
-        (more > 0 ? ` (+${more} MORE)` : '');
-    }
-    return missionHeadline(c, this.state.systems);
+    return ordersSummary(standingOrders(this.state.commander, this.state.systems));
   }
 }

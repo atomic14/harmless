@@ -167,7 +167,7 @@ import {
   hideScreen, renderDockedMenu, renderNewGameConfirm,
   renderGameOver,
 } from '../ui/screens.ts';
-import { boundKey, keyIfBound, paintCommandGuide } from '../ui/key-help.ts';
+import { boundKey, keyIfBound, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
 
 
@@ -532,9 +532,18 @@ export class Game {
    * of the branch, so a module cannot find that its queued line is honoured
    * from flight and ignored from the station.
    */
-  private sayEvent(e: { text: string; seconds: number; queued?: boolean }): void {
-    if (e.queued) this.queueMessage(e.text, e.seconds);
-    else this.showMessage(e.text, e.seconds);
+  private sayEvent(
+    e: { text: string; seconds: number; queued?: boolean; command?: Command },
+  ): void {
+    // A line that announces a standing order says where the rest of it lives
+    // (invariant 16). The module named a `Command` and never a letter, so the
+    // key is looked up HERE — the same seam `flightPrompts` uses, and the
+    // reason `test/key-prose.test.ts` can still scan `src/game/` for letters.
+    const text = e.command === undefined
+      ? e.text
+      : `${e.text} — ${keyPointer(this.cameFrom(), e.command)}`;
+    if (e.queued) this.queueMessage(text, e.seconds);
+    else this.showMessage(text, e.seconds);
   }
 
   /**

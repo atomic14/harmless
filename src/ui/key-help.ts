@@ -209,6 +209,25 @@ export function dockedMenuHtml(): string {
     <div class="keyline">${line}</div>`;
 }
 
+/**
+ * The key and the label a console line points at, as `⇧I MISSIONS`.
+ *
+ * Invariant 9 forbids a message from spelling a key out, and invariant 16 wants
+ * an announcement to say where the rest of it lives. Both hold at once only if
+ * the rule NAMES a command and the edge renders it — which is what
+ * `game/prompts.ts` already does for the cockpit, and what `game.ts` now does
+ * for a `StationEvent` that carries one.
+ *
+ * The label is the menu row's, then the keyline's, then nothing beyond the key.
+ * A command advertised nowhere still points somewhere.
+ */
+export function keyPointer(mode: ControlMode, command: Command): string {
+  const help = COMMAND_HELP[command];
+  const label = help.menu ?? help.keyline ?? '';
+  const key = boundKey(mode, command);
+  return label ? `${key} ${label}` : key;
+}
+
 /** Every mode's table, for the tests that ask "is this key written down anywhere?" */
 export const ALL_BINDINGS: readonly Binding[] = [
   ...GLOBAL_BINDINGS,

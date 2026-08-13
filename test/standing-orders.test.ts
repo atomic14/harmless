@@ -16,8 +16,13 @@ import { standingOrders, ordersSummary } from '../src/game/orders.ts';
 import { stepMissionAtDock } from '../src/game/missions.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { renderMissions } from '../src/ui/screens.ts';
+import { keyPointer } from '../src/ui/key-help.ts';
+import { Game } from '../src/game/game.ts';
+import { headlessShell } from '../src/engine/shell.ts';
+import { withoutSaving } from '../src/game/storage.ts';
+import { seedWorld } from '../src/game/rng.ts';
 import { captureById } from './screen-capture.ts';
-import { check, eq } from './harness.ts';
+import { check, cmds, consoleWatcher, dismissBriefing, eq, eqc } from './harness.ts';
 
 console.log('\nstanding orders — every kind the commander holds is named');
 {
@@ -167,4 +172,74 @@ console.log('\nthe MISSIONS screen draws every order the reader returns');
   const idle = paint({ ...newCommander(), contracts: [], mission: { stage: 0, targetIndex: null } });
   check('a commander under no orders still gets a screen, and it says so',
     idle.includes('STANDING ORDERS') && idle.includes('no standing orders'));
+}
+
+// The last stretch is the wiring, and it is where docs/TODO/140 M2's defect
+// lives: a correct function that nothing calls. So these drive a real Game.
+
+console.log('\nthe station line and the briefing, through a real Game');
+{
+  const g = withoutSaving(() => {
+    seedWorld(11);
+    const game = new Game(() => headlessShell());
+    dismissBriefing(game);
+    return game;
+  }).value;
+
+  const c = g.state.commander;
+  c.kills = 16;
+  c.galaxy = 1;
+  c.contracts = [
+    { kind: 'courier', destination: 42, commodity: 0, qty: 1, reward: 5000, deadlineDay: c.day + 6, progress: 0 },
+    { kind: 'courier', destination: 11, commodity: 0, qty: 1, reward: 5000, deadlineDay: c.day + 12, progress: 0 },
+  ];
+  c.equipment.laser = 'beam';
+
+  const said = consoleWatcher(g);
+  g.enterDocked();
+  const lines = said(30);
+
+  const briefing = lines.find((t) => t.startsWith('INCOMING NAVY TRANSMISSION'));
+  check('the transmission still fires at the dock', briefing !== undefined);
+  check('...and it now says where the rest of the briefing lives',
+    briefing?.includes('MISSIONS') === true);
+  check('...naming the key off the binding table rather than a letter in prose',
+    briefing?.includes(keyPointer('docked', 'openMissions')) === true);
+
+  // The gun warning EXPLAINS the transmission, so it queues behind it
+  // (session.ts). Said in the same frame it took the console away, and a
+  // commander with the wrong gun never saw that the Navy had called.
+  const after = said(400);
+  check('the gun warning arrives after the line it explains, not instead of it',
+    after.some((t) => t.includes('MILITARY LASER')));
+
+  // The MENU, painted by the Game itself. `missionText` is private, and the
+  // question is not what it returns — it is whether the line a docked pilot
+  // reads carries both kinds. A second dock re-paints it and advances nothing:
+  // `stepMissionAtDock` has no branch for stage 1.
+  const menu = captureById(() => { g.enterDocked('resumed'); }).get('screen') ?? '';
+  const target = g.state.systems[c.mission.targetIndex as number].name.toUpperCase();
+  eq('the machine briefed her, so there is a Navy order to hide', c.mission.stage, 1);
+  check('the station menu names the Navy mission, with two contracts held',
+    menu.includes(target));
+  check('...and still names the work she signed for', menu.includes('SEALED DATA'));
+  check('...and the count of the job it did not print', menu.includes('(+1 MORE)'));
+
+}
+
+// ⇧I reaches the screen from the station AND from the cockpit. The commander
+// who met the Constrictor was in flight, and the bulletin board does not open
+// there. A shift HELD is not something `Input` learns without a real keydown
+// (see `Game.galacticJump`), so the binding is read off the table the way
+// test/ui.test.ts reads ⇧H.
+
+console.log('\n⇧I is bound in both modes, and it does not eat the plain key');
+{
+  eqc('⇧I at the station asks for the standing orders',
+    cmds('docked', ['KeyI'], ['ShiftLeft']), ['openMissions']);
+  eqc('...and in the cockpit, where the briefing was lost',
+    cmds('flight', ['KeyI'], ['ShiftLeft']), ['openMissions']);
+  eqc('plain I is still the commander status at the station',
+    cmds('docked', ['KeyI'], []), ['openStatus']);
+  eqc('...and in the cockpit', cmds('flight', ['KeyI'], []), ['openStatus']);
 }
