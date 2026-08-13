@@ -13,33 +13,9 @@ active context:
 
 ## Execution queue
 
-1. [146 — A click cannot press a shifted key](146-a-click-cannot-press-a-shifted-key.md)
-   · Chris, 2026-08-13 · defect · small.
-
-**146 is Chris's reading of 144 M6, and he is right.** The keyboard was never
-broken — ⇧I resolved correctly through the binding table. The CLICK is the
-broken half, and it dispatches a bare letter: `dockedMenuHtml` writes `data-key`
-without the modifier, `ScreenHost.click` injects that code, and the matcher asks
-a frame-global "is shift held" that only a real keydown answers. His requirement,
-in his words: *"If a click is on a row that has a capital letter then the capital
-letter should be sent."*
-
-**The obvious fix is wrong, and the harm is silent.** An injected tap that set
-the frame's shift flag would change the answer for every binding tested in the
-same frame — a plain `Y` would satisfy `⇧Y`, and one click on a menu would dump
-five tonnes instead of one. So shift becomes a property of the TAP. That false
-fire is the item's main gate.
-
-144 M6's rule — a docked menu row takes a plain letter — stays until this lands,
-and its gate survives afterwards with its wording changed and its claim intact.
-`R` stays the missions key either way.
-
-**145 landed the same day.** Chris asked whether contracts belonged on the
-missions screen; they do not, and the two are split by kind now.
-
-**Three issues closed on one pattern in three days.** Chris flew the game, and
-each time the rule was correct and the cockpit did not carry the consequence.
-142 closed #25, 143 closed #26, and 144 closed #27.
+**Empty.** Four items landed on 2026-08-13, and three of them came from Chris
+reading the one before: #27 became 144, 144's overlap became 145, 144 M6's key
+became 146, and the station header stopped being one line in 147.
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
@@ -101,6 +77,33 @@ of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
 
 ## What landed on 2026-08-13
+
+**146** — Chris's diagnosis of 144 M6, and it was exact: the keyboard was never
+broken, and *"it sounds like it's the mouse click that is not working properly?
+It dispatches just a letter press?"* It did. `data-key` carried the key alone,
+`ScreenHost.click` injected a bare tap, and the plain entry answered.
+
+**Shift is a property of the TAP now, not of the frame**, and that is the whole
+design. `commandsFor` tests every binding in one pass, so an injected tap that
+set a frame-wide "shift is down" would let a plain Y satisfy ⇧Y — five tonnes
+over the side instead of one, from a click on a menu. A real keydown still
+carries `null` and defers to `held`, so the path that was never broken is
+untouched by construction rather than by care.
+
+**Three of the six gates were vacuous when first written**, and proving each
+could fail is the only reason that is known. No shipped row is shifted, so the
+row loop could only exercise the unshifted branch. **Nothing drove
+`ScreenHost.click` or `runMenuCursor` at all** — the two lines that were broken.
+And the carry test could not tell `slice(0, N)` from `slice(-N)`.
+
+**`controls.ts` went into ALLOWED rather than being trimmed a fourth time.** 144,
+145 and 146 each added a command and each cut prose to stay under 400 lines,
+which is the ceiling measuring the comments rather than the file.
+
+**147** — the station header takes as many lines as it has orders, on Chris's
+call: *"we don't need to keep it one line"*. The joined string it replaced still
+wrapped, and broke wherever the column ran out. **The gun warning is back**, and
+the one-line budget was the only reason 144 ever cut it.
 
 **145** — Chris's call on reading 144: a contract and a mission are two kinds of
 thing, and one screen holding both left the bulletin board saying the same thing

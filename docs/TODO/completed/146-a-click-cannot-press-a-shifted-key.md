@@ -148,4 +148,63 @@ namespace first (invariant 3).
 
 ## What landed
 
-Not started.
+All four milestones, on 2026-08-13. `npm run check` passes. Verified in the
+browser against the real bundle.
+
+**M1** — `Input.tapped` is a queue per code, each tap carrying `true`/`false`
+when injected and `null` when it came from a real keydown. `tapShift` PEEKS.
+
+**M2** — `fires` prefers the tap's own shift and falls back to `held`.
+
+**M3** — `data-shift` beside `data-key`, read by `ScreenHost.click` and by the
+menu cursor's Enter.
+
+**M4** — 144 M6's prohibition is gone. A menu row may bind a modifier again, and
+the gate that banned one now proves the mechanism.
+
+## What the milestones found that the plan did not have
+
+**1. THREE OF THE SIX GATES WERE VACUOUS WHEN FIRST WRITTEN.** Proving each
+could fail is the only reason that is known, and it is the largest thing this
+item found:
+
+- **No shipped row is shifted.** ⇧T is a keyline caption, so the row loop in
+  `test/key-help.test.ts` could only ever exercise the unshifted branch —
+  removing `data-shift` from the emitter changed nothing any assertion read.
+  `menuRowsHtml` takes its bindings now, so the branch can be driven, and ⇧T/T
+  is pressed through the real table for the join.
+- **Nothing drove `ScreenHost.click` or `runMenuCursor`.** Those are the two
+  lines that were broken, and no test in the repository touched either.
+  `test/menu-click.test.ts` is new and holds both.
+- **The carry test could not tell `slice(0, N)` from `slice(-N)`.** Both taps
+  had the same shift, and the queue was no longer than the limit. It needs five
+  taps of mixed shift with one read.
+
+**2. `controls.ts` went into ALLOWED rather than being trimmed a fourth time.**
+docs/TODO/144, 145 and 146 each added a command to it, and each cut prose to
+stay under 400 lines. That is the ceiling measuring the comments rather than the
+file. The entry states why the tables and the scan belong together — the three
+load-bearing rules are each a property of the pair — and names the split it is
+waiting for, the `Command` union, and why that is not taken: the common change
+is ADDING a command, which would go from two files to three.
+
+**3. The plan's `tapShift` signature was right for the wrong reason.** It said
+`null` keeps the change additive. The stronger reason is that `null` is what a
+REAL keydown means, so every physical press keeps answering through `held` — the
+path that was never broken is untouched by construction rather than by care.
+
+## Verified in the browser, 2026-08-13
+
+Through `ScreenHost.click` with an element shaped exactly as a menu row, against
+the running bundle:
+
+1. A click carrying `data-shift="1"` on `KeyT` opens **test mode** — the shifted
+   command.
+2. The same row without it opens **combat training** — the plain one.
+3. **The false fire does not happen live**: a shifted click on one control plus
+   a plain `KeyY` in the same frame asks for `jettison1`, never `jettison5`.
+4. The shipped menu renders **no** `data-shift` today, which is why gate 1 above
+   had to be driven rather than observed.
+
+**No save was put at risk.** The page was switched to the harness namespace
+before anything ran, and the seven player keys were untouched.
