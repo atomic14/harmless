@@ -189,6 +189,79 @@ be beatable — the opportunist a poor commander draws. Every minimum and every
 maximum is unchanged, because no build moved. The test holds tiers 1 and 2 to a
 twentieth and tier 0 to a tenth, and both bounds were shown to fail.
 
+## What M4 did
+
+The two released overrides have a caller. Three facts raise one and they sit in
+three files, one home each:
+
+1. `game/missions.ts` — `missionBlueprintOverride(commander)`, which owns both
+   mission facts. The hunting leg AT the target system raises `constrictor`; the
+   courier run raises `thargoid`. The stage numbers stay in the file that owns
+   the five-stage machine, because `blueprint-set.ts` says in its header that it
+   is TOLD which override applies and never works one out.
+2. `game/game.ts` — `chooseBlueprintSet` names the override, and `enterWitchspace`
+   chooses a set at all, which it did not before.
+3. `constants/blueprint-set.ts` and `game/blueprint-set.ts` — unchanged. M2 built
+   both ends of this and M4 is the wire between them.
+
+`test/blueprint-override.test.ts` is 21 assertions and is new.
+
+### Limbo outranks the hunt, and the two test systems are the reason it is provable
+
+The Game asks the witch-space flag FIRST. A mis-jump on the hunting leg is still
+limbo, and the Constrictor waits in a system rather than between two — so a
+commander who mis-jumps out of the system she was sent to meets Thargoids and not
+set G. That ordering is one line, and it is the fourth of the four gates below.
+
+Both systems the wiring is tested at were chosen for what they are NOT. Tibedied
+(low tech) flies A, E, I or M by its own number, and Biarge (high tech) flies B,
+F, J or N — neither can reach C, D or G at any of the four bit values. The test
+asserts that rather than assuming it, so an override that quietly stopped firing
+cannot land on the right letter by luck.
+
+### Four things M4 found that the plan did not have
+
+1. **An override must not draw, and the ambush is what says so.** The number is
+   not consulted when an override is in force, so a draw made to fill it would
+   spend the seeded stream on a value nothing reads. It is not free: the
+   Thargoid ambush rolls off the next values of the same stream two lines later,
+   and an unconditional draw moves it from **three Thargoids to two** and every
+   one of the nine coordinates with it. `chooseBlueprintSet` draws only when the
+   number is going to be read, and the test pins the ambush to prove it.
+2. **An override raised at a dock takes effect at the NEXT arrival**, and that is
+   the arrival-only rule doing its job rather than a hole in it. The courier
+   orders come at a station, and Harmless does not tear the system down when you
+   dock — so the sky you launch into is the sky you docked out of, as M3 already
+   recorded. Killing the Constrictor is the same shape from the other side: stage
+   1 becomes stage 2 mid-flight, and the system keeps flying G until you leave
+   it. The alternative is a system that restocks because you accepted a job.
+3. **Witch-space picks its tech branch from the system you jumped FROM.** A
+   mis-jump does not move `commander.systemIndex` — `resolveJump` returns before
+   the assignment, and the chart target is retained for the escape jump and
+   nothing else. So `this.system` in limbo is the system you left, and its tech
+   level is what picks C or D.
+4. **21 of the 23 sets file no Thargoid, so limbo had been flying the fallback.**
+   The empty-band rule from M3 was answering for the ambush: whatever set the
+   origin system had chosen filed nothing in slots 29-30 in 21 cases out of 23,
+   and the full roster answered instead. The override is what makes limbo fly a
+   file that actually carries the ship it is an ambush by, and the test reads
+   `emptyBandsForSet` to say so rather than checking a letter.
+
+### The four gates, each shown to fail
+
+Per CLAUDE.md, by breaking the protected rule for a moment:
+
+| break | reds |
+| --- | --- |
+| the caller names no override | 11 of 21 |
+| the mission is asked before limbo | 1 — "limbo outranks the hunt" |
+| a draw is made behind the override | 1 — the ambush moves, 3 Thargoids to 2 |
+| limbo does not choose a set at all | 5 |
+
+`npm run check` passes at **4,344 assertions**. `npm run roster-probe` is
+unchanged, and it must be: the probe walks the number, and no override fires on
+that path.
+
 ## Where we are
 
 Elite-A did not ship one roster. It shipped **23**, the files `S.A` to `S.W`,
@@ -362,11 +435,11 @@ it. `SPECS` keeps its name and is now stated as the roster with NO set in force,
 which is what the training world, the viewer, the arena and a restore by design
 all want. See "What M3 did" above for the four things it found.
 
-**M4 — the overrides and witch-space**: Constrictor system → G, plans or
-witch-space → C/D by tech level. `blueprintSetFor` already takes the override
-and `test/blueprint-set.test.ts` already pins both; what is left is the caller —
+**M4 — the overrides and witch-space — LANDED.** Constrictor system → G, plans or
+witch-space → C/D by tech level. `blueprintSetFor` already took the override and
+`test/blueprint-set.test.ts` already pinned both; what was left was the caller —
 `chooseBlueprintSet` in `game.ts` naming the override, and `enterWitchspace`
-choosing one at all, which it does not today.
+choosing one at all. See "What M4 did" above for the four things it found.
 
 ## Watch out for
 

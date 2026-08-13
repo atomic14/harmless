@@ -104,6 +104,7 @@ import './ship-roles.test.ts';
 import './role-variants.test.ts';
 import './blueprint-set.test.ts';
 import './set-roster.test.ts';
+import './blueprint-override.test.ts';
 
 // --- the trained brains -----------------------------------------------------
 import './ai.test.ts';

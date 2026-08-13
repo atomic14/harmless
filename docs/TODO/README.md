@@ -13,23 +13,9 @@ active context:
 
 ## Execution queue
 
-1. **138** — [Every system in every galaxy flies the same
-   roster](138-every-system-flies-the-same-roster.md). **M1, M2 and M3 landed on
-   2026-08-13; M4 is the two overrides and is all that is left.** The 23 released
-   blueprint sets `S.A`–`S.W` were all imported and the set dimension was then
-   collapsed, so a Krait was the same Krait in all eight galaxies. It is not any
-   more: a system draws two random bits on arrival, and the set it lands on says
-   which designs turn up. The released rule is recovered and cited (tech level,
-   government, two random bits, plus Elite-A's galaxy addition), and bit 0 turns
-   out to be the rule that already picks the Dodo over the Coriolis — one home,
-   not two. It waited behind 139, because its M1 roster probe must not be
-   baselined against a fight that one-sided, and because a set-faithful build
-   choice would have weakened an opposition that already could not bite — which
-   is why 138 keeps `role-variants.ts` choosing the build inside the pool of
-   designs the set narrows to. M4 is left: the Constrictor's system always flies
-   G, and the plans or witch-space fly C or D by tech level. The chooser already
-   takes both overrides and is already tested on them; what is missing is the
-   caller.
+**Empty.** 138 closed on 2026-08-13 with its M4, and nothing is promoted behind
+it. The Backlog below is empty too, so the next execution item comes from
+triage: a GitHub issue, or Chris.
 
 The GitHub inbox is empty. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
@@ -85,6 +71,28 @@ of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
 
 ## What landed on 2026-08-13
+
+**138 M4 closes the item.** The two released overrides have a caller.
+`missionBlueprintOverride` in `game/missions.ts` owns both mission facts — the
+hunting leg AT the target system flies set G, and the courier run flies a
+Thargoid set — and `enterWitchspace` chooses a set at all, which it did not
+before. **Limbo is asked first**, because a mis-jump on the hunting leg is still
+limbo, and the Constrictor waits in a system rather than between two.
+
+**Four things it found were not in the plan.** An override must not draw, and the
+Thargoid ambush is what says so: the number is not consulted behind an override,
+and a draw made to fill it moves the ambush from **three Thargoids to two**,
+because the ambush rolls off the next values of the same stream. An override
+raised at a dock takes effect at the NEXT arrival, which is the arrival-only rule
+working rather than a hole in it — the sky you launch into is the sky you docked
+out of. Witch-space picks its tech branch from the system you jumped FROM,
+because a mis-jump does not move `commander.systemIndex`. And **21 of the 23 sets
+file no Thargoid**, so until now limbo had been flying M3's empty-band fallback:
+the ambush is by a ship the set in force did not file.
+
+`test/blueprint-override.test.ts` is 21 assertions, and all four gates were shown
+to fail. `npm run check` passes at 4,344 assertions, and `npm run roster-probe`
+is unchanged — the probe walks the number, and no override fires on that path.
 
 **138 M3** — every system does NOT fly the same roster now. A commander who jumps
 draws two random bits from the seeded stream, the four inputs pick one of the 23

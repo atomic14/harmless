@@ -96,7 +96,11 @@ Two quirks are deliberate:
   which one of those 23 sets a system flies, as a pure function of the system,
   the galaxy and two random bits. `set-roster.ts` says what that one set files
   under each job. That is selection. A design must pass permission and selection
-  both. The set is drawn once on arrival, and it is saved state.
+  both. The set is drawn once on arrival, and it is saved state. Two released
+  overrides can answer in place of that number. The Navy mission raises one of
+  them, and witch-space raises the other. `missions.ts` and `game.ts` name the
+  override, because the chooser is told which one applies. The chooser never
+  works one out.
 - `src/game/contract-offers.ts` owns what the bulletin board offers today, and
   how each job reads. `src/game/contracts.ts` owns the rest of a contract's
   life: what acceptance costs the hold, what a delivery pays, and what a failure

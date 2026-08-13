@@ -74,7 +74,7 @@ import {
   checkJump, resolveJump, refusalMessage,
   checkGalacticJump, resolveGalacticJump, galacticRefusalMessage,
 } from './hyperspace.ts';
-import { constrictorLurksHere } from './missions.ts';
+import { constrictorLurksHere, missionBlueprintOverride } from './missions.ts';
 import {
   WorldStep, massLocked,
   type StepEvent, type StepHost,
@@ -799,20 +799,44 @@ export class Game {
    * system down when you dock — the world you launch into is the world you
    * docked out of, ships and all — so there is no second entry to choose at. A
    * roster that changed while the sky did not would be a worse answer than the
-   * faithful one.
+   * faithful one. An override the mission raises WHILE YOU ARE DOCKED therefore
+   * takes effect at the next arrival: the courier orders come at a dock, and the
+   * system you are standing in does not restock its sky because you accepted
+   * them.
+   *
+   * THE OVERRIDE IS NAMED HERE AND DECIDED IN TWO PLACES. `blueprint-set.ts`
+   * takes one and never works one out, `missions.ts` owns the two mission
+   * stages, and witch-space is the Game's own flag. Limbo is asked first,
+   * because a mis-jump on the hunting leg is still limbo — the Constrictor waits
+   * in a system, and this is not one.
    */
   private chooseBlueprintSet(): void {
+    const override = this.state.session.witchspace
+      ? 'thargoid' as const : missionBlueprintOverride(this.state.commander);
+    // NO DRAW BEHIND AN OVERRIDE. `blueprintSetFor` does not consult the number
+    // when one is in force, so the 0 below is never read, and a draw made to
+    // fill it would spend the seeded stream on a value nothing reads — and would
+    // move the Thargoid ambush `enterWitchspace` rolls two lines after this.
+    const bits = override === null ? blueprintRandomBits(random()) : 0;
     this.state.session.blueprintSet = blueprintSetFor(
-      this.system, this.state.commander.galaxy, blueprintRandomBits(random()));
+      this.system, this.state.commander.galaxy, bits, override);
   }
 
   /**
    * Witch-space: mis-jump limbo. We reuse the system scene but banish the
    * planet, station and sun beyond reach — just stars, and Thargoids.
+   *
+   * The set is chosen again here, and it is the released override: limbo flies
+   * one of the two blueprint files that carry Thargoids. Which of the two is the
+   * tech level of the system the mis-jump left you standing in, because a
+   * mis-jump does not move `commander.systemIndex` — the target is retained for
+   * the escape jump and nothing else.
    */
   /** @internal — driven by test/playtest.js */
   enterWitchspace(): void {
     this.state.session.witchspace = true;
+    // The flag first, then the set, then the world that is built with it.
+    this.chooseBlueprintSet();
     this.buildWorld();
     this.state.world.banishScenery();
     this.state.player.position.set(0, 0, 0);

@@ -18,6 +18,7 @@
 //   stage 4  done
 
 import type { CommanderData } from './commander.ts';
+import type { BlueprintOverride } from './blueprint-set.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { distanceTenths } from '../galaxy/navigation.ts';
 import { playerLaser } from './gunnery.ts';
@@ -100,6 +101,28 @@ export function constrictorDestroyed(
 export function constrictorLurksHere(commander: CommanderData): boolean {
   return commander.mission.stage === 1
     && commander.mission.targetIndex === commander.systemIndex;
+}
+
+/**
+ * Which released blueprint override this mission puts in force, or null.
+ *
+ * The released game overrode the blueprint file on two of these five stages, and
+ * both facts are the mission's rather than the chooser's — `blueprint-set.ts`
+ * says in its header that it is told which override applies and never works it
+ * out. So the stage numbers stay in this file, which is their one home.
+ *
+ *   stage 1, AT the target — the Constrictor's system, which always flies set G.
+ *   stage 3 — the courier run, and the Thargoids want the plans back.
+ *
+ * The third case is not a mission fact at all: witch-space takes the same
+ * override, and the Game names that one because the flag is the Game's.
+ */
+export function missionBlueprintOverride(
+  commander: CommanderData,
+): BlueprintOverride | null {
+  if (constrictorLurksHere(commander)) return 'constrictor';
+  if (commander.mission.stage === 3) return 'thargoid';
+  return null;
 }
 
 /**
