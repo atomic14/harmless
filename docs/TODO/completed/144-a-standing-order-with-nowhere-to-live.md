@@ -384,11 +384,17 @@ switched to the harness namespace (`useHarnessSaves`, invariant 3) before any
 docking, every player key was backed up in the page first, and all seven were
 byte-identical afterwards.
 
-## What is still open for a pilot
+## What the pilot answered
 
-One question the plan asked is answered, and one is replaced:
+Both questions the plan left for a flight are closed, on 2026-08-13.
 
-- **Does the summary line read well carrying three things?** It wraps to two
-  lines at this window width. Legible, and worth Chris's opinion.
-- ~~Is ⇧I a key Chris finds?~~ — moot. The key is `R`, and the reason is
-  structural rather than a matter of taste.
+- ~~**Does the summary line read well carrying three things?**~~ — **answered by
+  Chris**, who read it and settled it: *"that's fine - we have space"*. It wraps
+  to two lines under the station header and stays that way. **The line is not
+  shortened**, and that matters beyond the wording: invariant 16 says a surface
+  carrying orders names every kind it holds, and the obvious way to fit one line
+  is to stop naming one of them.
+- ~~Is ⇧I a key Chris finds?~~ — moot. The key is `R`, and M6 has the reason. It
+  is structural rather than a matter of taste.
+
+**Nothing on this item is open.**

@@ -178,9 +178,11 @@ held. All five surfaces read correctly, and no save was put at risk: the browser
 held three real careers, the page was switched to the harness namespace before
 any docking, and all seven player keys were byte-identical afterwards.
 
-`npm run check` passes, and every gate added was shown to fail. **One question is
-still Chris's:** the station line wraps to two lines when it carries three
-things, and whether that reads well is his call.
+`npm run check` passes, and every gate added was shown to fail. **The last
+question closed on Chris's call the same day.** The station line wraps to two
+lines when it carries a Navy mission and a contract, and he read it and settled
+it: *"that's fine - we have space"*. So the summary keeps every kind it holds at
+full length, and nothing is shortened to fit one line. **Nothing is open on 144.**
 
 **143** — GitHub #26, and the rule the issue questions is correct. The triage
 answered it by measurement: over 138 freight jobs from 86 home systems of galaxy
