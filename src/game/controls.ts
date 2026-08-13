@@ -69,6 +69,7 @@ export type Command =
   | 'openChart'
   | 'openLocalChart'
   | 'openStatus'
+  | 'openMissions'
   // --- the cockpit --------------------------------------------------------
   | 'view0' | 'view1' | 'view2' | 'view3'
   | 'armMissile'
@@ -158,6 +159,9 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'KeyP', command: 'togglePause' },
   { key: 'KeyG', command: 'openChart' },
   { key: 'KeyN', command: 'openLocalChart' },
+  // ⇧I before I, for the reason the docked table states at its own pair: the
+  // plain entry is the fallback and takes the tap from the front.
+  { key: 'KeyI', shift: true, command: 'openMissions' },
   { key: 'KeyI', command: 'openStatus' },
   { key: 'KeyT', command: 'armMissile' },
   { key: 'KeyM', command: 'launchMissile' },
@@ -275,6 +279,11 @@ export const BINDINGS: Record<ControlMode, readonly Binding[]> = {
     // it while docked — the only KeyD handlers were on the charts and the save
     // screen. Reports the system you are standing on.
     { key: 'KeyD', command: 'openSystemData' },
+    // ⇧I beside I, because standing orders are the other half of what the
+    // status screen reports: I says what you are, ⇧I says what you owe. It must
+    // come FIRST for its key — the plain entry is the fallback and would eat
+    // the tap, which is the rule the ⇧T pair below states in full.
+    { key: 'KeyI', shift: true, command: 'openMissions' },
     { key: 'KeyI', command: 'openStatus' },
     // ⇧T beside T, because the development levers and the simulator are the two
     // things on this menu that are not the career. It must come FIRST for its

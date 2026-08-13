@@ -15,6 +15,8 @@ import { newCommander, type CommanderData, type Contract } from '../src/game/com
 import { standingOrders, ordersSummary } from '../src/game/orders.ts';
 import { stepMissionAtDock } from '../src/game/missions.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
+import { renderMissions } from '../src/ui/screens.ts';
+import { captureById } from './screen-capture.ts';
 import { check, eq } from './harness.ts';
 
 console.log('\nstanding orders — every kind the commander holds is named');
@@ -127,4 +129,42 @@ console.log('\nstanding orders — every kind the commander holds is named');
     check('...and the summary carries the order rather than the warning',
       !ordersSummary(orders).includes('MILITARY'));
   }
+}
+
+// The screen is the other half of the rule. A reader that returns an order and
+// a screen that does not draw it is the same failure with a longer path — which
+// is the defect docs/TODO/140 M2 fixed for the chart's contract verdict.
+
+console.log('\nthe MISSIONS screen draws every order the reader returns');
+{
+  const systems = generateGalaxy(1);
+  const paint = (c: CommanderData): string =>
+    captureById(() => { renderMissions(standingOrders(c, systems), systems); }).get('screen') ?? '';
+
+  const c: CommanderData = {
+    ...newCommander(),
+    kills: 16, galaxy: 1, systemIndex: 7, day: 100,
+    contracts: [{
+      kind: 'cargo', destination: 11, commodity: 0, qty: 5,
+      reward: 5000, deadlineDay: 106, progress: 0,
+    }],
+    mission: { stage: 0, targetIndex: null },
+  };
+  c.equipment.laser = 'beam';
+  stepMissionAtDock(c, systems, () => 0.5);
+
+  const html = paint(c);
+  const orders = standingOrders(c, systems);
+  check('every order the reader returns is on the screen',
+    orders.every((o) => html.includes(o.line)));
+  check('...each with the world it sends her to',
+    orders.every((o) => html.includes(systems[o.destination].name)));
+  check('...and the gun warning under the hunt it belongs to',
+    html.includes('MILITARY LASER'));
+  check('a Navy leg shows no deadline, because it has none',
+    html.includes('&mdash;'));
+
+  const idle = paint({ ...newCommander(), contracts: [], mission: { stage: 0, targetIndex: null } });
+  check('a commander under no orders still gets a screen, and it says so',
+    idle.includes('STANDING ORDERS') && idle.includes('no standing orders'));
 }

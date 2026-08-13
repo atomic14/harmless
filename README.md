@@ -190,7 +190,7 @@ joystick the original supported.
 | Y / ⇧Y | jettison a tonne of cargo / five at once — pirates came for the goods, not for you |
 | O | jettison a tonne of the ILLEGAL cargo — the evidence, which is rarely the most valuable thing aboard |
 | L | offer the police ship in front of you money — he may refuse and report you; it never clears your record, and it always costs your name |
-| I | commander status |
+| I / ⇧I | commander status / missions — the Navy mission and the jobs you have signed for |
 | P | pause |
 | Q | **while paused only** — quit this flight; asks first, then puts you back at the station autosave you launched from |
 | V | mouse flight — pointer-locked analogue stick, left button fires |
@@ -206,6 +206,7 @@ because browsers claim the function keys.
 | L | launch |
 | M / C / E | market · contracts · equip ship |
 | N / G / D / I | local chart · galactic chart · data on system · status |
+| ⇧I | missions — every standing order you are under, in one place |
 | **T** | **combat training simulator** — practise a fight; nothing in it reaches your commander |
 | ⇧T | test mode — development levers; a career that switches them on says so on its status screen, for good |
 | H | new pilot's briefing |

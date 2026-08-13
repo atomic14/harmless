@@ -131,6 +131,7 @@ import {
   MarketScreen, EquipScreen, buyEquipment, type TradeContext,
 } from './screens/trade.ts';
 import { StatusScreen, type StatusContext } from './screens/status.ts';
+import { MissionsScreen, type MissionsContext } from './screens/missions.ts';
 import { DataScreen, type DataContext } from './screens/data.ts';
 import { BriefingScreen } from './screens/briefing.ts';
 import { ContractsScreen, type ContractsContext } from './screens/contracts.ts';
@@ -627,6 +628,10 @@ export class Game {
         systems: this.state.systems,
         targetIndex: this.state.chart.targetIndex,
       } satisfies StatusContext)),
+      new MissionsScreen(() => ({
+        commander: this.state.commander,
+        systems: this.state.systems,
+      } satisfies MissionsContext)),
       new DataScreen(() => ({
         subject: this.dataSubject ?? this.system,
         here: this.system,
@@ -2009,7 +2014,8 @@ export class Game {
     // --- shared between the menu and the cockpit --------------------------
     openChart: () => this.openChart(this.cameFrom()),
     openLocalChart: () => this.openLocalChart(this.cameFrom()),
-    openStatus: () => this.openStatus(this.cameFrom()),
+    openStatus: () => this.openReadingScreen('status', this.cameFrom()),
+    openMissions: () => this.openReadingScreen('missions', this.cameFrom()),
     // --- the cockpit ------------------------------------------------------
     view0: () => this.setView(0),
     view1: () => this.setView(1),
@@ -2141,10 +2147,18 @@ export class Game {
     this.screens.open('data');
   }
 
-  private openStatus(from: 'docked' | 'flight'): void {
+  /**
+   * Open a screen that only REPORTS, from wherever the key was pressed.
+   *
+   * Two screens qualify: what you are (`status`), and what you owe
+   * (`missions`). Neither spends anything, and both are bound in the cockpit as
+   * well as at the station — so both must record which base state to come back
+   * to, and both must let go of mouse flight before a pointer is any use.
+   */
+  private openReadingScreen(id: 'status' | 'missions', from: 'docked' | 'flight'): void {
     this.input.releaseMouseFlight();
     this.baseMode = from;
-    this.screens.open('status');
+    this.screens.open(id);
   }
 
   /**

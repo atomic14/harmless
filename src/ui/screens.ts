@@ -12,6 +12,7 @@ import {
   cargoTonnes, consignedTonnes, formatCredits, cargoCapacity, dayWord,
 } from '../game/commander.ts';
 import { contractDestinations, contractVerdict } from '../game/contract-eta.ts';
+import type { StandingOrder } from '../game/orders.ts';
 import { MAX_FUEL, STARTING_CREDITS } from '../constants/commander.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 import { rating } from '../game/rating.ts';
@@ -661,6 +662,47 @@ export function renderStatus(
         ? '<br/><span style="color:var(--hud-amber)">Test mode: used in this career</span>'
         : ''}
     </div>
+    <div class="buttons"><button data-key="Escape">BACK</button></div>
+  `);
+}
+
+/**
+ * Every standing order the commander is under, in one place (docs/TODO/144).
+ *
+ * The screen this paints is what invariant 16 asks for: a briefing said one
+ * time, for five seconds, was the only place the Navy's target system was ever
+ * written, and any contract took the one line under the station header away
+ * from it (GitHub #27).
+ *
+ * IT DRAWS WHAT `standingOrders` RETURNS, in that order, and decides nothing.
+ * The words, the sort and what counts as an order are `game/orders.ts`.
+ */
+export function renderMissions(
+  orders: readonly StandingOrder[], systems: StarSystem[],
+): void {
+  const where = (index: number): string => systems[index].name;
+  const rows = orders.map((o) => {
+    const time = o.kind === 'contract' ? dayWord(o.daysLeft) : '&mdash;';
+    // Amber under the row it belongs to, which is the colour this file already
+    // spends on a warning. The Navy states the two numbers and lets the
+    // commander decide; `constrictorWarning` is the one home of that sentence.
+    const warning = o.kind === 'navy' && o.warning
+      ? `<tr><td colspan="4" style="color:var(--hud-amber)">${o.warning}</td></tr>`
+      : '';
+    return `
+      <tr><td>${o.line}</td>
+        <td>${where(o.destination)}</td>
+        <td class="num">${time}</td>
+        <td class="num">${formatCredits(o.reward)}</td></tr>${warning}`;
+  }).join('');
+
+  show(`
+    <h2>STANDING ORDERS</h2>
+    <div class="rule"></div>
+    ${orders.length ? `<table>
+      <tr><th>ORDER</th><th>DESTINATION</th><th class="num">TIME LEFT</th><th class="num">PAYS</th></tr>
+      ${rows}
+    </table>` : '<div class="info">You are under no standing orders.</div>'}
     <div class="buttons"><button data-key="Escape">BACK</button></div>
   `);
 }
