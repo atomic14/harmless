@@ -9,7 +9,7 @@ import { distanceTenths, distanceSqToPoint, oneJumpDays } from '../galaxy/naviga
 import { routeEstimate } from '../galaxy/route.ts';
 import {
   type CommanderData, type Contract,
-  cargoTonnes, formatCredits, cargoCapacity, dayWord,
+  cargoTonnes, consignedTonnes, formatCredits, cargoCapacity, dayWord,
 } from '../game/commander.ts';
 import { contractDestinations, contractVerdict } from '../game/contract-eta.ts';
 import { MAX_FUEL, STARTING_CREDITS } from '../constants/commander.ts';
@@ -306,13 +306,28 @@ export function renderMarket(
   selected: number,
   fuel: FuelQuote | null = null,
 ): void {
+  // Which tonnes are spoken for (docs/TODO/143). The sale of a consignment is
+  // legal and stays legal, and the measurement says it never pays — but the
+  // hold kept the answer to itself, and the one market with no bulletin board
+  // beside it is a rock hermit. So the row carries it. `--hud-amber` is the
+  // colour renderContracts already spends on a flagged job below, for the same
+  // reason: flagged, not disguised.
+  //
+  // The suffix reports the JOB and not a share of the hold, which is what
+  // `consignedTonnes` reports. 15t of Food against a 5t consignment reads
+  // `15t · 5 CONSIGNED`, because 10 of those tonnes are hers.
+  const consigned = (i: number): string => {
+    const tonnes = consignedTonnes(c, i);
+    return tonnes > 0
+      ? ` <span style="color:var(--hud-amber)">&middot; ${tonnes} CONSIGNED</span>` : '';
+  };
   const rows = market
     .map((m, i) => `
       <tr class="${i === selected ? 'sel' : ''} pick" data-row="${i}">
         <td>${m.name.toUpperCase()}</td>
         <td class="num">${m.price.toFixed(1)}</td>
         <td class="num">${m.quantity}${m.unit}</td>
-        <td class="num">${c.cargo[i] > 0 ? c.cargo[i] + COMMODITIES[i].unit : '-'}</td>
+        <td class="num">${c.cargo[i] > 0 ? c.cargo[i] + COMMODITIES[i].unit : '-'}${consigned(i)}</td>
       </tr>`)
     .join('');
   show(`

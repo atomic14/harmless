@@ -39,6 +39,7 @@ import './record-line.test.ts';
 import './contracts.test.ts';
 import './contract-offers.test.ts';
 import './contract-acceptance.test.ts';
+import './consigned-hold.test.ts';
 import './missions.test.ts';
 import './survivors.test.ts';
 import './trade.test.ts';

@@ -291,6 +291,29 @@ function berthTonnes(contracts: Contract[]): number {
     (sum, k) => sum + (k.kind === 'passenger' ? k.qty * PASSENGER_BERTH_TONNES : 0), 0);
 }
 
+/**
+ * Tonnes of one commodity that a contract has a claim on.
+ *
+ * DERIVED from the contract list, never stored, for the reason `berthTonnes`
+ * gives above: a stored copy can disagree with the list, and the market screen,
+ * the sale and `settleContracts` must not be able to hold three answers
+ * (docs/TODO/143).
+ *
+ * Only a `cargo` or a `smuggle` job carries goods. A passenger job takes a
+ * berth, which is `berthTonnes`. A bounty and a courier run carry nothing, and
+ * their `commodity` field is unread — so a bounty on commodity 0 must not mark
+ * the Food row.
+ *
+ * It reports the JOB, not the hold. A commander who sold two tonnes of a five
+ * tonne consignment still owes five, so the answer stays 5 while the hold reads
+ * 3. That shortfall is what `settleContracts` bills at the door.
+ */
+export function consignedTonnes(c: CommanderData, commodity: number): number {
+  return c.contracts.reduce((sum, k) => sum
+    + ((k.kind === 'cargo' || k.kind === 'smuggle') && k.commodity === commodity
+      ? k.qty : 0), 0);
+}
+
 export function formatCredits(tenths: number): string {
   return `${(tenths / 10).toFixed(1)} Cr`;
 }
