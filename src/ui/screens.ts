@@ -11,7 +11,9 @@ import {
   type CommanderData, type Contract,
   cargoTonnes, consignedTonnes, formatCredits, cargoCapacity, dayWord,
 } from '../game/commander.ts';
-import { orderDestinations, orderVerdict } from '../game/orders.ts';
+import {
+  orderDestinations, orderVerdict, standingOrders, type ContractOrder,
+} from '../game/orders.ts';
 import type { MissionLeg } from '../game/missions.ts';
 import { MAX_FUEL, STARTING_CREDITS } from '../constants/commander.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
@@ -1477,10 +1479,17 @@ export function renderContracts(
       <td class="num">${formatCredits(k.reward)}</td>
     </tr>`).join('') || '<tr><td colspan="4">No work on offer today.</td></tr>';
 
-  const taken = c.contracts.map((k) => `
-    <tr${illicit(k)}><td>${describeContract(k, systems)}${k.kind === 'bounty' ? ` (${k.progress}/${k.qty})` : ''}</td>
-      <td class="num">${k.deadlineDay - c.day} days left</td>
-      <td class="num">${formatCredits(k.reward)}</td></tr>`).join('');
+  // The ACCEPTED half reads `standingOrders`, so the days-left subtraction has
+  // one home rather than one here and one in `game/orders.ts`. The WORDS were
+  // never at risk — both halves call `describeContract` — but two copies of the
+  // same arithmetic are two chances to measure a deadline from the wrong day,
+  // which is the defect docs/TODO/140 M4 records for the charts.
+  const taken = standingOrders(c, systems)
+    .filter((o): o is ContractOrder => o.kind === 'contract')
+    .map((o) => `
+    <tr${illicit(o.job)}><td>${describeContract(o.job, systems)}${o.job.kind === 'bounty' ? ` (${o.job.progress}/${o.job.qty})` : ''}</td>
+      <td class="num">${o.daysLeft} days left</td>
+      <td class="num">${formatCredits(o.reward)}</td></tr>`).join('');
 
   // A BOARD IS A STATION'S. In flight there is nothing to sign, and the offers
   // in `state.contractOffers` are the last station's — drawing them would show

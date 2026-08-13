@@ -13,6 +13,7 @@ import {
   newCommander, type CommanderData, type Contract,
 } from '../src/game/commander.ts';
 import { renderContracts } from '../src/ui/screens.ts';
+import { standingOrders } from '../src/game/orders.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { ContractsScreen } from '../src/game/screens/contracts.ts';
 import type { Input } from '../src/engine/input.ts';
@@ -124,4 +125,36 @@ console.log('\nthe accept key is refused in flight, not merely hidden');
 
   eq('docked, A signs for the selected job', drive(true), 1);
   eq('in flight it signs for nothing', drive(false), 0);
+}
+
+// One subtraction, one home. The WORDS were never at risk — both halves call
+// `describeContract` — but the days-left arithmetic was written twice, and
+// docs/TODO/140 M4 records what a deadline measured from the wrong day costs.
+
+console.log('\nthe ACCEPTED rows and the docked summary count the same days');
+{
+  const systems = generateGalaxy(1);
+  const c: CommanderData = {
+    ...newCommander(), systemIndex: 7, day: 100,
+    contracts: [
+      { kind: 'courier', destination: 42, commodity: 0, qty: 1, reward: 5000, deadlineDay: 106, progress: 0 },
+      { kind: 'bounty', destination: 11, commodity: 0, qty: 5, reward: 9000, deadlineDay: 130, progress: 2 },
+    ],
+  };
+  const html = captureById(() => {
+    renderContracts(systems[7], systems, c, [], 0, false);
+  }).get('screen') ?? '';
+
+  const orders = standingOrders(c, systems)
+    .filter((o) => o.kind === 'contract');
+  check('every accepted job is a row', orders.length === 2);
+  check('...and each row carries the days the reader counted',
+    orders.every((o) => html.includes(`${(o as { daysLeft: number }).daysLeft} days left`)));
+  check('...with a bounty\'s progress, which no summary carries',
+    html.includes('(2/5)'));
+
+  // The row order is the reader's, so the tightest deadline is at the top of
+  // both surfaces rather than in board order on one of them.
+  check('the tightest deadline is the first row',
+    html.indexOf('6 days left') < html.indexOf('30 days left'));
 }
