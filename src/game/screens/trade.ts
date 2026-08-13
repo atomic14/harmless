@@ -12,7 +12,7 @@
 // about game state. It returns an OUTCOME and the Game applies it.
 
 import {
-  formatCredits, cargoCapacity, cargoTonnes,
+  formatCredits, cargoCapacity, cargoTonnes, consignedTonnes,
   type CommanderData,
 } from '../commander.ts';
 import { MAX_FUEL, MAX_MISSILES } from '../../constants/commander.ts';
@@ -59,6 +59,22 @@ export class MarketScreen implements Screen {
   /** @internal — test/playtest.js sets this directly before calling buy() */
   selected = 0;
 
+  /**
+   * The row whose consignment the pilot has already been warned about, or null.
+   *
+   * The sale of a consignment is legal and stays legal (docs/TODO/143), so this
+   * is a warning rather than a refusal: the first sell key on a marked row
+   * spends itself on the message, and the second one sells. One row is armed at
+   * a time, and anything that changes what the sell key would sell takes the
+   * arming down — a moved cursor, a click on another row, a purchase, and
+   * leaving the screen.
+   *
+   * The screen owns it rather than `sell`, and that is deliberate. `sell` is
+   * also the Game's `sellCargo`, which test/playtest.js drives, and a rule that
+   * lived in there would make a scripted sale need a keystroke it cannot send.
+   */
+  private armed: number | null = null;
+
   private readonly ctx: () => TradeContext;
 
   constructor(ctx: () => TradeContext) {
@@ -67,6 +83,7 @@ export class MarketScreen implements Screen {
 
   open(): void {
     this.selected = 0;
+    this.armed = null;
     this.render();
   }
 
@@ -85,6 +102,7 @@ export class MarketScreen implements Screen {
 
   select(row: number): void {
     this.selected = row;
+    this.armed = null;
     this.render();
   }
 
@@ -100,16 +118,41 @@ export class MarketScreen implements Screen {
       this.selected = (this.selected + 1) % ctx.market.length;
       changed = true;
     }
-    if (i.pressed('KeyB')) { this.buy(shift ? Infinity : 1); changed = true; }
-    if (i.pressed('VirtBuyMax')) { this.buy(Infinity); changed = true; }
-    if (i.pressed('KeyV')) { this.sell(shift ? Infinity : 1); changed = true; }
-    if (i.pressed('VirtSellAll')) { this.sell(Infinity); changed = true; }
+    // A moved cursor disarms, before any trade key is read: the warning names a
+    // row, so it cannot survive the row it named.
+    if (changed) this.armed = null;
+    if (i.pressed('KeyB')) { this.armed = null; this.buy(shift ? Infinity : 1); changed = true; }
+    if (i.pressed('VirtBuyMax')) { this.armed = null; this.buy(Infinity); changed = true; }
+    if (i.pressed('KeyV')) { this.askThenSell(shift ? Infinity : 1); changed = true; }
+    if (i.pressed('VirtSellAll')) { this.askThenSell(Infinity); changed = true; }
     if (i.pressed('Escape')) {
+      this.armed = null;
       if (ctx.atHermit) ctx.leaveHermit();
       return 'back';
     }
     if (changed) this.render();
     return 'stay';
+  }
+
+  /**
+   * Sell, or warn once and sell on the next press.
+   *
+   * The one thing between a sell key and `sell`, so both sell keys and both
+   * buttons take the same door. A row with nothing aboard is not armed: the
+   * sale would refuse anyway, and a warning about tonnes that are already gone
+   * reads as a bug.
+   */
+  private askThenSell(want: number): void {
+    const ctx = this.ctx();
+    const idx = this.selected;
+    const consigned = consignedTonnes(ctx.commander, idx);
+    if (consigned > 0 && this.armed !== idx && ctx.commander.cargo[idx] > 0) {
+      this.armed = idx;
+      ctx.message(`${consigned}T CONSIGNED — PRESS V AGAIN TO SELL`, 3);
+      sfx.refused();
+      return;
+    }
+    this.sell(want);
   }
 
   /** Buy up to `want` units of the selected commodity (Infinity = fill up). */

@@ -24,6 +24,8 @@ import {
 } from '../src/game/commander.ts';
 import { generateMarket, COMMODITIES } from '../src/galaxy/galaxy.ts';
 import { renderMarket } from '../src/ui/screens.ts';
+import { MarketScreen, type TradeContext } from '../src/game/screens/trade.ts';
+import type { Input } from '../src/engine/input.ts';
 import { CONTRABAND } from '../src/constants/law.ts';
 import { capture } from './screen-capture.ts';
 import { check, eq } from './harness.ts';
@@ -138,4 +140,150 @@ console.log('\nthe market screen marks the consigned tonnes');
   check('a passenger job marks nothing',
     !capture(() => renderMarket(g1[7], market,
       carrying([job({ kind: 'passenger', qty: 3 })], { [FOOD]: 10 }), 0)).includes('CONSIGNED'));
+}
+
+// --- and the sale asks once ---------------------------------------------------
+//
+// A warning, not a refusal. The rule does not move: a consignment stays
+// sellable at every market, a hermit's included. What the second press buys is
+// that the choice was made rather than made by accident.
+
+console.log('\nthe sale of a consigned row asks once');
+{
+  /** A keyboard that has already been pressed, as `Input` — taps are consumed. */
+  const taps = (): { press(code: string): void; input: Input } => {
+    const queued: string[] = [];
+    return {
+      press: (code) => { queued.push(code); },
+      input: {
+        pressed: (code: string) => {
+          const at = queued.indexOf(code);
+          if (at < 0) return false;
+          queued.splice(at, 1);
+          return true;
+        },
+        held: () => false,
+      } as unknown as Input,
+    };
+  };
+
+  /** A market screen over one commander, and everything it said. */
+  const rig = (c: CommanderData) => {
+    const said: string[] = [];
+    const ctx: TradeContext = {
+      commander: c,
+      system: g1[7],
+      market: generateMarket(g1[7], 0),
+      atHermit: false,
+      cheat: false,
+      leaveHermit: () => {},
+      message: (text) => { said.push(text); },
+      queueMessage: () => {},
+      addNotoriety: () => {},
+      checkpoint: () => {},
+    };
+    const screen = new MarketScreen(() => ctx);
+    screen.open();
+    const keys = taps();
+    return {
+      c,
+      said,
+      screen,
+      /** How many times the screen has warned — the receipt also goes to `said`. */
+      warnings: () => said.filter((text) => text.includes('CONSIGNED')).length,
+      /** One frame of keyboard, the way the host gives a screen its input. */
+      press: (...codes: string[]) => {
+        for (const code of codes) keys.press(code);
+        screen.input(keys.input);
+      },
+    };
+  };
+
+  // A clean row is untouched by any of this: one press, one sale.
+  {
+    const r = rig(carrying([], { [FOOD]: 10 }));
+    r.screen.select(FOOD);
+    r.press('KeyV');
+    eq('a row nobody has a claim on sells on the first press', r.c.cargo[FOOD], 9);
+  }
+
+  // The consigned row: the first press spends itself on the warning.
+  {
+    const r = rig(carrying([job({ qty: 5 })], { [FOOD]: 10 }));
+    r.screen.select(FOOD);
+    r.press('KeyV');
+    eq('the first press on a consigned row sells nothing', r.c.cargo[FOOD], 10);
+    eq(`...and says how many are spoken for (${r.said.join(' / ')})`,
+      r.said.join(' / '), '5T CONSIGNED — PRESS V AGAIN TO SELL');
+    r.press('KeyV');
+    eq('...and the second press sells', r.c.cargo[FOOD], 9);
+    eq('...without asking again', r.warnings(), 1);
+  }
+
+  // SELL ALL arms the same way, so the fastest way to void a contract is not
+  // one keystroke.
+  {
+    const r = rig(carrying([job({ qty: 5 })], { [FOOD]: 10 }));
+    r.screen.select(FOOD);
+    r.press('VirtSellAll');
+    eq('SELL ALL is armed like any other sale', r.c.cargo[FOOD], 10);
+    r.press('VirtSellAll');
+    eq('...and empties the row on the second press', r.c.cargo[FOOD], 0);
+  }
+
+  // The arming names a row, so it cannot outlive the row it named.
+  {
+    const r = rig(carrying([job({ qty: 5 })], { [FOOD]: 10 }));
+    r.screen.select(FOOD);
+    r.press('KeyV');
+    r.press('ArrowDown');
+    r.press('ArrowUp');
+    r.press('KeyV');
+    eq('moving off the row and back disarms it', r.c.cargo[FOOD], 10);
+    eq('...and the warning is given again', r.warnings(), 2);
+  }
+  {
+    const r = rig(carrying([job({ qty: 5 })], { [FOOD]: 10 }));
+    r.screen.select(FOOD);
+    r.press('KeyV');
+    r.screen.select(FOOD);
+    r.press('KeyV');
+    eq('clicking the row again disarms it', r.c.cargo[FOOD], 10);
+  }
+  {
+    const r = rig(carrying([job({ qty: 5 })], { [FOOD]: 10 }));
+    r.screen.select(FOOD);
+    r.press('KeyV');
+    r.press('KeyB');
+    r.press('KeyV');
+    eq('...and so does the opposite trade key', r.c.cargo[FOOD], 11);
+  }
+  {
+    const r = rig(carrying([job({ qty: 5 })], { [FOOD]: 10 }));
+    r.screen.select(FOOD);
+    r.press('KeyV');
+    r.screen.open();
+    r.press('KeyV');
+    eq('leaving the screen disarms it', r.c.cargo[0], 10);
+  }
+
+  // A row with nothing aboard is not armed. The sale refuses it anyway, and a
+  // warning about tonnes that are already gone reads as a bug.
+  {
+    const r = rig(carrying([job({ qty: 5 })]));
+    r.screen.select(FOOD);
+    r.press('KeyV');
+    eq('an empty consigned row warns about nothing', r.warnings(), 0);
+  }
+
+  // THE PATH THE HARNESS DRIVES. `Game.sellCargo` calls `sell` directly, and
+  // test/playtest.js cannot press a key — so the arming lives in the input
+  // handler and `sell` stays the plain action it was.
+  {
+    const r = rig(carrying([job({ qty: 5 })], { [FOOD]: 10 }));
+    r.screen.selected = FOOD;
+    r.screen.sell(5);
+    eq('a scripted sale is not stopped by a keystroke it cannot send',
+      r.c.cargo[FOOD], 5);
+  }
 }
