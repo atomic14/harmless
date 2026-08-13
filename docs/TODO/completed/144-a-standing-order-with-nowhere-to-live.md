@@ -269,4 +269,68 @@ reaches:
 
 ## What landed
 
-Not started.
+All five milestones, on 2026-08-13. `npm run check` passes at **4,476
+assertions**. `npm run build` is clean.
+
+**M1 — one reader.** `game/orders.ts` asks the two kinds of order the same
+question for the first time. A contract's words still come from
+`describeContract` and the mission's from `missionOrderLine`. The Navy sorts
+above the work, and the contracts sort by deadline.
+
+**M2 — the screen.** ⇧I, at the station and in the cockpit, above the plain I in
+both tables. It draws what the reader returns, and it exists when it is empty.
+
+**M3 — the summary and the briefing.** `Station.missionText` is
+`ordersSummary(standingOrders(...))`. A `StationEvent` message may carry a
+`Command`, and the edge renders it as `— ⇧I MISSIONS`.
+
+**M4 — the charts.** `orderDestinations` is the union of the two kinds.
+`orderVerdict` prices the Navy leg in the same words as a contract, and a
+contract answers first where one world carries both.
+
+**M5 — the rule.** Invariant 16, and two gates that hold it as behaviour.
+
+## What the milestones found that the plan did not have
+
+**1. The gun warning deleted the transmission it explains.** M3's test found it.
+`INCOMING NAVY TRANSMISSION` and the warning were both pushed with `say`, in the
+same frame, and `showMessage` TAKES the console. So a commander with the wrong
+gun never saw that the Navy had called at all — the one line she did get was the
+warning, with no announcement in front of it. It is queued now, which is the
+rule `session.ts` already states for a line that explains another.
+`test/key-prose.test.ts` could not have seen it, because neither line spells a
+key: this was one console line deleting another, and nothing had ever asserted
+anything about the order of the dock's lines.
+
+**2. Four mission readers became one.** The plan asked for
+`missionDestination`, and M1 needed the line, the destination, the fee and the
+warning together. Four readers let a caller assemble three states the machine
+cannot produce, so `missionLeg` returns all four or null. `missionHeadline`
+keeps its callers, its words and its four assertions.
+
+**3. `missionDestination` was needed in M1, not M4.** A screen row reports where
+an order sends her, so the reader that says which stages have a target had to
+exist before the chart wanted it.
+
+**4. `openStatus` became `openReadingScreen`.** Status and missions want the
+same three lines: release mouse flight, record the base state, open the screen.
+A second copy of that is how a screen ends up reachable from one mode only.
+
+**5. The README's two key tables are a gate.** `test/key-help.test.ts` holds the
+hand-written README to the binding table in both directions, so ⇧I had to be
+written into both tables or the build failed. That gate worked exactly as
+designed, and it caught the omission on the first run.
+
+**6. The summary carries orders and never warnings.** Today's menu line carried
+the gun warning when no contract existed. It does not now: the warning is long
+enough to push the order off the line on its own, and the screen is one
+keystroke away. That is what invariant 16 asks of an announcement, and the
+change is deliberate rather than an oversight.
+
+## What was NOT verified
+
+**Nobody has flown it.** The Chrome extension was not connected during this
+work, so no screenshot of the MISSIONS screen exists and no line was read in a
+running cockpit. Both of the Verification section's questions for a pilot are
+still open: whether the summary line reads well when it carries three things,
+and whether ⇧I is a key Chris finds.

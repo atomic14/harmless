@@ -13,22 +13,13 @@ active context:
 
 ## Execution queue
 
-1. [144 — A standing order with nowhere to live](144-a-standing-order-with-nowhere-to-live.md)
-   · GitHub #27 · defect · medium.
+**Empty.** Three issues have now closed on the same pattern in three days. Chris
+flew the game, and each time the rule was correct and the cockpit did not carry
+the consequence. 142 closed #25, 143 closed #26, and 144 closed #27.
 
-**144 is the triage of #27, done on 2026-08-13.** A *standing order* is an
-obligation that outlives the moment it is announced, and the game has two kinds:
-a signed contract and the Navy mission. The issue is confirmed in the code that
-runs, and the triage found four things the report did not have. A contract has a
-durable home in the bulletin board's ACCEPTED table; the Navy mission is the only
-standing order with no screen. That home is a station, so in flight neither kind
-is readable. Both charts mark a contract destination and never the Navy target.
-And a census of every `say(...)` line says only two of them announce a standing
-order, so the wider half of the issue is a rule rather than a sweep. Five
-milestones: one reader, a MISSIONS screen on ⇧I, a summary line that hides no
-kind, a chart mark, and invariant 16 with a gate.
-
-The rest of the inbox is quiet. **#26** closed on 2026-08-13 with
+The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
+[144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
+2026-08-13 with
 [143](completed/143-the-counter-never-says-which-tonnes-are-spoken-for.md).
 **#25** closed the same day with
 [142](completed/142-every-explosion-is-in-the-cockpit.md), after Chris flew it on
@@ -86,6 +77,47 @@ of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
 
 ## What landed on 2026-08-13
+
+**144** — GitHub #27, and the Navy's briefing had nowhere to live. A **standing
+order** is an obligation that outlives the moment it is announced. The game has
+two kinds, a signed contract and the Navy mission, and they shared one amber line
+under the station header. The contract won it. So a commander who took any job
+before the Navy briefed her was never told where the Constrictor was, and the
+transmission she did get lasted five seconds and named no system.
+
+**The Navy mission was the only standing order in the game with no screen.** A
+contract has a durable home in the bulletin board's ACCEPTED table. That home is
+a station, so in flight neither kind was readable at all — and the pilot who met
+the Constrictor was forty light years from the station that briefed her.
+
+All five milestones landed in a day. `game/orders.ts` asks the two kinds the
+same question and restates no rule. **⇧I opens the standing orders at the
+station and in the cockpit**, above the plain I in both tables, and the screen
+exists when it is empty. The menu line is one entry per KIND now, so nothing can
+hide a kind again. A console line may carry a `Command`, rendered at the edge, so
+the transmission ends `— ⇧I MISSIONS` and no sentence in `src/game/` spells a
+letter. **Both charts mark the Navy target** in the diamond 140 built, with a
+contract answering first where one world carries both.
+
+**Invariant 16 is the rule that came out of it**, and it is wider than the Navy
+mission: a standing order has a screen, a console line never holds the only copy
+of one, and a surface that carries orders never drops one kind for another. Two
+gates hold it as behaviour — a walk of the mission machine end to end, and a
+matrix over both mission states and four contract counts that asserts the number
+of kinds HELD equals the number of kinds NAMED.
+
+**Six things came out of it that the plan did not have**, and all six are in the
+plan doc. The largest is a second defect the test found: **the gun warning
+deleted the transmission it explains.** Both lines were pushed with `say` in the
+same frame, and `showMessage` takes the console — so a commander with the wrong
+gun never saw that the Navy had called. It is queued now, which is the rule
+`session.ts` already states. `test/key-prose.test.ts` could not see it, because
+neither line spells a key.
+
+`npm run check` passes at 4,476 assertions, and every gate added was shown to
+fail. **Nobody has flown it.** The Chrome extension was not connected, so the two
+questions the plan left for a pilot are still open: whether the summary line
+reads well when it carries three things, and whether ⇧I is a key Chris finds.
 
 **143** — GitHub #26, and the rule the issue questions is correct. The triage
 answered it by measurement: over 138 freight jobs from 86 home systems of galaxy
