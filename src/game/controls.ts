@@ -159,10 +159,11 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'KeyP', command: 'togglePause' },
   { key: 'KeyG', command: 'openChart' },
   { key: 'KeyN', command: 'openLocalChart' },
-  // ⇧I before I, for the reason the docked table states at its own pair: the
-  // plain entry is the fallback and takes the tap from the front.
-  { key: 'KeyI', shift: true, command: 'openMissions' },
   { key: 'KeyI', command: 'openStatus' },
+  // R for the standing oRders, and the same key at the station. See the docked
+  // table for why it is a plain letter rather than the ⇧I it shipped as for an
+  // afternoon.
+  { key: 'KeyR', command: 'openMissions' },
   { key: 'KeyT', command: 'armMissile' },
   { key: 'KeyM', command: 'launchMissile' },
   { key: 'KeyU', command: 'disarmMissile' },
@@ -279,12 +280,15 @@ export const BINDINGS: Record<ControlMode, readonly Binding[]> = {
     // it while docked — the only KeyD handlers were on the charts and the save
     // screen. Reports the system you are standing on.
     { key: 'KeyD', command: 'openSystemData' },
-    // ⇧I beside I, because standing orders are the other half of what the
-    // status screen reports: I says what you are, ⇧I says what you owe. It must
-    // come FIRST for its key — the plain entry is the fallback and would eat
-    // the tap, which is the rule the ⇧T pair below states in full.
-    { key: 'KeyI', shift: true, command: 'openMissions' },
     { key: 'KeyI', command: 'openStatus' },
+    // R for the standing oRders. A PLAIN letter, and that is the rule rather
+    // than the mnemonic: a menu row is a click target, `data-key` carries no
+    // modifier, so a shifted ROW opens whatever the plain key opens. This
+    // shipped as ⇧I for an afternoon and clicked through to COMMANDER STATUS.
+    // test/key-help.test.ts holds the rule; ⇧T dodges it by being a keyline
+    // caption. R is the only plain letter free in BOTH tables, and this screen
+    // is reached from the cockpit as well as from here.
+    { key: 'KeyR', command: 'openMissions' },
     // ⇧T beside T, because the development levers and the simulator are the two
     // things on this menu that are not the career. It must come FIRST for its
     // key: the plain entry is the fallback and would eat the tap (see Binding).

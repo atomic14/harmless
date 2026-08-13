@@ -301,13 +301,24 @@ console.log('\nthe summary never drops a kind for another');
   }
 }
 
-console.log('\n⇧I is bound in both modes, and it does not eat the plain key');
+// R reaches the screen from the station AND from the cockpit. The commander who
+// met the Constrictor was in flight, and the bulletin board does not open there.
+//
+// It is a PLAIN letter, and that is a rule rather than a preference. The screen
+// shipped on ⇧I for one afternoon, and clicking its own menu row opened the
+// COMMANDER STATUS screen: a row is a click target, `data-key` carries the key
+// and not the modifier, so a shifted row cannot keep invariant 13's promise.
+// test/key-help.test.ts holds that rule for every row; this holds the key.
+
+console.log('\nR opens the standing orders in both modes, and takes nothing else');
 {
-  eqc('⇧I at the station asks for the standing orders',
-    cmds('docked', ['KeyI'], ['ShiftLeft']), ['openMissions']);
+  eqc('R at the station asks for the standing orders',
+    cmds('docked', ['KeyR'], []), ['openMissions']);
   eqc('...and in the cockpit, where the briefing was lost',
-    cmds('flight', ['KeyI'], ['ShiftLeft']), ['openMissions']);
-  eqc('plain I is still the commander status at the station',
+    cmds('flight', ['KeyR'], []), ['openMissions']);
+  eqc('I is still the commander status at the station',
     cmds('docked', ['KeyI'], []), ['openStatus']);
   eqc('...and in the cockpit', cmds('flight', ['KeyI'], []), ['openStatus']);
+  eqc('a held shift does not turn R into something else',
+    cmds('docked', ['KeyR'], ['ShiftLeft']), ['openMissions']);
 }

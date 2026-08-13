@@ -91,13 +91,13 @@ a station, so in flight neither kind was readable at all — and the pilot who m
 the Constrictor was forty light years from the station that briefed her.
 
 All five milestones landed in a day. `game/orders.ts` asks the two kinds the
-same question and restates no rule. **⇧I opens the standing orders at the
-station and in the cockpit**, above the plain I in both tables, and the screen
-exists when it is empty. The menu line is one entry per KIND now, so nothing can
-hide a kind again. A console line may carry a `Command`, rendered at the edge, so
-the transmission ends `— ⇧I MISSIONS` and no sentence in `src/game/` spells a
-letter. **Both charts mark the Navy target** in the diamond 140 built, with a
-contract answering first where one world carries both.
+same question and restates no rule. **R opens the standing orders at the station
+and in the cockpit**, and the screen exists when it is empty. The menu line is
+one entry per KIND now, so nothing can hide a kind again. A console line may
+carry a `Command`, rendered at the edge, so the transmission ends
+`— R MISSIONS` and no sentence in `src/game/` spells a letter. **Both charts
+mark the Navy target** in the diamond 140 built, with a contract answering first
+where one world carries both.
 
 **Invariant 16 is the rule that came out of it**, and it is wider than the Navy
 mission: a standing order has a screen, a console line never holds the only copy
@@ -114,10 +114,25 @@ gun never saw that the Navy had called. It is queued now, which is the rule
 `session.ts` already states. `test/key-prose.test.ts` could not see it, because
 neither line spells a key.
 
-`npm run check` passes at 4,476 assertions, and every gate added was shown to
-fail. **Nobody has flown it.** The Chrome extension was not connected, so the two
-questions the plan left for a pilot are still open: whether the summary line
-reads well when it carries three things, and whether ⇧I is a key Chris finds.
+**The flight found a defect every gate had missed, and it was in the key.** The
+screen shipped on ⇧I, and **clicking its own menu row opened the COMMANDER
+STATUS screen**. A menu row is a click target, `data-key` carries the key and
+not the modifier, so a shifted ROW cannot keep invariant 13's promise that a
+click becomes the same keystroke as a key press. ⇧T only ever dodged it by being
+a keyline caption rather than a row. The key is **R** now — the only plain letter
+free in both tables — and the rule is a gate: `test/key-help.test.ts` presses
+every docked row through the click path. Nothing could see this before, because
+the binding table was never the broken part and no test joined a binding to the
+HTML its row renders to.
+
+**Flown at Leesti on 2026-08-13**, with 16 kills, a beam laser and two contracts
+held. All five surfaces read correctly, and no save was put at risk: the browser
+held three real careers, the page was switched to the harness namespace before
+any docking, and all seven player keys were byte-identical afterwards.
+
+`npm run check` passes, and every gate added was shown to fail. **One question is
+still Chris's:** the station line wraps to two lines when it carries three
+things, and whether that reads well is his call.
 
 **143** — GitHub #26, and the rule the issue questions is correct. The triage
 answered it by measurement: over 138 freight jobs from 86 home systems of galaxy

@@ -206,7 +206,8 @@ the real mission machine rather than a copy:
 
 ## Open questions, and the answers
 
-**1. Which key?** ⇧I, in both tables. `I` is the only screen key already bound
+**1. Which key?** ⇧I, in both tables. **This answer was wrong, and M6 has the
+reason.** `I` is the only screen key already bound
 in both, and standing orders are the second half of what `openStatus` reports. R
 is the one plain letter free in both tables, and it carries no meaning at all.
 The shift is not hidden, because the docked menu row prints the label
@@ -277,12 +278,13 @@ question for the first time. A contract's words still come from
 `describeContract` and the mission's from `missionOrderLine`. The Navy sorts
 above the work, and the contracts sort by deadline.
 
-**M2 — the screen.** ⇧I, at the station and in the cockpit, above the plain I in
-both tables. It draws what the reader returns, and it exists when it is empty.
+**M2 — the screen.** At the station and in the cockpit. It draws what the reader
+returns, and it exists when it is empty. It shipped on ⇧I; M6 below is why the
+key is `R`.
 
 **M3 — the summary and the briefing.** `Station.missionText` is
 `ordersSummary(standingOrders(...))`. A `StationEvent` message may carry a
-`Command`, and the edge renders it as `— ⇧I MISSIONS`.
+`Command`, and the edge renders it as `— R MISSIONS`.
 
 **M4 — the charts.** `orderDestinations` is the union of the two kinds.
 `orderVerdict` prices the Navy leg in the same words as a contract, and a
@@ -327,10 +329,66 @@ enough to push the order off the line on its own, and the screen is one
 keystroke away. That is what invariant 16 asks of an announcement, and the
 change is deliberate rather than an oversight.
 
-## What was NOT verified
+## M6 — the key was wrong, and the browser is what said so
 
-**Nobody has flown it.** The Chrome extension was not connected during this
-work, so no screenshot of the MISSIONS screen exists and no line was read in a
-running cockpit. Both of the Verification section's questions for a pilot are
-still open: whether the summary line reads well when it carries three things,
-and whether ⇧I is a key Chris finds.
+The first flight found a defect that every gate had missed, and it was in the
+key this plan chose.
+
+**Clicking the `⇧I MISSIONS` row opened the COMMANDER STATUS screen.** A menu
+row is a click target. `dockedMenuHtml` writes `data-key="${b.key}"` and drops
+`b.shift`, so `ScreenHost.click` injected a plain `KeyI` — and the plain entry
+answered. The menu cursor's Enter takes the same path, so arrowing onto the row
+failed the same way.
+
+That breaks invariant 13: a click becomes the same keystroke as a key press. **A
+shifted MENU ROW cannot keep that promise at all.** ⇧T never hit it, because
+`src/game/controls.ts` makes it a keyline caption rather than a row — the
+comment there says so, and this plan read that comment and still missed the
+consequence.
+
+**The fix is a plain letter, and `R` is the only one free in both tables.** One
+screen gets one key, because this screen is reached from the cockpit as well as
+from the station. The mnemonic is weaker than ⇧I's and that is the correct
+trade: a row you can click beats a row that reads better.
+
+**The rule is now a gate.** `test/key-help.test.ts` presses every docked menu
+row through the click path and asserts it asks for the command the row
+advertises. Restoring `⇧I MISSIONS` fails it with exactly the row named. Nothing
+in that file could see this before, because every rule in it asked what was
+ADVERTISED and none of them pressed a row.
+
+**Why no test caught it.** `test/standing-orders.test.ts` asserted the BINDING
+resolved, with shift held. That was true. The binding table was never the broken
+part — the HTML the row renders to was, and no test joined the two.
+
+## Verified in the browser, 2026-08-13
+
+Chrome was connected on the second attempt, and all of it was flown at Leesti
+with 16 kills, a beam laser and two contracts held:
+
+1. The station line reads `NAVY MISSION: DESTROY THE CONSTRICTOR — LAST SEEN AT
+   LAVE · CARRY SEALED DATA TO ANARLAQU — 6 DAYS (+1 MORE)`. It wraps to two
+   lines, and it is legible.
+2. The console said `INCOMING NAVY TRANSMISSION — R MISSIONS`, then the gun
+   warning behind it. M3's queue fix is visible in a running cockpit. (Read
+   before the key changed, it said `— ⇧I MISSIONS`; the line is generated from
+   the binding table, so it followed the key.)
+3. `R` opens STANDING ORDERS at the station and in flight. The Navy row prints
+   `—` under TIME LEFT, and the warning sits under the hunt.
+4. Clicking the `R MISSIONS` row opens the screen.
+5. The short range chart draws the amber diamond on Lave and reads `LAVE ·
+   3.8 LY · 3 DAYS · NAVY MISSION · 3 DAYS AWAY`.
+
+**No save was put at risk.** The browser held three real careers. The page was
+switched to the harness namespace (`useHarnessSaves`, invariant 3) before any
+docking, every player key was backed up in the page first, and all seven were
+byte-identical afterwards.
+
+## What is still open for a pilot
+
+One question the plan asked is answered, and one is replaced:
+
+- **Does the summary line read well carrying three things?** It wraps to two
+  lines at this window width. Legible, and worth Chris's opinion.
+- ~~Is ⇧I a key Chris finds?~~ — moot. The key is `R`, and the reason is
+  structural rather than a matter of taste.

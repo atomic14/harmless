@@ -34,7 +34,7 @@ import {
   manualCommandsHtml, paintCommandGuide,
 } from '../src/ui/key-help.ts';
 import { BRIEFING } from '../src/ui/screens.ts';
-import { check, eq } from './harness.ts';
+import { check, cmds, eq } from './harness.ts';
 
 /** A binding's identity for these tests: the same key does the same thing. */
 const id = (b: Binding): string => `${keyLabel(b.key, b.shift)} → ${b.command}`;
@@ -147,6 +147,23 @@ console.log('\nthe station menu advertises exactly what is bound there');
     unadvertised.length === 0, unadvertised.map((b) => b.command).join(', '));
   check('...and neither of those is vacuous',
     rowKeys.length >= 8 && keyline.includes('? CONTROLS GUIDE'));
+
+  // A ROW IS A CLICK TARGET, and `data-key` carries the key without the
+  // modifier — `ScreenHost.click` injects that key, and the menu cursor injects
+  // it again on Enter. So a SHIFTED row cannot keep invariant 13's promise that
+  // a click becomes the same keystroke as a key press: it presses the plain
+  // key, and the plain entry answers.
+  //
+  // docs/TODO/144 shipped `⇧I MISSIONS` as a row for one afternoon, and
+  // clicking it opened the COMMANDER STATUS screen. Nothing here could see it:
+  // every rule above asks what is ADVERTISED, and none of them pressed a row.
+  // ⇧T is the case that always dodged this, by being a keyline caption.
+  const clicked = BINDINGS.docked
+    .filter((b) => COMMAND_HELP[b.command].menu)
+    .filter((b) => !cmds('docked', [b.key], []).includes(b.command));
+  check('clicking a menu row asks for the command the row advertises',
+    clicked.length === 0,
+    clicked.map((b) => `${keyLabel(b.key, b.shift)} ${COMMAND_HELP[b.command].menu}`).join(', '));
 }
 
 console.log('\nthe manual page is generated per mode');
