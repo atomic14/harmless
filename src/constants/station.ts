@@ -18,8 +18,13 @@ export const STATION_SPIN = 0.26;
 /**
  * The tech level at which a system's station is the dodecahedral Dodo rather than
  * the Coriolis, in SHOWN one-based units. Raw `techLevel` is zero-based, and
- * every reader adds one (see ./tech-level.ts). The test is therefore
- * `techLevel + 1 >= DODO_TECH_LEVEL`. Roughly the top third rate the Dodo.
+ * every reader adds one (see ./tech-level.ts). Roughly the top third rate the
+ * Dodo.
+ *
+ * TWO READERS, ONE BIT. `galaxy/tech.ts` owns the comparison, because the
+ * released game asked this question once and spent the answer twice: it picked
+ * the station hull AND bit 0 of the blueprint-set number, which is which ships a
+ * system flies (docs/TODO/138). Nothing may restate the test.
  */
 export const DODO_TECH_LEVEL = 10;
 

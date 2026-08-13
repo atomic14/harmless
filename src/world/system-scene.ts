@@ -4,9 +4,8 @@ import type { StarSystem } from '../galaxy/galaxy.ts';
 import { createSun, type Sun } from './sun.ts';
 import { createPlanet, type Planet } from './planet.ts';
 import { buildStation, STATION_DESIGNS } from '../ships/station-hulls.ts';
-import {
-  STATION_SPIN, DODO_TECH_LEVEL, DOCKED_BACKDROP_DISTANCE,
-} from '../constants/station.ts';
+import { STATION_SPIN, DOCKED_BACKDROP_DISTANCE } from '../constants/station.ts';
+import { isHighTechSystem } from '../galaxy/tech.ts';
 
 // Assembles the static in-system world deterministically from the system
 // seed: sun, planet, station. Ships and rocks are NPCs, owned by the game.
@@ -55,10 +54,11 @@ export function buildSystemScene(sys: StarSystem): SystemScene {
     .lerp(sunDir, 0.35)
     .normalize();
   // High-tech systems get the dodecahedral "Dodo" station. Both hulls are the
-  // released tables at the station scale — see ships/station-hulls.ts. The +1
-  // converts the raw techLevel to the shown units the threshold is stated in.
+  // released tables at the station scale — see ships/station-hulls.ts. The rule
+  // is `galaxy/tech.ts`, because the released game spent the same bit on which
+  // ships the system flies (game/blueprint-set.ts).
   const built = buildStation(
-    sys.techLevel + 1 >= DODO_TECH_LEVEL ? STATION_DESIGNS.dodo : STATION_DESIGNS.coriolis,
+    isHighTechSystem(sys.techLevel) ? STATION_DESIGNS.dodo : STATION_DESIGNS.coriolis,
     0xd8ffe0);
   const station: THREE.Object3D = built.object;
   const stationDockZ = built.dockZ;

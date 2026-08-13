@@ -102,6 +102,7 @@ import './elite-a-live-defence.test.ts';
 import './ship-identity.test.ts';
 import './ship-roles.test.ts';
 import './role-variants.test.ts';
+import './blueprint-set.test.ts';
 
 // --- the trained brains -----------------------------------------------------
 import './ai.test.ts';

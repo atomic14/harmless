@@ -105,6 +105,18 @@ export function eliteAVariantIds(): EliteAVariantId[] {
   return ELITE_A_VARIANTS.map((variant) => variant.variantId);
 }
 
+/**
+ * The 23 released blueprint sets, in source order — `A` to `W`.
+ *
+ * Read off the slot table rather than written down, because the count IS the
+ * pack's: a set exists here exactly when the pack filed slots for it. The
+ * chooser (`game/blueprint-set.ts`) indexes this, so a re-import that shipped a
+ * 24th set would widen the choice rather than disagree with a literal.
+ */
+export function eliteABlueprintSets(): string[] {
+  return [...new Set(ELITE_A_SLOTS.map((slot) => slot.blueprintSet))];
+}
+
 /** Every slot in one blueprint set, in slot order. */
 export function eliteASlotsForSet(blueprintSet: string): EliteASlot[] {
   return ELITE_A_SLOTS.filter((slot) => slot.blueprintSet === blueprintSet);

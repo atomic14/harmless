@@ -57,6 +57,72 @@ damage columns above are the guard it may not lower.
    A "damage must not fall" rule over that band would compare two numbers that
    describe nothing.
 
+## What M2 did
+
+`game/blueprint-set.ts` is the chooser, and it is pure. It takes a system, a
+1-based galaxy, the two random bits and an optional override, and it returns one
+of the 23 letters. It draws no dice, it decides no override, and it does not
+restate bit 0.
+
+Three files carry the rule between them, one home each:
+
+1. `galaxy/tech.ts` — `isHighTechSystem(techLevel)`, which is bit 0. It is the
+   test that also picks the Dodo station over the Coriolis, and
+   `world/system-scene.ts` reads it now instead of spelling it out.
+2. `constants/blueprint-set.ts` — `UNSETTLED_GOVERNMENT` (2), and the three
+   override letters. The doc names the three other government thresholds that
+   already exist, so the fourth cannot be mistaken for one of them.
+3. `game/blueprint-set.ts` — the bit arithmetic, the galaxy addition and the two
+   overrides.
+
+`eliteABlueprintSets()` is new in the catalogue, because nothing outside that
+file may scan the generated arrays. The chooser indexes what the pack shipped,
+so it holds no table of letters of its own.
+
+`test/blueprint-set.test.ts` is 21 assertions. The bit table is hand-computed at
+each bit, both random bits, all three unsettled governments, and one government
+above them. The galaxy addition is pinned at both ends — galaxy 1 adds nothing,
+galaxy 8 adds seven, and the top of the table is exactly W. Every real system of
+all eight galaxies is put through it at all four bit values, and none leaves the
+table.
+
+**The pack corroborates both overrides without being made to.** Set G is the only
+set the slot table ever fills slot 31 in, which is the Constrictor's own slot.
+Sets C and D both carry Thargoids in slots 29 and 30. Two assertions, and they
+are the strongest evidence available that the rule as recovered is the right one.
+
+### The one-home gate, and the proof that it can fail
+
+The set follows `DODO_TECH_LEVEL`. Moving the constant to 12 leaves all 21
+assertions green. Re-inlining the threshold in `galaxy/tech.ts` while the
+constant sits at 12 turns **ten of them red**, including the one that names the
+rule. So bit 0 has one home, and the gate is not vacuous.
+
+### Three things M2 found that the plan did not have
+
+1. **Harmless's Dodo threshold is one tech band below the recovered rule, and bit
+   0 inherits that.** The plan's table says bit 0 is 1 for tech level 10–14,
+   which is the raw zero-based byte. `DODO_TECH_LEVEL` is 10 in SHOWN one-based
+   units, so Harmless's test is raw ≥ 9. **201 of the 2,048 systems sit in that
+   one band**: 28.5% of the galaxy sets bit 0 here, against 18.7% under the
+   recovered rule. The plan's decision is followed and not reopened — one home,
+   not two — and the two consumers stay consistent with each other, because they
+   are one bit. Whether that bit should move to the source's band is Chris's, and
+   it moves the station hull with it.
+2. **The galaxy cannot be fully validated, and the guard says so.** The chooser
+   throws when the number lands off the table. It cannot catch a wrong galaxy
+   whose number still lands on it, because no constant states that there are
+   eight galaxies — `hyperspace.ts` wraps at a literal 8 and `snapshot.ts`
+   refuses a saved galaxy outside 1..8 at another one. The save boundary is the
+   real gate, and the code comment names it rather than implying a promise the
+   backstop does not make.
+3. **`constants:check` warns that `UNSETTLED_GOVERNMENT` repeats the value 2**,
+   which twelve other constants also hold. The tool's own remedy needs an
+   `@rule` id on BOTH sides, and the other twelve have none. The new constant
+   carries `@rule blueprintset.unsettledGovernment`, and the confirmation that
+   the meanings differ is its doc comment. The warning is not an error and
+   `npm run check` passes.
+
 ## Where we are
 
 Elite-A did not ship one roster. It shipped **23**, the files `S.A` to `S.W`,
@@ -218,9 +284,11 @@ probe's own arithmetic, a sample meets no more than the census holds, and the tw
 Harmless overlays acquire no band. All three of those gates were shown to fail
 before they were believed.
 
-**M2 — the chooser.** `game/blueprint-set.ts`: a pure
+**M2 — the chooser — LANDED.** `game/blueprint-set.ts`: a pure
 `(system, galaxy, bits) → set letter`, the table above, plus the galaxy addition
 and the two overrides. No rng inside it — the two bits are an argument.
+`blueprintRandomBits(roll)` turns one draw of the seeded stream into those bits,
+so a caller never has to know how wide the field is.
 
 **M3 — wire it in.** `SPECS` stops being a module-level const of resolved ids
 and becomes a function of the set in force; `rosterSpec` takes it. Everything
