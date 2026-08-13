@@ -11,9 +11,11 @@
 // REAL mission machine (`stepMissionAtDock`), because a fixture that sets
 // `mission.stage` by hand would pass while the machine that sets it was broken.
 
-import { newCommander, type CommanderData, type Contract } from '../src/game/commander.ts';
+import {
+  formatCredits, newCommander, type CommanderData, type Contract,
+} from '../src/game/commander.ts';
 import { standingOrders, ordersSummary } from '../src/game/orders.ts';
-import { constrictorDestroyed, stepMissionAtDock } from '../src/game/missions.ts';
+import { constrictorDestroyed, missionLeg, stepMissionAtDock } from '../src/game/missions.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { renderMissions } from '../src/ui/screens.ts';
 import { keyPointer } from '../src/ui/key-help.ts';
@@ -139,12 +141,15 @@ console.log('\nstanding orders — every kind the commander holds is named');
 // The screen is the other half of the rule. A reader that returns an order and
 // a screen that does not draw it is the same failure with a longer path — which
 // is the defect docs/TODO/140 M2 fixed for the chart's contract verdict.
+//
+// THE NAVY'S SCREEN CARRIES THE NAVY'S ORDERS ONLY (docs/TODO/145). Board work
+// has its own screen; test/contracts-screen.test.ts holds that half.
 
-console.log('\nthe MISSIONS screen draws every order the reader returns');
+console.log('\nthe MISSIONS screen draws the Navy leg, and nothing else');
 {
   const systems = generateGalaxy(1);
   const paint = (c: CommanderData): string =>
-    captureById(() => { renderMissions(standingOrders(c, systems), systems); }).get('screen') ?? '';
+    captureById(() => { renderMissions(missionLeg(c, systems), systems); }).get('screen') ?? '';
 
   const c: CommanderData = {
     ...newCommander(),
@@ -159,19 +164,21 @@ console.log('\nthe MISSIONS screen draws every order the reader returns');
   stepMissionAtDock(c, systems, () => 0.5);
 
   const html = paint(c);
-  const orders = standingOrders(c, systems);
-  check('every order the reader returns is on the screen',
-    orders.every((o) => html.includes(o.line)));
-  check('...each with the world it sends her to',
-    orders.every((o) => html.includes(systems[o.destination].name)));
-  check('...and the gun warning under the hunt it belongs to',
-    html.includes('MILITARY LASER'));
-  check('a Navy leg shows no deadline, because it has none',
-    html.includes('&mdash;'));
+  const leg = missionLeg(c, systems);
+  check('the hunt is on the screen', html.includes(leg?.line ?? 'no leg'));
+  check('...with the world it sends her to',
+    html.includes(systems[leg?.destination ?? 0].name));
+  check('...what it pays on completion', html.includes(formatCredits(leg?.reward ?? 0)));
+  check('...and the gun warning under it', html.includes('MILITARY LASER'));
+
+  // The split, asserted rather than assumed. A contract held at the same time
+  // belongs to the bulletin board, and drawing it here is what 145 undid.
+  check('a contract she holds is NOT on the Navy screen',
+    !html.includes('DELIVER 5T') && !html.includes(systems[11].name));
 
   const idle = paint({ ...newCommander(), contracts: [], mission: { stage: 0, targetIndex: null } });
-  check('a commander under no orders still gets a screen, and it says so',
-    idle.includes('STANDING ORDERS') && idle.includes('no standing orders'));
+  check('a commander the Navy wants nothing from still gets a screen, and it says so',
+    idle.includes('NAVY MISSIONS') && idle.includes('no orders for you'));
 }
 
 // The last stretch is the wiring, and it is where docs/TODO/140 M2's defect
@@ -226,12 +233,6 @@ console.log('\nthe station line and the briefing, through a real Game');
   check('...and the count of the job it did not print', menu.includes('(+1 MORE)'));
 
 }
-
-// ⇧I reaches the screen from the station AND from the cockpit. The commander
-// who met the Constrictor was in flight, and the bulletin board does not open
-// there. A shift HELD is not something `Input` learns without a real keydown
-// (see `Game.galacticJump`), so the binding is read off the table the way
-// test/ui.test.ts reads ⇧H.
 
 // --- the rule itself (docs/INVARIANTS.md invariant 16) ----------------------
 

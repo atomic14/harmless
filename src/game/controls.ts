@@ -50,7 +50,6 @@ export type Command =
   // --- the station menu ---------------------------------------------------
   | 'launch'
   | 'openMarket'
-  | 'openContracts'
   | 'openEquip'
   | 'openBriefing'
   | 'openSaves'
@@ -70,6 +69,7 @@ export type Command =
   | 'openLocalChart'
   | 'openStatus'
   | 'openMissions'
+  | 'openContracts'
   // --- the cockpit --------------------------------------------------------
   | 'view0' | 'view1' | 'view2' | 'view3'
   | 'armMissile'
@@ -127,6 +127,9 @@ export interface Binding {
   /**
    * Require shift held (`true`) or ignore it (omitted). A shifted entry must
    * come FIRST for its key, since the plain one is the fallback.
+   *
+   * A COCKPIT BINDING MAY TAKE A MODIFIER. A DOCKED MENU ROW MAY NOT, and
+   * `ui/key-help.ts` owns that rule beside the row it builds.
    */
   shift?: boolean;
   /**
@@ -160,10 +163,7 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'KeyG', command: 'openChart' },
   { key: 'KeyN', command: 'openLocalChart' },
   { key: 'KeyI', command: 'openStatus' },
-  // R for the standing oRders, and the same key at the station. See the docked
-  // table for why it is a plain letter rather than the ⇧I it shipped as for an
-  // afternoon.
-  { key: 'KeyR', command: 'openMissions' },
+  { key: 'KeyR', command: 'openMissions' },   // the standing oRders; R docked too
   { key: 'KeyT', command: 'armMissile' },
   { key: 'KeyM', command: 'launchMissile' },
   { key: 'KeyU', command: 'disarmMissile' },
@@ -171,6 +171,9 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'KeyK', command: 'toggleCombatComputer' },
   { key: 'KeyV', command: 'toggleMouseFlight' },
   { key: 'Tab', command: 'detonateEnergyBomb' },
+  // ⇧C: C is the docking computer here and stays, and X and Z are the only plain
+  // letters free. `Binding.shift` says why a modifier is legal in the cockpit.
+  { key: 'KeyC', shift: true, command: 'openContracts' },
   { key: 'KeyC', command: 'toggleDockingComputer' },
   { key: 'KeyH', shift: true, command: 'galacticJump' },
   { key: 'KeyH', command: 'startHyperspace' },
@@ -281,13 +284,9 @@ export const BINDINGS: Record<ControlMode, readonly Binding[]> = {
     // screen. Reports the system you are standing on.
     { key: 'KeyD', command: 'openSystemData' },
     { key: 'KeyI', command: 'openStatus' },
-    // R for the standing oRders. A PLAIN letter, and that is the rule rather
-    // than the mnemonic: a menu row is a click target, `data-key` carries no
-    // modifier, so a shifted ROW opens whatever the plain key opens. This
-    // shipped as ⇧I for an afternoon and clicked through to COMMANDER STATUS.
-    // test/key-help.test.ts holds the rule; ⇧T dodges it by being a keyline
-    // caption. R is the only plain letter free in BOTH tables, and this screen
-    // is reached from the cockpit as well as from here.
+    // R for the standing oRders. A PLAIN letter, because this is a menu ROW —
+    // see `Binding.shift`. R is the only one free in both tables, and this
+    // screen is reached from the cockpit as well as from here.
     { key: 'KeyR', command: 'openMissions' },
     // ⇧T beside T, because the development levers and the simulator are the two
     // things on this menu that are not the career. It must come FIRST for its

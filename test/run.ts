@@ -42,6 +42,7 @@ import './contract-acceptance.test.ts';
 import './consigned-hold.test.ts';
 import './missions.test.ts';
 import './standing-orders.test.ts';
+import './contracts-screen.test.ts';
 import './survivors.test.ts';
 import './trade.test.ts';
 import './jettison.test.ts';

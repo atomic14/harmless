@@ -189,6 +189,19 @@ export function manualCommandsHtml(): string {
  * A docked command is a row if it has a menu label and a keyline entry if it
  * has a keyline one; `test/key-help.test.ts` asserts every docked binding has
  * exactly one of the two, so nothing bound at the station is unadvertised.
+ *
+ * **A ROW MAY NOT BIND A MODIFIER**, and this function is why: `data-key`
+ * carries the KEY and nothing else, so `ScreenHost.click` injects a plain tap
+ * and the unshifted entry answers it. `⇧I MISSIONS` shipped for an afternoon
+ * and clicked through to the COMMANDER STATUS screen (docs/TODO/144 M6). The
+ * menu cursor's Enter takes the same path, so arrowing onto the row failed the
+ * same way. `test/key-help.test.ts` presses every row to hold the rule.
+ *
+ * ⇧T is legal at the station because it is a KEYLINE caption, and the keyline
+ * carries no `data-key`. The cockpit may bind a modifier freely: it has no
+ * rows, and this is the one function in the codebase that writes `data-key`.
+ * docs/TODO/146 is the item that would let a click carry a modifier and retire
+ * the rule.
  */
 export function dockedMenuHtml(): string {
   const rows = BINDINGS.docked

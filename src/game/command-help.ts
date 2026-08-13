@@ -62,10 +62,6 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   // --- the station menu -----------------------------------------------------
   launch: { what: 'launch from the station', menu: 'LAUNCH' },
   openMarket: { what: 'market prices — buy and sell cargo', menu: 'MARKET PRICES' },
-  openContracts: {
-    what: 'contracts — cargo runs that pay a bonus, against a deadline',
-    menu: 'CONTRACTS',
-  },
   openEquip: { what: 'equip ship — fuel, missiles and upgrades', menu: 'EQUIP SHIP' },
   openBriefing: {
     // No page count in the caption: the pages are ui/screens.ts's BRIEFING
@@ -107,9 +103,14 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   openLocalChart: { what: 'short range chart', section: 'navigation', menu: 'LOCAL CHART' },
   openStatus: { what: 'commander status', section: 'navigation', menu: 'COMMANDER STATUS' },
   openMissions: {
-    what: 'missions — the Navy mission and the jobs you have signed for',
+    what: 'missions — what the Navy wants doing, and where',
     section: 'navigation',
     menu: 'MISSIONS',
+  },
+  openContracts: {
+    what: 'contracts — the work you have signed for, and the board at a station',
+    section: 'navigation',
+    menu: 'CONTRACTS',
   },
 
   // --- the cockpit ----------------------------------------------------------

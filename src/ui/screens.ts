@@ -11,7 +11,8 @@ import {
   type CommanderData, type Contract,
   cargoTonnes, consignedTonnes, formatCredits, cargoCapacity, dayWord,
 } from '../game/commander.ts';
-import { orderDestinations, orderVerdict, type StandingOrder } from '../game/orders.ts';
+import { orderDestinations, orderVerdict } from '../game/orders.ts';
+import type { MissionLeg } from '../game/missions.ts';
 import { MAX_FUEL, STARTING_CREDITS } from '../constants/commander.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 import { rating } from '../game/rating.ts';
@@ -666,42 +667,36 @@ export function renderStatus(
 }
 
 /**
- * Every standing order the commander is under, in one place (docs/TODO/144).
+ * What the Navy has this commander doing (docs/TODO/144, split by 145).
  *
- * The screen this paints is what invariant 16 asks for: a briefing said one
- * time, for five seconds, was the only place the Navy's target system was ever
- * written, and any contract took the one line under the station header away
+ * This screen is what invariant 16 asks for: the briefing was said one time,
+ * for five seconds, and the one line under the station header was the only
+ * other place the target system was ever written — which any contract took away
  * from it (GitHub #27).
  *
- * IT DRAWS WHAT `standingOrders` RETURNS, in that order, and decides nothing.
- * The words, the sort and what counts as an order are `game/orders.ts`.
+ * THE NAVY'S ORDERS ONLY. Board work has its own screen, because a contract and
+ * a mission are two kinds of thing (Chris, 2026-08-13). The docked summary line
+ * still names both, and that is a different rule: it is the one surface where
+ * dropping a kind hides it completely.
+ *
+ * One leg runs at a time, so this is a panel rather than a table. `missionLeg`
+ * (game/missions.ts) decides what it says.
  */
-export function renderMissions(
-  orders: readonly StandingOrder[], systems: StarSystem[],
-): void {
-  const where = (index: number): string => systems[index].name;
-  const rows = orders.map((o) => {
-    const time = o.kind === 'contract' ? dayWord(o.daysLeft) : '&mdash;';
-    // Amber under the row it belongs to, which is the colour this file already
-    // spends on a warning. The Navy states the two numbers and lets the
-    // commander decide; `constrictorWarning` is the one home of that sentence.
-    const warning = o.kind === 'navy' && o.warning
-      ? `<tr><td colspan="4" style="color:var(--hud-amber)">${o.warning}</td></tr>`
-      : '';
-    return `
-      <tr><td>${o.line}</td>
-        <td>${where(o.destination)}</td>
-        <td class="num">${time}</td>
-        <td class="num">${formatCredits(o.reward)}</td></tr>${warning}`;
-  }).join('');
-
+export function renderMissions(leg: MissionLeg | null, systems: StarSystem[]): void {
   show(`
-    <h2>STANDING ORDERS</h2>
+    <h2>NAVY MISSIONS</h2>
     <div class="rule"></div>
-    ${orders.length ? `<table>
-      <tr><th>ORDER</th><th>DESTINATION</th><th class="num">TIME LEFT</th><th class="num">PAYS</th></tr>
-      ${rows}
-    </table>` : '<div class="info">You are under no standing orders.</div>'}
+    ${leg === null ? '<div class="info">The Navy has no orders for you.</div>' : `
+    <div class="info">
+      ${leg.line}<br/>
+      Destination: ${systems[leg.destination].name}<br/>
+      Pays: ${formatCredits(leg.reward)} on completion
+      ${leg.warning
+    // Amber, which is the colour this file already spends on a warning. The
+    // Navy states the two numbers and lets the commander decide;
+    // `constrictorWarning` is the one home of that sentence.
+    ? `<br/><br/><span style="color:var(--hud-amber)">${leg.warning}</span>` : ''}
+    </div>`}
     <div class="buttons"><button data-key="Escape">BACK</button></div>
   `);
 }
@@ -1463,6 +1458,7 @@ export function renderContracts(
   c: CommanderData,
   offers: Contract[],
   selected: number,
+  atStation: boolean,
 ): void {
   // Illicit freight is flagged, not disguised (docs/TODO/110): the reward is
   // paying for the police scan on the way out, and a player cannot choose to
@@ -1486,22 +1482,31 @@ export function renderContracts(
       <td class="num">${k.deadlineDay - c.day} days left</td>
       <td class="num">${formatCredits(k.reward)}</td></tr>`).join('');
 
-  show(`
-    <h2>${sys.name.toUpperCase()} BULLETIN BOARD</h2>
-    <div class="rule"></div>
+  // A BOARD IS A STATION'S. In flight there is nothing to sign, and the offers
+  // in `state.contractOffers` are the last station's — drawing them would show
+  // a pilot work she cannot take. The ACCEPTED half travels with her, because
+  // what she owes is true wherever she is (docs/TODO/145).
+  const board = !atStation ? '' : `
     <table>
-      <tr><th>WORK ON OFFER</th><th class="num">DISTANCE</th><th class="num">TIME</th><th class="num">PAYS</th></tr>
+      <tr><th>WORK ON OFFER AT ${sys.name.toUpperCase()}</th><th class="num">DISTANCE</th><th class="num">TIME</th><th class="num">PAYS</th></tr>
       ${rows}
-    </table>
-    ${taken ? `<div class="rule"></div><table>
-      <tr><th>ACCEPTED</th><th class="num">DEADLINE</th><th class="num">PAYS</th></tr>${taken}</table>` : ''}
+    </table>`;
+
+  show(`
+    <h2>CONTRACTS</h2>
+    <div class="rule"></div>
+    ${board}
+    ${taken ? `${board ? '<div class="rule"></div>' : ''}<table>
+      <tr><th>ACCEPTED</th><th class="num">DEADLINE</th><th class="num">PAYS</th></tr>${taken}</table>`
+    : '<div class="info">You have signed for no work.</div>'}
     <div class="buttons">
-      <button data-key="KeyA">ACCEPT SELECTED</button>
+      ${atStation ? '<button data-key="KeyA">ACCEPT SELECTED</button>' : ''}
       <button data-key="Escape">DONE</button>
     </div>
     <div class="keyline">
       DAY ${c.day} &middot; CASH ${formatCredits(c.credits)} &middot;
-      HOLD ${cargoTonnes(c)}/${cargoCapacity(c)}t &nbsp;&mdash;&nbsp; CLICK A JOB &middot; A ACCEPT &middot; ESC EXIT
+      HOLD ${cargoTonnes(c)}/${cargoCapacity(c)}t
+      ${atStation ? '&nbsp;&mdash;&nbsp; CLICK A JOB &middot; A ACCEPT &middot; ESC EXIT' : '&nbsp;&mdash;&nbsp; ESC EXIT'}
     </div>
   `);
 }

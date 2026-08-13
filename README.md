@@ -183,6 +183,7 @@ joystick the original supported.
 | E / TAB | E.C.M. / energy bomb (if fitted) |
 | J | torus jump drive (8×, stars streak; cuts out when mass-locked) |
 | C | docking computer — flies you in; press again or touch the controls to take over |
+| ⇧C | contracts — the work you have signed for; the board itself is a station's |
 | K | combat computer — a scripted co-pilot flies your ship onto your attacker's six (if fitted) |
 | N / G | short range chart / galactic chart |
 | H / ⇧H | hyperspace jump / galactic hyperdrive (if fitted) |

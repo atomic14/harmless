@@ -243,6 +243,7 @@ export class Game {
     system: this.system,
     systems: this.state.systems,
     offers: this.state.contractOffers,
+    atStation: this.baseMode === 'docked',
     accept: (index) => { this.contracts_.selected = index; this.acceptContract(); },
   } satisfies ContractsContext));
 
@@ -1992,7 +1993,6 @@ export class Game {
     // --- the station menu -------------------------------------------------
     launch: () => this.launch(),
     openMarket: () => this.screens.open('market'),
-    openContracts: () => this.screens.open('contracts'),
     openEquip: () => this.screens.open('equip'),
     openBriefing: () => this.screens.open('briefing'),
     openSaves: () => this.openSaves(),
@@ -2025,6 +2025,10 @@ export class Game {
     openLocalChart: () => this.openLocalChart(this.cameFrom()),
     openStatus: () => this.openReadingScreen('status', this.cameFrom()),
     openMissions: () => this.openReadingScreen('missions', this.cameFrom()),
+    // A reading screen from the cockpit, and the board it also carries is a
+    // station's — `ContractsContext.atStation` is what makes that the SCREEN's
+    // question rather than this call's.
+    openContracts: () => this.openReadingScreen('contracts', this.cameFrom()),
     // --- the cockpit ------------------------------------------------------
     view0: () => this.setView(0),
     view1: () => this.setView(1),
@@ -2159,12 +2163,19 @@ export class Game {
   /**
    * Open a screen that only REPORTS, from wherever the key was pressed.
    *
-   * Two screens qualify: what you are (`status`), and what you owe
-   * (`missions`). Neither spends anything, and both are bound in the cockpit as
-   * well as at the station — so both must record which base state to come back
-   * to, and both must let go of mouse flight before a pointer is any use.
+   * Three screens qualify: what you are (`status`), what the Navy wants
+   * (`missions`), and what you signed for (`contracts`). Each is bound in the
+   * cockpit as well as at the station, so each must record which base state to
+   * come back to, and each must let go of mouse flight before a pointer is any
+   * use.
+   *
+   * `contracts` is the one that can also SPEND — it signs for work at a board.
+   * That door is the screen's own (`ContractsContext.atStation`) rather than
+   * this call's, because the screen is what knows a board is a station's.
    */
-  private openReadingScreen(id: 'status' | 'missions', from: 'docked' | 'flight'): void {
+  private openReadingScreen(
+    id: 'status' | 'missions' | 'contracts', from: 'docked' | 'flight',
+  ): void {
     this.input.releaseMouseFlight();
     this.baseMode = from;
     this.screens.open(id);

@@ -15,6 +15,12 @@ export interface ContractsContext {
   readonly system: StarSystem;
   readonly systems: StarSystem[];
   readonly offers: Contract[];
+  /**
+   * Is there a board to read? A bulletin board is a station's, and this screen
+   * opens in flight too since docs/TODO/145. In flight the ACCEPTED half is
+   * what she came for, and nothing can be signed.
+   */
+  readonly atStation: boolean;
   /** sign for `offers[index]` — the Game owns what accepting means */
   accept(index: number): void;
 }
@@ -35,8 +41,8 @@ export class ContractsScreen implements Screen {
   }
 
   render(): void {
-    const { system, systems, commander, offers } = this.ctx();
-    renderContracts(system, systems, commander, offers, this.selected);
+    const { system, systems, commander, offers, atStation } = this.ctx();
+    renderContracts(system, systems, commander, offers, this.selected, atStation);
   }
 
   select(row: number): void {
@@ -55,7 +61,10 @@ export class ContractsScreen implements Screen {
       this.selected = Math.min(offers.length - 1, this.selected + 1);
       redraw = true;
     }
-    if (i.pressed('KeyA') || i.pressed('Enter')) {
+    // REFUSED rather than hidden in flight. The button is not drawn there, but
+    // the key still arrives, and a live key behind a missing control is the
+    // "dead control that looks alive" failure the other way round.
+    if ((i.pressed('KeyA') || i.pressed('Enter')) && this.ctx().atStation) {
       this.ctx().accept(this.selected);
       // accepting removes the offer, so the selection may now be past the end
       this.selected = Math.max(0, Math.min(this.selected, this.ctx().offers.length - 1));
