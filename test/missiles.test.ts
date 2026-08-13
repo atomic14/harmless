@@ -278,7 +278,13 @@ console.log('\nmissiles: in the real game, headless');
     };
   }).value;
 
-  const a = fight(62_000_037, 4, 400);
+  // THE SEED MOVED ON 2026-08-13 and the fixture did not, which is the case the
+  // note below the next block describes. docs/TODO/138 M3 draws two random bits
+  // from the seeded stream when a system is entered, so every `random()` after
+  // that draw shifted and 62_000_037 stopped killing her inside 400 frames. She
+  // is still hit; she survives. What is NOT negotiable is the replay below, and
+  // it is unmoved.
+  const a = fight(62_000_042, 4, 400);
   check(`a pirate in the GAME launches: ${a.carried - a.left} of ${a.carried} rounds`
     + ` spent, ${a.inSky} in the air at once`,
   a.left < a.carried && a.inSky > 0);
@@ -289,7 +295,7 @@ console.log('\nmissiles: in the real game, headless');
   // Same seed, same fight — the game side of the claim the episode makes below.
   // This is the half of the equivalence check that fits in a test suite: the
   // other half compared this trace across two checkouts and got one sha256.
-  const b = fight(62_000_037, 4, 400);
+  const b = fight(62_000_042, 4, 400);
   eq('...and the whole fight replays byte-identically from the seed', b.trace, a.trace);
   check('...with the same rounds spent and the same warheads landing',
     b.left === a.left && b.impacts === a.impacts);

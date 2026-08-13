@@ -245,11 +245,19 @@ another combat rewrite.
    and `playerLaserHit()` answers for it. But Harmless has no fourth mount to
    select, and every side mount is a pulse laser whatever sits up front. The
    equipment redesign that makes a mount a real choice is its own change.
-5. **S.A-S.W selection.** The released game picks a blueprint set by technology,
-   government, random bits and galaxy number. It then fills the set's own role
-   slots. All 23 sets and all 713 slot assignments are imported. What runs today
-   is a single deterministic recommended variant per design, plus a role-based
-   override. To select by system is a swap of that policy and nothing else.
+5. ~~**S.A-S.W selection.**~~ **Done, docs/TODO/138.** The released game picks a
+   blueprint set by technology, government, random bits and galaxy number. It
+   then fills the set's own role slots. `game/blueprint-set.ts` recovers that
+   rule and `game/set-roster.ts` says what the chosen set narrows the roster to.
+   The set is drawn once on arrival and saved.
+
+   **THE LINE THAT USED TO BE HERE WAS WRONG,** and this item corrects it: it
+   called by-system selection "a swap of that policy and nothing else". It is
+   not. Taking whatever build the set filed is measurably a weakening of an
+   opposition that already struggled to out-damage a shield face
+   (docs/TODO/139). So the set narrows WHICH DESIGNS turn up, and
+   `role-variants.ts` still picks the build. Two overrides remain — the
+   Constrictor's system and witch-space.
 6. **Original AI, accuracy, collision physics and economy.** Explicitly out of
    scope. The supplied matrices describe what a registered hit is worth. They say
    nothing about whether a shot hits, and Harmless keeps its own answers.

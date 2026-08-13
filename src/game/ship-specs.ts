@@ -151,14 +151,25 @@ export function shipAccel(spec: NpcSpec): number {
   return spec.accel ?? spec.maxSpeed * ACCEL_FRACTION;
 }
 
+/** The roster, by role — every row a ship of that role may fly. */
+export type RosterSpecs = Record<Exclude<NpcRole, 'asteroid'>, readonly NpcSpec[]>;
+
 /**
- * The roster.
+ * The roster with NO blueprint set in force — every row Harmless has.
  *
  * Which designs each role MAY contain is `ship-roles.ts`'s answer, read off the
  * released blueprint slots, and `test/ship-roles.test.ts` holds every row below
  * to it — so a hull cannot be filed as a trader because it looked like one.
  * Which of the permitted designs a role actually flies is a choice, and this is
  * where it is made.
+ *
+ * A system narrows this to the designs its own set files (`specsForSet`). This
+ * table is what is left when nothing narrows it, and it has three callers that
+ * want exactly that: the training world, which must not move under a trained
+ * brain (invariant 5); the viewer and the combat exercises, which are about the
+ * catalogue rather than about a place; and `specForDesign`, which looks a
+ * RESTORED ship up by the design its snapshot recorded and so may not be
+ * narrowed by where the commander happens to be now.
  */
 export const SPECS: Record<Exclude<NpcRole, 'asteroid'>, NpcSpec[]> = {
   trader: [
@@ -252,13 +263,59 @@ export const SPECS: Record<Exclude<NpcRole, 'asteroid'>, NpcSpec[]> = {
  * released build — so a hull moves tier only when the pack says it got tougher.
  * Order within a tier is roster order, so a given seed always picks the same
  * hull.
+ *
+ * These are `SPECS`'s tiers, so they are the tiers with NO set in force. A
+ * system's own are `pirateTiersFor`, and this is also what they fall back to.
  */
-export const PIRATE_TIERS: NpcSpec[][] = [0, 1, 2].map(
-  (tier) => SPECS.pirate.filter((s) => hullThreatTier(s.designId, s.profileId) === tier));
+export const PIRATE_TIERS: NpcSpec[][] = tiersOf(SPECS);
 
-/** Pick a hull for a pirate of the given threat tier. */
-export function pirateSpecForTier(tier: number, variantSeed: number): NpcSpec {
-  const tiers = PIRATE_TIERS[Math.max(0, Math.min(PIRATE_TIERS.length - 1, tier))];
+function tiersOf(roster: RosterSpecs): NpcSpec[][] {
+  return [0, 1, 2].map(
+    (tier) => roster.pirate.filter((s) => hullThreatTier(s.designId, s.profileId) === tier));
+}
+
+const tiersBySet = new Map<RosterSpecs, NpcSpec[][]>();
+
+/**
+ * The same three tiers, inside the set in force.
+ *
+ * EVERY PIRATE THE GAME SPAWNS COMES THROUGH HERE, not through `rosterSpec`:
+ * `spawnPopulation` picks a tier from how attractive a target the commander
+ * looks and hands the hull in as an override. So this is the seam the pirate
+ * band actually turns on, and narrowing `SPECS.pirate` alone would have left the
+ * one band docs/TODO/138 is about untouched.
+ */
+export function pirateTiersFor(roster: RosterSpecs): NpcSpec[][] {
+  if (roster === SPECS) return PIRATE_TIERS;
+  const known = tiersBySet.get(roster);
+  if (known !== undefined) return known;
+  const tiers = tiersOf(roster);
+  tiersBySet.set(roster, tiers);
+  return tiers;
+}
+
+/**
+ * Pick a hull for a pirate of the given threat tier.
+ *
+ * A NARROWED SET CAN EMPTY A TIER, and twelve of the 23 do: sets D, G, H and R
+ * file no pirate design tough enough to be tier 2, and eight others file none
+ * soft enough to be tier 0. The full roster's tier answers there, which is the
+ * SAME rule `specsForSet` states for a band the set leaves empty, one level
+ * down — where the set files nothing for this job, the roster does.
+ *
+ * IT IS THE THREAT RULE THAT MAY NOT BE VETOED. The tier is what the commander
+ * LOOKS worth: fat, notorious and far from help draws an organised gang
+ * (`pirateThreat` in threat.ts). Letting a local blueprint file downgrade that
+ * would mean notoriety quietly stopped mattering wherever the file was thin,
+ * and the measurement says by how much — a tier-2 hit falls from 17.5 points to
+ * 15.8 on the mean under a downgrade, against 17.5 under this rule.
+ */
+export function pirateSpecForTier(
+  tier: number, variantSeed: number, roster: RosterSpecs = SPECS,
+): NpcSpec {
+  const asked = Math.max(0, Math.min(PIRATE_TIERS.length - 1, tier));
+  const inForce = pirateTiersFor(roster)[asked];
+  const tiers = inForce.length > 0 ? inForce : PIRATE_TIERS[asked];
   return tiers[Math.abs(variantSeed) % tiers.length];
 }
 
@@ -298,13 +355,17 @@ const BY_ROLE_AND_DESIGN = new Map<string, NpcSpec>(
  * The roster row a ship of this role and seed flies — the rule the NpcShip
  * constructor applies, as a function.
  *
+ * `roster` is the set in force. It defaults to `SPECS` because a ship built
+ * without a world — an arena, a trainer, a test — is not in a system, and
+ * `World.spawn` is what hands in a narrowed one.
+ *
  * `null` for a rock: its size is rolled from the seed, so it has no row.
  */
 export function rosterSpec(
-  role: NpcRole, variantSeed: number, override?: NpcSpec,
+  role: NpcRole, variantSeed: number, override?: NpcSpec, roster: RosterSpecs = SPECS,
 ): NpcSpec | null {
   if (role === 'asteroid') return null;
-  return override ?? SPECS[role][variantSeed % SPECS[role].length];
+  return override ?? roster[role][variantSeed % roster[role].length];
 }
 
 export function specForDesign(

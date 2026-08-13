@@ -15,7 +15,7 @@
 
 import * as THREE from 'three';
 import { NpcShip } from './npc.ts';
-import type { NpcSpec } from './ship-specs.ts';
+import { rosterSpec, SPECS, type NpcSpec, type RosterSpecs } from './ship-specs.ts';
 import type { NpcRole } from './ship-roles.ts';
 import { savedShipIdentity, type ShipIdentity } from './ship-identity.ts';
 import { buildSystemScene, type SystemScene } from '../world/system-scene.ts';
@@ -33,14 +33,32 @@ export class World {
   readonly effects: Effects;
   /** the current system's sun, planet and station */
   scene3d!: SystemScene;
+  /**
+   * The roster this system flies — the narrowing its blueprint set makes.
+   *
+   * Elite-A shipped 23 rosters and chose between them on arrival, so which
+   * designs turn up is a fact about WHERE you are (docs/TODO/138). The World is
+   * where that fact belongs, because the World is what a system is built into
+   * and what spawns the ships. `SPECS` until a system says otherwise, which is
+   * every arena, trainer and test that builds no system at all.
+   */
+  roster: RosterSpecs = SPECS;
 
   constructor() {
     this.cargo = new CargoField(this.scene);
     this.effects = new Effects(this.scene);
   }
 
-  /** Tear down the current system and build `system` in its place. */
-  build(system: StarSystem): void {
+  /**
+   * Tear down the current system and build `system` in its place.
+   *
+   * `roster` is what that system's blueprint set files — see `specsForSet`. It
+   * is an ARGUMENT and not something the World works out, because choosing the
+   * set needs the galaxy, two draws of the seeded stream and the mission state,
+   * and none of those is the World's to know.
+   */
+  build(system: StarSystem, roster: RosterSpecs = SPECS): void {
+    this.roster = roster;
     if (this.scene3d) {
       this.scene.remove(this.scene3d.root);
       this.scene3d.dispose();
@@ -71,11 +89,21 @@ export class World {
   attach(object: THREE.Object3D): void { this.scene.add(object); }
   detach(object: THREE.Object3D): void { this.scene.remove(object); }
 
+  /**
+   * Put a ship in the sky.
+   *
+   * The roster row is resolved HERE rather than inside `NpcShip`, because the
+   * World is the only thing that knows which system was built and therefore
+   * which roster is in force. A ship constructed on its own — an arena, a test —
+   * still resolves its own row against `SPECS`, which is the same answer this
+   * gives when no system has narrowed it.
+   */
   spawn(
     role: NpcRole, position: THREE.Vector3, seed: number,
     spec?: NpcSpec, identity?: ShipIdentity,
   ): NpcShip {
-    const npc = new NpcShip(role, position, seed, spec, identity);
+    const row = spec ?? rosterSpec(role, seed, undefined, this.roster) ?? undefined;
+    const npc = new NpcShip(role, position, seed, row, identity);
     this.npcs.push(npc);
     this.scene.add(npc.object);
     return npc;

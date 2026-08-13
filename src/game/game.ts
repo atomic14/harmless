@@ -58,6 +58,8 @@ import type { PlayerPoolPoints } from './damage-units.ts';
 import { defenceBrain } from './brains.ts';
 import { defenceBrainNameFor } from './brain-names.ts';
 import { type NpcSpec } from './ship-specs.ts';
+import { specsForSet } from './set-roster.ts';
+import { blueprintRandomBits, blueprintSetFor } from './blueprint-set.ts';
 import { type NpcRole } from './ship-roles.ts';
 import { spawnPopulation, launchStationDefence } from './spawning.ts';
 import { dumpCargo, dumpContraband, offerBribe, type Dumped } from './jettison.ts';
@@ -650,6 +652,9 @@ export class Game {
       } satisfies SurvivorsContext)),
     ]) this.screens.register(screen);
 
+    // A boot enters a system too, so it chooses a roster like any arrival. A
+    // resume below overwrites it with the one the save was taken under.
+    this.chooseBlueprintSet();
     this.buildWorld();
     // Resume mid-flight if the last session ended there; otherwise the
     // station, as Elite always did.
@@ -776,8 +781,29 @@ export class Game {
 
   /** @internal — driven by test/playtest.js */
   buildWorld(): void {
-    this.state.world.build(this.system);
+    this.state.world.build(this.system, specsForSet(this.state.session.blueprintSet || null));
     this.hud.setSystem(this.system);
+  }
+
+  /**
+   * Which of the 23 released blueprint sets this system flies, drawn once.
+   *
+   * ONE DRAW, AT ARRIVAL, AND THEN IT IS STATE. Bits 2-3 of the source's number
+   * are a coin it flipped on entry, and invariant 11 puts all world chance on
+   * the one seeded stream — so the draw happens here, where `arriveInSystem` has
+   * just seeded that stream from where and when you are, and the letter is kept
+   * in `session` where a save carries it (invariant 12).
+   *
+   * HARMLESS CHOOSES ON ARRIVAL ONLY, and the released game also reloaded on a
+   * launch from a station. The difference is that Harmless does not tear the
+   * system down when you dock — the world you launch into is the world you
+   * docked out of, ships and all — so there is no second entry to choose at. A
+   * roster that changed while the sky did not would be a worse answer than the
+   * faithful one.
+   */
+  private chooseBlueprintSet(): void {
+    this.state.session.blueprintSet = blueprintSetFor(
+      this.system, this.state.commander.galaxy, blueprintRandomBits(random()));
   }
 
   /**
@@ -1127,6 +1153,7 @@ export class Game {
     this.state.systems = generateGalaxy(this.state.commander.galaxy);
     this.state.living = new LivingGalaxy(this.state.systems);
     this.loadOrWarmGalaxy();
+    this.chooseBlueprintSet();
     this.buildWorld();
     // 'fresh', not 'resumed': there was no checkpoint to come back to, so
     // nothing has stocked this station and `bootCommander` brought no market.
@@ -1276,6 +1303,8 @@ export class Game {
     seedWorld(this.state.commander.galaxy * 0x9e3779b1
       ^ (this.state.commander.systemIndex << 8) ^ this.state.commander.day);
     this.state.session.witchspace = false; // any arrival leaves witch-space (incl. galactic jump)
+    // Before the world is built, because the roster it is built with is this.
+    this.chooseBlueprintSet();
     this.buildWorld();
     // Arrive at the witchpoint, well out — the classic long torus cruise in.
     // Bearing is biased to the station's side of the planet (~30° cone) so

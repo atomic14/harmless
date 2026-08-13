@@ -14,17 +14,22 @@ active context:
 ## Execution queue
 
 1. **138** — [Every system in every galaxy flies the same
-   roster](138-every-system-flies-the-same-roster.md). The 23 released blueprint
-   sets `S.A`–`S.W` are all imported and the set dimension is then collapsed:
-   `SPECS` resolves its builds at import time, so a Krait is the same Krait in
-   all eight galaxies. The released rule is recovered and cited (tech level,
+   roster](138-every-system-flies-the-same-roster.md). **M1, M2 and M3 landed on
+   2026-08-13; M4 is the two overrides and is all that is left.** The 23 released
+   blueprint sets `S.A`–`S.W` were all imported and the set dimension was then
+   collapsed, so a Krait was the same Krait in all eight galaxies. It is not any
+   more: a system draws two random bits on arrival, and the set it lands on says
+   which designs turn up. The released rule is recovered and cited (tech level,
    government, two random bits, plus Elite-A's galaxy addition), and bit 0 turns
    out to be the rule that already picks the Dodo over the Coriolis — one home,
    not two. It waited behind 139, because its M1 roster probe must not be
    baselined against a fight that one-sided, and because a set-faithful build
    choice would have weakened an opposition that already could not bite — which
-   is why 138 keeps `role-variants.ts` ranking inside the set it chooses. **139
-   closed on 2026-08-13, so the world that probe is taken in is settled.**
+   is why 138 keeps `role-variants.ts` choosing the build inside the pool of
+   designs the set narrows to. M4 is left: the Constrictor's system always flies
+   G, and the plans or witch-space fly C or D by tech level. The chooser already
+   takes both overrides and is already tested on them; what is missing is the
+   caller.
 
 The GitHub inbox is empty. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
@@ -80,6 +85,39 @@ of the ladder, which is why 132 anchored these against the decay, the sale
 channel and each other instead.
 
 ## What landed on 2026-08-13
+
+**138 M3** — every system does NOT fly the same roster now. A commander who jumps
+draws two random bits from the seeded stream, the four inputs pick one of the 23
+released blueprint files, and that file says which designs turn up. The set is
+saved state, so a reload comes back to the reception the save was taken in.
+
+**Three of the four things it found were not in the plan, and the first one
+inverts the plan's own headline.** M1 measured variety as distinct designs over a
+career, got 17, and told M3 to raise it. It could not rise: 17 is every pirate
+design Harmless files, every one is filed by some set, and the census is a union
+— so 17 was already the ceiling. What the choice buys is the opposite shape. **A
+band of 4.4 designs per arrival where there were 17, over 23 distinct pirate
+rosters.** The probe reads both now, because they answer different questions.
+
+The second is where the damage guard had to be read. **No pirate in the game
+comes through the band uniformly** — `spawnPopulation` picks a threat tier from
+how attractive a target the commander looks — so narrowing the band alone would
+have left the one band this item is about untouched. On the path the game
+actually spawns on, tier 1 rose, **tier 2 fell 2.9% and tier 0 fell 7.3%**, and
+every minimum and maximum is unchanged. Tier 0 is the opportunist a poor
+commander draws, and it is the tier meant to be beatable.
+
+The third answers the question M1 said M3 had to answer. M1 warned that a set
+filling its pirate band with light designs only would breach the regeneration
+floor. **It cannot, and the reason is structural rather than lucky:** M3 narrows
+which designs turn up and never touches a build, so the softest pirate any tier
+can send is the same ship it always was.
+
+**Twelve of the 23 sets empty a threat tier and four bands are empty somewhere** —
+21 sets file no Thargoid, set J no trader Harmless flies, sets L, O and U no
+bounty hunter. One rule covers all of it: where a set files nothing for a job,
+the full roster answers. A set does not get to downgrade the threat rule, and the
+measurement says what letting it would cost — 9.5% off a tier-2 hit.
 
 **139** — the item Chris found by flying it, and it closes on a decision NOT to
 change anything. M1 and M2 landed on 2026-08-11: the probe that measured time on

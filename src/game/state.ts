@@ -126,6 +126,8 @@ export function freshSession(): SessionState {
     hyperCountdown: -1,
     torusEngaged: false,
     witchspace: false,
+    // No system has been arrived in yet, so no set is in force. See SessionState.
+    blueprintSet: '',
     npcTargetTimer: 0,
     autoSaveTimer: AUTOSAVE_INTERVAL,
     energyLowTimer: 0,

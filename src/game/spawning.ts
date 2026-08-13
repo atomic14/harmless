@@ -114,7 +114,9 @@ export function spawnPopulation(
       // ringleaders first, then the hangers-on they brought
       const seed = i + sys.index * 3;
       const tier = memberTier(plan.threat.tier, i);
-      const npc = world.spawn('pirate', pos, seed, pirateSpecForTier(tier, seed));
+      // The tier table is the set's, not the catalogue's: this is the pirate
+      // band, and it is the band a system's blueprint set narrows (TODO 138).
+      const npc = world.spawn('pirate', pos, seed, pirateSpecForTier(tier, seed, world.roster));
       npc.state.organised = plan.threat.organised;
       npc.state.threatTier = tier;
     }

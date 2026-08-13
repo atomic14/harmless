@@ -24,6 +24,21 @@ export interface SessionState {
   hyperCountdown: number;
   torusEngaged: boolean;
   witchspace: boolean;
+  /**
+   * Which of the 23 released blueprint sets this system flies — `''` for none.
+   *
+   * STATE, and saved, for invariant 12's reason: it decides which designs turn
+   * up, and two of its four input bits are draws of the seeded stream
+   * (`blueprintRandomBits`). Re-deriving it on a reload would need those draws
+   * back, so a restored system would meet a different reception from the one the
+   * save was taken in. `game/blueprint-set.ts` chooses it and
+   * `ship-specs.ts`'s `specsForSet` says what it means.
+   *
+   * `''` is what a world flies before any arrival, and what every save written
+   * before docs/TODO/138 restores as — the full roster, which is exactly what
+   * those saves were flying.
+   */
+  blueprintSet: string;
   npcTargetTimer: number;
   autoSaveTimer: number;
   energyLowTimer: number;

@@ -90,6 +90,13 @@ Two quirks are deliberate:
 - `src/game/threat.ts` computes the pirate count, the group tier and the
   organisation from the visible value and the reputation. `ship-specs.ts` maps a
   tier to a hull. The campaign simulator calls the same rules.
+- Which hulls a system can send is three modules, and each answers one part.
+  `ship-roles.ts` says which designs a role may EVER fly, read off all 23
+  released blueprint sets at once. That is permission. `blueprint-set.ts` says
+  which one of those 23 sets a system flies, as a pure function of the system,
+  the galaxy and two random bits. `set-roster.ts` says what that one set files
+  under each job. That is selection. A design must pass permission and selection
+  both. The set is drawn once on arrival, and it is saved state.
 - `src/game/contract-offers.ts` owns what the bulletin board offers today, and
   how each job reads. `src/game/contracts.ts` owns the rest of a contract's
   life: what acceptance costs the hold, what a delivery pays, and what a failure

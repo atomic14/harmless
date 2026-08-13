@@ -123,6 +123,72 @@ rule. So bit 0 has one home, and the gate is not vacuous.
    the meanings differ is its doc comment. The warning is not an error and
    `npm run check` passes.
 
+## What M3 did
+
+The choice is wired in. A system draws two random bits from the seeded stream on
+arrival, keeps the letter in `session.blueprintSet`, and the world is built with
+what that set files. Four files carry it, one home each:
+
+1. `game/set-roster.ts` — what a set narrows the roster to. `specsForSet` and
+   `emptyBandsForSet`, and the two decisions below.
+2. `game/ship-specs.ts` — `SPECS` is now named as the roster with NO set in
+   force, `rosterSpec` takes the roster in force, and so does `pirateSpecForTier`.
+3. `game/world.ts` — `World.roster`, set by `build(system, roster)`. The World
+   resolves the row, because the World is the only thing that knows which system
+   was built.
+4. `game/game.ts` — `chooseBlueprintSet()`, called at each of the three entries:
+   an arrival, a boot and a respawn.
+
+`train/roster-census.ts` is new, and it is the measuring half of the probe split
+out. `test/set-roster.test.ts` is 22 assertions.
+
+### Four things M3 found that the plan did not have
+
+1. **The number M1 asked M3 to raise could not rise, because it was already at
+   its ceiling.** M1 read variety as distinct designs over a career, got 17, and
+   called that "the number M3 has to raise". 17 is every pirate design Harmless
+   files, every one of them is filed by SOME set, and the census is a union over
+   arrivals — so the union was 17 before and is 17 after. What the choice buys is
+   the opposite shape: a band of **4.4 designs per arrival where there were 17**,
+   over **23 distinct pirate rosters**. The probe reads that now, and the census
+   row is kept beside it because the two answer different questions.
+2. **Every pirate in the game comes through the threat tier, not through the
+   band.** `spawnPopulation` reads a tier off how attractive a target the
+   commander looks and hands the hull in as an override, so narrowing
+   `SPECS.pirate` alone would have left the one band this item is about
+   untouched. `pirateSpecForTier` takes the roster in force. **Twelve of the 23
+   sets empty a tier** — D, G, H and R file no pirate tough enough for tier 2 —
+   and the rule there is the same one an empty band gets: the full roster
+   answers. A set does not get to downgrade the threat rule. Measured: letting it
+   costs a tier-2 hit 9.5%, against 2.9% under the rule that shipped.
+3. **M1's floor worry cannot happen, and the reason is structural.** M1 said a
+   set filling its pirate band with light designs only would breach the 3.06
+   points-a-second regeneration gate, and that M3 must say what happens then.
+   Nothing happens: M3 narrows which designs turn up and never touches a build,
+   so the softest pirate any tier can send is the same ship it always was. The
+   probe pins it at all three tiers, exactly rather than with a tolerance.
+4. **A row is an ARRIVAL and not a system.** The two random bits give one system
+   four receptions, so counting systems hid three quarters of what a commander
+   can meet. The probe walks all four bit values rather than drawing, because
+   four is the whole field.
+
+### The damage guard, and where it is read
+
+The plan's guard was "the probe's damage columns must not fall". Read on the
+BAND, the pirate mean falls 13.2 → 12.4. Read on the path the game spawns
+on, which is the reception a commander actually meets:
+
+| tier | per hit, no set in force | per hit, set in force |
+| --- | --- | --- |
+| 0 | 5.0/8.0/13.0 | 5.0/7.4/13.0 |
+| 1 | 9.0/12.0/13.0 | 9.0/12.3/13.0 |
+| 2 | 9.0/17.5/29.0 | 9.0/17.0/29.0 |
+
+**Tier 1 rose and tier 2 fell 2.9%.** Tier 0 fell 7.3% and is the tier meant to
+be beatable — the opportunist a poor commander draws. Every minimum and every
+maximum is unchanged, because no build moved. The test holds tiers 1 and 2 to a
+twentieth and tier 0 to a tenth, and both bounds were shown to fail.
+
 ## Where we are
 
 Elite-A did not ship one roster. It shipped **23**, the files `S.A` to `S.W`,
@@ -248,7 +314,7 @@ one decision below.
 
 ## Decisions already made
 
-- **The set narrows the pool; `role-variants.ts` still ranks inside it.** The
+- **The set narrows the pool of DESIGNS; the build does not move.** The
   faithful alternative — take whatever build the set filed — is measurably a
   weakening of an opposition that already cannot out-damage a shield, and it
   would be shipped on top of a defect rather than in front of it. Every build
@@ -290,13 +356,17 @@ and the two overrides. No rng inside it — the two bits are an argument.
 `blueprintRandomBits(roll)` turns one draw of the seeded stream into those bits,
 so a caller never has to know how wide the field is.
 
-**M3 — wire it in.** `SPECS` stops being a module-level const of resolved ids
-and becomes a function of the set in force; `rosterSpec` takes it. Everything
-downstream is unchanged by construction, because the only thing that moves is a
-`profileId` that was always going to be handed in.
+**M3 — wire it in — LANDED.** `specsForSet` is the roster as a function of the
+set in force, and `rosterSpec`, `pirateSpecForTier` and `World.build` all take
+it. `SPECS` keeps its name and is now stated as the roster with NO set in force,
+which is what the training world, the viewer, the arena and a restore by design
+all want. See "What M3 did" above for the four things it found.
 
 **M4 — the overrides and witch-space**: Constrictor system → G, plans or
-witch-space → C/D by tech level.
+witch-space → C/D by tech level. `blueprintSetFor` already takes the override
+and `test/blueprint-set.test.ts` already pins both; what is left is the caller —
+`chooseBlueprintSet` in `game.ts` naming the override, and `enterWitchspace`
+choosing one at all, which it does not today.
 
 ## Watch out for
 
