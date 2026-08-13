@@ -1,9 +1,10 @@
 # Browser play trials
 
-The measurements a bot cannot take. CLAUDE.md's rule is the whole reason this
-file exists: **prefer a fight a human flew to a bot-flown measurement**. A bot
-misleads in both directions. Straight flight flatters a brain fitted to
-freighters, and the defence policy evades superbly but shoots badly.
+The measurements a bot cannot take. One rule is the whole reason this file
+exists, and this file is its home: **prefer a fight a human flew to a bot-flown
+measurement**. A bot misleads in both directions. Straight flight flatters a
+brain fitted to freighters, and the defence policy evades superbly but shoots
+badly.
 
 Fly everything below at `npm run dev` → http://localhost:5173/play. Nothing here
 needs a console. `T` at any station opens the combat trainer, and the trainer
@@ -64,8 +65,8 @@ fight felt threatening rather than merely longer.
 ### 2. Flight behaviour: attack runs, not a turret
 
 **What changed.** Nothing yet, unless somebody promotes a brain. The candidates
-exist, and they are one line away. CLAUDE.md: *a well-optimised pirate is a
-turret that hangs in space and snipes, and evolution will find it.*
+exist, and they are one line away. Watch for the known failure: a well-optimised
+pirate is a turret that hangs in space and snipes, and evolution will find it.
 
 **Fly:** the same scenario twice, on the same seed. Swap the opposition in the
 trainer's brain picker: `pirate-attack-g3` first, then a candidate.

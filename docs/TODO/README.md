@@ -133,12 +133,23 @@ in it** — the commit that slimmed the agent context took them out — and they
 left verbatim, because a quotation rewritten is falsified. And `docs/PROCESS.md`
 still cites a "step 3" that went with the cycle orchestrator on 2026-08-09.
 
-**Two of those are Chris's to settle**, and neither blocks anything: whether the
-missing `CLAUDE.md` lines are restored or re-attributed, and what `PROCESS.md`'s
-step 3 should say. The plan's own open question is answered by `CLAUDE.md`: its
-`## Style` line already covered "TODO items", so the convention keeps them, and
-the "a record of what was decided or measured" exclusion is what holds the plan
-archive and the logs out. Commit messages are still unnamed either way.
+The plan's own open question is answered by `CLAUDE.md`: its `## Style` line
+already covered "TODO items", so the convention keeps them, and the "a record of
+what was decided or measured" exclusion is what holds the plan archive and the
+logs out. Commit messages are still unnamed either way.
+
+**Both of the last two closed on 2026-08-13**, on Chris's call — remove the stale
+quotes, and fix up the process. There were four attribution sites, not two, and a
+quotation of a rule that no longer exists cannot be repaired by a rewrite: each
+claim is now the host document's own, and `BROWSER-TRIALS.md` says in its opening
+that it is the rule's home. `DEVLOG.md` and `TRAINING-LOG.md` name `CLAUDE.md`
+six more times and are deliberately untouched, because they are a record.
+`docs/PROCESS.md` has its four steps back, written around the loop that runs now
+rather than the cycle orchestrator that was deleted, so "see step 3" resolves for
+the first time since 2026-08-09. Step 3 is the tiers: `npm run check` always, and
+a table of what runs beyond it. One row of that table is the case M4 met — **a
+doc comment in `src/constants/` is the `Purpose` column of `CATALOG.md`**, so a
+prose-only edit still leaves the catalogue stale.
 
 **140** — GitHub #24, and the one cost a jump spends that no screen named. All
 four milestones landed in a day. The day itself now sits between fuel and cash

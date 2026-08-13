@@ -16,10 +16,10 @@ There are three audiences, and the design has to serve all three:
    differently from a Sidewinder.
 2. **Chris**, who playtests the combat balance without a flight to find a fight.
 3. **The trainer.** Every exercise exports a record. Those records are what tell
-   us whether a brain that wins in `evolve.ts` also wins against a human. That is
-   the check CLAUDE.md's "threat is not fun" exists to make. A brain judged only
-   by other brains and by bots can win every measurement, and lose the only one
-   that counts.
+   us whether a brain that wins in `evolve.ts` also wins against a human. Threat
+   is not the same thing as fun, and this is the check that catches the
+   difference. A brain judged only by other brains and by bots can win every
+   measurement, and lose the only one that counts.
 
 ## The one rule
 
@@ -185,8 +185,8 @@ lets you watch it: launch, then press K.
 
 To pick the opponent's *brain* is what turns this into an A/B rig. Fly the same
 scenario against the pursuit dogfighter, then against the scripted attack run.
-The report answers which is more fun, which is the question CLAUDE.md says the
-numbers cannot. The picker offers two, both code: the pursuit dogfighter that the
+The report answers which is more fun, which is the one question the numbers
+cannot. The picker offers two, both code: the pursuit dogfighter that the
 pirates fly by default, and the scripted run. A candidate joins them when
 somebody puts its weights back and adds its name (train/README.md).
 

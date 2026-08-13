@@ -222,15 +222,51 @@ rule ids**, which is what says the pass changed prose and not rules.
    `BROWSER-TRIALS.md` quotes *"prefer a fight a human flew to a bot-flown
    measurement"* and *"a well-optimised pirate is a turret that hangs in space
    and snipes"*, and `COMBAT-SIM.md` quotes "threat is not fun". The commit that
-   slimmed the agent context took all three out. Both files are left verbatim,
-   because a quotation rewritten is falsified — but the attribution is stale and
-   the fix is Chris's call: restore the lines to `CLAUDE.md`, or attribute them
-   to the archive.
+   slimmed the agent context took all three out.
 4. **`docs/PROCESS.md` cites a step it no longer has.** It says a plan's
    Verification is "tiered to the change (see step 3)", and the file is only
-   "# 1. Plan". Steps 2–4 went with the cycle orchestrator on 2026-08-09. The
-   reference is left as written, because to invent the missing step is not a
-   language pass.
+   "# 1. Plan". Steps 2–4 went with the cycle orchestrator on 2026-08-09.
+
+## Both of those, closed 2026-08-13
+
+Chris's call: remove the stale quotes, and fix up the process.
+
+**The quotes are gone, and each claim stayed.** Four attribution sites across the
+two files, not two. A quotation of a rule that no longer exists cannot be
+repaired by a rewrite, so each one is now the host document's own statement.
+`BROWSER-TRIALS.md` opens with the rule as its own and says so — *"One rule is
+the whole reason this file exists, and this file is its home"* — which gives the
+rule one home instead of an attribution to a file that lost it. The turret
+warning is now "Watch for the known failure". `COMBAT-SIM.md` says "Threat is not
+the same thing as fun, and this is the check that catches the difference", and
+"the one question the numbers cannot". `docs/DEVLOG.md` and `docs/TRAINING-LOG.md`
+name `CLAUDE.md` six more times and are deliberately untouched: they are a record
+of what was decided, and `TRAINING-LOG.md`'s entries are appended and never
+edited.
+
+**`docs/PROCESS.md` has its four steps back**, written around the loop that
+actually runs rather than the cycle orchestrator that was deleted. Step 1 is
+unchanged. **Step 2 Implement** owns only what is not already `CLAUDE.md`'s: one
+plan doc is one unit of work, one milestone is one commit, and two things belong
+in the plan doc rather than in a commit message alone — what the plan did not
+have, and a milestone that turns out to be wrong. **Step 3 Verify** is what "see
+step 3" was always pointing at: `npm run check` always, and a table of what runs
+BEYOND it, tiered to what the change touched. **Step 4 Land** is the four pieces
+of bookkeeping that keep the active context small, and they are the ones this
+item performed by inference from 140's history.
+
+Two accuracies came out of writing it. `npm run elite-a` is named as a fast
+subset that is deliberately NOT in `npm run check`, because `npm test` already
+runs its assertions (docs/ELITE-A.md) — the old step 3 said "build + elite-a",
+which would have read as a contradiction. And the tier table carries a row for
+the case that looks like a prose-only change and is not: **a doc comment in
+`src/constants/` is the `Purpose` column of `CATALOG.md`**, so prose alone leaves
+the catalogue stale and `constants:check` fails. M4 met that, and the rule now
+has a home. Two paragraphs that restated `CLAUDE.md`'s Validation rules were cut
+before the file landed, because a pass that "clarifies" by restating a rule
+creates the duplicate that rule forbids.
+
+`npm run check` green: 4255 passed, 0 failed.
 
 ### One question the plan left open is answered, and by `CLAUDE.md` itself
 

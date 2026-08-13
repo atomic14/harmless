@@ -1,4 +1,10 @@
-# 1. Plan
+# Process
+
+How an issue becomes landed work. `CLAUDE.md` owns the working rules that apply
+inside every step. This file owns the order of the steps, and what each one must
+produce.
+
+## 1. Plan
 
 GitHub is the public inbox. It is not the queue. Triage each issue against three
 things: the README, the product that ships today, and the code that runs today.
@@ -34,3 +40,80 @@ that plan becomes the current queue item, do two things: label the issue
 partial overlap in the issue, but do not change the status of the issue for it.
 Close the issue only after the promised outcome lands. Close it also when triage
 decides not to pursue it.
+
+## 2. Implement
+
+One plan doc is one unit of work. One milestone is one commit. Work the
+milestones in the order the plan gives them.
+
+`CLAUDE.md`'s Working rules govern everything inside a milestone. This file does
+not restate them.
+
+Two things belong to the plan doc rather than to the commit message alone:
+
+1. **What the plan did not have.** A milestone almost always finds something the
+   plan did not predict. Write it into the plan doc. The commit message is read
+   once; the plan doc is what the next reader opens.
+2. **A milestone that turns out to be wrong.** Stop at the boundary. State what
+   the evidence says. A decision to change the scope is Chris's, and it lands in
+   "Decisions already made".
+
+## 3. Verify
+
+**The gates always run**, and they are `npm run check`. That one command is the
+lint, the suite, the size ceilings, `constants:check`, `palette:check` and the
+three generator drift checks. `npm run prebuild` runs it, so a build cannot skip
+it.
+
+**The tiers are what runs BEYOND the gates**, and the plan names them before the
+code exists:
+
+| the change touches | also run |
+| --- | --- |
+| prose, comments or a plan doc | nothing more |
+| prose in `src/constants/` | `npm run generate:constants` FIRST |
+| the released ship or combat data | `npm run elite-a` |
+| a rule that changes how a fight goes | the probe that owns the subsystem |
+| the economy, or a career-long balance | `npm run campaign`, at two sizes |
+
+The second row catches the case that looks like the first one. A doc comment in
+`src/constants/` is the `Purpose` column of `CATALOG.md`, so an edit to the prose
+alone still leaves the catalogue stale, and `constants:check` fails. Regenerate
+before the gates, not after them.
+
+`npm run elite-a` is a fast named subset, and it is deliberately NOT part of
+`npm run check`, because `npm test` already runs every assertion inside it
+(docs/ELITE-A.md). The probes are the measurement a balance change answers to:
+`survivability`, `flight-probe`, `aim-probe`, `ram-probe`, `gap-probe`,
+`defence-probe`, `dock-probe` and `dock-traffic`.
+
+`CLAUDE.md`'s Validation rules apply here and are not restated: a new gate must
+be proved able to fail, and a sampled number must be checked at two sample
+sizes. Step 1's Verification section is where you promise both.
+
+## 4. Land
+
+Four pieces of bookkeeping, and they are what keeps the active context small:
+
+1. Record the outcome in the plan doc: what landed, what the measurements say,
+   and what the work found that the plan did not have.
+2. Remove the number from `docs/TODO/QUEUE.json`.
+3. Remove the entry from the queue in `docs/TODO/README.md`. Add what landed to
+   the dated section below it.
+4. Move the plan doc to `docs/TODO/completed/`, and add its line to
+   `docs/TODO/completed/README.md`.
+
+`QUEUE.json` and the human index must agree afterwards. Commit by milestone;
+`CLAUDE.md` owns what a commit message must say.
+
+## The human channel
+
+**The playtest reports; it does not block** (Chris, 2026-08-11: *"do not block
+things on my playtest, use sensible default values"*). Chris flies the live game
+when he likes. What he finds becomes a GitHub issue, and an issue enters triage
+at step 1. It does not enter the queue directly.
+
+His verdict is still the only answer to the questions no probe reaches — whether
+a fight is FUN, and whether a consequence reads as a mechanic rather than as a
+bug. When his judgement and a bot-flown number disagree, the number is the thing
+that is wrong. To fix the measurement is then a feature like any other.
