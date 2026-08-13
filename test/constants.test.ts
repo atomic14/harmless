@@ -806,7 +806,8 @@ const fake = (symbol: string, expression: string, extra: Partial<ConstantEntry> 
   domain: 'test', symbol, expression, normalizedExpression: expression.replace(/\s/g, ''),
   literalKey: null, doc: 'A documented synthetic rule.',
   docFirstSentence: 'A documented synthetic rule.', filePurpose: 'Synthetic rules.',
-  ruleIds: [], source: `src/constants/${symbol.toLowerCase()}.ts`, line: 1, endLine: 1,
+  ruleIds: [], confirmedDomain: '',
+  source: `src/constants/${symbol.toLowerCase()}.ts`, line: 1, endLine: 1,
   ...extra,
 }) satisfies ConstantEntry;
 const diagnosticsFor = (entries: ConstantEntry[], changed: ConstantEntry[]) =>
@@ -829,10 +830,10 @@ const diagnosticsFor = (entries: ConstantEntry[], changed: ConstantEntry[]) =>
   });
   check('equal values with different @rule ids pass',
     diagnosticsFor([brain, player], [player]).length === 0);
-  check('an unexplained repeated primitive value warns', (() => {
+  check('an unexplained repeated primitive value FAILS', (() => {
     const copy = fake('UNEXPLAINED_RAMP', '4.1396', { literalKey: 'number:4.1396' });
     return diagnosticsFor([brain, copy], [copy]).some((item) => item.code === 'value'
-      && item.level === 'warning');
+      && item.level === 'error');
   })());
 }
 {
@@ -842,11 +843,33 @@ const diagnosticsFor = (entries: ConstantEntry[], changed: ConstantEntry[]) =>
       && item.level === 'error'));
 }
 {
+  // These four pin the door that makes the domain check safe to be FATAL. The
+  // heuristic scores a constant's own domain over its module header alone, so a
+  // legitimate constant can lose the count — `STEREO_WIDTH` was told it belonged
+  // with the chart metrics because both mention a width. `@domain` is how a
+  // person answers, and it is only an answer if it can be wrong.
   const wrong = fake('MISSILE_LOCK_DISTANCE', '99', { domain: 'market' });
   const owner = fake('MISSILE_LOCK_CONE', '0.1', { domain: 'ordnance' });
-  check('a constant in an unlikely domain warns',
+  check('a constant in an unlikely domain FAILS',
     diagnosticsFor([wrong, owner], [wrong]).some((item) => item.code === 'domain'
-      && item.level === 'warning'));
+      && item.level === 'error'));
+
+  const argued = fake('MISSILE_LOCK_DISTANCE', '99', {
+    domain: 'market', confirmedDomain: 'market',
+  });
+  check('...unless a person argued the owner with @domain',
+    diagnosticsFor([argued, owner], [argued]).length === 0);
+
+  const misfiled = fake('MISSILE_LOCK_DISTANCE', '99', {
+    domain: 'market', confirmedDomain: 'ordnance',
+  });
+  check('...and @domain naming ANOTHER file fails, rather than silencing it',
+    diagnosticsFor([misfiled, owner], [misfiled]).some((item) => item.code === 'domain'
+      && item.message.includes('but lives in market')));
+
+  const quiet = fake('LOCK_RANGE', '99', { domain: 'ordnance', confirmedDomain: 'weapons' });
+  check('...even where the heuristic had nothing to say',
+    diagnosticsFor([quiet], [quiet]).some((item) => item.code === 'domain'));
 }
 {
   const duplicateRules: ConstantsModel = { entries: [], rules: [

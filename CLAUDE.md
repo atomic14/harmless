@@ -51,6 +51,10 @@ The LSP server reports type errors after each edit. Fix an error at once.
   Document the rule. Add a distinct `@rule` ID for each constant when two equal
   values must stay independent. Run `npm run generate:constants` after you add,
   change or remove a constant. Then run `npm run constants:check`.
+- `constants:check` has no warning level. Every finding fails the build. Two of
+  them are answered in the doc comment rather than by changing the number. Give
+  each of two equal values its own `@rule` ID. Write `@domain <file>` when the
+  owner check names the wrong home, and you have argued the right one.
 - Put a constant's rationale beside it. Record the alternatives that matter where
   the next maintainer will look.
 

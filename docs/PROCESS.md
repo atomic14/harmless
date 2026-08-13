@@ -65,6 +65,17 @@ lint, the suite, the size ceilings, `constants:check`, `palette:check` and the
 three generator drift checks. `npm run prebuild` runs it, so a build cannot skip
 it.
 
+**A gate has no warning level.** It passes or it fails. `constants:check` used to
+print warnings and exit 0, which made "zero warnings" a standard nobody held: the
+count was visible only to whoever had run the tool before their own change
+(Chris, 2026-08-13: *"warnings should be errors - we should not allow warnings to
+build up"*). Both of its warnings are errors now, and the level is gone from the
+type so a new check cannot quietly reintroduce one.
+
+A fatal check must be answerable in the source. Both of those are: `@rule` gives
+two equal values separate identities, and `@domain` records that a person argued
+a constant's owner against the token heuristic that guessed otherwise.
+
 **The tiers are what runs BEYOND the gates**, and the plan names them before the
 code exists:
 
@@ -93,7 +104,8 @@ sizes. Step 1's Verification section is where you promise both.
 
 ## 4. Land
 
-Four pieces of bookkeeping, and they are what keeps the active context small:
+Five pieces of bookkeeping. The first four keep the active context small. The
+fifth keeps the public inbox true.
 
 1. Record the outcome in the plan doc: what landed, what the measurements say,
    and what the work found that the plan did not have.
@@ -102,6 +114,23 @@ Four pieces of bookkeeping, and they are what keeps the active context small:
    the dated section below it.
 4. Move the plan doc to `docs/TODO/completed/`, and add its line to
    `docs/TODO/completed/README.md`.
+5. Close the GitHub issue. Then **remove its disposition label**.
+
+### The disposition label is the queue's state, not the issue's history
+
+Step 1 puts one of four labels on an issue: `planned`, `in progress`,
+`needs information` or `needs investigation`. Each one describes where the QUEUE
+holds the item. A closed issue is in no queue, so the label stops being true the
+moment the item lands.
+
+Nothing took those labels down until 2026-08-13. Thirteen closed issues carried
+one, as far back as #7, and two of them still said `in progress`. That is not
+untidiness. `in progress` on a closed issue is false, and a `planned` that never
+comes off cannot answer "what is planned?", which is the only question the label
+exists for.
+
+`bug` and `enhancement` are different, and they stay. They say what the issue
+WAS, and that does not stop being true.
 
 `QUEUE.json` and the human index must agree afterwards. Commit by milestone;
 `CLAUDE.md` owns what a commit message must say.

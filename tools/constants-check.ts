@@ -5,8 +5,23 @@ import { execFileSync } from 'node:child_process';
 
 import type { ConstantEntry, ConstantsModel, RuleOwner } from './constants-lib.ts';
 
+/**
+ * One thing wrong with a constant. There is no warning level, deliberately.
+ *
+ * `value` and `domain` used to be warnings, and `npm run check` went green with
+ * them printed. That made "zero warnings" a standard held by nobody: the count
+ * was visible only to whoever happened to have run the tool before their own
+ * change, and nothing stopped a second one landing on top of a first (Chris,
+ * 2026-08-13: *"warnings should be errors - we should not allow warnings to
+ * build up"*).
+ *
+ * The level is gone from the TYPE rather than set to 'error' at the two sites,
+ * so a future check cannot quietly reintroduce one. Both fatal checks have a way
+ * to answer them in the source — `@rule` for a shared value, `@domain` for a
+ * contested owner — which is what a fatal check needs and a warning never did.
+ */
 export interface ConstantDiagnostic {
-  readonly level: 'error' | 'warning';
+  readonly level: 'error';
   readonly code: 'catalogue' | 'doc' | 'domain' | 'expression' | 'name' | 'rule' | 'value';
   readonly message: string;
 }
@@ -125,16 +140,27 @@ export function changedConstantDiagnostics(
       const sameValue = others.filter((other) => other.literalKey === entry.literalKey
         && !separateRules(entry, other));
       if (sameValue.length) added({
-        level: 'warning', code: 'value',
-        message: `${at} repeats ${entry.expression} at ${locations(sameValue)}; confirm the meanings differ`
-          + ' or give both rules distinct @rule ids',
+        level: 'error', code: 'value',
+        message: `${at} repeats ${entry.expression} at ${locations(sameValue)}; give every one of`
+          + ' them a distinct @rule id, or make one derive from the other',
       });
     }
 
+    // `@domain` says "the owner was argued and it is this file". A tag naming
+    // any other file is a constant claiming a home it does not live in, which
+    // is worse than no tag at all: it would silence the heuristic AND mislead
+    // the next reader.
+    if (entry.confirmedDomain && entry.confirmedDomain !== entry.domain) added({
+      level: 'error', code: 'domain',
+      message: `${at} says @domain ${entry.confirmedDomain} but lives in ${entry.domain};`
+        + ' move the constant, or name the file it is in',
+    });
+
     const owner = likelyOwner(entry, model.entries);
     if (owner) added({
-      level: 'warning', code: 'domain',
-      message: `${at} resembles the ${owner} domain more than ${entry.domain}; confirm its owner`,
+      level: 'error', code: 'domain',
+      message: `${at} resembles the ${owner} domain more than ${entry.domain}; move it, or write`
+        + ` @domain ${entry.domain} in its doc comment to say the owner was argued`,
     });
   }
   return diagnostics;
@@ -156,6 +182,12 @@ const OWNER_STOP = new Set([
 ]);
 
 function likelyOwner(entry: ConstantEntry, entries: readonly ConstantEntry[]): string | null {
+  // A person already argued this one, and a token count does not outrank them.
+  // The check is fatal now, so it must be answerable: the heuristic scores a
+  // constant's OWN domain over the module header alone, and every other domain
+  // over its symbols, docs and header, which is a comparison a legitimate
+  // constant can lose. A wrong `@domain` is caught by the next line, not here.
+  if (entry.confirmedDomain === entry.domain) return null;
   const tokens = [...new Set(entry.symbol.toLowerCase()
     .split(/[^a-z0-9]+/).filter((token) => token.length > 1 && !OWNER_STOP.has(token)))];
   if (tokens.length < 2) return null;

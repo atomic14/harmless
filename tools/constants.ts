@@ -71,18 +71,18 @@ function check(model: ReturnType<typeof loadConstants>): void {
     message: 'src/constants/CATALOG.md is stale; run npm run generate:constants',
   });
 
+  // Every diagnostic is fatal. There is no warning stream to print to, and no
+  // count of tolerated ones to report, because a tolerated count is the thing
+  // this gate stopped having (constants-check.ts, `ConstantDiagnostic`).
   for (const diagnostic of diagnostics) {
-    const stream = diagnostic.level === 'error' ? console.error : console.warn;
-    stream(`${diagnostic.level.toUpperCase()} [${diagnostic.code}] ${diagnostic.message}`);
+    console.error(`ERROR [${diagnostic.code}] ${diagnostic.message}`);
   }
-  const errors = diagnostics.filter((diagnostic) => diagnostic.level === 'error').length;
-  const warnings = diagnostics.length - errors;
-  if (errors) {
-    console.error(`constants: ${errors} error(s), ${warnings} warning(s)`);
+  if (diagnostics.length) {
+    console.error(`constants: ${diagnostics.length} error(s)`);
     process.exitCode = 1;
   } else {
-    console.log(`constants: ${model.entries.length} exports, ${model.rules.length} rule ids,`
-      + ` ${warnings} warning(s) — catalogue current`);
+    console.log(`constants: ${model.entries.length} exports, ${model.rules.length} rule ids`
+      + ' — catalogue current');
   }
 }
 

@@ -22,6 +22,8 @@ export interface ConstantEntry {
   readonly docFirstSentence: string;
   readonly filePurpose: string;
   readonly ruleIds: readonly string[];
+  /** the domain a person argued for in `@domain`, or '' where nobody has */
+  readonly confirmedDomain: string;
   readonly source: string;
   readonly line: number;
   readonly endLine: number;
@@ -42,6 +44,7 @@ export interface ConstantsModel {
 interface DocInfo {
   readonly text: string;
   readonly ruleIds: readonly string[];
+  readonly confirmedDomain: string;
 }
 
 /** Read every exported const under src/constants/ from the configured project. */
@@ -110,6 +113,7 @@ function readSourceFile(
         docFirstSentence: firstSentence(statementDoc.text),
         filePurpose,
         ruleIds: [...statementDoc.ruleIds, ...nestedRuleIds],
+        confirmedDomain: statementDoc.confirmedDomain,
         source,
         line,
         endLine,
@@ -158,10 +162,20 @@ function docInfo(node: Node): DocInfo {
   const docs = (node.jsDoc ?? []).filter(isJSDoc);
   const text = docs.map((doc) => getTextOfJSDocComment(doc.comment) ?? '')
     .filter(Boolean).join('\n\n').replace(/\s+/g, ' ').trim();
-  const ruleIds = docs.flatMap((doc) => [...(doc.tags ?? [])]
-    .filter((tag) => tag.tagName.text === 'rule')
+  const tagged = (name: string): string[] => docs.flatMap((doc) => [...(doc.tags ?? [])]
+    .filter((tag) => tag.tagName.text === name)
     .map((tag) => (getTextOfJSDocComment(tag.comment) ?? '').replace(/\s+/g, ' ').trim()));
-  return { text, ruleIds };
+  return {
+    text,
+    ruleIds: tagged('rule'),
+    // `@domain <file>` — the owner, argued by a person rather than guessed by
+    // the token heuristic in tools/constants-check.ts. It exists because that
+    // check is FATAL since docs/TODO/142's follow-up, and a heuristic with no
+    // way to answer it is a trap: `STEREO_WIDTH` was told it belonged to the
+    // chart-metric domain because both mention a width. Last one wins, so a
+    // constant carrying two is the author's problem and not a silent merge.
+    confirmedDomain: tagged('domain').at(-1) ?? '',
+  };
 }
 
 function headerPurpose(source: string): string {
