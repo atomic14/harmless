@@ -27,15 +27,35 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-/** Above this, a file needs a stated reason. */
+/**
+ * Above this, a file needs a stated reason.
+ *
+ * IT IS A DETECTOR, NOT THE RULE. The rule is one responsibility per file
+ * (Chris, 2026-08-14: *"the rules should be single responsibility - files that
+ * have multiple responsibilities are the problem"*). Length is only the symptom
+ * that usually gives a second responsibility away, because a file rarely
+ * reaches 400 lines doing one thing.
+ *
+ * So the number is a place to look, and it cuts both ways. A 900-line file that
+ * does one thing is fine and says so below. A 200-line file that does three is
+ * wrong and this gate will never notice — that one is caught by reading, and by
+ * the module header every file has to carry.
+ */
 const LIMIT = 400;
 
 /**
- * Files allowed to exceed the limit, each with why.
+ * Files allowed to exceed the limit, each with the ONE responsibility it holds.
  *
- * A reason is not "it is long". It is why splitting it would make the code
- * worse — usually that the file is one table, or one grammar, or a single
- * cohesive rule set that reads worse in pieces.
+ * A reason is not "it is long", and it is not "splitting would be awkward". It
+ * NAMES THE SINGLE RESPONSIBILITY: this file is one table, one grammar, one
+ * bijection, one lifecycle. A reader should be able to check the claim by
+ * opening the file, and to see immediately when it stops being true.
+ *
+ * That bar is what makes the list a review surface. "One render function per
+ * screen; they share layout helpers and nothing else" sat here for months
+ * describing TWENTY-FIVE responsibilities, and read as a reason because it was
+ * a sentence in the right shape. It was the argument for a split, and
+ * docs/TODO/149 eventually took it.
  *
  * Anything here that is really just unfinished work should say so, with the
  * split it is waiting for, so the list does not become a place to hide.
@@ -146,9 +166,13 @@ if (unlisted.length) {
   console.error(`
 SPLIT THE FILE. That is what this gate asks for.
 
-Look for the seam first. A file over the ceiling is usually two subjects that
-share one name. Common shapes: a grammar and the data it reads, a rule and the
-table that states it, or a second subject that arrived later and stayed.
+The rule is ONE RESPONSIBILITY PER FILE. This ceiling is only the detector: a
+file rarely reaches 400 lines doing one thing, so crossing it is a place to
+look rather than the fault itself.
+
+So name the responsibilities out loud. If you can say "it does X, and also Y",
+that is the seam. Common shapes: a grammar and the data it reads, a rule and
+the table that states it, or a second subject that arrived later and stayed.
 
 Then move one side out. Take every comment with the code it explains.
 
@@ -158,11 +182,14 @@ CLAUDE.md forbids it: "Never delete useful content only to fit that ceiling."
 See docs/TODO/148 for what that mistake looks like: one file trimmed six times
 across three items, and split zero times.
 
-An exemption is the LAST answer, not the second one. Add the file to ALLOWED in
-tools/sizes.mjs only when a split would make the code worse. Then say why, and
-be specific: name the two halves, and say what splitting them would break. This
-list is the review surface, so a vague reason costs the next reader real time.
-"It is long" is not a reason.`);
+An exemption is the LAST answer, not the second one, and it has one bar: NAME
+THE SINGLE RESPONSIBILITY the file holds. One table, one grammar, one bijection,
+one lifecycle — something a reader can check by opening the file, and can see
+stop being true later.
+
+"It is long" is not a reason. Neither is "splitting would be awkward". And a
+sentence in the right shape is not an argument: "one render function per screen"
+described twenty-five responsibilities and sat in this list for months.`);
   process.exit(1);
 }
 console.log('no unlisted oversize files');
