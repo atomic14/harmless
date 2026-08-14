@@ -13,10 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [153 — A rule explained where the rule does not
-   live](153-a-rule-explained-where-the-rule-does-not-live.md) · refactor ·
-   medium.
-2. [154 — The comments in src/ are not in Simplified Technical
+1. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
@@ -25,12 +22,14 @@ they in ASD-STE100 and are they useful — we don't need comments that contain t
 whole history of the project. Comments should help explain the code."* The
 review measured `game.ts`, and then the tree. **The comments are not
 restatement** — one bare restatement exists in 2,020 lines — so none of the four
-items cuts prose to make a file shorter. Each answers a different fault. **151
-and 152 landed on 2026-08-14** and are below.
+items cuts prose to make a file shorter. Each answers a different fault. **151, 152
+and 153 landed on 2026-08-14** and are below.
 
-**153 blocks 154**: move a paragraph once, then rewrite it once. Both waited for
-the decomposition programme, which closed on 2026-08-14 — and both now have more
-surface to cover, because 150 and 155 produced nine child files between them.
+**153 landed first, and 154 is what is left of the review.** 153 blocked it so a
+paragraph would be moved once and rewritten once. In the event nothing moved:
+the nine rule paragraphs it examined were duplicates of what the rules module
+already said, and each became a pointer. So 154 rewrites prose that is now in
+its final home.
 
 **154 is the largest, and the incremental rule is what makes it necessary.**
 `CLAUDE.md` asks each edit to convert the comment it touches. Measured, that does
@@ -91,6 +90,19 @@ lines with five section headers, and `sizes.mjs` failed it — that gate calls i
 ceiling a detector rather than a rule, and it was right. An exemption was
 available and would have been dishonest: the `ALLOWED` list's own bar is that a
 reason must say why a file cannot be a parent plus children.
+
+**153** — *a rule explained where the rule does not live*, and **the premise
+inverted under measurement**. Walking every rule paragraph in `game.ts` and its
+nine children with the plan's own test — delete the code in your head, is the
+sentence still true? — gave **0 homeless paragraphs and 9 duplicates**. Every
+rule beside a handler was a second copy of what the rules module already said,
+two of them word for word, and one of those was mine from 150 M4. **So the
+defect is one rule with two homes**, not homelessness, and each copy became a
+pointer. The plan's own central example was wrong on the facts. **M2 asked
+whether to sweep the tree and the answer is no**: of 175 near-duplicate pairs
+across `src/`, 32 are a constant beside the module that spends it — which
+`CLAUDE.md` explicitly requires — and 69 are generated headers. Nothing was cut;
+the ten files went from 1,653 comment lines to 1,655.
 
 **152** — the header's three wrong claims, and 155 M3 removed all three as a
 side effect of stating the parent's one responsibility. The mode list is GONE

@@ -149,6 +149,40 @@ What M1 has to answer:
 3. Is the tree-wide pass worth it? 242 files carry comments. `game.ts` may be
    the outlier that provoked the item rather than the general case.
 
+**M2 answered all three by measurement on 2026-08-14, and the answer to the
+third is NO. The item closes with M1.**
+
+1. **The rule module already said it, nine times out of nine.** Nothing moved,
+   so nothing arrived anywhere.
+2. **No file crossed the detector**, because no prose changed file.
+3. **The tree-wide pass is not worth it, and would fight `CLAUDE.md`.** The
+   detector was run over all of `src/`: **6,171 comment sentences, 175 pairs
+   above 80% overlap** once per-file boilerplate is excluded. Sorted:
+
+| what the pairs are | count |
+| --- | ---: |
+| a constant and the module that spends it | 32 |
+| two generated files sharing a header | 69 |
+| everything else | 74 |
+
+**The 32 are the house rule, not a defect.** `CLAUDE.md` says *"Put a
+constant's rationale beside it"*, so a constant restating its rule beside the
+number is exactly what this repository asks for. A sweep would delete the thing
+the rules require. The 69 are generated headers and are not edited by hand. Of
+the 74 left, the sample read was mostly SEAM pairs again — two sites each naming
+their own half — plus shared `@param` lines and shared citations of `CLAUDE.md`.
+
+**`game.ts` was the outlier the item suspected**, and the reason is structural:
+an orchestrator's handlers sit beside rules they SPEND, so the temptation to
+restate the rule is at its highest exactly there. Elsewhere a file states its
+own subject and the echo is a coincidence of vocabulary.
+
+**The detector is not made a gate.** At a 33% hit rate inside the orchestrator
+family and far lower outside it, a gate would fail the build on prose that is
+correct, and the constants rule guarantees a permanent floor of false positives.
+It is recorded here as a tool to re-run when a large extraction lands, which is
+when handlers move next to rules and the copies get made.
+
 ## Decisions already made
 
 - **A comment explains the code; the code should be self-explanatory where it
