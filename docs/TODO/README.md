@@ -13,13 +13,17 @@ active context:
 
 ## Execution queue
 
-**Empty.** Five items landed across 2026-08-13 and 14, and four of them came
-from Chris reading the one before: #27 became 144, 144's screen overlap became
-145, 144 M6's key became 146, the station header stopped being one line in 147,
-and **148 answered a question about the process itself** — the last three items
-had trimmed `controls.ts` six times to fit the size ceiling and split it zero
-times, which `CLAUDE.md` forbids. The tables live in `game/bindings.ts` now, and
-the exemption 146 added is gone rather than moved.
+1. [149 — One file per screen](149-one-file-per-screen.md) · Chris, 2026-08-14 ·
+   refactor · large.
+
+**149 comes out of the exemption audit.** `src/ui/screens.ts` is 1,954 lines and
+carries the weakest entry in `tools/sizes.mjs`: *"one render function per screen;
+they share layout helpers and nothing else."* That is the argument FOR splitting,
+written as the argument against one — it states the precondition for a clean cut
+and claims no coupling, because there is none to claim. The audit measured 25
+exported render functions and 24 helpers, and the triage found the consumers are
+already one per screen: fourteen files under `game/screens/` each import exactly
+their own render function. Six milestones, and the exemption comes off.
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
