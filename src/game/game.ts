@@ -483,12 +483,16 @@ export class Game {
   }
 
   /**
-   * The record moves. @internal — driven by test/playtest.js, which calls it by
-   * name, so it stays on the Game rather than becoming a reach through `law_`.
+   * The record moves. @internal — no caller outside this class (docs/TODO/151
+   * M1). `stepHost` wires it, so the step raises a record through the Game
+   * rather than through a reach into `law_`.
    */
   raiseLegal(level: number): void { this.law_.raiseLegal(level); }
 
-  /** Offer the law money. @internal — driven by test/playtest.js. */
+  /**
+   * Offer the law money. @internal — driven by test/bribe-flight.test.ts and
+   * test/character-line.test.ts.
+   */
   bribePolice(): void { this.law_.bribePolice(); }
 
   /**
@@ -813,7 +817,11 @@ export class Game {
   /** @internal — driven by test/playtest.js */
   buyCargo(want: number): void { this.market_.buy(want); }
 
-  /** @internal — driven by test/playtest.js */
+  /**
+   * @internal — no caller at all (docs/TODO/151 M1). The market screen sells
+   * through `TradeContext`, and `buyCargo` above keeps the scripted caller that
+   * this one lost.
+   */
   sellCargo(want: number): void { this.market_.sell(want); }
 
   /** @internal — driven by test/playtest.js */
@@ -870,7 +878,7 @@ export class Game {
     }
   }
 
-  /** @internal — driven by test/playtest.js */
+  /** @internal — public for the tests, which dock a commander through it. */
   enterDocked(arrival: DockArrival = 'arrived'): void {
     // Once per commander, whatever brought them here: a fresh boot, a real
     // docking, or a restored save from before the marker existed. The marker
@@ -974,10 +982,10 @@ export class Game {
     };
   }
 
-  /** @internal — driven by test/playtest.js and the console harnesses */
+  /** @internal — public for the tests, which capture a world to compare it. */
   captureSnapshot(): WorldSnapshot { return this.persistence.capture(); }
 
-  /** @internal — driven by test/playtest.js and the console harnesses */
+  /** @internal — public for the tests, which restore a captured world. */
   restoreSnapshot(snap: WorldSnapshot): void { this.persistence.restore(snap); }
 
   private autoSave(): void { this.persistence.autoSave(); }
@@ -1103,7 +1111,9 @@ export class Game {
    * Work on offer here today. Deliberately generous compared to the original,
    * which gated missions behind a high combat rating — a new commander should
    * always have somewhere to be.
-   * @internal — driven by test/playtest.js
+   * @internal — no caller at all (docs/TODO/151 M1). The station and the
+   * campaign both call the free `generateContractOffers` in contract-offers.ts,
+   * which this method only wraps.
    */
   generateContractOffers(): Contract[] {
     return generateContractOffers(this.system, this.state.systems, this.state.commander.day);
@@ -1231,7 +1241,7 @@ export class Game {
     this.showMessage(`ARRIVED: ${this.system.name.toUpperCase()}`, 4);
   }
 
-  /** @internal — driven by test/playtest.js */
+  /** @internal — driven by test/blueprint-override.test.ts */
   arriveInSystem(): void {
     // Seed the world from WHERE and WHEN you are, so a given save arriving in
     // a given system on a given day meets the same reception twice. Without
@@ -1279,7 +1289,10 @@ export class Game {
     this.applyCombat(firePlayerLaser(this.state, this.combat, this.combatScratch));
   }
 
-  /** Destruction credited to the player. @internal — driven by test/playtest.js */
+  /**
+   * Destruction credited to the player. @internal — driven by
+   * test/record-line.test.ts and test/character-line.test.ts.
+   */
   destroyNpc(npc: NpcShip): void {
     // The ENERGY BOMB reaches this from runCommand rather than through the step,
     // so it is the one kill an exercise cannot see through its own StepHost. An
@@ -1426,7 +1439,10 @@ export class Game {
     this.applyAutopilot(this.autopilot.toggleDocking());
   }
 
-  /** @internal — driven by test/playtest.js */
+  /**
+   * @internal — no caller outside this class (docs/TODO/151 M1). The command
+   * table calls it.
+   */
   toggleCombatComputer(): void {
     this.applyAutopilot(this.autopilot.toggleCombat());
   }
@@ -1514,9 +1530,9 @@ export class Game {
   /**
    * One simulation step and one frame drawn.
    *
-   * A single call because the console harnesses drive the game with it
-   * (test/playtest.js, test/gang-trial.js); the real loop separates them and
-   * steps a FIXED dt however long the frame took.
+   * A single call because the console harness drives the game with it
+   * (test/playtest.js); the real loop separates them and steps a FIXED dt
+   * however long the frame took.
    * @internal — driven by test/playtest.js
    */
   update(dt: number, elapsed: number): void {
@@ -1692,8 +1708,10 @@ export class Game {
   /**
    * Hermits deal in ore and ask no questions — the one place to sell
    * contraband without a police scan, at the cost of finding them.
+   *
+   * @internal — no caller outside this class (docs/TODO/151 M1). `stepHost`
+   * wires it, and the step opens the trade through the Game.
    */
-  /** @internal — driven by test/playtest.js */
   openHermitTrade(): void {
     this.state.session.hermitTrading = true;
     // what the miner charges is a price rule, and price rules live in
@@ -1908,14 +1926,20 @@ export class Game {
     if (this.state.session.torusEngaged) sfx.torusEngaged();
   }
 
-  /** @internal — driven by test/playtest.js */
+  /**
+   * @internal — driven by test/chart-overlay.test.ts and
+   * test/danger-overlay.test.ts.
+   */
   openChart(from: 'docked' | 'flight'): void {
     this.input.releaseMouseFlight();
     this.baseMode = from;
     this.screens.open('chart');
   }
 
-  /** @internal — driven by test/playtest.js */
+  /**
+   * @internal — driven by test/chart-overlay.test.ts and
+   * test/danger-overlay.test.ts.
+   */
   openLocalChart(from: 'docked' | 'flight'): void {
     this.input.releaseMouseFlight();
     this.baseMode = from;
@@ -1942,10 +1966,14 @@ export class Game {
     sfx.viewChanged();
   }
 
-  /** @internal — driven by test/playtest.js
+  /**
+   * @internal — no caller outside this class (docs/TODO/151 M1). The command
+   * table calls it.
+   *
    * `from` is no longer read: the stack remembers where you came from, since
-   * data is pushed ON TOP of the chart rather than replacing it. Kept in the
-   * signature for test/playtest.js.
+   * data is pushed ON TOP of the chart rather than replacing it. It stayed in
+   * the signature for test/playtest.js, which does not call this method at all,
+   * so the parameter has no caller either (docs/TODO/151 M1).
    */
   openSystemData(sys: StarSystem, from?: 'docked' | 'chart' | 'local'): void {
     void from;
@@ -1996,7 +2024,7 @@ export class Game {
    * turns "I can't win this fight" into a decision rather than a death.
    * Organised gangs want considerably more convincing.
    */
-  /** @internal — driven by test/playtest.js */
+  /** @internal — driven by test/jettison.test.ts */
   jettisonCargo(tonnes = 1): void {
     this.law_.throwOverboard(
       (cargo) => dumpCargo(cargo, tonnes), 'HOLD EMPTY');
@@ -2012,7 +2040,7 @@ export class Game {
    * opens, that key throws the run's profit into space while the crime stays
    * aboard. See `dumpContraband` (jettison.ts) for the ordering.
    */
-  /** @internal — driven by test/playtest.js */
+  /** @internal — driven by test/jettison.test.ts */
   jettisonContraband(tonnes = 1): void {
     this.law_.throwOverboard(
       (cargo) => dumpContraband(cargo, tonnes), 'NO CONTRABAND ABOARD');

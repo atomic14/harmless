@@ -87,7 +87,8 @@ export class LawActions {
    * a fight. A record that did not move is nothing happening, and nothing
    * happening is worth no line.
    *
-   * @internal — driven by test/playtest.js
+   * @internal — driven by src/game/game.ts. The orchestrator holds the record
+   * and delegates the move to here.
    */
   raiseLegal(level: number): void {
     if (level <= CLEAN) return;   // shooting a pirate is nobody's business
@@ -166,7 +167,8 @@ export class LawActions {
    * (`bribeOffered`), refusals included. That asymmetry is the whole feature: a
    * bribe never clears a record and never buys one back.
    *
-   * @internal — driven by test/playtest.js
+   * @internal — driven by src/game/game.ts. The orchestrator owns the key and
+   * delegates the offer to here.
    */
   bribePolice(): void {
     if (this.host.mode() !== 'flight') { this.host.refused(); return; }

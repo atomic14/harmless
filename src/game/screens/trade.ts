@@ -58,7 +58,7 @@ export interface TradeContext {
 /** The commodity market. */
 export class MarketScreen implements Screen {
   readonly id = 'market' as const;
-  /** @internal — test/playtest.js sets this directly before calling buy() */
+  /** @internal — test/playtest.js sets it through `g.marketSelected`, then buys. */
   selected = 0;
 
   /**
@@ -72,8 +72,8 @@ export class MarketScreen implements Screen {
    * leaving the screen.
    *
    * The screen owns it rather than `sell`, and that is deliberate. `sell` is
-   * also the Game's `sellCargo`, which test/playtest.js drives, and a rule that
-   * lived in there would make a scripted sale need a keystroke it cannot send.
+   * the plain action a scripted caller needs, and a rule that lived in there
+   * would make a scripted sale need a keystroke it cannot send.
    */
   private armed: number | null = null;
 

@@ -61,7 +61,7 @@ export class WorldBuild {
     this.host = host;
   }
 
-  /** @internal — driven by test/playtest.js */
+  /** @internal — driven by src/game/game.ts, which delegates to it. */
   buildWorld(): void {
     this.state.world.build(this.host.system(), specsForSet(this.state.session.blueprintSet || null));
     this.host.setSystem(this.host.system());
@@ -114,7 +114,7 @@ export class WorldBuild {
    * mis-jump does not move `commander.systemIndex` — the target is retained for
    * the escape jump and nothing else.
    */
-  /** @internal — driven by test/playtest.js */
+  /** @internal — driven by src/game/game.ts, which delegates to it. */
   enterWitchspace(): void {
     this.state.session.witchspace = true;
     // The flag first, then the set, then the world that is built with it.
@@ -135,7 +135,7 @@ export class WorldBuild {
     this.host.showMessage('WITCH-SPACE — THARGOID AMBUSH', 6);
   }
 
-  /** @internal — driven by test/playtest.js */
+  /** @internal — driven by src/game/game.ts, which delegates to it. */
   spawnNpc(role: NpcRole, position: THREE.Vector3, seed: number, spec?: NpcSpec): NpcShip {
     return this.state.world.spawn(role, position, seed, spec);
   }
