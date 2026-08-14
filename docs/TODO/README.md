@@ -13,14 +13,20 @@ active context:
 
 ## Execution queue
 
-**Empty.** 2026-08-14 was a day about the process rather than the game. Chris
-read the last three commits and asked why they trimmed files instead of
-splitting them; `CLAUDE.md` forbids the trimming in as many words. **148** split
-`game/controls.ts`, the gate's own message now asks for a split and names the
-trap, **the 36 exemptions were audited** and five were for files that had fallen
-back under the ceiling, and **149** took `ui/screens.ts` from 1,954 lines to
-eight files with no exemption at all. `npm run sizes` reports 30 files over the
-limit where it reported 32 that morning.
+1. [150 — The orchestrator and its children](150-the-orchestrator-and-its-children.md)
+   · refactor · large.
+
+**150 is the head of the decomposition programme, promoted on 2026-08-14.**
+`src/game/game.ts` is 2,528 lines and 201 commits, and its own entry admits *"the
+orchestrator plus leftovers. Target ~300"* — eight times over the target it set
+itself. The triage found the axis: most of its areas already HAVE a rules module,
+because `law.ts`, `persistence.ts`, `contracts.ts`, `ordnance.ts`, `station.ts`
+and `world-step.ts` all came out of this file. What is left is the ORCHESTRATION,
+so the cut is to move the handlers out beside the rules they spend. M1 takes the
+law's six, whose coupling was measured before the area was chosen: a host of four
+methods. **The order after M1 is deliberately not fixed** — 149 planned one chart
+file, measured 719 lines and found four subjects, and it was right because it
+deferred to the measurement.
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
