@@ -422,19 +422,132 @@ made the beams a live risk, so a throw was put inside `aimBeams` and the suite
 was run: it fired. `g.draw(1)` in `test/game.test.ts` covers the dashboard and
 the sight the same way.
 
-## M4 onwards — re-assessed after M3
+## M4 — the jump, on 2026-08-14
+
+`game/hyperspace-actions.ts`, 266 lines. **game.ts 2,049 → 1,910.** `npm run
+check` passes at 4,530 assertions, and the count is unchanged, which is the
+refactor's own gate. `npm run portability` says the child landed portable.
+
+It holds the five ways into and out of a system, and every one of them ends at
+`arriveInSystem`: the countdown, the days a jump spends, the drop at the
+witchpoint, the crossing to the next galaxy, and the tow when a mis-jump strands
+you. **One responsibility: what a jump does to the world.**
+
+**The plan named no area, so the area was measured**, with the method above. The
+jump won on the plan's own rule:
+
+| area | moves | deps | ratio |
+| --- | ---: | ---: | ---: |
+| **the jump** | **142** | **11** | **12.9** ← chosen |
+| death + saves | 119 | 13 | 9.2 |
+| saves | 69 | 8 | 8.6 |
+| ordnance + combat | 112 | 15 | 7.5 |
+| contracts + survivors | 48 | 7 | 6.9 |
+| death | 60 | 13 | 4.6 |
+| screens | 67 | 15 | 4.5 |
+
+### Five things it found that the plan did not have
+
+**1. The ratio alone picks a file that must not be written, and the size rule is
+what stops it.** The sound area — `playSound` and `placeOf` — measures **41
+lines against ONE external dep, a ratio of 41**, four times the best real
+candidate. It is the wrong answer: M3 measured the wiring at 90 to 120 lines per
+child, so a 41-line area pays more overhead than it moves. **The rule is
+therefore two numbers, not one.** An area needs enough lines to carry a module
+header, a documented host and a constructor, AND a good ratio. The section above
+now says so.
+
+**2. Grouping decided this one twice, and reading the code is what did it.**
+`sendDistressBeacon` and `completeRescue` look like a subject of their own, and
+M3 had already ruled they are not contracts. Measured apart they are 39 lines —
+too small, like the sound. Measured WITH the jump they add 39 lines and remove a
+dep, because `completeRescue` ends at `arriveInSystem` like every other arrival.
+The same test moved `loadOrWarmGalaxy` and `freshGalaxySeed` in: the seed is
+drawn the same way at a boot and at a galactic jump, and taking the pair removed
+another dep. **Both moves raise the ratio, and neither is visible in a table of
+members.**
+
+**3. A child can take an earlier child as a collaborator, and that is what keeps
+the host narrow.** Four of the eleven deps were `buildWorld`,
+`enterWitchspace`, `chooseBlueprintSet` and `populateSystem` — all of them
+`world-build.ts`, M2's child. Passing `WorldBuild` itself turns four host
+methods into one constructor argument. The seam reads correctly too:
+`hyperspace-actions.ts` decides WHEN a system is entered, and `world-build.ts`
+decides what is in it.
+
+**4. A move must not invent a constant.** The first draft named `250` and `3` as
+`ARRIVAL_SPEED` and `RESCUE_DAYS`. Both were reverted. `src/constants/` owns
+what a named constant is and where it lives, and a refactor that changes no rule
+must not create one on the way past — that is its own decision, with its own
+gate to answer to.
+
+**5. 151's convention decided how the delegates read.** Four members keep a
+delegate on the Game — `startHyperspace` and `sendDistressBeacon` for
+`test/playtest.js`, `galacticJump` for `test/prewarm.test.ts`, and
+`arriveInSystem` for `test/blueprint-override.test.ts`. Each delegate keeps the
+claim that names its caller, and each moved method takes
+`driven by src/game/game.ts` instead. `claims:check` reads all eight, so this
+milestone could not copy a stale claim forward — which is what 151 ran first
+for.
+
+### The overhead, against M1 and M3
+
+138 lines out, 266 in: **128 lines of wiring**, just above the 90-to-120 band M3
+measured. Ten host methods is the widest interface yet, and four of them are the
+machine the child must not import: the console, the tunnel and the two sounds.
+
+### Portability
+
+The child is **portable**, like M1's and M2's and unlike M3's. `ports unchanged`
+goes from 32,909 to 33,176 and `platform` from 12,081 to 11,943 — so 138 lines
+stopped being platform and no portable line became platform. No new entry in
+`tools/portability.mjs`.
+
+### The prose
+
+825 comment lines before, 894 across the two files after. **No line was lost.**
+Two were reworded, because `loadOrWarmGalaxy` now sits in the same file as the
+`galacticJump` it points at, and one one-line claim became a fuller delegate
+comment.
+
+### What M4 did NOT touch
+
+**The map at the top of `game.ts` is still out of date**, and it is left that
+way on purpose. It names `persistence.ts`, `station.ts`, `autopilot.ts` and
+`controls.ts` and none of M1 to M4's children. docs/TODO/152 owns that map. To
+add one clause per milestone would leave four half-corrections for it to
+reconcile.
+
+## M5 onwards — re-assessed after M4
 
 **Still true from the plan:** the 163-line constructor is last, because it is
 where every child is wired.
 
-**M4 names no area either**, for the reason M2 wrote down: the plan was right to
+**M5 names no area either**, for the reason M2 wrote down: the plan was right to
 defer and wrong to name a favourite while deferring, because the favourite gets
-picked up as a decision. The M3 table above is a measurement of the file as it
-stood before M3, and the cockpit took two callers and two scratch fields with it.
-Measure again, with the three checks the section above lists.
+picked up as a decision. The M4 table above measures the file as it stood before
+M4, and the jump took four members and one scratch vector with it. Measure
+again, with the checks the section above lists.
 
-**One warning M3 adds to that method.** Some members are already one-line
-delegates onto an existing child. A delegate cannot leave — it is how the
-orchestrator reaches what it already extracted — so it inflates the body count
-without being work that can move. Subtract the delegates before you take the
-ratio.
+**Two warnings the later milestones add to that method.**
+
+1. **Subtract the delegates first** (M3). Some members are already one-line
+   delegates onto an existing child. A delegate cannot leave — it is how the
+   orchestrator reaches what it already extracted — so it inflates the body
+   count without being work that can move.
+2. **Read the size as well as the ratio** (M4). The wiring is 90 to 128 lines
+   per child whatever the area is, so an area under about 60 lines pays more
+   overhead than it moves however good its ratio looks. The sound area measures
+   41 lines against one dep, and writing it would make the tree larger.
+
+**What is left, and why its numbers must be taken again.** `game.ts` is 1,910
+lines. Saves led the untaken areas before M4 at 69 lines and 8 deps, and
+`persistence.ts` is already next door for it to sit beside. Death was 60 and 13,
+and the pair measured 119 against 13 — an example of M4's finding that two areas
+measured together can beat both halves.
+
+**Those three rows are now stale, and by this milestone's own doing.**
+`loadOrWarmGalaxy` was a dep of both, and it left with the jump. So the pair's
+dep count has moved, and so has each half's. Take the numbers again before
+choosing. Whether saves and death are ONE responsibility is a reading question
+rather than an arithmetic one, and M5 answers that part by reading.

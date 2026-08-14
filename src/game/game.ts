@@ -31,7 +31,7 @@ import { viewRight, VIEW_QUATS } from './views.ts';
 import * as THREE from 'three';
 
 import { generateGalaxy, COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
-import { LivingGalaxy, prewarm } from '../galaxy/living.ts';
+import { LivingGalaxy } from '../galaxy/living.ts';
 import { generateContractOffers } from './contract-offers.ts';
 import { acceptContract, settleContracts, contractMessage, type ContractEvent } from './contracts.ts';
 import { hermitMarket } from './market.ts';
@@ -58,13 +58,11 @@ import { type NpcRole } from './ship-roles.ts';
 import { dumpCargo, dumpContraband } from './jettison.ts';
 import { Combat, BEAM_FLASH, firePlayerLaser, damagePlayer, type CombatEvent, type DamageSource } from './combat.ts';
 import { CombatInstrumentation, type CombatObserver } from './instrumentation.ts';
-import { checkJump, resolveJump, refusalMessage, checkGalacticJump, resolveGalacticJump, galacticRefusalMessage } from './hyperspace.ts';
+import { HyperspaceActions, type HyperspaceHost } from './hyperspace-actions.ts';
 import { WorldStep, massLocked, type StepEvent, type StepHost } from './world-step.ts';
-import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
-import { WITCHPOINT_RADII } from '../constants/planet.ts';
 import { TORUS_MULTIPLIER } from '../constants/torus.ts';
 import { FIXED_DT, MAX_FRAME_TIME, MAX_STEPS_PER_FRAME } from '../constants/world-clock.ts';
-import { random, randomDirection, rngState, seedWorld } from './rng.ts';
+import { random } from './rng.ts';
 import { bootCareer, bootCommander, bootSave, clearFlightSaves, withoutSaving, writeDockSave, writeFlightSave, writeNamedSave } from './storage.ts';
 import { MAX_NAMED_SAVES } from '../constants/saves.ts';
 import { type WorldSnapshot } from './snapshot.ts';
@@ -84,7 +82,6 @@ import type { SoundEvent } from './sounds.ts';
 import { commandsFor, globalCommands, type Command, type ControlMode } from './controls.ts';
 import { WHILE_PAUSED } from './bindings.ts';
 import { Ordnance, ordnanceMessage, fireEcm, type OrdnanceOutcome } from './ordnance.ts';
-import { freshTimers } from './encounters.ts';
 
 import { breachLoss } from './systems.ts';
 import { SavesScreen, checkpointSummary, type SavesContext } from './screens/saves.ts';
@@ -109,7 +106,7 @@ import { ScreenHost } from '../ui/screen-host.ts';
 
 import { recordFurthestWave, type Contract } from './commander.ts';
 import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
-import { afterDecay, characterVerdict } from './character.ts';
+import { characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
 import { hideScreen, renderDockedMenu } from '../ui/screens.ts';
 import { renderNewGameConfirm, renderGameOver } from '../ui/screens-career.ts';
@@ -372,8 +369,8 @@ export class Game {
       raiseLegal: (level) => this.raiseLegal(level),
       die: (reason) => this.die(reason),
       dock: () => this.enterDocked(),
-      completeHyperspace: () => this.completeHyperspace(),
-      completeRescue: () => this.completeRescue(),
+      completeHyperspace: () => this.jump_.completeHyperspace(),
+      completeRescue: () => this.jump_.completeRescue(),
       openHermitTrade: () => this.openHermitTrade(),
       autoSave: () => this.autoSave(),
     };
@@ -466,6 +463,28 @@ export class Game {
     hyperspaceSound: () => sfx.hyperspace(),
     system: () => this.system,
   } satisfies WorldBuildHost);
+
+  /**
+   * Leaving a system, and arriving in one (docs/TODO/150 M4).
+   *
+   * One collaborator and ten host methods. The collaborator is the sky itself,
+   * because every arrival builds one — `hyperspace-actions.ts` decides WHEN a
+   * system is entered and `world-build.ts` decides what is in it. The host is
+   * the console, the cockpit tunnel, the two sounds, and the three facts only
+   * the orchestrator holds.
+   */
+  private readonly jump_ = new HyperspaceActions(this.state, this.world_, {
+    showMessage: (text, seconds) => this.showMessage(text, seconds),
+    markName: (before, after) => this.markName(before, after),
+    system: () => this.system,
+    lookAlong: (dir) => this.lookAlong(dir),
+    startTunnel: (seconds) => this.tunnel.start(seconds),
+    inSimulator: () => this.combatSim.active,
+    refused: () => sfx.refused(),
+    countdownSound: (seconds) => sfx.countdown(seconds),
+    hyperspaceSound: () => sfx.hyperspace(),
+    distressBeaconSound: () => sfx.distressBeacon(),
+  } satisfies HyperspaceHost);
 
   /** Build the scene for the system we are standing in. */
   buildWorld(): void { this.world_.buildWorld(); }
@@ -584,39 +603,6 @@ export class Game {
     if (named) this.queueMessage(named, CHARACTER_LINE_SECONDS);
   }
 
-  /**
-   * The living galaxy this career inherits: the saved one, or — for a career
-   * that has none — a warmed one (docs/TODO/117).
-   *
-   * WARMING ONLY WHERE THERE IS NOTHING TO LOAD. `prewarm` is what a galaxy's
-   * history costs, and it is paid once: from the first checkpoint on the deltas
-   * are `commander.galaxyState` like any other drift, so a reload resumes the
-   * galaxy it saved instead of warming another 30 days on top of it.
-   *
-   * The other warming site is `galacticJump`, which arrives in a galaxy no save
-   * describes — same seam, same seed rule, no state to consult.
-   */
-  private loadOrWarmGalaxy(): void {
-    if (this.state.commander.galaxyState) {
-      this.state.living.load(this.state.commander.galaxyState);
-      return;
-    }
-    prewarm(this.state.living, this.freshGalaxySeed());
-  }
-
-  /**
-   * The seed a galaxy's history is drawn on: the world's, salted by which
-   * galaxy it is — the same mixing `arriveInSystem` seeds arrivals with.
-   *
-   * The salt is what stops the eighth galaxy being the first one again after a
-   * galactic jump. The world's stream is READ here and never drawn from — the
-   * history runs on `prewarm`'s own derived stream — so the seeded pins
-   * downstream of a boot are exactly where they were.
-   */
-  private freshGalaxySeed(): number {
-    return rngState().seed ^ (this.state.commander.galaxy * 0x9e3779b1);
-  }
-
   constructor(makeShell: ShellFactory) {
     // The shell is built HERE, not passed in ready-made, because it needs the
     // scene and the scene belongs to the world this object just constructed.
@@ -629,7 +615,7 @@ export class Game {
     // before anything can write, and NOTHING replaces it afterwards — the
     // record owns it. See state.ts.
     this.state.career = bootCareer(this.state.commander);
-    this.loadOrWarmGalaxy();
+    this.jump_.loadOrWarmGalaxy();
     // catch the galaxy up if this save has been away a while
     if (this.state.living.day < this.state.commander.day) {
       this.state.living.advance(
@@ -1097,7 +1083,7 @@ export class Game {
     // `get system()` lookup reads the wrong star.
     this.state.systems = generateGalaxy(this.state.commander.galaxy);
     this.state.living = new LivingGalaxy(this.state.systems);
-    this.loadOrWarmGalaxy();
+    this.jump_.loadOrWarmGalaxy();
     this.world_.chooseBlueprintSet();
     this.buildWorld();
     // 'fresh', not 'resumed': there was no checkpoint to come back to, so
@@ -1196,78 +1182,14 @@ export class Game {
     return this.applyContracts(settleContracts(this.state.commander));
   }
 
-  /** @internal — driven by test/playtest.js */
-  startHyperspace(): void {
-    // The simulator is a room at the station, not a place you can leave: the
-    // exercise's StepHost refuses `completeHyperspace` anyway, so without this
-    // the countdown would run and then silently do nothing.
-    if (this.combatSim.active) {
-      this.showMessage('HYPERSPACE IS OFFLINE IN THE SIMULATOR', 3);
-      sfx.refused();
-      return;
-    }
-    const check = checkJump(this.state.commander, this.state.systems, this.state.chart.targetIndex,
-      this.state.session.witchspace, this.state.session.hyperCountdown >= 0,
-      // JUMP ANYWHERE (docs/TODO/121): the flag goes IN, and the refusal stays
-      // where it was decided. Nothing here reads the tank.
-      this.state.cheat);
-    if (!check.ok) {
-      if (check.reason === 'alreadyJumping') return;
-      this.showMessage(refusalMessage(check.reason, this.state.session.witchspace), 4);
-      sfx.refused();
-      return;
-    }
-    this.state.session.hyperCountdown = COUNTDOWN;
-    this.showMessage(`HYPERSPACE IN ${COUNTDOWN}`, 1.2);
-    sfx.countdown(COUNTDOWN);
-  }
-
-  private completeHyperspace(): void {
-    const target = this.state.chart.targetIndex!;
-    const jump = resolveJump(this.state.commander, this.state.systems, target, this.state.session.witchspace);
-    if (jump.misjump) {
-      this.enterWitchspace(); // target retained for the escape jump
-      return;
-    }
-    this.state.living.advance(jump.days, COMMODITIES.map((c) => c.gradient));
-    // the galaxy forgets a little on the way — a jump is days of honest
-    // distance, and falling back down a rung is the one piece of good news the
-    // character system has, so it is said too (docs/TODO/129)
-    const wasNamed = this.state.commander.disrepute ?? 0;
-    this.state.commander.disrepute = afterDecay(wasNamed, jump.days);
-    this.markName(wasNamed, this.state.commander.disrepute);
-    this.state.chart.targetIndex = null;
-    this.arriveInSystem();
-    this.showMessage(`ARRIVED: ${this.system.name.toUpperCase()}`, 4);
-  }
+  /**
+   * @internal — driven by test/playtest.js. A delegate rather than a reach
+   * through `jump_`, because the harness presses this by name.
+   */
+  startHyperspace(): void { this.jump_.startHyperspace(); }
 
   /** @internal — driven by test/blueprint-override.test.ts */
-  arriveInSystem(): void {
-    // Seed the world from WHERE and WHEN you are, so a given save arriving in
-    // a given system on a given day meets the same reception twice. Without
-    // this the fixed timestep buys repeatable physics and nothing else.
-    seedWorld(this.state.commander.galaxy * 0x9e3779b1
-      ^ (this.state.commander.systemIndex << 8) ^ this.state.commander.day);
-    this.state.session.witchspace = false; // any arrival leaves witch-space (incl. galactic jump)
-    // Before the world is built, because the roster it is built with is this.
-    this.world_.chooseBlueprintSet();
-    this.buildWorld();
-    // Arrive at the witchpoint, well out — the classic long torus cruise in.
-    // Bearing is biased to the station's side of the planet (~30° cone) so
-    // the planet never blocks the run.
-    const stationDir = this.state.world.station.position.clone().normalize();
-    const dir = stationDir
-      .add(randomDirection(new THREE.Vector3()).multiplyScalar(0.5))
-      .normalize();
-    this.state.player.position.copy(dir.multiplyScalar(this.state.world.planetRadius * WITCHPOINT_RADII));
-    this.lookAlong(this.tmp.copy(this.state.player.position).negate());
-    this.state.player.speed = 250;
-    this.state.session.policeScanned = false;
-    this.state.encounterTimers = freshTimers();
-    this.populateSystem('arrival');
-    sfx.hyperspace();
-    this.tunnel.start(1.1);
-  }
+  arriveInSystem(): void { this.jump_.arriveInSystem(); }
 
   // --- combat --------------------------------------------------------------
 
@@ -1448,49 +1370,12 @@ export class Game {
   }
 
   /**
-   * Stranded in witch-space without the fuel to jump clear: GalCop will come
-   * for you, at a price — your cargo pays the salvage fee.
+   * Stranded in witch-space without the fuel to jump clear.
+   *
+   * @internal — driven by test/playtest.js. A delegate rather than a reach
+   * through `jump_`, because the harness presses this by name.
    */
-  sendDistressBeacon(): void {
-    if (!this.state.session.witchspace) {
-      this.showMessage('DISTRESS BEACON IS FOR EMERGENCIES ONLY', 3);
-      sfx.refused();
-      return;
-    }
-    if (this.state.session.beaconTimer >= 0) {
-      this.showMessage('BEACON ALREADY BROADCASTING', 2);
-      return;
-    }
-    this.state.session.beaconTimer = 20;
-    this.showMessage('DISTRESS BEACON BROADCAST — HOLD ON, COMMANDER', 6);
-    sfx.distressBeacon();
-  }
-
-  private completeRescue(): void {
-    const c = this.state.commander;
-    const salvage = c.cargo.reduce((s, q) => s + q, 0);
-    c.cargo = c.cargo.map(() => 0);
-    // enough for one jump clear, which is what the escape costs — the same
-    // number the step's stranded hint is offered below.
-    c.fuel = Math.max(c.fuel, WITCHSPACE_ESCAPE_COST);
-    this.state.session.beaconTimer = -1;
-    // dumped at the nearest system to where the mis-jump left us
-    const target = this.state.chart.targetIndex ?? c.systemIndex;
-    c.systemIndex = target;
-    c.day += 3; // the tow takes a while
-    this.state.living.advance(3, COMMODITIES.map((cm) => cm.gradient));
-    const wasNamed = c.disrepute ?? 0;
-    c.disrepute = afterDecay(wasNamed, 3);
-    this.markName(wasNamed, c.disrepute);
-    this.state.chart.targetIndex = null;
-    this.state.session.witchspace = false;
-    this.arriveInSystem();
-    this.showMessage(
-      salvage > 0
-        ? `RESCUED — ${salvage}t OF CARGO TAKEN AS SALVAGE`
-        : 'RESCUED — NOTHING ABOARD WORTH TAKING',
-      6);
-  }
+  sendDistressBeacon(): void { this.jump_.sendDistressBeacon(); }
 
   /**
    * One-shot jump to the next galaxy; lands at the nearest system to our coords.
@@ -1500,30 +1385,7 @@ export class Game {
    * learns from a real keydown, so a headless test cannot press it. The
    * binding itself is pinned in test/ui.test.ts.
    */
-  galacticJump(): void {
-    const may = checkGalacticJump(this.state.commander, this.combatSim.active);
-    if (!may.ok) {
-      this.showMessage(galacticRefusalMessage(may.reason), 3);
-      sfx.refused();
-      return;
-    }
-    const jump = resolveGalacticJump(this.state.commander, this.system);
-    this.state.systems = jump.systems;
-    // A NEW GALAXY BRINGS ITS OWN ECONOMY (docs/TODO/117). Keeping the old
-    // `LivingGalaxy` across the jump left galaxy 2's system 7 wearing galaxy
-    // 1's Lave danger and price pressure, and every convoy in the list flying
-    // between two systems it had never departed or been bound for. The state is
-    // per-galaxy, so it is rebuilt with the systems it describes — and warmed,
-    // because a galaxy arrived at has no more been standing still than the one
-    // left behind. The saved deltas describe the galaxy just left, so they are
-    // not reloaded here; the next checkpoint writes these over them.
-    this.state.living = new LivingGalaxy(this.state.systems);
-    prewarm(this.state.living, this.freshGalaxySeed());
-    this.state.chart.targetIndex = null;
-    this.arriveInSystem();
-    this.showMessage(
-      `GALAXY ${jump.galaxy} — ${this.system.name.toUpperCase()}`, 5);
-  }
+  galacticJump(): void { this.jump_.galacticJump(); }
 
   // --- per-frame -----------------------------------------------------------
 
