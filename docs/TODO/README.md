@@ -524,7 +524,78 @@ is invisible is indistinguishable from nothing happening.
 Not executable yet. In priority order; promoting the head is what makes the
 next execution item, once it has a plan doc.
 
-**Empty.** The fall-back entry docs/TODO/134 left here was retired by 135
-without being worked: runs were giving up because the aim point teleported when
-they committed, so the count went to zero on the shipped grid the moment that was
-fixed. It was a symptom, not a defect.
+**Three items, and they are one programme: decompose the files that hold more
+than one responsibility.** Chris set the rule on 2026-08-14, in two parts.
+
+> *"The rules should be single responsibility - files that have multiple
+> responsibilities are the problem. And then it's all about decomposing large
+> files."*
+
+> *"Single responsibility does not mean put everything in one file. A file can
+> import child files. The key is to keep files small so they can be easily
+> understood."*
+
+**The second part is what makes these items look different from a size cleanup.**
+The target is not a shorter file. It is a small parent beside the children it
+composes. "These parts belong together" argues for one DIRECTORY, and never for
+one file.
+
+`tools/sizes.mjs` states both rules now, and its 400-line ceiling is framed there
+as a DETECTOR rather than as the rule: a file rarely reaches 400 lines doing one
+thing. A 900-line file that does one thing is fine, and a 200-line file that does
+three is wrong and this gate will never see it.
+
+**Ranked by cost, which is lines multiplied by commits** — the gate's own header
+says the price of a big file is where parallel work collides, so churn belongs in
+the ranking and pure size does not.
+
+1. **`src/game/game.ts` — 2,528 lines, 201 commits, about ten responsibilities.**
+   Trade, saves, world building, the station, contracts, hyperspace, ordnance,
+   messages, the trainer and death. Its own entry admits it: *"the orchestrator
+   plus leftovers. Target ~300"*, so it is eight times over what it says it
+   should be, and it carries three times the collision cost of anything else in
+   the tree. **It is also the most tractable of the three**, which is not
+   obvious: several of its areas are already `host` implementations that other
+   modules consume (`stationHost`, `persistenceHost`, `simHost`, `stepHost`), and
+   the precedent is proven — `station.ts`, `ordnance.ts` and `world-step.ts` all
+   came out of this file, which is how it fell from 3,244. Each area lands on its
+   own, so the work goes milestone by milestone with green gates rather than one
+   long broken state. **Target: a small orchestrator beside a `game/` directory.**
+
+2. **`src/game/npc.ts` — 1,568 lines, 95 commits, two responsibilities.** Its own
+   entry names them: *"behaviour and brain flight in one file; the flight half
+   wants its own"*. Harder than 1, and the reason is worth knowing before anybody
+   starts: **1,135 of those lines are a single `NpcShip` class**, so the split is
+   a design decision — flight becomes a collaborator, or a set of pure functions
+   over state — rather than a move. **It also has no module header at all**, which
+   `CLAUDE.md` requires. Write that first: the act of stating the one
+   responsibility is what exposes the second one.
+
+3. **The self-declared pairs.** Each names more than one responsibility in its
+   own words, so none needs an investigation to justify:
+   - `src/ai-training/scenario.ts` — 1,524 lines: *"one Episode **plus** its four
+     fitness functions"*. Running a fight and scoring one.
+   - `src/game/combat-sim-report.ts` — 1,158 lines, and its own module header
+     says *"it covers **two things** a console harness used to"*.
+   - `test/campaign.ts` — 1,027 lines and the thinnest reason in the list at 48
+     characters. About four: simulate a career, choose trades, resolve
+     encounters, report.
+
+**`src/hud/hud.ts` is a fourth, smaller prerequisite.** 623 lines, 30 commits,
+and no module header either. It cannot be judged until it says what it does.
+
+## What is NOT in this programme, and why
+
+**Three exemptions survive the rule**, and they are the only three that cannot be
+a parent plus children: `test/playtest.js` is a console paste that literally
+cannot import, and `elite-a/slots.generated.ts` and `music-danube.ts` are
+generated tables where splitting loses the diff.
+
+**The other 27 argue cohesion**, which no longer clears the bar. That does not
+make 27 files urgent. It makes 27 REASONS untrue as written, and the three items
+above are where the cost actually is. The rest can be re-argued or decomposed as
+each is next touched.
+
+`docs/TODO/149` is the worked example of the whole programme: `ui/screens.ts`
+went from 1,954 lines to eight files, none over 340, and its exemption came off
+rather than being reworded.
