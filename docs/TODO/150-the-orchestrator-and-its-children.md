@@ -253,6 +253,76 @@ delegates stay regardless, because each has live callers inside `game.ts`; the
 extraction surfaced three for `chooseBlueprintSet` alone. A sweep for stale
 `@internal` claims is still its own small item.
 
+## How to measure an area — run this, do not estimate
+
+**The plan's own 132-line estimate for the trainer came from counting doc
+comments, and it picked the worst area in the file.** So the method is written
+down rather than described. Two numbers per area:
+
+- **lines of body** — the declaration line to its closing brace. NOT the doc
+  comment, which is what inflated the estimate. The comment still moves with the
+  code, so the SHRINK is larger than this number; the RATIO is what this is for.
+- **external deps** — every `this.x` the area touches that is not a member of
+  the area itself. That is the host interface it will need.
+
+Take the area with the most lines per dep. M1 was 6 handlers at 148/7. M2 was
+73/5. The trainer was 39/12 and would have been a net loss.
+
+```js
+// node --experimental-strip-types tools/… or just paste into a node -e
+import { readFileSync } from 'node:fs';
+const lines = readFileSync('src/game/game.ts', 'utf8').split('\n');
+const info = (name) => {
+  const i = lines.findIndex((l) =>
+    new RegExp(`^  (?:private |readonly )*${name}\\s*[(<]`).test(l));
+  if (i < 0) return [0, new Set()];
+  let d = 0, started = false, e = i;
+  for (let n = i; n < lines.length; n++) {
+    d += (lines[n].match(/\{/g) ?? []).length - (lines[n].match(/\}/g) ?? []).length;
+    if (lines[n].includes('{')) started = true;
+    if (started && d <= 0) { e = n; break; }
+  }
+  const body = lines.slice(i, e + 1).join('\n');
+  return [e + 1 - i, new Set([...body.matchAll(/this\.(\w+)/g)].map((m) => m[1]))];
+};
+for (const [area, names] of Object.entries(AREAS)) {
+  let n = 0; const deps = new Set();
+  for (const m of names) { const [size, d] = info(m); n += size; d.forEach((x) => deps.add(x)); }
+  const ext = [...deps].filter((d) => !names.includes(d)).sort();
+  console.log(area.padEnd(13), String(n).padStart(4), String(ext.length).padStart(4), ext.join(', '));
+}
+```
+
+**`AREAS` is the judgement, and it is the part to re-check each time** — an
+extraction takes callers with it, so a member can change area. As at M2, with
+the two extracted areas removed:
+
+```js
+const AREAS = {
+  trainer:    ['setCombatObserver','simHost','startExercise','endExercise'],
+  saves:      ['openSaves','exportSave','importSave','savesContext','persistenceHost',
+               'captureSnapshot','restoreSnapshot','autoSave','resumeSavedWorld','newCommanderGame'],
+  hyperspace: ['startHyperspace','completeHyperspace','arriveInSystem','galacticJump'],
+  death:      ['die','quitFlight','abandonFlight','respawn'],
+  contracts:  ['generateContractOffers','applyContracts','acceptContract','survivorOffers',
+               'answerForSurvivors','settleContracts'],
+  trade:      ['tradeContext','buyCargo','sellCargo','buyEquipment','openHermitTrade'],
+  ordnance:   ['applyOrdnance','armMissile','launchMissile','triggerEcm','detonateEnergyBomb'],
+  'render+hud':['renderHud','aimBeams','resize','lookAlong','placeOf'],
+};
+```
+
+**Then run the two checks before extracting**, both of which have already caught
+something on this item:
+
+1. Does the area have a rules module to sit beside? `law-actions.ts` had
+   `law.ts`; `world-build.ts` had `spawning.ts`, `population.ts` and
+   `blueprint-set.ts`. An area with no partner needs a name of its own, which is
+   a harder decision than a move.
+2. `grep` the area's method names in `test/playtest.js`. Nothing type-checks
+   that file. The twelve it really calls are listed under M1 — `respawn` and
+   `launch` are among them, so the death and station areas need delegates.
+
 ## M3 onwards — re-assessed after M2
 
 **Still true from the plan:** the 163-line constructor is last, because it is
