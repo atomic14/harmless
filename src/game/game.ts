@@ -24,7 +24,7 @@
 //
 // `__game` exposes a console compatibility view for the autopilot harness
 // (console.ts, game-handles.ts, train/jameson-autopilot.js) and console poking.
-import { publish, installPolicyKit, installSimLog } from './console.ts';
+import { publish, installPolicyKit } from './console.ts';
 import { legacyHandles } from './game-handles.ts';
 import type { Shell, Presentation, ShellFactory } from '../engine/shell.ts';
 import { viewRight, VIEW_QUATS } from './views.ts';
@@ -33,33 +33,24 @@ import * as THREE from 'three';
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
 import { hermitMarket } from './market.ts';
 import { createStarfield, SpaceDust } from '../world/starfield.ts';
-import { type FlightDemand } from '../player.ts';
 import { Input } from '../engine/input.ts';
-import { flightDemand } from '../engine/flight-controls.ts';
-import { keymap, layoutName, toggleLayout, manualFlightKeys, refreshHelpPanel } from '../engine/keymap.ts';
+import { layoutName, toggleLayout, refreshHelpPanel } from '../engine/keymap.ts';
 import { Hud } from '../hud/hud.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
 import { sfx, type Place } from '../audio.ts';
 import { NpcShip } from './npc.ts';
-import { npcImpactDamage } from './impact-damage.ts';
-import { IMPACT } from '../constants/impact.ts';
-import { dealToNpc } from './damage-dealt.ts';
-import type { PlayerPoolPoints } from './damage-units.ts';
-import { defenceBrain } from './brains.ts';
-import { defenceBrainNameFor } from './brain-names.ts';
 import { type NpcSpec } from './ship-specs.ts';
 
 import { type NpcRole } from './ship-roles.ts';
 
-import { dumpCargo, dumpContraband } from './jettison.ts';
-import { Combat, BEAM_FLASH, firePlayerLaser, damagePlayer, type CombatEvent, type DamageSource } from './combat.ts';
-import { CombatInstrumentation, type CombatObserver } from './instrumentation.ts';
 import { HyperspaceActions, type HyperspaceHost } from './hyperspace-actions.ts';
+import { Flight, type FlightHost } from './flight.ts';
+import type { ExerciseFit } from './combat-sim.ts';
+import type { ExerciseSpec } from './combat-sim-scenarios.ts';
+import type { CombatSimReport } from './combat-sim-report.ts';
+import type { CombatObserver } from './instrumentation.ts';
 import { Career, type CareerHost } from './career.ts';
-import { WorldStep, massLocked, type StepEvent, type StepHost } from './world-step.ts';
-import { TORUS_MULTIPLIER } from '../constants/torus.ts';
 import { FIXED_DT, MAX_FRAME_TIME, MAX_STEPS_PER_FRAME } from '../constants/world-clock.ts';
-import { random } from './rng.ts';
 import { bootCareer, bootCommander, bootSave, clearFlightSaves, withoutSaving, writeDockSave, writeFlightSave, writeNamedSave } from './storage.ts';
 import { MAX_NAMED_SAVES } from '../constants/saves.ts';
 import { type WorldSnapshot } from './snapshot.ts';
@@ -67,21 +58,16 @@ import { showMessage as setMessage, queueMessage, tickBeam, tickMessage } from '
 import { Persistence, type PersistenceHost } from './persistence.ts';
 import { Docked, type DockedHost } from './docked.ts';
 import type { DockArrival } from './station.ts';
-import { CombatSim, type ExerciseFit, type SimHost } from './combat-sim.ts';
-import type { CombatSimReport } from './combat-sim-report.ts';
-import type { ExerciseSpec } from './combat-sim-scenarios.ts';
 
 import { CombatComputer } from './combat-computer.ts';
-import { Autopilot, type AutopilotEvent } from './autopilot.ts';
 import { LawActions, type LawHost } from './law-actions.ts';
 import { WorldBuild, type WorldBuildHost } from './world-build.ts';
 import { CockpitView, type CockpitHost } from './cockpit-view.ts';
 import type { SoundEvent } from './sounds.ts';
 import { commandsFor, globalCommands, type Command, type ControlMode } from './controls.ts';
 import { WHILE_PAUSED } from './bindings.ts';
-import { Ordnance, ordnanceMessage, fireEcm, type OrdnanceOutcome } from './ordnance.ts';
+import { Ordnance } from './ordnance.ts';
 
-import { breachLoss } from './systems.ts';
 import { SavesScreen, checkpointSummary } from './screens/saves.ts';
 import { SavePromptScreen, NamingScreen } from './screens/save-naming.ts';
 import { NewCommanderScreen } from './screens/new-commander.ts';
@@ -99,7 +85,6 @@ import { QuitScreen, type QuitContext } from './screens/quit.ts';
 import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 
-import { recordFurthestWave } from './commander.ts';
 import { characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
 import { hideScreen } from '../ui/screens.ts';
@@ -209,40 +194,9 @@ export class Game {
   // the combat computer's TRAINED seat — dormant (defenceBrain() is null);
   // the scripted pure-pursuit co-pilot flies instead, see pilotDemand()
   private readonly combatComputer = new CombatComputer();
-  /** Explicit telemetry seam; absent during ordinary play. */
-  private readonly combatInstrumentation = new CombatInstrumentation();
 
-  /**
-   * Observe live combat without replacing production methods.
-   *
-   * The returned disposer removes only this registration, so one recorder
-   * stopping cannot detach another.
-   */
-  setCombatObserver(observer: CombatObserver | null): () => void {
-    return this.combatInstrumentation.setObserver(observer);
-  }
-  /**
-   * The two computers that fly the ship for you — see autopilot.ts.
-   *
-   * Kept beside `combatComputer` rather than owning it, because the SNAPSHOT
-   * needs the policy's mid-thought state (persistence.ts) and the autopilot is
-   * the thing that engages it.
-   */
-  private readonly autopilot = new Autopilot(this.state, this.combatComputer);
   /** missiles, E.C.M. and the energy bomb — see ordnance.ts */
   private readonly ordnance = new Ordnance(this.state.world);
-  /**
-   * Resolving hits: shots, wrecks, bounties — see combat.ts. */
-  private readonly combat = new Combat(this.state.world);
-
-  /**
-   * The world advancing by one slice — see world-step.ts.
-   *
-   * It owns the five phases of flight and knows nothing about a HUD, a
-   * keyboard or a renderer: it takes a demand, moves everything, and reports
-   * what it did. `stepHost()` below is the whole of what it may ask of us.
-   */
-  private readonly worldStep = new WorldStep(this.state, this.ordnance, this.stepHost());
 
   /**
    * The docked half's five acts that something outside reaches by name.
@@ -305,57 +259,6 @@ export class Game {
       startTunnel: (seconds, way) => this.tunnel.start(seconds, way),
     } satisfies DockedHost);
 
-  /**
-   * The combat training simulator — see combat-sim.ts.
-   *
-   * Owned the way `station`, `ordnance` and `persistence` are, and deliberately
-   * NOT a field on `GameState`: a state field is obliged to appear in the save
-   * (a test enforces it), and an exercise must not survive a reload — close the
-   * tab mid-exercise and you wake up at the station with the career intact.
-   *
-   * An exercise is not a screen. It is ordinary flight with a different
-   * `StepHost` behind it, and `updateFlight` picks which step to run.
-   */
-  private readonly combatSim = new CombatSim(
-    this.state, this.ordnance, this.combat, this.persistence, this.simHost(),
-    installSimLog());
-
-  /**
-   * What an exercise may ask of the Game. The rebuild and the mode machine are
-   * not here: `Persistence` already owns both, and the exercise holds it.
-   */
-  private simHost(): SimHost {
-    return {
-      enterFlight: () => {
-        this.screens.exit();
-        this.baseMode = 'flight';
-        hideScreen();
-      },
-      message: (text, seconds) => this.showMessage(text, seconds),
-      sound: (event) => this.playSound(event),
-      flashDamage: () => this.hud.flashDamage(),
-      aimBeams: (at) => this.cockpit_.aimBeams(at),
-      // The one number a run leaves behind. The RULE is commander.ts's — only
-      // ever grows, and it says whether it moved — so this applies it and saves
-      // it, which is all an orchestrator does. Written straight to storage
-      // rather than left for the next autosave, because a pilot who reads their
-      // best wave off the panel and closes the tab has earned it.
-      recordFurthestWave: (wave) => {
-        if (recordFurthestWave(this.state.commander, wave)) this.persistence.checkpoint();
-      },
-      // The exercise has torn down and the career is back: hold the records and
-      // put the report on screen. Ordering is not incidental — teardown restores
-      // the mode first (`enterMode` clears the stack), so pushing the screen
-      // afterwards leaves it sitting on the station menu it was launched from.
-      finished: (reports) => {
-        this.simReports = reports;
-        if (reports.length === 0) return;
-        this.combatSim_.showReport();
-        this.screens.open('combat-sim');
-      },
-    };
-  }
-
   /** The records the last exercise produced — what the report panel reads. */
   private simReports: readonly CombatSimReport[] = [];
 
@@ -363,110 +266,11 @@ export class Game {
   private readonly combatSim_ = new CombatSimScreen(() => ({
     commander: this.state.commander,
     reports: this.simReports,
-    begin: (spec, fit) => this.startExercise(spec, fit),
+    begin: (spec, fit) => this.flight_.startExercise(spec, fit),
     message: (text, seconds) => this.showMessage(text, seconds),
   } satisfies CombatSimContext));
 
-  /**
-   * Start a training exercise.
-   *
-   * @internal — the picker calls it through `CombatSimContext.begin`, and the
-   * console harnesses call it directly.
-   */
-  startExercise(spec: ExerciseSpec, fit?: ExerciseFit): boolean {
-    if (this.baseMode === 'dead') return false;
-    return this.combatSim.begin(spec, fit);
-  }
-
-  /**
-   * End one early, from anywhere. Returns the records it produced.
-   *
-   * Reached from the `simulator` binding table (Escape or Q) and from the
-   * console harnesses.
-   */
-  endExercise(): readonly CombatSimReport[] | null { return this.combatSim.quit(); }
-
-  /**
-   * What the world step may ask of the Game — the consequences that reach
-   * outside the sky, and nothing else it can get at.
-   *
-   * An object literal rather than `implements StepHost` on purpose: the
-   * methods behind it stay private, so this list IS the surface, and adding to
-   * it is a decision rather than an accident.
-   */
-  private stepHost(): StepHost {
-    return {
-      inFlight: () => this.mode === 'flight',
-      applyPlayerDamage: (amount, from, source) =>
-        this.applyPlayerDamage(amount, from, source),
-      destroyNpc: (npc) => this.destroyNpc(npc),
-      wreckNpc: (npc) => this.wreckNpc(npc),
-      fireLaser: () => this.fireLaser(),
-      raiseLegal: (level) => this.raiseLegal(level),
-      die: (reason) => this.career_.die(reason),
-      dock: () => this.docked_.enterDocked(),
-      completeHyperspace: () => this.jump_.completeHyperspace(),
-      completeRescue: () => this.jump_.completeRescue(),
-      openHermitTrade: () => this.openHermitTrade(),
-      autoSave: () => this.autoSave(),
-    };
-  }
-
-  /** Ordnance reports what it did; saying it is ours. */
-  private say(reply: OrdnanceOutcome['reply']): void {
-    if (!reply) return;
-    const m = ordnanceMessage(reply);
-    // A refusal with an answer names the COMMAND (ordnance.ts); the letter is
-    // this side's business, from the same table the prompt line reads.
-    const offer = m.offer ? this.cockpit_.renderPrompt(m.offer) : null;
-    this.showMessage(offer ? `${m.text} — ${offer}` : m.text, m.seconds);
-  }
-
-  /** Ordnance sounds first, then says its semantic reply, as before extraction. */
-  private applyOrdnance(outcome: OrdnanceOutcome): void {
-    for (const event of outcome.events) this.playSound(event);
-    this.say(outcome.reply);
-  }
-
-  private armMissile(): void {
-    this.applyOrdnance(this.ordnance.arm(this.state.commander));
-  }
-
-  private launchMissile(): void {
-    this.applyOrdnance(this.ordnance.launch(
-      this.state.commander, this.state.player.position));
-  }
-
-  private triggerEcm(): void {
-    // The burst and its price are `fireEcm` — one call, because the combat
-    // computer presses the same button from `pilotDemand` and a training
-    // episode's target presses it too (docs/TODO/72).
-    this.applyOrdnance(fireEcm(this.state.commander, this.state.sys, this.ordnance));
-  }
-
-  private detonateEnergyBomb(): void {
-    const outcome = this.ordnance.detonateEnergyBomb(
-      this.state.commander, this.state.player.position);
-    this.applyOrdnance(outcome);
-    if (outcome.reply !== 'bombFired') return;   // no bomb fitted: no flash either
-    this.shell.flashBomb();
-    for (const npc of outcome.caught) {
-      // The bomb is a stated `IMPACT` like every other non-laser source, spent
-      // through the same `dealToNpc` — 255 points, above every released bank,
-      // so everything it caught is gone.
-      //
-      // The two lines are the same pair as the step's: what it cost the ship,
-      // then the kill. The bomb is the one damage path that never touches the
-      // world step, so both are handed to a running exercise here.
-      const hit = dealToNpc(
-        npc, npcImpactDamage(IMPACT.energyBomb), this.state.player.position, 'bomb');
-      this.combatSim.playerDealt(hit.event);
-      this.destroyNpc(npc);
-    }
-  }
-
   private readonly dust = new SpaceDust();
-  private readonly tmp = new THREE.Vector3();
 
   /**
    * The law's consequences (docs/TODO/150 M1).
@@ -515,7 +319,7 @@ export class Game {
     system: () => this.system,
     lookAlong: (dir) => this.lookAlong(dir),
     startTunnel: (seconds) => this.tunnel.start(seconds),
-    inSimulator: () => this.combatSim.active,
+    inSimulator: () => this.flight_.inSimulator(),
     refused: () => sfx.refused(),
     countdownSound: (seconds) => sfx.countdown(seconds),
     hyperspaceSound: () => sfx.hyperspace(),
@@ -538,8 +342,8 @@ export class Game {
       enterDocked: (arrival) => this.docked_.enterDocked(arrival),
       showMessage: (text, seconds) => this.showMessage(text, seconds),
       openScreen: (id) => this.screens.open(id),
-      inSimulator: () => this.combatSim.active,
-      quitSimulator: () => this.combatSim.quit(),
+      inSimulator: () => this.flight_.inSimulator(),
+      quitSimulator: () => { this.flight_.endExercise(); },
       resetCombatComputer: () => this.combatComputer.reset(),
     } satisfies CareerHost);
 
@@ -582,7 +386,7 @@ export class Game {
   private readonly cockpit_ = new CockpitView(this.state, this.ordnance, this.hud, {
       inFlight: () => this.mode === 'flight',
       controlMode: () => this.controlMode(),
-      exerciseStrip: () => this.combatSim.strip,
+      exerciseStrip: () => this.flight_.strip,
       setSightLit: (on) => this.shell.setSightLit(on),
       view: () => this.render,
     } satisfies CockpitHost);
@@ -596,11 +400,91 @@ export class Game {
    */
   keyPrompts(): string[] { return this.cockpit_.keyPrompts(); }
 
-  /** the shot's ray and scratch vectors, reused every trigger pull */
-  private readonly combatScratch = {
-    a: new THREE.Vector3(), b: new THREE.Vector3(),
-    q: new THREE.Quaternion(), ray: new THREE.Raycaster(),
-  };
+  /**
+   * The flight half's eight acts that something outside reaches by name.
+   *
+   * Delegates rather than reaches through `flight_`, and the reasons split
+   * three ways. `fireLaser` and `massLocked` are driven by `test/playtest.js`
+   * and `train/jameson-autopilot.js`, which nothing type-checks. The exercise's
+   * three are the console harnesses' way in. And the rest are pressed by tests
+   * that assert a consequence rather than a screen.
+   */
+  fireLaser(): void { this.flight_.racks.fireLaser(); }
+
+  /**
+   * Anything close enough to hold the torus drive down.
+   *
+   * @internal — driven by test/playtest.js and train/jameson-autopilot.js
+   */
+  massLocked(): boolean { return this.flight_.switches.massLocked(); }
+
+  /** @internal — driven by test/record-line.test.ts */
+  destroyNpc(npc: NpcShip): void { this.flight_.racks.destroyNpc(npc); }
+
+  /** @internal — driven by test/jettison.test.ts */
+  jettisonCargo(tonnes = 1): void { this.flight_.racks.jettisonCargo(tonnes); }
+
+  /** @internal — driven by test/jettison.test.ts */
+  jettisonContraband(tonnes = 1): void { this.flight_.racks.jettisonContraband(tonnes); }
+
+  /** @internal — driven by test/persistence.test.ts, and the console harnesses. */
+  startExercise(spec: ExerciseSpec, fit?: ExerciseFit): boolean {
+    return this.flight_.startExercise(spec, fit);
+  }
+
+  /** @internal — driven by test/persistence.test.ts, and the console harnesses. */
+  endExercise(): readonly CombatSimReport[] | null { return this.flight_.endExercise(); }
+
+  /** @internal — driven by test/instrumentation.test.ts */
+  setCombatObserver(observer: CombatObserver | null): () => void {
+    return this.flight_.racks.setCombatObserver(observer);
+  }
+
+  /**
+   * What a commander does while she is flying (docs/TODO/155 M2).
+   *
+   * Six collaborators and seventeen host methods, and the width is what a HALF
+   * costs rather than a fault. The collaborators are the things a station
+   * spends too — the racks, the keyboard, the cockpit, the law, the record and
+   * the combat computer — so they stay here and are lent. What flight alone
+   * uses is ITS field: the world step, the guns, the autopilots, the
+   * instrumentation and the simulator all moved.
+   *
+   * FIVE OF THE SEVENTEEN ARE WAYS OUT OF FLIGHT. A step that ends in a dock, a
+   * completed jump, a tow or a death reports it here and the orchestrator
+   * decides what the game becomes, so neither half reaches into the other.
+   */
+  private readonly flight_ = new Flight(
+    this.state, this.ordnance, this.input, this.cockpit_, this.law_,
+    this.persistence, this.combatComputer, {
+      mode: () => this.mode,
+      baseMode: () => this.baseMode,
+      enterFlightMode: () => {
+        this.screens.exit();
+        this.baseMode = 'flight';
+        hideScreen();
+      },
+      showMessage: (text, seconds) => this.showMessage(text, seconds),
+      sayEvent: (e) => this.sayEvent(e),
+      playSound: (e) => this.playSound(e),
+      raiseLegal: (level) => this.raiseLegal(level),
+      die: (reason) => this.career_.die(reason),
+      dock: () => this.docked_.enterDocked(),
+      completeHyperspace: () => this.jump_.completeHyperspace(),
+      completeRescue: () => this.jump_.completeRescue(),
+      openHermitTrade: () => this.openHermitTrade(),
+      autoSave: () => this.autoSave(),
+      flashDamage: () => this.hud.flashDamage(),
+      flashBomb: () => this.shell.flashBomb(),
+      updateDust: (velocity) => this.dust.update(this.state.player.position, velocity),
+      showReport: (reports) => {
+        this.simReports = reports;
+        if (reports.length === 0) return;
+        this.combatSim_.showReport();
+        this.screens.open('combat-sim');
+      },
+    } satisfies FlightHost);
+
   private readonly tmpM = new THREE.Matrix4();
   /**
    * Scratch for placing a sound, and its OWN pair rather than `tmp`/`tmp2`.
@@ -772,7 +656,7 @@ export class Game {
     // Console and automated agents keep their convenient read handles without
     // making those aliases part of the orchestrator's class surface.
     publish('__game', legacyHandles(this, {
-      exercising: { get: () => this.combatSim.active },
+      exercising: { get: () => this.flight_.inSimulator() },
       missiles: { get: () => this.ordnance.missiles },
       targetLock: {
         get: () => this.ordnance.targetLock,
@@ -933,109 +817,7 @@ export class Game {
 
   // --- combat --------------------------------------------------------------
 
-  /**
-   * Anything close enough to hold the torus drive down.
-   *
-   * @internal — driven by test/playtest.js and train/jameson-autopilot.js
-   */
-  massLocked(): boolean { return massLocked(this.state); }
-
-  /**
-   * Pull the trigger. The arguments are built from the state by combat.ts, so
-   * the same gun can be fired against a state that is not this Game's; what
-   * lands on the HUD and in the law is what makes this one the Game's.
-   *
-   * @internal — driven by test/playtest.js
-   */
-  fireLaser(): void {
-    this.applyCombat(firePlayerLaser(this.state, this.combat, this.combatScratch));
-  }
-
-  /**
-   * Destruction credited to the player. @internal — driven by
-   * test/record-line.test.ts and test/character-line.test.ts.
-   */
-  destroyNpc(npc: NpcShip): void {
-    // The ENERGY BOMB reaches this from runCommand rather than through the step,
-    // so it is the one kill an exercise cannot see through its own StepHost. An
-    // exercise credits its clone and its record instead (see combat-sim.ts).
-    if (this.combatSim.active) { this.combatSim.destroyNpc(npc); return; }
-    this.applyCombat(this.combat.destroy(this.state.commander, npc));
-  }
-
-  /** Removal with no credit — an NPC-vs-NPC kill, or a collision. */
-  private wreckNpc(npc: NpcShip): void {
-    this.applyCombat(this.combat.wreck(npc));
-  }
-
-  /**
-   * The player takes a hit.
-   *
-   * `source` says what did it. Mechanics treat every source the same, but the
-   * explicit CombatObserver seam records the fact without replacing this
-   * method at runtime.
-   */
-  private applyPlayerDamage(
-    amount: PlayerPoolPoints, from: THREE.Vector3, source: DamageSource): void {
-    // the co-pilot's own record that the commander is being hit, kept live end
-    // to end so evasive behaviour can read it (scripted-co-pilot.ts)
-    this.autopilot.noteUnderFire();
-    this.hud.flashDamage();
-    this.applyCombat(damagePlayer(this.state, this.combat, amount, from, this.combatScratch));
-    this.combatInstrumentation.playerDamaged(amount, from, source);
-  }
-
-  /**
-   * Combat decides; the Game pays. Every consequence that reaches outside the
-   * world — the HUD, the law, the missile lock, the death screen — lands here.
-   */
-  private applyCombat(events: readonly CombatEvent[]): void {
-    for (const e of events) {
-      if (e.kind === 'sound' || e.kind === 'countdown' || e.kind === 'dockingMusic') {
-        this.playSound(e);
-        continue;
-      }
-      switch (e.kind) {
-        case 'message': this.sayEvent(e); break;
-        case 'offence': this.raiseLegal(e.level); break;
-        case 'wrecked': if (this.ordnance.targetLock === e.npc) this.ordnance.targetLock = null; break;
-        case 'beam': this.cockpit_.aimBeams(e.at); break;
-        case 'fired': this.state.session.beamTimer = BEAM_FLASH; break;
-        case 'breach': this.damageSomething(); break;
-        case 'died': this.career_.die(e.reason); break;
-      }
-    }
-  }
-
-  /** A hull hit destroys a tonne of cargo, or knocks out a fitting. */
-  private damageSomething(): void {
-    const lost = breachLoss(this.state.commander, random);
-    if (lost.kind === 'cargo') {
-      const c = COMMODITIES[lost.commodity];
-      this.showMessage(`CARGO LOST: 1${c.unit} ${c.name.toUpperCase()}`, 3);
-      sfx.cargoLost();
-    } else if (lost.kind === 'equipment') {
-      // Losing ANY fitting hands control back: a hit hard enough to knock out
-      // equipment is a moment the player should be flying.
-      this.state.session.ccEngaged = false;
-      this.showMessage(`${lost.name} DESTROYED`, 4);
-      sfx.equipmentDestroyed();
-    }
-  }
-
   // --- the ship's autopilots -----------------------------------------------
-
-  /**
-   * The autopilots decide; the Game says it and plays it. Same shape as
-   * applyStep and applyStation — and the sounds are events here because that
-   * is what keeps autopilot.ts clear of audio.ts, and therefore node-safe.
-   */
-  private applyAutopilot(events: readonly AutopilotEvent[]): void {
-    for (const e of events) {
-      if (e.kind === 'message') this.sayEvent(e);
-      else this.playSound(e);
-    }
-  }
 
   /**
    * The ONE place a `SoundEvent` becomes a noise.
@@ -1097,18 +879,6 @@ export class Game {
     return { distance, side };
   }
 
-  private dockingComputer(): void {
-    this.applyAutopilot(this.autopilot.toggleDocking());
-  }
-
-  /**
-   * @internal — no caller outside this class (docs/TODO/151 M1). The command
-   * table calls it.
-   */
-  toggleCombatComputer(): void {
-    this.applyAutopilot(this.autopilot.toggleCombat());
-  }
-
   /**
    * Stranded in witch-space without the fuel to jump clear.
    *
@@ -1159,7 +929,7 @@ export class Game {
     if (this.state.session.paused) {
       this.handleInput(dt, true);
       if (this.state.session.paused) {
-        this.showMessage(this.pausedHint(), 0.4);
+        this.showMessage(this.flight_.pausedHint(), 0.4);
         this.finishStep(dt);
         return;
       }
@@ -1167,28 +937,13 @@ export class Game {
     if (!this.tunnel.active) this.handleInput(dt);
     else this.handleInput(dt, true);
     if (this.state.session.paused) {
-      this.showMessage(this.pausedHint(), 0.4);
+      this.showMessage(this.flight_.pausedHint(), 0.4);
       this.finishStep(dt);
       return;
     }
     this.tunnel.update(dt);
-    if (this.mode === 'flight') this.updateFlight(dt, elapsed);
+    if (this.mode === 'flight') this.flight_.update(dt, elapsed);
     this.finishStep(dt);
-  }
-
-  /**
-   * What the paused world says, and the only place a player is told that Q is
-   * available at all.
-   *
-   * The keys are read off the binding table (`boundKey`) rather than typed:
-   * this is prose quoting a key, which is invariant 9's rule, and the briefing
-   * already works this way. Built per call rather than hoisted — it is two
-   * lookups on a frame that is doing nothing else, and a module-level constant
-   * would be a second home for a caption `command-help.ts` owns.
-   */
-  private pausedHint(): string {
-    return `PAUSED — ${boundKey('flight', 'togglePause')} TO RESUME`
-      + ` · ${boundKey('flight', 'quitFlight')} TO QUIT THE FLIGHT`;
   }
 
   /**
@@ -1208,103 +963,6 @@ export class Game {
     this.render.beams.visible = this.state.session.beamTimer > 0;
     this.render.draw();
     this.cockpit_.renderHud(dt);
-  }
-
-  /**
-   * One frame of flight: produce a demand, advance the world, apply what it
-   * reports.
-   *
-   * The five phases live in world-step.ts. What is left here is the two things
-   * the world cannot do for itself: read the hands at the controls, and say
-   * things out loud.
-   */
-  private updateFlight(dt: number, elapsed: number): void {
-    const demand = this.pilotDemand(dt);
-    const pilot = { demand, handsOn: this.handsOn() };
-
-    // WHICH step. An exercise is ordinary flight with a different StepHost
-    // behind it (combat-sim.ts), and its teardown is DEFERRED — `settle()` puts
-    // the career back HERE, after the step has returned, because restoring from
-    // inside `stepNpcs` would rebuild the scene while the step was still
-    // iterating over it.
-    if (this.combatSim.active) {
-      this.applyStep(this.combatSim.tick(dt, elapsed, pilot));
-      this.combatSim.settle();
-    } else {
-      this.applyStep(this.worldStep.step(dt, elapsed, pilot));
-    }
-
-    // The dust is seen, never simulated — updated out here, from wherever the
-    // step left the ship. It needs our actual velocity to streak: the torus
-    // drive multiplies travel by `TORUS_MULTIPLIER`. Read from the drive rather
-    // than written out again, so the streaks cannot disagree with the physics.
-    this.dust.update(
-      this.state.player.position,
-      this.state.player.getForward(this.tmp).multiplyScalar(this.state.player.speed
-        * (this.state.session.torusEngaged && !this.massLocked() ? TORUS_MULTIPLIER : 1)),
-    );
-  }
-
-  /**
-   * The step decides; the Game says it and plays it. Same shape as applyCombat,
-   * and for the same reason: a phase that called the HUD — or the AudioContext
-   * — could not run in a trainer.
-   *
-   * `npcFired` and `playerDealt` are deliberately dropped here: both are for a
-   * measuring caller (combat-sim.ts), which has already read them out of the
-   * same array. The cockpit hears the shot and sees the explosion either way,
-   * and a career keeps no record to credit.
-   */
-  private applyStep(events: readonly StepEvent[]): void {
-    for (const e of events) {
-      if (e.kind === 'message') this.sayEvent(e);
-      else if (e.kind !== 'npcFired' && e.kind !== 'playerDealt') this.playSound(e);
-    }
-  }
-
-  /**
-   * Is the human touching the controls? Both autopilots let go when they are —
-   * the combat computer hands the ship back, the docking computer breaks off.
-   */
-  private handsOn(): boolean {
-    return this.input.held(...manualFlightKeys())
-      || Math.abs(this.input.mouseX) > 0.15 || Math.abs(this.input.mouseY) > 0.15;
-  }
-
-  /**
-   * Who is flying, and what they want.
-   *
-   * ONE producer per frame: the hands at the keyboard, or the combat computer
-   * when it is engaged and still willing. The trigger is the union of the two
-   * — a fitted combat computer flies the ship, it does not take your gun off
-   * you.
-   */
-  private pilotDemand(dt: number): FlightDemand {
-    const hands = flightDemand(this.input, keymap(), this.state.player, dt);
-    // the virtual stick self-centres; the producer is pure, so the mutation
-    // is ours to do, immediately after reading it
-    if (this.input.mouseFlight) this.input.decayMouse(dt);
-    if (!this.state.session.ccEngaged) return hands;
-    // WHICH co-pilot is the brain selection's answer: under the shipped
-    // 'attack-run' name, the scripted PURE-PURSUIT co-pilot; otherwise the
-    // trained defence seat (dormant — defenceBrain() is null and the seat
-    // disengages). Both return a FlightDemand — the scripted one banks-to-turn
-    // through the commander's own envelope (scripted-co-pilot.ts), the trained
-    // one flies at its fitted CC_* caps — so the Game flies either the same
-    // way and the HUD reads both.
-    const auto = defenceBrainNameFor(this.state.brains) === 'attack-run'
-      ? this.autopilot.combatSteer(dt, this.handsOn(), this.ordnance.hostileMissilePos)
-      : this.autopilot.combatDemand(
-        dt, this.handsOn(), defenceBrain(this.state.brains), this.ordnance.hostileMissilePos);
-    this.applyAutopilot(auto.events);
-    // A co-pilot that can answer a warhead — the same button, the same price
-    // and the same messages as the player's own E.C.M. key (docs/TODO/72). It
-    // is applied here rather than inside the autopilot because spending the
-    // bank is a consequence, and consequences are the orchestrator's.
-    if (auto.ecm) this.triggerEcm();
-    return auto.demand
-      ? { ...auto.demand, fire: auto.demand.fire || hands.fire }
-      : hands;
   }
 
   /**
@@ -1388,7 +1046,7 @@ export class Game {
     // same mode to the world and a different TABLE to the keyboard: no
     // hyperspace, no beacon, no jettison, no docking computer — and Escape or Q
     // ends it (controls.ts, NOT_IN_THE_SIMULATOR).
-    if (this.mode === 'flight') return this.combatSim.active ? 'simulator' : 'flight';
+    if (this.mode === 'flight') return this.flight_.inSimulator() ? 'simulator' : 'flight';
     if (this.mode === 'dead') return 'dead';
     return null;
   }
@@ -1447,30 +1105,30 @@ export class Game {
     // question rather than this call's.
     openContracts: () => this.openReadingScreen('contracts', this.cameFrom()),
     // --- the cockpit ------------------------------------------------------
-    view0: () => this.setView(0),
-    view1: () => this.setView(1),
-    view2: () => this.setView(2),
-    view3: () => this.setView(3),
-    armMissile: () => this.armMissile(),
-    launchMissile: () => this.launchMissile(),
-    disarmMissile: () => this.disarmMissile(),
-    fireEcm: () => this.triggerEcm(),
-    detonateEnergyBomb: () => this.detonateEnergyBomb(),
-    toggleCombatComputer: () => this.toggleCombatComputer(),
-    toggleDockingComputer: () => this.dockingComputer(),
-    toggleMouseFlight: () => this.toggleMouseFlight(),
-    toggleTorus: () => this.toggleTorus(),
+    view0: () => this.flight_.switches.setView(0),
+    view1: () => this.flight_.switches.setView(1),
+    view2: () => this.flight_.switches.setView(2),
+    view3: () => this.flight_.switches.setView(3),
+    armMissile: () => this.flight_.racks.armMissile(),
+    launchMissile: () => this.flight_.racks.launchMissile(),
+    disarmMissile: () => this.flight_.racks.disarmMissile(),
+    fireEcm: () => this.flight_.racks.triggerEcm(),
+    detonateEnergyBomb: () => this.flight_.racks.detonateEnergyBomb(),
+    toggleCombatComputer: () => this.flight_.switches.toggleCombatComputer(),
+    toggleDockingComputer: () => this.flight_.switches.dockingComputer(),
+    toggleMouseFlight: () => this.flight_.switches.toggleMouseFlight(),
+    toggleTorus: () => this.flight_.switches.toggleTorus(),
     togglePause: () => { this.state.session.paused = !this.state.session.paused; },
     startHyperspace: () => this.startHyperspace(),
     galacticJump: () => this.galacticJump(),
     distressBeacon: () => this.sendDistressBeacon(),
     quitFlight: () => this.career_.quitFlight(),
-    jettison1: () => this.jettisonCargo(1),
-    jettison5: () => this.jettisonCargo(5),
-    jettisonContraband: () => this.jettisonContraband(1),
+    jettison1: () => this.flight_.racks.jettisonCargo(1),
+    jettison5: () => this.flight_.racks.jettisonCargo(5),
+    jettisonContraband: () => this.flight_.racks.jettisonContraband(1),
     bribePolice: () => this.bribePolice(),
     // --- the training simulator -------------------------------------------
-    endExercise: () => this.endExercise(),
+    endExercise: () => this.flight_.endExercise(),
     // --- after the end ----------------------------------------------------
     respawn: () => this.respawn(),
   };
@@ -1491,41 +1149,6 @@ export class Game {
     const layout = toggleLayout();
     this.showMessage(`KEYBOARD: ${layout.toUpperCase()} LAYOUT`, 3);
     this.docked_.showDockedMenu();
-  }
-
-  private disarmMissile(): void {
-    if (!this.ordnance.targetLock && !this.ordnance.armed) return;
-    this.ordnance.disarm();   // one home for "no lock, no pylon" — ordnance.ts
-    this.showMessage('MISSILE DISARMED', 2);
-    sfx.missileDisarmed();
-  }
-
-  private toggleMouseFlight(): void {
-    if (this.input.mouseFlight) {
-      this.input.releaseMouseFlight();
-      this.showMessage('MOUSE FLIGHT OFF', 2);
-    } else {
-      this.input.requestMouseFlight();
-      // ESC is the browser's own way out of a pointer lock and belongs to no
-      // table; the other one is this command's own key, read from it.
-      this.showMessage(
-        `MOUSE FLIGHT — ESC OR ${boundKey('flight', 'toggleMouseFlight')} TO RELEASE`, 4);
-    }
-  }
-
-  private toggleTorus(): void {
-    if (this.massLocked()) {
-      this.showMessage('MASS LOCKED', 2);
-      sfx.refused();
-      return;
-    }
-    this.state.session.torusEngaged = !this.state.session.torusEngaged;
-    // Engaging the drive opens the throttle. Nobody engages a jump drive in
-    // order to crawl, and having to hold the accelerator afterwards was
-    // busywork with one sensible answer.
-    if (this.state.session.torusEngaged) this.state.player.speed = this.state.player.maxSpeed;
-    this.showMessage(this.state.session.torusEngaged ? 'TORUS DRIVE ENGAGED' : 'TORUS DRIVE OFF', 2);
-    if (this.state.session.torusEngaged) sfx.torusEngaged();
   }
 
   /**
@@ -1560,12 +1183,6 @@ export class Game {
     // screen's select(), and anything else — a chart canvas — reaches its
     // clickAt() with the raw event so it can map pixels to its own space.
     this.screens.click(el, this.input, e);
-  }
-
-  private setView(v: number): void {
-    if (this.state.session.view === v) return;
-    this.state.session.view = v;
-    sfx.viewChanged();
   }
 
   /**
@@ -1620,31 +1237,4 @@ export class Game {
     this.docked_.showBaseScreen();
   }
 
-  /**
-   * Dump a tonne over the side. Pirates came for cargo, not for you — give
-   * them enough of it and the opportunists break off and go collect, which
-   * turns "I can't win this fight" into a decision rather than a death.
-   * Organised gangs want considerably more convincing.
-   */
-  /** @internal — driven by test/jettison.test.ts */
-  jettisonCargo(tonnes = 1): void {
-    this.law_.throwOverboard(
-      (cargo) => dumpCargo(cargo, tonnes), 'HOLD EMPTY');
-  }
-
-  /**
-   * Dump a tonne of the ILLEGAL cargo — the evidence, not the profit.
-   *
-   * The same act with a different reach, which is why it is a key of its own
-   * rather than a mode on the one above: `dumpCargo` takes the most valuable
-   * thing in the hold because that is what buys off a pirate, and Slaves are
-   * 14th of 17 on the 1984 price table. Inside the window a police warning
-   * opens, that key throws the run's profit into space while the crime stays
-   * aboard. See `dumpContraband` (jettison.ts) for the ordering.
-   */
-  /** @internal — driven by test/jettison.test.ts */
-  jettisonContraband(tonnes = 1): void {
-    this.law_.throwOverboard(
-      (cargo) => dumpContraband(cargo, tonnes), 'NO CONTRABAND ABOARD');
-  }
 }

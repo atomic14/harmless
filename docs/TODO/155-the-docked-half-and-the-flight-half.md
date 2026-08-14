@@ -147,6 +147,50 @@ now "this half says it".
 combat appliers, the autopilots and the exercise. **One responsibility: what a
 commander does while she is flying.**
 
+**M2 landed on 2026-08-14.** Three files, not one. **game.ts 1,650 → 1,240.**
+`npm run check` passes at 4,530 assertions, unchanged.
+
+| file | lines | its one sentence |
+| --- | ---: | --- |
+| `game/flight.ts` | 395 | what a commander does while she is flying |
+| `game/flight-weapons.ts` | 295 | what the ship spends, and what it takes |
+| `game/flight-instruments.ts` | 169 | the instruments a pilot switches on |
+
+**Six things it found that the plan did not have:**
+
+1. **The flight half is a parent, not a file, and the gate is what said so.**
+   The first draft was ONE file of 648 lines carrying five section headers, and
+   `tools/sizes.mjs` failed it. That gate calls its ceiling a detector rather
+   than a rule — *"a file rarely reaches 400 lines doing one thing"* — and it
+   was right: the racks, the guns and the damage are one subject, the switches
+   are another, and a slice of time is a third. **The ceiling caught a design
+   fault, which is exactly what it is for.**
+2. **An exemption was available and would have been dishonest.** The `ALLOWED`
+   list takes a file over the ceiling with a stated reason, and its own rule is
+   that the reason must say why the file CANNOT be a parent plus children. This
+   one could be, so it was.
+3. **The gun and the exercise are a construction cycle.** An exercise runs the
+   career's own `Combat`, and a kill inside an exercise has to be credited to
+   the exercise — so each needs the other at construction. The weapons child
+   takes the exercise as a thunk. The alternative is a second `Combat`, and then
+   a shot would resolve differently in a trainer, which is invariant 5's whole
+   subject.
+4. **Seventeen host methods is what half an orchestrator costs**, and five of
+   them are ways OUT of flight: a dock, a completed jump, a tow and a death. Not
+   one is flight's to carry out. The step reports and the parent decides, so
+   **neither half reaches into the other** — which is the architecture the split
+   was for rather than a side effect of it.
+5. **I dropped eleven doc comments and had to put them back.** Writing fresh
+   prose for a moved member is deletion wearing a hat: `pilotDemand`'s *"ONE
+   producer per frame"*, `applyStep`'s note on why `npcFired` is dropped, and
+   the simulator field's account of why it is not on `GameState` all went. A
+   comparison of the comment lines before and after caught it. **The check is
+   worth running on every extraction**, and it is two commands.
+6. **151's finding on `toggleCombatComputer` is answered rather than fixed.**
+   That member had no caller outside its class, which was the argument for
+   making it private. The split puts the member and the command table in
+   different files, so it is public for a reason now.
+
 ### M3 — the transition, and the target
 
 The four BOTH members. `enterDocked` and `applyStation` are the transition

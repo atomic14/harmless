@@ -42,6 +42,15 @@ export const PLATFORM = [
   // line was already inside `game.ts`. A station is mostly a place where
   // screens are read, so the menu, the market and the board all reach `ui/`.
   'game/docked.ts',
+  // ...and the flight half, docs/TODO/155 M2. The shell's bomb flash and the
+  // report screen are what make it platform. Same accounting as its three
+  // predecessors: every line was already inside `game.ts`.
+  'game/flight.ts',
+  // ...and its two children, which are platform for the same reason it is:
+  // a burst of E.C.M. and an engaged drive both make a noise, and `audio.ts` is
+  // the platform seam. Splitting them off did not move the line — every one was
+  // already inside `game.ts`.
+  'game/flight-weapons.ts', 'game/flight-instruments.ts',
   'engine/render-stack.ts', 'engine/input.ts', 'engine/keymap.ts',
   'engine/browser-shell.ts', 'engine/inert-dom.ts',
   'audio.ts', 'main.ts', 'manual.ts',
