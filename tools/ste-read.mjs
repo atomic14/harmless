@@ -152,14 +152,20 @@ const NOT_PROSE = /^\s*(?:\||```|-{3,}\s*$|={3,}\s*$|(?:Run:\s*)?(?:node|npm|\$)
  * A blank line ends a paragraph. So does a bullet. The style asks for a list of
  * three conditions rather than one long sentence. A list counted as one
  * sentence would report the opposite of what it is.
+ *
+ * A doc tag starts one too. `@param` and `@returns` open a new claim about a
+ * new thing, and the tag itself comes off in `prose()` below. Joined to the
+ * sentence above, the words after the tag were counted as part of it.
  */
+const OPENS_A_PARAGRAPH = /^\s*(?:[-*+]\s|\d+[.)]\s|@[A-Za-z])/;
+
 export function paragraphs(run) {
   const out = [];
   let current = null;
   for (const { line, text } of run) {
     if (text.trim() === '' || NOT_PROSE.test(text)) { current = null; continue; }
-    const bullet = /^\s*(?:[-*+]\s|\d+[.)]\s)/.test(text);
-    if (current === null || bullet) { current = { line, text: text.trim() }; out.push(current); }
+    const opens = OPENS_A_PARAGRAPH.test(text);
+    if (current === null || opens) { current = { line, text: text.trim() }; out.push(current); }
     else current.text += ` ${text.trim()}`;
   }
   return out;
@@ -172,17 +178,23 @@ export function paragraphs(run) {
  * its shape and the word count stays honest. A name in backticks is one word to
  * a reader, and it is one word here.
  *
- * A QUOTATION IS REMOVED RATHER THAN COUNTED. It is the exclusion that matters
- * most, because the tool cannot ask for a rewrite of somebody's own words
- * without asking for a falsification. A quotation is removed whole, so the
- * sentence that carries it is still measured on the words around it.
+ * A QUOTATION BECOMES ONE WORD RATHER THAN NOTHING. It is the exclusion that
+ * matters most, because the tool cannot ask for a rewrite of somebody's own
+ * words without asking for a falsification. The words inside it are not
+ * counted, and the sentence that carries it is still measured on the words
+ * around it.
+ *
+ * The placeholder is what keeps that second half true. A quotation deleted
+ * outright leaves a fragment that starts in the middle, so the full stop before
+ * it stops looking like the end of a sentence, and two sentences are then
+ * measured as one long one.
  */
 export function prose(text) {
   return text
     .replace(/`[^`]*`/g, ' CODE ')
-    .replace(/\*"[^"]*"\*/g, ' ')
-    .replace(/"[^"]*"/g, ' ')
-    .replace(/“[^”]*”/g, ' ')
+    .replace(/\*"[^"]*"\*/g, ' QUOTE ')
+    .replace(/"[^"]*"/g, ' QUOTE ')
+    .replace(/“[^”]*”/g, ' QUOTE ')
     .replace(/https?:\/\/\S+/g, ' URL ')
     .replace(/@[A-Za-z]\w*/g, ' ')
     // A path must end on a letter or a digit. The greedy form of this swallows

@@ -101,12 +101,22 @@ assert.equal(words(prose('Then run `npm run generate:constants` twice.')).length
 assert.deepEqual(sentences(prose('It swept src/constants/. Do not re-sweep it.')),
   ['It swept PATH /.', 'Do not re-sweep it.']);
 
-// A QUOTATION IS NOT MEASURED. Both of the shapes this repository writes one in.
-assert.equal(words(prose('Chris: *"they fly quite far before turning for another run."*')).length, 1);
-assert.equal(words(prose('He said "they fly quite far before turning" to me.')).length, 4);
+// A QUOTATION IS ONE WORD. Both of the shapes this repository writes one in.
+assert.equal(words(prose('Chris: *"they fly quite far before turning for another run."*')).length, 2);
+assert.equal(words(prose('He said "they fly quite far before turning" to me.')).length, 5);
 
 // The words around a quotation are still measured, so a long frame is caught.
 assert.ok(words(prose(`${long(30).slice(0, -1)} and he said "a b c d e f g h i j".`)).length > 25);
+
+// The placeholder is what keeps the sentence before a quotation whole. Deleted
+// outright, the fragment left behind starts in the middle, so the full stop
+// stops looking like the end of a sentence and two are measured as one.
+assert.deepEqual(sentences(prose('It is not a question. "Has it moved" is.')),
+  ['It is not a question.', 'QUOTE is.']);
+
+// A doc tag opens a new claim about a new thing, so it is a new paragraph.
+assert.deepEqual(said('/**\n * It is short.\n * @returns the buffer, or null.\n */'),
+  ['It is short.', 'the buffer, or null.']);
 
 // --- rule 1: the caps -------------------------------------------------------
 

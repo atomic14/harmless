@@ -166,6 +166,59 @@ five sentences is noise**, which is why the second order exists.
 **Report the cost per file.** M2 is where the size of the whole job becomes
 known, and the plan does not predict it.
 
+**M2 landed on 2026-08-14, over the ten worst by share.** Both counts below come
+from the same checker, over the same ten files, before and after.
+
+| | sentences | over cap | `-ing` | tense |
+| --- | ---: | ---: | ---: | ---: |
+| before | 285 | **130 (46%)** | **161** | **19** |
+| after | 547 | **0** | **2** | **0** |
+
+**THE COST IS 53 LINES ACROSS TEN FILES**, which is 535 insertions against 482
+deletions. The sentence count nearly doubled, at 1.92 times. The line count rose
+by 11%. **A long sentence splits into two or three short ones of the same
+words**, so the conversion buys its caps with punctuation rather than with cuts.
+
+**Nothing was dropped, and that is checked rather than asserted.** Every number
+in the comments of all ten files survives, at the same count, measured by a walk
+of the prose before and after. `npm run check` passes at 4,530 assertions,
+unchanged, so no rule moved.
+
+**The tree went from 1,983 long sentences to 1,853.** Those ten files held 6.6%
+of the whole job, so M3 is about fourteen more passes of this size.
+
+**Six things came out of M2 that the plan did not have.**
+
+1. **The checker had two defects that only a conversion pass could find**, and
+   both were in what it reads rather than in a rule. A quotation was deleted
+   outright, so the fragment left behind started in the middle, and the full
+   stop before it stopped ending a sentence — two sentences were then measured
+   as one long one. A quotation is one placeholder word now. A doc tag was
+   joined to the sentence above it, so the words after `@returns` were counted
+   as part of the sentence before it. A doc tag opens a paragraph now. Both are
+   proved able to fail.
+2. **A real defect in the comments, and only a line-by-line read finds it.** Two
+   comment blocks in `game/dock-path.ts` had run together. The second one
+   explained `runIn`, and it had lost its opening, so it read as a fragment that
+   began "Where the curve gives way to the straight run". Both blocks state the
+   same 180-degree reversal, and they are two different causes of it, so both
+   stay. The second names its subject now.
+3. **The `-ing` rule bit harder than the caps did.** Ten files held 161 `-ing`
+   words against 130 long sentences. A split fixes a long sentence in one move.
+   A gerund has to be re-thought, because "a ship that is always rolling" and "a
+   ship in a permanent roll" are not the same sentence.
+4. **Two `-ing` words are left on purpose**, and both are the same phrase:
+   *(Chris, flying it)*. `CLAUDE.md` excludes a record of what somebody decided.
+   The tool cannot see that a parenthesis is an attribution, so this is a false
+   positive that a reader has to hold.
+5. **The size gate never fired.** The worry was that the conversion would push a
+   file over 400 lines. It did not come close: the largest file grew by 21 lines.
+6. **A file's share moves a long way on one sentence.** `price-divergence.ts`
+   read 33% before, and 17% after eight of its nine breaches were gone, because
+   one long sentence in twelve is still 8%. That is the same instability
+   `--work` exists for, and it applies to the FINISHED file as well as to the
+   ranking.
+
 ### M3 — the rest, in checker order
 
 Nothing to decide. Work the ranking down.

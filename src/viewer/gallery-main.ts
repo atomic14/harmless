@@ -1,12 +1,14 @@
 // The design gallery's page: all 38 released hulls, and nothing else.
 //
-// The grid itself is gallery.ts; this is the entry that puts it on `/gallery`
-// (gallery.html, an entry in vite.config.ts — a page that is not an entry does
-// not build). It owns the gallery's KEYS, which used to live in the combat
-// viewer's keydown handler behind a `G` mode toggle: one page opened on the
-// gallery with a combat dropdown underneath it, so the combat viewer read as
-// deleted and the gallery read as a mode of it. Two pages, one thing each, no
-// mode key (TODO 57).
+// The grid itself is gallery.ts. This is the entry that puts it on `/gallery`,
+// which is gallery.html, an entry in vite.config.ts. A page that is not an
+// entry does not build.
+//
+// It owns the gallery's KEYS. They used to live in the combat viewer's keydown
+// handler, behind a `G` mode toggle. One page opened on the gallery, with a
+// combat dropdown underneath it. So the combat viewer read as deleted, and the
+// gallery read as a mode of it. Two pages, one thing each, no mode key
+// (TODO 57).
 
 import { createGallery, type GalleryScale, type GalleryView } from './gallery.ts';
 import { createStage } from './stage.ts';
