@@ -518,36 +518,116 @@ way on purpose. It names `persistence.ts`, `station.ts`, `autopilot.ts` and
 add one clause per milestone would leave four half-corrections for it to
 reconcile.
 
-## M5 onwards — re-assessed after M4
+## M5 — the career, on 2026-08-14
+
+`game/career.ts`, 264 lines. **game.ts 1,910 → 1,810.** `npm run check` passes
+at 4,530 assertions, unchanged again. `npm run portability` needed one new
+entry, and the child is the second platform one.
+
+It holds what a career keeps when a flight ends: the checkpoint written down,
+the way back taken, the file handed to another machine, and the start with
+nothing. **One responsibility: what a career keeps when a flight ends.** A
+CAREER is one commander's continuing record — the thing `state.career` names.
+
+**The area was measured, and the pair beat both halves**, which is M4's finding
+used rather than repeated:
+
+| area | moves | deps | ratio |
+| --- | ---: | ---: | ---: |
+| sound | 41 | 1 | 41.0 ← rejected on size |
+| **death + saves** | **119** | **13** | **9.2** ← chosen |
+| ordnance + combat | 112 | 15 | 7.5 |
+| saves alone | 59 | 8 | 7.4 |
+| contracts + survivors | 48 | 7 | 6.9 |
+| death alone | 60 | 13 | 4.6 |
+
+### Five things it found that the plan did not have
+
+**1. The reading question had a measurable answer, and it is mutual reach.**
+The plan says whether death and saves are one responsibility is a reading
+question. Reading gives a countable answer: **death reaches into saves three
+times and saves reaches back into death twice.** `die` forgets the flight ring
+and draws the panel from the saves context, `abandonFlight` forgets it too,
+`respawn` resumes the checkpoint — and on the other side `savesContext` reports
+whether the commander is dead, and `persistenceHost` reads `baseMode` for the
+same reason. **Two files would need a link in both directions.** The code says
+it in its own words, in a comment that was already there: *"It costs what dying
+costs because it lands where dying lands."*
+
+**2. A host literal travels with the thing it is HANDED TO, and that rule
+decided the file's edge.** `savesContext` and `persistenceHost` look like twins
+— both are a slice of the Game handed to something else. They part company on
+their callers. Every caller of `savesContext` moved, so it moved.
+`persistenceHost` is handed to `new Persistence(...)`, which `game.ts`
+constructs and nine other places use, so it stayed. Following the ratio instead
+would have taken it: with the host the area measures 9.2 and without it 7.5.
+**The rule is worth more than the 1.7.** Moving it would also have made the
+child own a module the whole Game uses, and the host's own answers — the mode
+machine and the scene rebuild — would have become relays.
+
+**3. The extraction found a rule with two homes.** The game-over panel is drawn
+by `die` and again by `showBaseScreen` when Escape closes the screen the panel
+opened. Both wrote out the same three-part expression:
+`renderGameOver(commander, checkpointSummary(savesContext()))`. It is
+`showGameOver()` now, with one home in the child and the Game's base screen
+calling it. Neither file could see the duplicate while both halves sat in one
+2,000-line file.
+
+**4. The overhead is the highest of the five, and delegates are why.** 136 lines
+of area left and 264 arrived, but `game.ts` only fell by 100 — the difference is
+**36 lines of delegate and host wiring that stayed behind.** Four members keep a
+public delegate, more than any earlier milestone: `respawn` for
+`test/playtest.js`, `newCommanderGame` for `test/career-identity.test.ts`,
+`openSaves` for `test/saves.test.ts` and the docked S key, and `abandonFlight`
+because the quit screen's context is built with the rest of the screen wiring.
+**An area whose members are reached from outside pays twice**, and the
+measurement cannot see it in advance.
+
+**5. It is platform, and the reason is neither the sounds nor the storage.** A
+career is READ ON SCREENS — the game-over panel, the save shelf and the file
+transfer. `ports unchanged` is byte-identical at 33,176 lines, so no portable
+line became platform; `platform` rises from 11,943 to 12,107, which is the new
+wiring alone.
+
+### The prose
+
+792 comment lines before, 885 across the two files after. **No line was lost.**
+One single-line comment became a block, because the moved `savesContext` needed
+a claim naming its caller.
+
+## M6 onwards — re-assessed after M5
 
 **Still true from the plan:** the 163-line constructor is last, because it is
 where every child is wired.
 
-**M5 names no area either**, for the reason M2 wrote down: the plan was right to
+**M6 names no area either**, for the reason M2 wrote down: the plan was right to
 defer and wrong to name a favourite while deferring, because the favourite gets
-picked up as a decision. The M4 table above measures the file as it stood before
-M4, and the jump took four members and one scratch vector with it. Measure
-again, with the checks the section above lists.
+picked up as a decision. The M5 table above measures the file as it stood before
+M5. Measure again, with the checks the section above lists.
 
-**Two warnings the later milestones add to that method.**
+**Four warnings the later milestones add to that method.**
 
 1. **Subtract the delegates first** (M3). Some members are already one-line
    delegates onto an existing child. A delegate cannot leave — it is how the
    orchestrator reaches what it already extracted — so it inflates the body
    count without being work that can move.
-2. **Read the size as well as the ratio** (M4). The wiring is 90 to 128 lines
+2. **Read the size as well as the ratio** (M4). The wiring is 90 to 165 lines
    per child whatever the area is, so an area under about 60 lines pays more
    overhead than it moves however good its ratio looks. The sound area measures
    41 lines against one dep, and writing it would make the tree larger.
+3. **Count what the area is reached BY, not only what it reaches** (M5). Every
+   member with a caller outside `game.ts` leaves a delegate behind, so the
+   parent keeps about nine lines of it. M5 moved 136 lines of area and `game.ts`
+   fell by 100. The ratio cannot see this, and four delegates is what made this
+   milestone the most expensive of the five.
+4. **A host literal travels with the thing it is HANDED TO** (M5). Following the
+   ratio would have moved `persistenceHost` and raised the area from 7.5 to 9.2.
+   It stays, because `new Persistence(...)` stays.
 
-**What is left, and why its numbers must be taken again.** `game.ts` is 1,910
-lines. Saves led the untaken areas before M4 at 69 lines and 8 deps, and
-`persistence.ts` is already next door for it to sit beside. Death was 60 and 13,
-and the pair measured 119 against 13 — an example of M4's finding that two areas
-measured together can beat both halves.
-
-**Those three rows are now stale, and by this milestone's own doing.**
-`loadOrWarmGalaxy` was a dep of both, and it left with the jump. So the pair's
-dep count has moved, and so has each half's. Take the numbers again before
-choosing. Whether saves and death are ONE responsibility is a reading question
-rather than an arithmetic one, and M5 answers that part by reading.
+**What is left.** `game.ts` is 1,810 lines. Ordnance plus combat is the largest
+untaken area at 112 lines, and its 15 deps are the widest in the file — the M1
+test asks whether the child would call back for everything, and 15 is the number
+to interrogate rather than accept. Contracts plus survivors is 48 lines against
+7 deps, with `contracts.ts` and `survivors.ts` already next door, and it is
+under the size floor that warning 2 sets. **Both rows predate M5** and must be
+taken again: `die` left, and combat reaches it.

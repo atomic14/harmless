@@ -30,8 +30,7 @@ import type { Shell, Presentation, ShellFactory } from '../engine/shell.ts';
 import { viewRight, VIEW_QUATS } from './views.ts';
 import * as THREE from 'three';
 
-import { generateGalaxy, COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
-import { LivingGalaxy } from '../galaxy/living.ts';
+import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
 import { generateContractOffers } from './contract-offers.ts';
 import { acceptContract, settleContracts, contractMessage, type ContractEvent } from './contracts.ts';
 import { hermitMarket } from './market.ts';
@@ -59,6 +58,7 @@ import { dumpCargo, dumpContraband } from './jettison.ts';
 import { Combat, BEAM_FLASH, firePlayerLaser, damagePlayer, type CombatEvent, type DamageSource } from './combat.ts';
 import { CombatInstrumentation, type CombatObserver } from './instrumentation.ts';
 import { HyperspaceActions, type HyperspaceHost } from './hyperspace-actions.ts';
+import { Career, type CareerHost } from './career.ts';
 import { WorldStep, massLocked, type StepEvent, type StepHost } from './world-step.ts';
 import { TORUS_MULTIPLIER } from '../constants/torus.ts';
 import { FIXED_DT, MAX_FRAME_TIME, MAX_STEPS_PER_FRAME } from '../constants/world-clock.ts';
@@ -84,10 +84,9 @@ import { WHILE_PAUSED } from './bindings.ts';
 import { Ordnance, ordnanceMessage, fireEcm, type OrdnanceOutcome } from './ordnance.ts';
 
 import { breachLoss } from './systems.ts';
-import { SavesScreen, checkpointSummary, type SavesContext } from './screens/saves.ts';
+import { SavesScreen, checkpointSummary } from './screens/saves.ts';
 import { SavePromptScreen, NamingScreen } from './screens/save-naming.ts';
-import { NewCommanderScreen, startNewCommander } from './screens/new-commander.ts';
-import { exportSaveFile, importSaveFile } from './screens/save-transfer.ts';
+import { NewCommanderScreen } from './screens/new-commander.ts';
 import { MarketScreen, EquipScreen, buyEquipment, type TradeContext } from './screens/trade.ts';
 import { StatusScreen, type StatusContext } from './screens/status.ts';
 import { MissionsScreen, type MissionsContext } from './screens/missions.ts';
@@ -109,7 +108,7 @@ import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
 import { characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
 import { hideScreen, renderDockedMenu } from '../ui/screens.ts';
-import { renderNewGameConfirm, renderGameOver } from '../ui/screens-career.ts';
+import { renderNewGameConfirm } from '../ui/screens-career.ts';
 import { boundKey, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
 
@@ -367,7 +366,7 @@ export class Game {
       wreckNpc: (npc) => this.wreckNpc(npc),
       fireLaser: () => this.fireLaser(),
       raiseLegal: (level) => this.raiseLegal(level),
-      die: (reason) => this.die(reason),
+      die: (reason) => this.career_.die(reason),
       dock: () => this.enterDocked(),
       completeHyperspace: () => this.jump_.completeHyperspace(),
       completeRescue: () => this.jump_.completeRescue(),
@@ -485,6 +484,27 @@ export class Game {
     hyperspaceSound: () => sfx.hyperspace(),
     distressBeaconSound: () => sfx.distressBeacon(),
   } satisfies HyperspaceHost);
+
+  /**
+   * What a career keeps when a flight ends (docs/TODO/150 M5).
+   *
+   * Three collaborators and eight host methods. The collaborators are the three
+   * things a way back is made of — the record itself, the sky a respawn
+   * rebuilds, and the galaxy history a booted commander inherits — and the host
+   * is the mode machine, the simulator and the console.
+   */
+  private readonly career_ = new Career(
+    this.state, this.persistence, this.world_, this.jump_, {
+      mode: () => this.mode,
+      baseMode: () => this.baseMode,
+      enterDeadMode: () => { this.baseMode = 'dead'; },
+      enterDocked: (arrival) => this.enterDocked(arrival),
+      showMessage: (text, seconds) => this.showMessage(text, seconds),
+      openScreen: (id) => this.screens.open(id),
+      inSimulator: () => this.combatSim.active,
+      quitSimulator: () => this.combatSim.quit(),
+      resetCombatComputer: () => this.combatComputer.reset(),
+    } satisfies CareerHost);
 
   /** Build the scene for the system we are standing in. */
   buildWorld(): void { this.world_.buildWorld(); }
@@ -636,10 +656,10 @@ export class Game {
     for (const screen of [
       this.market_,
       new EquipScreen(() => this.tradeContext()),
-      new SavesScreen(() => this.savesContext()),
-      new SavePromptScreen(() => this.savesContext()),
-      new NamingScreen(() => this.savesContext()),
-      new NewCommanderScreen(() => this.savesContext()),
+      new SavesScreen(() => this.career_.savesContext()),
+      new SavePromptScreen(() => this.career_.savesContext()),
+      new NamingScreen(() => this.career_.savesContext()),
+      new NewCommanderScreen(() => this.career_.savesContext()),
       new StatusScreen(() => ({
         commander: this.state.commander,
         systems: this.state.systems,
@@ -667,7 +687,7 @@ export class Game {
         checkpoint: () => { this.persistence.checkpoint(); },
       } satisfies TestModeContext)),
       new QuitScreen(() => ({
-        checkpoint: checkpointSummary(this.savesContext()),
+        checkpoint: checkpointSummary(this.career_.savesContext()),
         abandon: () => this.abandonFlight(),
         // You paused to get here, so backing out returns you to the pause
         // rather than dropping you live into whatever you stopped. `step`
@@ -887,48 +907,13 @@ export class Game {
   }
 
   /**
-   * @internal — the same act the NAME YOUR COMMANDER prompt performs, for a
-   * driver with no keyboard. It forwards and nothing else: what the act IS
-   * lives in `startNewCommander`, and what a player is TOLD when it fails lives
-   * in the screen that asked them.
-   * @returns false when the boot pointer would not move, so nothing happened.
+   * @internal — driven by test/career-identity.test.ts. A delegate rather than
+   * a reach through `career_`, because the harness names this act.
    */
-  newCommanderGame(name: string): boolean {
-    return startNewCommander(this.savesContext(), name);
-  }
+  newCommanderGame(name: string): boolean { return this.career_.newCommanderGame(name); }
 
-  openSaves(): void {
-    this.screens.open('saves');
-  }
-
-  /** Download this commander as a JSON file (portable saves, bug reports). */
-  private exportSave(): void {
-    exportSaveFile(this.savesContext());
-  }
-
-  private importSave(): void {
-    // The reason comes back from the importer, which is the only thing that
-    // knows which of them it was — not a save, not this build's save, or no
-    // room for it (save-transfer.ts).
-    importSaveFile(this.savesContext(), (why) => {
-      this.showMessage(why, 4);
-      sfx.refused();
-    });
-  }
-
-  /** The only slice of the Game the saves screens are allowed to see. */
-  private savesContext(): SavesContext {
-    return {
-      commander: this.state.commander,
-      systems: this.state.systems,
-      career: this.state.career,
-      dead: this.baseMode === 'dead',
-      message: (text, seconds) => this.showMessage(text, seconds),
-      capture: () => this.persistence.capture(),
-      checkpoint: () => this.persistence.checkpoint(),
-      saveNamed: (name) => this.persistence.saveNamed(name),
-    };
-  }
+  /** @internal — driven by test/saves.test.ts, and the docked S key. */
+  openSaves(): void { this.career_.openSaves(); }
 
   /**
    * What saving and restoring a world may ask of the Game.
@@ -990,106 +975,20 @@ export class Game {
     this.state.player.quaternion.setFromRotationMatrix(this.tmpM);
   }
 
-  private die(reason: string): void {
-    if (this.mode === 'dead' || this.mode === 'docked') return;
-    // A death in the simulator ends the SIMULATION, not the career. The
-    // exercise's own StepHost already redirects this, so no path reaches here
-    // with one running — but the next line deletes the in-flight ring, so it is
-    // worth being unreachable twice over.
-    if (this.combatSim.active) { this.combatSim.quit(); return; }
-    // The in-flight autosaves must not outlive the ship, or a reload would
-    // resume the snapshot from seconds before the death. The DOCKED checkpoint
-    // survives: it is the way back, and what the game-over screen offers.
-    this.persistence.forgetFlight();
-    sfx.explosion();
-    this.state.world.effects.explosion(this.state.player.position.clone(), 0xff8866);
-    if (this.state.commander.equipment.escapePod) {
-      // the pod gets you to the local station; ship and cargo are gone
-      this.state.commander.equipment.escapePod = false;
-      this.state.commander.cargo = this.state.commander.cargo.map(() => 0);
-      this.enterDocked();
-      this.showMessage('ESCAPE POD DEPLOYED — CARGO LOST', 6);
-      return;
-    }
-    this.baseMode = 'dead';
-    this.showMessage(reason, 6);
-    renderGameOver(this.state.commander, checkpointSummary(this.savesContext()));
-  }
-
   /**
-   * Ask whether to give up on this flight — but only with the world stopped.
+   * Give up on this flight and take the way back.
    *
-   * The gate is PAUSE, and it is the whole point of the key's shape: giving up
-   * a flight is a deliberate act, and requiring the world to be stopped first
-   * makes it two decisions rather than one mistyped letter. `WHILE_PAUSED` is
-   * what lets Q reach this handler at all while paused; this is what refuses it
-   * the rest of the time.
-   *
-   * It SAYS SO rather than doing nothing. A bound key that appears dead is a
-   * bug report, and the same refusal answers a Q pressed during the launch
-   * tunnel, where nothing is paused either.
+   * @internal — a delegate rather than a reach through `career_`, because the
+   * quit screen's context is built here with the rest of the screen wiring.
    */
-  private quitFlight(): void {
-    if (!this.state.session.paused) {
-      this.showMessage(
-        `PAUSE FIRST — ${boundKey('flight', 'togglePause')},`
-        + ` THEN ${boundKey('flight', 'quitFlight')} TO QUIT THE FLIGHT`, 3);
-      sfx.refused();
-      return;
-    }
-    this.screens.open('quit');
-  }
-
-  /**
-   * Give up on this flight and take the way back — the confirmed half of
-   * `screens/quit.ts`.
-   *
-   * `forgetFlight` FIRST, and it is the same first move `die()` makes: the
-   * in-flight ring must not outlive the flight it recorded, or the next boot
-   * would resume the run that was just abandoned. `clearFlightSaves` re-aims
-   * the boot pointer at the checkpoint on its way past, which is what makes the
-   * `respawn()` below land on the station rather than on a guess.
-   *
-   * It costs what dying costs because it lands where dying lands. That is the
-   * whole reason it can be offered to every pilot rather than only to a marked
-   * career: there is nothing to gain by quitting that flying home would not
-   * have paid better.
-   */
-  abandonFlight(): void {
-    this.persistence.forgetFlight();
-    this.respawn();
-    this.showMessage('FLIGHT ABANDONED', 4);
-  }
+  abandonFlight(): void { this.career_.abandonFlight(); }
 
   /**
    * Take the way back: this career's docked checkpoint, whole.
    *
-   * A full world restore rather than a commander reload, because the checkpoint
-   * IS a world — written on docking and again immediately before launch, so it
-   * puts the ship back at the station it left with what it left with.
-   *
    * @internal — driven by test/playtest.js
    */
-  respawn(): void {
-    this.combatComputer.reset();
-    this.state.chart.targetIndex = null;
-    this.state.session.witchspace = false;
-    if (this.persistence.resume()) return;
-    // Nothing to come back to — a career that has never docked. Boot as the
-    // first launch did.
-    this.state.commander = bootCommander();
-    // The loaded commander may name a DIFFERENT galaxy than the one we died in,
-    // so `systems` and the living galaxy are rebuilt from it — otherwise every
-    // `get system()` lookup reads the wrong star.
-    this.state.systems = generateGalaxy(this.state.commander.galaxy);
-    this.state.living = new LivingGalaxy(this.state.systems);
-    this.jump_.loadOrWarmGalaxy();
-    this.world_.chooseBlueprintSet();
-    this.buildWorld();
-    // 'fresh', not 'resumed': there was no checkpoint to come back to, so
-    // nothing has stocked this station and `bootCommander` brought no market.
-    this.enterDocked('fresh');
-  }
+  respawn(): void { this.career_.respawn(); }
 
   // --- contracts (station bulletin board) ----------------------------------
 
@@ -1262,7 +1161,7 @@ export class Game {
         case 'beam': this.cockpit_.aimBeams(e.at); break;
         case 'fired': this.state.session.beamTimer = BEAM_FLASH; break;
         case 'breach': this.damageSomething(); break;
-        case 'died': this.die(e.reason); break;
+        case 'died': this.career_.die(e.reason); break;
       }
     }
   }
@@ -1677,8 +1576,8 @@ export class Game {
     openCombatSim: () => this.screens.open('combat-sim'),
     openTestMode: () => this.screens.open('test-mode'),
     payFine: () => this.law_.payFine(),
-    exportSave: () => this.exportSave(),
-    importSave: () => this.importSave(),
+    exportSave: () => this.career_.exportSave(),
+    importSave: () => this.career_.importSave(),
     toggleLayout: () => this.switchLayout(),
     // --- putting a commander down -----------------------------------------
     askNewGame: () => {
@@ -1724,7 +1623,7 @@ export class Game {
     startHyperspace: () => this.startHyperspace(),
     galacticJump: () => this.galacticJump(),
     distressBeacon: () => this.sendDistressBeacon(),
-    quitFlight: () => this.quitFlight(),
+    quitFlight: () => this.career_.quitFlight(),
     jettison1: () => this.jettisonCargo(1),
     jettison5: () => this.jettisonCargo(5),
     jettisonContraband: () => this.jettisonContraband(1),
@@ -1874,7 +1773,7 @@ export class Game {
    */
   private showBaseScreen(): void {
     if (this.baseMode === 'dead') {
-      renderGameOver(this.state.commander, checkpointSummary(this.savesContext()));
+      this.career_.showGameOver();
       return;
     }
     this.applyStation(this.station.showBaseScreen());

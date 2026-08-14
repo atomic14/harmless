@@ -31,6 +31,12 @@ export const PLATFORM = [
   // Game, and `hud/hud-binding.ts` states the opposite rule for its own
   // directory — "There is no `Game` here and no callback out."
   'game/cockpit-view.ts',
+  // The composition root's career half, split out by docs/TODO/150 M5. Platform
+  // for the same reason again, and it costs the port nothing for the same
+  // reason: every line was already inside `game.ts`. What makes it platform is
+  // that a career is READ on screens — the game-over panel, the save shelf and
+  // the file transfer — plus the storage the boot pointer lives in.
+  'game/career.ts',
   'engine/render-stack.ts', 'engine/input.ts', 'engine/keymap.ts',
   'engine/browser-shell.ts', 'engine/inert-dom.ts',
   'audio.ts', 'main.ts', 'manual.ts',
