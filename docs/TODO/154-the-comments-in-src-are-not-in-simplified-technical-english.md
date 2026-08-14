@@ -263,6 +263,40 @@ is the reason: it is a list of nine children, and a list of nine reads as one
 sentence unless it is broken up. It is four paragraphs now, and each one names a
 group rather than the whole tree.
 
+**The third M3 pass landed the same day, and it is the first with the value
+test on.** `game/world-step.ts` and `game/bindings.ts`: 245 sentences with 57
+over the cap and 12 perfect tenses, down to 347 with none of either. The cost is
+21 lines. **The tree is at 1,501 long sentences.**
+
+**THE VALUE TEST WAS RUN AS A MEASUREMENT RATHER THAN BY EYE**, and the headline
+is that it finds very little.
+
+1. **A comment that restates its own name: SIX in `src/`, and all six are
+   section dividers.** A scan compared every one-line doc comment against the
+   identifier below it. `--- selection ---` over `select()` is the whole
+   population. **Not one comment in the tree is a bare restatement of its code.**
+   That is the plan's own claim, now measured a second way.
+2. **A sentence said twice: 54 pairs, and most of them are correct.** A doc
+   repeated on a host interface and its implementation is one rule seen from two
+   sides. A constant's doc beside the module that spends it is what `CLAUDE.md`
+   asks for. The `Erasable-TypeScript only` line is a convention.
+3. **SEVEN pairs are a rule with two homes INSIDE ONE FILE**, and that is the
+   shape worth cutting. Two of them were fixed in this pass, and **both are in
+   files this very item already converted**:
+   - `pitch-roll-steer.ts` stated the quarter-turn fold rule in `rollOnto` and
+     again in `rollErrorTo`. `rollErrorTo` does the fold, so it is the home, and
+     `rollOnto` is a pointer now.
+   - `dock-path.ts` explained the path's own start at the call site and again in
+     `project()`. `project()` computes it. The call site keeps only the BLEND,
+     which is its own decision.
+   - Five more are recorded and not yet cut: `combat-sim-report.ts`,
+     `elite-a/combat-math.ts`, `hyperspace.ts`, `hyperspace-actions.ts` and
+     `game.ts` each say one sentence twice.
+
+**So the value test's yield is 11 lines, against 21 added by the conversion.**
+The comments in this tree earn their place. What they do not do is read in
+Simplified Technical English, which is what the rest of the item is for.
+
 **Four things came out of the first pass that the plan did not have.**
 
 1. **A fifth exclusion was needed, and it is a table in COLUMNS.** Several
@@ -309,6 +343,18 @@ Remove it.
   `README.md`'s opening, and the player-facing pages are all untouched.
 - **`src/constants/` is done.** 141 swept it and it measures at 3%. Do not
   re-sweep it.
+- **A COMMENT THAT ADDS NOTHING IS DROPPED** (Chris, 2026-08-14: *"let's make
+  sure the comments add value - if not we drop them"*). A pass asks two
+  questions of each comment now, and the value question comes first. Delete a
+  comment that restates the code, that repeats a rule which lives somewhere
+  else, or that is no longer true. Convert what is left.
+  - **This does NOT contradict `tools/sizes.mjs`**, and the difference is the
+    reason for the cut. That gate forbids a cut made to reach a LINE COUNT:
+    *"a shorter comment is not a smaller file"*. This is a cut made because the
+    sentence says nothing. A reason, a measurement and a decision all stay,
+    however long the file is.
+  - **A rule with a home elsewhere becomes a POINTER rather than a deletion**,
+    which is docs/TODO/153's answer to the same shape.
 - **The `-ing` rule is fixed only where a rewrite needs it** (Chris, 2026-08-14:
   *"We only need to fix -ing where we have to"*). The caps and the tense are what
   a pass converts. An `-ing` word that falls out of a split sentence goes with

@@ -229,16 +229,12 @@ export function dockPath(
     + (Math.min(along, dockZ * RUN_IN_WIDTHS) - dockZ * RUN_IN_WIDTHS) * inCorridor;
   fill(bearing, range, gateDist, runIn);
   // WHERE ON THE PATH THE SHIP IS, and the answer is blended rather than
-  // chosen.
+  // chosen. `project` below is where the two answers are, and why each is
+  // right where it is.
   //
-  // On the way round, the ship is at the path's own START by construction. The
-  // curve is sampled from the ship's own bearing. Where that start sits OUTSIDE
-  // the ship is the whole of the stand-off. The aim is out on the funnel, and
-  // the heading to it leads the ship out and round.
-  //
-  // Lined up, that start is wrong by as much as the ship cut inside the funnel
-  // on the way in. Measured, it is 130 units. What the ship wants there is the
-  // nearest point of the path it is on.
+  // What is decided HERE is the blend. Lined up, the path's own start is wrong
+  // by as much as the ship cut inside the funnel on the way in. Measured, it is
+  // 130 units.
   //
   // Neither can simply replace the other. A NEAREST-POINT projection is what
   // the textbook says. It swaps for a ship deep inside the funnel, which is

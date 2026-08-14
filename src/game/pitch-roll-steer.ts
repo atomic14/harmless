@@ -190,8 +190,7 @@ export function bankToTurn(
  *
  * A roll of `r` about the ship's own +Z carries local +X toward local +Y. So
  * the error is just where `wanted` sits in that pair. It is folded to a QUARTER
- * TURN either way. A letterbox takes a ship upside down as happily as the right
- * way up, so a 180-degree roll to prefer one of them buys nothing.
+ * TURN either way, and `rollErrorTo` below states why.
  *
  * It uses the same `STEER_SATURATION` band as the pitch and roll above. So the
  * whole controller asks for full stick at one angle rather than at three.

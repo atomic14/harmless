@@ -8,16 +8,18 @@
 // makes no noise, reads no clock and touches no DOM. `npm test` steps it under
 // node with no Hud at all.
 //
-// What is NOT here: the consequences that reach outside the sky — paying a
-// bounty, moving your legal status, writing the save, opening the station menu,
-// ending the run. Those are the Game's, asked for through `StepHost` (below),
-// which is a list of verbs rather than "the Game" so a test can implement it.
+// What is NOT here is the consequence that reaches outside the sky. A bounty
+// paid, a legal status moved, the save written, the station menu opened, the
+// run ended: those are the Game's. It asks for them through `StepHost` (below),
+// which is a list of verbs rather than "the Game", so a test can implement it.
 //
-// The order of the phases is load-bearing: ships move before they are
-// separated, are separated before they are billed, and the player's systems
-// recharge after everything that could have damaged them. So is the order of
-// every `random()` draw — the world replays byte-identically from a seed, and
-// moving a draw across a branch would change every seeded outcome (game/rng.ts).
+// The order of the phases is load-bearing. Ships move before they are
+// separated. They are separated before they are billed. The player's systems
+// recharge after everything that can damage them.
+//
+// So is the order of every `random()` draw. The world replays byte-identically
+// from a seed, so a draw moved across a branch changes every seeded outcome
+// (game/rng.ts).
 
 import * as THREE from 'three';
 
@@ -72,13 +74,14 @@ import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 /**
  * A warhead going off, as the 24-bit number the effects layer takes.
  *
- * The console's amber, reached rather than re-spelled: a detonation says the
- * same thing the target marker says and is drawn in the same colour, and it
- * was that value written out twice in this file (docs/TODO/93). The 0xff8866
- * a few lines below it is NOT the palette — a hit on the player has its own
- * hotter tint, owned here and nowhere else — which is the line between the
- * two: a value that IS the phosphor reaches for it, one that merely looks
- * like it stays put.
+ * The console's amber, reached rather than re-spelled. A detonation says the
+ * same thing the target marker says, and is drawn in the same colour. It was
+ * that value written out twice in this file (docs/TODO/93).
+ *
+ * The 0xff8866 a few lines below is NOT the palette. A hit on the player has
+ * its own hotter tint, owned here and nowhere else. That is the line between
+ * the two. A value that IS the phosphor reaches for it. A value that merely
+ * looks like it stays put.
  */
 const WARHEAD_FLASH = rgb24(HUD.amber);
 
@@ -165,12 +168,13 @@ export interface StepHost {
   /**
    * The player took a hit — shields, hull, the damage flash, and maybe death.
    *
-   * `damage` is finished `PlayerPoolPoints`: a laser has already met the hull's
-   * armour once (`gunnery.ts`) and everything else is a stated `IMPACT`
-   * (`constants/impact.ts`). The unit is branded, so nothing else can be passed.
+   * `damage` is finished `PlayerPoolPoints`. A laser already met the hull's
+   * armour once (`gunnery.ts`), and everything else is a stated `IMPACT`
+   * (`constants/impact.ts`). The unit is branded, so nothing else can be
+   * passed.
    *
-   * `source` is what did it — a static fact at each of the five calls below,
-   * where downstream it can only be guessed at from the number. See
+   * `source` is what did it. It is a static fact at each of the five calls
+   * below, where downstream it can only be guessed from the number. See
    * `DamageSource`.
    */
   applyPlayerDamage(
@@ -223,9 +227,9 @@ export class WorldStep {
   /**
    * The sky a fired shot is resolved against — see `fire-resolution.ts`.
    *
-   * Built once, but reading the STATE rather than a captured commander or
-   * player: both are replaced on respawn and restore, and a held reference
-   * would resolve shots against a commander who no longer exists.
+   * It is built once, but it reads the STATE rather than a captured commander
+   * or player. Both are replaced on a respawn and on a restore. A held
+   * reference would resolve shots against a commander who no longer exists.
    */
   private readonly fire: FireWorld;
 
@@ -243,8 +247,8 @@ export class WorldStep {
       target: {
         get hullId() { return state.commander.shipId; },
         get pos() { return state.player.position; },
-        // the one thing the game adds that an episode has no use for: which of
-        // the five sources it was, for the damage flash and the record.
+        // The one thing the game adds that an episode has no use for. It is
+        // which of the five sources it was, for the flash and the record.
         damage: (damage, from) => host.applyPlayerDamage(damage, from, 'laser'),
       },
       ordnance,
@@ -253,10 +257,10 @@ export class WorldStep {
   }
 
   /**
-   * One frame of flight, in five phases. Each is a method so this reads as an
-   * order of operations rather than a wall — and the order matters: ships move
-   * before they are separated, are separated before they are billed, and the
-   * player's systems recharge after everything that could have damaged them.
+   * One frame of flight, in five phases.
+   *
+   * Each phase is a method, so this reads as an order of operations rather than
+   * a wall. THE ORDER IS LOAD-BEARING, and the header above is its one home.
    */
   step(dt: number, elapsed: number, pilot: PilotInput): StepEvent[] {
     const out: StepEvent[] = [];
@@ -272,16 +276,18 @@ export class WorldStep {
   massLocked(): boolean { return massLocked(this.state); }
 
   /**
-   * The player's own motion: one demand, applied. The docking computer still
-   * steers on top (it asks for a HEADING, not a rate — the one pilot left
-   * outside the seam) and the torus adds its own translation.
+   * The player's own motion: one demand, applied.
+   *
+   * The docking computer still steers on top, because it asks for a HEADING
+   * rather than a rate. It is the one pilot left outside the seam. The torus
+   * adds its own translation.
    */
   private flyPlayer(dt: number, elapsed: number, pilot: PilotInput, out: StepEvent[]): void {
     const { player, session, world } = this.state;
-    // WHOSE demand. The docking computer produces one now (docs/TODO/126) — it
-    // used to write the quaternion after the fact — so it is decided before the
-    // ship flies rather than applied on top of it. When it hands the ship back
-    // mid-frame the pilot's own demand stands, exactly as before.
+    // WHOSE demand. The docking computer produces one now (docs/TODO/126). It
+    // used to write the quaternion after the fact. So the demand is decided
+    // before the ship flies, rather than applied on top of it. Where it hands
+    // the ship back mid-frame, the pilot's own demand stands, as before.
     const dc = session.dcEngaged ? this.dockingComputerStep(dt, pilot, out) : null;
     player.update(dt, dc ?? pilot.demand);
 
@@ -292,9 +298,9 @@ export class WorldStep {
         out.push(say('MASS LOCK — TORUS DISENGAGED', 3));
         out.push(heard('torusDropped'));
       } else {
-        // ONE LESS THAN THE MULTIPLIER, because `player.update()` above has
-        // already flown the ship its ordinary `speed * dt` this frame. Total
-        // travel is `TORUS_MULTIPLIER` times ordinary flight.
+        // ONE LESS THAN THE MULTIPLIER. `player.update()` above already flew
+        // the ship its ordinary `speed * dt` this frame. Total travel is
+        // `TORUS_MULTIPLIER` times ordinary flight.
         player.position.addScaledVector(
           player.getForward(this.tmp), player.speed * (TORUS_MULTIPLIER - 1) * dt);
       }
@@ -308,19 +314,20 @@ export class WorldStep {
    * throttle, which `PlayerShip.update` flies exactly as it flies a pair of
    * hands.
    *
-   * It steers and throttles only: the actual docking is still decided by
-   * `checkStation`'s slot and roll test, as it is when you fly in by hand. The
-   * autopilot has to genuinely thread the letterbox; it gets no dispensation.
+   * It steers and throttles only. `checkStation`'s slot and roll test still
+   * decides the dock itself, as it does when you fly in by hand. The autopilot
+   * has to genuinely thread the letterbox, and gets no dispensation.
    *
    * It used to write `player.quaternion` directly, through a shortest-arc slerp
-   * toward a `lookAt` orientation — a turn about an axis no stick can produce,
-   * which never wrote the rates the HUD reads and obeyed a turn limit of its
-   * own rather than the hull's (docs/TODO/126). `dockingSticks` decides which
-   * way to move each stick; the CAPS and the RAMP are the commander's own, and
-   * the ramp reads the ship's current rates, so a save taken mid-approach
-   * carries the manoeuvre rather than restarting it.
+   * toward a `lookAt` orientation. That is a turn about an axis no stick can
+   * produce. It never wrote the rates the HUD reads, and it obeyed a turn limit
+   * of its own rather than the hull's (docs/TODO/126).
    *
-   * @returns the demand, or null when it has just handed the ship back.
+   * `dockingSticks` decides which way to move each stick. The CAPS and the RAMP
+   * are the commander's own. The ramp reads the ship's current rates, so a save
+   * taken mid-approach carries the manoeuvre rather than restarts it.
+   *
+   * @returns the demand, or null where it just handed the ship back.
    */
   private dockingComputerStep(
     dt: number, pilot: PilotInput, out: StepEvent[],
@@ -335,10 +342,10 @@ export class WorldStep {
     const plan = planDocking(player.position, world.station, world.stationDockZ,
       player.maxSpeed, this.state.dockPlan);
     const sticks = dockingSticks(player.quaternion, plan, player.rollRate);
-    // Bang-bang on the throttle, with a deadband of one frame's thrust: a
-    // demand can only ask for full ahead, full astern or coast — that is all a
-    // throttle IS (player.ts) — so the plan's speed is held by cutting to coast
-    // inside the last frame's worth of it rather than by a gain of its own.
+    // Bang-bang on the throttle, with a deadband of one frame's thrust. A
+    // demand can only ask for full ahead, full astern or coast, because that is
+    // all a throttle IS (player.ts). So the plan's speed is held by a cut to
+    // coast inside the last frame's worth of it, rather than by a gain.
     const gap = plan.speed - player.speed;
     const band = PLAYER_FLIGHT.accel * dt;
     return {
@@ -367,14 +374,14 @@ export class WorldStep {
       assignNpcTargets(world.npcs, player.position, s.commander.legalStatus);
     }
 
-    // Snapshot: despawns and destructions below rebuild world.npcs, and the
-    // fleet handed to update() should be consistent for every ship in the frame
-    // rather than shrinking underneath the loop.
+    // Snapshot. The despawns and destructions below rebuild world.npcs. The
+    // fleet handed to update() must be the same for every ship in the frame,
+    // rather than shrink underneath the loop.
     //
-    // `missileInbound` is read here, ONCE, for the same reason: it is the
-    // one-in-the-air cap, and asking the ordnance per ship instead would let
-    // the first launcher in a frame silence the rest of the gang within that
-    // frame. `test/missile-cap.test.ts` pins it.
+    // `missileInbound` is read here, ONCE, for the same reason. It is the
+    // one-in-the-air cap. A read of the ordnance per ship would let the first
+    // launcher in a frame silence the rest of the gang inside that frame.
+    // `test/missile-cap.test.ts` pins it.
     const view: WorldView = {
       station: world.station,
       dockZ: world.stationDockZ,
@@ -401,10 +408,10 @@ export class WorldStep {
       }
     }
 
-    // Ships are solid. The geometry lives in collisions.ts; what it costs is
-    // decided here, because the price is not symmetric — the player's shields
-    // absorb a ram, two NPCs bumping must not credit the player, and bouncing
-    // off the station is free.
+    // Ships are solid. The geometry lives in collisions.ts, and what it costs
+    // is decided here, because the price is not symmetric. The player's shields
+    // absorb a ram. Two NPCs that bump must not credit the player. A bounce off
+    // the station is free.
     //
     // A RAM costs each side its own stated number of its own points
     // (`IMPACT.ram`). Neither meets armour: armour is a laser's business.
@@ -468,8 +475,8 @@ export class WorldStep {
   /** Cargo, missiles, and the things that are only ever seen. */
   private stepProjectilesAndEffects(dt: number, out: StepEvent[]): void {
     const { world, player, commander } = this.state;
-    // The field drifts them and says what we reached; what it is worth is
-    // ours to decide, because it touches the hold, legal status and damage.
+    // The field drifts them and says what we reached. What it is worth is ours
+    // to decide, because it touches the hold, the legal status and damage.
     for (const { canister: c } of world.cargo.update(dt, player.position)) {
       if (!commander.equipment.scoops) {
         // The same accident either way — no scoops, so it breaks on the hull —
@@ -544,9 +551,9 @@ export class WorldStep {
   private stepShipSystems(dt: number, demand: FlightDemand, out: StepEvent[]): boolean {
     const s = this.state;
     const { commander, session, sys, player, world } = s;
-    // laser + systems. The trigger came in with the rest of the demand — from
-    // the hands, the combat computer, or both — and is pulled HERE because
-    // this is where the gun's heat and energy live.
+    // Laser and systems. The trigger came in with the rest of the demand, from
+    // the hands, the combat computer, or both. It is pulled HERE, because this
+    // is where the gun's heat and energy live.
     if (demand.fire) this.host.fireLaser();
     regenerate(sys, dt,
       { shipId: commander.shipId, energyUnit: commander.equipment.energyUnit });
@@ -581,18 +588,19 @@ export class WorldStep {
     if (s.ecmDetectedTimer > 0) s.ecmDetectedTimer -= dt;
     this.updateTrumbles(dt, out);
 
-    // The tow, once it has been called for. What used to sit on the other side
-    // of this branch — a repeating NO FUEL TO JUMP — PRESS B hint — is now a
-    // cockpit prompt (`game/prompts.ts`, docs/TODO/128): being stranded is a
-    // situation, not an event, and the letter B belonged to the binding table
-    // rather than to a string in here.
+    // The tow, once somebody calls for it.
+    //
+    // A repeating NO FUEL TO JUMP hint used to sit on the other side of this
+    // branch. It is a cockpit prompt now (`game/prompts.ts`, docs/TODO/128). To
+    // be stranded is a situation rather than an event, and the letter belonged
+    // to the binding table rather than to a string in here.
     if (session.beaconTimer > 0) {
       session.beaconTimer -= dt;
       if (session.beaconTimer <= 0) this.host.completeRescue();
     }
 
-    // flashing low-energy warning — `energyLow` and nothing else, so the console
-    // cannot be quiet at a bank the shields have already stopped recovering at
+    // The low-energy warning flashes on `energyLow` and nothing else. So the
+    // console cannot be quiet at a bank the shields stopped recovering at.
     if (energyLow(sys.energy)) {
       session.energyLowTimer -= dt;
       if (session.energyLowTimer <= 0) {
@@ -602,26 +610,27 @@ export class WorldStep {
       }
     }
 
-    // police scan for illegal cargo, and the telegraph that opens a window
-    // before it. One block: they are the same geometry — the nearest live
-    // police ship — read at two ranges, and the scan must win the frame it
-    // fires on rather than being announced as still coming.
+    // The police scan for illegal cargo, and the telegraph that opens a window
+    // before it. ONE block, because they are the same geometry: the nearest
+    // live police ship, read at two ranges. The scan must win the frame it
+    // fires on, rather than be announced as still to come.
     let copInBand = false;
     if (!session.policeScanned && !session.witchspace
       && carryingContraband(commander.cargo)) {
       const nearest = nearestNpc(world.npcs, player.position,
         (npc) => npc.role === 'police')?.distance ?? Infinity;
-      // `patrolReach` (law.ts) owns both ranges, because the bribe key reads the
-      // same window: an offer that disagreed with the warning that prompted it
-      // would be a key that does nothing while the console says a cop is there.
+      // `patrolReach` (law.ts) owns both ranges, because the bribe key reads
+      // the same window. An offer that disagreed with the warning that prompted
+      // it would be a key that does nothing while the console says a cop is
+      // there.
       const reach = patrolReach(nearest);
       if (reach === 'scan') {
         session.policeScanned = true;
-        // ...which queues what the record now means, behind the line below that
-        // explains it: police hunt Fugitives, so the Viper that reads your hold
-        // flies on and a conviction looks from the cockpit exactly like nothing
-        // happening. That verdict used to be written out here too, and it is
-        // `raiseLegal`'s one job now (docs/TODO/130).
+        // ...which queues what the record now means, behind the line below
+        // that explains it. Police hunt Fugitives, so the Viper that reads your
+        // hold flies on. A conviction then looks from the cockpit exactly like
+        // nothing at all. That verdict used to be written out here too, and it
+        // is `raiseLegal`'s one job now (docs/TODO/130).
         this.host.raiseLegal(OFFENDER);
         // caught smuggling: the fine clears, but the name does not
         const was = commander.disrepute ?? 0;
@@ -644,9 +653,9 @@ export class WorldStep {
         out.push(say('POLICE PATROL CLOSING', SCAN_WARN_REPEAT / 2));
       }
     } else {
-      // out of the band, already scanned, jumping, or a clean hold: re-armed,
-      // so the next patrol to close is announced on the frame it does rather
-      // than after the remains of a countdown that has stopped meaning anything
+      // Out of the band, already scanned, in a jump, or a clean hold. It is
+      // re-armed, so the next patrol to close is announced on the frame it
+      // does. Otherwise the remains of a countdown announce it late.
       session.scanWarnTimer = 0;
     }
 
@@ -748,8 +757,8 @@ export class WorldStep {
         }
         if (dist < 320 && player.speed < 40 && this.host.inFlight() && !session.hermitCooldown) {
           // A hermit-killer gets as far as the tunnel mouth and no further
-          // (docs/TODO/96). The cooldown is what the trade path sets on the way
-          // out, and it does the same job here: say it once, and make them
+          // (docs/TODO/96). The cooldown is what the trade path sets on the
+          // way out, and it does the same job here. Say it once. Make them
           // leave and come back to hear it again.
           if (hermitRefuses(this.state.commander.disrepute ?? 0)) {
             session.hermitCooldown = true;
@@ -767,14 +776,15 @@ export class WorldStep {
   }
 
   /**
-   * An NPC asked to fire. `fire-resolution.ts` rolls the dice; this is what a
-   * shot LOOKS and SOUNDS like, which is the half an episode does not have: the
-   * bolt, the bang, and `npcFired` for whoever is counting.
+   * An NPC asked to fire. `fire-resolution.ts` rolls the dice.
+   *
+   * This is what a shot LOOKS and SOUNDS like, which is the half an episode
+   * does not have. It is the bolt, the bang, and `npcFired` for the counter.
    */
   private resolveNpcFire(npc: NpcShip, event: FireEvent, out: StepEvent[]): void {
     const { world, player } = this.state;
-    // Reported before anything is resolved, and before any draw — the report
-    // wants the shot whether or not it lands, and moving a `random()` across a
+    // Reported before anything is resolved, and before any draw. The report
+    // wants the shot whether or not it lands. A `random()` moved across a
     // branch would change every seeded outcome after it (game/rng.ts).
     out.push({
       kind: 'npcFired', npc, weapon: event.weapon, atPlayer: event.at === 'player',
@@ -785,10 +795,11 @@ export class WorldStep {
       return;
     }
     if (shot.at === 'target') {
-      // Placed at the SHIP THAT FIRED, not at the bolt (docs/TODO/142). This
-      // branch is the only one that makes a noise — an NPC shooting another NPC
-      // draws a tracer and says nothing — so the sound already means "someone is
-      // shooting at YOU", and the beam always ends on the hull. The place says
+      // Placed at the SHIP THAT FIRED, and not at the bolt (docs/TODO/142).
+      // This branch is the only one that makes a noise. An NPC that shoots
+      // another NPC draws a tracer and says nothing. So the sound already means
+      // "someone is shooting at YOU", and the beam always ends on the hull. The
+      // place says
       // which side it came from. `audio.ts` is where it stays at full gain.
       out.push(heard('enemyLaser', npc.object.position.clone()));
       // The visible bolt: to us on a hit, wide of us on a miss. The scatter is
@@ -810,10 +821,11 @@ export class WorldStep {
   /**
    * Ordnance reports what it did; saying it is ours.
    *
-   * `m.offer` is deliberately dropped: a message's key is rendered from the
-   * binding table and the step may not reach `ui/` (tools/portability.mjs). The
-   * only reply that carries one is `alreadyLocked`, which comes from the
-   * player's own arm key through game.ts and never through here — the step's
+   * `m.offer` is deliberately dropped. A message's key is rendered from the
+   * binding table, and the step may not reach `ui/` (tools/portability.mjs).
+   *
+   * The only reply that carries one is `alreadyLocked`. It comes from the
+   * player's own arm key through game.ts, and never through here. The step's
    * replies are NPC ordnance.
    */
   private reply(result: OrdnanceOutcome, out: StepEvent[]): void {
