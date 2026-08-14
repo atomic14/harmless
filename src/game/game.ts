@@ -105,8 +105,9 @@ import { CombatComputer } from './combat-computer.ts';
 import { Autopilot, type AutopilotEvent } from './autopilot.ts';
 import type { SoundEvent } from './sounds.ts';
 import {
-  commandsFor, globalCommands, WHILE_PAUSED, type Command, type ControlMode,
+  commandsFor, globalCommands, type Command, type ControlMode,
 } from './controls.ts';
+import { WHILE_PAUSED } from './bindings.ts';
 import {
   Ordnance, ordnanceMessage, fireEcm,
   type OrdnanceOutcome,

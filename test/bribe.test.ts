@@ -34,7 +34,9 @@ import {
 } from '../src/constants/character.ts';
 import { VALUE_PER_TONNE } from '../src/constants/jettison.ts';
 import { COMMODITIES } from '../src/galaxy/galaxy.ts';
-import { NOT_IN_THE_SIMULATOR } from '../src/game/controls.ts';
+import {
+  NOT_IN_THE_SIMULATOR,
+} from '../src/game/bindings.ts';
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 
 const NARCOTICS = CONTRABAND[1];

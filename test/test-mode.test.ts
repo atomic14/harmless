@@ -22,7 +22,9 @@ import { buyEquipment, type TradeContext } from '../src/game/screens/trade.ts';
 import { EQUIPMENT_CATALOGUE } from '../src/constants/shop.ts';
 import { characterName } from '../src/game/character.ts';
 import { isHostileToPlayer } from '../src/game/npc.ts';
-import { BINDINGS } from '../src/game/controls.ts';
+import {
+  BINDINGS,
+} from '../src/game/bindings.ts';
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 import { commanderOf, fileId } from '../src/game/save-file.ts';
 import { makeRecord, readSave, writeSave } from '../src/game/storage.ts';

@@ -17,7 +17,9 @@
 import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { QuitScreen, type QuitContext } from '../src/game/screens/quit.ts';
-import { BINDINGS, NOT_IN_THE_SIMULATOR, WHILE_PAUSED } from '../src/game/controls.ts';
+import {
+  BINDINGS, NOT_IN_THE_SIMULATOR, WHILE_PAUSED,
+} from '../src/game/bindings.ts';
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { commanderOf, dockId, flightIds, type SaveSummary } from '../src/game/save-file.ts';

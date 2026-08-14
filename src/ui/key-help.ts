@@ -14,8 +14,11 @@
 // the end. No rule is read from it and nothing branches on what it returns.
 
 import {
-  BINDINGS, GLOBAL_BINDINGS, type Binding, type Command, type ControlMode,
+  type Binding, type Command, type ControlMode,
 } from '../game/controls.ts';
+import {
+  BINDINGS, GLOBAL_BINDINGS,
+} from '../game/bindings.ts';
 import { COMMAND_HELP, type HelpSection } from '../game/command-help.ts';
 import { elementById } from '../engine/inert-dom.ts';
 

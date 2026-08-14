@@ -19,8 +19,11 @@ import { readFileSync } from 'node:fs';
 
 import { check, eq, cmds, eqc } from './harness.ts';
 import {
-  BINDINGS, NOT_IN_THE_SIMULATOR, type Command, type ControlMode,
+  type Command, type ControlMode,
 } from '../src/game/controls.ts';
+import {
+  BINDINGS, NOT_IN_THE_SIMULATOR,
+} from '../src/game/bindings.ts';
 import { newCommander } from '../src/game/commander.ts';
 import { MAX_MISSILES } from '../src/constants/commander.ts';
 import {

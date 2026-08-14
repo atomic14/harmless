@@ -25,9 +25,11 @@
 
 import { readFileSync } from 'node:fs';
 import {
-  BINDINGS, GLOBAL_BINDINGS, commandsFor,
-  type Binding, type Command, type ControlMode,
+  commandsFor, type Binding, type Command, type ControlMode,
 } from '../src/game/controls.ts';
+import {
+  BINDINGS, GLOBAL_BINDINGS,
+} from '../src/game/bindings.ts';
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import {

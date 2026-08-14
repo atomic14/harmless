@@ -26,7 +26,9 @@ import { flightPrompts, type PromptWorld } from '../src/game/prompts.ts';
 import { inspectionPrice, patrolPrice } from '../src/game/law.ts';
 import { formatCredits } from '../src/game/commander.ts';
 import { keyIfBound } from '../src/ui/key-help.ts';
-import { BINDINGS } from '../src/game/controls.ts';
+import {
+  BINDINGS,
+} from '../src/game/bindings.ts';
 import { CONTRABAND, SCAN_RANGE, SCAN_WARN_RANGE } from '../src/constants/law.ts';
 import { PROMPT_LIMIT } from '../src/constants/console.ts';
 import { DISREPUTE_BRIBE } from '../src/constants/character.ts';

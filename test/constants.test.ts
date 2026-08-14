@@ -381,7 +381,7 @@ const OUTSIDE: readonly Group[] = [
       'ui/screens.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES', 'LEVERS_OFF'],
       'ui/key-help.ts': ['LABELS', 'ALL_BINDINGS'],
       'game/command-help.ts': ['COMMAND_HELP'],
-      'game/controls.ts': [
+      'game/bindings.ts': [
         'GLOBAL_BINDINGS', 'FLIGHT_BINDINGS', 'NOT_IN_THE_SIMULATOR', 'BINDINGS',
         'WHILE_PAUSED',
       ],

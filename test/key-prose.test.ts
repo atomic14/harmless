@@ -19,7 +19,9 @@
 // GENERATED surface.
 
 import { readdirSync, readFileSync } from 'node:fs';
-import { BINDINGS } from '../src/game/controls.ts';
+import {
+  BINDINGS,
+} from '../src/game/bindings.ts';
 import { ordnanceMessage } from '../src/game/ordnance.ts';
 import { ALL_BINDINGS, keyIfBound, keyLabel } from '../src/ui/key-help.ts';
 import { check, eq } from './harness.ts';

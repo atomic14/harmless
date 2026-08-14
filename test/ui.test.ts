@@ -11,8 +11,11 @@ import { defendShaped } from './fixtures.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { ScreenHost, type Screen, type ScreenOutcome } from '../src/ui/screen-host.ts';
 import {
-  globalCommands, BINDINGS, GLOBAL_BINDINGS, type ControlMode,
+  globalCommands, type ControlMode,
 } from '../src/game/controls.ts';
+import {
+  BINDINGS, GLOBAL_BINDINGS,
+} from '../src/game/bindings.ts';
 import { renderDockedMenu } from '../src/ui/screens.ts';
 import { capture } from './screen-capture.ts';
 import { Autopilot, type AutopilotEvent } from '../src/game/autopilot.ts';
