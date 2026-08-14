@@ -35,7 +35,6 @@ import { LivingGalaxy, prewarm } from '../galaxy/living.ts';
 import { generateContractOffers } from './contract-offers.ts';
 import { acceptContract, settleContracts, contractMessage, type ContractEvent } from './contracts.ts';
 import { hermitMarket } from './market.ts';
-import { pirateThreat, markOf } from './threat.ts';
 import { createStarfield, SpaceDust } from '../world/starfield.ts';
 import { type FlightDemand } from '../player.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
@@ -56,15 +55,13 @@ import type { PlayerPoolPoints } from './damage-units.ts';
 import { defenceBrain } from './brains.ts';
 import { defenceBrainNameFor } from './brain-names.ts';
 import { type NpcSpec } from './ship-specs.ts';
-import { specsForSet } from './set-roster.ts';
-import { blueprintRandomBits, blueprintSetFor } from './blueprint-set.ts';
+
 import { type NpcRole } from './ship-roles.ts';
-import { spawnPopulation } from './spawning.ts';
+
 import { dumpCargo, dumpContraband } from './jettison.ts';
 import { Combat, BEAM_FLASH, firePlayerLaser, damagePlayer, type CombatEvent, type DamageSource } from './combat.ts';
 import { CombatInstrumentation, type CombatObserver } from './instrumentation.ts';
 import { checkJump, resolveJump, refusalMessage, checkGalacticJump, resolveGalacticJump, galacticRefusalMessage } from './hyperspace.ts';
-import { constrictorLurksHere, missionBlueprintOverride } from './missions.ts';
 import { WorldStep, massLocked, type StepEvent, type StepHost } from './world-step.ts';
 import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
 import { WITCHPOINT_RADII } from '../constants/planet.ts';
@@ -80,10 +77,11 @@ import { Station, type DockArrival, type StationHost, type StationEvent } from '
 import { CombatSim, type ExerciseFit, type SimHost } from './combat-sim.ts';
 import type { CombatSimReport } from './combat-sim-report.ts';
 import type { ExerciseSpec } from './combat-sim-scenarios.ts';
-import { planPopulation } from './population.ts';
+
 import { CombatComputer } from './combat-computer.ts';
 import { Autopilot, type AutopilotEvent } from './autopilot.ts';
 import { LawActions, type LawHost } from './law-actions.ts';
+import { WorldBuild, type WorldBuildHost } from './world-build.ts';
 import type { SoundEvent } from './sounds.ts';
 import { commandsFor, globalCommands, type Command, type ControlMode } from './controls.ts';
 import { WHILE_PAUSED } from './bindings.ts';
@@ -91,8 +89,7 @@ import { Ordnance, ordnanceMessage, fireEcm, type OrdnanceOutcome } from './ordn
 import { AIM_ASSIST, LASER_RANGE } from '../constants/player-gun.ts';
 import { hitCone } from './gunnery.ts';
 import { freshTimers } from './encounters.ts';
-import { THARGON_REDEPLOY } from '../constants/encounters.ts';
-import { THARGOID_AMBUSH_EXTRA_CHANCE, THARGOID_AMBUSH_MIN, THARGOID_AMBUSH_RANGE, THARGOID_AMBUSH_RANGE_SPAN, WITCHSPACE_ENTRY_SPEED } from '../constants/witchspace.ts';
+
 import { breachLoss } from './systems.ts';
 import { SavesScreen, checkpointSummary, type SavesContext } from './screens/saves.ts';
 import { SavePromptScreen, NamingScreen } from './screens/save-naming.ts';
@@ -462,6 +459,35 @@ export class Game {
   } satisfies LawHost);
 
   /**
+   * Building the sky and filling it (docs/TODO/150 M2).
+   *
+   * Five host methods, and none of them is a rule: the console, the two pieces
+   * of cockpit furniture a new system changes, the sound, and where we are.
+   */
+  private readonly world_ = new WorldBuild(this.state, {
+    showMessage: (text, seconds) => this.showMessage(text, seconds),
+    setSystem: (sys) => this.hud.setSystem(sys),
+    startTunnel: (seconds) => this.tunnel.start(seconds),
+    hyperspaceSound: () => sfx.hyperspace(),
+    system: () => this.system,
+  } satisfies WorldBuildHost);
+
+  /** Build the scene for the system we are standing in. */
+  buildWorld(): void { this.world_.buildWorld(); }
+
+  /** Mis-jump limbo: the sky is banished and the Thargoids arrive. */
+  enterWitchspace(): void { this.world_.enterWitchspace(); }
+
+  /** @internal — a harness hook; the world owns the spawn. */
+  spawnNpc(role: NpcRole, position: THREE.Vector3, seed: number, spec?: NpcSpec): NpcShip {
+    return this.world_.spawnNpc(role, position, seed, spec);
+  }
+
+  private populateSystem(situation: 'launch' | 'arrival'): void {
+    this.world_.populateSystem(situation);
+  }
+
+  /**
    * The record moves. @internal — driven by test/playtest.js, which calls it by
    * name, so it stays on the Game rather than becoming a reach through `law_`.
    */
@@ -655,7 +681,7 @@ export class Game {
 
     // A boot enters a system too, so it chooses a roster like any arrival. A
     // resume below overwrites it with the one the save was taken under.
-    this.chooseBlueprintSet();
+    this.world_.chooseBlueprintSet();
     this.buildWorld();
     // Resume mid-flight if the last session ended there; otherwise the
     // station, as Elite always did.
@@ -779,130 +805,6 @@ export class Game {
   buyEquipment(id: string): void { buyEquipment(id, this.tradeContext()); }
 
   // --- world lifecycle -----------------------------------------------------
-
-  /** @internal — driven by test/playtest.js */
-  buildWorld(): void {
-    this.state.world.build(this.system, specsForSet(this.state.session.blueprintSet || null));
-    this.hud.setSystem(this.system);
-  }
-
-  /**
-   * Which of the 23 released blueprint sets this system flies, drawn once.
-   *
-   * ONE DRAW, AT ARRIVAL, AND THEN IT IS STATE. Bits 2-3 of the source's number
-   * are a coin it flipped on entry, and invariant 11 puts all world chance on
-   * the one seeded stream — so the draw happens here, where `arriveInSystem` has
-   * just seeded that stream from where and when you are, and the letter is kept
-   * in `session` where a save carries it (invariant 12).
-   *
-   * HARMLESS CHOOSES ON ARRIVAL ONLY, and the released game also reloaded on a
-   * launch from a station. The difference is that Harmless does not tear the
-   * system down when you dock — the world you launch into is the world you
-   * docked out of, ships and all — so there is no second entry to choose at. A
-   * roster that changed while the sky did not would be a worse answer than the
-   * faithful one. An override the mission raises WHILE YOU ARE DOCKED therefore
-   * takes effect at the next arrival: the courier orders come at a dock, and the
-   * system you are standing in does not restock its sky because you accepted
-   * them.
-   *
-   * THE OVERRIDE IS NAMED HERE AND DECIDED IN TWO PLACES. `blueprint-set.ts`
-   * takes one and never works one out, `missions.ts` owns the two mission
-   * stages, and witch-space is the Game's own flag. Limbo is asked first,
-   * because a mis-jump on the hunting leg is still limbo — the Constrictor waits
-   * in a system, and this is not one.
-   */
-  private chooseBlueprintSet(): void {
-    const override = this.state.session.witchspace
-      ? 'thargoid' as const : missionBlueprintOverride(this.state.commander);
-    // NO DRAW BEHIND AN OVERRIDE. `blueprintSetFor` does not consult the number
-    // when one is in force, so the 0 below is never read, and a draw made to
-    // fill it would spend the seeded stream on a value nothing reads — and would
-    // move the Thargoid ambush `enterWitchspace` rolls two lines after this.
-    const bits = override === null ? blueprintRandomBits(random()) : 0;
-    this.state.session.blueprintSet = blueprintSetFor(
-      this.system, this.state.commander.galaxy, bits, override);
-  }
-
-  /**
-   * Witch-space: mis-jump limbo. We reuse the system scene but banish the
-   * planet, station and sun beyond reach — just stars, and Thargoids.
-   *
-   * The set is chosen again here, and it is the released override: limbo flies
-   * one of the two blueprint files that carry Thargoids. Which of the two is the
-   * tech level of the system the mis-jump left you standing in, because a
-   * mis-jump does not move `commander.systemIndex` — the target is retained for
-   * the escape jump and nothing else.
-   */
-  /** @internal — driven by test/playtest.js */
-  enterWitchspace(): void {
-    this.state.session.witchspace = true;
-    // The flag first, then the set, then the world that is built with it.
-    this.chooseBlueprintSet();
-    this.buildWorld();
-    this.state.world.banishScenery();
-    this.state.player.position.set(0, 0, 0);
-    this.state.player.speed = WITCHSPACE_ENTRY_SPEED;
-    const n = THARGOID_AMBUSH_MIN + (random() < THARGOID_AMBUSH_EXTRA_CHANCE ? 1 : 0);
-    for (let i = 0; i < n; i++) {
-      this.state.world.spawn('thargoid',
-        randomDirection(new THREE.Vector3())
-          .multiplyScalar(THARGOID_AMBUSH_RANGE + random() * THARGOID_AMBUSH_RANGE_SPAN), i);
-    }
-    this.state.encounterTimers.thargon = THARGON_REDEPLOY;
-    sfx.hyperspace();
-    this.tunnel.start(1.1);
-    this.showMessage('WITCH-SPACE — THARGOID AMBUSH', 6);
-  }
-
-  /** @internal — driven by test/playtest.js */
-  spawnNpc(role: NpcRole, position: THREE.Vector3, seed: number, spec?: NpcSpec): NpcShip {
-    return this.state.world.spawn(role, position, seed, spec);
-  }
-
-  /**
-   * Station space is policed: launching only meets legitimate traffic.
-   * Arriving from hyperspace drops pirates along the corridor to the station.
-   *
-   * The rules are in population.ts, the placement in spawning.ts. This is the
-   * wiring plus the consequences — the arrival bookkeeping that jettisonCargo
-   * later reads, and the two announcements.
-   */
-  private populateSystem(situation: 'launch' | 'arrival'): void {
-    const sys = this.system;
-    const plan = planPopulation(
-      sys, situation,
-      this.state.living.imminentArrivals(sys.index).length,
-      // Pirates are businesses: lawlessness and the living galaxy set how many
-      // are out here, but what you're visibly worth sets who they are and
-      // whether they bothered to organise.
-      situation === 'arrival'
-        ? pirateThreat(sys, this.state.living.danger(sys.index),
-          markOf(this.state.commander, this.state.living.notoriety(sys.index)))
-        : null,
-    );
-
-    const constrictorHere = situation === 'arrival' && constrictorLurksHere(this.state.commander);
-
-    const built = spawnPopulation(
-      this.state.world, plan, sys, this.state.player.position, constrictorHere, situation);
-
-    if (plan.threat) {
-      this.state.lastThreat = plan.threat;
-      this.state.session.jettisonedValue = 0;
-      this.state.session.arrivalCargoValue = markOf(this.state.commander).cargoValue;
-      // The carrot half of a bad name (docs/TODO/96): somebody out there
-      // recognised it and called the reception off. Said aloud, because a
-      // reception that never forms is otherwise indistinguishable from a quiet
-      // system and the player would never learn the rule.
-      if (plan.threat.passed) {
-        this.showMessage('PIRATE CHANNEL: "LEAVE THAT ONE"', 4);
-      }
-    }
-    if (built.generationShip) this.state.session.genShipSeen = false;
-    if (built.missionTarget) {
-      this.showMessage('SCANNER: UNREGISTERED PROTOTYPE DETECTED', 5);
-    }
-  }
 
   // --- mode transitions ----------------------------------------------------
 
@@ -1173,7 +1075,7 @@ export class Game {
     this.state.systems = generateGalaxy(this.state.commander.galaxy);
     this.state.living = new LivingGalaxy(this.state.systems);
     this.loadOrWarmGalaxy();
-    this.chooseBlueprintSet();
+    this.world_.chooseBlueprintSet();
     this.buildWorld();
     // 'fresh', not 'resumed': there was no checkpoint to come back to, so
     // nothing has stocked this station and `bootCommander` brought no market.
@@ -1323,7 +1225,7 @@ export class Game {
       ^ (this.state.commander.systemIndex << 8) ^ this.state.commander.day);
     this.state.session.witchspace = false; // any arrival leaves witch-space (incl. galactic jump)
     // Before the world is built, because the roster it is built with is this.
-    this.chooseBlueprintSet();
+    this.world_.chooseBlueprintSet();
     this.buildWorld();
     // Arrive at the witchpoint, well out — the classic long torus cruise in.
     // Bearing is biased to the station's side of the planet (~30° cone) so
