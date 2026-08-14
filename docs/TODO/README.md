@@ -13,17 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [151 — Twenty-one comments name a caller that does not
-   exist](151-twenty-one-comments-name-a-caller-that-does-not-exist.md)
-   · defect · small.
-2. [150 — The orchestrator and its children](150-the-orchestrator-and-its-children.md)
+1. [150 — The orchestrator and its children](150-the-orchestrator-and-its-children.md)
    · refactor · large.
-3. [152 — The map at the top of game.ts is out of
+2. [152 — The map at the top of game.ts is out of
    date](152-the-map-at-the-top-of-game-ts-is-out-of-date.md) · defect · small.
-4. [153 — A rule explained where the rule does not
+3. [153 — A rule explained where the rule does not
    live](153-a-rule-explained-where-the-rule-does-not-live.md) · refactor ·
    medium.
-5. [154 — The comments in src/ are not in Simplified Technical
+4. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
@@ -32,13 +29,8 @@ they in ASD-STE100 and are they useful — we don't need comments that contain t
 whole history of the project. Comments should help explain the code."* The
 review measured `game.ts`, and then the tree. **The comments are not
 restatement** — one bare restatement exists in 2,020 lines — so none of the four
-items cuts prose to make a file shorter. Each answers a different fault.
-
-**151 goes ahead of 150, and the reason is measured.** Thirty-one members claim
-*"driven by test/playtest.js"* and twenty-one of them are false; that file calls
-eleven methods. Five of the false claims already sit in `law-actions.ts` and
-`world-build.ts`, because 150 M1 and M2 each copied one into a new file. **Every
-further milestone of 150 copies more**, so the sweep and its gate go first.
+items cuts prose to make a file shorter. Each answers a different fault. **151
+landed on 2026-08-14** and is below.
 
 **152 and 153 wait for 150 to finish**, because 150 keeps moving the boundary
 that 152 describes and the code that 153's paragraphs travel with. **153 blocks
@@ -59,10 +51,12 @@ areas already HAVE a rules module, because `law.ts`, `persistence.ts`,
 this file. What is left is the ORCHESTRATION, so the cut is to move the handlers
 out beside the rules they spend.
 
-**Three milestones landed on 2026-08-14, and game.ts is 2,021 lines.** M1 took
+**Three milestones landed on 2026-08-14, and game.ts is 2,049 lines.** M1 took
 the law to `game/law-actions.ts`, M2 the sky to `game/world-build.ts`, and M3 the
-cockpit to `game/cockpit-view.ts`. **No milestone after M1 names its own
-successor**, and that is the programme's sharpest lesson rather than an
+cockpit to `game/cockpit-view.ts`. That left 2,021 lines. 151 then spent 28 of
+them on the reasons that twenty-one comments got wrong. **No milestone after M1
+names its own successor**, and that is the programme's sharpest lesson rather
+than an
 omission: 149 planned one chart file, measured 719 lines and found four subjects.
 M2 then measured the trainer that the plan HAD named and found the worst area in
 the file — 39 lines behind a twelve-method interface. M3 measured again and the
@@ -88,6 +82,47 @@ docs/TODO/135 argues against building avoidance for that, with the design bias
 recorded (wait, do not swerve) if the answer is yes anyway. 136 M4 is where it
 would go if it is ever wanted — the curve takes a plane as a parameter, so a path
 pushed off the traffic is still a path of the same shape.
+
+## What landed on 2026-08-14
+
+**151** — thirty-one members of `src/` said *"@internal — driven by
+test/playtest.js"*, and that file calls **eleven** of them. The claim was true
+once. The harness shrank away from it, and no gate joined the two files, so it
+could not fail. Both milestones landed in a day.
+
+**The split is the result, and the plan's third category came back empty.** The
+plan expected a screen or a context to justify three of the members. It does
+not: `commands` is `private readonly`, so the command table's calls are inside
+the class.
+
+| the reason the member is public | count |
+| --- | ---: |
+| the orchestrator reaches it | 5 |
+| a test drives it | 10 |
+| a screen or a context reaches it | 0 |
+| nothing outside the class reaches it | 6 |
+
+**The six are a second defect, and they are two kinds.** `Game.sellCargo` and
+`Game.generateContractOffers` have no caller at all. `raiseLegal`,
+`openHermitTrade`, `toggleCombatComputer` and `openSystemData` are reached by
+`stepHost` or by the command table, and both of those are private. A seventh
+finding sits inside the last one: `openSystemData` keeps a parameter it does not
+read, for a caller that does not exist. **Nothing is deleted.** `game.ts` is
+under active decomposition, so what to do about six members is 150's decision.
+
+**Three more of the same defect were in plain prose**, which neither the plan's
+list nor a gate of that form can see. `update` named `test/gang-trial.js`, and
+that file does not exist. `screens/trade.ts` said `test/playtest.js` drives
+`sellCargo`, and said it sets `selected` directly where it sets it through
+`g.marketSelected`.
+
+`tools/internal-claims.mjs` is in `npm run check`, and it reports **23 claims
+naming 28 files, 0 stale**. **It reads a comment RUN whole**, because a claim
+wraps — the line-at-a-time first draft found 22 of the 28 paths and dropped six
+in silence, which is precisely the failure the gate exists to end. A call must
+arrive as `.name(`, or the `law-actions.ts` claim would answer itself against
+`game.ts`'s own declaration of the same name. All three failure modes were
+proved. `npm run check` passes at 4,530 assertions.
 
 ## What the playtest is now for
 
