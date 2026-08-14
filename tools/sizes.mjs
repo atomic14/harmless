@@ -14,6 +14,14 @@
 // shape as the purity list and the seeded-rng exemptions, both of which have
 // held.
 //
+// THE ANSWER THIS GATE WANTS IS A SPLIT. The list below is for the file that
+// genuinely reads worse in pieces, and it is the last answer rather than the
+// second one. There is a third answer nobody should take: cut a comment until
+// the number falls. That leaves the file exactly as large and the reasoning
+// thinner, and `CLAUDE.md` forbids it. docs/TODO/148 is the worked example —
+// `game/controls.ts` was trimmed six times across three items and split zero
+// times, and the split it was avoiding took one commit.
+//
 // Run: node tools/sizes.mjs   (also `npm run sizes`, and part of `npm run check`)
 
 import { readdirSync, readFileSync } from 'node:fs';
@@ -106,7 +114,7 @@ const unlisted = over.filter((f) => !f.why);
 const debts = over.filter((f) => f.why?.startsWith('DEBT'));
 
 for (const f of over) {
-  const tag = f.why ? (f.why.startsWith('DEBT') ? 'DEBT ' : 'ok   ') : 'NEW  ';
+  const tag = f.why ? (f.why.startsWith('DEBT') ? 'DEBT ' : 'ok   ') : 'SPLIT';
   console.log(`${tag} ${String(f.n).padStart(5)}  ${f.path}`);
   if (f.why) console.log(`              ${f.why}`);
 }
@@ -114,9 +122,28 @@ console.log(`\n${over.length} files over ${LIMIT} lines · ${debts.length} known
   + ` · ${unlisted.length} unlisted`);
 
 if (unlisted.length) {
-  console.error(`\nFAIL: ${unlisted.length} file(s) over ${LIMIT} lines with no stated reason.`);
-  console.error('Split it, or add it to ALLOWED in tools/sizes.mjs saying why splitting');
-  console.error('would make the code worse. "It is long" is not a reason.');
+  console.error(`\nFAIL: ${unlisted.length} file(s) over ${LIMIT} lines with no stated reason.\n`);
+  for (const f of unlisted) console.error(`  ${f.path}  (${f.n} lines)`);
+  console.error(`
+SPLIT THE FILE. That is what this gate asks for.
+
+Look for the seam first. A file over the ceiling is usually two subjects that
+share one name. Common shapes: a grammar and the data it reads, a rule and the
+table that states it, or a second subject that arrived later and stayed.
+
+Then move one side out. Take every comment with the code it explains.
+
+DO NOT DELETE PROSE TO GET UNDER THE LINE. A shorter comment is not a smaller
+file. It is the same file with less of the reasoning that made it readable, and
+CLAUDE.md forbids it: "Never delete useful content only to fit that ceiling."
+See docs/TODO/148 for what that mistake looks like: one file trimmed six times
+across three items, and split zero times.
+
+An exemption is the LAST answer, not the second one. Add the file to ALLOWED in
+tools/sizes.mjs only when a split would make the code worse. Then say why, and
+be specific: name the two halves, and say what splitting them would break. This
+list is the review surface, so a vague reason costs the next reader real time.
+"It is long" is not a reason.`);
   process.exit(1);
 }
 console.log('no unlisted oversize files');
