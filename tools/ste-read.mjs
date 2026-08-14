@@ -143,8 +143,13 @@ export function runs(pieces) {
  *
  * No sentence of English starts with `node` or `npm`. A sentence ABOUT one of
  * them writes it in backticks, so this test cannot take a sentence away.
+ *
+ * The fifth is a table laid out in COLUMNS rather than in pipes, which several
+ * headers in `src/` use for an inventory. A run of three spaces inside a line
+ * is a column gap, and prose never has one, so the test is the gap rather than
+ * the subject. Leading indentation is not a gap.
  */
-const NOT_PROSE = /^\s*(?:\||```|-{3,}\s*$|={3,}\s*$|(?:Run:\s*)?(?:node|npm|\$)\s)/;
+const NOT_PROSE = /^\s*(?:\||```|-{3,}\s*$|={3,}\s*$|(?:Run:\s*)?(?:node|npm|\$)\s)|\S {3,}\S/;
 
 /**
  * The paragraphs of one run, each with the line it starts on.

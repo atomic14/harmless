@@ -88,6 +88,12 @@ assert.deepEqual(sentences('The E.C.M. and the bomb both fire.'),
 assert.deepEqual(said('// Run: node tools/ste.mjs   the whole of src/\n'
   + '//      node tools/ste.mjs --dirs   one row per directory'), []);
 
+// Nor is a table laid out in columns rather than in pipes. A run of three
+// spaces inside a line is a column gap, and prose never has one.
+assert.deepEqual(said('//   NPC laser -> the target     gunnery.ts  damageToPlayer'), []);
+assert.deepEqual(said('//   The ship docks at the station on its own.'),
+  ['The ship docks at the station on its own.']);
+
 // --- the reader: the exclusions ---------------------------------------------
 
 // A command in backticks is one word to a reader, so it is one word here. The

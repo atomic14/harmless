@@ -11,18 +11,20 @@
 //   observePack      17  ...plus where the nearest wingman is
 //   observePackWide  25  ...plus what that wingman is DOING
 //
-// A separate file from `policy.ts`: that file is the NETWORK and the GENOME —
-// what shape a brain is, how a forward pass runs, how a genome mutates and
-// widens — and this one is what fills the input vector. The two meet in exactly
-// two places: `ShipView`, which is what a caller fills in, and `observeFor`,
-// which is the one home for turning a brain's declared input count into an
-// encoder. Make that choice twice and the trainer can produce a genome the game
-// cannot fly — it has happened twice.
+// A separate file from `policy.ts`. That file is the NETWORK and the GENOME. It
+// says what shape a brain is, how a forward pass runs, and how a genome mutates.
+// This one is what fills the input vector.
 //
-// The vector helpers are this file's own arithmetic, NOT a second physics: they
-// are structural (V3 is `{x,y,z}`) on purpose — the encoders are handed
-// THREE.Vector3s by the game and plain objects by a harness, and must read both
-// without converting or allocating a scene graph to ask where a ship is pointing.
+// The two meet in exactly two places. `ShipView` is what a caller fills in.
+// `observeFor` is the one home for the choice of encoder from a brain's
+// declared input count. Make that choice twice, and the trainer can produce a
+// genome the game cannot fly. That happened twice.
+//
+// The vector helpers are this file's own arithmetic, and NOT a second physics.
+// They are structural (V3 is `{x,y,z}`) on purpose. The game hands the encoders
+// THREE.Vector3s, and a harness hands them plain objects. They must read both,
+// with no conversion, and with no scene graph allocated to ask where a ship
+// points.
 //
 // Erasable-TypeScript only — runs in Node via --experimental-strip-types.
 
@@ -60,11 +62,11 @@ function qRotate(q: Q4, p: V3): V3 {
 /**
  * The ship surface the encoders read — ALL of it, including the hull fraction
  * only `observePackWide` looks at. A type that describes what a function reads
- * must not omit a field it reads, so every field is declared here and the
- * callers fill a struct rather than reaching the encoders through a cast.
+ * must not omit a field it reads. So every field is declared here, and the
+ * callers fill a struct rather than reach the encoders through a cast.
  *
  * Both the game and the training scenarios adapt their THREE.js ships to it,
- * which costs nothing: THREE vectors and quaternions are structurally
+ * and that costs nothing. THREE vectors and quaternions are structurally
  * compatible with V3/Q4, so a view can point straight at a mesh's transform.
  */
 export interface ShipView {
@@ -73,41 +75,43 @@ export interface ShipView {
   speed: number;
   cls: { maxSpeed: number; turnRate: number; hp: number };
   /**
-   * Everything this ship has left, over everything it can hold — read by
-   * `observePackWide` (slot 24) and `observeDefend` (slot 13), which is
-   * deliberately the SAME expression in both: two encoders disagreeing about
-   * what "our own health" means is exactly the drift invariant 5 exists against.
+   * Everything this ship holds, over everything it can hold. `observePackWide`
+   * (slot 24) and `observeDefend` (slot 13) both read it, and it is deliberately
+   * the SAME expression in both. Two encoders that disagree about "our own
+   * health" are exactly the drift invariant 5 exists against.
    */
   hp: number;
   /**
    * The ENERGY BANK alone, over its own maximum — `observeDefend` slot 14.
    *
-   * Separate from `hp` because the two say different things and the defender
-   * needs both: `hp` is how hurt she is, the bank is what she DIES at (zero
-   * energy is destruction, `systems.ts` `applyDamage`), what the shields will
-   * not recover until it is out of its last quarter, and what a quarter of
-   * comes off every time she presses the E.C.M.
+   * It is separate from `hp`, because the two say different things and the
+   * defender needs both. `hp` is how hurt she is. The bank is three other
+   * things. It is what she DIES at, because zero energy is destruction
+   * (`systems.ts` `applyDamage`). It is what the shields will not recover until
+   * it is out of its last quarter. It is also what loses a quarter every time
+   * she presses the E.C.M.
    *
    * A ship with one pool rather than three (any NPC) writes its own health
    * fraction here as well, which is what its bank IS.
    */
   energy: number;
   /**
-   * A hostile warhead is in the air, homing on this ship — `observeDefend`
-   * slot 15, and the only reason to press the button on the head below.
+   * A hostile warhead is in the air, and it flies at this ship. It is
+   * `observeDefend` slot 15, and the only reason to press the button on the
+   * head below.
    *
-   * The world's answer, read once a frame, never the ship's guess: `Ordnance`
-   * caps a gang at one in the air precisely so one press stays a complete
-   * answer, and a policy that could see the sky per-decision instead of
-   * per-frame would be playing a different game from the one the cap describes.
+   * It is the world's answer, read once a frame, and never the ship's guess.
+   * `Ordnance` caps a gang at one in the air, precisely so one press stays a
+   * complete answer. A policy that saw the sky per decision rather than per
+   * frame would play a different game from the one the cap describes.
    */
   missileInbound: boolean;
   /**
    * Each shield FACE alone, 0..1 — `observeDefend` slots 27/28, from
    * `systems.ts`'s own `foreShieldLeft`/`aftShieldLeft` so the trainer and
    * the game cannot compute them differently. A ship with one pool rather
-   * than two faces (any NPC) writes its health fraction to both: its whole
-   * pool is the face it spends, whichever side the hit lands.
+   * than two faces (any NPC) writes its health fraction to both. Its whole pool
+   * is the face it spends, whichever side the hit lands on.
    */
   fore: number;
   aft: number;
@@ -120,13 +124,14 @@ export interface ShipView {
 /**
  * A view to write into, once, at construction.
  *
- * The callers each keep theirs for the life of the ship and refill it per
- * decision — a 10 Hz decision that allocated a scene-graph adaptor per NPC per
- * frame is exactly what these views exist to avoid. The arguments are the
- * fields a caller may treat as fixed for that ship, and for at least one of
- * them the fixedness is load-bearing rather than lazy: the combat computer
- * feeds the defence brain a threat speed of 280 forever, because that is the
- * only number it has ever been flown against (see combat-computer.ts).
+ * The callers each keep theirs for the life of the ship, and refill it per
+ * decision. A 10 Hz decision that allocated a scene-graph adaptor per NPC per
+ * frame is exactly what these views exist to avoid.
+ *
+ * The arguments are the fields a caller may treat as fixed for that ship. For
+ * at least one of them that is load-bearing rather than lazy. The combat
+ * computer feeds the defence brain a threat speed of 280 forever. That is the
+ * only number it was ever flown against (see combat-computer.ts).
  */
 export function shipView(maxSpeed = OBS_SPEED_SCALE, turnRate = 1, speed = 0): ShipView {
   return {
@@ -150,28 +155,30 @@ function fwdOf(s: ShipView): V3 {
 }
 
 /**
- * A distance, as every encoder reads one: log-decades over a 100-unit base,
- * floored at 50 and capped two decades up, normalized to 0..1 — so 100 units
- * is 0, 1,000 is 0.5 and 10,000 or more is 1.
+ * A distance, as every encoder reads one. It is log-decades over a 100-unit
+ * base, floored at 50 and capped two decades up, normalized to 0..1. So 100
+ * units is 0, 1,000 is 0.5, and 10,000 or more is 1.
  *
- * ONE HOME: slots 6 (target), 17 (nearest mate) and 19 (mate-to-target) all
- * read this, feeding different brains, so a moved floor or decade base cannot
- * silently change one genome's geometry. The 50/100/2 are what every shipped
- * brain was fitted at; `test/observation.test.ts` holds the three slots to one
- * rule.
+ * ONE HOME. Slots 6 (target), 17 (nearest mate) and 19 (mate-to-target) all
+ * read this, and they feed different brains. So a moved floor or decade base
+ * cannot silently change one genome's geometry. The 50/100/2 are what every
+ * shipped brain was fitted at, and `test/observation.test.ts` holds the three
+ * slots to one rule.
  */
 const logDistance = (d: number): number =>
   Math.min(2, Math.log10(Math.max(50, d) / 100)) / 2;
 
 /**
- * Observation, everything in the observer's ship frame so policies are
- * position/orientation invariant:
- *  0 speed/max  1 laserTemp  2 canFire  3-5 dir-to-target (ship frame)
- *  6 log distance  7 closing speed  8 target-facing-us dot
- *  9 angle-to-target/pi  10 pitchRate  11 rollRate  12 bias
+ * Observation, everything in the observer's ship frame, so that a policy is
+ * invariant to position and orientation.
  *
- * No target-speed slot: a bare speed scalar carries no direction and nothing
- * the geometry does not already say, and the game clamped it where the trainer
+ *  0 speed/max         1 laserTemp        2 canFire
+ *  3-5 dir-to-target (ship frame)         6 log distance
+ *  7 closing speed     8 target-facing-us dot
+ *  9 angle-to-target/pi   10 pitchRate    11 rollRate    12 bias
+ *
+ * No target-speed slot. A bare speed scalar carries no direction, and nothing
+ * the geometry does not already say. The game also clamped it where the trainer
  * did not (docs/TODO/91). The target's speed reaches the network through slot
  * 7's closing rate, honestly on both sides.
  */
@@ -208,11 +215,12 @@ export function observe(me: ShipView, target: ShipView, out: Float32Array): Floa
  * What a defender can see of the sky BEYOND the ship it is fighting.
  *
  * The threat lock (game/threat-lock.ts) holds the fought target steady, and
- * this is the other half of that bargain: the policy is deliberately not
- * chasing the second attacker, so it must at least SEE it. Filled by the
- * combat computer from the hostiles list, by an armed trader from its
- * attackers, and by the training episode from its pirates — the same three
- * callers as the lock, feeding the same encoder.
+ * this is the other half of that bargain. The policy deliberately does not
+ * chase the second attacker, so it must at least SEE it.
+ *
+ * The combat computer fills it from the hostiles list. An armed trader fills it
+ * from its attackers, and the training episode from its pirates. Those are the
+ * same three callers as the lock, and they feed the same encoder.
  */
 export interface ThreatsView {
   /** every OTHER live hostile — the fought target is slots 3-6's business */
@@ -232,26 +240,26 @@ export const NO_OTHER_THREATS: ThreatsView = { others: [], count: 1, missilePos:
  *
  *   13     everything we have left, over everything we can hold — press or
  *          break off. The same expression as `observePackWide`'s slot 24.
- *   14     the energy bank alone. Zero energy is destruction, the shields do
+ *   14     the energy bank alone. Zero energy is destruction. The shields do
  *          not come back until it is out of its last quarter, and the E.C.M.
- *          spends a quarter of it — none of that is visible in slot 13,
- *          because a full pair of shields hides an empty bank.
+ *          spends a quarter of it. None of that shows in slot 13, because a
+ *          full pair of shields hides an empty bank.
  *   15     a hostile warhead is in the air (1/0). At most one, because
  *          `Ordnance` caps the sky so one E.C.M. press is a complete answer.
  *   16-18  the fought threat's VELOCITY, in our ship frame, over
- *          `OBS_SPEED_SCALE` — where it is going, not just where it is, so
- *          "lead the target" and "it is crossing left" are representable to a
- *          memoryless network.
+ *          `OBS_SPEED_SCALE`. It says where the threat goes, and not only
+ *          where it is. So "lead the target" and "it is crossing left" are
+ *          representable to a memoryless network.
  *   19-21  bearing to the SECOND-nearest hostile, our frame (zeros if none).
  *   22     ...and its log distance (1 — "far" — if none), `logDistance`.
  *   23     live hostiles over 4, the biggest gang `defenceFight` spawns.
  *   24-26  bearing to the inbound warhead, our frame (zeros when slot 15 is
  *          0). Whether to press the E.C.M. is slot 15's fact; where to point
  *          the nose while it closes is this one's.
- *   27-28  fore and aft shield faces, each over its own maximum — an attacker
+ *   27-28  fore and aft shield faces, each over its own maximum. An attacker
  *          on your six spends a different face from one head-on
- *          (`shield-face.ts`), so "keep the good face toward him" is flyable
- *          only if the split is visible. Their SUM is already in slot 13.
+ *          (`shield-face.ts`). So "keep the good face toward him" is flyable
+ *          only where the split is visible. Their SUM is already in slot 13.
  *
  * ## Why a separate encoder rather than slots on `observe()`
  *
@@ -268,9 +276,9 @@ export function observeDefend(
   out[14] = Math.max(0, Math.min(1, me.energy));
   out[15] = me.missileInbound ? 1 : 0;
   const inv = { x: -me.quat.x, y: -me.quat.y, z: -me.quat.z, w: me.quat.w };
-  // the fought threat's velocity vector, expressed in our frame — its nose
+  // The fought threat's velocity vector, in our frame. It is its nose
   // direction times its speed, which is exactly how every ship in this game
-  // moves (`advance`: no drift, no sideslip)
+  // moves (`advance`: no drift, no sideslip).
   const tFwd = qRotate(inv, fwdOf(target));
   const tSpeed = Math.min(1, target.speed / OBS_SPEED_SCALE);
   out[16] = tFwd.x * tSpeed;
@@ -350,10 +358,11 @@ export interface ObservableMate {
    * Health, over `cls.hp` — the encoder reads the RATIO, so any consistent
    * pair works and only the fraction is ever observed.
    *
-   * The game fills it NORMALIZED (`hp` a 0..1 fraction, `cls.hp` 1): live combat
-   * keeps whole source energy points, and two ships of different designs handing
-   * over raw points against their own maxima would match only by accident. One
-   * conversion, at this boundary, so shipped brains see the number they were fitted on.
+   * The game fills it NORMALIZED: `hp` is a 0..1 fraction, and `cls.hp` is 1.
+   * Live combat keeps whole source energy points. Two ships of different
+   * designs that handed over raw points against their own maxima would match
+   * only by accident. One conversion, at this boundary, so a shipped brain sees
+   * the number it was fitted on.
    */
   hp: number;
   cls: { hp: number };
@@ -418,19 +427,21 @@ export function observePackWide(
  * Which observation does THIS brain want? The widest one it has inputs for.
  *
  * The encoders and the sizes live in this file, so the choice between them
- * belongs here too — made anywhere else, a genome the trainer can produce is
+ * belongs here too. Made anywhere else, a genome the trainer can produce is
  * not, by construction, one the game can fly.
  *
- * `mates` is the pack this ship is flying with, or **null when the caller has
- * no pack context** — a lone hunter, or a harness with no fleet. Null means
- * the solo encoder, whatever the brain's size: a pack policy flown without a
- * pack reads the 14 numbers it shares with the solo one. Note that the solo
- * encoder writes only the first `OBS_SIZE` slots, so a pack-sized brain on
- * that path reads whatever the caller left in the tail of `out` — which is
- * why callers with a fleet should pass it rather than pre-judging the size.
+ * `mates` is the pack this ship flies with. It is **null when the caller has no
+ * pack context**, which is a lone hunter, or a harness with no fleet.
  *
- * `me` carries the hull fraction the wide encoder needs even on the solo path:
- * a caller cannot know which encoder will run, so it supplies the union.
+ * Null means the solo encoder, whatever the brain's size. A pack policy flown
+ * without a pack reads the 14 numbers it shares with the solo one.
+ *
+ * The solo encoder writes only the first `OBS_SIZE` slots. So a pack-sized
+ * brain on that path reads whatever the caller left in the tail of `out`. A
+ * caller with a fleet should therefore pass it, and not pre-judge the size.
+ *
+ * `me` carries the hull fraction the wide encoder needs even on the solo path.
+ * A caller cannot know which encoder will run, so it supplies the union.
  */
 export function observeFor(
   brain: Brain,
@@ -441,13 +452,17 @@ export function observeFor(
   /** the rest of the sky, for the defence encoder — see `ThreatsView` */
   threats: ThreatsView = NO_OTHER_THREATS,
 ): Float32Array {
-  // The defence encoder is asked for FIRST and asked by its HEAD count, not
-  // its input count. Two reasons. It is the one encoder that is not a rung on
-  // the pack ladder: a defender has no fleet, so `mates` is null and every
-  // test below would fall through to the solo block and leave the defence tail
-  // holding whatever the caller last put there. And input counts COLLIDE
-  // across generations — docs/TODO/91's shuffle left the old defence width
-  // equal to the new pack width — where the E.C.M. head is the defence
+  // The defence encoder is asked for FIRST, and asked by its HEAD count rather
+  // than its input count. Two reasons.
+  //
+  // It is the one encoder that is not a rung on the pack ladder. A defender has
+  // no fleet, so `mates` is null. Every test below would then fall through to
+  // the solo block, and leave the defence tail holding whatever the caller last
+  // put there.
+  //
+  // Input counts also COLLIDE across generations. docs/TODO/91's shuffle left
+  // the old defence width equal to the new pack width. The E.C.M. head is the
+  // defence
   // family's alone (`DEFEND_OUT_SIZE`, docs/TODO/72) and every defence file
   // ever saved has it. A stale narrow file still reaches its own encoder —
   // out of distribution until its retrain, which is expected, never

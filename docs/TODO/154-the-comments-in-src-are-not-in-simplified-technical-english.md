@@ -223,6 +223,50 @@ of the whole job, so M3 is about fourteen more passes of this size.
 
 Nothing to decide. Work the ranking down.
 
+**The first M3 pass landed on 2026-08-14**, over the three files at the head of
+`--work`. They are the three biggest holdings of the job rather than the worst
+by share.
+
+| | sentences | over cap | `-ing` | tense |
+| --- | ---: | ---: | ---: | ---: |
+| before | 683 | **199 (29%)** | 213 | **26** |
+| after | 1,038 | **0** | 118 | **0** |
+
+`ai-training/scenario.ts` 293 → 443 sentences, `game/npc.ts` 307 → 459, and
+`ai-training/observation.ts` 83 → 136. **The tree goes from 1,842 long sentences
+to 1,643**, both measured with today's checker.
+
+**The cost is 93 lines across three files**, at 748 insertions against 655
+deletions. That is 31 lines a file, against M2's 5. The files are four to five
+times the size, so the rate per breach is about the same.
+
+**Nothing was dropped.** The numeric walk reports two changes and both are
+measurement rather than loss. `docs/TODO/​123` used to wrap a line, so "123"
+counted as a bare number; it is one reference on one line now, and the path mask
+takes it. The slot table in `observation.ts` was re-spaced into columns, so the
+checker stops reading it as a sentence. Every slot number is still in the file.
+
+**Four things came out of this pass that the plan did not have.**
+
+1. **A fifth exclusion was needed, and it is a table in COLUMNS.** Several
+   headers in `src/` lay an inventory out with spaces rather than pipes. Read as
+   prose, `game/scenario.ts`'s damage-path table is one 38-word sentence that
+   nobody can rewrite. A run of three spaces inside a line is a column gap, and
+   prose never has one, so the test is the gap rather than the subject. It is
+   proved able to fail.
+2. **The `-ing` count is now the surviving number, and that is Chris's call**
+   (2026-08-14: *"We only need to fix -ing where we have to"*). The three files
+   went 213 → 118, and every one of those came out of a sentence that was split
+   for its cap anyway. Nothing was contorted to remove a gerund.
+3. **A cap fixes in one move; a gerund has to be re-thought.** M2 said this and
+   this pass is the evidence at four times the size. The caps went to zero in
+   three files. The `-ing` count fell by 45%, all of it as a side effect.
+4. **A slot table with two-space columns is still read as prose.** The checker's
+   gap test needs three. The table in `observation.ts` was re-spaced rather than
+   exempted, because the wider gap states the column structure that was there by
+   accident. That is the one place in this pass where the tool changed the
+   source's layout.
+
 ### M4 — the gate, and the decision it needs
 
 Two questions, and M3's numbers answer them:
@@ -248,6 +292,11 @@ Remove it.
   `README.md`'s opening, and the player-facing pages are all untouched.
 - **`src/constants/` is done.** 141 swept it and it measures at 3%. Do not
   re-sweep it.
+- **The `-ing` rule is fixed only where a rewrite needs it** (Chris, 2026-08-14:
+  *"We only need to fix -ing where we have to"*). The caps and the tense are what
+  a pass converts. An `-ing` word that falls out of a split sentence goes with
+  it. No sentence is contorted to remove a gerund, and the checker keeps
+  reporting the count.
 
 ## Open questions, and the answers
 
