@@ -602,21 +602,28 @@ and the reason is not that the good ones are taken. It is that what remains is
 the orchestrator's own job. This milestone ships the measurement and the
 corrected target, and it moves no code.
 
-### The first number: every milestone costs more and moves less
+### The first number: the price per line removed
 
-| milestone | `game.ts` falls by | the child | the TREE grows by |
-| --- | ---: | ---: | ---: |
-| M1 the law | 276 | 302 | **+26** |
-| M2 the sky | 98 | 187 | **+89** |
-| M3 the cockpit | 133 | 250 | **+117** |
-| M4 the jump | 138 | 266 | **+128** |
-| M5 the career | 101 | 264 | **+163** |
+**`game.ts` shrinks every milestone.** That is not in question and it is the
+point of the item. What has changed is what each line of that shrink costs.
 
-The cost per milestone rises monotonically, and the fall in `game.ts` peaked at
-M1. **M5 wrote 163 new lines to take 101 out.** The wiring is not waste — a
-module header, a documented host and the delegates left behind are what make a
-child readable alone — but it is roughly fixed, so the smaller the area the
-worse the trade.
+| milestone | `game.ts` falls by | the child | the TREE grows by | written per line removed |
+| --- | ---: | ---: | ---: | ---: |
+| M1 the law | 276 | 302 | +26 | **1.09** |
+| M2 the sky | 98 | 187 | +89 | **1.90** |
+| M3 the cockpit | 133 | 250 | +117 | **1.87** |
+| M4 the jump | 138 | 266 | +128 | **1.92** |
+| M5 the career | 101 | 264 | +163 | **2.61** |
+
+**The fall in `game.ts` is flat, not falling** — 98 to 138 lines a milestone
+since M1, which was an outlier because the law was a 276-line area with almost
+nothing to wire. The last column is the one that moves: a child now costs about
+two lines written for every line it takes out of `game.ts`, and M5 cost 2.6.
+
+The wiring is not waste. A module header, a documented host interface and the
+delegates left behind are what make a child readable on its own. But it is
+roughly fixed per child, so the smaller the area the worse the trade — and the
+areas left are small.
 
 ### The second number: 75% of `game.ts` is orchestration
 
@@ -655,10 +662,13 @@ Six of those eight buckets can never leave, and each has a stated reason:
 
 ### The third number: the target is not reachable this way
 
-**Move every one of the 44 remaining members and `game.ts` is 1,362 lines.**
-That is the whole of "everything else" leaving at zero wiring cost, which is
-impossible — real wiring would put it back over 1,500. The entry's stated target
-of ~300 cannot be reached by taking areas out.
+**Only 448 of the 1,810 lines sit in members that could still move.** Move every
+one of the 44 and the file lands near 1,362 — and that figure moves both ways
+in practice: the imports of what leaves go with it, and every member with an
+outside caller leaves a delegate behind. Call it 1,300 to 1,400. **The stated
+target of ~300 cannot be reached by taking areas out**, and that is the claim
+this milestone is making. It is not a claim that moving code out fails to shrink
+the file. It shrinks it by about 450 more lines, and then it stops.
 
 And those 44 members do not form areas worth taking. Measured with the appliers
 and the hosts set aside, the best is the weapon keys at 60 lines against 9 deps,

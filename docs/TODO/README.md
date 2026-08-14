@@ -68,10 +68,12 @@ bar, and not because the good ones are taken: **75% of what is left cannot
 leave.** An `apply*` method IS the orchestrator, by this project's own rule that
 a module decides and an orchestrator applies. The six host literals travel with
 the modules they are handed to. The 81-line command table is deliberately the
-whole surface a replay, an AI or a test drives the game through. Move all 44
-members that COULD still go, at zero wiring cost, and the file is **1,362 lines,
-not ~300**. The cost rose every time while the benefit fell: **M1 took 276 lines
-out of `game.ts` and grew the tree by 26; M5 took 101 out and grew it by 163.**
+whole surface a replay, an AI or a test drives the game through. Only **448 of the 1,810
+lines** sit in members that could still move, so taking all 44 lands the file
+near 1,362 — a real shrink, and then it stops, nowhere near ~300. What has
+changed is the price rather than the shrink: `game.ts` has fallen by a steady 98
+to 138 lines a milestone since M1, while the lines written per line removed went
+**1.09 → 1.90 → 1.87 → 1.92 → 2.61**.
 M6 corrects the stated target in `tools/sizes.mjs`, because a target known to be
 unreachable is the same false claim in a gate's own review surface that 151 was
 about. **The next move is a scope decision and it is Chris's** — re-aim the
