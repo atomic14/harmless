@@ -294,23 +294,39 @@ for (const [area, names] of Object.entries(AREAS)) {
 ```
 
 **`AREAS` is the judgement, and it is the part to re-check each time** — an
-extraction takes callers with it, so a member can change area. As at M2, with
-the two extracted areas removed:
+extraction takes callers with it, so a member can change area. **M3 proved this
+is the step that decides the answer**: the table as written at M2 had no entry
+for the area that won. As at M3, with the three extracted areas removed:
 
 ```js
 const AREAS = {
   trainer:    ['setCombatObserver','simHost','startExercise','endExercise'],
   saves:      ['openSaves','exportSave','importSave','savesContext','persistenceHost',
-               'captureSnapshot','restoreSnapshot','autoSave','resumeSavedWorld','newCommanderGame'],
+               'captureSnapshot','restoreSnapshot','autoSave','resumeSavedWorld','newCommanderGame',
+               'loadOrWarmGalaxy','freshGalaxySeed'],
   hyperspace: ['startHyperspace','completeHyperspace','arriveInSystem','galacticJump'],
   death:      ['die','quitFlight','abandonFlight','respawn'],
   contracts:  ['generateContractOffers','applyContracts','acceptContract','survivorOffers',
                'answerForSurvivors','settleContracts'],
+  rescue:     ['sendDistressBeacon','completeRescue'],
   trade:      ['tradeContext','buyCargo','sellCargo','buyEquipment','openHermitTrade'],
-  ordnance:   ['applyOrdnance','armMissile','launchMissile','triggerEcm','detonateEnergyBomb'],
-  'render+hud':['renderHud','aimBeams','resize','lookAlong','placeOf'],
+  ordnance:   ['applyOrdnance','armMissile','launchMissile','triggerEcm','detonateEnergyBomb','say'],
+  combat:     ['fireLaser','destroyNpc','wreckNpc','applyPlayerDamage','applyCombat',
+               'damageSomething','applyAutopilot'],
+  sound:      ['playSound','placeOf'],
+  messages:   ['showMessage','queueMessage','sayEvent','markName'],
+  screens:    ['chartContext','openChart','openLocalChart','openSystemData','openReadingScreen',
+               'showBaseScreen','handleScreenClick','setView','switchLayout'],
+  station:    ['stationHost','applyStation','enterDocked','launch'],
+  step:       ['update','step','pausedHint','finishStep','updateFlight','applyStep','handsOn',
+               'pilotDemand','stepHost','handleInput','controlMode','runCommand','cameFrom'],
 };
 ```
+
+**Two of these are named here so that nobody has to find them twice.** The
+messages area is 12 lines and the plan already rules it out — `showMessage` and
+`queueMessage` are the HOST's, and they have one home. The step area is the
+orchestrator's own job, which open question 1 settles.
 
 **Then run the two checks before extracting**, both of which have already caught
 something on this item:
@@ -323,7 +339,102 @@ something on this item:
    that file. The twelve it really calls are listed under M1 — `respawn` and
    `launch` are among them, so the death and station areas need delegates.
 
-## M3 onwards — re-assessed after M2
+## M3 — the cockpit, on 2026-08-14
+
+`game/cockpit-view.ts`, 250 lines. **game.ts 2,153 → 2,021.** `npm run check`
+passes at 4,530 assertions. `npm run portability` needed one new entry, which is
+the finding below.
+
+It holds the four surfaces that turn the world into a picture: the gunsight
+lamp, the laser beams' meeting point, the prompt line, and the dashboard frame.
+**One responsibility: what the cockpit shows about the world.** Not one of the
+four decides anything, which is what makes them one subject rather than four.
+
+**The plan named no area, so the area was measured**, with the method the
+section above writes down. The cockpit won on the plan's own rule — take the
+most lines per dep:
+
+| area | lines of body | external deps | ratio |
+| --- | ---: | ---: | ---: |
+| **cockpit** | **98** | **9** | **10.9** ← chosen |
+| saves | 73 | 8 | 9.1 |
+| hyperspace | 92 | 13 | 7.1 |
+| contracts | 48 | 7 | 6.9 |
+| death | 60 | 13 | 4.6 |
+
+### Four things it found that the plan did not have
+
+**1. The `AREAS` table was incomplete, and re-checking it is the whole job.**
+The section above says so, and this milestone is the proof. The table carried no
+entry for combat, for messages, for the screens, or for the cockpit — and the
+cockpit is the one that won. A first pass grouped the distress beacon and the
+rescue under contracts, which raised that area to 87/8; reading the code said no,
+because a beacon is witch-space rather than a job. **Judgement about which
+members form an area decides the answer before the arithmetic starts.**
+
+**2. Two deps were not host methods at all, and counting them as such
+understates every area.** `hudScratch` and `tmp2` are touched only inside the
+area, so they MOVE with the child rather than becoming an interface. `tmp` did
+not move, because `arriveInSystem` and `updateFlight` also hold it — the child
+got its own pair, for the reason `soundAt` already states. **The measurement
+script cannot see this**, so it over-counts. Read the dep list before trusting
+the ratio.
+
+**3. Three reads of `mode` were the same question.** The sight, the prompt line
+and the dashboard each tested `mode === 'flight'`. They are one host method now,
+`inFlight()`, so the three cannot drift apart. This is the opposite of M1's
+finding, where two reads of the mode turned out to be two DIFFERENT questions and
+needed two host methods. Both are only visible once the area is pulled out.
+
+**4. The child is PLATFORM, and it is the first one that is.** `law-actions.ts`
+and `world-build.ts` both landed portable. This one drives `hud/`, `ui/` and the
+shell, so it cannot. **It costs the port nothing**: this code was already inside
+`game.ts`, which is platform, so no portable line became platform and the
+`ports unchanged` total is byte-identical at 32,907 lines.
+
+**Why `game/` and not `hud/`.** Putting it in `hud/` would need no new platform
+entry, and `hud-binding.ts` is the module it spends. It still goes in `game/`,
+because `hud-binding.ts` opens by stating the rule for its own directory: *"There
+is no `Game` here and no callback out."* This file IS the callback out — it holds
+a host back to the Game — so filing it next door would contradict its neighbour.
+
+### The overhead is worse than M1's, and the ratio is why
+
+132 lines out, 250 in. M1 was 277 out and 302 in, about 25 lines of wiring; M2
+was 98 out and 187 in. **The wiring is roughly fixed per child** — a module
+header, a documented host interface, the imports and a constructor come to about
+90 to 120 lines whatever the area is. So the ratio the plan measures is not only
+about the host being narrow. It is what decides whether the child carries its own
+overhead. At 10.9 this one just does; a 39-line area never could.
+
+### `test/playtest.js` calls none of the six
+
+Checked, as the section above requires. `keyPrompts` stays on the Game as a
+delegate for a different reason: `test/prompts.test.ts` and
+`test/bribe-flight.test.ts` read the offers off the Game.
+
+### The beams path was proved rather than assumed
+
+`view()` is a host METHOD, not a constructor argument, because the Game builds
+its shell inside its own constructor — so the `Presentation` does not exist while
+the Game's fields initialise, and a copy taken then would be `undefined`. That
+made the beams a live risk, so a throw was put inside `aimBeams` and the suite
+was run: it fired. `g.draw(1)` in `test/game.test.ts` covers the dashboard and
+the sight the same way.
+
+## M4 onwards — re-assessed after M3
 
 **Still true from the plan:** the 163-line constructor is last, because it is
 where every child is wired.
+
+**M4 names no area either**, for the reason M2 wrote down: the plan was right to
+defer and wrong to name a favourite while deferring, because the favourite gets
+picked up as a decision. The M3 table above is a measurement of the file as it
+stood before M3, and the cockpit took two callers and two scratch fields with it.
+Measure again, with the three checks the section above lists.
+
+**One warning M3 adds to that method.** Some members are already one-line
+delegates onto an existing child. A delegate cannot leave — it is how the
+orchestrator reaches what it already extracted — so it inflates the body count
+without being work that can move. Subtract the delegates before you take the
+ratio.

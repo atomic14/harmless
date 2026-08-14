@@ -17,16 +17,22 @@ active context:
    · refactor · large.
 
 **150 is the head of the decomposition programme, promoted on 2026-08-14.**
-`src/game/game.ts` is 2,528 lines and 201 commits, and its own entry admits *"the
-orchestrator plus leftovers. Target ~300"* — eight times over the target it set
-itself. The triage found the axis: most of its areas already HAVE a rules module,
-because `law.ts`, `persistence.ts`, `contracts.ts`, `ordnance.ts`, `station.ts`
-and `world-step.ts` all came out of this file. What is left is the ORCHESTRATION,
-so the cut is to move the handlers out beside the rules they spend. M1 takes the
-law's six, whose coupling was measured before the area was chosen: a host of four
-methods. **The order after M1 is deliberately not fixed** — 149 planned one chart
-file, measured 719 lines and found four subjects, and it was right because it
-deferred to the measurement.
+`src/game/game.ts` was 2,528 lines and 201 commits, and its own entry admits *"the
+orchestrator plus leftovers. Target ~300"*. The triage found the axis: most of its
+areas already HAVE a rules module, because `law.ts`, `persistence.ts`,
+`contracts.ts`, `ordnance.ts`, `station.ts` and `world-step.ts` all came out of
+this file. What is left is the ORCHESTRATION, so the cut is to move the handlers
+out beside the rules they spend.
+
+**Three milestones landed on 2026-08-14, and game.ts is 2,021 lines.** M1 took
+the law to `game/law-actions.ts`, M2 the sky to `game/world-build.ts`, and M3 the
+cockpit to `game/cockpit-view.ts`. **No milestone after M1 names its own
+successor**, and that is the programme's sharpest lesson rather than an
+omission: 149 planned one chart file, measured 719 lines and found four subjects.
+M2 then measured the trainer that the plan HAD named and found the worst area in
+the file — 39 lines behind a twelve-method interface. M3 measured again and the
+winner was an area the plan's own table had never listed. The plan now writes
+down HOW to measure an area, and M4 chooses on that measurement.
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
