@@ -98,6 +98,49 @@ It goes first because it is the smaller half, and because the host it needs is
 the host the flight half will need too. Discover that interface at the cheaper
 end.
 
+**M1 landed on 2026-08-14.** `game/docked.ts`, 324 lines. **game.ts 1,810 →
+1,650.** `npm run check` passes at 4,530 assertions, unchanged.
+
+**Its one sentence, which is what this item is judged on:** *what a commander
+does while she is docked.* A reader can check it by opening the file — arriving,
+leaving, the menu, the market and the outfitters, the board, and the one
+question the station will not let her leave without answering.
+
+**Four things it found that the plan did not have:**
+
+1. **The docked menu had THREE homes.** `renderDockedMenu(system, commander,
+   station.orderLines())` was written out at the station event that asks for the
+   menu, at the keyboard-layout key, and at backing out of the new-commander
+   panel. The orders on the menu could have gone stale in two of them without
+   the third noticing. It is `showDockedMenu()` now. **This is the first thing
+   the split found, and it is the kind of thing the item is for** — a rule with
+   three homes, invisible while both modes shared one file.
+2. **The seam is `setBaseMode`, and it fell out of the code rather than the
+   plan.** `stationHost` already had that method, because `station.ts` has
+   always decided that a dock HAPPENED and left the Game to decide what the game
+   then IS. The half asks; the parent switches. A half that set its own mode
+   would be deciding what the other half is.
+3. **A host literal travels with the thing it is handed to** — M5's rule, used
+   twice here. `stationHost` went with `Station`, which the child now
+   constructs. `persistenceHost` stayed, because `new Persistence(...)` stayed.
+4. **Field order is a real constraint now.** The child takes `Persistence` as a
+   collaborator, so its field must be declared after it; the first draft read
+   `this.persistence` before initialisation. Five children deep, the constructor
+   is becoming an ordering problem — which is the plan's own reason for leaving
+   it last.
+
+**Five delegates stayed behind**, as the plan predicted: `launch` and
+`enterDocked` for two dozen tests, and `buyCargo`, `buyEquipment` and
+`acceptContract` for `test/playtest.js`, which nothing type-checks.
+`claims:check` reads all five and reports 42 claims naming 47 files, 0 stale.
+
+**Portability:** the child is platform, the third to be. `ports unchanged` is
+byte-identical at 33,176 lines, so no portable line became platform.
+
+**The prose:** 695 comment lines in `game.ts` and 136 in the child, against 728
+before. No line was lost; eleven were reworded, because "the Game says it" is
+now "this half says it".
+
 ### M2 — the flight half
 
 `src/game/flight.ts`. The 37 members: the cockpit's keys, the ordnance, the

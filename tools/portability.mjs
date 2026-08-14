@@ -37,6 +37,11 @@ export const PLATFORM = [
   // that a career is READ on screens — the game-over panel, the save shelf and
   // the file transfer — plus the storage the boot pointer lives in.
   'game/career.ts',
+  // The docked half of the composition root, split from the flight half by
+  // docs/TODO/155 M1. Platform for the third time and the same reason: every
+  // line was already inside `game.ts`. A station is mostly a place where
+  // screens are read, so the menu, the market and the board all reach `ui/`.
+  'game/docked.ts',
   'engine/render-stack.ts', 'engine/input.ts', 'engine/keymap.ts',
   'engine/browser-shell.ts', 'engine/inert-dom.ts',
   'audio.ts', 'main.ts', 'manual.ts',

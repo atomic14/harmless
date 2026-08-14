@@ -31,12 +31,9 @@ import { viewRight, VIEW_QUATS } from './views.ts';
 import * as THREE from 'three';
 
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
-import { generateContractOffers } from './contract-offers.ts';
-import { acceptContract, settleContracts, contractMessage, type ContractEvent } from './contracts.ts';
 import { hermitMarket } from './market.ts';
 import { createStarfield, SpaceDust } from '../world/starfield.ts';
 import { type FlightDemand } from '../player.ts';
-import { BRIEFING_VERSION } from '../constants/commander.ts';
 import { Input } from '../engine/input.ts';
 import { flightDemand } from '../engine/flight-controls.ts';
 import { keymap, layoutName, toggleLayout, manualFlightKeys, refreshHelpPanel } from '../engine/keymap.ts';
@@ -68,7 +65,8 @@ import { MAX_NAMED_SAVES } from '../constants/saves.ts';
 import { type WorldSnapshot } from './snapshot.ts';
 import { showMessage as setMessage, queueMessage, tickBeam, tickMessage } from './session.ts';
 import { Persistence, type PersistenceHost } from './persistence.ts';
-import { Station, type DockArrival, type StationHost, type StationEvent } from './station.ts';
+import { Docked, type DockedHost } from './docked.ts';
+import type { DockArrival } from './station.ts';
 import { CombatSim, type ExerciseFit, type SimHost } from './combat-sim.ts';
 import type { CombatSimReport } from './combat-sim-report.ts';
 import type { ExerciseSpec } from './combat-sim-scenarios.ts';
@@ -87,7 +85,7 @@ import { breachLoss } from './systems.ts';
 import { SavesScreen, checkpointSummary } from './screens/saves.ts';
 import { SavePromptScreen, NamingScreen } from './screens/save-naming.ts';
 import { NewCommanderScreen } from './screens/new-commander.ts';
-import { MarketScreen, EquipScreen, buyEquipment, type TradeContext } from './screens/trade.ts';
+import { MarketScreen, EquipScreen } from './screens/trade.ts';
 import { StatusScreen, type StatusContext } from './screens/status.ts';
 import { MissionsScreen, type MissionsContext } from './screens/missions.ts';
 import { DataScreen, type DataContext } from './screens/data.ts';
@@ -99,15 +97,12 @@ import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts'
 import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
 import { QuitScreen, type QuitContext } from './screens/quit.ts';
 import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
-import { resolveSurvivors, survivorMessage, survivorOffers, type SurvivorChoice } from './survivors.ts';
-import { SLAVES } from '../constants/commodities.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 
-import { recordFurthestWave, type Contract } from './commander.ts';
-import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
+import { recordFurthestWave } from './commander.ts';
 import { characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
-import { hideScreen, renderDockedMenu } from '../ui/screens.ts';
+import { hideScreen } from '../ui/screens.ts';
 import { renderNewGameConfirm } from '../ui/screens-career.ts';
 import { boundKey, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
@@ -175,14 +170,14 @@ export class Game {
   get helpVisible(): boolean {
     return this.helpOpen;
   }
-  private readonly market_ = new MarketScreen(() => this.tradeContext());
+  private readonly market_ = new MarketScreen(() => this.docked_.tradeContext());
   private readonly contracts_ = new ContractsScreen(() => ({
     commander: this.state.commander,
     system: this.system,
     systems: this.state.systems,
     offers: this.state.contractOffers,
     atStation: this.baseMode === 'docked',
-    accept: (index) => { this.contracts_.selected = index; this.acceptContract(); },
+    accept: (index) => { this.contracts_.selected = index; this.docked_.acceptContract(); },
   } satisfies ContractsContext));
 
   /** Which system the data screen is reading about. */
@@ -250,6 +245,28 @@ export class Game {
   private readonly worldStep = new WorldStep(this.state, this.ordnance, this.stepHost());
 
   /**
+   * The docked half's five acts that something outside reaches by name.
+   *
+   * Delegates rather than reaches through `docked_`, and the reason differs by
+   * line. `launch` and `enterDocked` are pressed by two dozen tests; the other
+   * three are driven by `test/playtest.js`, which nothing type-checks, so a
+   * rename here would break the harness in silence (docs/TODO/151).
+   */
+  launch(): void { this.docked_.launch(); }
+
+  /** @internal — public for the tests, which dock a commander through it. */
+  enterDocked(arrival: DockArrival = 'arrived'): void { this.docked_.enterDocked(arrival); }
+
+  /** @internal — driven by test/playtest.js */
+  buyCargo(want: number): void { this.docked_.buyCargo(want); }
+
+  /** @internal — driven by test/playtest.js */
+  buyEquipment(id: string): void { this.docked_.buyEquipment(id); }
+
+  /** @internal — driven by test/playtest.js */
+  acceptContract(): void { this.docked_.acceptContract(); }
+
+  /**
    * Saving the world and putting it back — see persistence.ts.
    *
    * The snapshot's shape lives in snapshot.ts and its home in storage.ts; this
@@ -260,13 +277,33 @@ export class Game {
     this.state, this.ordnance, this.combatComputer, this.persistenceHost());
 
   /**
-   * Docking, launching, and the menu between them — see station.ts.
+   * What a commander does while she is docked (docs/TODO/155 M1).
    *
-   * The two transitions that switch `baseMode`, and the only two places the
-   * station's own rules (the fine, the market roll, the bulletin board) are
-   * applied.
+   * Four collaborators and thirteen host methods, and the width is the point
+   * rather than a cost: this is half an ORCHESTRATOR, not a rule module, so
+   * what it reaches back for is the machinery the other half stands on too —
+   * the mode machine, the console, the sounds and three pieces of cockpit.
+   *
+   * `setBaseMode` is the seam. The station decides that a dock happened; the
+   * Game decides what the game then IS.
    */
-  private readonly station = new Station(this.state, this.ordnance, this.stationHost());
+  private readonly docked_ = new Docked(
+    this.state, this.ordnance, this.market_, this.contracts_, this.persistence, {
+      baseMode: () => this.baseMode,
+      setBaseMode: (mode) => { this.baseMode = mode; },
+      showMessage: (text, seconds) => this.showMessage(text, seconds),
+      queueMessage: (text, seconds) => this.queueMessage(text, seconds),
+      sayEvent: (e) => this.sayEvent(e),
+      playSound: (e) => this.playSound(e),
+      markName: (before, after) => this.markName(before, after),
+      raiseLegal: (level) => this.raiseLegal(level),
+      system: () => this.system,
+      lookAlong: (dir) => this.lookAlong(dir),
+      populateSystem: (situation) => this.populateSystem(situation),
+      openScreen: (id) => this.screens.open(id),
+      releaseMouseFlight: () => this.input.releaseMouseFlight(),
+      startTunnel: (seconds, way) => this.tunnel.start(seconds, way),
+    } satisfies DockedHost);
 
   /**
    * The combat training simulator — see combat-sim.ts.
@@ -367,7 +404,7 @@ export class Game {
       fireLaser: () => this.fireLaser(),
       raiseLegal: (level) => this.raiseLegal(level),
       die: (reason) => this.career_.die(reason),
-      dock: () => this.enterDocked(),
+      dock: () => this.docked_.enterDocked(),
       completeHyperspace: () => this.jump_.completeHyperspace(),
       completeRescue: () => this.jump_.completeRescue(),
       openHermitTrade: () => this.openHermitTrade(),
@@ -498,7 +535,7 @@ export class Game {
       mode: () => this.mode,
       baseMode: () => this.baseMode,
       enterDeadMode: () => { this.baseMode = 'dead'; },
-      enterDocked: (arrival) => this.enterDocked(arrival),
+      enterDocked: (arrival) => this.docked_.enterDocked(arrival),
       showMessage: (text, seconds) => this.showMessage(text, seconds),
       openScreen: (id) => this.screens.open(id),
       inSimulator: () => this.combatSim.active,
@@ -655,7 +692,7 @@ export class Game {
     // throws rather than shrugs.
     for (const screen of [
       this.market_,
-      new EquipScreen(() => this.tradeContext()),
+      new EquipScreen(() => this.docked_.tradeContext()),
       new SavesScreen(() => this.career_.savesContext()),
       new SavePromptScreen(() => this.career_.savesContext()),
       new NamingScreen(() => this.career_.savesContext()),
@@ -697,10 +734,10 @@ export class Game {
       } satisfies QuitContext)),
       new SurvivorsScreen(() => ({
         people: this.state.commander.survivors,
-        offers: this.survivorOffers(),
-        handOver: () => this.answerForSurvivors('medical'),
-        sell: () => this.answerForSurvivors('sold'),
-        release: () => this.answerForSurvivors('released'),
+        offers: this.docked_.survivorOffers(),
+        handOver: () => this.docked_.answerForSurvivors('medical'),
+        sell: () => this.docked_.answerForSurvivors('sold'),
+        release: () => this.docked_.answerForSurvivors('released'),
       } satisfies SurvivorsContext)),
     ]) this.screens.register(screen);
 
@@ -710,7 +747,7 @@ export class Game {
     this.buildWorld();
     // Resume mid-flight if the last session ended there; otherwise the
     // station, as Elite always did.
-    if (!this.resumeSavedWorld()) this.enterDocked('fresh');
+    if (!this.resumeSavedWorld()) this.docked_.enterDocked('fresh');
     // The `?` guide, in two halves: the flight axes change with the layout and
     // keymap.ts rewrites them whenever it is toggled; the command rows are the
     // same in both layouts, so they are painted from the binding table once.
@@ -800,111 +837,9 @@ export class Game {
     return this.state.systems[this.state.commander.systemIndex];
   }
 
-  /** The only slice of the Game the market and outfitters are allowed to see. */
-  private tradeContext(): TradeContext {
-    return {
-      commander: this.state.commander,
-      system: this.system,
-      market: this.state.market,
-      atHermit: this.state.session.hermitTrading,
-      cheat: this.state.cheat,
-      message: (text, seconds) => this.showMessage(text, seconds),
-      queueMessage: (text, seconds) => this.queueMessage(text, seconds),
-      addNotoriety: (amount) => this.state.living.addNotoriety(this.state.commander.systemIndex, amount),
-      checkpoint: () => { this.persistence.checkpoint(); },
-      leaveHermit: () => {
-        this.state.session.hermitTrading = false;
-        this.state.session.hermitCooldown = true;
-        this.showMessage('LEAVING THE HERMIT', 3);
-      },
-    };
-  }
-
-  /** @internal — driven by test/playtest.js */
-  buyCargo(want: number): void { this.market_.buy(want); }
-
-  /**
-   * @internal — no caller at all (docs/TODO/151 M1). The market screen sells
-   * through `TradeContext`, and `buyCargo` above keeps the scripted caller that
-   * this one lost.
-   */
-  sellCargo(want: number): void { this.market_.sell(want); }
-
-  /** @internal — driven by test/playtest.js */
-  buyEquipment(id: string): void { buyEquipment(id, this.tradeContext()); }
-
   // --- world lifecycle -----------------------------------------------------
 
   // --- mode transitions ----------------------------------------------------
-
-  /**
-   * What the station transitions may ask of the Game.
-   *
-   * Same shape and same reason as `stepHost()` and `persistenceHost()`.
-   * `populateSystem` is a call rather than a returned event because it DRAWS
-   * from the seeded stream (see station.ts). `settleContracts` remains a call
-   * at its exact seeded position, but reports its sound and message for the
-   * station event stream instead of applying either.
-   */
-  private stationHost(): StationHost {
-    return {
-      baseMode: () => this.baseMode,
-      setBaseMode: (mode) => { this.baseMode = mode; },
-      lookAlong: (dir) => this.lookAlong(dir),
-      populateSystem: (situation) => this.populateSystem(situation),
-      checkpoint: () => { this.persistence.checkpoint(); },
-      settleContracts: () => this.settleContracts(),
-      resetContractSelection: () => { this.contracts_.selected = 0; },
-    };
-  }
-
-  /** The station decides; the Game says it. Same shape as applyStep. */
-  private applyStation(events: readonly StationEvent[]): void {
-    for (const e of events) {
-      if (e.kind === 'sound' || e.kind === 'countdown' || e.kind === 'dockingMusic') {
-        this.playSound(e);
-        continue;
-      }
-      switch (e.kind) {
-        case 'message': this.sayEvent(e); break;
-        case 'persistence':
-          if (e.action === 'forgetFlight') this.persistence.forgetFlight();
-          else this.persistence.checkpoint();
-          break;
-        case 'presentation':
-          if (e.action === 'releaseMouseFlight') this.input.releaseMouseFlight();
-          else if (e.action === 'tunnel') this.tunnel.start(1.4, e.way);
-          else if (e.screen === 'docked') {
-            renderDockedMenu(this.system, this.state.commander, this.station.orderLines());
-          } else {
-            hideScreen();
-          }
-          break;
-      }
-    }
-  }
-
-  /** @internal — public for the tests, which dock a commander through it. */
-  enterDocked(arrival: DockArrival = 'arrived'): void {
-    // Once per commander, whatever brought them here: a fresh boot, a real
-    // docking, or a restored save from before the marker existed. The marker
-    // moves BEFORE the dock so an 'arrived' checkpoint persists it in the same
-    // act; the other arrivals write nothing here (docs/TODO/43/45), so theirs
-    // rides the next ordinary save. Opening counts as shown — abandoning the
-    // briefing must not trap a player in an onboarding loop, and H is the
-    // permanent way back (docs/TODO/106).
-    const brief = this.state.commander.briefingSeen < BRIEFING_VERSION;
-    if (brief) this.state.commander.briefingSeen = BRIEFING_VERSION;
-    this.applyStation(this.station.dock(arrival));
-    if (brief) this.screens.open('briefing');
-    // ...and the question the station will not proceed without an answer to,
-    // pushed LAST so it is on TOP (docs/TODO/127). Both can be due at once — a
-    // save from before the briefing marker, restored with somebody aboard — and
-    // the order is decided here rather than left to whichever happens to open:
-    // the forced choice is what is holding the clearance up, and the briefing
-    // is reading matter that will still be there behind it.
-    if (this.state.commander.survivors > 0) this.screens.open('survivors');
-  }
 
   /**
    * @internal — driven by test/career-identity.test.ts. A delegate rather than
@@ -932,7 +867,7 @@ export class Game {
         // 'resumed', and the word is load-bearing: `restore` has already put
         // this station's market and bulletin board back, and a dock that rolls
         // over them is a reload-to-reroll exploit (docs/TODO/46).
-        if (mode === 'docked') this.enterDocked('resumed');
+        if (mode === 'docked') this.docked_.enterDocked('resumed');
         else hideScreen();
       },
       buildWorld: () => this.buildWorld(),
@@ -964,11 +899,6 @@ export class Game {
   private resumeSavedWorld(): boolean { return this.persistence.resume(); }
 
   /** @internal — driven by test/playtest.js */
-  launch(): void {
-    this.applyStation(this.station.launch());
-  }
-
-  /** @internal — driven by test/playtest.js */
   lookAlong(dir: THREE.Vector3): void {
     // Matrix4.lookAt uses camera convention: -Z (our nose) points at target.
     this.tmpM.lookAt(ZERO, dir, UP);
@@ -991,95 +921,6 @@ export class Game {
   respawn(): void { this.career_.respawn(); }
 
   // --- contracts (station bulletin board) ----------------------------------
-
-  /**
-   * Work on offer here today. Deliberately generous compared to the original,
-   * which gated missions behind a high combat rating — a new commander should
-   * always have somewhere to be.
-   * @internal — no caller at all (docs/TODO/151 M1). The station and the
-   * campaign both call the free `generateContractOffers` in contract-offers.ts,
-   * which this method only wraps.
-   */
-  generateContractOffers(): Contract[] {
-    return generateContractOffers(this.system, this.state.systems, this.state.commander.day);
-  }
-
-  /**
-   * The bulletin board decides; the Game says it and plays its named sound.
-   *
-   * Messages come back as StationEvents rather than going straight to the HUD
-   * because docking says several things in a row and the last one is the one
-   * the player reads — see station.ts.
-   *
-   * ...and the consequences the pure module cannot reach: landing a smuggling
-   * run raises the destination's temperature, which is `LivingGalaxy` state
-   * `settleContracts` has no handle on. The module decides, the orchestrator
-   * applies (invariant 15). ONE application per event, here and at the
-   * campaign's own settle site — the dock path in station.ts must not add a
-   * second, which would double the heat of every delivery.
-   */
-  private applyContracts(events: readonly ContractEvent[]): StationEvent[] {
-    return events.flatMap((e): StationEvent[] => {
-      if (e.kind === 'paid' && e.contract.kind === 'smuggle') {
-        this.state.living.addNotoriety(
-          e.contract.destination, e.contract.qty * SMUGGLE_DELIVERY_NOTORIETY);
-      }
-      const m = contractMessage(e, this.state.systems);
-      return [
-        ...(m.sound ? [{ kind: 'sound' as const, name: m.sound }] : []),
-        { kind: 'message', text: m.text, seconds: m.seconds, queued: m.queued },
-      ];
-    });
-  }
-
-  /** @internal — driven by test/playtest.js */
-  acceptContract(): void {
-    const events = acceptContract(
-      this.state.commander, this.state.contractOffers, this.contracts_.selected);
-    if (events.some((e) => e.kind === 'accepted')) {
-      this.contracts_.selected = Math.max(0, this.contracts_.selected - 1);
-    }
-    this.applyStation(this.applyContracts(events));
-  }
-
-  /**
-   * What the two dirty answers pay here: the station's own Slaves quote, read
-   * off the market this dock rolled rather than priced again (docs/TODO/127).
-   */
-  private survivorOffers(): { sale: number; release: number } {
-    return survivorOffers(
-      this.state.commander.survivors, this.state.market[SLAVES]?.price ?? 0);
-  }
-
-  /**
-   * The survivors rule decides; the Game says it (docs/TODO/127).
-   *
-   * Same shape as `applyContracts` and for the same reason: `survivors.ts` is
-   * pure, and everything a choice touches outside the commander — the console,
-   * and in M3 the region's heat and the Government's opinion — lands here.
-   */
-  private answerForSurvivors(choice: SurvivorChoice): void {
-    const c = this.state.commander;
-    const before = c.disrepute ?? 0;
-    const e = resolveSurvivors(c, choice, this.survivorOffers());
-    if (!e) return;
-    // The law and the region first, so the SALE has the console after them:
-    // `raiseLegal` QUEUES what the record now means (docs/TODO/130), so the
-    // line the player reads first is the one explaining what they just did.
-    if (e.kind === 'sold') {
-      this.state.living.addNotoriety(c.systemIndex, e.heat);
-      this.raiseLegal(e.offence);
-    }
-    this.showMessage(survivorMessage(e), 4);
-    // ...then the record, waiting behind the receipt that caused it
-    // (docs/TODO/122), and then what it did to your name (docs/TODO/129).
-    this.markName(before, c.disrepute ?? 0);
-  }
-
-  /** Pay out anything delivered here; drop anything overdue. */
-  private settleContracts(): StationEvent[] {
-    return this.applyContracts(settleContracts(this.state.commander));
-  }
 
   /**
    * @internal — driven by test/playtest.js. A delegate rather than a reach
@@ -1567,7 +1408,7 @@ export class Game {
     // --- global -----------------------------------------------------------
     toggleHelp: () => { this.helpOpen = !this.helpOpen; this.shell.toggleHelp(); },
     // --- the station menu -------------------------------------------------
-    launch: () => this.launch(),
+    launch: () => this.docked_.launch(),
     openMarket: () => this.screens.open('market'),
     openEquip: () => this.screens.open('equip'),
     openBriefing: () => this.screens.open('briefing'),
@@ -1594,7 +1435,7 @@ export class Game {
     },
     cancelNewGame: () => {
       this.pendingNewGame = false;
-      renderDockedMenu(this.system, this.state.commander, this.station.orderLines());
+      this.docked_.showDockedMenu();
     },
     // --- shared between the menu and the cockpit --------------------------
     openChart: () => this.openChart(this.cameFrom()),
@@ -1649,7 +1490,7 @@ export class Game {
   private switchLayout(): void {
     const layout = toggleLayout();
     this.showMessage(`KEYBOARD: ${layout.toUpperCase()} LAYOUT`, 3);
-    renderDockedMenu(this.system, this.state.commander, this.station.orderLines());
+    this.docked_.showDockedMenu();
   }
 
   private disarmMissile(): void {
@@ -1776,7 +1617,7 @@ export class Game {
       this.career_.showGameOver();
       return;
     }
-    this.applyStation(this.station.showBaseScreen());
+    this.docked_.showBaseScreen();
   }
 
   /**
