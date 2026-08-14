@@ -1,11 +1,10 @@
 // Leaving a system, and arriving in one.
 //
 // The ORCHESTRATION half of the jump, split out of `game.ts` by docs/TODO/150
-// M4. `hyperspace.ts` next door owns the RULES — what a jump costs, whether you
-// can make it, and where you come out — and this holds what the Game does with
-// them: starting the countdown, spending the days, dropping the ship at the
-// witchpoint, crossing to the next galaxy, and the tow when a mis-jump leaves
-// you stranded.
+// M4. `hyperspace.ts` next door owns the RULES, and states them in its own
+// opening; this holds what the Game does with them: starting the countdown,
+// spending the days, dropping the ship at the witchpoint, crossing to the next
+// galaxy, and the tow when a mis-jump leaves you stranded.
 //
 // ONE RESPONSIBILITY: what a jump does to the world. Five ways in and out of a
 // system, and every one of them ends at `arriveInSystem`.
@@ -233,13 +232,13 @@ export class HyperspaceActions {
    * The living galaxy this career inherits: the saved one, or — for a career
    * that has none — a warmed one (docs/TODO/117).
    *
-   * WARMING ONLY WHERE THERE IS NOTHING TO LOAD. `prewarm` is what a galaxy's
-   * history costs, and it is paid once: from the first checkpoint on the deltas
-   * are `commander.galaxyState` like any other drift, so a reload resumes the
-   * galaxy it saved instead of warming another 30 days on top of it.
+   * WARMING ONLY WHERE THERE IS NOTHING TO LOAD, and `prewarm`'s own doc in
+   * galaxy/living.ts says why — it is paid once, and the deltas are ordinary
+   * saved state from the first checkpoint on (docs/TODO/153).
    *
-   * The other warming site is `galacticJump` above, which arrives in a galaxy no
-   * save describes — same seam, same seed rule, no state to consult.
+   * What is this file's to say is WHICH SITES warm: this one, at a boot and a
+   * respawn, and `galacticJump` above, which arrives in a galaxy no save
+   * describes. Same seam, same seed rule, no state to consult.
    *
    * @internal — driven by src/game/game.ts. A boot and a respawn both reach it.
    */

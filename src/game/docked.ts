@@ -278,12 +278,12 @@ export class Docked {
   buyEquipment(id: string): void { buyEquipment(id, this.tradeContext()); }
 
   /**
-   * Work on offer here today. Deliberately generous compared to the original,
-   * which gated missions behind a high combat rating — a new commander should
-   * always have somewhere to be.
+   * Work on offer here today — see `generateContractOffers` in
+   * contract-offers.ts, which says why the board is more generous than the
+   * original's (docs/TODO/153).
+   *
    * @internal — no caller at all (docs/TODO/151 M1). The station and the
-   * campaign both call the free `generateContractOffers` in contract-offers.ts,
-   * which this method only wraps.
+   * campaign both call that free function, which this method only wraps.
    */
   generateContractOffers(): Contract[] {
     return generateContractOffers(

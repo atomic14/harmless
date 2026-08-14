@@ -100,7 +100,8 @@ export class Instruments {
   noteUnderFire(): void { this.autopilot.noteUnderFire(); }
 
   /**
-   * Anything close enough to hold the torus drive down.
+   * Whether the drive is held down — `massLocked` (world-step.ts) says what
+   * counts as close enough, and this is only the switch asking (docs/TODO/153).
    *
    * @internal — driven by src/game/flight.ts, and by the Game above it.
    */

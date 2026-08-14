@@ -550,11 +550,12 @@ export class Game {
    * Your name changed hands on the ladder — say so, once the deed that moved
    * it has been read (docs/TODO/129).
    *
-   * Called with the score either side of a deed or a quiet week; silent unless
-   * a RUNG was crossed, so the hidden number never becomes a running
-   * commentary. `characterVerdict` (character.ts) decides both questions, so
-   * no caller is free to disagree about what counts as a crossing or about
-   * what the line says.
+   * Called with the score either side of a deed or a quiet week.
+   *
+   * `characterVerdict` (character.ts) decides BOTH questions — whether a rung
+   * was crossed and what the line says — so no caller is free to disagree
+   * about either. Why only a crossing speaks is stated there too
+   * (docs/TODO/153).
    */
   private markName(before: number, after: number): void {
     const named = characterVerdict(before, after);
@@ -864,7 +865,8 @@ export class Game {
   }
 
   /**
-   * Where a sound happened, as the cockpit hears it (docs/TODO/142).
+   * A `Place` for a source, worked out (docs/TODO/142). What a Place IS, and
+   * what one does to a voice, is audio.ts's — see the type's own doc.
    *
    * Geometry only. How loud that is, and whether the sound cares at all, is
    * `audio.ts`'s to decide — the same split the countdown's pitch made when it

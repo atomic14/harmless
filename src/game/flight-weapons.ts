@@ -180,10 +180,11 @@ export class Weapons {
   }
 
   /**
-   * Dump a tonne over the side. Pirates came for cargo, not for you — give
-   * them enough of it and the opportunists break off and go collect, which
-   * turns "I can't win this fight" into a decision rather than a death.
-   * Organised gangs want considerably more convincing.
+   * Dump a tonne over the side.
+   *
+   * WHY that buys a pirate off, and how much more an organised gang wants, is
+   * `jettison.ts`'s opening — it said both first and says them better
+   * (docs/TODO/153).
    *
    * @internal — driven by test/jettison.test.ts
    */
@@ -195,12 +196,11 @@ export class Weapons {
   /**
    * Dump a tonne of the ILLEGAL cargo — the evidence, not the profit.
    *
-   * The same act with a different reach, which is why it is a key of its own
-   * rather than a mode on the one above: `dumpCargo` takes the most valuable
-   * thing in the hold because that is what buys off a pirate, and Slaves are
-   * 14th of 17 on the 1984 price table. Inside the window a police warning
-   * opens, that key throws the run's profit into space while the crime stays
-   * aboard. See `dumpContraband` (jettison.ts) for the ordering.
+   * A KEY OF ITS OWN rather than a mode on the one above, and the reason is
+   * that the two reach for opposite tonnes. Inside the window a police warning
+   * opens, the key above throws the run's profit into space and leaves the
+   * crime aboard. `dumpContraband` (jettison.ts) owns both orderings and the
+   * price table that separates them.
    *
    * @internal — driven by test/jettison.test.ts
    */

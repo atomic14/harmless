@@ -177,8 +177,8 @@ export class LawActions {
 
     // The fight comes first: a Viper already shooting is the more urgent
     // purchase, and buying an inspection off a man who is trying to kill you
-    // would be money for nothing. One press buys ONE ship — a pair costs twice,
-    // exactly as a gang of pirates does.
+    // would be money for nothing. One press buys ONE ship, and `PATROL_PRICE`
+    // (constants/law.ts) says why the price is per ship.
     const hunter = nearestEngaging(this.state.world.npcs, this.state.player.position,
       c.legalStatus, 'police');
     if (hunter) {
