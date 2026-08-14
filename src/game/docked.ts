@@ -7,10 +7,16 @@
 // pad, and `flight.ts` will hold everything that only happens with it in the
 // sky.
 //
-// ONE RESPONSIBILITY: what a commander does while she is docked. Arriving,
-// leaving, the menu she reads, the market and the outfitters she trades at, the
-// board she takes work from, and the one question the station will not let her
-// leave without answering. Six faces of standing still at a station.
+// ONE RESPONSIBILITY: what a commander does when the ship has stopped.
+// Arriving, leaving, the menu she reads, the market and the outfitters she
+// trades at, the board she takes work from, and the one question the station
+// will not let her leave without answering.
+//
+// "STOPPED" RATHER THAN "DOCKED", and one member is why. A hermit opens his
+// door to a ship that is still flying, so `openHermitTrade` is not a dock by
+// the mode machine's reckoning — but `tradeContext` holds `leaveHermit`, and
+// entering and leaving one market is one rule. Putting the two ends in two
+// files is how a rule grows a second home, so the sentence widened instead.
 //
 // `station.ts` next door owns the RULES of the two transitions — what a dock
 // costs, what a launch rolls, what a fine leaves. This spends them.
@@ -25,6 +31,8 @@
 
 import type * as THREE from 'three';
 import { renderDockedMenu, hideScreen } from '../ui/screens.ts';
+import { sfx } from '../audio.ts';
+import { hermitMarket } from './market.ts';
 import { Station, type StationEvent, type StationHost, type DockArrival } from './station.ts';
 import { generateContractOffers } from './contract-offers.ts';
 import { acceptContract, settleContracts, contractMessage, type ContractEvent } from './contracts.ts';
@@ -74,7 +82,7 @@ export interface DockedHost {
   lookAlong(dir: THREE.Vector3): void;
   /** a launch or an arrival fills the sky (world-build.ts) */
   populateSystem(situation: 'launch' | 'arrival'): void;
-  openScreen(id: 'briefing' | 'survivors'): void;
+  openScreen(id: 'briefing' | 'survivors' | 'market'): void;
   releaseMouseFlight(): void;
   startTunnel(seconds: number, way?: 'in' | 'out'): void;
 }
@@ -196,6 +204,43 @@ export class Docked {
   /** @internal — driven by src/game/game.ts, which delegates to it. */
   launch(): void {
     this.applyStation(this.station.launch());
+  }
+
+  /**
+   * Hermits deal in ore and ask no questions — the one place to sell
+   * contraband without a police scan, at the cost of finding them.
+   *
+   * IT IS HERE RATHER THAN IN `flight.ts`, AND THE REASON IS ONE HOME. The
+   * ship is in flight when a hermit opens his door, so by the mode machine's
+   * own reckoning this is not a dock at all. But `tradeContext` below already
+   * holds `leaveHermit`, and entering and leaving one market are the same
+   * rule — split across two files, the two halves of "the hermit's prices are
+   * in force" could drift apart. That is the failure this codebase is
+   * organised against, so the market's file takes both ends.
+   *
+   * @internal — driven by src/game/game.ts, whose flight host relays the step's
+   * request. The step never calls it for a pilot the miner refused.
+   */
+  openHermitTrade(): void {
+    this.state.session.hermitTrading = true;
+    // what the miner charges is a price rule, and price rules live in
+    // contracts.ts so the headless campaign can reach them (invariant 10)
+    // What the miner charges depends on who is asking: a known smuggler gets
+    // mates' rates (docs/TODO/96). Whether he opens the door at all was decided
+    // before this — `world-step.ts` never calls this for a refused pilot.
+    this.state.hermitMarket = hermitMarket(this.host.system(), this.state.commander.disrepute ?? 0);
+    this.state.market = this.state.hermitMarket;
+
+    // ONE push, because `open()` already renders — a second push would stack
+    // the same screen twice and leave one Escape short of flight. `Game.mode`
+    // is DERIVED from the stack.
+    this.host.openScreen('market');
+    // ...and the ship is still FLYING. The hermit is the one market a commander
+    // reaches without docking, so the base mode underneath the screen stays
+    // flight and Escape puts her back in the cockpit.
+    this.host.setBaseMode('flight');
+    this.state.player.speed = 0;
+    sfx.dock();
   }
 
   /** The only slice of the Game the market and outfitters are allowed to see. */

@@ -1,26 +1,34 @@
-// The orchestrator. Game owns the mode state machine (docked | flight |
-// market | chart | local | equip | status | dead), routes input per mode,
-// runs the fixed-timestep frame, and resolves every consequence the modules
-// around it report: combat.ts says a ship was destroyed and this file pays the
-// bounty, escalates legal status and launches the Vipers. Screens
-// (ui/screens.ts) and the HUD (hud/hud.ts) are pure renderers fed from here.
+// The orchestrator: which mode the game is in, and who gets the frame.
 //
-// The world's own motion is NOT here. `world-step.ts` owns the five phases of
-// flight; this file hands it a FlightDemand and applies the events it returns.
-// Neither is the save (`persistence.ts`), the two station transitions
-// (`station.ts`), the two computers that fly the ship for you (`autopilot.ts`),
-// nor the key bindings (`controls.ts`). What that leaves is orchestration: the
-// frame, the mode machine, the routing, and the consequences modules report.
+// ONE RESPONSIBILITY, and it is a short list because docs/TODO/150 and
+// docs/TODO/155 took the rest out. This file owns `baseMode`, hands each frame
+// to the half that owns it, routes every key to the child that answers it, and
+// says out loud what those children report. Nothing else.
 //
-// The shape repeats deliberately. Each module gets ONE host object literal —
-// `stepHost()`, `persistenceHost()`, `stationHost()` — listing the verbs it may
-// ask of the Game, and returns events the matching `apply*` puts on the HUD.
-// Anything that DRAWS from the seeded rng is a host CALL and never a deferred
-// event, because the order of draws is the world's determinism.
+// THE TWO HALVES ARE THE SHAPE (docs/TODO/155). `docked.ts` holds what a
+// commander does when the ship has stopped; `flight.ts` holds what she does in
+// the sky, over `flight-weapons.ts` and `flight-instruments.ts`. Neither half
+// reaches into the other. A step that ends in a dock, a jump, a tow or a death
+// reports it HERE, and this file decides what the game becomes — which is the
+// whole reason the two are apart.
+//
+// THE OTHER SEVEN CHILDREN each hold one subject beside the rules it spends:
+// the law (`law-actions.ts`), the sky (`world-build.ts`), the cockpit
+// (`cockpit-view.ts`), the jump (`hyperspace-actions.ts`), the career
+// (`career.ts`), the save (`persistence.ts`) and the screen stack
+// (`ui/screen-host.ts`).
+//
+// The shape repeats deliberately. Each child gets ONE host object literal —
+// `stepHost()`, `persistenceHost()`, and the literal beside each field —
+// listing the verbs it may ask of the Game, and returns events the matching
+// `apply*` says and plays. Anything that DRAWS from the seeded rng is a host
+// CALL and never a deferred event, because the order of draws is the world's
+// determinism.
 //
 // Input follows the same split: the player, a replay and an AI reach the game
 // through the same two verbs. `controls.ts` turns an input into `Command`s and
-// `runCommand` below applies them.
+// `runCommand` below applies them. The `commands` table is deliberately the
+// whole of that surface.
 //
 // `__game` exposes a console compatibility view for the autopilot harness
 // (console.ts, game-handles.ts, train/jameson-autopilot.js) and console poking.
@@ -31,7 +39,6 @@ import { viewRight, VIEW_QUATS } from './views.ts';
 import * as THREE from 'three';
 
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
-import { hermitMarket } from './market.ts';
 import { createStarfield, SpaceDust } from '../world/starfield.ts';
 import { Input } from '../engine/input.ts';
 import { layoutName, toggleLayout, refreshHelpPanel } from '../engine/keymap.ts';
@@ -472,7 +479,7 @@ export class Game {
       dock: () => this.docked_.enterDocked(),
       completeHyperspace: () => this.jump_.completeHyperspace(),
       completeRescue: () => this.jump_.completeRescue(),
-      openHermitTrade: () => this.openHermitTrade(),
+      openHermitTrade: () => this.docked_.openHermitTrade(),
       autoSave: () => this.autoSave(),
       flashDamage: () => this.hud.flashDamage(),
       flashBomb: () => this.shell.flashBomb(),
@@ -965,31 +972,6 @@ export class Game {
     this.cockpit_.renderHud(dt);
   }
 
-  /**
-   * Hermits deal in ore and ask no questions — the one place to sell
-   * contraband without a police scan, at the cost of finding them.
-   *
-   * @internal — no caller outside this class (docs/TODO/151 M1). `stepHost`
-   * wires it, and the step opens the trade through the Game.
-   */
-  openHermitTrade(): void {
-    this.state.session.hermitTrading = true;
-    // what the miner charges is a price rule, and price rules live in
-    // contracts.ts so the headless campaign can reach them (invariant 10)
-    // What the miner charges depends on who is asking: a known smuggler gets
-    // mates' rates (docs/TODO/96). Whether he opens the door at all was decided
-    // before this — `world-step.ts` never calls this for a refused pilot.
-    this.state.hermitMarket = hermitMarket(this.system, this.state.commander.disrepute ?? 0);
-    this.state.market = this.state.hermitMarket;
-
-    // ONE push, because `open()` already renders — a second push would stack
-    // the same screen twice and leave one Escape short of flight. `Game.mode`
-    // is DERIVED from the stack.
-    this.screens.open('market');
-    this.baseMode = 'flight';
-    this.state.player.speed = 0;
-    sfx.dock();
-  }
 
   // --- input ---------------------------------------------------------------
 

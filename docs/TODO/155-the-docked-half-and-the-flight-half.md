@@ -202,6 +202,54 @@ with the market or with the cockpit.
 Then correct the `tools/sizes.mjs` entry to what the file actually is, which is
 the debt 150 M6 left open.
 
+**M3 landed on 2026-08-14, and the item closes.** **game.ts 1,240 → 1,222.**
+`npm run check` passes at 4,530 assertions, unchanged through all three
+milestones.
+
+### The hermit went to the docked half, and one home is why
+
+The plan called `openHermitTrade` the member that proves the halves are not a
+clean partition, and it is. By the mode machine's own reckoning it is not a dock
+at all: the ship is flying, and the base mode under the market screen stays
+`flight`.
+
+**It still belongs with the market, and the argument is one home.**
+`tradeContext` already holds `leaveHermit`. Entering and leaving one market is
+one rule, and putting the two ends in two files is exactly how a rule grows a
+second home — the failure this codebase is organised against. So the docked
+half's sentence widened honestly instead: **what a commander does when the ship
+has STOPPED**, at a station or at a hermit's rock.
+
+The other three of the four resolved themselves earlier. `enterDocked` and
+`applyStation` went with the station's machinery in M1, because a host literal
+travels with the thing it is handed to. `raiseLegal` was already a delegate onto
+`law-actions.ts`.
+
+### The parent's one sentence, which is the test of the whole item
+
+> **The orchestrator: which mode the game is in, and who gets the frame.**
+
+It owns `baseMode`, hands each frame to the half that owns it, routes every key
+to the child that answers it, and says out loud what those children report.
+A reader can check that by opening the file, which is the bar Chris set. It is
+in the module header now, and in `tools/sizes.mjs`.
+
+**What that leaves in 1,222 lines**, and every part of it answers to that
+sentence: the constructor that wires nine children (161), the command table and
+the input routing (147), the frame (72), the console and the sound (90), the
+screen openers and the mode machine (174), the delegates the children's outside
+callers reach by name (91), and 540 of header, imports and fields.
+
+**The line count is recorded rather than aimed at** (Chris, 2026-08-14). The
+file went 2,528 → 1,222 across the two items, and the reason it should stop here
+is not the number: it is that the sentence above is true and short.
+
+### What this did NOT do, and it is one line
+
+`docs/TODO/152` is the map at the top of `game.ts`, and M3 rewrote that header
+to state the sentence above — so 152's three wrong claims are gone. **152 should
+be re-triaged rather than executed**: what is left of it may be nothing.
+
 ## Decisions already made
 
 - **Docked and flight are two different things and are split** (Chris,
