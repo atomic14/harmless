@@ -76,18 +76,92 @@ broken by a tool that cannot see quotation marks.
 
 It reports. **It does not gate yet.** M4 decides that.
 
+**M1 landed on 2026-08-14.** It is three files rather than one: `tools/ste.mjs`
+is the parent, `tools/ste-read.mjs` decides what is measured, and
+`tools/ste-rules.mjs` holds the three rules. `tools/ste.test.mjs` is 57
+assertions and is in `npm run check`. The checker itself is NOT in
+`npm run check`, which is M4's decision to make. `npm run check` passes at 4,530
+assertions, unchanged.
+
+**The tree measures at 20% long sentences, 2,345 `-ing` words and 309 tense
+breaches, over 10,013 sentences in 247 files.** Seven generated files are
+skipped, because a hand edit to a generated comment is lost at the next
+generation.
+
+**The plan's central claim survives the better measurement, and the gap is
+wider than the plan said:**
+
+| population | long sentences | `-ing` per 100 sentences |
+| --- | ---: | ---: |
+| `src/constants/` — swept by 141 | **6%** | **6.3** |
+| the rest of `src/` — incremental | **24%** | **29.6** |
+| the five files 150 wrote this month | **23%** | **32.7** |
+
+**Eight things came out of M1 that the plan did not have.**
+
+1. **The checker's numbers are about double the plan's at both ends.** The plan
+   measured 11% of 12,174 sentences. The checker says 20% of 10,013. The two
+   tools split sentences differently, and the plan's tool was a throwaway that
+   nobody kept, so the two counts cannot be reconciled. **The ratio is what the
+   argument rests on, and it did not weaken: 4 to 1, where the plan had 4.3 to
+   1.**
+2. **552 lines in one file failed `npm run sizes`**, which is the same event 155
+   M2 recorded. The split into a parent and two children is the answer that gate
+   asks for, and each file is now under 240 lines.
+3. **A real defect was found by mutating the tool, and it is the path mask.**
+   The greedy form of it swallowed the full stop that ends a sentence, so
+   "…swept `src/constants/`. Do not re-sweep it." was read as one sentence and
+   reported as a breach of the cap. It merged 51 sentences across `src/`.
+4. **Two assertions were vacuous when first written.** One claimed that a name
+   in backticks counts as one word, over a name that was one word either way.
+   The other claimed that "e.g." does not end a sentence, where a second rule
+   already stopped the split. Two more turned up on the second sweep. **All 25
+   mutations now fail the test.**
+5. **Nineteen of the 59 technical nouns named nothing in the tree.** They were
+   guesses, and `--nouns` found them on the first run. It prints a count and one
+   example for each entry, so the list is a review surface in the same way that
+   `tools/sizes.mjs` keeps one.
+6. **The `-ing` test is the word and not its role, and that is a known miss.**
+   `damping` is a noun in "the damping term" and a verb in "nothing damping it".
+   So the count is a FLOOR on the verb forms rather than an estimate. Five
+   entries came out where reading showed the verb use to be the common one.
+7. **A ranking by share is unstable over a short file.** Three long sentences
+   out of five is 60%, and it is twenty minutes of work. `--work` sorts by the
+   count of breaches, and it names a different ten files.
+8. **The tense count needed one rule the plan did not name: one chain is one
+   breach.** "may have been caused by" holds two of the three forbidden shapes,
+   and reporting it twice would say the sentence has two faults to fix.
+
 ### M2 — the pass over the worst files
 
 Take the files the checker ranks worst. Convert them. Measure again.
 
-The ten worst by share of long sentences, as at 2026-08-14:
+**M1 replaced the ranking this section carried.** The list below came from the
+throwaway measurement. The checker's own ranking is `npm run ste`, and M2 works
+from that. **Read both orders**, because they name different files:
+
+`npm run ste` — the worst by SHARE, which says which file reads worst:
 
 ```
-33%  game/extend-arc.ts        27%  hud/hud-model.ts        25%  game/pitch-roll-steer.ts
-30%  game/dock-path.ts         26%  ships/elite-a-hulls.ts  25%  game/screens/save-naming.ts
-28%  game/docking-sticks.ts    26%  game/autopilot.ts       25%  galaxy/descriptions.ts
-                                                            25%  engine/inert-dom.ts
+60%  game/screens/typed-name.ts (5)    50%  viewer/gallery-main.ts (4)
+53%  game/threat-lock.ts (17)          48%  game/screens/save-naming.ts (21)
+52%  game/docking-sticks.ts (48)       45%  game/pitch-roll-steer.ts (60)
+50%  game/dock-path.ts (80)            44%  game/extend-arc.ts (16)
+50%  galaxy/price-divergence.ts (8)    44%  game/screens/new-commander.ts (16)
 ```
+
+`npm run ste -- --work` — the worst by COUNT, which says where the job is:
+
+```
+87  ai-training/scenario.ts     31  ai-training/observation.ts
+82  game/npc.ts                 30  game/world-step.ts
+52  game/game.ts                29  game/combat-sim-scenarios.ts
+40  game/dock-path.ts           27  game/bindings.ts
+34  game/storage.ts             27  game/pitch-roll-steer.ts
+```
+
+The number in brackets is the count of sentences in the file. **A share over
+five sentences is noise**, which is why the second order exists.
 
 **Report the cost per file.** M2 is where the size of the whole job becomes
 known, and the plan does not predict it.
