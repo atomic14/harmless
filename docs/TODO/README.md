@@ -51,17 +51,32 @@ areas already HAVE a rules module, because `law.ts`, `persistence.ts`,
 this file. What is left is the ORCHESTRATION, so the cut is to move the handlers
 out beside the rules they spend.
 
-**Three milestones landed on 2026-08-14, and game.ts is 2,049 lines.** M1 took
-the law to `game/law-actions.ts`, M2 the sky to `game/world-build.ts`, and M3 the
-cockpit to `game/cockpit-view.ts`. That left 2,021 lines. 151 then spent 28 of
-them on the reasons that twenty-one comments got wrong. **No milestone after M1
-names its own successor**, and that is the programme's sharpest lesson rather
-than an
-omission: 149 planned one chart file, measured 719 lines and found four subjects.
-M2 then measured the trainer that the plan HAD named and found the worst area in
-the file — 39 lines behind a twelve-method interface. M3 measured again and the
-winner was an area the plan's own table had never listed. The plan now writes
-down HOW to measure an area, and M4 chooses on that measurement.
+**Six milestones landed on 2026-08-14, and game.ts is 1,810 lines.** M1 took the
+law to `game/law-actions.ts`, M2 the sky to `game/world-build.ts`, M3 the cockpit
+to `game/cockpit-view.ts`, M4 the jump to `game/hyperspace-actions.ts` and M5 the
+career to `game/career.ts`. Each child is one subject, each under 310 lines, each
+readable alone. **No milestone after M1 names its own successor**, and that is
+the programme's sharpest lesson rather than an omission: 149 planned one chart
+file, measured 719 lines and found four subjects. M2 then measured the trainer
+that the plan HAD named and found the worst area in the file — 39 lines behind a
+twelve-method interface. M3, M4 and M5 each measured again, and each time the
+winner was an area no table had named: the cockpit, then the jump, then a PAIR
+that beats both of its halves.
+
+**M6 measured and stopped, and that is the finding.** No sixth area clears the
+bar, and not because the good ones are taken: **75% of what is left cannot
+leave.** An `apply*` method IS the orchestrator, by this project's own rule that
+a module decides and an orchestrator applies. The six host literals travel with
+the modules they are handed to. The 81-line command table is deliberately the
+whole surface a replay, an AI or a test drives the game through. Move all 44
+members that COULD still go, at zero wiring cost, and the file is **1,362 lines,
+not ~300**. The cost rose every time while the benefit fell: **M1 took 276 lines
+out of `game.ts` and grew the tree by 26; M5 took 101 out and grew it by 163.**
+M6 corrects the stated target in `tools/sizes.mjs`, because a target known to be
+unreachable is the same false claim in a gate's own review surface that 151 was
+about. **The next move is a scope decision and it is Chris's** — re-aim the
+target, keep taking marginal areas, or split the ORCHESTRATOR into a docked half
+and a flight half, which is the only path that reaches ~300.
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on

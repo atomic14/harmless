@@ -595,7 +595,128 @@ wiring alone.
 One single-line comment became a block, because the moved `savesContext` needed
 a claim naming its caller.
 
-## M6 onwards — re-assessed after M5
+## M6 — what is left is the orchestrator, on 2026-08-14
+
+**M6 measured, and the measurement says stop.** No sixth area clears the bar,
+and the reason is not that the good ones are taken. It is that what remains is
+the orchestrator's own job. This milestone ships the measurement and the
+corrected target, and it moves no code.
+
+### The first number: every milestone costs more and moves less
+
+| milestone | `game.ts` falls by | the child | the TREE grows by |
+| --- | ---: | ---: | ---: |
+| M1 the law | 276 | 302 | **+26** |
+| M2 the sky | 98 | 187 | **+89** |
+| M3 the cockpit | 133 | 250 | **+117** |
+| M4 the jump | 138 | 266 | **+128** |
+| M5 the career | 101 | 264 | **+163** |
+
+The cost per milestone rises monotonically, and the fall in `game.ts` peaked at
+M1. **M5 wrote 163 new lines to take 101 out.** The wiring is not waste — a
+module header, a documented host and the delegates left behind are what make a
+child readable alone — but it is roughly fixed, so the smaller the area the
+worse the trade.
+
+### The second number: 75% of `game.ts` is orchestration
+
+| what | lines | share |
+| --- | ---: | ---: |
+| header, imports and fields | 570 | 31% |
+| everything else — 44 members, 10 lines each | 448 | 25% |
+| the appliers and the console | 163 | 9% |
+| the constructor | 161 | 9% |
+| the hosts and the contexts | 152 | 8% |
+| the frame | 120 | 7% |
+| the routing | 109 | 6% |
+| the delegates | 87 | 5% |
+
+Six of those eight buckets can never leave, and each has a stated reason:
+
+1. **An `apply*` method IS the orchestrator**, by the project's own design rule
+   — a module decides and returns an event, an orchestrator applies the
+   consequence. `applyCombat` says so in its own words: *"Combat decides; the
+   Game pays. Every consequence that reaches outside the world — the HUD, the
+   law, the missile lock, the death screen — lands here."*
+2. **A host literal travels with the thing it is handed to** (M5), and all six
+   are handed to modules `game.ts` constructs.
+3. **The routing is the whole surface on purpose.** The `commands` table is the
+   single largest item in the file at 81 lines, and its own comment is the
+   argument against moving it: *"This is the whole surface a replay, an AI or a
+   test drives the game through."* Its arms call about sixty Game methods, most
+   of them private, so a child holding the table would need a host of sixty.
+4. **The frame and the input are the orchestrator's job**, which the plan's open
+   question 1 settled before M1.
+5. **The constructor is where every child is wired**, so it shrinks only when
+   there is nothing left to wire.
+6. **The delegates are the cost of the children that already left.** Twenty
+   members, 87 lines, and every one of them exists so that a caller outside can
+   still reach what moved.
+
+### The third number: the target is not reachable this way
+
+**Move every one of the 44 remaining members and `game.ts` is 1,362 lines.**
+That is the whole of "everything else" leaving at zero wiring cost, which is
+impossible — real wiring would put it back over 1,500. The entry's stated target
+of ~300 cannot be reached by taking areas out.
+
+And those 44 members do not form areas worth taking. Measured with the appliers
+and the hosts set aside, the best is the weapon keys at 60 lines against 9 deps,
+and reading them says what they are: `armMissile` is
+`this.applyOrdnance(this.ordnance.arm(...))`. **They are the appliers' arms.** A
+child holding them would call back into `game.ts` for the applier on every line.
+
+### What the sound area finally settles
+
+M4 rejected the sound area on size — 41 lines against ONE dependency, the best
+ratio ever measured here. M6 found the second reason, and it is stronger:
+**`sounds.ts` already argues that this code belongs in the orchestrator.** Its
+header says the rule modules return a `SoundEvent` so that *"`game.ts` has ONE
+place that turns a sound event into a call"*. `placeOf` cannot join it either —
+`sounds.ts` keeps a three-import rule so that a headless run costs nothing, and
+`placeOf` needs a real `three` import. The area is where it should be.
+
+### The question this leaves, and it is Chris's
+
+The five children did what the item asked: `law-actions.ts`, `world-build.ts`,
+`cockpit-view.ts`, `hyperspace-actions.ts` and `career.ts` are each one subject,
+each under 310 lines, each readable alone. `game.ts` fell 28%, from 2,528 to
+1,810. **What is left is an orchestrator, and it is 1,810 lines.**
+
+Three ways forward, and the choice is a scope decision rather than a
+measurement:
+
+1. **Re-aim the target.** Accept that an orchestrator of this game is about
+   1,400 to 1,800 lines, correct the `~300` in `tools/sizes.mjs`, and close the
+   item. The children stand.
+2. **Keep taking marginal areas.** Each one now costs about 150 lines of tree to
+   remove about 90 from `game.ts`. Four or five would reach roughly 1,400.
+3. **Change the axis.** The remaining bulk is the mode machine: one file
+   orchestrates the station AND the cockpit. Splitting the ORCHESTRATOR — a
+   docked half and a flight half, with the frame and the routing shared — is a
+   different and larger design, and it is the only one that reaches ~300.
+
+**M6 does 1 in `tools/sizes.mjs`**, because a stated target that is known to be
+unreachable is a false claim in a gate's own review surface, which is the defect
+docs/TODO/151 was about. The choice between 1, 2 and 3 stays open for Chris.
+
+### How to measure the composition
+
+The area script above answers "what should leave next". This one answers "what
+is this file now", which is the question M6 needed. It buckets every member by
+whether it CAN leave.
+
+```js
+const HOSTS = ['stepHost','simHost','stationHost','persistenceHost','tradeContext','chartContext'];
+const APPLY = ['applyStep','applyStation','applyCombat','applyOrdnance','applyAutopilot',
+               'applyContracts','playSound','sayEvent','showMessage','queueMessage','markName'];
+const ROUTE = ['runCommand','handleInput','controlMode','cameFrom','handsOn','pilotDemand'];
+const FRAME = ['update','step','draw','updateFlight','finishStep','pausedHint','resize'];
+// then bucket each member: constructor, delegate (a one-line reach into a child),
+// host, applier, routing, frame — and whatever is left is the candidate pool.
+```
+
+## M7 onwards — open, and waiting on the decision above
 
 **Still true from the plan:** the 163-line constructor is last, because it is
 where every child is wired.
@@ -624,10 +745,14 @@ M5. Measure again, with the checks the section above lists.
    ratio would have moved `persistenceHost` and raised the area from 7.5 to 9.2.
    It stays, because `new Persistence(...)` stays.
 
-**What is left.** `game.ts` is 1,810 lines. Ordnance plus combat is the largest
-untaken area at 112 lines, and its 15 deps are the widest in the file — the M1
-test asks whether the child would call back for everything, and 15 is the number
-to interrogate rather than accept. Contracts plus survivors is 48 lines against
-7 deps, with `contracts.ts` and `survivors.ts` already next door, and it is
-under the size floor that warning 2 sets. **Both rows predate M5** and must be
-taken again: `die` left, and combat reaches it.
+5. **Set the appliers and the hosts aside BEFORE ranking** (M6). Ordnance plus
+   combat measures 112 lines against 15 deps and looks like the largest area
+   left. Nine of those fifteen are collaborators, which is the tell: the area is
+   `applyCombat` and `applyOrdnance`, and an applier is the orchestrator by
+   definition. Take the appliers and the host literals out of the pool and the
+   same area is 60 lines against 9 — the appliers' arms.
+
+**What is left is the orchestrator itself, and M6 measured it.** See the M6
+section above: 75% of `game.ts` cannot leave, moving all 44 remaining members
+would still leave 1,362 lines, and the choice between re-aiming the target,
+taking marginal areas and splitting the orchestrator is Chris's.
