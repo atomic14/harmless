@@ -54,10 +54,20 @@ lines in 1,810 test the mode at all.
 **Measured, the split is 177 lines of docked against 441 of flight**, with four
 members in both: the transition, a record that moves in either place, and the
 hermit — a station's act in the cockpit, which is the one member that proves the
-halves are not a clean partition. **It does not reach ~300 either**, and 155
-says so before it starts: the parent lands at about 900 to 1,000, because the
-remaining bulk is the machinery both halves stand on rather than the coupling
-between them.
+halves are not a clean partition.
+
+**155 is judged on the boundary rather than on a line count** (Chris,
+2026-08-14): *"We should not obsess over the 300 lines. What we are looking for
+is a clean architecture."* So the `~300` that `game.ts` carried since before 150
+is retired rather than re-aimed, and `tools/sizes.mjs` now asks the file the
+question its own header asks — can it state one responsibility? Three things
+answer the item: each of the three files states one responsibility a reader can
+check, no rule ends up with two homes, and the seam runs where the game's own
+concepts already run. The sizes are recorded as history. **The parent will still
+hold the machinery both halves stand on** — the frame, the input routing, the
+command table, the console, the sound, the screen stack and the persistence
+host. Whether that reads as an orchestrator or as leftovers is the test of the
+whole item, and it is the parent's one sentence that answers it.
 
 **150 landed with its five children on 2026-08-14, and is below.**
 

@@ -48,22 +48,36 @@ and autopilots all report to the orchestrator.
 a market reached in FLIGHT** — a station's act, in the cockpit, which is why the
 hermit exists.
 
-## What this does NOT do, and it must be said before the work starts
+## What to judge it by
 
-**It does not reach ~300.** The parent keeps the 384 shared lines plus the
-constructor, the imports and the fields. Measured, the split lands at roughly:
+**Not the line count** (Chris, 2026-08-14): *"We should not obsess over the 300
+lines. What we are looking for is a clean architecture."* `tools/sizes.mjs`
+already says the same thing about its own ceiling — it is a DETECTOR, and the
+rule is one responsibility per file. So this item is judged on the boundary it
+draws, and three questions answer that:
 
-| file | lines |
-| --- | ---: |
-| `game.ts`, the parent | 900–1,000 |
-| `game/flight.ts` | 550–600 |
-| `game/docked.ts` | 250–300 |
+1. **Can each of the three files state one responsibility in a sentence a reader
+   can check by opening it?** Docked and flight can. The parent's sentence is
+   the one to watch: if it comes out as a list, the split has produced a
+   leftovers file rather than an orchestrator.
+2. **Does the seam run where the game's own concepts run?** The command table,
+   the binding tables and the mode machine all already cut here. A boundary that
+   agrees with three existing ones is a real seam rather than an imposed one.
+3. **Does any rule end up with two homes?** That is the failure this codebase is
+   organised against, and a mode split is where it would show: a rule that is
+   true at a station AND in flight must not be written down twice.
 
-The parent nearly halves, which is worth having. But **the remaining bulk is not
-the docked/flight coupling** — it is the machinery both halves stand on: the
-frame, the input routing, the 81-line command table, the console, the sound, the
-screen stack and the persistence host. Splitting by mode does not touch any of
-it.
+**The sizes are a consequence, and they are recorded rather than aimed at.** The
+parent lands near 900 to 1,000, flight near 550 to 600, docked near 250 to 300.
+The parent roughly halves.
+
+**What the split does not touch, and this is worth knowing early.** The bulk
+that remains in the parent is not the docked/flight coupling. It is the
+machinery both halves stand on: the frame, the input routing, the 81-line
+command table, the console, the sound, the screen stack and the persistence
+host. If the parent's one-sentence responsibility comes out clean, that is
+correct and it is what an orchestrator is. If it does not, the next item is
+about that machinery rather than about the modes.
 
 **And the delegates get worse before they get better.** Eleven Game methods are
 driven by `test/playtest.js` alone, and they fall on both sides of the seam —
@@ -105,6 +119,11 @@ the debt 150 M6 left open.
 
 - **Docked and flight are two different things and are split** (Chris,
   2026-08-14). *"Why would you want to couple them together?"*
+- **The goal is a clean architecture, not a line count** (Chris, 2026-08-14):
+  *"We should not obsess over the 300 lines."* So no file is measured against a
+  number here. Each is measured against the one responsibility it can state.
+  The `~300` that `game.ts` has carried since before docs/TODO/150 is retired
+  rather than re-aimed.
 - **The five children of 150 stand.** This item divides what is left; it does
   not revisit them.
 - **No prose is cut to make anything fit** — 148's lesson, carried through 150.
@@ -150,6 +169,16 @@ more. `npm run portability` runs too, because the module graph moves.
 the same assertion count, untouched, as it did through all five milestones of
 150.
 
-**The numbers that say it worked:** `game.ts` under 1,100, each half under 600
-with a stated single responsibility, no new `ALLOWED` entry beyond the two
-halves, and every comment line accounted for.
+**What says it worked**, in the order that matters:
+
+1. **Three files, three sentences.** Each names one responsibility, and a reader
+   can check the claim by opening the file. The parent's sentence is the test of
+   the whole item.
+2. **No rule with two homes.** Nothing true in both modes is written down twice.
+3. **The seam holds under the gates.** The suite passes untouched at the same
+   assertion count, and `npm run portability` reports no portable line turned
+   platform.
+4. **Every comment line accounted for**, moved or reworded, none dropped.
+
+The line counts are recorded in the milestone notes because they are useful
+history, and they are not a pass mark.
