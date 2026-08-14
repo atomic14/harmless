@@ -13,8 +13,8 @@ active context:
 
 ## Execution queue
 
-1. [150 — The orchestrator and its children](150-the-orchestrator-and-its-children.md)
-   · refactor · large.
+1. [155 — The docked half and the flight
+   half](155-the-docked-half-and-the-flight-half.md) · refactor · large.
 2. [152 — The map at the top of game.ts is out of
    date](152-the-map-at-the-top-of-game-ts-is-out-of-date.md) · defect · small.
 3. [153 — A rule explained where the rule does not
@@ -32,9 +32,10 @@ restatement** — one bare restatement exists in 2,020 lines — so none of the 
 items cuts prose to make a file shorter. Each answers a different fault. **151
 landed on 2026-08-14** and is below.
 
-**152 and 153 wait for 150 to finish**, because 150 keeps moving the boundary
-that 152 describes and the code that 153's paragraphs travel with. **153 blocks
-154** for the same reason: move a paragraph once, then rewrite it once.
+**152 and 153 wait for 155 to finish**, for the reason they waited for 150: the
+head of the queue keeps moving the boundary that 152 describes and the code that
+153's paragraphs travel with. **153 blocks 154** for the same reason: move a
+paragraph once, then rewrite it once.
 
 **154 is the largest, and the incremental rule is what makes it necessary.**
 `CLAUDE.md` asks each edit to convert the comment it touches. Measured, that does
@@ -43,42 +44,22 @@ sentences over the cap, while the rest of `src/` has 13% — and the three files
 150 wrote this month reach 14%. A sweep converts a surface; an intention does
 not.
 
-**150 is the head of the decomposition programme, promoted on 2026-08-14.**
-`src/game/game.ts` was 2,528 lines and 201 commits, and its own entry admits *"the
-orchestrator plus leftovers. Target ~300"*. The triage found the axis: most of its
-areas already HAVE a rules module, because `law.ts`, `persistence.ts`,
-`contracts.ts`, `ordnance.ts`, `station.ts` and `world-step.ts` all came out of
-this file. What is left is the ORCHESTRATION, so the cut is to move the handlers
-out beside the rules they spend.
+**155 is the head of the decomposition programme, and it is Chris's answer to
+150 M6** (2026-08-14): *"It makes sense to split docked from flight - they are
+very different things. Why would you want to couple them together?"* The code
+already agreed with the question. The command table sections itself by mode in
+its own comments, `controls.ts` has a binding table per mode, and only eleven
+lines in 1,810 test the mode at all.
 
-**Six milestones landed on 2026-08-14, and game.ts is 1,810 lines.** M1 took the
-law to `game/law-actions.ts`, M2 the sky to `game/world-build.ts`, M3 the cockpit
-to `game/cockpit-view.ts`, M4 the jump to `game/hyperspace-actions.ts` and M5 the
-career to `game/career.ts`. Each child is one subject, each under 310 lines, each
-readable alone. **No milestone after M1 names its own successor**, and that is
-the programme's sharpest lesson rather than an omission: 149 planned one chart
-file, measured 719 lines and found four subjects. M2 then measured the trainer
-that the plan HAD named and found the worst area in the file — 39 lines behind a
-twelve-method interface. M3, M4 and M5 each measured again, and each time the
-winner was an area no table had named: the cockpit, then the jump, then a PAIR
-that beats both of its halves.
+**Measured, the split is 177 lines of docked against 441 of flight**, with four
+members in both: the transition, a record that moves in either place, and the
+hermit — a station's act in the cockpit, which is the one member that proves the
+halves are not a clean partition. **It does not reach ~300 either**, and 155
+says so before it starts: the parent lands at about 900 to 1,000, because the
+remaining bulk is the machinery both halves stand on rather than the coupling
+between them.
 
-**M6 measured and stopped, and that is the finding.** No sixth area clears the
-bar, and not because the good ones are taken: **75% of what is left cannot
-leave.** An `apply*` method IS the orchestrator, by this project's own rule that
-a module decides and an orchestrator applies. The six host literals travel with
-the modules they are handed to. The 81-line command table is deliberately the
-whole surface a replay, an AI or a test drives the game through. Only **448 of the 1,810
-lines** sit in members that could still move, so taking all 44 lands the file
-near 1,362 — a real shrink, and then it stops, nowhere near ~300. What has
-changed is the price rather than the shrink: `game.ts` has fallen by a steady 98
-to 138 lines a milestone since M1, while the lines written per line removed went
-**1.09 → 1.90 → 1.87 → 1.92 → 2.61**.
-M6 corrects the stated target in `tools/sizes.mjs`, because a target known to be
-unreachable is the same false claim in a gate's own review surface that 151 was
-about. **The next move is a scope decision and it is Chris's** — re-aim the
-target, keep taking marginal areas, or split the ORCHESTRATOR into a docked half
-and a flight half, which is the only path that reaches ~300.
+**150 landed with its five children on 2026-08-14, and is below.**
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
@@ -101,6 +82,39 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-14
+
+**150 — the orchestrator and its children. Six milestones, and game.ts is 1,810
+lines.** M1 took the law to `game/law-actions.ts`, M2 the sky to
+`game/world-build.ts`, M3 the cockpit
+to `game/cockpit-view.ts`, M4 the jump to `game/hyperspace-actions.ts` and M5 the
+career to `game/career.ts`. Each child is one subject, each under 310 lines, each
+readable alone. **No milestone after M1 names its own successor**, and that is
+the programme's sharpest lesson rather than an omission: 149 planned one chart
+file, measured 719 lines and found four subjects. M2 then measured the trainer
+that the plan HAD named and found the worst area in the file — 39 lines behind a
+twelve-method interface. M3, M4 and M5 each measured again, and each time the
+winner was an area no table had named: the cockpit, then the jump, then a PAIR
+that beats both of its halves.
+
+**M6 measured and stopped, and that is the finding.** No sixth area clears the
+bar, and not because the good ones are taken: **75% of what is left cannot
+leave.** An `apply*` method IS the orchestrator, by this project's own rule that
+a module decides and an orchestrator applies. The six host literals travel with
+the modules they are handed to. The 81-line command table is deliberately the
+whole surface a replay, an AI or a test drives the game through. Only **448 of
+the 1,810 lines** sit in members that could still move, so taking all 44 lands
+the file near 1,362 — a real shrink, and then it stops, nowhere near ~300. What
+changed is the price rather than the shrink: `game.ts` has fallen by a steady 98
+to 138 lines a milestone since M1, while the lines written per line removed went
+**1.09 → 1.90 → 1.87 → 1.92 → 2.61**. M6 corrects the stated target in
+`tools/sizes.mjs`, because a target known to be unreachable is the same false
+claim in a gate's own review surface that 151 was about.
+
+**M6 also got a claim wrong, and the correction is in the record.** It first
+said every milestone moved less as well as costing more. The shrink is flat, not
+falling, and the wording invited a worse reading — that moving code out does not
+shrink `game.ts` at all. It does, every time. **The item closed on Chris's
+answer**, which is 155 at the head of the queue.
 
 **151** — thirty-one members of `src/` said *"@internal — driven by
 test/playtest.js"*, and that file calls **eleven** of them. The claim was true

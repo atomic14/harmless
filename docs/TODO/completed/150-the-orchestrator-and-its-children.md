@@ -107,6 +107,11 @@ child is wired, so it can only shrink once the children exist.
 
 - **One responsibility per file, and a responsibility may be a parent plus
   children** (Chris, 2026-08-14).
+- **The orchestrator itself is split, docked from flight** (Chris, 2026-08-14,
+  answering M6): *"It makes sense to split docked from flight - they are very
+  different things. Why would you want to couple them together?"* That is the
+  third of the three ways M6 named, and it closes this item. The new axis is
+  docs/TODO/155.
 - **No prose is cut to make anything fit** — docs/TODO/148's lesson.
 - **Every comment travels with the code it explains** — 148 and 149.
 - **The target is a small `game.ts`, not a shorter one.**
@@ -726,7 +731,27 @@ const FRAME = ['update','step','draw','updateFlight','finishStep','pausedHint','
 // host, applier, routing, frame — and whatever is left is the candidate pool.
 ```
 
-## M7 onwards — open, and waiting on the decision above
+## The decision, and the close
+
+**Chris answered on 2026-08-14, and it is the third way:** *"It makes sense to
+split docked from flight - they are very different things. Why would you want to
+couple them together?"*
+
+**The code already agreed with the question.** The command table sections itself
+by mode in its own comments, `controls.ts` has a binding table per mode, and
+only eleven lines in 1,810 test the mode at all.
+
+**So this item closes here, with its five children landed**, and the new axis
+gets its own plan: docs/TODO/155. The split measures 177 lines of docked against
+441 of flight, with four members in both — the transition, the record, and the
+hermit, who is a station's act in the cockpit.
+
+**One thing 155 must state before it starts, and it is this item's last
+finding:** the split does not reach ~300 either. It lands the parent at about
+900 to 1,000 lines, because the remaining bulk is not the docked/flight coupling
+but the machinery both halves stand on — the frame, the input routing, the
+81-line command table, the console, the sound, the screen stack and the
+persistence host.
 
 **Still true from the plan:** the 163-line constructor is last, because it is
 where every child is wired.
