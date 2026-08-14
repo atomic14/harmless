@@ -61,9 +61,14 @@ Two things belong to the plan doc rather than to the commit message alone:
 ## 3. Verify
 
 **The gates always run**, and they are `npm run check`. That one command is the
-lint, the suite, the size ceilings, `constants:check`, `palette:check` and the
-three generator drift checks. `npm run prebuild` runs it, so a build cannot skip
-it.
+lint, the suite, the size ceilings, `constants:check`, `palette:check`,
+`claims:check` and the three generator drift checks. `npm run prebuild` runs it,
+so a build cannot skip it.
+
+`claims:check` holds one comment form. A doc comment may say
+`@internal — driven by <path>`, and the gate fails when the named file does not
+call that member (docs/TODO/151). Twenty-one such claims were false when it was
+written.
 
 **A gate has no warning level.** It passes or it fails. `constants:check` used to
 print warnings and exit 0, which made "zero warnings" a standard nobody held: the
