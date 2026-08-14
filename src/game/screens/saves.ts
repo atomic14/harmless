@@ -26,7 +26,9 @@ import {
 } from '../save-file.ts';
 import { rating } from '../rating.ts';
 import type { WorldSnapshot } from '../snapshot.ts';
-import { renderSaves } from '../../ui/screens.ts';
+import {
+  renderSaves,
+} from '../../ui/screens-career.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';

@@ -1,6 +1,8 @@
 // The mission briefing: several pages of text, read with left and right.
 
-import { renderBriefing, BRIEFING_PAGES } from '../../ui/screens.ts';
+import {
+  renderBriefing, BRIEFING_PAGES,
+} from '../../ui/briefing.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { Input } from '../../engine/input.ts';
 

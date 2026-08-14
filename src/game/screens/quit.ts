@@ -19,7 +19,9 @@
 // calls `abandon()`, the way the trainer's picker calls `begin()`.
 
 import type { SaveSummary } from '../save-file.ts';
-import { renderQuit } from '../../ui/screens.ts';
+import {
+  renderQuit,
+} from '../../ui/screens-career.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { Input } from '../../engine/input.ts';
 

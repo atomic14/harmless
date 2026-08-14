@@ -9,7 +9,9 @@ import { newCommander, killValue } from '../src/game/commander.ts';
 import { MAX_FUEL } from '../src/constants/commander.ts';
 import { fuelNeeded, refuelCost, fuelQuote } from '../src/game/shop.ts';
 import { FUEL_PRICE } from '../src/constants/shop.ts';
-import { equipRows, renderMarket } from '../src/ui/screens.ts';
+import {
+  equipRows, renderMarket,
+} from '../src/ui/screens-trade.ts';
 import {
   isContraband,
   contrabandTonnes,

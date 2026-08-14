@@ -152,7 +152,7 @@ console.log('\ncombat simulator — a long list is navigable');
   check('the screen reads HOME and END',
     /i\.pressed\('Home'\)/.test(read('src/game/screens/combat-sim.ts'))
     && /i\.pressed\('End'\)/.test(read('src/game/screens/combat-sim.ts')));
-  check('...the footer hint names them', /HOME\/END ENDS OF LIST/.test(read('src/ui/screens.ts')));
+  check('...the footer hint names them', /HOME\/END ENDS OF LIST/.test(read('src/ui/screens-trainer.ts')));
   check('...so does the ? panel', /HOME \/ END/.test(read('play.html')));
   check('...and so does the README', /\*\*HOME\/END\*\*/.test(read('README.md')));
 }
@@ -168,7 +168,7 @@ console.log('\ncombat simulator — a long list is navigable');
 
 console.log('\ncombat simulator — the panel names its keys');
 {
-  const screens = read('src/ui/screens.ts');
+  const screens = read('src/ui/screens-trainer.ts');
   const panel = screens.slice(screens.indexOf('export function renderCombatSimSetup'));
   check('the footer hint names L, which opens the last report',
     /L LAST REPORT/.test(panel));
@@ -225,7 +225,7 @@ console.log('\ncombat simulator — the waves mode says where it stops');
 
   // ...and the report says it afterwards, which is the other half: an
   // escalation the pilot can only infer from losing is not a visible one.
-  const report = read('src/ui/screens.ts');
+  const report = read('src/ui/screens-trainer.ts');
   check('the report paints the escalation the record carries',
     /r\.escalation \? escalation\(r\.escalation\) : ''/.test(report)
     && /SATURATES AT \$\{e\.saturatesAt\}/.test(report)

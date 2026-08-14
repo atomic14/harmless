@@ -18,7 +18,9 @@ import {
 import { MAX_FUEL, MAX_MISSILES } from '../../constants/commander.ts';
 import { fuelQuote } from '../shop.ts';
 import { BEAM_LASER_PRICE, PULSE_LASER_PRICE } from '../../constants/shop.ts';
-import { renderMarket, renderEquip, equipRows } from '../../ui/screens.ts';
+import {
+  renderMarket, renderEquip, equipRows,
+} from '../../ui/screens-trade.ts';
 import { type MarketEntry, type StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';

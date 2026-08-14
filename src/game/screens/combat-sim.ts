@@ -36,7 +36,7 @@ import {
 } from './combat-sim-notes.ts';
 import {
   renderCombatSimSetup, renderCombatSimReport, renderCombatSimCompare,
-} from '../../ui/screens.ts';
+} from '../../ui/screens-trainer.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { Input } from '../../engine/input.ts';
 import { sfx } from '../../audio.ts';

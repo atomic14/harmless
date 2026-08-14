@@ -165,9 +165,11 @@ import {
 import { afterDecay, characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
 import {
-  hideScreen, renderDockedMenu, renderNewGameConfirm,
-  renderGameOver,
+  hideScreen, renderDockedMenu,
 } from '../ui/screens.ts';
+import {
+  renderNewGameConfirm, renderGameOver,
+} from '../ui/screens-career.ts';
 import { boundKey, keyIfBound, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
 

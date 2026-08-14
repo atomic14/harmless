@@ -9,7 +9,9 @@
 
 import { normaliseSaveName } from '../save-file.ts';
 import { bootNewCommander, commanderNameTaken } from '../storage.ts';
-import { renderNewCommander } from '../../ui/screens.ts';
+import {
+  renderNewCommander,
+} from '../../ui/screens-career.ts';
 import { typedName } from './typed-name.ts';
 import type { SavesContext } from './saves.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';

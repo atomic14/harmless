@@ -348,7 +348,7 @@ console.log('\ncombat simulator — the compare panel, driven');
 console.log('\ncombat simulator — reaching the comparison');
 {
   const screen = read('src/game/screens/combat-sim.ts');
-  const screens = read('src/ui/screens.ts');
+  const screens = read('src/ui/screens-trainer.ts');
   check('ENTER on the report panel opens the pair',
     /if \(i\.pressed\('Enter'\)\) \{\n\s*if \(n < 2\) return this\.refuse/.test(screen));
   check('...and refuses honestly when there is only one record',

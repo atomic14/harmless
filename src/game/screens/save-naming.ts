@@ -19,7 +19,9 @@ import { namedSaveExists } from '../storage.ts';
 import { normaliseSaveName } from '../save-file.ts';
 import { typedName } from './typed-name.ts';
 import type { SavesContext } from './saves.ts';
-import { renderNaming, renderSavePrompt } from '../../ui/screens.ts';
+import {
+  renderNaming, renderSavePrompt,
+} from '../../ui/screens-career.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { Input } from '../../engine/input.ts';
 import { sfx } from '../../audio.ts';

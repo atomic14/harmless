@@ -23,7 +23,9 @@ import {
   defaultEquipment, formatCredits, markTested, LASER_TYPES, type Equipment,
 } from '../commander.ts';
 import { characterName } from '../character.ts';
-import { renderTestMode } from '../../ui/screens.ts';
+import {
+  renderTestMode,
+} from '../../ui/screens-career.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { Input } from '../../engine/input.ts';
 import {

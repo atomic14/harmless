@@ -14,7 +14,9 @@
 // player key to reach in the first place (docs/INVARIANTS.md invariant 3).
 
 import { buyEquipment, type TradeContext } from '../src/game/screens/trade.ts';
-import { equipRows, type EquipRow } from '../src/ui/screens.ts';
+import {
+  equipRows, type EquipRow,
+} from '../src/ui/screens-trade.ts';
 import {
   newCommander, type CommanderData,
 } from '../src/game/commander.ts';

@@ -13,7 +13,7 @@
 // seven of the eight galaxies are ungenerated. A test suite that only proved
 // the populated case would pass today and prove nothing.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import { escapeHtml } from '../src/engine/escape-html.ts';
 import {
   systemDescription, overlay, type SystemDescription,
@@ -185,12 +185,22 @@ eq('a world can still be hard to get to',
 //
 // That is this project's named failure with a new hat on, so it gets a test
 // rather than a resolution to be careful. A third home is a failure here.
-const escapers = ['src/ui/screens.ts', 'src/encyclopaedia/entry.ts']
+//
+// EVERY ui MODULE, not two named files, since docs/TODO/149 split
+// `ui/screens.ts` into eight. Naming them would be a list to keep in step with
+// a directory — the exact shape of failure this check is about — so it reads
+// the directory instead, and a ninth screen file is covered the day it lands.
+const uiFiles = readdirSync(new URL('../src/ui/', import.meta.url))
+  .filter((f) => f.endsWith('.ts')).map((f) => `src/ui/${f}`);
+const escapers = [...uiFiles, 'src/encyclopaedia/entry.ts']
   .map((f) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8'));
-check('no surface defines its own HTML escaper',
+check(`no surface defines its own HTML escaper (${escapers.length} scanned)`,
   escapers.every((src) => !/function\s+escape\w*\s*\(/.test(src)));
-check('every surface imports the shared one',
-  escapers.every((src) => src.includes("from '../engine/escape-html.ts'")));
+// Only the ones that ESCAPE have to import it; a file with no user text in it
+// has nothing to escape, and requiring the import would be cargo cult.
+check('every surface that escapes imports the shared one',
+  escapers.filter((src) => /\bescapeHtml\(/.test(src))
+    .every((src) => /from '\.\.?\/(\.\.\/)?engine\/escape-html\.ts'/.test(src)));
 eq('and it escapes the quote the private copy missed', escapeHtml('a"b'), 'a&quot;b');
 
 // --- both browsing surfaces show it -----------------------------------------

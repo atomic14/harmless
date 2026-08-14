@@ -55,8 +55,15 @@ const ALLOWED = {
   // BIGGER. Everything at 402-464 lines carries 490-1,090 characters of
   // argument; everything over 1,000 carries 48-118. The gate only bites at the
   // moment a file crosses, so a file already over when the gate arrived was
-  // never made to argue. No item is open on it; the finding is recorded here
-  // because this is the file it is about.
+  // never made to argue.
+  //
+  // A SIXTH ENTRY CAME OUT THE SAME DAY, by being split rather than by shrinking
+  // on its own — and it was the finding above made concrete. `ui/screens.ts` was
+  // 1,954 lines behind the weakest reason in this list: "one render function per
+  // screen; they share layout helpers and nothing else", which states the
+  // precondition for a clean cut and offers it as the argument against one.
+  // docs/TODO/149 took it apart into eight files, the largest 340 lines, and
+  // none of them needs an entry here.
 
   // one data table each: splitting a table is strictly worse
   //

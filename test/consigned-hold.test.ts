@@ -23,7 +23,9 @@ import {
   newCommander, consignedTonnes, type CommanderData, type Contract,
 } from '../src/game/commander.ts';
 import { generateMarket, COMMODITIES } from '../src/galaxy/galaxy.ts';
-import { renderMarket } from '../src/ui/screens.ts';
+import {
+  renderMarket,
+} from '../src/ui/screens-trade.ts';
 import { MarketScreen, type TradeContext } from '../src/game/screens/trade.ts';
 import type { Input } from '../src/engine/input.ts';
 import { CONTRABAND } from '../src/constants/law.ts';

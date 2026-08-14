@@ -69,5 +69,5 @@ console.log('\ncombat simulator — the pirate-brain row says what it does');
     PIRATE_CHOICES.every(isNamedBrain));
   check('the renderer holds that space whether the line is there or not',
     /reservedNotes\(p\.brainNote \? \[p\.brainNote\] : \[\], \[p\.brainReserve\]/
-      .test(read('src/ui/screens.ts')));
+      .test(read('src/ui/screens-trainer.ts')));
 }

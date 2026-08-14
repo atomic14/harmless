@@ -36,7 +36,9 @@ import {
   ALL_BINDINGS, boundKey, dockedMenuHtml, guideSections, guideTableHtml, keyLabel,
   manualCommandsHtml, menuRowsHtml, paintCommandGuide,
 } from '../src/ui/key-help.ts';
-import { BRIEFING } from '../src/ui/screens.ts';
+import {
+  BRIEFING,
+} from '../src/ui/briefing.ts';
 import { check, clicks, eq, eqc } from './harness.ts';
 
 /** A binding's identity for these tests: the same key does the same thing. */

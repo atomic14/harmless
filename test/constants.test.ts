@@ -378,7 +378,8 @@ const OUTSIDE: readonly Group[] = [
       + ' prose rows',
     files: {
       'hud/hud.ts': ['CONTACT_COLORS', 'VIEW_NAMES', 'SCORE_LABELS'],
-      'ui/screens.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES', 'LEVERS_OFF'],
+      'ui/briefing.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES'],
+      'ui/screens-career.ts': ['LEVERS_OFF'],
       'ui/key-help.ts': ['LABELS', 'ALL_BINDINGS'],
       'game/command-help.ts': ['COMMAND_HELP'],
       'game/bindings.ts': [
