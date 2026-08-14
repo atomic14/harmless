@@ -204,7 +204,14 @@ eq('and it escapes the quote the private copy missed', escapeHtml('a"b'), 'a&quo
 // Both surfaces render it now, and this is the guard on that. The galactic
 // chart deliberately does NOT: its readout is a single keyline under a
 // full-width canvas, with no column to put a paragraph in.
-const screens = readFileSync(new URL('../src/ui/screens.ts', import.meta.url), 'utf8');
+//
+// TWO FILES since docs/TODO/149 split `ui/screens.ts` by subject: the readout
+// went to `ui/chart-local.ts` with the map it sits beside, and the DATA ON page
+// stayed with the station screens. The claim is unchanged — two screens, two
+// call sites — so the scan reads both and the count still says 2.
+const screens = ['../src/ui/screens.ts', '../src/ui/chart-local.ts']
+  .map((f) => readFileSync(new URL(f, import.meta.url), 'utf8'))
+  .join('\n');
 const callSites = (screens.match(/systemDescription\(/g) ?? []).length;
 eq('two screens read the overlay: the chart readout and the DATA ON page',
   callSites, 2);

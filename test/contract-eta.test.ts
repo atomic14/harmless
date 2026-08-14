@@ -27,7 +27,8 @@ import {
 import { HUD } from '../src/palette.ts';
 import type { ChartState } from '../src/game/chart-state.ts';
 import type { ChartOverlays } from '../src/game/chart-overlay.ts';
-import { drawChart, drawLocalChart } from '../src/ui/screens.ts';
+import { drawChart } from '../src/ui/chart-galactic.ts';
+import { drawLocalChart } from '../src/ui/chart-local.ts';
 import { captureById, captureCanvas, type CanvasOp } from './screen-capture.ts';
 import { g1 } from './fixtures.ts';
 import { check, eq } from './harness.ts';

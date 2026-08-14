@@ -17,9 +17,12 @@
 
 import type { ChartState } from '../chart-state.ts';
 import {
-  renderChart, drawChart, renderLocalChart, drawLocalChart, renderMarketEstimate,
-  nearestSystem, chartCoordsFromClick, localCoordsFromClick,
-} from '../../ui/screens.ts';
+  renderChart, drawChart, chartCoordsFromClick,
+} from '../../ui/chart-galactic.ts';
+import {
+  renderLocalChart, drawLocalChart, renderMarketEstimate, localCoordsFromClick,
+} from '../../ui/chart-local.ts';
+import { nearestSystem } from '../../ui/chart-readout.ts';
 import type { Screen, ScreenOutcome, ScreenId } from '../../ui/screen-host.ts';
 import type { CommanderData } from '../commander.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
