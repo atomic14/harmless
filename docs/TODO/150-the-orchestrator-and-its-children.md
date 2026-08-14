@@ -153,4 +153,78 @@ moved, the child under 400 with a stated single responsibility, and no new
 
 ## What landed
 
-Not started.
+**M1, on 2026-08-14.** `npm run check` passes, `npm run portability` unchanged.
+
+| | |
+| --- | --- |
+| `game/game.ts` | 2,528 → **2,251** |
+| `game/law-actions.ts` | 302 (new) |
+
+All 762 comment lines survive across the two files.
+
+## What M1 found that the plan did not have
+
+**1. The host is seven methods, not four.** The plan measured the handlers'
+coupling and counted `showMessage`, `queueMessage`, `markName` and the mode.
+The three it missed matter:
+
+- **The mode is read TWICE, and they are different questions.** `mode()`
+  includes an open screen, so a bribe is refused while a chart is up.
+  `baseMode()` does not, because the defence fleet cares where the SHIP is
+  rather than what is on screen. Reading one for the other would either
+  scramble Vipers at a commander looking at a map, or refuse a bribe to a pilot
+  being shot at. Two host methods, and the interface says why.
+- **Two sounds belong to the host** because `audio.ts` is PLATFORM. A child that
+  imported it would stop being portable, and the point of moving a handler out
+  of `game.ts` is that the child CAN be portable when `game.ts` is not.
+
+**2. Two methods stay on the Game as one-line delegates — and the reason I first
+gave for them was wrong.** `raiseLegal` and `bribePolice` carry
+`@internal — driven by test/playtest.js`, and I repeated that in the M1 commit
+message without checking it. **`test/playtest.js` calls neither.** Both doc
+comments are stale.
+
+The delegates are still right, for a plainer reason: both have live callers
+INSIDE `game.ts` — `raiseLegal` from the step host and two event appliers,
+`bribePolice` from the command table — so the delegate is simply how the
+orchestrator reaches its child.
+
+**What `test/playtest.js` actually calls, which is the list the next milestone
+needs**, since nothing type-checks that file:
+
+```
+acceptContract  buyCargo   buyEquipment  fireLaser
+launch          lookAlong  massLocked    priceMultiplier
+respawn         sendDistressBeacon       startHyperspace   update
+```
+
+Twelve methods. **`respawn` and `launch` are in it**, so the death area and the
+station area both need a delegate when their turn comes. The two stale
+`@internal` comments are left as found rather than corrected here, because a
+sweep for stale `@internal` claims is its own small item and not this one.
+
+**3. The shape works, and the numbers say so.** 277 lines out, 302 in, about 25
+lines of wiring. The plan's first open question — does a child of this shape
+shrink the parent, or trade handlers for host wiring — is answered yes.
+
+## M2 — chosen on M1's evidence
+
+The plan deliberately left the order open. On M1's result the next candidates by
+cost are **the trainer** (132 lines, and `combat-sim.ts` already exists to sit
+beside), **the world and spawning** (130) and **saves** (126).
+
+**The trainer is closest to M1's shape**, because `simHost` is already a host
+interface — so the work is to move the four handlers behind it rather than to
+invent a seam.
+
+**Two things M1 says to check before choosing anything:**
+
+1. **Does the area have an existing rules module to sit beside?** M1 worked
+   because `law-actions.ts` had `law.ts` to be next to. An area with no such
+   partner needs a name of its own, which is a harder decision than a move.
+2. **Does `test/playtest.js` call any of its methods by name?** That file is
+   unchecked by the compiler, so grep it BEFORE moving anything, and leave a
+   delegate for every hit.
+
+**Still true from the plan:** the 163-line constructor is last, because it is
+where every child is wired.
