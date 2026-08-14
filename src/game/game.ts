@@ -27,7 +27,7 @@
 import { publish, installPolicyKit, installSimLog } from './console.ts';
 import { legacyHandles } from './game-handles.ts';
 import type { Shell, Presentation, ShellFactory } from '../engine/shell.ts';
-import { viewDirection, viewRight, VIEW_QUATS } from './views.ts';
+import { viewRight, VIEW_QUATS } from './views.ts';
 import * as THREE from 'three';
 
 import { generateGalaxy, COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
@@ -37,17 +37,14 @@ import { acceptContract, settleContracts, contractMessage, type ContractEvent } 
 import { hermitMarket } from './market.ts';
 import { createStarfield, SpaceDust } from '../world/starfield.ts';
 import { type FlightDemand } from '../player.ts';
-import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { BRIEFING_VERSION } from '../constants/commander.ts';
 import { Input } from '../engine/input.ts';
 import { flightDemand } from '../engine/flight-controls.ts';
 import { keymap, layoutName, toggleLayout, manualFlightKeys, refreshHelpPanel } from '../engine/keymap.ts';
 import { Hud } from '../hud/hud.ts';
-import { buildHudFrame } from '../hud/hud-binding.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
 import { sfx, type Place } from '../audio.ts';
 import { NpcShip } from './npc.ts';
-import { flightPrompts, type Prompt } from './prompts.ts';
 import { npcImpactDamage } from './impact-damage.ts';
 import { IMPACT } from '../constants/impact.ts';
 import { dealToNpc } from './damage-dealt.ts';
@@ -82,12 +79,11 @@ import { CombatComputer } from './combat-computer.ts';
 import { Autopilot, type AutopilotEvent } from './autopilot.ts';
 import { LawActions, type LawHost } from './law-actions.ts';
 import { WorldBuild, type WorldBuildHost } from './world-build.ts';
+import { CockpitView, type CockpitHost } from './cockpit-view.ts';
 import type { SoundEvent } from './sounds.ts';
 import { commandsFor, globalCommands, type Command, type ControlMode } from './controls.ts';
 import { WHILE_PAUSED } from './bindings.ts';
 import { Ordnance, ordnanceMessage, fireEcm, type OrdnanceOutcome } from './ordnance.ts';
-import { AIM_ASSIST, LASER_RANGE } from '../constants/player-gun.ts';
-import { hitCone } from './gunnery.ts';
 import { freshTimers } from './encounters.ts';
 
 import { breachLoss } from './systems.ts';
@@ -110,7 +106,6 @@ import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
 import { resolveSurvivors, survivorMessage, survivorOffers, type SurvivorChoice } from './survivors.ts';
 import { SLAVES } from '../constants/commodities.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
-import { BEAM_Z } from '../engine/render-stack.ts';
 
 import { recordFurthestWave, type Contract } from './commander.ts';
 import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
@@ -118,7 +113,7 @@ import { afterDecay, characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
 import { hideScreen, renderDockedMenu } from '../ui/screens.ts';
 import { renderNewGameConfirm, renderGameOver } from '../ui/screens-career.ts';
-import { boundKey, keyIfBound, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
+import { boundKey, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
 
 type Mode = 'docked' | 'flight' | 'market' | 'chart' | 'local' | 'equip' | 'status' | 'data' | 'contracts' | 'saves' | 'save-name' | 'naming' | 'briefing' | 'dead';
@@ -306,7 +301,7 @@ export class Game {
       message: (text, seconds) => this.showMessage(text, seconds),
       sound: (event) => this.playSound(event),
       flashDamage: () => this.hud.flashDamage(),
-      aimBeams: (at) => this.aimBeams(at),
+      aimBeams: (at) => this.cockpit_.aimBeams(at),
       // The one number a run leaves behind. The RULE is commander.ts's — only
       // ever grows, and it says whether it moved — so this applies it and saves
       // it, which is all an orchestrator does. Written straight to storage
@@ -390,7 +385,7 @@ export class Game {
     const m = ordnanceMessage(reply);
     // A refusal with an answer names the COMMAND (ordnance.ts); the letter is
     // this side's business, from the same table the prompt line reads.
-    const offer = m.offer ? this.renderPrompt(m.offer) : null;
+    const offer = m.offer ? this.cockpit_.renderPrompt(m.offer) : null;
     this.showMessage(offer ? `${m.text} — ${offer}` : m.text, m.seconds);
   }
 
@@ -495,16 +490,36 @@ export class Game {
 
   /** Offer the law money. @internal — driven by test/playtest.js. */
   bribePolice(): void { this.law_.bribePolice(); }
-  private readonly tmp2 = new THREE.Vector3();
+
+  /**
+   * What the cockpit shows about the world (docs/TODO/150 M3).
+   *
+   * Four collaborators and four host methods. The collaborators are the things
+   * the picture is READ FROM and PAINTED ON — the world, the ordnance racks,
+   * the camera with its beams, and the dashboard — and the host is the four
+   * facts about the machine that only the orchestrator holds.
+   */
+  private readonly cockpit_ = new CockpitView(this.state, this.ordnance, this.hud, {
+      inFlight: () => this.mode === 'flight',
+      controlMode: () => this.controlMode(),
+      exerciseStrip: () => this.combatSim.strip,
+      setSightLit: (on) => this.shell.setSightLit(on),
+      view: () => this.render,
+    } satisfies CockpitHost);
+
+  /**
+   * What the cockpit is offering right now.
+   *
+   * @internal — a delegate rather than a reach through `cockpit_`, because
+   * test/prompts.test.ts and test/bribe-flight.test.ts read it off the Game to
+   * see the offers without scraping the painted line.
+   */
+  keyPrompts(): string[] { return this.cockpit_.keyPrompts(); }
+
   /** the shot's ray and scratch vectors, reused every trigger pull */
   private readonly combatScratch = {
     a: new THREE.Vector3(), b: new THREE.Vector3(),
     q: new THREE.Quaternion(), ray: new THREE.Raycaster(),
-  };
-  /** scratch for the per-frame dashboard read, so it allocates nothing */
-  private readonly hudScratch = {
-    a: new THREE.Vector3(), b: new THREE.Vector3(),
-    c: new THREE.Vector3(), q: new THREE.Quaternion(),
   };
   private readonly tmpM = new THREE.Matrix4();
   /**
@@ -768,7 +783,7 @@ export class Game {
     // target inside it is a target the shot will reach for. Derived from the
     // real projection rather than picked by eye, so it stays honest if the fov
     // or the assist angle ever change.
-    this.shell.setSightRadius(Math.tan(AIM_ASSIST) * pxPerRad);
+    this.shell.setSightRadius(this.cockpit_.sightRadius(pxPerRad));
   }
 
   private get system(): StarSystem {
@@ -1246,11 +1261,6 @@ export class Game {
 
   // --- combat --------------------------------------------------------------
 
-  /** Direction the current view faces, in world space. The maths is the step's. */
-  private viewDir(out: THREE.Vector3): THREE.Vector3 {
-    return viewDirection(this.state.player.quaternion, this.state.session.view, out);
-  }
-
   /**
    * Anything close enough to hold the torus drive down.
    *
@@ -1314,7 +1324,7 @@ export class Game {
         case 'message': this.sayEvent(e); break;
         case 'offence': this.raiseLegal(e.level); break;
         case 'wrecked': if (this.ordnance.targetLock === e.npc) this.ordnance.targetLock = null; break;
-        case 'beam': this.aimBeams(e.at); break;
+        case 'beam': this.cockpit_.aimBeams(e.at); break;
         case 'fired': this.state.session.beamTimer = BEAM_FLASH; break;
         case 'breach': this.damageSomething(); break;
         case 'died': this.die(e.reason); break;
@@ -1579,7 +1589,7 @@ export class Game {
     this.render.camera.quaternion.copy(this.state.player.quaternion).multiply(VIEW_QUATS[this.state.session.view]);
     this.render.beams.visible = this.state.session.beamTimer > 0;
     this.render.draw();
-    this.renderHud(dt);
+    this.cockpit_.renderHud(dt);
   }
 
   /**
@@ -2006,148 +2016,5 @@ export class Game {
   jettisonContraband(tonnes = 1): void {
     this.law_.throwOverboard(
       (cargo) => dumpContraband(cargo, tonnes), 'NO CONTRABAND ABOARD');
-  }
-
-  // --- HUD -----------------------------------------------------------------
-
-  /**
-   * Light the sight when the aim assist would actually reach the target.
-   *
-   * The circle shows the envelope at knife range; this tells the truth for
-   * the target in front of you right now, since the assist tapers with
-   * distance. Together they answer "will this shot land?" without the player
-   * having to learn the numbers.
-   */
-  private updateSight(): void {
-    let on = false;
-    if (this.mode === 'flight') {
-      const forward = this.viewDir(this.tmp);
-      for (const npc of this.state.world.npcs) {
-        if (!npc.state.alive || npc.role === 'asteroid') continue;
-        const to = this.tmp2.copy(npc.object.position).sub(this.state.player.position);
-        const dist = to.length();
-        if (dist > LASER_RANGE) continue;
-        const cone = hitCone(npc.radius, dist);
-        if (forward.angleTo(to.normalize()) < cone) { on = true; break; }
-      }
-    }
-    this.shell.setSightLit(on);
-  }
-
-  /**
-   * Point the cockpit beams at `target`, or straight down the gun axis when
-   * there is nothing to converge on.
-   *
-   * The beams are children of the camera and meet at (0, 0, -BEAM_Z), so the
-   * convergence point is simply the target direction in camera space at the
-   * same depth. Only the meeting point moves — the emitters stay on the hull
-   * corners, which is what sells the beams as bending.
-   */
-  private aimBeams(target: THREE.Vector3 | null): void {
-    const pos = this.render.beams.geometry.getAttribute('position') as THREE.BufferAttribute;
-    const arr = pos.array as Float32Array;
-    let x = 0, y = 0, z = -BEAM_Z;
-    if (target) {
-      const local = this.render.camera.worldToLocal(this.tmp2.copy(target));
-      const len = local.length();
-      if (len > 1e-3) {
-        x = (local.x / len) * BEAM_Z;
-        y = (local.y / len) * BEAM_Z;
-        z = (local.z / len) * BEAM_Z;
-      }
-    }
-    // vertices 1 and 3 are the convergence point (0 and 2 are the emitters)
-    arr[3] = x; arr[4] = y; arr[5] = z;
-    arr[9] = x; arr[10] = y; arr[11] = z;
-    pos.needsUpdate = true;
-  }
-
-  /**
-   * The prompt line: what a key can do about what is happening, with the key
-   * the table actually binds in front of it.
-   *
-   * The join between a pure rule and invariant 9. `prompts.ts` decides WHICH
-   * commands are worth offering and what each is worth right now; `boundKey`
-   * answers what to press, from `controls.ts`, which is the one home of that —
-   * so rebinding a command rewrites its own prompt and no letter is ever
-   * written out in prose. Only in flight: the station menu already renders its
-   * own keys from the same table.
-   *
-   * @internal — public so a test can read what the cockpit is offering without
-   * scraping the painted line, the way `jettisonCargo` is driven directly.
-   */
-  keyPrompts(): string[] {
-    const mode = this.controlMode();
-    if (this.mode !== 'flight' || !mode) return [];
-    return flightPrompts({
-      commander: this.state.commander,
-      playerPos: this.state.player.position,
-      npcs: this.state.world.npcs,
-      policeScanned: this.state.session.policeScanned,
-      witchspace: this.state.session.witchspace,
-      energy: this.state.sys.energy,
-      missileInbound: this.ordnance.missileInbound,
-      // `>= 0` is `sendDistressBeacon`'s own reading of the timer, a few methods
-      // up: a beacon already broadcasting is what that key refuses, and this is
-      // the prompt for that key.
-      beaconSent: this.state.session.beaconTimer >= 0,
-      stationDistance: this.state.player.position
-        .distanceTo(this.state.world.station.position),
-      dcEngaged: this.state.session.dcEngaged,
-    }).flatMap((p) => {
-      const line = this.renderPrompt(p);
-      return line ? [line] : [];
-    });
-  }
-
-  /**
-   * One offer as the cockpit prints it: the key this mode binds, then the
-   * words. Null when it binds none.
-   *
-   * `keyIfBound`, not `boundKey`: the arena's table subtracts eight of the
-   * cockpit's commands, so an unbound one here is an ordinary answer — the
-   * offer simply is not made — rather than a build failure. Shared with the
-   * ordnance refusals, which carry a `Prompt` for the same reason a prompt does
-   * (docs/TODO/128 M3): a rule module may not name a key.
-   */
-  private renderPrompt(p: Prompt): string | null {
-    const mode = this.controlMode();
-    const key = mode ? keyIfBound(mode, p.command) : null;
-    return key ? `${key} ${p.what}` : null;
-  }
-
-  private renderHud(dt: number): void {
-    this.updateSight();
-    const frame = buildHudFrame({
-      commander: this.state.commander,
-      sys: this.state.sys,
-      world: this.state.world,
-      camera: this.render.camera,
-      playerPos: this.state.player.position,
-      playerQuat: this.state.player.quaternion,
-      playerForward: this.state.player.getForward(this.tmp),
-      viewDir: this.viewDir(this.tmp2),
-      speedFrac: this.state.player.speed / this.state.player.maxSpeed,
-      rollFrac: this.state.player.rollRate / PLAYER_FLIGHT.maxRoll,
-      pitchFrac: this.state.player.pitchRate / PLAYER_FLIGHT.maxPitch,
-      view: this.state.session.view,
-      missiles: this.ordnance.missiles,
-      canisters: this.state.world.cargo.items,
-      targetLock: this.ordnance.targetLock,
-      missileArmed: this.ordnance.armed,
-      inFlight: this.mode === 'flight',
-      witchspace: this.state.session.witchspace,
-      assist: this.state.session.ccEngaged,
-      ecmDetected: this.state.ecmDetectedTimer > 0,
-      messageText: this.state.session.messageText,
-      messageTimer: this.state.session.messageTimer,
-      prompts: this.keyPrompts(),
-      // Null in career flight, and gated on the same `active` that decides the
-      // exercise owns the keyboard (controlMode) — the strip is the exercise's
-      // own view of itself, not a second opinion about one.
-      exercise: this.combatSim.strip,
-    }, this.hudScratch);
-
-    this.hud.render(dt, frame);
   }
 }

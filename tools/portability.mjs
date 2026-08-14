@@ -24,6 +24,13 @@ export const PLATFORM = [
   // the input/HUD/screens and applies audio, storage and console effects; the
   // reusable rules and fixed step are the modules it orchestrates.
   'game/game.ts',
+  // The composition root's cockpit half, split out by docs/TODO/150 M3. It is
+  // platform for the same reason `game.ts` is, and it changes nothing: this
+  // code was already inside `game.ts`, so no portable line became platform. It
+  // sits in `game/` rather than in `hud/` because it holds a host BACK to the
+  // Game, and `hud/hud-binding.ts` states the opposite rule for its own
+  // directory — "There is no `Game` here and no callback out."
+  'game/cockpit-view.ts',
   'engine/render-stack.ts', 'engine/input.ts', 'engine/keymap.ts',
   'engine/browser-shell.ts', 'engine/inert-dom.ts',
   'audio.ts', 'main.ts', 'manual.ts',
