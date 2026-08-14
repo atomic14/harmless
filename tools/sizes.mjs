@@ -51,6 +51,24 @@ const LIMIT = 400;
  * bijection, one lifecycle. A reader should be able to check the claim by
  * opening the file, and to see immediately when it stops being true.
  *
+ * AND THEN IT HAS TO CLEAR A SECOND BAR, which is the one most of these entries
+ * were written before anybody stated (Chris, 2026-08-14: *"single responsibility
+ * does not mean put everything in one file. A file can import child files. The
+ * key is to keep files small so they can be easily understood"*).
+ *
+ * One responsibility does NOT mean one file. A responsibility can be a parent
+ * that imports its children: `world-step.ts` is one thing — advance the world a
+ * slice of time — and the ORDER of its five phases is the load-bearing part, but
+ * the order is five lines and the phases are eight hundred. The parent can hold
+ * the order and import a file per phase, and every file gets small enough to
+ * hold in your head. "These parts belong together" argues for one DIRECTORY, not
+ * for one file.
+ *
+ * So an entry survives only when the file cannot be composed that way at all:
+ * a generated table where splitting loses the diff, or a console paste that
+ * cannot import. "It is cohesive" is not enough, and most of the entries below
+ * were written to a bar that only asked for cohesion.
+ *
  * That bar is what makes the list a review surface. "One render function per
  * screen; they share layout helpers and nothing else" sat here for months
  * describing TWENTY-FIVE responsibilities, and read as a reason because it was
@@ -174,6 +192,12 @@ So name the responsibilities out loud. If you can say "it does X, and also Y",
 that is the seam. Common shapes: a grammar and the data it reads, a rule and
 the table that states it, or a second subject that arrived later and stayed.
 
+AND IF IT REALLY IS ONE THING, IT CAN STILL BE SEVERAL FILES. One responsibility
+does not mean one file: a parent can import a child per part, hold the bit that
+is genuinely shared — the order, the type, the seam — and stay small. "These
+parts belong together" is an argument for one directory, not for one file. The
+point is a file you can hold in your head.
+
 Then move one side out. Take every comment with the code it explains.
 
 DO NOT DELETE PROSE TO GET UNDER THE LINE. A shorter comment is not a smaller
@@ -182,10 +206,12 @@ CLAUDE.md forbids it: "Never delete useful content only to fit that ceiling."
 See docs/TODO/148 for what that mistake looks like: one file trimmed six times
 across three items, and split zero times.
 
-An exemption is the LAST answer, not the second one, and it has one bar: NAME
-THE SINGLE RESPONSIBILITY the file holds. One table, one grammar, one bijection,
-one lifecycle — something a reader can check by opening the file, and can see
-stop being true later.
+An exemption is the LAST answer, not the second one, and it has two bars. NAME
+THE SINGLE RESPONSIBILITY the file holds — one table, one grammar, one
+bijection, one lifecycle — so a reader can check the claim by opening the file.
+THEN SAY WHY IT CANNOT BE A PARENT PLUS CHILDREN, because one responsibility
+does not mean one file. Almost nothing clears the second bar: a generated table
+where splitting loses the diff, and a console paste that cannot import.
 
 "It is long" is not a reason. Neither is "splitting would be awkward". And a
 sentence in the right shape is not an argument: "one render function per screen"
