@@ -297,6 +297,32 @@ is that it finds very little.
 The comments in this tree earn their place. What they do not do is read in
 Simplified Technical English, which is what the rest of the item is for.
 
+**The fourth M3 pass landed on 2026-08-15**, over the two combat-simulator
+files. `game/combat-sim-scenarios.ts` and `game/combat-sim-report.ts`: 408
+sentences with 56 over the cap and **24 perfect tenses**, down to 514 with none
+of either. The cost is 18 lines. **The tree is at 1,445 long sentences**, which
+is 13%.
+
+**Those 24 tenses are the most in any pass so far**, and the reason is the
+subject. A report describes what a fight DID, so its prose reaches for the
+perfect: *"what the ramp has turned on"*, *"hits they have landed"*, *"an
+opponent has left the sky"*. The simple past says the same thing in one word
+fewer.
+
+**The value test found one duplicate in these two, and it stays.**
+`combat-sim-report.ts` documents `accuracy` twice, once on the live strip's
+shape and once on the finished record's. They are two different types, and a
+field's own doc comment is how a type documents itself. A pointer would be worse
+than the repetition.
+
+**`src/constants/docking-computer.ts` is now the worst file left by count**, at
+26 long sentences over 151. **This pass did NOT touch it**, because the plan
+records the decision *"`src/constants/` is done. Do not re-sweep it."* That
+decision was taken against the throwaway tool's 3%. The checker puts the
+directory at 6% and this one file at 17%, so it is an outlier inside a swept
+surface rather than a swept file. **The decision is Chris's to revisit, and this
+item will not take it silently.**
+
 **Four things came out of the first pass that the plan did not have.**
 
 1. **A fifth exclusion was needed, and it is a table in COLUMNS.** Several

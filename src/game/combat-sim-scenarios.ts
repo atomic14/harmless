@@ -41,13 +41,13 @@ import { SCENARIO_TIMEOUT } from '../constants/exercise.ts';
 // --- what an opponent is ----------------------------------------------------
 
 /**
- * The roles that can be sent at you. A subset of NpcRole on purpose: an
- * asteroid, a hermit rock and a generation ship are scenery, and putting them
- * in a fight would be a category error rather than a hard exercise.
+ * The roles that can be sent at you. It is a subset of NpcRole on purpose. An
+ * asteroid, a hermit rock and a generation ship are scenery. One of those in a
+ * fight is a category error rather than a hard exercise.
  *
- * `trader` is here for the custom picker only — no scenario sends one — because
- * an armed trader turning to fight with the defensive attack run is a real
- * fight the game contains, and it is the one a would-be pirate should practise.
+ * `trader` is here for the custom picker only, and no scenario sends one. An
+ * armed trader that turns to fight with the defensive attack run is a real
+ * fight the game contains. It is the one a would-be pirate should practise.
  */
 export type OppositionRole = 'pirate' | 'police' | 'hunter' | 'thargoid' | 'thargon' | 'trader';
 
@@ -65,8 +65,8 @@ export const OPPOSITION_ROLES: readonly OppositionRole[] =
  * `scripted` is the pre-neuroevolution AI, a per-opponent choice instead of a
  * global flag, and the baseline every training run is measured against.
  *
- * The union is `brain-names.ts`'s `BrainName` — every policy the game loads plus
- * the scripted AI — because the character lines cover the same list and a second
+ * The union is `brain-names.ts`'s `BrainName`: every policy the game loads,
+ * plus the scripted AI. The character lines cover the same list, and a second
  * copy would drift.
  */
 export type BrainId = BrainName;
@@ -74,9 +74,9 @@ export type BrainId = BrainName;
 /**
  * The brains the live game flies, DERIVED — ask the rule, do not restate it.
  *
- * What `brain-names.ts` answers for the shipped selection, so promoting a
- * candidate moves them without an edit here, and `npm test` checks that the
- * names brains.ts imports are these.
+ * It is what `brain-names.ts` answers for the shipped selection. So a promoted
+ * candidate moves without an edit here, and `npm test` checks that the names
+ * brains.ts imports are these.
  */
 export const SHIPPED_SOLO_BRAIN: BrainId = pirateBrainNameFor(0, false, SHIPPED_BRAINS);
 export const SHIPPED_PACK_BRAIN: BrainId = pirateBrainNameFor(0, true, SHIPPED_BRAINS);
@@ -86,36 +86,36 @@ export const SHIPPED_DEFENCE_BRAIN: BrainId = defenceBrainNameFor(SHIPPED_BRAINS
  * Every brain the picker may choose, in listed order: the ones the game ships,
  * then the control.
  *
- * `scripted` is not a shipped policy and not a rival to one — it is the
- * pre-neuroevolution AI, the comparison every training run in
+ * `scripted` is not a shipped policy, and not a rival to one. It is the
+ * pre-neuroevolution AI, and the comparison every training run in
  * docs/TRAINING-LOG.md is measured against. A future candidate joins this list
- * by having its weights put back and its name added.
+ * when its weights go back and its name is added.
  *
  * There is no candidate today. The rule it left behind is BOTH PICKERS OR
- * NEITHER: a candidate in the career row but not here can only be flown from the
- * fenced row that changes the whole career, which is the one thing a scoped A/B
- * must not touch.
+ * NEITHER. A candidate in the career row but not here can only be flown from
+ * the fenced row that changes the whole career. That row is the one thing a
+ * scoped A/B must not touch.
  */
 export const SIM_BRAINS: readonly BrainId[] = [
   // Two entries, both code, so every row is a pilot the game can actually load.
-  // `attack-run` is the shipped defence NAME: on a trader it means the
-  // defensive attack run; on the commander's ship the same name selects the
-  // pure-pursuit co-pilot (brain-names.ts's SHIPPED_DEFENCE says which is which).
+  // `attack-run` is the shipped defence NAME. On a trader it means the
+  // defensive attack run. On the commander's ship the same name selects the
+  // pure-pursuit co-pilot (brain-names.ts's SHIPPED_DEFENCE says which).
   'attack-run',
   'scripted',
 ];
 
 /**
- * Which brain this role flies in the LIVE game under this selection, so an
- * exercise measures the game rather than a game we might have built.
+ * Which brain this role flies in the LIVE game under this selection. So an
+ * exercise measures the game, rather than a game nobody built.
  *
  * It asks the same function npc.ts asks (`brain-names.ts`), which is the
  * difference between agreeing and happening to agree.
  *
- * Only pirates reach the pirate rule (organised gangs get the pack policy,
- * everyone else the solo one), an armed trader turns and fights with the defence
- * brain, and police, bounty hunters and Thargoids are scripted whatever is
- * selected.
+ * Only pirates reach the pirate rule. An organised gang gets the pack policy,
+ * and everyone else gets the solo one. An armed trader turns and fights with
+ * the defence brain. Police, bounty hunters and Thargoids are scripted,
+ * whatever is selected.
  */
 export function liveBrainFor(
   role: OppositionRole, organised: boolean, tier: number,
@@ -152,9 +152,9 @@ export interface Opposition {
    * Fit FLOORS: at least this much, whatever the hull carries.
    *
    * A second pair rather than a reading of the pair above, because they are
-   * different claims: `missiles: 0` from the picker means an unarmed ship, and
-   * the wave ramp's "everyone is carrying a missile now" must NOT take a
-   * hull's second one away. One field cannot mean both.
+   * different claims. `missiles: 0` from the picker means an unarmed ship. The
+   * wave ramp's "everyone is carrying a missile now" must NOT take a hull's
+   * second one away. One field cannot mean both.
    */
   minMissiles?: number;
   minEcm?: number;
@@ -185,9 +185,9 @@ function rosterHull(role: OppositionRole, seed: number): NpcSpec {
 /**
  * Apply the group's fit to a hull without touching the roster's own entry.
  *
- * The override is applied first and the floor second, which is the only order
- * that lets both mean what they say: a picker asking for no missiles gets none,
- * and a wave arming everybody cannot disarm the hull that already had two.
+ * The override is applied first and the floor second. That is the only order
+ * that lets both mean what they say. A picker that asks for no missiles gets
+ * none, and a wave that arms everybody cannot disarm a hull that had two.
  */
 function fitted(spec: NpcSpec, o: Opposition): NpcSpec {
   const missiles = Math.max(o.missiles ?? spec.missiles ?? 0, o.minMissiles ?? 0);
@@ -239,12 +239,12 @@ export function describeOpposition(list: readonly Opposition[]): string {
 
 /**
  * The hulls the custom picker may choose from — the whole roster that can fly,
- * plus the Constrictor, which the game only ever spawns once per career and is
- * therefore the one fight nobody gets to practise.
+ * plus the Constrictor. The game spawns that one once per career, so it is the
+ * one fight nobody gets to practise.
  *
- * Derived from `SPECS`, deliberately: adding a hull to the roster adds it here.
- * Scenery (asteroids, hermits, the generation ship) is excluded because it
- * cannot fight, not because of a list of exclusions.
+ * Derived from `SPECS`, deliberately, so a hull added to the roster is added
+ * here. Scenery — an asteroid, a hermit, the generation ship — is excluded
+ * because it cannot fight, and not by a list of exclusions.
  */
 export function simHulls(): { role: OppositionRole; spec: NpcSpec; name: string }[] {
   const out = OPPOSITION_ROLES.flatMap((role) => SPECS[role]
@@ -265,19 +265,21 @@ export type ScenarioId =
   | 'police' | 'thargoids' | 'as-they-come';
 
 /**
- * A group as the TABLE states it: `count` and `tier` may be left to the
- * picked threat tier, so that one row covers "single pirate, tier selectable"
- * without becoming a function.
+ * A group as the TABLE states it. `count` and `tier` may be left to the picked
+ * threat tier. So one row covers "single pirate, tier selectable", and stays a
+ * row rather than a function.
  */
 interface OppositionTemplate {
   role: OppositionRole;
   /** how many at the bottom of the range */
   count: number;
   /**
-   * Extra ships when the PICKED tier is 2 — how "3-4 pirates" and "2-3
-   * Thargoids" are written without a function. Keyed on what the player picked
-   * rather than on the group's own tier, so a row with a fixed tier (Thargoids
-   * have one hull) still grows when you ask for a harder fight.
+   * Extra ships when the PICKED tier is 2. It is how "3-4 pirates" and "2-3
+   * Thargoids" are written without a function.
+   *
+   * It is keyed on what the player picked, rather than on the group's own tier.
+   * So a row with a fixed tier still grows when you ask for a harder fight, and
+   * Thargoids have one hull.
    */
   countAtTopTier?: number;
   /** fixed tier; omitted means the picker's */
@@ -356,7 +358,7 @@ export const SCENARIOS: readonly Scenario[] = [
     blurb: 'The witch-space fight: Thargoids and their Thargons.',
     tiered: true,
     // One Thargoid hull exists, so the tier buys numbers rather than better
-    // ships — 2 of them and 3 Thargons, 3 and 5 at the top tier.
+    // ships. It is 2 of them and 3 Thargons, then 3 and 5 at the top tier.
     groups: [
       { role: 'thargoid', count: 2, countAtTopTier: 1, tier: 2, mixed: false },
       { role: 'thargon', count: 3, countAtTopTier: 2, tier: 0, mixed: false },
@@ -405,14 +407,14 @@ function resolve(t: OppositionTemplate, pickedTier: number, seed: number): Oppos
 /**
  * What the live galaxy knows about you when it decides who to send.
  *
- * The commander is the CAREER commander, passed in by the caller — the
- * exercise flies a clone with no cargo and no reputation (docs/COMBAT-SIM.md,
- * "the one rule"), and asking the clone what you are worth robbing would send
- * Sidewinders at a Dangerous commander in a full Python.
+ * The commander is the CAREER commander, passed in by the caller. The exercise
+ * flies a clone with no cargo and no reputation (docs/COMBAT-SIM.md, "the one
+ * rule"). To ask the clone what you are worth robbing would send Sidewinders at
+ * a Dangerous commander in a full Python.
  */
 export interface ThreatContext {
   sys: StarSystem;
-  /** what the living galaxy has seen happen here lately, 0..1 */
+  /** what the living galaxy saw happen here lately, 0..1 */
   danger: number;
   commander: Parameters<typeof markOf>[0];
   /** regional heat, 0..1 */
@@ -422,10 +424,12 @@ export interface ThreatContext {
 /**
  * The reception `pirateThreat` would send, as opposition.
  *
- * The one deviation, and it is the only one: a reception of nobody is a
- * legitimate answer for an empty hold in a well-governed system, but you came
- * here to fight, so the count is floored at 1. Tier, organisation and the
- * ringleader split are untouched — this is the fight the live game would build.
+ * There is one deviation, and it is the only one. A reception of nobody is a
+ * legitimate answer for an empty hold in a well-governed system. But you came
+ * here to fight, so the count is floored at 1.
+ *
+ * Tier, organisation and the ringleader split are untouched. This is the fight
+ * the live game would build.
  */
 export function oppositionFromThreat(threat: PirateThreat, seed: number): Opposition[] {
   return [{
@@ -470,13 +474,13 @@ export function waveTier(n: number): number {
   return Math.min(MAX_TIER, Math.floor(Math.max(0, n - 1) / WAVE_TIER_EVERY));
 }
 
-// --- what a wave adds once the numbers have stopped -------------------------
+// --- what a wave adds once the numbers stop ---------------------------------
 //
-// Past the count/tier ceiling the wave stops growing and starts CHANGING. Each
-// step below is one stated thing, a pure function of the wave number, chosen
-// against CLAUDE.md's standard for the AI: it has to make the pilot fly better,
-// not make the fight longer. A wave that is harder because it is more annoying
-// is a failure.
+// Past the count and tier ceiling, the wave stops growing and starts CHANGING.
+// Each step below is one stated thing, and a pure function of the wave number.
+// Each is chosen against CLAUDE.md's standard for the AI: it has to make the
+// pilot fly better, rather than make the fight longer. A wave that is harder
+// because it is more annoying is a failure.
 
 /** Ships in a wave that are not pirates, taking a pirate's place in the count. */
 export interface WaveEscort {
@@ -488,10 +492,9 @@ export interface WaveEscort {
 /**
  * One stated step of the escalation, stated as what it ADDS.
  *
- * Deltas rather than a full description per stage, because a table that
- * restated "everyone carries a missile" on three rows is a table that will
- * eventually disagree with itself. `waveFit` folds them; `waveEscort`
- * concatenates them.
+ * Deltas rather than a full description per stage. A table that restated
+ * "everyone carries a missile" on three rows is a table that will eventually
+ * disagree with itself. `waveFit` folds them, and `waveEscort` joins them.
  */
 export interface WaveStep {
   /** what the banner, the strip and the record call it */
@@ -513,11 +516,12 @@ export interface WaveStep {
  *
  *   * A HARDER RELEASED BUILD of the same hull — already spent.
  *     `role-variants.ts` picks the hardest build the source ever filed as a
- *     pirate, so every pirate is already flying it; there is nothing above it to
- *     escalate to without inventing a number, which the fidelity contract forbids.
+ *     pirate, so every pirate already flies it. There is nothing above it to
+ *     escalate to without an invented number, and the fidelity contract forbids
+ *     that.
  *   * MORE SHIPS — the ceiling this deliberately does not raise.
- *   * A TIGHTER OPENING — starting the late waves inside their gun reads as being
- *     cheated, and would change what the attack-run count MEANS
+ *   * A TIGHTER OPENING — a late wave that starts inside its gun reads as a
+ *     cheat, and it would change what the attack-run count MEANS
  *     (combat-sim-opening.ts).
  */
 export const WAVE_STEPS: readonly WaveStep[] = [
@@ -563,10 +567,14 @@ export const WAVE_STEPS: readonly WaveStep[] = [
  * arithmetic. Quoted on the record and on the strip.
  *
  * DERIVED from the two things that decide it: four stated steps, two waves
- * apart. Two waves is the count ramp's own cadence — you meet a new thing, then
- * meet it again knowing it is coming, which is the difference between learning
- * it and being surprised twice. Past the fourth step there is nothing to add but
- * more ships, the axis this ramp exists to have stopped.
+ * apart.
+ *
+ * Two waves is the count ramp's own cadence. You meet a new thing, then meet it
+ * again knowing it is coming. That is the difference between a thing learnt and
+ * a thing that surprised you twice.
+ *
+ * Past the fourth step there is nothing to add but more ships. That is the one
+ * axis this ramp exists to close.
  */
 export const WAVE_SATURATION = waveOfStage(WAVE_STEPS.length);
 
@@ -575,7 +583,7 @@ export function waveOfStage(stage: number): number {
   return WAVE_COUNT_SATURATION + (Math.max(1, stage) - 1) * WAVE_STEP_EVERY + 1;
 }
 
-/** How many of the steps wave `n` has taken: 0 while only the numbers ramp. */
+/** How many of the steps wave `n` took: 0 while only the numbers ramp. */
 export function waveStage(n: number): number {
   return Math.max(0, Math.min(WAVE_STEPS.length,
     Math.ceil((n - WAVE_COUNT_SATURATION) / WAVE_STEP_EVERY)));
@@ -592,7 +600,7 @@ function waveFit(stage: number): { minMissiles?: number; minEcm?: number } {
   };
 }
 
-/** Who has joined the wave by stage `stage`, in the order they arrived. */
+/** Who joined the wave by stage `stage`, in the order they arrived. */
 function waveEscort(stage: number): WaveEscort[] {
   return WAVE_STEPS.slice(0, stage).flatMap((s) => s.joined ?? []);
 }
@@ -600,7 +608,7 @@ function waveEscort(stage: number): WaveEscort[] {
 /**
  * What wave `n` has that wave `n - 1` did not, for the banner and the record.
  *
- * Pure in `n`, like everything else here, so the line the pilot reads at the
+ * Pure in `n`, like everything else here. So the line the pilot reads at the
  * start of a wave is the line the record carries at the end of it.
  */
 export function waveEscalation(n: number): WaveEscalation {
@@ -624,18 +632,18 @@ export function waveEscalation(n: number): WaveEscalation {
 /**
  * Wave `n`, 1-based.
  *
- * Waves 1 to `WAVE_COUNT_SATURATION` are exactly what they always were — the
- * escort is empty and the fit floors absent, so this returns the same group it
- * did before the steps existed.
+ * Waves 1 to `WAVE_COUNT_SATURATION` are exactly what they always were. The
+ * escort is empty and the fit floors are absent, so this returns the same group
+ * it did before the steps existed.
  */
 export function waveOpposition(n: number, seed = 0): Opposition[] {
   const count = waveCount(n);
   const tier = waveTier(n);
   const fit = waveFit(waveStage(n));
   const escort = waveEscort(waveStage(n));
-  // The escort takes a pirate's PLACE. `waveCount` is the whole wave, and the
-  // floor of 1 is belt and braces: the steps only start once the count has
-  // saturated at six, so the escort can never be more than half of it.
+  // The escort takes a pirate's PLACE. `waveCount` is the whole wave. The
+  // floor of 1 is belt and braces. The steps start only once the count
+  // saturates at six, so the escort can never be more than half of it.
   const pirates = Math.max(1, count - escort.reduce((k, e) => k + e.count, 0));
   const organised = tier >= MAX_TIER && pirates >= 3;
   return [
@@ -649,8 +657,8 @@ export function waveOpposition(n: number, seed = 0): Opposition[] {
       seed,
       ...fit,
     },
-    // Each on its own seed, the same 101 stride `resolve()` gives a table's
-    // groups, so the hunter and the Thargon do not draw the pirates' hull.
+    // Each on its own seed. It is the same 101 stride `resolve()` gives a
+    // table's groups, so the hunter and the Thargon miss the pirates' hull.
     ...escort.map((e, i) => ({
       role: e.role,
       count: e.count,
@@ -673,9 +681,9 @@ export type SimMode = 'scenario' | 'sparring' | 'waves';
 /**
  * What a mode IS, as properties rather than branches.
  *
- * The differences between the three are small and all of them are facts about
- * the mode: does another round follow, is the round on a clock, does the player
- * get patched up in between, and what a record covers. Stated here, the session
+ * The differences between the three are small, and all of them are facts about
+ * the mode. Does another round follow? Is the round on a clock? Does the player
+ * get patched up in between? What does a record cover? Stated here, the session
  * has no mode switch in it at all.
  */
 export interface ModeRules {
@@ -712,7 +720,7 @@ export const MODES: Record<SimMode, ModeRules> = {
   },
 };
 
-/** A fight that has gone this long is a stalemate, not a fight. */
+/** A fight this long is a stalemate rather than a fight. */
 
 
 /** Everything the picker chose. Goes into the report verbatim. */
@@ -743,11 +751,11 @@ export interface ExerciseSession {
   readonly spec: ExerciseSpec;
   /** 0-based index of the round in progress */
   readonly round: number;
-  /** opponents spawned for this round; 0 means it has not been built yet */
+  /** opponents spawned for this round; 0 means nothing is built yet */
   readonly spawned: number;
   /** opponents still alive */
   readonly alive: number;
-  /** seconds this round has been running */
+  /** seconds since this round began */
   readonly roundElapsed: number;
   readonly playerAlive: boolean;
   /** the player asked to leave */
@@ -781,13 +789,13 @@ export function scenarioOpposition(
 /**
  * Sparring's single opponent: the chosen fight, reduced to one ship.
  *
- * Alone, so not organised — a pack policy with no pack to observe is a
- * degenerate thing to learn a hull against, and the brain falls back to the
- * solo one it would fly if it had turned up on its own.
+ * Alone, so not organised. A pack policy with no pack to observe is a
+ * degenerate thing to learn a hull against. The brain falls back to the solo
+ * one it would fly if it turned up on its own.
  *
- * The HULL is pinned, and that is the mode's whole point: sparring is for
- * learning what a Fer-de-Lance does differently from a Sidewinder, so rotating
- * the hull every round would teach you nothing about either. The round's fresh
+ * The HULL is pinned, and that is the mode's whole point. Sparring is for what
+ * a Fer-de-Lance does differently from a Sidewinder. A hull rotated every round
+ * would teach you nothing about either. The round's fresh
  * seed goes to the spawn instead, so the fight starts differently each time
  * against the same ship.
  */
@@ -810,8 +818,8 @@ function loneOpponent(list: readonly Opposition[], seed: number): Opposition[] {
  * Who to spawn for the coming round, or null when the exercise has no more
  * rounds in it.
  *
- * The three modes, and they are three lines: a scenario is one round, sparring
- * is the same opponent again on a fresh seed, waves is the ramp.
+ * The three modes, and they are three lines. A scenario is one round. Sparring
+ * is the same opponent again on a fresh seed. Waves is the ramp.
  */
 export function nextOpposition(
   s: ExerciseSession, rng: () => number = random,
@@ -837,20 +845,20 @@ export function nextOpposition(
       list = waveOpposition(s.round + 1, seed);
       break;
   }
-  // The A/B override is the last word: fly the same fight against two brains
-  // and the report answers which one is more fun, which is the question
-  // CLAUDE.md says the numbers cannot.
+  // The A/B override is the last word. Fly the same fight against two brains,
+  // and the report answers which one is more fun. CLAUDE.md says the numbers
+  // cannot answer that.
   return spec.brain ? list.map((o) => ({ ...o, brain: spec.brain! })) : list;
 }
 
 export type RoundOutcome = 'running' | 'roundOver' | 'over';
 
 /**
- * Where the exercise has got to.
+ * Where the exercise stands.
  *
- * `roundOver` means ask `nextOpposition` again; `over` means tear down. Death
- * and quitting end every mode; a cleared round ends only a scenario, because
- * the other two are endless by definition.
+ * `roundOver` means ask `nextOpposition` again. `over` means tear down. A death
+ * and a quit end every mode. A cleared round ends only a scenario, because the
+ * other two are endless by definition.
  */
 export function roundOutcome(s: ExerciseSession): RoundOutcome {
   if (!s.playerAlive || s.quitting) return 'over';

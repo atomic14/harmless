@@ -17,11 +17,11 @@
 // test/run.ts against arrays built by hand.
 //
 // One rule, one home, twice over:
-//   * "lined up" is `NPC_FIRE_GATE` and the range cut-offs are `NPC_LASER_RANGE`
+//   * "lined up" is `NPC_FIRE_GATE`. The range cut-offs are `NPC_LASER_RANGE`
 //     (constants/npc-gun.ts, theirs) and `LASER_RANGE` (constants/player-gun.ts,
-//     yours), so a balance change moves the game and the measurement together.
-//   * the JSON is VERSIONED (`schema`), as snapshot.ts's SNAPSHOT_VERSION is: a
-//     trainer reading the exported records is an external consumer.
+//     yours). So a balance change moves the game and the measurement together.
+//   * the JSON is VERSIONED (`schema`), as snapshot.ts's SNAPSHOT_VERSION is. A
+//     trainer that reads the exported records is an external consumer.
 
 import * as THREE from 'three';
 import { LASER_RANGE } from '../constants/player-gun.ts';
@@ -41,10 +41,11 @@ import {
  * leaves, not when one is added — a reader that ignores unknown keys survives
  * additions.
  *
- * Records across a bump are not comparable: 1->2 changed what `damageToYou` and
- * the `them` damage buckets MEAN (stated point numbers, `constants/impact.ts`,
- * rather than a normalized fraction); 2->3 made `you.damageDealt` and
- * `damageFromYou` cover missile, ram and bomb (damage-dealt.ts), not laser only.
+ * Records across a bump are not comparable. 1->2 changed what `damageToYou` and
+ * the `them` damage buckets MEAN: they are stated point numbers
+ * (`constants/impact.ts`) rather than a normalized fraction. 2->3 made
+ * `you.damageDealt` and `damageFromYou` cover a missile, a ram and the bomb
+ * (damage-dealt.ts), rather than the laser alone.
  */
 export const COMBAT_SIM_SCHEMA = 3;
 
@@ -70,10 +71,10 @@ const UNKNOWN = 'unknown';
 /**
  * One bucket of `damageBySource`, in either direction.
  *
- * The union of the two lists rather than one per direction: the buckets are
- * printed by the same renderer and exported under the same key, and the
- * directions already differ in which of them can ever appear — nothing can drop
- * a `bomb` on you, and you cannot deal a `station` scrape.
+ * The union of the two lists, rather than one per direction. The same renderer
+ * prints the buckets, and the same key exports them. The two directions already
+ * differ in which bucket can appear: nothing can drop a `bomb` on you, and you
+ * cannot deal a `station` scrape.
  */
 type SourceKey = DamageSource | DealtSource | typeof UNKNOWN;
 const SOURCES: readonly SourceKey[] =
@@ -92,14 +93,14 @@ export interface BothSides {
 }
 
 /**
- * How the fight is going, WHILE it is going — the subset of the report that is
- * meaningful before the exercise has ended.
+ * How the fight goes, WHILE it goes. It is the subset of the report that means
+ * anything before the exercise ends.
  *
  * It exists because the cockpit strip (combat-sim-strip.ts) has to show the
- * pilot the same numbers the report will show them afterwards, and the only way
- * to be sure of that is for both to be the same numbers. `report()` builds its
- * `seconds`, its `you` block and its `them.hits` OUT OF THIS — so the strip is
- * not a second tally that agrees, it is the tally.
+ * pilot the same numbers the report shows afterwards. The only way to be sure
+ * of that is for both to be the same numbers. `report()` builds its `seconds`,
+ * its `you` block and its `them.hits` OUT OF THIS. So the strip is not a second
+ * tally that agrees. It IS the tally.
  *
  * Everything on it is already accumulated: nothing here is derived for the
  * strip's benefit, and nothing here is rounded differently from the report.
@@ -112,7 +113,7 @@ export interface SimProgress {
   hits: number;
   /** hits / shots, or null when the trigger was never pulled */
   accuracy: number | null;
-  /** laser hits they have landed on you — `CombatSimReport.them.hits` */
+  /** laser hits they landed on you — `CombatSimReport.them.hits` */
   hitsTaken: number;
   /** opponents destroyed and credited to you */
   kills: number;
@@ -165,9 +166,9 @@ export interface ContactSample {
    * What this ship was DOING at this instant — its attack phase, or the reason
    * it was not flying one.
    *
-   * The difference between a log you can count and one you can read: a ship with
-   * `passes: 0` at a median range of 2,705 is a fact; `closing` versus
-   * `extending` beside it is why.
+   * The difference between a log you can count and one you can read. A ship
+   * with `passes: 0` at a median range of 2,705 is a fact. `closing` against
+   * `extending` beside it is the reason.
    *
    * A string rather than an enum on purpose. `AttackPhase` is break-off.ts's and
    * will grow tactics beside it; a name a record does not recognise is a name a
@@ -214,11 +215,12 @@ export interface OpponentSetup {
 /**
  * What the commander flew.
  *
- * Description, not simulation: carried through to the JSON so a record reads
- * months later without guessing what "you" had fitted. The hull is RECORDED but
- * not overridden — the simulator changes the fit-out only (docs/COMBAT-SIM.md),
- * because the player's hull is four constants in player.ts every pirate brain
- * was fitted against.
+ * Description, not simulation. It is carried through to the JSON, so a record
+ * reads months later with no guess at what "you" flew.
+ *
+ * The hull is RECORDED but not overridden. The simulator changes the fit-out
+ * only (docs/COMBAT-SIM.md), because the player's hull is four constants in
+ * player.ts that every pirate brain was fitted against.
  */
 export interface PlayerLoadout {
   /**
@@ -242,13 +244,15 @@ export interface PlayerLoadout {
 /**
  * Where the fight started, as it actually came out.
  *
- * The intent is combat-sim-opening.ts's — arc, range and cone — and the three
- * measured figures are what the seeded scatter made of it. Both, because the
- * pair is what makes a fight reproducible AND checkable: the plan alone cannot
- * say whether the opening happened, the measurement alone whether it was meant.
+ * The intent is combat-sim-opening.ts's: arc, range and cone. The three
+ * measured figures are what the seeded scatter made of it.
  *
- * `arc: 'astern'` with `inView: false` is a scenario ABOUT being jumped saying
- * so: without it, a fight that opened behind the pilot and one that did so by
+ * Both are kept, because the pair is what makes a fight reproducible AND
+ * checkable. The plan alone cannot say whether the opening happened. The
+ * measurement alone cannot say whether it was meant.
+ *
+ * `arc: 'astern'` with `inView: false` is a scenario ABOUT an ambush, saying
+ * so. Without it, a fight that opened behind the pilot and one that did so by
  * accident read identically.
  */
 export interface OpeningGeometry {
@@ -268,26 +272,27 @@ export interface OpeningGeometry {
 }
 
 /**
- * What the wave ramp has turned on by this wave — the waves mode only.
+ * What the wave ramp turned on by this wave — the waves mode only.
  *
- * Declared here rather than where the rule lives (`combat-sim-scenarios.ts`,
- * which fills it in) because it is part of the SHAPE OF THE RECORD, which this
- * file owns. The rules module imports the type; nothing here computes one.
+ * It is declared here rather than where the rule lives
+ * (`combat-sim-scenarios.ts`, which fills it in). It is part of the SHAPE OF
+ * THE RECORD, which this file owns. The rules module imports the type, and
+ * nothing here computes one.
  *
- * It exists because an escalation nobody can see is not an escalation: count and
- * tier are readable from the opponent table, but "they are all carrying missiles
- * now" and "one of them is not a pirate" are facts about the WAVE.
+ * It exists because an escalation nobody can see is not an escalation. Count
+ * and tier are readable from the opponent table. "They are all carrying
+ * missiles now" and "one of them is not a pirate" are facts about the WAVE.
  */
 export interface WaveEscalation {
   /** which wave, 1-based — the same number `wave` carries */
   wave: number;
   /** 0 while only count and tier are ramping; then one per stated step */
   stage: number;
-  /** everything the ramp has turned on by this wave, in the order it arrived */
+  /** everything the ramp turned on by this wave, in the order it arrived */
   active: readonly string[];
   /** the one thing that is NEW in this wave, or null when nothing is */
   added: string | null;
-  /** why — the stated reason for `added`, or for where the ramp has got to */
+  /** why — the stated reason for `added`, or for where the ramp stands */
   why: string;
   /** the wave from which every wave is identical */
   saturatesAt: number;
@@ -310,7 +315,7 @@ export interface ExerciseSetup {
   opening: OpeningGeometry;
   /** which wave this record covers, in the waves mode */
   wave?: number;
-  /** what the ramp had turned on by it — waves mode only, see `WaveEscalation` */
+  /** what the ramp turned on by it — waves mode only, see `WaveEscalation` */
   escalation?: WaveEscalation;
   /** override the sampling rate; every derived duration follows it */
   sampleHz?: number;
@@ -344,9 +349,10 @@ export interface OpponentReport {
   damageToYou: number;
   /**
    * ...in SOURCE ENERGY POINTS, where `damageToYou` above is in the commander's
-   * 255-point pool points: both whole source-scale numbers, but NOT the same
-   * unit (a ship's bank is 32-253, a commander's is 255 plus two shields), so a
-   * ratio of the two is meaningless — each is comparable only with itself.
+   * 255-point pool points. Both are whole source-scale numbers, but they are
+   * NOT the same unit. A ship's bank is 32-253, and a commander's is 255 plus
+   * two shields. So a ratio of the two means nothing, and each is comparable
+   * only with itself.
    */
   damageFromYou: number;
   /** the median range it held, and the nearest it ever got */
@@ -361,9 +367,10 @@ export interface OpponentReport {
   /**
    * Seconds it spent doing each thing, most first — see `ContactSample.doing`.
    *
-   * The column that says WHY the others look how they do: a ship with
-   * `passes: 0` at a median 2,610 reading `closing 9.1s` is one problem,
-   * `extending 7.0s, closing 2.1s` another. Empty when nothing reported a phase.
+   * The column that says WHY the others look how they do. A ship with
+   * `passes: 0` at a median 2,610 that reads `closing 9.1s` is one problem.
+   * `extending 7.0s, closing 2.1s` is another. It is empty where nothing
+   * reported a phase.
    */
   doing: Record<string, number>;
 }
@@ -371,9 +378,9 @@ export interface OpponentReport {
 /**
  * How the commander flies — arena.js's `envelope()`.
  *
- * Read it beside `traderCobra` in ai-training/scenario.ts (220 speed, 0.70
- * pitch, 1.20 roll): the gap between that freighter and these numbers is why
- * pirates weave instead of shooting (docs/TRAINING-LOG.md run 10).
+ * Read it beside `traderCobra` in ai-training/scenario.ts, at 220 speed, 0.70
+ * pitch and 1.20 roll. The gap between that freighter and these numbers is why
+ * pirates weave instead of shoot (docs/TRAINING-LOG.md run 10).
  */
 export interface EnvelopeReport {
   samples: number;
@@ -391,11 +398,12 @@ export interface EnvelopeReport {
 /**
  * How the OPPOSITION flew — `EnvelopeReport`'s missing half.
  *
- * The one judgement the trainer exists to support: CLAUDE.md's warning is that a
- * well-optimised pirate becomes a turret that hangs in space and snipes, and
- * brains have won on damage and been rejected on FEEL. The evidence that settles
- * it is how fast they flew, the spread of the ranges they held, and how often
- * they came in. `train/flight-probe.ts` derives its own from this same code.
+ * The one judgement the trainer exists to support. CLAUDE.md warns that a
+ * well-optimised pirate becomes a turret that hangs in space and snipes. A
+ * brain can win on damage and still be rejected on FEEL.
+ *
+ * The evidence that settles it is how fast they flew, the spread of the ranges
+ * they held, and how often they came in. `train/flight-probe.ts` derives its own from this same code.
  *
  * A DESCRIPTION, deliberately not a verdict. There is no turret index and no
  * score: inventing that metric is how this went wrong twice. The report
@@ -417,9 +425,9 @@ export interface OppositionReport {
   /**
    * The spread of ranges they held — p10, median, p90.
    *
-   * The spread is the measurement, not the median: an attack run sweeps the
-   * whole band so p10 and p90 sit far apart, a brain that loiters collapses the
-   * spread onto one range. `range.median` alone cannot tell those two apart.
+   * The spread is the measurement rather than the median. An attack run sweeps
+   * the whole band, so p10 and p90 sit far apart. A brain that loiters collapses
+   * the spread onto one range. `range.median` alone cannot tell those apart.
    */
   range: { p10: number; median: number; p90: number } | null;
   /**
@@ -435,7 +443,7 @@ export interface CombatSimReport {
   scenario: string;
   mode: SimMode;
   wave?: number;
-  /** what the wave ramp had turned on by this wave — see `WaveEscalation` */
+  /** what the wave ramp turned on by this wave — see `WaveEscalation` */
   escalation?: WaveEscalation;
   outcome: SimOutcome;
   seconds: number;
@@ -456,7 +464,7 @@ export interface CombatSimReport {
     kills: number;
   };
   them: {
-    /** laser shots only — a missile launch is not a shot that could have missed */
+    /** laser shots only — a missile launch is not a shot that can miss */
     shots: number;
     missiles: number;
     hits: number;
@@ -495,11 +503,10 @@ export interface CombatSimReport {
    * The three pools in SOURCE POINTS at the first sample and at the last, and
    * the worst each got in between.
    *
-   * Start and end are recorded because "you lost 180 points" is not comparable
-   * across fit-outs or hulls without what you started with, and the low-water
-   * mark alone cannot tell a fight that ended on fumes from one that recharged.
-   * All three are whole 255-point-scale numbers, the same ones `systems.ts`
-   * holds.
+   * Start and end are both recorded. "You lost 180 points" is not comparable
+   * across fit-outs or hulls without what you started with. The low-water mark
+   * alone cannot tell a fight that ended on fumes from one that recharged. All
+   * three are whole 255-point-scale numbers, the same ones `systems.ts` holds.
    */
   poolsAtStart: { foreShield: number | null; aftShield: number | null; energy: number | null };
   poolsAtEnd: { foreShield: number | null; aftShield: number | null; energy: number | null };
@@ -516,8 +523,8 @@ export interface CombatSimReport {
   opposition: OppositionReport;
   events: SimEvent[];
   /**
-   * Anything the report knows it does not know. A harness that admits it has
-   * stopped understanding beats one that is confidently wrong.
+   * Anything the report knows it does not know. A harness that admits the limit
+   * of its own understanding beats one that is confidently wrong.
    */
   warnings: string[];
 }
@@ -530,10 +537,10 @@ const tmpTo = new THREE.Vector3();
 /**
  * The angle between a ship's nose and the direction to a point, in radians.
  *
- * `NpcShip.facing()` is the same rule serving the NPC's own gate; this takes
- * loose arguments so the measurement can also be taken from the cockpit, which
- * has no `facing()`. Forward is −Z (ARCHITECTURE.md), and the scratch vectors
- * are module-scope so sampling four ships at 10 Hz allocates nothing.
+ * `NpcShip.facing()` is the same rule, serving the NPC's own gate. This takes
+ * loose arguments, so the cockpit can take the measurement too, and the cockpit
+ * has no `facing()`. Forward is −Z (ARCHITECTURE.md). The scratch vectors are
+ * module-scope, so four ships sampled at 10 Hz allocate nothing.
  */
 export function aimAngle(
   from: THREE.Vector3, quat: THREE.Quaternion, to: THREE.Vector3,
@@ -563,13 +570,14 @@ export function quantile(xs: readonly number[], p: number): number | null {
 /**
  * Completed attack runs in a series of ranges, in sampled order.
  *
- * A hysteresis crossing on `PASS_CLOSE` / `PASS_FAR`: out until it closes past
- * CLOSE, in until it opens back out past FAR, and the pass is counted on the way
- * OUT — a run that closed and never left is not a completed pass.
+ * A hysteresis crossing on `PASS_CLOSE` / `PASS_FAR`. It is out until the ship
+ * closes past CLOSE, and in until it opens back out past FAR. The pass is
+ * counted on the way OUT, because a run that closed and never left is not a
+ * completed pass.
  *
- * Pure and total, so `train/flight-probe.ts` counts its episodes with the same
- * function the exercise counts its opponents with rather than a second copy that
- * would drift when a threshold moved.
+ * Pure and total. So `train/flight-probe.ts` counts its episodes with the same
+ * function the exercise counts its opponents with. A second copy would drift
+ * when a threshold moved.
  */
 export function countPasses(dists: readonly number[]): number {
   let inside = false;
@@ -720,11 +728,11 @@ export class CombatSimRecorder {
     this.t += dt;
     this.accum += dt;
     const interval = 1 / this.hz;
-    // The tolerance is not decoration: six steps of FIXED_DT sum to
-    // 0.09999999999999999, so an exact comparison loses one sample in ten and
+    // The tolerance is not decoration. Six steps of FIXED_DT sum to
+    // 0.09999999999999999. So an exact comparison loses one sample in ten, and
     // `engagedSeconds` comes out 2% short.
     if (this.accum < interval - CADENCE_EPSILON) return;
-    // Subtract the interval rather than zeroing: zeroing throws away the
+    // Subtract the interval rather than zero it. A zero throws away the
     // remainder, which drifts the cadence, and every duration here is derived
     // from a count of samples.
     this.accum -= interval;
@@ -759,10 +767,10 @@ export class CombatSimRecorder {
   /**
    * One DISCHARGE of the commander's gun, and what it landed — null for a miss.
    *
-   * Discharges, not trigger polls: `firePlayerLaser` is called every frame the
-   * trigger is held and refuses internally while the laser is hot, so counting
-   * calls would report 14 shots a second from a pulse laser that manages 4.2.
-   * The exercise knows the difference — a `fired` event came back — so it says.
+   * Discharges, and not trigger polls. `firePlayerLaser` is called every frame
+   * the trigger is held, and refuses internally while the laser is hot. A count
+   * of calls would report 14 shots a second from a pulse laser that manages
+   * 4.2. The exercise knows the difference, because a `fired` event came back.
    */
   playerShot(landed: { opponent: number; damage: number } | null): void {
     this.playerShots += 1;
@@ -774,7 +782,7 @@ export class CombatSimRecorder {
   /**
    * Damage the commander did, by cause.
    *
-   * `playerShot` routes its own through here as `laser`; a missile, a ram and
+   * `playerShot` routes its own through here as `laser`. A missile, a ram and
    * the energy bomb arrive as the `DealtEvent`s the world step and the bomb
    * report (damage-dealt.ts). Every one is what came OFF the target's bank, so
    * overkill is not credited.
@@ -825,9 +833,11 @@ export class CombatSimRecorder {
   }
 
   /**
-   * An opponent has left the sky. `byPlayer` is whether it was credited to the
-   * commander — which in the simulator credits nothing, but is still the
-   * difference between a kill and a pirate flying into the station.
+   * An opponent left the sky.
+   *
+   * `byPlayer` is whether it was credited to the commander. In the simulator
+   * that credits nothing. It is still the difference between a kill and a
+   * pirate that flew into the station.
    */
   opponentDown(opponent: number, byPlayer: boolean): void {
     const o = this.tally[opponent];
@@ -889,8 +899,8 @@ export class CombatSimRecorder {
       (m, c) => Math.min(m, c.dist), Infinity)).filter((d) => d !== Infinity);
 
     const shipSeconds = rows.length / this.hz;
-    // The live standing and the finished record are ONE set of numbers: the
-    // strip reads `progress` every frame and the report reads it here, so they
+    // The live standing and the finished record are ONE set of numbers. The
+    // strip reads `progress` every frame, and the report reads it here. So they
     // cannot disagree.
     const p = this.progress;
     return {
