@@ -1,39 +1,43 @@
 // The orchestrator: which mode the game is in, and who gets the frame.
 //
 // ONE RESPONSIBILITY, and it is a short list because docs/TODO/150 and
-// docs/TODO/155 took the rest out. This file owns `baseMode`, gives the frame
-// to `flight.ts` while the ship is flying, routes every key to the child that
-// answers it, and says out loud what those children report. Nothing else.
+// docs/TODO/155 took the rest out. This file owns `baseMode`. It gives the
+// frame to `flight.ts` while the ship flies. It routes every key to the child
+// that answers it, and says out loud what those children report. Nothing
+// else.
 //
 // A DOCKED FRAME STILL RUNS and does less: it reads the keyboard, ticks the
 // message line and draws. Only flight has a world to advance, which is why one
 // half takes the frame and the other is reached by keys alone.
 //
 // THE TWO HALVES ARE THE SHAPE (docs/TODO/155). `docked.ts` holds what a
-// commander does when the ship has stopped; `flight.ts` holds what she does in
-// the sky, over `flight-weapons.ts` and `flight-instruments.ts`. Neither half
-// reaches into the other. A step that ends in a dock, a jump, a tow or a death
-// reports it HERE, and this file decides what the game becomes — which is the
-// whole reason the two are apart.
+// commander does once the ship stops. `flight.ts` holds what she does in the
+// sky, over `flight-weapons.ts` and `flight-instruments.ts`. Neither half
+// reaches into the other.
 //
-// THE OTHER SEVEN CHILDREN each hold one subject beside the rules it spends:
-// the law (`law-actions.ts`), the sky (`world-build.ts`), the cockpit
+// A step that ends in a dock, a jump, a tow or a death reports it HERE. This
+// file then decides what the game becomes. That is the whole reason the two
+// are apart.
+//
+// THE OTHER SEVEN CHILDREN each hold one subject, beside the rules it spends.
+// They are the law (`law-actions.ts`), the sky (`world-build.ts`), the cockpit
 // (`cockpit-view.ts`), the jump (`hyperspace-actions.ts`), the career
 // (`career.ts`), the save (`persistence.ts`) and the screen stack
 // (`ui/screen-host.ts`).
 //
-// The shape repeats deliberately. Each child gets ONE host object literal —
-// `persistenceHost()` below, and the literal beside each child's own field —
-// listing the verbs it may ask of the Game. A child returns events, and the
+// The shape repeats deliberately. Each child gets ONE host object literal,
+// which lists the verbs it may ask of the Game. Those are `persistenceHost()`
+// below, and the literal beside each child's own field. A child returns
+// events, and the
 // half that owns it says and plays them. Anything that DRAWS from the seeded
 // rng is a host CALL and never a deferred event, because the order of draws is
 // the world's determinism.
 //
 // THE APPLIERS ARE NOT HERE ANY MORE. `applyStep` and `applyCombat` went to
-// `flight.ts`, `applyStation` to `docked.ts`. What is left of that shape here
-// is the console and the sound the halves report THROUGH: `showMessage`,
-// `queueMessage`, `sayEvent` and `playSound` have one home each, and it is
-// this file.
+// `flight.ts`, and `applyStation` to `docked.ts`. What is left of that shape
+// here is the console and the sound the halves report THROUGH. `showMessage`,
+// `queueMessage`, `sayEvent` and `playSound` have one home each, and it is this
+// file.
 //
 // Input follows the same split: the player, a replay and an AI reach the game
 // through the same two verbs. `controls.ts` turns an input into `Command`s and
@@ -159,12 +163,15 @@ export class Game {
   private pendingNewGame = false;
 
   /**
-   * Whether the `?` controls guide is open. The Game owns the flag rather than
-   * asking the DOM, because the guide is not just paint: while it covers
-   * whatever is underneath, no other input may reach that screen, and
-   * `handleInput` gates on this. The shell's `toggleHelp()` only shows and
-   * hides the panel; the two stay in sync because this command is the panel's
-   * only caller and both start closed.
+   * Whether the `?` controls guide is open.
+   *
+   * The Game owns the flag rather than asks the DOM, because the guide is not
+   * just paint. While it covers whatever is underneath, no other input may
+   * reach that screen, and `handleInput` gates on this.
+   *
+   * The shell's `toggleHelp()` only shows and hides the panel. The two stay in
+   * sync, because this command is the panel's only caller and both start
+   * closed.
    */
   private helpOpen = false;
 
@@ -219,9 +226,9 @@ export class Game {
    * The docked half's five acts that something outside reaches by name.
    *
    * Delegates rather than reaches through `docked_`, and the reason differs by
-   * line. `launch` and `enterDocked` are pressed by two dozen tests; the other
-   * three are driven by `test/playtest.js`, which nothing type-checks, so a
-   * rename here would break the harness in silence (docs/TODO/151).
+   * line. Two dozen tests press `launch` and `enterDocked`. The other three are
+   * driven by `test/playtest.js`, which nothing type-checks. A rename here
+   * would break that harness in silence (docs/TODO/151).
    */
   launch(): void { this.docked_.launch(); }
 
@@ -240,8 +247,8 @@ export class Game {
   /**
    * Saving the world and putting it back — see persistence.ts.
    *
-   * The snapshot's shape lives in snapshot.ts and its home in storage.ts; this
-   * is the part that knows how a running world becomes one, which is why it
+   * The snapshot's shape lives in snapshot.ts, and its home in storage.ts. This
+   * is the part that knows how a running world becomes one. That is why it
    * needs the ordnance and the autopilot as well as the state.
    */
   private readonly persistence = new Persistence(
@@ -250,9 +257,9 @@ export class Game {
   /**
    * What a commander does while she is docked (docs/TODO/155 M1).
    *
-   * Four collaborators and thirteen host methods, and the width is the point
-   * rather than a cost: this is half an ORCHESTRATOR, not a rule module, so
-   * what it reaches back for is the machinery the other half stands on too —
+   * Four collaborators and thirteen host methods. The width is the point rather
+   * than a cost. This is half an ORCHESTRATOR, and not a rule module. So what
+   * it reaches back for is the machinery the other half stands on too. That is
    * the mode machine, the console, the sounds and three pieces of cockpit.
    *
    * `setBaseMode` is the seam. The station decides that a dock happened; the
@@ -292,9 +299,9 @@ export class Game {
   /**
    * The law's consequences (docs/TODO/150 M1).
    *
-   * `law.ts` owns the rules and `law-actions.ts` owns what the Game does with
-   * them. The host below is what it reaches back for: the console, the two
-   * sounds, and the two different questions about what mode the ship is in.
+   * `law.ts` owns the rules, and `law-actions.ts` owns what the Game does with
+   * them. The host below is what it reaches back for. That is the console, the
+   * two sounds, and two different questions about the ship's mode.
    */
   private readonly law_ = new LawActions(this.state, {
     showMessage: (text, seconds) => this.showMessage(text, seconds),
@@ -310,8 +317,9 @@ export class Game {
   /**
    * Building the sky and filling it (docs/TODO/150 M2).
    *
-   * Five host methods, and none of them is a rule: the console, the two pieces
-   * of cockpit furniture a new system changes, the sound, and where we are.
+   * Five host methods, and none of them is a rule. They are the console, the
+   * two pieces of cockpit furniture a new system changes, the sound, and where
+   * we are.
    */
   private readonly world_ = new WorldBuild(this.state, {
     showMessage: (text, seconds) => this.showMessage(text, seconds),
@@ -347,9 +355,9 @@ export class Game {
    * What a career keeps when a flight ends (docs/TODO/150 M5).
    *
    * Three collaborators and eight host methods. The collaborators are the three
-   * things a way back is made of — the record itself, the sky a respawn
-   * rebuilds, and the galaxy history a booted commander inherits — and the host
-   * is the mode machine, the simulator and the console.
+   * things a way back is made of. They are the record itself, the sky a respawn
+   * rebuilds, and the galaxy history a booted commander inherits. The host is
+   * the mode machine, the simulator and the console.
    */
   private readonly career_ = new Career(
     this.state, this.persistence, this.world_, this.jump_, {
@@ -396,8 +404,8 @@ export class Game {
    * What the cockpit shows about the world (docs/TODO/150 M3).
    *
    * Four collaborators and four host methods. The collaborators are the things
-   * the picture is READ FROM and PAINTED ON — the world, the ordnance racks,
-   * the camera with its beams, and the dashboard — and the host is the four
+   * the picture is READ FROM and PAINTED ON. They are the world, the ordnance
+   * racks, the camera with its beams, and the dashboard. The host is the four
    * facts about the machine that only the orchestrator holds.
    */
   private readonly cockpit_ = new CockpitView(this.state, this.ordnance, this.hud, {
@@ -411,9 +419,9 @@ export class Game {
   /**
    * What the cockpit is offering right now.
    *
-   * @internal — a delegate rather than a reach through `cockpit_`, because
-   * test/prompts.test.ts and test/bribe-flight.test.ts read it off the Game to
-   * see the offers without scraping the painted line.
+   * @internal — a delegate rather than a reach through `cockpit_`.
+   * test/prompts.test.ts and test/bribe-flight.test.ts read it off the Game, so
+   * that they see the offers without a scrape of the painted line.
    */
   keyPrompts(): string[] { return this.cockpit_.keyPrompts(); }
 
@@ -460,15 +468,17 @@ export class Game {
   /**
    * What a commander does while she is flying (docs/TODO/155 M2).
    *
-   * Six collaborators and seventeen host methods, and the width is what a HALF
-   * costs rather than a fault. The collaborators are the things a station
-   * spends too — the racks, the keyboard, the cockpit, the law, the record and
-   * the combat computer — so they stay here and are lent. What flight alone
-   * uses is ITS field: the world step, the guns, the autopilots, the
-   * instrumentation and the simulator all moved.
+   * Six collaborators and seventeen host methods. The width is what a HALF
+   * costs, rather than a fault.
+   *
+   * The collaborators are the things a station spends too. They are the racks,
+   * the keyboard, the cockpit, the law, the record and the combat computer. So
+   * they stay here and are lent. What flight alone uses is ITS field. The world
+   * step,
+   * the guns, the autopilots, the instrumentation and the simulator all moved.
    *
    * FIVE OF THE SEVENTEEN ARE WAYS OUT OF FLIGHT. A step that ends in a dock, a
-   * completed jump, a tow or a death reports it here and the orchestrator
+   * completed jump, a tow or a death reports it here. The orchestrator then
    * decides what the game becomes, so neither half reaches into the other.
    */
   private readonly flight_ = new Flight(
@@ -506,10 +516,10 @@ export class Game {
   /**
    * Scratch for placing a sound, and its OWN pair rather than `tmp`/`tmp2`.
    *
-   * `playSound` is called from inside `applyStep`, `applyCombat`, `applyStation`
-   * and `applyOrdnance`, which run in the middle of a frame that is already
-   * holding a vector in each of those two. A shared scratch would make a bang
-   * corrupt whatever the frame was measuring, silently and only sometimes.
+   * `applyStep`, `applyCombat`, `applyStation` and `applyOrdnance` all call
+   * `playSound`. Each runs in the middle of a frame that already holds a vector
+   * in both of those two. A shared scratch would let a bang corrupt whatever
+   * the frame was measuring, silently and only sometimes.
    */
   private readonly soundAt = new THREE.Vector3();
   private readonly soundRight = new THREE.Vector3();
@@ -528,17 +538,18 @@ export class Game {
    * One message event, from whichever module reported it: said now, or said
    * once the console is free of the line it explains.
    *
-   * Every `apply*` below routes through here rather than carrying its own copy
-   * of the branch, so a module cannot find that its queued line is honoured
-   * from flight and ignored from the station.
+   * Every `apply*` below routes through here rather than carries its own copy
+   * of the branch. So a module cannot find its queued line honoured from flight
+   * and ignored from the station.
    */
   private sayEvent(
     e: { text: string; seconds: number; queued?: boolean; command?: Command },
   ): void {
     // A line that announces a standing order says where the rest of it lives
     // (invariant 16). The module named a `Command` and never a letter, so the
-    // key is looked up HERE — the same seam `flightPrompts` uses, and the
-    // reason `test/key-prose.test.ts` can still scan `src/game/` for letters.
+    // key is looked up HERE. That is the same seam `flightPrompts` uses, and
+    // the reason `test/key-prose.test.ts` can still scan `src/game/` for
+    // letters.
     const text = e.command === undefined
       ? e.text
       : `${e.text} — ${keyPointer(this.cameFrom(), e.command)}`;
@@ -547,8 +558,8 @@ export class Game {
   }
 
   /**
-   * Your name changed hands on the ladder — say so, once the deed that moved
-   * it has been read (docs/TODO/129).
+   * Your name changed hands on the ladder. Say so, once the console read the
+   * deed that moved it (docs/TODO/129).
    *
    * Called with the score either side of a deed or a quiet week.
    *
@@ -575,7 +586,7 @@ export class Game {
     // record owns it. See state.ts.
     this.state.career = bootCareer(this.state.commander);
     this.jump_.loadOrWarmGalaxy();
-    // catch the galaxy up if this save has been away a while
+    // Catch the galaxy up where this save was away a while.
     if (this.state.living.day < this.state.commander.day) {
       this.state.living.advance(
         Math.min(60, this.state.commander.day - this.state.living.day),
@@ -588,10 +599,10 @@ export class Game {
 
     // Screens register themselves with the host and are addressed by id from
     // then on. Adding one is a new file plus a line here and a line in
-    // ScreenId — deliberately the whole shared surface. Registered BEFORE the
-    // boot dock below: entering docked may open the briefing over the menu
-    // (docs/TODO/106), and a host asked for a screen it has never heard of
-    // throws rather than shrugs.
+    // ScreenId — deliberately the whole shared surface. They are registered
+    // BEFORE the boot dock below. A dock may open the briefing over the menu
+    // (docs/TODO/106), and a host asked for a screen it does not know throws
+    // rather than shrugs.
     for (const screen of [
       this.market_,
       new EquipScreen(() => this.docked_.tradeContext()),
@@ -650,15 +661,15 @@ export class Game {
     // Resume mid-flight if the last session ended there; otherwise the
     // station, as Elite always did.
     if (!this.resumeSavedWorld()) this.docked_.enterDocked('fresh');
-    // The `?` guide, in two halves: the flight axes change with the layout and
-    // keymap.ts rewrites them whenever it is toggled; the command rows are the
-    // same in both layouts, so they are painted from the binding table once.
+    // The `?` guide, in two halves. The flight axes change with the layout,
+    // and keymap.ts rewrites them at every toggle. The command rows are the
+    // same in both layouts, so the binding table paints them once.
     refreshHelpPanel();
     paintCommandGuide();
-    // ...and the two keys this line names come from that same table rather than
-    // from the sentence (docs/TODO/128 M3): the guide is a global binding and
-    // the layout toggle is the docked table's, which is where a commander
-    // reading this is standing.
+    // ...and the two keys this line names come from that same table rather
+    // than from the sentence (docs/TODO/128 M3). The guide is a global binding.
+    // The layout toggle is the docked table's, which is where a commander who
+    // reads this is standing.
     this.showMessage(
       `PRESS ${boundKey('docked', 'toggleHelp')} FOR CONTROLS`
       + ` — ${layoutName().toUpperCase()} LAYOUT`
@@ -697,15 +708,15 @@ export class Game {
 
     // Fixed timestep, decoupled from the frame rate.
     //
-    // The world only ever advances in FIXED_DT slices, whatever the display is
-    // doing. A variable dt means a 144Hz machine and a 30Hz one get different
-    // physics from the same inputs — which is a bug on its own, and fatal to
-    // the thing this is for: a run that cannot be reproduced cannot be
+    // The world only ever advances in FIXED_DT slices, whatever the display
+    // does. A variable dt gives a 144Hz machine and a 30Hz one different
+    // physics from the same inputs. That is a bug on its own, and it is fatal
+    // to the thing this is for. A run that cannot be reproduced cannot be
     // replayed, tested against, or trained on.
     //
-    // The clamp stops the spiral of death: after a long stall (a tab in the
-    // background, a hyperspace hitch) we drop the backlog rather than trying
-    // to catch up, because catching up costs more time than we lost.
+    // The clamp stops the spiral of death. After a long stall — a tab in the
+    // background, a hyperspace hitch — we drop the backlog rather than catch
+    // up. To catch up costs more time than we lost.
     let last = performance.now();
     let accumulator = 0;
     let simTime = 0;
@@ -728,10 +739,10 @@ export class Game {
     const { width: w, height: h } = this.shell.size();
     const pxPerRad = this.render.resize(w, h);
     this.hud.resizeOverlay(w, h);
-    // Draw the sight to the assist envelope, so the circle means something: a
-    // target inside it is a target the shot will reach for. Derived from the
-    // real projection rather than picked by eye, so it stays honest if the fov
-    // or the assist angle ever change.
+    // Draw the sight to the assist envelope, so the circle means something. A
+    // target inside it is a target the shot will reach for. It is derived from
+    // the real projection rather than picked by eye, so it stays honest if the
+    // fov or the assist angle ever change.
     this.shell.setSightRadius(this.cockpit_.sightRadius(pxPerRad));
   }
 
@@ -766,17 +777,17 @@ export class Game {
       enterMode: (mode) => {
         this.baseMode = mode;
         this.screens.exit();
-        // 'resumed', and the word is load-bearing: `restore` has already put
-        // this station's market and bulletin board back, and a dock that rolls
-        // over them is a reload-to-reroll exploit (docs/TODO/46).
+        // 'resumed', and the word is load-bearing. `restore` already put this
+        // station's market and bulletin board back. A dock that rolls over
+        // them is a reload-to-reroll exploit (docs/TODO/46).
         if (mode === 'docked') this.docked_.enterDocked('resumed');
         else hideScreen();
       },
       buildWorld: () => this.buildWorld(),
       enterWitchspace: () => this.enterWitchspace(),
-      // `baseMode`, NOT `mode`: after a death a screen CAN be open (the
-      // game-over panel offers the commander file), and reading `mode` would
-      // then find `'saves'` and write a checkpoint of the wreck over the
+      // `baseMode`, NOT `mode`. After a death a screen CAN be open, because
+      // the game-over panel offers the commander file. A read of `mode` would
+      // then find `'saves'`. It would write a checkpoint of the wreck over the
       // station the player is about to go back to.
       isDead: () => this.baseMode === 'dead',
       message: (text, seconds) => this.showMessage(text, seconds),
@@ -841,7 +852,7 @@ export class Game {
    * The ONE place a `SoundEvent` becomes a noise.
    *
    * Both the world step and the autopilots return them (sounds.ts), and both
-   * `apply*` end up here rather than carrying a switch each — two near-identical
+   * `apply*` end up here rather than carry a switch each. Two near-identical
    * `beep` arms in two switches is how a rule grows a second home.
    */
   private playSound(e: SoundEvent): void {
@@ -852,11 +863,12 @@ export class Game {
         else sfx.stopDockingMusic();
         break;
       case 'sound': {
-        // One call for every name, placed or not. A voice that takes no place is
-        // assignable to one that takes an optional place — fewer parameters is
-        // assignable to more — so a cockpit beep goes through the same line and
-        // ignores what it is handed. The alternative is a list of which names
-        // are placed, which is a second home for a fact audio.ts already states.
+        // One call for every name, placed or not. A voice that takes no place
+        // is assignable to one that takes an optional place, because fewer
+        // parameters is assignable to more. So a cockpit beep goes through the
+        // same line, and ignores what it is handed. The alternative is a list
+        // of which names are placed, which is a second home for a fact audio.ts
+        // already states.
         const voice: (place?: Place) => void = sfx[e.name];
         voice(this.placeOf(e.at));
         break;
@@ -869,28 +881,28 @@ export class Game {
    * what one does to a voice, is audio.ts's — see the type's own doc.
    *
    * Geometry only. How loud that is, and whether the sound cares at all, is
-   * `audio.ts`'s to decide — the same split the countdown's pitch made when it
-   * left the world step.
+   * `audio.ts`'s to decide. That is the same split the countdown's pitch made
+   * when it left the world step.
    *
-   * `undefined` for a sound with no place, which is most of them: the beeps, the
-   * warnings, the dock and the launch all happen where the pilot is.
+   * `undefined` for a sound with no place, which is most of them. The beeps,
+   * the warnings, the dock and the launch all happen where the pilot is.
    */
   private placeOf(at?: THREE.Vector3): Place | undefined {
     if (!at) return undefined;
     const { player, session } = this.state;
     const to = this.soundAt.subVectors(at, player.position);
     const distance = to.length();
-    // A source AT the pilot has no direction, and normalising it would hand
-    // `pan.value` a NaN — which takes the voice out in silence rather than
-    // throwing, so nothing would report it. This is `nose × heading` again
+    // A source AT the pilot has no direction. To normalise it would hand
+    // `pan.value` a NaN, which takes the voice out in silence rather than
+    // throws. Nothing would then report it. This is `nose × heading` again
     // (docs/TODO/134): the degenerate case arrives exactly when the geometry
     // succeeds.
     //
-    // No emitter reaches it today, and that was checked rather than assumed:
-    // the closest is a warhead on your own hull, and `hitPlayer` carries the
-    // MISSILE's position, which is inside `MISSILE_HIT_RANGE` and never equal.
-    // The guard is here because the next emitter is one line of somebody else's
-    // work away, and the failure it prevents is a silence with no error.
+    // No emitter reaches it today, and that was checked rather than assumed.
+    // The closest is a warhead on your own hull, and `hitPlayer` carries the
+    // MISSILE's position. That is inside `MISSILE_HIT_RANGE` and never equal.
+    // The guard is here because the next emitter is one line of somebody
+    // else's work away. The failure it prevents is a silence with no error.
     const side = distance > 0
       ? to.divideScalar(distance)
         .dot(viewRight(player.quaternion, session.view, this.soundRight))
@@ -909,9 +921,9 @@ export class Game {
   /**
    * One-shot jump to the next galaxy; lands at the nearest system to our coords.
    *
-   * @internal — driven by test/prewarm.test.ts. Public for the same reason
-   * `respawn` and `launch` are: ⇧H needs a shift HELD, which `Input` only
-   * learns from a real keydown, so a headless test cannot press it. The
+   * @internal — driven by test/prewarm.test.ts. It is public for the same
+   * reason `respawn` and `launch` are. ⇧H needs a shift HELD, and `Input` only
+   * learns that from a real keydown. So a headless test cannot press it. The
    * binding itself is pinned in test/ui.test.ts.
    */
   galacticJump(): void { this.jump_.galacticJump(); }
@@ -921,8 +933,8 @@ export class Game {
   /**
    * One simulation step and one frame drawn.
    *
-   * A single call because the console harness drives the game with it
-   * (test/playtest.js); the real loop separates them and steps a FIXED dt
+   * A single call, because the console harness drives the game with it
+   * (test/playtest.js). The real loop separates them, and steps a FIXED dt
    * however long the frame took.
    * @internal — driven by test/playtest.js
    */
@@ -935,9 +947,9 @@ export class Game {
    * Advance the world by exactly `dt`.
    *
    * Draws nothing and reads no clock. Everything about the world that can
-   * change lives downstream of this call, which is what makes a fixed
-   * timestep worth having: the same inputs and the same seed produce the same
-   * outcome regardless of frame rate.
+   * change lives downstream of this call. That is what makes a fixed timestep
+   * worth having. The same inputs and the same seed produce the same outcome,
+   * whatever the frame rate.
    */
   step(dt: number, elapsed: number): void {
     tickMessage(this.state.session, dt);
@@ -966,9 +978,10 @@ export class Game {
   }
 
   /**
-   * Finish every fixed step after its commands and world events have applied.
-   * The beam ages at the tail of the step, so a shot fired this step keeps its
-   * ordering while display cadence stays irrelevant to canonical state.
+   * Finish every fixed step, after its commands and world events apply.
+   *
+   * The beam ages at the tail of the step. So a shot fired this step keeps its
+   * order, and the display cadence stays irrelevant to canonical state.
    */
   private finishStep(dt: number): void {
     this.input.endFrame();
@@ -990,32 +1003,33 @@ export class Game {
   /**
    * Read the controls, and do what they asked for.
    *
-   * The bindings are a table in controls.ts and the consequences are
-   * `runCommand` below — the same decides/applies split as the world step and
-   * the station, applied to the keyboard. What is left here is the routing
-   * that genuinely belongs to the orchestrator: the help panel is global, the
-   * screen stack gets first refusal, and only then does the base state get the
-   * frame.
+   * The bindings are a table in controls.ts, and the consequences are
+   * `runCommand` below. That is the same decides/applies split as the world
+   * step and the station, applied to the keyboard.
+   *
+   * What is left here is the routing that genuinely belongs to the
+   * orchestrator. The help panel is global. The screen stack gets first
+   * refusal. Only then does the base state get the frame.
    */
   private handleInput(dt: number, pausedOnly = false): void {
     const i = this.input;
     if (!pausedOnly) {
       for (const c of globalCommands(i)) this.runCommand(c);
 
-      // The `?` guide is topmost (docs/TODO/106): while it is open, nothing
-      // below it reads the keyboard, so a letter cannot operate the screen it
-      // is covering. Escape closes the guide instead of that screen; every
-      // other tap goes unread and is dropped at endFrame, not banked for the
+      // The `?` guide is topmost (docs/TODO/106). While it is open, nothing
+      // below it reads the keyboard, so a letter cannot operate the screen
+      // under it. Escape closes the guide rather than that screen. Every other
+      // tap goes unread, and is dropped at endFrame rather than banked for the
       // screen underneath.
       if (this.helpOpen) {
         if (i.pressed('Escape')) this.runCommand('toggleHelp');
         return;
       }
 
-      // The host runs the menu cursor and gives the frame to the top screen.
-      // Every overlay has migrated to the Screen contract, so if one is open it
-      // handles the frame and we are done — what is left below is the three
-      // states that are NOT screens.
+      // The host runs the menu cursor, and gives the frame to the top screen.
+      // Every overlay moved to the Screen contract. So an open one handles the
+      // frame and we are done. What is left below is the three states that are
+      // NOT screens.
       if (this.screens.update(i, dt)) return;
     }
 
@@ -1029,16 +1043,18 @@ export class Game {
   /**
    * Which binding table is live.
    *
-   * Null while a screen is open — `mode` is then that screen's id, and a screen
-   * owns its own keys (invariant 13), so no cockpit table applies. Reachable
-   * only on the paused path, where `handleInput` skips the screen stack;
-   * ordinarily `screens.update()` has already taken the frame and returned.
+   * Null while a screen is open. `mode` is then that screen's id, and a screen
+   * owns its own keys (invariant 13), so no cockpit table applies.
+   *
+   * It is reachable only on the paused path, where `handleInput` skips the
+   * screen stack. Ordinarily `screens.update()` took the frame and returned
+   * before this.
    */
   private controlMode(): ControlMode | null {
     if (this.mode === 'docked') return this.pendingNewGame ? 'confirmNewGame' : 'docked';
-    // An exercise is ordinary flight with a different StepHost, so it is the
-    // same mode to the world and a different TABLE to the keyboard: no
-    // hyperspace, no beacon, no jettison, no docking computer — and Escape or Q
+    // An exercise is ordinary flight with a different StepHost. So it is the
+    // same mode to the world, and a different TABLE to the keyboard. It has no
+    // hyperspace, no beacon, no jettison and no docking computer. Escape or Q
     // ends it (controls.ts, NOT_IN_THE_SIMULATOR).
     if (this.mode === 'flight') return this.flight_.inSimulator() ? 'simulator' : 'flight';
     if (this.mode === 'dead') return 'dead';
@@ -1049,12 +1065,12 @@ export class Game {
    * Every command, as data.
    *
    * A `Record<Command, ...>` rather than a switch, so the compiler REFUSES a
-   * Command with no entry — a lookup has no branches and no case can silently
+   * Command with no entry. A lookup has no branches, and no case can silently
    * fall through.
    *
-   * Deliberately one-liners: anything longer belongs in the module that owns
+   * Deliberately one-liners. Anything longer belongs in the module that owns
    * the rule. This is the whole surface a replay, an AI or a test drives the
-   * game through — the same one a pair of hands does, via controls.ts.
+   * game through. A pair of hands drives the same one, through controls.ts.
    */
   private readonly commands: Record<Command, () => void> = {
     // --- global -----------------------------------------------------------
@@ -1077,10 +1093,11 @@ export class Game {
       this.pendingNewGame = true;
       renderNewGameConfirm(this.system, this.state.commander);
     },
-    // The panel has said what will happen; the last thing it needs is a name,
-    // and the name IS the new commander's identity (screens/new-commander.ts).
-    // Dropping the pending flag first means ESC out of the prompt lands back on
-    // the docked menu rather than on a confirmation already answered.
+    // The panel already said what will happen. The last thing it needs is a
+    // name, and the name IS the new commander's identity
+    // (screens/new-commander.ts). The pending flag drops first, so ESC out of
+    // the prompt lands back on the docked menu rather than on a confirmation
+    // already answered.
     newGame: () => {
       this.pendingNewGame = false;
       this.screens.open('new-name');
@@ -1094,9 +1111,9 @@ export class Game {
     openLocalChart: () => this.openLocalChart(this.cameFrom()),
     openStatus: () => this.openReadingScreen('status', this.cameFrom()),
     openMissions: () => this.openReadingScreen('missions', this.cameFrom()),
-    // A reading screen from the cockpit, and the board it also carries is a
-    // station's — `ContractsContext.atStation` is what makes that the SCREEN's
-    // question rather than this call's.
+    // A reading screen from the cockpit. The board it also carries is a
+    // station's, and `ContractsContext.atStation` is what makes that the
+    // SCREEN's question rather than this call's.
     openContracts: () => this.openReadingScreen('contracts', this.cameFrom()),
     // --- the cockpit ------------------------------------------------------
     view0: () => this.flight_.switches.setView(0),
@@ -1166,16 +1183,18 @@ export class Game {
   }
 
   /**
-   * Mouse input for the overlay screens. Buttons and menu rows carry a
-   * `data-key`, which is injected as a synthetic key press so clicks and
-   * the keyboard run through exactly the same handlers; table rows carry a
-   * `data-row` selection index; charts map clicks back to chart coordinates.
+   * Mouse input for the overlay screens.
+   *
+   * Buttons and menu rows carry a `data-key`. It is injected as a synthetic key
+   * press, so a click and the keyboard run through exactly the same handlers.
+   * A table row carries a `data-row` selection index. A chart maps a click back
+   * to chart coordinates.
    */
   private handleScreenClick(el: unknown, e: unknown): void {
-    // The host owns all of it: data-key becomes a keystroke so a click and the
-    // printed shortcut take exactly the same path, data-row goes to the top
-    // screen's select(), and anything else — a chart canvas — reaches its
-    // clickAt() with the raw event so it can map pixels to its own space.
+    // The host owns all of it. A `data-key` becomes a keystroke, so a click
+    // and the printed shortcut take exactly the same path. A `data-row` goes to
+    // the top screen's select(). Anything else, such as a chart canvas, reaches
+    // its clickAt() with the raw event, and maps pixels to its own space.
     this.screens.click(el, this.input, e);
   }
 
@@ -1198,14 +1217,15 @@ export class Game {
    * Open a screen that only REPORTS, from wherever the key was pressed.
    *
    * Three screens qualify: what you are (`status`), what the Navy wants
-   * (`missions`), and what you signed for (`contracts`). Each is bound in the
-   * cockpit as well as at the station, so each must record which base state to
-   * come back to, and each must let go of mouse flight before a pointer is any
-   * use.
+   * (`missions`), and what you signed for (`contracts`).
    *
-   * `contracts` is the one that can also SPEND — it signs for work at a board.
-   * That door is the screen's own (`ContractsContext.atStation`) rather than
-   * this call's, because the screen is what knows a board is a station's.
+   * Each is bound in the cockpit as well as at the station. So each must record
+   * which base state to come back to. Each must also let go of mouse flight,
+   * before a pointer is any use.
+   *
+   * `contracts` is the one that can also SPEND, because it signs for work at a
+   * board. That door is the screen's own (`ContractsContext.atStation`) rather
+   * than this call's. The screen is what knows a board is a station's.
    */
   private openReadingScreen(
     id: 'status' | 'missions' | 'contracts', from: 'docked' | 'flight',
@@ -1219,8 +1239,8 @@ export class Game {
    * Nothing on the stack: show the docked menu, or clear back to flight — or
    * put the game-over panel back.
    *
-   * The dead case is here rather than in station.ts because a death is not one
-   * of the station's two transitions, and the panel offers the commander file,
+   * The dead case is here rather than in station.ts, because a death is not one
+   * of the station's two transitions. The panel also offers the commander file,
    * so Escape out of that screen has somewhere to come back TO.
    */
   private showBaseScreen(): void {

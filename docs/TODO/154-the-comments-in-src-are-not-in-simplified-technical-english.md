@@ -246,7 +246,24 @@ counted as a bare number; it is one reference on one line now, and the path mask
 takes it. The slot table in `observation.ts` was re-spaced into columns, so the
 checker stops reading it as a sentence. Every slot number is still in the file.
 
-**Four things came out of this pass that the plan did not have.**
+**The second M3 pass landed the same day**, over the next two by count:
+`game/game.ts` and `game/storage.ts`.
+
+| | sentences | over cap | `-ing` | tense |
+| --- | ---: | ---: | ---: | ---: |
+| before | 363 | **85 (23%)** | 87 | **14** |
+| after | 505 | **0** | 50 | **0** |
+
+The cost is 37 lines, at 312 insertions against 275 deletions. **The tree is at
+1,558 long sentences, from 1,842 at the head of M3.** Nothing was dropped: the
+numeric walk reports no loss on either file.
+
+**The orchestrator's own header was the hardest paragraph in the two**, and it
+is the reason: it is a list of nine children, and a list of nine reads as one
+sentence unless it is broken up. It is four paragraphs now, and each one names a
+group rather than the whole tree.
+
+**Four things came out of the first pass that the plan did not have.**
 
 1. **A fifth exclusion was needed, and it is a table in COLUMNS.** Several
    headers in `src/` lay an inventory out with spaces rather than pipes. Read as
