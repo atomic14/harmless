@@ -146,4 +146,69 @@ same assertion count.
 
 ## What landed
 
-Not started.
+All six milestones, on 2026-08-14. `npm run check` passes.
+`npm run portability` is unchanged. **The exemption is gone.**
+
+| file | lines |
+| --- | --- |
+| `ui/screens-career.ts` | 340 |
+| `ui/screens-trainer.ts` | 305 |
+| `ui/screens.ts` | **298** (was 1,954) |
+| `ui/chart-local.ts` | 253 |
+| `ui/chart-overlays.ts` | 176 |
+| `ui/chart-galactic.ts` | 172 |
+| `ui/briefing.ts` | 154 |
+| `ui/screens-trade.ts` | 145 |
+| `ui/chart-readout.ts` | 144 |
+| `ui/screen-shell.ts` | 51 |
+| `ui/reserved-note.ts` | 32 |
+| `ui/portrait.ts` | 29 |
+
+`npm run sizes` reports **30** files over the limit where it reported 32 that
+morning: five dead entries removed by the audit, and this one split.
+
+**No prose was cut.** Of 349 comment lines below the original header, **340
+moved verbatim**. The nine that did not are the two module headers rewritten on
+purpose and the dead re-export deleted in M2.
+
+## What the milestones found that the plan did not have
+
+**1. The charts were four subjects, not one.** M2 said to land the move and
+measure before deciding the second cut, and that was the right instruction: the
+moved block came to **719 lines** and the gate said SPLIT. The honest
+decomposition is which star is under the cursor, what is painted over the stars,
+and the two maps — because **the two charts are two SCREENS**, with two
+projections, two readouts and two click surfaces. Had the plan guessed, it would
+have guessed one file and been wrong.
+
+**2. A dead re-export with a false justification.** `export { distanceTenths }`
+claimed to exist because *"every caller already reaches for it from this
+module"*. No caller does — all eleven import it from `galaxy/navigation.ts`
+directly. Deleted rather than moved.
+
+**3. Three helpers had two unrelated readers each.** `portraitUrl` (the chart
+readout and the DATA ON page), `reservedNotes` (the trainer's setup panel and
+the test-mode screen), and `chartKeyline` (both charts). Each got its own home
+rather than making one consumer a place the other reaches through. That is the
+same rule the whole item is about, applied one level down.
+
+**4. Six tests named a file by path**, and every one was a source SCAN rather
+than an import — the class of test no compiler can follow. Five were repointed.
+The sixth came out stronger: `descriptions.test.ts` checked two named files for
+a private HTML escaper, and it reads the whole of `src/ui/` now. Naming the
+files would be a list to keep in step with a directory, which is the exact shape
+of failure that check exists to catch.
+
+**5. The mechanical extraction was the hard part**, not the design. Two attempts
+at slicing by pattern mis-cut — once on `{ x: number; y: number }` in a
+parameter list, once on an arrow-function `const` that ends in `;` rather than
+`}`. Both were caught by asserting brace balance on every extracted block before
+writing it, and the third attempt partitioned the file at declaration boundaries
+instead, which cannot over-run by construction. **A refactor script needs its
+own gate**, and brace balance is a cheap one.
+
+## What this leaves
+
+`game.ts` is 2,524 lines and `npc.ts` 1,568. Both carry honest `DEBT:` entries
+naming what they are waiting for. Neither was touched here, and each needs a
+plan of its own.

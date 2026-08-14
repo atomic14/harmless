@@ -13,17 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [149 — One file per screen](149-one-file-per-screen.md) · Chris, 2026-08-14 ·
-   refactor · large.
-
-**149 comes out of the exemption audit.** `src/ui/screens.ts` is 1,954 lines and
-carries the weakest entry in `tools/sizes.mjs`: *"one render function per screen;
-they share layout helpers and nothing else."* That is the argument FOR splitting,
-written as the argument against one — it states the precondition for a clean cut
-and claims no coupling, because there is none to claim. The audit measured 25
-exported render functions and 24 helpers, and the triage found the consumers are
-already one per screen: fourteen files under `game/screens/` each import exactly
-their own render function. Six milestones, and the exemption comes off.
+**Empty.** 2026-08-14 was a day about the process rather than the game. Chris
+read the last three commits and asked why they trimmed files instead of
+splitting them; `CLAUDE.md` forbids the trimming in as many words. **148** split
+`game/controls.ts`, the gate's own message now asks for a split and names the
+trap, **the 36 exemptions were audited** and five were for files that had fallen
+back under the ceiling, and **149** took `ui/screens.ts` from 1,954 lines to
+eight files with no exemption at all. `npm run sizes` reports 30 files over the
+limit where it reported 32 that morning.
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
