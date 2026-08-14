@@ -42,14 +42,12 @@ import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { BRIEFING_VERSION } from '../constants/commander.ts';
 import { Input } from '../engine/input.ts';
 import { flightDemand } from '../engine/flight-controls.ts';
-import {
-  keymap, layoutName, toggleLayout, manualFlightKeys, refreshHelpPanel,
-} from '../engine/keymap.ts';
+import { keymap, layoutName, toggleLayout, manualFlightKeys, refreshHelpPanel } from '../engine/keymap.ts';
 import { Hud } from '../hud/hud.ts';
 import { buildHudFrame } from '../hud/hud-binding.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
 import { sfx, type Place } from '../audio.ts';
-import { nearestEngaging, nearestNpc, NpcShip } from './npc.ts';
+import { NpcShip } from './npc.ts';
 import { flightPrompts, type Prompt } from './prompts.ts';
 import { npcImpactDamage } from './impact-damage.ts';
 import { IMPACT } from '../constants/impact.ts';
@@ -61,76 +59,46 @@ import { type NpcSpec } from './ship-specs.ts';
 import { specsForSet } from './set-roster.ts';
 import { blueprintRandomBits, blueprintSetFor } from './blueprint-set.ts';
 import { type NpcRole } from './ship-roles.ts';
-import { spawnPopulation, launchStationDefence } from './spawning.ts';
-import { dumpCargo, dumpContraband, offerBribe, type Dumped } from './jettison.ts';
-import {
-  Combat, BEAM_FLASH, firePlayerLaser, damagePlayer,
-  type CombatEvent, type DamageSource,
-} from './combat.ts';
-import {
-  CombatInstrumentation, type CombatObserver,
-} from './instrumentation.ts';
-import {
-  checkJump, resolveJump, refusalMessage,
-  checkGalacticJump, resolveGalacticJump, galacticRefusalMessage,
-} from './hyperspace.ts';
+import { spawnPopulation } from './spawning.ts';
+import { dumpCargo, dumpContraband } from './jettison.ts';
+import { Combat, BEAM_FLASH, firePlayerLaser, damagePlayer, type CombatEvent, type DamageSource } from './combat.ts';
+import { CombatInstrumentation, type CombatObserver } from './instrumentation.ts';
+import { checkJump, resolveJump, refusalMessage, checkGalacticJump, resolveGalacticJump, galacticRefusalMessage } from './hyperspace.ts';
 import { constrictorLurksHere, missionBlueprintOverride } from './missions.ts';
-import {
-  WorldStep, massLocked,
-  type StepEvent, type StepHost,
-} from './world-step.ts';
+import { WorldStep, massLocked, type StepEvent, type StepHost } from './world-step.ts';
 import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
 import { WITCHPOINT_RADII } from '../constants/planet.ts';
 import { TORUS_MULTIPLIER } from '../constants/torus.ts';
 import { FIXED_DT, MAX_FRAME_TIME, MAX_STEPS_PER_FRAME } from '../constants/world-clock.ts';
 import { random, randomDirection, rngState, seedWorld } from './rng.ts';
-import {
-  bootCareer, bootCommander, bootSave, clearFlightSaves, withoutSaving,
-  writeDockSave, writeFlightSave, writeNamedSave,
-} from './storage.ts';
+import { bootCareer, bootCommander, bootSave, clearFlightSaves, withoutSaving, writeDockSave, writeFlightSave, writeNamedSave } from './storage.ts';
 import { MAX_NAMED_SAVES } from '../constants/saves.ts';
 import { type WorldSnapshot } from './snapshot.ts';
-import {
-  showMessage as setMessage, queueMessage, tickBeam, tickMessage,
-} from './session.ts';
+import { showMessage as setMessage, queueMessage, tickBeam, tickMessage } from './session.ts';
 import { Persistence, type PersistenceHost } from './persistence.ts';
-import {
-  Station, type DockArrival, type StationHost, type StationEvent,
-} from './station.ts';
+import { Station, type DockArrival, type StationHost, type StationEvent } from './station.ts';
 import { CombatSim, type ExerciseFit, type SimHost } from './combat-sim.ts';
 import type { CombatSimReport } from './combat-sim-report.ts';
 import type { ExerciseSpec } from './combat-sim-scenarios.ts';
 import { planPopulation } from './population.ts';
 import { CombatComputer } from './combat-computer.ts';
 import { Autopilot, type AutopilotEvent } from './autopilot.ts';
+import { LawActions, type LawHost } from './law-actions.ts';
 import type { SoundEvent } from './sounds.ts';
-import {
-  commandsFor, globalCommands, type Command, type ControlMode,
-} from './controls.ts';
+import { commandsFor, globalCommands, type Command, type ControlMode } from './controls.ts';
 import { WHILE_PAUSED } from './bindings.ts';
-import {
-  Ordnance, ordnanceMessage, fireEcm,
-  type OrdnanceOutcome,
-} from './ordnance.ts';
+import { Ordnance, ordnanceMessage, fireEcm, type OrdnanceOutcome } from './ordnance.ts';
 import { AIM_ASSIST, LASER_RANGE } from '../constants/player-gun.ts';
 import { hitCone } from './gunnery.ts';
 import { freshTimers } from './encounters.ts';
 import { THARGON_REDEPLOY } from '../constants/encounters.ts';
-import {
-  THARGOID_AMBUSH_EXTRA_CHANCE, THARGOID_AMBUSH_MIN, THARGOID_AMBUSH_RANGE,
-  THARGOID_AMBUSH_RANGE_SPAN, WITCHSPACE_ENTRY_SPEED,
-} from '../constants/witchspace.ts';
+import { THARGOID_AMBUSH_EXTRA_CHANCE, THARGOID_AMBUSH_MIN, THARGOID_AMBUSH_RANGE, THARGOID_AMBUSH_RANGE_SPAN, WITCHSPACE_ENTRY_SPEED } from '../constants/witchspace.ts';
 import { breachLoss } from './systems.ts';
-import {
-  SavesScreen, checkpointSummary,
-  type SavesContext,
-} from './screens/saves.ts';
+import { SavesScreen, checkpointSummary, type SavesContext } from './screens/saves.ts';
 import { SavePromptScreen, NamingScreen } from './screens/save-naming.ts';
 import { NewCommanderScreen, startNewCommander } from './screens/new-commander.ts';
 import { exportSaveFile, importSaveFile } from './screens/save-transfer.ts';
-import {
-  MarketScreen, EquipScreen, buyEquipment, type TradeContext,
-} from './screens/trade.ts';
+import { MarketScreen, EquipScreen, buyEquipment, type TradeContext } from './screens/trade.ts';
 import { StatusScreen, type StatusContext } from './screens/status.ts';
 import { MissionsScreen, type MissionsContext } from './screens/missions.ts';
 import { DataScreen, type DataContext } from './screens/data.ts';
@@ -142,38 +110,19 @@ import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts'
 import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
 import { QuitScreen, type QuitContext } from './screens/quit.ts';
 import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
-import {
-  resolveSurvivors, survivorMessage, survivorOffers, type SurvivorChoice,
-} from './survivors.ts';
+import { resolveSurvivors, survivorMessage, survivorOffers, type SurvivorChoice } from './survivors.ts';
 import { SLAVES } from '../constants/commodities.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 import { BEAM_Z } from '../engine/render-stack.ts';
 
-import {
-  formatCredits,
-  recordFurthestWave,
-  type Contract,
-} from './commander.ts';
-import {
-  CLEAN, DEFENCE_RANGE, SCAN_LINE_SECONDS,
-} from '../constants/law.ts';
+import { recordFurthestWave, type Contract } from './commander.ts';
 import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
-import {
-  bribeOffered, carryingContraband, inspectionPrice, patrolPrice, patrolReach,
-  recordCleared, recordVerdict,
-} from './law.ts';
 import { afterDecay, characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
-import {
-  hideScreen, renderDockedMenu,
-} from '../ui/screens.ts';
-import {
-  renderNewGameConfirm, renderGameOver,
-} from '../ui/screens-career.ts';
+import { hideScreen, renderDockedMenu } from '../ui/screens.ts';
+import { renderNewGameConfirm, renderGameOver } from '../ui/screens-career.ts';
 import { boundKey, keyIfBound, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
-
-
 
 type Mode = 'docked' | 'flight' | 'market' | 'chart' | 'local' | 'equip' | 'status' | 'data' | 'contracts' | 'saves' | 'save-name' | 'naming' | 'briefing' | 'dead';
 
@@ -190,8 +139,6 @@ export class Game {
   private readonly shell: Shell;
   /** what the game is SEEN through: a camera, the beams, and one draw call */
   private readonly render: Presentation;
-
-
 
   /**
    * The canonical mutable game model. Public so tests, console agents and ports
@@ -495,6 +442,33 @@ export class Game {
 
   private readonly dust = new SpaceDust();
   private readonly tmp = new THREE.Vector3();
+
+  /**
+   * The law's consequences (docs/TODO/150 M1).
+   *
+   * `law.ts` owns the rules and `law-actions.ts` owns what the Game does with
+   * them. The host below is what it reaches back for: the console, the two
+   * sounds, and the two different questions about what mode the ship is in.
+   */
+  private readonly law_ = new LawActions(this.state, {
+    showMessage: (text, seconds) => this.showMessage(text, seconds),
+    queueMessage: (text, seconds) => this.queueMessage(text, seconds),
+    markName: (before, after) => this.markName(before, after),
+    mode: () => this.mode,
+    baseMode: () => this.baseMode,
+    refused: () => sfx.refused(),
+    defenceLaunched: () => sfx.stationDefenceLaunched(),
+    cargoJettisoned: () => sfx.cargoJettisoned(),
+  } satisfies LawHost);
+
+  /**
+   * The record moves. @internal — driven by test/playtest.js, which calls it by
+   * name, so it stays on the Game rather than becoming a reach through `law_`.
+   */
+  raiseLegal(level: number): void { this.law_.raiseLegal(level); }
+
+  /** Offer the law money. @internal — driven by test/playtest.js. */
+  bribePolice(): void { this.law_.bribePolice(); }
   private readonly tmp2 = new THREE.Vector3();
   /** the shot's ray and scratch vectors, reused every trigger pull */
   private readonly combatScratch = {
@@ -621,7 +595,6 @@ export class Game {
     this.state.world.scene.add(createStarfield());
     this.state.world.scene.add(this.dust.points, this.dust.streaks);
     this.state.world.scene.add(this.render.camera);
-
 
     // Screens register themselves with the host and are addressed by id from
     // then on. Adding one is a new file plus a line here and a line in
@@ -886,10 +859,6 @@ export class Game {
     return this.state.world.spawn(role, position, seed, spec);
   }
 
-
-
-
-
   /**
    * Station space is policed: launching only meets legitimate traffic.
    * Arriving from hyperspace drops pirates along the corridor to the station.
@@ -1098,7 +1067,6 @@ export class Game {
 
   private resumeSavedWorld(): boolean { return this.persistence.resume(); }
 
-
   /** @internal — driven by test/playtest.js */
   launch(): void {
     this.applyStation(this.station.launch());
@@ -1301,7 +1269,6 @@ export class Game {
     return this.applyContracts(settleContracts(this.state.commander));
   }
 
-
   /** @internal — driven by test/playtest.js */
   startHyperspace(): void {
     // The simulator is a room at the station, not a place you can leave: the
@@ -1388,88 +1355,6 @@ export class Game {
    * @internal — driven by test/playtest.js and train/jameson-autopilot.js
    */
   massLocked(): boolean { return massLocked(this.state); }
-
-  /**
-   * The record moves — and the console says where it left you, once the deed
-   * that moved it has been read (docs/TODO/130).
-   *
-   * THE ONE HOME of what a moved record says. It used to say `LEGAL STATUS: X`
-   * on the spot, and `callStationDefence` three lines below erased it before a
-   * frame was drawn, so becoming a Fugitive was never on the console at all;
-   * the scan and the survivor sale had each already written out their own
-   * `recordVerdict` because this line was no use to them. One rule now, said in
-   * the console's running order: **what you did, what the sky did about it,
-   * where you now stand.** Nothing here takes the console from its own cause.
-   *
-   * `recordVerdict` (law.ts) rather than the status alone, because the half a
-   * player needs is who is coming — and it is assembled from the rule that
-   * decides that, so it cannot promise a fight the sky will not deliver.
-   *
-   * **Only a MOVE speaks.** Every laser hit that lands on a trader reaches here
-   * (combat.ts); a line per hit would shout the same record down the length of
-   * a fight. A record that did not move is nothing happening, and nothing
-   * happening is worth no line.
-   *
-   * @internal — driven by test/playtest.js
-   */
-  raiseLegal(level: number): void {
-    if (level <= CLEAN) return;   // shooting a pirate is nobody's business
-    const moved = this.state.commander.legalStatus < level;
-    if (moved) this.state.commander.legalStatus = level;
-    // The sky first: Vipers leaving the slot are happening NOW, and a pilot
-    // being shot at wants that ahead of a sentence about paperwork.
-    this.callStationDefence();
-    if (moved) {
-      this.queueMessage(recordVerdict(this.state.commander.legalStatus), SCAN_LINE_SECONDS);
-    }
-  }
-
-  /**
-   * Buy your name back at the station — the optional half of the law.
-   *
-   * Docking no longer clears your record (station.ts); this is the choice that
-   * does. `recordCleared` (law.ts) owns the rule — the fine, capped at what you
-   * can pay — and this applies it and announces it.
-   */
-  private payFine(): void {
-    const c = this.state.commander;
-    const cleared = recordCleared(c.legalStatus, c.credits);
-    if (!cleared) {
-      this.showMessage('RECORD CLEAN — NO FINE DUE', 3);
-      return;
-    }
-    c.credits = cleared.creditsLeft;
-    c.legalStatus = CLEAN;
-    this.showMessage(`FINE PAID: ${formatCredits(cleared.paid)} — RECORD CLEAR`, 4);
-  }
-
-  /**
-   * Stations keep "a small fleet of ships for their own defence, which they
-   * may risk to assist a trader if they see him attacked" — misbehave in
-   * sight of the station and Vipers launch from the slot.
-   */
-  private callStationDefence(): void {
-    // ...MISBEHAVE, which means in the sky. `raiseLegal` is reachable from the
-    // station now — selling a survivor is an offence filed over a counter
-    // (docs/TODO/127 M3) — and a docked ship is parked INSIDE the range test
-    // below, so without this the sale would scramble Vipers into a world the
-    // player is not in and cannot see. The record still moves; the fleet is
-    // what waits until there is a ship to launch at.
-    if (this.baseMode !== 'flight') return;
-    if (this.state.session.witchspace || this.state.session.defenceLaunched) return;
-    if (this.state.player.position.distanceTo(this.state.world.station.position) > DEFENCE_RANGE) return;
-    this.state.session.defenceLaunched = true;
-    launchStationDefence(this.state.world, this.tmp);
-    // Queued, because this used to erase the line that explained it —
-    // ESCAPE CAPSULE DESTROYED and STATION HULL HIT both reach here through
-    // `raiseLegal` (docs/TODO/130). It is not a delay where it matters: with a
-    // quiet console `tickMessage` promotes it on the next step, so it waits
-    // only when something is already speaking, which is when it should.
-    this.queueMessage('STATION DEFENCE LAUNCHED', 4);
-    // ...but the SOUND is immediate, so the speaker and the sky agree on the
-    // frame the Vipers actually leave the slot.
-    sfx.stationDefenceLaunched();
-  }
 
   /**
    * Pull the trigger. The arguments are built from the state by combat.ts, so
@@ -1892,7 +1777,6 @@ export class Game {
       : hands;
   }
 
-
   /**
    * Hermits deal in ore and ask no questions — the one place to sell
    * contraband without a police scan, at the cost of finding them.
@@ -1916,8 +1800,6 @@ export class Game {
     this.state.player.speed = 0;
     sfx.dock();
   }
-
-
 
   // --- input ---------------------------------------------------------------
 
@@ -2002,7 +1884,7 @@ export class Game {
     openSystemData: () => this.openSystemData(this.system, 'docked'),
     openCombatSim: () => this.screens.open('combat-sim'),
     openTestMode: () => this.screens.open('test-mode'),
-    payFine: () => this.payFine(),
+    payFine: () => this.law_.payFine(),
     exportSave: () => this.exportSave(),
     importSave: () => this.importSave(),
     toggleLayout: () => this.switchLayout(),
@@ -2064,7 +1946,6 @@ export class Game {
   private runCommand(c: Command): void {
     this.commands[c]();
   }
-
 
   /**
    * Where an overlay was opened from, so Escape puts the ship back.
@@ -2143,14 +2024,11 @@ export class Game {
     this.screens.click(el, this.input, e);
   }
 
-
-
   private setView(v: number): void {
     if (this.state.session.view === v) return;
     this.state.session.view = v;
     sfx.viewChanged();
   }
-
 
   /** @internal — driven by test/playtest.js
    * `from` is no longer read: the stack remembers where you came from, since
@@ -2200,8 +2078,6 @@ export class Game {
     this.applyStation(this.station.showBaseScreen());
   }
 
-
-
   /**
    * Dump a tonne over the side. Pirates came for cargo, not for you — give
    * them enough of it and the opportunists break off and go collect, which
@@ -2210,7 +2086,7 @@ export class Game {
    */
   /** @internal — driven by test/playtest.js */
   jettisonCargo(tonnes = 1): void {
-    this.throwOverboard(
+    this.law_.throwOverboard(
       (cargo) => dumpCargo(cargo, tonnes), 'HOLD EMPTY');
   }
 
@@ -2226,160 +2102,8 @@ export class Game {
    */
   /** @internal — driven by test/playtest.js */
   jettisonContraband(tonnes = 1): void {
-    this.throwOverboard(
+    this.law_.throwOverboard(
       (cargo) => dumpContraband(cargo, tonnes), 'NO CONTRABAND ABOARD');
-  }
-
-  /**
-   * Offer the law money.
-   *
-   * Two situations and no mode: the Viper shooting at you, and the patrol
-   * closing on a dirty hold. The key reads which one is in front of you, and
-   * when there is neither it says so and spends nothing, the way an empty hold
-   * answers HOLD EMPTY.
-   *
-   * `law.ts` decides what each costs and what it leaves; this spends the
-   * credits, writes the latch and writes `satisfied` (invariant 10).
-   *
-   * **Neither half touches the record.** The inspection latches `policeScanned`
-   * with no `raiseLegal`, so the scan does not happen and the Government's
-   * paperwork stays spotless; the fight buys one ship out of one fight and
-   * leaves you exactly as Fugitive as you were. The name pays for both
-   * (`bribeOffered`), refusals included. That asymmetry is the whole feature: a
-   * bribe never clears a record and never buys one back.
-   *
-   * @internal — driven by test/playtest.js
-   */
-  bribePolice(): void {
-    if (this.mode !== 'flight') { sfx.refused(); return; }
-    const c = this.state.commander;
-    const session = this.state.session;
-
-    // The fight comes first: a Viper already shooting is the more urgent
-    // purchase, and buying an inspection off a man who is trying to kill you
-    // would be money for nothing. One press buys ONE ship — a pair costs twice,
-    // exactly as a gang of pirates does.
-    const hunter = nearestEngaging(this.state.world.npcs, this.state.player.position,
-      c.legalStatus, 'police');
-    if (hunter) {
-      const paid = this.offerTo(hunter.npc, patrolPrice(c.legalStatus));
-      if (paid === null) return;
-      // The same field the jettisoned cargo sets, honoured by the same line of
-      // `isHostileToPlayer` — this ship is done with you. The RECORD is not
-      // touched: you are still a Fugitive, the next patrol is a fresh problem,
-      // and the station still wants its money.
-      hunter.npc.state.satisfied = true;
-      this.showMessage(`PATROL BREAKS OFF — ${formatCredits(paid)} AND YOUR NAME`, 4);
-      return;
-    }
-
-    // The inspection: contraband aboard, nobody has read it yet, and a patrol
-    // close enough to. `patrolReach` is the same window the console warned you
-    // about, rather than a second opinion about the same two ranges.
-    const cop = nearestNpc(this.state.world.npcs, this.state.player.position,
-      (npc) => npc.role === 'police');
-    if (!session.policeScanned && !session.witchspace && carryingContraband(c.cargo)
-      && cop && patrolReach(cop.distance) !== 'none') {
-      const paid = this.offerTo(cop.npc, inspectionPrice(c.cargo));
-      if (paid === null) return;
-      session.policeScanned = true;
-      this.showMessage(
-        `PATROL LOOKS THE OTHER WAY — ${formatCredits(paid)} AND YOUR NAME`, 4);
-      return;
-    }
-
-    this.showMessage('NOBODY TO PAY OFF', 2);
-    sfx.refused();
-  }
-
-  /**
-   * Put the money in front of one ship: what it cost, or null if it bought
-   * nothing.
-   *
-   * Both halves of the key go through here, so neither can acquire an answer
-   * the other does not have — the shortfall, the refusal and the name are one
-   * rule about offering money to a policeman, and only the CONSEQUENCE of a
-   * taken offer differs between them.
-   *
-   * The roll comes off the world's seeded stream (invariant 11), and only when
-   * an offer is actually made: a commander who cannot cover the price has not
-   * said anything out loud, so nothing is spent and no draw is consumed.
-   *
-   * A refusal is an offence in front of a witness. `provokedByPlayer` — not
-   * `provoked`, which is damage from any source — so he engages under the rule
-   * that already exists, and the name is charged for the asking.
-   */
-  private offerTo(target: NpcShip, price: number): number | null {
-    const c = this.state.commander;
-    const offer = bribeOffered(price, c.credits, c.disrepute ?? 0, random());
-    if (offer.outcome === 'short') {
-      // the pirate bribe's own words for the same failure, rather than a second
-      // way of saying "not enough, and here is the figure"
-      this.showMessage(`THEY WANT MORE (${formatCredits(Math.ceil(offer.short))})`, 3);
-      sfx.refused();
-      return null;
-    }
-    // The name is charged here, so the line that says so is queued here too —
-    // behind whichever of the four answers below the caller puts on the
-    // console. A REFUSAL costs it as well, which is the one case that reads
-    // like a bug until you have read docs/TODO/123: the deed is the asking.
-    this.markName(c.disrepute ?? 0, offer.disrepute);
-    c.disrepute = offer.disrepute;
-    if (offer.outcome === 'refused') {
-      target.state.provokedByPlayer = true;
-      this.showMessage('THE OFFER IS REFUSED — AND REPORTED', 4);
-      sfx.refused();
-      return null;
-    }
-    c.credits = offer.creditsLeft;
-    return offer.price;
-  }
-
-  /**
-   * The road out of the ship, shared by both dumps: clear of your own scoop,
-   * counted toward the toll, and offered to the pirates.
-   *
-   * `choose` is the only difference between them — WHICH tonnes go — and it is
-   * passed rather than branched on so neither ordering can quietly acquire the
-   * other's rule.
-   */
-  private throwOverboard(
-    choose: (cargo: number[]) => Dumped,
-    nothingToDump: string,
-  ): void {
-    if (this.mode !== 'flight') { sfx.refused(); return; }
-
-    const dumped = choose(this.state.commander.cargo);
-    if (dumped.tonnes.length === 0) {
-      this.showMessage(nothingToDump, 1.5);
-      sfx.refused();
-      return;
-    }
-    // Out of the back, clear of your own scoop reach — `cargo.jettison`, not
-    // `cargo.spawn`, which scatters a wreck's hold where it fell. Dropped at
-    // the nose it landed inside SCOOP_RANGE and a commander with fuel scoops
-    // fitted collected it again on the next frame.
-    const nose = this.state.player.getForward(this.tmp);
-    for (const commodity of dumped.tonnes) {
-      this.state.world.cargo.jettison(this.state.player.position, nose, commodity);
-    }
-    this.state.session.jettisonedValue += dumped.value;
-    sfx.cargoJettisoned();
-
-    const n = dumped.tonnes.length;
-    const bribe = offerBribe(
-      this.state.world.npcs.filter((npc) => npc.role === 'pirate'),
-      this.state.session.jettisonedValue, this.state.session.arrivalCargoValue);
-    if (bribe.bought > 0) {
-      this.showMessage(
-        `${bribe.bought} ATTACKER${bribe.bought > 1 ? 'S' : ''} BREAKING OFF`, 3);
-    } else if (bribe.stillWant !== null) {
-      this.showMessage(
-        `JETTISONED ${n}t ${dumped.lastName} — THEY WANT MORE `
-        + `(${formatCredits(Math.ceil(bribe.stillWant))})`, 3);
-    } else {
-      this.showMessage(`JETTISONED ${n}t ${dumped.lastName}`, 2);
-    }
   }
 
   // --- HUD -----------------------------------------------------------------
