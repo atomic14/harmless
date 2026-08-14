@@ -1,9 +1,13 @@
 // The orchestrator: which mode the game is in, and who gets the frame.
 //
 // ONE RESPONSIBILITY, and it is a short list because docs/TODO/150 and
-// docs/TODO/155 took the rest out. This file owns `baseMode`, hands each frame
-// to the half that owns it, routes every key to the child that answers it, and
-// says out loud what those children report. Nothing else.
+// docs/TODO/155 took the rest out. This file owns `baseMode`, gives the frame
+// to `flight.ts` while the ship is flying, routes every key to the child that
+// answers it, and says out loud what those children report. Nothing else.
+//
+// A DOCKED FRAME STILL RUNS and does less: it reads the keyboard, ticks the
+// message line and draws. Only flight has a world to advance, which is why one
+// half takes the frame and the other is reached by keys alone.
 //
 // THE TWO HALVES ARE THE SHAPE (docs/TODO/155). `docked.ts` holds what a
 // commander does when the ship has stopped; `flight.ts` holds what she does in
@@ -19,11 +23,17 @@
 // (`ui/screen-host.ts`).
 //
 // The shape repeats deliberately. Each child gets ONE host object literal —
-// `stepHost()`, `persistenceHost()`, and the literal beside each field —
-// listing the verbs it may ask of the Game, and returns events the matching
-// `apply*` says and plays. Anything that DRAWS from the seeded rng is a host
-// CALL and never a deferred event, because the order of draws is the world's
-// determinism.
+// `persistenceHost()` below, and the literal beside each child's own field —
+// listing the verbs it may ask of the Game. A child returns events, and the
+// half that owns it says and plays them. Anything that DRAWS from the seeded
+// rng is a host CALL and never a deferred event, because the order of draws is
+// the world's determinism.
+//
+// THE APPLIERS ARE NOT HERE ANY MORE. `applyStep` and `applyCombat` went to
+// `flight.ts`, `applyStation` to `docked.ts`. What is left of that shape here
+// is the console and the sound the halves report THROUGH: `showMessage`,
+// `queueMessage`, `sayEvent` and `playSound` have one home each, and it is
+// this file.
 //
 // Input follows the same split: the player, a replay and an AI reach the game
 // through the same two verbs. `controls.ts` turns an input into `Command`s and

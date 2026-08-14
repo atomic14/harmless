@@ -86,7 +86,10 @@ it.
 
 - Prefer small files with one purpose each. Exceed the size ceiling only with a
   stated reason. Never delete useful content only to fit that ceiling.
-- Maintain a module header that states each file's purpose.
+- Maintain a module header that states each file's purpose. A header names its
+  neighbours, so a move invalidates one. **The milestone that takes a
+  responsibility out of a file repairs that file's header in the same commit**
+  (docs/TODO/152).
 - Commit by milestone. Explain what changed, and explain why.
 
 ## Communication

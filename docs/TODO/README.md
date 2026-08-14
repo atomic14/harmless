@@ -13,14 +13,10 @@ active context:
 
 ## Execution queue
 
-1. [155 — The docked half and the flight
-   half](155-the-docked-half-and-the-flight-half.md) · refactor · large.
-2. [152 — The map at the top of game.ts is out of
-   date](152-the-map-at-the-top-of-game-ts-is-out-of-date.md) · defect · small.
-3. [153 — A rule explained where the rule does not
+1. [153 — A rule explained where the rule does not
    live](153-a-rule-explained-where-the-rule-does-not-live.md) · refactor ·
    medium.
-4. [154 — The comments in src/ are not in Simplified Technical
+2. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
@@ -30,12 +26,11 @@ whole history of the project. Comments should help explain the code."* The
 review measured `game.ts`, and then the tree. **The comments are not
 restatement** — one bare restatement exists in 2,020 lines — so none of the four
 items cuts prose to make a file shorter. Each answers a different fault. **151
-landed on 2026-08-14** and is below.
+and 152 landed on 2026-08-14** and are below.
 
-**152 and 153 wait for 155 to finish**, for the reason they waited for 150: the
-head of the queue keeps moving the boundary that 152 describes and the code that
-153's paragraphs travel with. **153 blocks 154** for the same reason: move a
-paragraph once, then rewrite it once.
+**153 blocks 154**: move a paragraph once, then rewrite it once. Both waited for
+the decomposition programme, which closed on 2026-08-14 — and both now have more
+surface to cover, because 150 and 155 produced nine child files between them.
 
 **154 is the largest, and the incremental rule is what makes it necessary.**
 `CLAUDE.md` asks each edit to convert the comment it touches. Measured, that does
@@ -44,32 +39,12 @@ sentences over the cap, while the rest of `src/` has 13% — and the three files
 150 wrote this month reach 14%. A sweep converts a surface; an intention does
 not.
 
-**155 is the head of the decomposition programme, and it is Chris's answer to
-150 M6** (2026-08-14): *"It makes sense to split docked from flight - they are
-very different things. Why would you want to couple them together?"* The code
-already agreed with the question. The command table sections itself by mode in
-its own comments, `controls.ts` has a binding table per mode, and only eleven
-lines in 1,810 test the mode at all.
-
-**Measured, the split is 177 lines of docked against 441 of flight**, with four
-members in both: the transition, a record that moves in either place, and the
-hermit — a station's act in the cockpit, which is the one member that proves the
-halves are not a clean partition.
-
-**155 is judged on the boundary rather than on a line count** (Chris,
-2026-08-14): *"We should not obsess over the 300 lines. What we are looking for
-is a clean architecture."* So the `~300` that `game.ts` carried since before 150
-is retired rather than re-aimed, and `tools/sizes.mjs` now asks the file the
-question its own header asks — can it state one responsibility? Three things
-answer the item: each of the three files states one responsibility a reader can
-check, no rule ends up with two homes, and the seam runs where the game's own
-concepts already run. The sizes are recorded as history. **The parent will still
-hold the machinery both halves stand on** — the frame, the input routing, the
-command table, the console, the sound, the screen stack and the persistence
-host. Whether that reads as an orchestrator or as leftovers is the test of the
-whole item, and it is the parent's one sentence that answers it.
-
-**150 landed with its five children on 2026-08-14, and is below.**
+**The decomposition programme is finished, and `src/game/game.ts` states one
+responsibility:** *the orchestrator — which mode the game is in, and who gets
+the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children.
+`tools/sizes.mjs` no longer records it as a debt, and no longer states a line
+target — that was Chris's call on 2026-08-14: *"we should not obsess over the
+300 lines. What we are looking for is a clean architecture."*
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
@@ -92,6 +67,40 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-14
+
+**155 — the orchestrator split in two, on Chris's answer to 150 M6:** *"It makes
+sense to split docked from flight - they are very different things. Why would you
+want to couple them together?"* **The code already agreed with the question.**
+The command table sectioned itself by mode in its own comments, `controls.ts`
+had a binding table per mode, and only eleven lines in 1,810 tested the mode at
+all. **game.ts 1,810 → 1,222**, into `docked.ts` (324) and `flight.ts` (395),
+which is itself a parent over `flight-weapons.ts` (295) and
+`flight-instruments.ts` (169).
+
+**Neither half reaches into the other, and that is the architecture rather than
+a side effect.** Five of flight's seventeen host methods are ways OUT of flight
+— a dock, a completed jump, a tow, a death — and the parent decides what the
+game becomes. **The split found three things at once:** the docked menu drawn
+from three places with one expression; a construction cycle between the gun and
+the exercise, which fires the career's own `Combat` and credits its own kills;
+and the hermit, which went to the docked half on ONE HOME rather than on the
+mode machine, because `tradeContext` already held `leaveHermit`.
+
+**The size gate caught a design fault.** M2's first draft was one file of 648
+lines with five section headers, and `sizes.mjs` failed it — that gate calls its
+ceiling a detector rather than a rule, and it was right. An exemption was
+available and would have been dishonest: the `ALLOWED` list's own bar is that a
+reason must say why a file cannot be a parent plus children.
+
+**152** — the header's three wrong claims, and 155 M3 removed all three as a
+side effect of stating the parent's one responsibility. The mode list is GONE
+rather than replaced, so **M2 correctly produced no gate**, which the plan named
+as the better outcome. **The audit then found two more, and one was mine:** the
+header I wrote an hour earlier said `stepHost()` lives in `game.ts`, and 155 M2
+had just moved it to `flight.ts` — the defect this item is about, reintroduced
+by the commit that fixed it. **The rule that came out of it is in `CLAUDE.md`**
+beside the module-header line: *the milestone that takes a responsibility out of
+a file repairs that file's header in the same commit.*
 
 **150 — the orchestrator and its children. Six milestones, and game.ts is 1,810
 lines.** M1 took the law to `game/law-actions.ts`, M2 the sky to
@@ -647,7 +656,7 @@ is invisible is indistinguishable from nothing happening.
 Not executable yet. In priority order; promoting the head is what makes the
 next execution item, once it has a plan doc.
 
-**Three items, and they are one programme: decompose the files that hold more
+**Two items now, and they are one programme: decompose the files that hold more
 than one responsibility.** Chris set the rule on 2026-08-14, in two parts.
 
 > *"The rules should be single responsibility - files that have multiple
@@ -672,20 +681,17 @@ three is wrong and this gate will never see it.
 says the price of a big file is where parallel work collides, so churn belongs in
 the ranking and pure size does not.
 
-1. **`src/game/game.ts` — 2,528 lines, 201 commits, about ten responsibilities.**
-   Trade, saves, world building, the station, contracts, hyperspace, ordnance,
-   messages, the trainer and death. Its own entry admits it: *"the orchestrator
-   plus leftovers. Target ~300"*, so it is eight times over what it says it
-   should be, and it carries three times the collision cost of anything else in
-   the tree. **It is also the most tractable of the three**, which is not
-   obvious: several of its areas are already `host` implementations that other
-   modules consume (`stationHost`, `persistenceHost`, `simHost`, `stepHost`), and
-   the precedent is proven — `station.ts`, `ordnance.ts` and `world-step.ts` all
-   came out of this file, which is how it fell from 3,244. Each area lands on its
-   own, so the work goes milestone by milestone with green gates rather than one
-   long broken state. **Target: a small orchestrator beside a `game/` directory.**
+**`src/game/game.ts` came off this list on 2026-08-14.** It was the head, at
+2,528 lines and about ten responsibilities. docs/TODO/150 took five subjects out
+and docs/TODO/155 split the orchestrator itself; it is 1,233 lines and states one
+responsibility — *which mode the game is in, and who gets the frame* — over nine
+children. **The programme's method is written down in 150's plan doc** and is
+what the two items below should use: measure lines of body against external
+dependencies, set the appliers and the host literals aside first, count what an
+area is reached BY as well as what it reaches, and read the result before
+trusting the ratio.
 
-2. **`src/game/npc.ts` — 1,568 lines, 95 commits, two responsibilities.** Its own
+1. **`src/game/npc.ts` — 1,568 lines, 95 commits, two responsibilities.** Its own
    entry names them: *"behaviour and brain flight in one file; the flight half
    wants its own"*. Harder than 1, and the reason is worth knowing before anybody
    starts: **1,135 of those lines are a single `NpcShip` class**, so the split is
@@ -694,7 +700,7 @@ the ranking and pure size does not.
    `CLAUDE.md` requires. Write that first: the act of stating the one
    responsibility is what exposes the second one.
 
-3. **The self-declared pairs.** Each names more than one responsibility in its
+2. **The self-declared pairs.** Each names more than one responsibility in its
    own words, so none needs an investigation to justify:
    - `src/ai-training/scenario.ts` — 1,524 lines: *"one Episode **plus** its four
      fitness functions"*. Running a fight and scoring one.
@@ -704,7 +710,7 @@ the ranking and pure size does not.
      characters. About four: simulate a career, choose trades, resolve
      encounters, report.
 
-**`src/hud/hud.ts` is a fourth, smaller prerequisite.** 623 lines, 30 commits,
+**`src/hud/hud.ts` is a third, smaller prerequisite.** 623 lines, 30 commits,
 and no module header either. It cannot be judged until it says what it does.
 
 ## What is NOT in this programme, and why

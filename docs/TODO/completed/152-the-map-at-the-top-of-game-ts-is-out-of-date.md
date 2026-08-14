@@ -126,3 +126,64 @@ where M2 correctly produces no gate.
 
 **The number that says it worked:** every claim in the header resolves against
 the code that runs, checked one by one, and the check is recorded in this doc.
+
+## What landed, 2026-08-14
+
+**M1 landed and M2 correctly produced no gate.** `npm run check` passes at 4,530
+assertions.
+
+### The three claims are gone, and two of them by a route the plan did not have
+
+docs/TODO/155 M3 rewrote this header while stating the parent's one
+responsibility, which is that item's own test. That removed all three defects as
+a side effect:
+
+1. **The mode list** is not replaced — it is GONE. The header names no mode
+   state at all now, which is the plan's preferred outcome ("a list in prose is
+   a second home for a union the compiler already owns"), and it is why **M2 has
+   nothing to check**. The plan called that a legitimate close and it is the one
+   that happened.
+2. **The renderer sentence** is gone with it.
+3. **The Viper claim** is gone with it.
+
+### The audit found two more, and one of them was mine
+
+This item's Verification asks for every claim to be checked one by one. Done,
+and the header that was checked is the NEW one:
+
+- **`stepHost()` was named as living here. It does not.** 155 M2 moved it to
+  `flight.ts`, and I named it in a header I wrote an hour later. **The defect
+  this item is about, reintroduced by the commit that fixed it** — which is the
+  sharpest possible argument for the rule below.
+- **"hands each frame to the half that owns it" was imprecise.** Only flight
+  takes a frame; a docked frame still runs and does less, reading the keyboard,
+  ticking the message line and drawing. The header says so now.
+
+Eleven other claims were checked mechanically and all hold: `baseMode` is
+assigned here and in neither half, the frame reaches `flight.ts`, the two halves
+import each other zero times, the four ways out of flight are declared, the
+three appliers are in the halves and not here, the console's four writers have
+one home each and it is this file, and `__game` is still published.
+
+### The rule is in `CLAUDE.md` now
+
+Open question 2 asked where the durable rule should live. It is beside the
+module-header line in the Style section: **the milestone that takes a
+responsibility out of a file repairs that file's header in the same commit.**
+Six milestones across 150 and 155 each broke that rule, and this item is the
+whole cost of it.
+
+### One more stale claim, in the other review surface
+
+`tools/sizes.mjs`'s entry for `game.ts` still said 155 "is splitting" the file
+and that the entry "stays a DEBT while 155 is open". Both went false when 155
+closed, an hour before. It is rewritten around the question that list actually
+asks — can this file state one responsibility? — and **the entry is no longer a
+DEBT**, because it can. It names what could still leave, so it does not become a
+place to hide: the six screen openers, about 85 lines.
+
+### The watch-out held
+
+Four tests read `src/game/game.ts` as source. None reads the header:
+`game.test.ts` strips comments before its scan, `state.test.ts` slices from
+`export class Game`, and the other two match on code expressions.
