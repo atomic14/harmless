@@ -135,4 +135,48 @@ not apply.
 
 ## What landed
 
-Not started.
+All three milestones, on 2026-08-14. `npm run check` passes.
+`npm run portability` is unchanged.
+
+| | before | after |
+| --- | --- | --- |
+| `game/controls.ts` | 408 | **201** |
+| `game/bindings.ts` | — | **249** |
+| files over the ceiling | 32 | **31** |
+| `ALLOWED` entries | 37 | **36** |
+
+**The `ALLOWED` entry was deleted, not moved.** That was the item.
+
+**No prose was cut.** Both module headers were rewritten, deliberately, because
+each file now has to say what it is. Every other comment moved verbatim, and a
+check over the **151 comment lines below the old header confirms all 151
+survive** in the two files together. That check is the item's own gate: a
+comment arriving shortened would be this refactor failing at the thing it exists
+to fix.
+
+## What the milestones found that the plan did not have
+
+**1. The split is bigger than the plan's estimate, and in the right direction.**
+The plan said ~148 grammar and ~210 data. It came out 201 and 249, because the
+two headers had to be written rather than divided — each file states its own
+purpose, and `bindings.ts` names the two table properties the scan reads. Nine
+files import the tables, not the four the symbol count suggested.
+
+**2. `WHILE_PAUSED` was the only judgement call**, and the plan called it right
+for a reason it did not state. It reads as command policy rather than as a key
+table, so it could have stayed with the grammar. It went with the tables because
+`bindings.ts` answers *which commands a mode offers*, and a paused cockpit is a
+mode in all but name — but the decisive fact is simpler: `NOT_IN_THE_SIMULATOR`,
+its sibling in shape, had to move because the simulator table is built from it,
+and splitting the two would have been the arbitrary choice.
+
+**3. Nothing needed a behaviour test written for it.** The plan asked for the
+split to be provably behaviour-free, and the existing suite is that proof: seven
+key-related test files pass untouched, at the same assertion count. A refactor
+that needs a NEW test has changed something.
+
+## What this leaves
+
+`game.ts` is 2,524 lines, `ui/screens.ts` 1,953, `npc.ts` 1,567. All three carry
+`ALLOWED` entries, and none of them was examined here. They are not this item's
+work, and each would need a plan of its own.

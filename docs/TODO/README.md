@@ -13,19 +13,13 @@ active context:
 
 ## Execution queue
 
-1. [148 — The tables leave the grammar](148-the-tables-leave-the-grammar.md)
-   · Chris, 2026-08-14 · refactor · small.
-
-**148 is Chris reading the last three items' commits**: *"We seem to focus on
-trimming instead of splitting."* `src/game/controls.ts` was trimmed six times
-across 144, 145 and 146 to stay under 400 lines, and split zero times — and
-`CLAUDE.md` says in as many words *never delete useful content only to fit that
-ceiling*. The `ALLOWED` entry 146 added is the thing to undo: it argued that
-splitting would make the code worse, and that argument was made by somebody who
-did not want to do the work. The file is two things — the grammar (~148 lines)
-and the tables (~210) — and it is the tables that grow. `command-help.ts` is the
-precedent: it was split out of this same file and welded back by
-`Record<Command, CommandHelp>`.
+**Empty.** Five items landed across 2026-08-13 and 14, and four of them came
+from Chris reading the one before: #27 became 144, 144's screen overlap became
+145, 144 M6's key became 146, the station header stopped being one line in 147,
+and **148 answered a question about the process itself** — the last three items
+had trimmed `controls.ts` six times to fit the size ceiling and split it zero
+times, which `CLAUDE.md` forbids. The tables live in `game/bindings.ts` now, and
+the exemption 146 added is gone rather than moved.
 
 The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
