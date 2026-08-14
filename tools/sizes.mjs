@@ -55,7 +55,8 @@ const ALLOWED = {
   // BIGGER. Everything at 402-464 lines carries 490-1,090 characters of
   // argument; everything over 1,000 carries 48-118. The gate only bites at the
   // moment a file crosses, so a file already over when the gate arrived was
-  // never made to argue. See docs/TODO/149.
+  // never made to argue. No item is open on it; the finding is recorded here
+  // because this is the file it is about.
 
   // one data table each: splitting a table is strictly worse
   //
