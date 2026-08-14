@@ -13,8 +13,43 @@ active context:
 
 ## Execution queue
 
-1. [150 — The orchestrator and its children](150-the-orchestrator-and-its-children.md)
+1. [151 — Twenty-one comments name a caller that does not
+   exist](151-twenty-one-comments-name-a-caller-that-does-not-exist.md)
+   · defect · small.
+2. [150 — The orchestrator and its children](150-the-orchestrator-and-its-children.md)
    · refactor · large.
+3. [152 — The map at the top of game.ts is out of
+   date](152-the-map-at-the-top-of-game-ts-is-out-of-date.md) · defect · small.
+4. [153 — A rule explained where the rule does not
+   live](153-a-rule-explained-where-the-rule-does-not-live.md) · refactor ·
+   medium.
+5. [154 — The comments in src/ are not in Simplified Technical
+   English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
+   · refactor · large.
+
+**151 to 154 came out of one review, on Chris's question of 2026-08-14:** *"Are
+they in ASD-STE100 and are they useful — we don't need comments that contain the
+whole history of the project. Comments should help explain the code."* The
+review measured `game.ts`, and then the tree. **The comments are not
+restatement** — one bare restatement exists in 2,020 lines — so none of the four
+items cuts prose to make a file shorter. Each answers a different fault.
+
+**151 goes ahead of 150, and the reason is measured.** Thirty-one members claim
+*"driven by test/playtest.js"* and twenty-one of them are false; that file calls
+eleven methods. Five of the false claims already sit in `law-actions.ts` and
+`world-build.ts`, because 150 M1 and M2 each copied one into a new file. **Every
+further milestone of 150 copies more**, so the sweep and its gate go first.
+
+**152 and 153 wait for 150 to finish**, because 150 keeps moving the boundary
+that 152 describes and the code that 153's paragraphs travel with. **153 blocks
+154** for the same reason: move a paragraph once, then rewrite it once.
+
+**154 is the largest, and the incremental rule is what makes it necessary.**
+`CLAUDE.md` asks each edit to convert the comment it touches. Measured, that does
+not happen: `src/constants/`, which 141 swept in one pass, has 3% of its
+sentences over the cap, while the rest of `src/` has 13% — and the three files
+150 wrote this month reach 14%. A sweep converts a surface; an intention does
+not.
 
 **150 is the head of the decomposition programme, promoted on 2026-08-14.**
 `src/game/game.ts` was 2,528 lines and 201 commits, and its own entry admits *"the
