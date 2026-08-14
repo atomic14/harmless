@@ -207,24 +207,53 @@ sweep for stale `@internal` claims is its own small item and not this one.
 lines of wiring. The plan's first open question — does a child of this shape
 shrink the parent, or trade handlers for host wiring — is answered yes.
 
-## M2 — chosen on M1's evidence
+## M2 — the sky, on 2026-08-14
 
-The plan deliberately left the order open. On M1's result the next candidates by
-cost are **the trainer** (132 lines, and `combat-sim.ts` already exists to sit
-beside), **the world and spawning** (130) and **saves** (126).
+`game/world-build.ts`, 187 lines. **game.ts 2,251 → 2,153.** All 678 comment
+lines survive, `npm run check` passes, `npm run portability` confirms the child
+landed portable while `game.ts` stays platform.
 
-**The trainer is closest to M1's shape**, because `simHost` is already a host
-interface — so the work is to move the four handlers behind it rather than to
-invent a seam.
+It holds the five contiguous methods that build a scene, choose the roster it
+flies, drop into witch-space, and populate a system on a launch or an arrival.
+**One responsibility: what is in the sky when you get there.**
 
-**Two things M1 says to check before choosing anything:**
+### The plan chose the trainer, and measuring said no
 
-1. **Does the area have an existing rules module to sit beside?** M1 worked
-   because `law-actions.ts` had `law.ts` to be next to. An area with no such
-   partner needs a name of its own, which is a harder decision than a move.
-2. **Does `test/playtest.js` call any of its methods by name?** That file is
-   unchecked by the compiler, so grep it BEFORE moving anything, and leave a
-   delegate for every hit.
+This is the finding, and it is about the plan rather than the code. The section
+below picked the trainer on a 132-line estimate taken from an area table that
+counted doc comments. Measured:
+
+| area | lines of body | external deps |
+| --- | ---: | ---: |
+| world + spawn | 73 | **5** ← chosen |
+| saves | 63 | 8 |
+| contracts | 48 | 7 |
+| hyperspace | 92 | 13 |
+| death | 60 | 13 |
+| render + hud | 89 | 16 |
+| **trainer** | **39** | **12** ← the plan's pick, worst ratio in the file |
+
+`simHost` alone touches twelve things. Thirty-nine lines out for a twelve-method
+interface fails the test M1 set — the child would call back for everything.
+
+**Twice now on this programme, deferring to measurement has changed the answer**
+(docs/TODO/149 M2 planned one chart file and found four subjects). The lesson is
+sharper than "defer": the plan was right to defer and wrong to name a favourite
+while deferring, because the favourite gets picked up as a decision.
+
+**So M3 names no area.** Measure the table above again after this milestone —
+`world-build.ts` took callers with it, so the numbers have moved.
+
+### Three more stale `@internal` claims
+
+`buildWorld`, `enterWitchspace` and `spawnNpc` all say *"driven by
+test/playtest.js"*, and that file calls none of them — the same fault as
+`raiseLegal` and `bribePolice` in M1. **Five found across two milestones.** The
+delegates stay regardless, because each has live callers inside `game.ts`; the
+extraction surfaced three for `chooseBlueprintSet` alone. A sweep for stale
+`@internal` claims is still its own small item.
+
+## M3 onwards — re-assessed after M2
 
 **Still true from the plan:** the 163-line constructor is last, because it is
 where every child is wired.
