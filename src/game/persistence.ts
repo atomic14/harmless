@@ -33,9 +33,10 @@ import type { CombatComputer } from './combat-computer.ts';
 import type { Ordnance } from './ordnance.ts';
 import { rngState, restoreRng } from './rng.ts';
 import {
-  SNAPSHOT_VERSION, v3, q4, serialiseState, restoreState, parseSnapshot,
+  SNAPSHOT_VERSION, v3, q4, serialiseState, restoreState,
   type WorldSnapshot,
 } from './snapshot.ts';
+import { parseSnapshot } from './snapshot-parse.ts';
 import type { GameState } from './state.ts';
 
 /**
@@ -166,7 +167,10 @@ export class Persistence {
    * was about to use.
    */
   restore(snap: WorldSnapshot): void {
-    // THE DOOR (docs/TODO/94). Everything with an invariant — the version, the
+    // THE DOOR (docs/TODO/94), and it is `snapshot-parse.ts`. It also RAISES a
+    // save from an older build on the way through, so an old snapshot and an
+    // invalid one are different things (docs/TODO/161).
+    // Everything with an invariant — the version, the
     // branded ids, the fleet indexes, the bounds the rebuild would hang on — is
     // checked HERE, before a single field of the live session moves, so a
     // refusal costs nothing. `restoreSnapshot` (the console-harness and

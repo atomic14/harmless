@@ -23,7 +23,8 @@ import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { recordVerdict, recordWorkedOff } from '../src/game/law.ts';
 import { CLEAN, FUGITIVE, KILLS_PER_RUNG, OFFENDER } from '../src/constants/law.ts';
-import { SNAPSHOT_VERSION, parseSnapshot } from '../src/game/snapshot.ts';
+import { SNAPSHOT_VERSION } from '../src/game/snapshot.ts';
+import { parseSnapshot } from '../src/game/snapshot-parse.ts';
 import type { NpcRole } from '../src/game/ship-roles.ts';
 import { check, consoleWatcher, dismissBriefing, eq } from './harness.ts';
 
@@ -179,15 +180,15 @@ console.log('...and the ledger survives a save');
     other.state.commander.atonement, 2);
   eq('...on the same rung', other.state.commander.legalStatus, FUGITIVE);
 
-  // WHY the version had to move. A version 2 save holds a commander who cannot
-  // say how far through a rung they were, and a default of 0 would silently
-  // take two pirates back off them.
-  let refused = '';
-  try {
-    parseSnapshot({ version: SNAPSHOT_VERSION - 1, mode: 'flight' });
-  } catch (e) {
-    refused = String(e);
-  }
-  check('a snapshot of the version before this one is refused',
-    refused.includes(String(SNAPSHOT_VERSION - 1)), refused);
+  // WHY the version had to move: a version 2 save holds a commander who cannot
+  // say how far through a rung they were. It is RAISED rather than refused
+  // (docs/TODO/161), and the ledger it comes back with is empty — the one cost
+  // of the migration, and it is bounded at `KILLS_PER_RUNG - 1` kills, once.
+  // test/snapshot-migrate.test.ts owns the migration itself.
+  const old = JSON.parse(JSON.stringify(g.captureSnapshot())) as Record<string, unknown>;
+  old.version = SNAPSHOT_VERSION - 1;
+  delete (old.commander as Record<string, unknown>).atonement;
+  const raised = parseSnapshot(old);
+  eq('a save from the version before this one still loads', raised.version, SNAPSHOT_VERSION);
+  eq('...with an empty ledger', raised.commander.atonement, 0);
 }

@@ -468,10 +468,13 @@ const OUTSIDE: readonly Group[] = [
       + ' bumped in a different file from the shape it describes is a divergence'
       + ' waiting to happen — and `SAVE_ID_PREFIX` stays with the id grammar it opens,'
       + ' whose parse side restates it inside three regexes that'
-      + ' `test/saves.test.ts`\'s round trips hold together',
+      + ' `test/saves.test.ts`\'s round trips hold together. `MIGRATIONS` is not a'
+      + ' value at all — it is the CODE that climbs each step of `SNAPSHOT_VERSION`,'
+      + ' and it must sit beside the number it climbs for the same reason the number'
+      + ' sits beside the shape (docs/TODO/161). src/constants/ may hold no behaviour',
     files: {
       'game/save-file.ts': ['SAVE_RECORD_VERSION', 'SAVE_ID_PREFIX'],
-      'game/snapshot.ts': ['SNAPSHOT_VERSION'],
+      'game/snapshot.ts': ['SNAPSHOT_VERSION', 'MIGRATIONS'],
     },
   },
 

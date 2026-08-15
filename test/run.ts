@@ -95,6 +95,7 @@ import './combat.test.ts';
 import './escape-pod.test.ts';
 import './station-truce.test.ts';
 import './atonement.test.ts';
+import './snapshot-migrate.test.ts';
 import './deep-space-traffic.test.ts';
 import './gunnery.test.ts';
 import './fire-resolution.test.ts';

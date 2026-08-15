@@ -19,7 +19,8 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { parseSnapshot, type WorldSnapshot } from '../src/game/snapshot.ts';
+import { type WorldSnapshot } from '../src/game/snapshot.ts';
+import { parseSnapshot } from '../src/game/snapshot-parse.ts';
 import { check, eq } from './harness.ts';
 
 console.log('\nthe snapshot parse boundary');

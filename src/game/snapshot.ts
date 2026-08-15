@@ -13,14 +13,16 @@
 // place and a moment; which CAREER's autosave group it belongs to is the
 // shelf's question, answered in `SaveRecord.career` (save-file.ts), which is
 // what `save:auto:<CAREER>:*` is keyed by. One home: the record.
+//
+// This file owns what a snapshot IS: the shape, the version, the `MIGRATIONS`
+// table that climbs it, and the codec that turns live vectors into arrays and
+// back. What makes one TRUSTWORTHY is `snapshot-parse.ts`, which split off on
+// 2026-08-16. Nothing here validates anything.
 
 import type { CommanderData } from './commander.ts';
 import type { ShipSystems } from './systems.ts';
 import type { EncounterTimers } from './encounters.ts';
 import type { BrainSelection } from './brain-names.ts';
-import {
-  requirePlayerHullId, requireShipDesignId, requireNpcCombatProfileId,
-} from './ship-identity.ts';
 
 /**
  * Bump when the shape changes so stale snapshots are refused, not misread.
@@ -29,11 +31,92 @@ import {
  * holds capsules that cannot say who was inside, and guessing would decide a
  * commander's record for them.
  *
- * 3 adds `atonement` to the commander (GitHub #32). A version 2 save cannot say
- * how far through a rung its pilot was, and a default of 0 would silently take
- * four pirates back off them.
+ * 3 adds `atonement` to the commander (GitHub #32).
+ *
+ * A BUMP IS NOT A REFUSAL ANY MORE (docs/TODO/161). `MIGRATIONS` below says how
+ * to climb each step, and a stored save is raised on its way through the door.
+ * A bump therefore costs one entry in that table, and a version left out of it
+ * is a version that still cannot be loaded — which is a decision, not an
+ * oversight.
  */
 export const SNAPSHOT_VERSION = 3;
+
+/**
+ * A plain object rather than an array or a null.
+ *
+ * It sits above both halves of this file because both need it: a migration asks
+ * it of a snapshot it is about to raise, and the parse boundary asks it of
+ * every record it validates.
+ */
+export const isRecord = (v: unknown): v is Record<string, unknown> =>
+  !!v && typeof v === 'object' && !Array.isArray(v);
+
+/** One step up the version ladder: what to add, and where it starts. */
+interface Migration {
+  /** the version this raises, matched by strict equality */
+  readonly from: number;
+  /** fill in what the NEXT version added. It must not read anything else. */
+  readonly up: (snap: Record<string, unknown>) => void;
+}
+
+/**
+ * How a stored snapshot climbs to `SNAPSHOT_VERSION`.
+ *
+ * It sits beside the version because the constant's doc says what each number
+ * ADDED and this says how to add it. Written apart, one of them would rot.
+ *
+ * **A save that will not load costs a career** (Chris, 2026-08-16), which is
+ * what makes this the right trade even where the raised value is a guess. What
+ * a step may guess is bounded: it fills in what a version did not have, and it
+ * never repairs a field that version was supposed to carry. That second half is
+ * still junk, and the parser below still refuses it whole.
+ *
+ * Version 1 is deliberately absent. Its step is one entry, and docs/TODO/161
+ * holds the argument.
+ */
+const MIGRATIONS: readonly Migration[] = [
+  {
+    // 2 → 3. `commander.atonement` is WRITTEN rather than left to a default:
+    // `Persistence.restore` clones the commander straight in, so an absent
+    // field reaches `recordWorkedOff` as undefined and the ledger runs at NaN.
+    // A commander in that state can never work a record off again, and nothing
+    // says so. 0 costs a pilot up to `KILLS_PER_RUNG - 1` kills of credit, once
+    // (docs/TODO/161).
+    from: 2,
+    up: (snap) => {
+      const commander = snap.commander;
+      if (isRecord(commander) && commander.atonement === undefined) {
+        commander.atonement = 0;
+      }
+    },
+  },
+];
+
+/**
+ * Raise `raw` to `SNAPSHOT_VERSION`, or hand it back exactly as it arrived.
+ *
+ * It COPIES before it changes anything, and only when it has a step to run — so
+ * a current snapshot is not cloned at all, and a snapshot this cannot raise
+ * leaves the caller's bytes byte for byte as they were. That is the same
+ * promise `parseSnapshot` makes about the live session.
+ *
+ * A version it does not know — an absent one, a string, or one NEWER than this
+ * build — matches nothing and falls through unchanged, to the check that
+ * refuses it. Each step raises the version by exactly one, so the loop cannot
+ * spin.
+ */
+export function migrateSnapshot(raw: unknown): unknown {
+  if (!isRecord(raw)) return raw;
+  let step = MIGRATIONS.find((m) => m.from === raw.version);
+  if (!step) return raw;
+  const snap = structuredClone(raw);
+  while (step) {
+    step.up(snap);
+    snap.version = step.from + 1;
+    step = MIGRATIONS.find((m) => m.from === snap.version);
+  }
+  return snap;
+}
 
 /** The part every ship has, player or not. */
 export interface ShipSnapshot {
@@ -219,140 +302,6 @@ export interface WorldSnapshot {
    * at its starting angle changes what every ship near it does.
    */
   stationQuat: [number, number, number, number];
-}
-
-// --- the parse boundary -------------------------------------------------------
-//
-// `parseSnapshot` is THE door: a `WorldSnapshot` is only ever made from
-// untrusted bytes here, and `Persistence.restore` consumes nothing that has
-// not been through it — so "refused" and "half applied" are different states
-// (docs/TODO/94).
-//
-// WHAT IT CHECKS, AND WHAT IT DELIBERATELY DOES NOT. The parser checks what
-// has invariants: the version, the two branded id families, the mode enum,
-// the galaxy and system bounds the generator would hang or crash on, array
-// arities, finite numbers, and every fleet index. The opaque halves —
-// `galaxyState`, `session`, `dockPlan`, `combatComputer`, the market arrays —
-// are checked for PRESENCE and container shape only, because they are walked
-// generically ON PURPOSE: enumerating their fields here would re-home
-// `SessionState` and its kin into the save format, which is worse than no
-// validation. The owning modules default and validate their own.
-//
-// The gate cannot rot: `test/snapshot-parse.test.ts` deletes and corrupts
-// every key of a REAL captured snapshot, walked off the object itself rather
-// than a written list, so a field `capture()` gains later is covered the day
-// it exists — or the sweep finds this parser not checking it.
-
-const bad = (what: string): never => { throw new Error(`snapshot: ${what}`); };
-
-const isRecord = (v: unknown): v is Record<string, unknown> =>
-  !!v && typeof v === 'object' && !Array.isArray(v);
-const finite = (v: unknown, what: string): number =>
-  (typeof v === 'number' && Number.isFinite(v) ? v : bad(`${what} is not a finite number`));
-const finiteArray = (v: unknown, n: number, what: string): void => {
-  if (!Array.isArray(v) || v.length !== n) bad(`${what} is not ${n} numbers`);
-  for (const x of v as unknown[]) finite(x, what);
-};
-const record = (v: unknown, what: string): Record<string, unknown> =>
-  (isRecord(v) ? v : bad(`${what} is not an object`));
-const array = (v: unknown, what: string): unknown[] =>
-  (Array.isArray(v) ? v : bad(`${what} is not an array`));
-/** An index into the fleet: an integer in range, or -1 for "nobody". */
-const fleetIndex = (v: unknown, fleet: number, what: string): void => {
-  const n = finite(v, what);
-  if (!Number.isInteger(n) || n < -1 || n >= fleet) bad(`${what} is outside the fleet`);
-};
-
-/**
- * Validate untrusted bytes as a `WorldSnapshot`, whole, or throw.
- *
- * Returns its input, typed: the interface stays the single declaration of the
- * shape and this is the only place `unknown` becomes one. Nothing is copied
- * and nothing is repaired — an invalid snapshot is old junk, refused whole,
- * and the refusal happens before anything has mutated.
- */
-export function parseSnapshot(raw: unknown): WorldSnapshot {
-  const s = record(raw, 'snapshot');
-  if (s.version !== SNAPSHOT_VERSION) bad(`version ${String(s.version)}, expected ${SNAPSHOT_VERSION}`);
-  if (s.mode !== 'flight' && s.mode !== 'docked') bad('mode is neither flight nor docked');
-
-  const commander = record(s.commander, 'commander');
-  requirePlayerHullId(commander.shipId);
-  // The two numbers the rebuild would otherwise hang or crash on: the galaxy
-  // seed loop runs `galaxy` twists, and the scene indexes systems[systemIndex].
-  const galaxy = finite(commander.galaxy, 'commander.galaxy');
-  if (!Number.isInteger(galaxy) || galaxy < 1 || galaxy > 8) bad('commander.galaxy is not 1..8');
-  const sysIndex = finite(commander.systemIndex, 'commander.systemIndex');
-  if (!Number.isInteger(sysIndex) || sysIndex < 0 || sysIndex > 255) {
-    bad('commander.systemIndex is not 0..255');
-  }
-
-  if (!('galaxyState' in s)) bad('galaxyState is missing');   // opaque: presence only
-
-  const player = record(s.player, 'player');
-  finiteArray(player.pos, 3, 'player.pos');
-  finiteArray(player.quat, 4, 'player.quat');
-  finite(player.speed, 'player.speed');
-  finite(player.pitchRate, 'player.pitchRate');
-  finite(player.rollRate, 'player.rollRate');
-
-  record(s.systems, 'systems');
-
-  const npcs = array(s.npcs, 'npcs');
-  for (const [i, n] of npcs.entries()) {
-    const npc = record(n, `npcs[${i}]`);
-    if (typeof npc.role !== 'string') bad(`npcs[${i}].role is not a string`);
-    finite(npc.seed, `npcs[${i}].seed`);
-    requireShipDesignId(npc.designId);
-    requireNpcCombatProfileId(npc.profileId);
-    fleetIndex(npc.targetIndex, npcs.length, `npcs[${i}].targetIndex`);
-    record(npc.state, `npcs[${i}].state`);
-  }
-
-  for (const [i, c] of array(s.canisters, 'canisters').entries()) {
-    const can = record(c, `canisters[${i}]`);
-    finiteArray(can.pos, 3, `canisters[${i}].pos`);
-    finiteArray(can.velocity, 3, `canisters[${i}].velocity`);
-    finiteArray(can.spinAxis, 3, `canisters[${i}].spinAxis`);
-    if (can.kind !== 'cargo' && can.kind !== 'capsule') bad(`canisters[${i}].kind`);
-    finite(can.commodity, `canisters[${i}].commodity`);
-    finite(can.energy, `canisters[${i}].energy`);
-    if (typeof can.occupant !== 'string') bad(`canisters[${i}].occupant`);
-    finite(can.grace, `canisters[${i}].grace`);
-  }
-
-  record(s.encounterTimers, 'encounterTimers');
-  record(s.dockPlan, 'dockPlan');           // opaque: container shape only
-  record(s.combatComputer, 'combatComputer');
-  if (s.lastThreat !== null) record(s.lastThreat, 'lastThreat');
-  finite(s.ecmDetectedTimer, 'ecmDetectedTimer');
-  record(s.brains, 'brains');
-  if (typeof s.cheat !== 'boolean') bad('cheat is not a boolean');
-  record(s.session, 'session');
-
-  const rng = record(s.rng, 'rng');
-  finite(rng.seed, 'rng.seed');
-  finite(rng.state, 'rng.state');
-
-  if (s.chartTarget !== null) finite(s.chartTarget, 'chartTarget');
-  finiteArray(s.chartCursor, 2, 'chartCursor');
-  finiteArray(s.stationQuat, 4, 'stationQuat');
-
-  for (const [i, m] of array(s.missiles, 'missiles').entries()) {
-    const mis = record(m, `missiles[${i}]`);
-    finiteArray(mis.pos, 3, `missiles[${i}].pos`);
-    finiteArray(mis.quat, 4, `missiles[${i}].quat`);
-    fleetIndex(mis.targetIndex, npcs.length, `missiles[${i}].targetIndex`);
-    finite(mis.life, `missiles[${i}].life`);
-  }
-
-  array(s.market, 'market');                // opaque rows: the market owns them
-  array(s.hermitMarket, 'hermitMarket');
-  array(s.contractOffers, 'contractOffers');
-  fleetIndex(s.targetLock, npcs.length, 'targetLock');
-  if (typeof s.missileArmed !== 'boolean') bad('missileArmed is not a boolean');
-
-  return raw as WorldSnapshot;
 }
 
 export const v3 = (v: { x: number; y: number; z: number }): [number, number, number] =>

@@ -13,11 +13,19 @@ active context:
 
 ## Execution queue
 
-1. [154 — The comments in src/ are not in Simplified Technical
+1. [161 — A save that is refused rather than
+   raised](161-a-save-that-is-refused-rather-than-raised.md) · defect · small.
+2. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
-**154 is the queue.** It was parked on 2026-08-15, and five items went in front
+**161 came out of 160, on Chris's call of 2026-08-16:** *"We should migrate
+snapshot v2 to v3."* `SNAPSHOT_VERSION` moved twice on 2026-08-15, and the door
+refuses anything that is not the current number. So a save written between those
+two commits is listed on the shelf and throws when it is picked. The refusal was
+160's own recorded reasoning, and this overrules it.
+
+**154 is the rest of the queue.** It was parked on 2026-08-15, and five items went in front
 of it (Chris): *"I want to park that for a while and pick up the GitHub
 issues."* All five landed the same day and are below. 154 is a sweep, and a
 sweep waits.
