@@ -3,7 +3,7 @@
 //
 // The eighth combat-trainer file (docs/COMBAT-SIM.md), and the smallest: one
 // question, asked once per round. combat-sim-scenarios.ts says WHO turns up,
-// spawning.ts puts them in the sky, and this says WHERE — which corner of the
+// spawning-arena.ts puts them in the sky, and this says WHERE — which corner of the
 // system is safe to fight in (`arenaCentre`), then the arc, the range and the
 // cone the opposition is scattered through.
 //
@@ -25,7 +25,7 @@ import {
   OPENING_RANGE, AMBUSH_RANGE, OPENING_CONE_DEG, AMBUSH_CONE_DEG, IN_VIEW_DEG,
 } from '../constants/exercise.ts';
 import type { ExerciseSpec, ScenarioId } from './combat-sim-scenarios.ts';
-import type { OppositionPlacement } from './spawning.ts';
+import type { OppositionPlacement } from './spawning-arena.ts';
 import type { World } from './world.ts';
 
 // --- where the fight happens -------------------------------------------------

@@ -80,7 +80,7 @@ import { random, seedWorld } from './rng.ts';
 import { exerciseCommander, exerciseStepHost } from './combat-sim-safety.ts';
 import { defenceBrainNameFor, selectionForBrain } from './brain-names.ts';
 import type { WorldSnapshot } from './snapshot.ts';
-import { spawnOpposition, type OppositionUnit } from './spawning.ts';
+import { spawnOpposition, type OppositionUnit } from './spawning-arena.ts';
 import { freshSession, type GameState } from './state.ts';
 import { ENTRY_THROTTLE, NO_AMBIENT_TRAFFIC } from '../constants/exercise.ts';
 import { breachLoss, freshSystems } from './systems.ts';

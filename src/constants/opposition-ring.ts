@@ -1,6 +1,6 @@
 // Where an authored exercise starts its opposition.
 //
-// `spawnOpposition` in game/spawning.ts lays ships on a ring around the
+// `spawnOpposition` in game/spawning-arena.ts lays ships on a ring around the
 // commander. The ring is even, and a random phase rotates it. The phase is drawn
 // from the world's seeded stream, so the same seed gives the same sky. These are
 // its defaults and its bounds. They are NOT `spawn-placement.ts`, which places a

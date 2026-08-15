@@ -41,12 +41,27 @@ export interface SystemConditions {
   traderCount: number;
   activeThargons: number;
   hasThargoidMother: boolean;
-  /** pirates do not jump a commander sitting on the station's doorstep */
+  /**
+   * The commander is out of the station's neighbourhood.
+   *
+   * Two rules read it, and they are the two halves of one statement about where
+   * danger and traffic live. A pirate wave does not jump a commander sitting on
+   * the doorstep. A trader that warps in while the commander is out there warps
+   * in beside THEM rather than beside a station they cannot see.
+   *
+   * It is `STATION_TRUCE` (constants/law.ts), measured in `world-step.ts`.
+   */
   playerFarFromStation: boolean;
 }
 
 export type SpawnOrder =
-  | { kind: 'trader' }
+  /**
+   * A trader warps in — and WHERE, which is the only thing this rule decides
+   * about it. `station` is the lane a commander near the port flies in; it is
+   * the one this file has always ordered. `commander` is deep space, where
+   * everything a system holds is 200,000 units behind you (docs/TODO/159).
+   */
+  | { kind: 'trader'; at: 'station' | 'commander' }
   | { kind: 'pirateWave'; count: number }
   | { kind: 'thargon' };
 
@@ -77,7 +92,11 @@ export function stepEncounters(
       // a productive system discounts off the gap between arrivals
       const busyness = Math.min(TRADER_GAP_BUSY_MAX, c.productivity / PRODUCTIVITY_PER_SECOND);
       timers.trader = TRADER_GAP - busyness + rng() * TRADER_GAP_JITTER;
-      if (c.traderCount < MAX_TRADERS) orders.push({ kind: 'trader' });
+      // The SAME clock and the same cap either way. Only the anchor moves, so
+      // a long run stays as quiet as it was; it stops being empty.
+      if (c.traderCount < MAX_TRADERS) {
+        orders.push({ kind: 'trader', at: c.playerFarFromStation ? 'commander' : 'station' });
+      }
     }
 
     // piracy pressure scales with lawlessness: anarchies breed pirate waves,

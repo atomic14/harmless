@@ -1,4 +1,6 @@
-// Where the sky puts a ship when it appears. Every value here is a DISTANCE.
+// Where the sky puts a ship when it appears. Almost every value here is a
+// DISTANCE; `DEEP_TRADER_CONE` is the one angle, and it is derived from a
+// distance here and one in torus.ts rather than chosen.
 // `population.ts` decides what a system holds on arrival. `encounters.ts` decides
 // what turns up while you fly. This file only says how far out.
 //
@@ -11,6 +13,8 @@
 // Authored-exercise placement is `opposition-ring.ts`. It does the same job with
 // deliberately different numbers, chosen for what the pilot can see rather than
 // for where traffic would be.
+
+import { MASS_LOCK_SHIP } from './torus.ts';
 
 /**
  * How far from the station a trader on its run loiters. It is near enough to read
@@ -96,6 +100,55 @@ export const PIRATE_SCATTER = 2500;
  * The witch-flash that marks it is drawn at the same point.
  */
 export const TRADER_ARRIVAL_RANGE = 22_000;
+
+/**
+ * How far AHEAD OF THE COMMANDER a trader warps in, out in deep space.
+ *
+ * It is much closer than `TRADER_ARRIVAL_RANGE`, and the scanner is the reason.
+ * `SCANNER_RANGE` is 6,000 (console.ts) and the torus drive covers 3,200 units a
+ * second (torus.ts), so a ship at 12,000 is on the scanner inside two seconds
+ * and is passed inside four. One at 22,000 would be reached only by a commander
+ * who held the same course for seven seconds.
+ *
+ * @rule spawn.deepTraderRange
+ */
+export const DEEP_TRADER_RANGE = 12_000;
+
+/**
+ * The half-angle of the cone it warps into, about the commander's own heading,
+ * in RADIANS. 0.5 is about 29 degrees.
+ *
+ * It is a cone rather than a sphere because a random direction puts two ships in
+ * three behind the commander, where nobody sees them.
+ *
+ * It is DERIVED rather than chosen, and the derivation IS the design. A ship at
+ * `DEEP_TRADER_RANGE`, `off` radians from the commander's heading, passes a
+ * commander who holds course at a lateral `DEEP_TRADER_RANGE * sin(off)`. The
+ * widest cone that still MASS-LOCKS that commander is therefore the angle whose
+ * sine is `MASS_LOCK_SHIP` over `DEEP_TRADER_RANGE`. That is 0.3844 radians, or
+ * 22 degrees.
+ *
+ * So the meeting is a meeting. The torus drive lets go, the commander flies
+ * past a ship rather than a dot, and the drive picks up again a few seconds
+ * later. `SCANNER_RANGE` (6,000, console.ts) would be the wider derivation and
+ * it was measured and rejected: at that angle the arrival is on the scanner
+ * only while it sits still, and a `departing` trader does not sit still, so
+ * about one run in ten met nobody.
+ *
+ * @rule spawn.deepTraderCone
+ */
+export const DEEP_TRADER_CONE = Math.asin(MASS_LOCK_SHIP / DEEP_TRADER_RANGE);
+
+/**
+ * How far it runs before it jumps out.
+ *
+ * A trader met in deep space is LEAVING, and `departing` (game/npc.ts) despawns
+ * a ship near its waypoint with the witch-flash. The alternative is to fly it to
+ * the station, which is 200,000 units away on a sun run — sixteen minutes, with
+ * one of the four `MAX_TRADERS` slots held for all of it. The lane at the
+ * station would starve to fill the lane out here.
+ */
+export const DEEP_TRADER_RUN = 30_000;
 
 /**
  * How far from the commander a pirate wave warps in. It shares its value with

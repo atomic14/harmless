@@ -10,7 +10,7 @@ import * as THREE from 'three';
 import { dockingOutcome } from '../src/game/docking.ts';
 import { World } from '../src/game/world.ts';
 import { massLocked } from '../src/game/world-step.ts';
-import { spawnOpposition, type OppositionUnit } from '../src/game/spawning.ts';
+import { spawnOpposition, type OppositionUnit } from '../src/game/spawning-arena.ts';
 import { arenaCentre } from '../src/game/combat-sim-opening.ts';
 import { freshState } from '../src/game/state.ts';
 import { newCommander } from '../src/game/commander.ts';

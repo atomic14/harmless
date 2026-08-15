@@ -49,5 +49,11 @@ export const SIM_LOG_LIMIT = 20;
  * Samples kept before the buffer closes. Sparring and waves are endless, so the
  * buffer is bounded. It STOPS rather than drops the oldest, because a median over
  * a sliding tail is a median of the end of the fight, not of the fight.
+ *
+ * It has its own rule id. It shares the value 12,000 with `DEEP_TRADER_RANGE`
+ * (spawn-placement.ts), which is a distance in world units. This is a COUNT of
+ * samples, and the two must stay free to move apart.
+ *
+ * @rule record.maxSamples
  */
 export const MAX_SAMPLES = 12_000;

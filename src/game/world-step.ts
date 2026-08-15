@@ -40,7 +40,7 @@ import { queueMessage } from './session.ts';
 import { playerVsNpcs, npcVsNpcs, npcsVsStation } from './collisions.ts';
 import { assignNpcTargets } from './npc-targeting.ts';
 import { stepEncounters } from './encounters.ts';
-import { spawnArrivingTrader } from './spawning.ts';
+import { spawnArrivingTrader, spawnPassingTrader } from './spawning.ts';
 import { STATION_TRUCE } from '../constants/law.ts';
 import {
   PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN, THARGON_DEPLOY_RANGE,
@@ -459,7 +459,18 @@ export class WorldStep {
       playerFarFromStation: playerToStation > STATION_TRUCE,
     })) {
       if (order.kind === 'trader') {
-        spawnArrivingTrader(world, TRADER_ARRIVAL_RANGE);
+        if (order.at === 'station') {
+          spawnArrivingTrader(world, TRADER_ARRIVAL_RANGE);
+        } else {
+          // Deep space. The commander's nose is the cone's axis, and a hull's
+          // nose is -Z (invariant 7).
+          spawnPassingTrader(world, player.position,
+            new THREE.Vector3(0, 0, -1).applyQuaternion(player.quaternion));
+          // Said only out here. A station arrival is one of many, and the
+          // console is not a traffic report; this is the only ship a long run
+          // will meet.
+          out.push(say('TRADER SIGNATURE DETECTED', 3));
+        }
       } else if (order.kind === 'pirateWave') {
         for (let i = 0; i < order.count; i++) {
           world.spawn('pirate',

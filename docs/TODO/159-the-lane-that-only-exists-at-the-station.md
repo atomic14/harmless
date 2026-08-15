@@ -199,3 +199,62 @@ None. Two were open at the start of the plan and are answered here:
   recording in the outcome rather than fixing by moving the ship closer.
 - `test/world.test.ts` already drives `stepEncounters` with a fixed `rng`.
   Extend that file's helpers rather than writing a second harness.
+
+## Outcome — landed 2026-08-15
+
+Both milestones landed. `npm run check` passes: **4,615 assertions, 0 failed**,
+and `constants:check` reports 386 exports and 67 rule ids. `npm run roster-probe`
+is byte-identical.
+
+**The measurement the item promised.** Over a flown sun run — station to the
+fuel-scoop band, at the torus drive's 3,200 units a second, stepping the real
+`stepEncounters` and the real `NpcShip.update` — **20 runs of 20 meet somebody,
+and 60 of 60 do**, with exactly one ship inside `SCANNER_RANGE` in every flight.
+The same flight before the change met nobody: a station-anchored arrival never
+came within `SCANNER_RANGE` of a commander 200,000 units out, over 200 seeds.
+
+**Both gates were proved able to fail, and they fail separately.** Forcing
+`at: 'station'` for every order turns **3 assertions** red, including both sun
+runs. Restoring the anchor and forcing the `arriving` phase turns **2** red.
+
+### What the work found that the plan did not have
+
+**The cone had to be derived, and the first derivation was wrong.** The plan
+chose 0.5 radians. `constants:check` refused it: 0.5 is the most popular value
+in the catalogue, shared with eight other constants including
+`OPPOSITION_CONE`, and every member of an equal-value group needs a rule id.
+The first derivation was the angle whose lateral offset at `DEEP_TRADER_RANGE`
+is `SCANNER_RANGE` — the widest cone that still puts the arrival on the
+scanner. **Measured, it lost about one run in ten.** The guarantee is static and
+the ship is not: a `departing` trader accelerates away while the commander
+closes, so a marginal arrival is off the scanner by the time of the pass.
+
+**The cone is derived from `MASS_LOCK_SHIP` instead, and that is the better
+design as well as the safer number.** It is the widest angle at which the
+arrival still mass-locks a commander who holds course: 0.3844 radians, or 22
+degrees. So the meeting is a meeting — the drive lets go, and the commander
+flies past a ship rather than a dot. Every one of 200 passes drops the torus
+drive, by construction rather than by luck, and the assertion says so.
+
+**`src/game/spawning.ts` crossed the size ceiling, and the seam was in its own
+header.** The file was 439 lines. It had said for months that *"the
+combat-training arena is the same job with a different plan"*, and that half is
+`spawning-arena.ts` now — 202 lines, against 260 left behind. The two answer to
+different constants files, which was already written down. `ringBasis` is the
+one piece of geometry they share and it is exported from `spawning.ts`. Three
+files import the moved names, and two neighbouring headers named the old home
+and were repaired in the same commit.
+
+**`MAX_SAMPLES` needed a rule id it never had.** `DEEP_TRADER_RANGE` arrived on
+12,000, where a COUNT of samples already sat. That is the gate working as
+designed: an equal-value group is answered in the source, and the answer is that
+a distance and a buffer length must stay free to move apart.
+
+**The console line is only said out here.** A station arrival is one of many and
+the console is not a traffic report. `TRADER SIGNATURE DETECTED` is the parallel
+of the pirate wave's own line, and it names no key.
+
+**The witch-flash is drawn 12,000 units out, and that is inside nothing.** It is
+beyond `SCANNER_RANGE`, so a commander may not see the arrival itself — only the
+ship, two seconds later. That is recorded rather than fixed: moving the ship
+closer to show its flash would spend the whole encounter.

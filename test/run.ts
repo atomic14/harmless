@@ -94,6 +94,7 @@ import './energy-low.test.ts';
 import './combat.test.ts';
 import './escape-pod.test.ts';
 import './station-truce.test.ts';
+import './deep-space-traffic.test.ts';
 import './gunnery.test.ts';
 import './fire-resolution.test.ts';
 import './missiles.test.ts';
