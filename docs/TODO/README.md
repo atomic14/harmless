@@ -13,14 +13,11 @@ active context:
 
 ## Execution queue
 
-1. [158 — The safe zone that only the spawner
-   obeys](158-the-safe-zone-that-only-the-spawner-obeys.md) · defect · medium.
-2. [159 — The lane that only exists at the
+1. [159 — The lane that only exists at the
    station](159-the-lane-that-only-exists-at-the-station.md) · defect · medium.
-   Depends on 158.
-3. [160 — A record you cannot work off](160-a-record-you-cannot-work-off.md) ·
+2. [160 — A record you cannot work off](160-a-record-you-cannot-work-off.md) ·
    enhancement · medium.
-4. [154 — The comments in src/ are not in Simplified Technical
+3. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
@@ -34,8 +31,9 @@ than the reports: **the idle waypoint is anchored to the station.** The last
 branch of `NpcShip.update` draws a waypoint 800 to 3,300 units from the station
 for every role except the trader, so a system's ships converge on the port. That
 is why a bounty hunter is on the doorstep (#30) and why deep space holds nobody
-(#31). 158 stops a hostile loitering there; 159 puts traffic where the commander
-is. **160 is independent** and adds the second way a legal record can come down.
+(#31). **158 landed the same day** and is below. 159 puts traffic where the
+commander is. **160 is independent** and adds the second way a legal record can
+come down.
 
 **151 to 154 came out of one review, on Chris's question of 2026-08-14:** *"Are
 they in ASD-STE100 and are they useful — we don't need comments that contain the
@@ -65,8 +63,10 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds three open items, and all three are planned: **#30** is
-158, **#31** is 159 and **#32** is 160. **#29** and **#28** closed on 2026-08-15
+The GitHub inbox holds two open items, and both are planned: **#31** is 159 and
+**#32** is 160. **#30** closed on 2026-08-15 with
+[158](completed/158-the-safe-zone-that-only-the-spawner-obeys.md). **#29** and
+**#28** closed on 2026-08-15
 with [157](completed/157-the-console-line-runs-off-both-edges.md) and
 [156](completed/156-the-escape-capsule-nobody-chose-to-shoot.md). **#27** closed
 on 2026-08-13 with
@@ -90,6 +90,40 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-15
+
+**158 — the safe zone that only the spawner obeys (GitHub #30).** Chris flew it
+and reported: *"I was attacked by a bounty hunter when I was in range of a space
+station."* **The behaviour was correct under the rules that ran**, so the fault
+was in the rules.
+
+**The safe zone was already written down, and one rule read it.**
+`AMBUSH_STANDOFF`'s own doc comment called 7,000 units *"the one place where a
+player can catch their breath"*. The spawner spent it, and refused to warp a
+pirate wave in near the station. `isHostileToPlayer` — the single home of *"does
+this ship attack the player?"* — took a ship and a legal status, so it could not
+answer a question about the station at all.
+
+**The triage found the cause the report did not, and it is shared with #31.**
+The last branch of `NpcShip.update` draws an idle waypoint 800 to 3,300 units
+from the STATION, for every role except the trader. So a system's ships converge
+on the port whatever they were spawned at, and refusing to SPAWN a wave there
+does nothing about the ships that walked.
+
+**The constant is `STATION_TRUCE` in `constants/law.ts` now**, because the rule
+it states is a law rule with two readers. `truceHolds` is asked inside
+`isHostileToPlayer`, so the ship, the scanner blip, the threat arrow, the
+condition light, the bought combat computer and the bribe key give one answer.
+A promise kept by three surfaces out of six is not a promise.
+
+**The police are deliberately not covered.** A station that hid a Fugitive from
+the law would be the one place in the galaxy a record stopped costing anything.
+**A commander who shoots first ends the truce**, on `provokedByPlayer`, so the
+port is not a free firing position either.
+
+**Four existing fixtures were parked on the slot, and all four were fights.**
+Each stands off now and each says why; no assertion was weakened. Both gates
+were shown to fail separately — 13 assertions for the rule, 2 for the waypoint —
+and `defence-probe`, `survivability` and `dock-traffic` are byte-identical.
 
 **156 — the escape capsule nobody chose to shoot (GitHub #28).** Chris flew it
 and reported two things at once: *"Escape pods seem to be too easy to destroy.
