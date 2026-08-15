@@ -340,6 +340,29 @@ lines that do exactly that. It named no reason and no consequence. Everything
 else in the four earns its place: an absence explained so nobody re-adds it, a
 measured figure, a defect that a comment stops somebody from re-creating.
 
+### Where the full sweep stands
+
+**M3 is a full sweep of `src/`, and it is more than one sitting.** The table
+below is the state after the sixth pass on 2026-08-15. **`npm run ste -- --work`
+is the resume point** — it names the file to take next, in the order that clears
+the most breaches per pass.
+
+| | long sentences | share | `-ing` per 100 | tense |
+| --- | ---: | ---: | ---: | ---: |
+| when the checker was written | 1,988 | 20% | 23.4 | 309 |
+| at the head of M3 | 1,842 | 18% | 21.0 | 265 |
+| **now** | **1,309** | **12%** | **17.2** | **194** |
+
+**Twenty files are converted, and each one measures 0% afterwards.** They held
+529 of the tree's long sentences, which is 29% of the job, and every one of the
+five worst directories still has files in it. The two `-ing` words and every
+tense breach that remain in a converted file are recorded above as deliberate.
+
+**The sixth pass was `src/constants/docking-computer.ts` and `game/gunnery.ts`**:
+219 sentences with 47 over the cap and 5 perfect tenses, down to 288 with none
+of either. `npm run generate:constants` ran before the gates, and
+`constants:check` reports 380 exports and 59 rule ids, unchanged.
+
 **Four things came out of the first pass that the plan did not have.**
 
 1. **A fifth exclusion was needed, and it is a table in COLUMNS.** Several
@@ -384,8 +407,17 @@ Remove it.
 - **The exclusions stand.** Code, an exact command or error string, anything
   quoted from a person, a record of what somebody decided or measured,
   `README.md`'s opening, and the player-facing pages are all untouched.
-- **`src/constants/` is done.** 141 swept it and it measures at 3%. Do not
-  re-sweep it.
+- ~~**`src/constants/` is done.** 141 swept it and it measures at 3%. Do not
+  re-sweep it.~~ **REVERSED on 2026-08-15** (Chris: *"Do the full sweep - we
+  want good comments using our standard that help to understand the code"*).
+  The 3% came from the throwaway tool. The checker puts the directory at 6% and
+  `constants/docking-computer.ts` at 17%, so "done" was not true of every file
+  in it. The sweep covers `src/constants/` too.
+  - **Run `npm run generate:constants` BEFORE the gates** whenever a doc comment
+    there changes. It is the `Purpose` column of `CATALOG.md` (docs/PROCESS.md).
+- **M3 IS A FULL SWEEP, and it is more than one sitting.** The checker's
+  `--work` order is the resume point, so a pass can stop anywhere and the next
+  one starts at the top of the same list.
 - **A COMMENT THAT ADDS NOTHING IS DROPPED** (Chris, 2026-08-14: *"let's make
   sure the comments add value - if not we drop them"*). A pass asks two
   questions of each comment now, and the value question comes first. Delete a

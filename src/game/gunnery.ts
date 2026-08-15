@@ -1,22 +1,25 @@
 // The player's guns: which mount fires, whether it can, and how forgiving it is.
 //
-// The other half of the combat model that systems.ts owns — systems.ts holds
-// the heat and the cooldown, this decides what pulling the trigger means. The
-// *rules* are here and pure; finding what the shot hit stays with the raycast,
+// The other half of the combat model systems.ts owns. systems.ts holds the heat
+// and the cooldown. This decides what a pull of the trigger means.
+//
+// The *rules* are here and pure. What the shot hit stays with the raycast,
 // because there is no honest way to test "does this ray pass through that hull"
 // without the hulls.
 //
-// One split is worth naming. A mount's CADENCE and HEAT are Harmless's numbers
-// and always were; what one hit is WORTH is the released game's, and a property
-// of the hull as much as of the laser — the pack gives each of the 15 flyable
-// ships its own byte per laser. So `LASER_PACING` (constants/player-gun.ts)
-// holds the first, `playerLaserHit` looks up the second, and neither is a second
-// home for the other. What that hit COSTS a target is game/npc-energy.ts's.
+// One split is worth naming. A mount's CADENCE and HEAT are Harmless's numbers,
+// and always were. What one hit is WORTH is the released game's, and it is a
+// property of the hull as much as of the laser. The pack gives each of the 15
+// flyable ships its own byte per laser.
+//
+// So `LASER_PACING` (constants/player-gun.ts) holds the first, and
+// `playerLaserHit` looks up the second. Neither is a second home for the other.
+// What that hit COSTS a target is game/npc-energy.ts's.
 //
 // BOTH GUNS ARE RESOLVED HERE, asymmetrically, because the released game is.
-// Outgoing, this answers the STRENGTH and the target applies its own defence
-// (`npc-energy.ts`); incoming, the pack tabulates the finished number for every
-// (build, hull) pair, so `npcLaserDamageToPlayer` answers it in one call and
+// Outgoing, this answers the STRENGTH, and the target applies its own defence
+// (`npc-energy.ts`). Incoming, the pack tabulates the finished number for every
+// (build, hull) pair. So `npcLaserDamageToPlayer` answers it in one call, and
 // `systems.ts` spends it. Neither restates a line of the oracle's arithmetic.
 //
 // The numbers both guns are governed by are constants/player-gun.ts and
@@ -45,11 +48,11 @@ import {
 /**
  * How often a mount may fire, and what it costs the gun.
  *
- * PACING ONLY, and that is the split this file now keeps: how hard a shot HITS
- * is the released game's arithmetic, resolved from the hull the commander flies
- * and the laser fitted to it (`playerLaserHit`), where cadence and heat are
- * Harmless's and always have been. A `damage` column here would be a second
- * home for a number the catalogue already owns.
+ * PACING ONLY, and that is the split this file keeps. How hard a shot HITS is
+ * the released game's arithmetic, resolved from the hull the commander flies and
+ * the laser fitted to it (`playerLaserHit`). Cadence and heat are Harmless's,
+ * and always were. A `damage` column here would be a second home for a number
+ * the catalogue already owns.
  */
 export interface GunPacing {
   readonly cooldown: number;
@@ -79,9 +82,9 @@ export function hitCone(radius: number, dist: number): number {
 /**
  * Half-angle for a drifting object, which gets a flat tolerance and no assist.
  *
- * By KIND, not by a radius: neither a canister nor a capsule is a skill target,
- * so each gets the generous allowance its own hull is worth rather than a cone
- * that shrinks and swells as the thing tumbles.
+ * By KIND, and not by a radius. Neither a canister nor a capsule is a skill
+ * target. So each gets the generous allowance its own hull is worth, rather
+ * than a cone that shrinks and swells as the thing tumbles.
  */
 export function driftingCone(kind: 'cargo' | 'capsule', dist: number): number {
   return Math.max(0.012, Math.atan((kind === 'capsule' ? POD_GRAZE : CANISTER_GRAZE) / dist));
@@ -91,11 +94,13 @@ export function driftingCone(kind: 'cargo' | 'capsule', dist: number): number {
  * What one hit from `type`, fitted to `shipId`, is worth before the target's
  * defence — the released `(laserByte & 0x7f) >> 1`.
  *
- * The strength is a property of the HULL as much as the laser: an Anaconda's
- * military laser is a 63-point hit where a Cobra Mk III's is 12. The byte comes
- * from the catalogue and the shift from the oracle; there is no arithmetic
- * here. All four types are answered, `mining` included, because the profile API
- * is required to; live play cannot ask for it yet — see `LASER_PACING`.
+ * The strength is a property of the HULL as much as of the laser. An Anaconda's
+ * military laser is a 63-point hit, where a Cobra Mk III's is 12. The byte comes
+ * from the catalogue, and the shift from the oracle. There is no arithmetic
+ * here.
+ *
+ * All four types are answered, `mining` included, because the profile API is
+ * required to. Live play cannot ask for it yet — see `LASER_PACING`.
  */
 export function playerLaserHit(shipId: PlayerHullId, type: EliteALaserType): number {
   return eliteAPlayerLaserHit(playerHull(shipId).lasers[type].rawByte);
@@ -107,10 +112,10 @@ const fitted = new Map<string, LaserSpec>();
 /**
  * A fitted mount: the hull's hit strength, plus this laser's own cadence.
  *
- * Resolved once per (hull, laser) and shared, because `laserForView` is called
- * on every frame the trigger is held and the answer cannot change — a hull has
- * no shipyard to leave through yet, and the bytes are catalogue data. Every
- * field is readonly, so a shared record cannot be edited by a caller.
+ * Resolved once per (hull, laser) and shared. `laserForView` is called on every
+ * frame the trigger is held, and the answer cannot change. A hull has no
+ * shipyard to leave through yet, and the bytes are catalogue data. Every field
+ * is readonly, so a caller cannot edit a shared record.
  */
 export function playerLaser(shipId: PlayerHullId, type: LaserType): LaserSpec {
   const key = `${shipId}|${type}`;
@@ -135,8 +140,8 @@ export interface ArmedCommander {
  * one cooldown and one heat budget.
  *
  * It takes the COMMANDER now rather than the equipment, because the hull is
- * half the answer: which of the 15 flyable ships is being flown decides how
- * hard the fitted laser hits (`playerLaserHit`). Fitting behaviour is untouched.
+ * half the answer. Which of the 15 flyable ships she flies decides how hard the
+ * fitted laser hits (`playerLaserHit`). Fitting behaviour is untouched.
  */
 export function laserForView(c: ArmedCommander, view: number): LaserSpec | null {
   if (view === 0) return playerLaser(c.shipId, c.equipment.laser);
@@ -149,10 +154,10 @@ export function laserForView(c: ArmedCommander, view: number): LaserSpec | null 
 /**
  * The two fields a gun's readiness is made of: the reload and the heat.
  *
- * `ShipSystems` satisfies it, and so does the trainer's target hull, which
- * carries these two and none of the shields — which is the point of naming the
- * subset rather than demanding the whole ship. The trainer used to hand-roll
- * `cooldown > 0 || temp >= CUTOUT` then the two assignments, i.e. this
+ * `ShipSystems` satisfies it. So does the trainer's target hull, which carries
+ * these two and none of the shields. That is the point of naming the subset
+ * rather than demanding the whole ship. The trainer used to hand-roll
+ * `cooldown > 0 || temp >= CUTOUT` and then the two assignments, which is this
  * sequence written twice.
  */
 export interface GunHeat {
@@ -174,10 +179,10 @@ export function chargeShot(sys: GunHeat, laser: GunPacing): void {
 
 // --- the NPC's gun ---------------------------------------------------------
 //
-// gunnery.ts owned the player's laser and nothing owned the NPC's, which is how
+// gunnery.ts owned the player's laser and nothing owned the NPC's. That is how
 // its numbers ended up as literals inside game.ts's resolveNpcFire. They are
 // constants/npc-gun.ts now, with the account of the parallel simulator that once
-// mirrored them; what is left here is the trigger sequence that spends them.
+// mirrored them. What is left here is the trigger sequence that spends them.
 
 /**
  * The packed weapon byte one exact released build carries.
@@ -186,10 +191,10 @@ export function chargeShot(sys: GunHeat, laser: GunPacing): void {
  * is the oracle's job. Resolved once per build and shared, because it is
  * catalogue data and cannot change while a ship is flying.
  *
- * The two Harmless inventions get 0 — OUR policy, stated as ours, not read off
- * a source table that does not mention them. Neither ever pulls a trigger
- * (`NpcShip.update` returns before any gun is considered, and their roster rows
- * are unarmed), and 0 is a byte that fires nothing anyway.
+ * The two Harmless inventions get 0. That is OUR policy, stated as ours, and
+ * not read off a source table that does not mention them. Neither ever pulls a
+ * trigger: `NpcShip.update` returns before any gun is considered, and their
+ * roster rows are unarmed. 0 is a byte that fires nothing anyway.
  */
 export function npcWeaponByte(profileId: NpcCombatProfileId): number {
   const known = weaponBytes.get(profileId);
@@ -205,16 +210,18 @@ const weaponBytes = new Map<NpcCombatProfileId, number>();
 /**
  * What one registered NPC laser hit costs the commander, armour already off.
  *
- * The whole rule is the oracle's `eliteADamageToPlayer` — `laserPower << 2`,
- * then the flyable hull's per-hit armour once, floored at zero — and the pack
- * tabulates all 3,900 (build, hull) answers, which
- * `test/elite-a-live-defence.test.ts` drives THIS function over. The armour
- * comes from the hull the commander is actually flying, so all 15 profiles work
- * through here even though the UI cannot leave the Cobra Mk III yet.
+ * The whole rule is the oracle's `eliteADamageToPlayer`. It is `laserPower << 2`,
+ * then the flyable hull's per-hit armour once, floored at zero. The pack
+ * tabulates all 3,900 (build, hull) answers, and
+ * `test/elite-a-live-defence.test.ts` drives THIS function over them.
  *
- * The `original` encoding (`weaponByte >> 1`, which lets missile bits add to
- * laser damage) is unreachable from here: gameplay only ever gets the clean
- * rule, which is why the argument is not passed on.
+ * The armour comes from the hull the commander actually flies. So all 15
+ * profiles work through here, even though the UI cannot leave the Cobra Mk III
+ * yet.
+ *
+ * The `original` encoding is unreachable from here. That is `weaponByte >> 1`,
+ * which lets missile bits add to laser damage. Gameplay only ever gets the
+ * clean rule, which is why the argument is not passed on.
  */
 export function npcLaserDamageToPlayer(
   weaponByte: number, shipId: PlayerHullId,
@@ -231,16 +238,18 @@ export const npcLaserStrength = (weaponByte: number): number =>
  * Pull an NPC's trigger: the gate, the range and the cooldown, in that order,
  * plus the cooldown the shot spends.
  *
- * The ORDER is the rule, not the numbers. Nothing is spent unless the shot
- * actually leaves — a ship out of the gate or out of range does not start a
- * reload, so it fires the instant it lines up — and the die is rolled only
- * then, which is what keeps a seeded run reproducible. That sequence was
- * written out three times (npc.ts `brainFly`, npc.ts `attack` and the
- * trainer's armed freighter) with a comment in the third asking the reader to
- * keep it in step with the first. It had already drifted once: `attack()` ran
- * a 0.22 gate and a 1.4+rand*1.8 cooldown against `brainFly`'s 0.25 and
- * 0.9+rand*0.8, on the path every police ship, bounty hunter and knife-range
- * pirate fires from.
+ * The ORDER is the rule, and not the numbers. Nothing is spent unless the shot
+ * actually leaves. A ship out of the gate or out of range does not start a
+ * reload, so it fires the instant it lines up. The die is rolled only then,
+ * which is what keeps a seeded run reproducible.
+ *
+ * That sequence was written out three times: npc.ts `brainFly`, npc.ts `attack`
+ * and the trainer's armed freighter. The third carried a comment asking the
+ * reader to keep it in step with the first.
+ *
+ * It drifted once already. `attack()` ran a 0.22 gate and a 1.4+rand*1.8
+ * cooldown, against `brainFly`'s 0.25 and 0.9+rand*0.8. That is the path every
+ * police ship, bounty hunter and knife-range pirate fires from.
  *
  * `rng` is passed in rather than imported so this file stays free of the PRNG —
  * and it is called ONLY when the shot leaves.
@@ -269,24 +278,26 @@ export function npcHitChance(dist: number): number {
 
 /**
  * The MOST this build's gun can ever be worth against this hull, in her pool
- * points a second: point blank (`npcHitChance(0)`, the cap), never out of the
- * gate, never missing a reload.
+ * points a second. It is point blank (`npcHitChance(0)`, the cap), never out of
+ * the gate, and never short of a reload.
  *
  * A ceiling, and the only honest way to compare a gun with a shield. Nothing in
- * a fight reaches it — `npm run aim-probe` measures 7-27% of it — so a build
- * whose BEST case loses to `SHIELD_REGEN` cannot strip a face at all, however
- * it is flown. That is the comparison docs/TODO/139 is about, and it lives here
- * rather than in the probe because a test pins it too: one rule, one home, and
- * a retune of the reload or the hit curve moves both readers at once.
+ * a fight reaches it, because `npm run aim-probe` measures 7-27% of it. So a
+ * build whose BEST case loses to `SHIELD_REGEN` cannot strip a face at all,
+ * however it is flown.
+ *
+ * That is the comparison docs/TODO/139 is about. It lives here rather than in
+ * the probe, because a test pins it too. One rule, one home, and a retune of
+ * the reload or the hit curve moves both readers at once.
  */
 export function npcBestCasePerSecond(weaponByte: number, shipId: PlayerHullId): number {
   return bestCasePerSecond(npcLaserDamageToPlayer(weaponByte, shipId));
 }
 
 /**
- * The same ceiling for a gun whose per-hit number is already known — what a
- * fight carries, and what a table already holding the pack's answer for a
- * (build, hull) pair should spend rather than looking the byte up again.
+ * The same ceiling for a gun whose per-hit number is already known. That is
+ * what a fight carries. A table that already holds the pack's answer for a
+ * (build, hull) pair spends this, rather than look the byte up again.
  */
 export function bestCasePerSecond(damagePerHit: number): number {
   return (damagePerHit * npcHitChance(0)) / NPC_MEAN_COOLDOWN;
