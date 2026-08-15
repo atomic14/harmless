@@ -13,16 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [159 — The lane that only exists at the
-   station](159-the-lane-that-only-exists-at-the-station.md) · defect · medium.
-2. [160 — A record you cannot work off](160-a-record-you-cannot-work-off.md) ·
+1. [160 — A record you cannot work off](160-a-record-you-cannot-work-off.md) ·
    enhancement · medium.
-3. [154 — The comments in src/ are not in Simplified Technical
+2. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
 **154 was parked on 2026-08-15, and five items have gone in front of it**
-(Chris): *"I want to park that for a while and pick up the GitHub issues."* Two
+(Chris): *"I want to park that for a while and pick up the GitHub issues."* Four
 of them landed the same day and are below. 154 is a sweep, and a sweep waits.
 
 **158, 159 and 160 came out of the triage of GitHub #30, #31 and #32 on
@@ -31,9 +29,8 @@ than the reports: **the idle waypoint is anchored to the station.** The last
 branch of `NpcShip.update` draws a waypoint 800 to 3,300 units from the station
 for every role except the trader, so a system's ships converge on the port. That
 is why a bounty hunter is on the doorstep (#30) and why deep space holds nobody
-(#31). **158 landed the same day** and is below. 159 puts traffic where the
-commander is. **160 is independent** and adds the second way a legal record can
-come down.
+(#31). **158 and 159 both landed the same day** and are below. **160 is
+independent** and adds the second way a legal record can come down.
 
 **151 to 154 came out of one review, on Chris's question of 2026-08-14:** *"Are
 they in ASD-STE100 and are they useful — we don't need comments that contain the
@@ -63,8 +60,9 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds two open items, and both are planned: **#31** is 159 and
-**#32** is 160. **#30** closed on 2026-08-15 with
+The GitHub inbox holds one open item, and it is planned: **#32** is 160.
+**#31** and **#30** closed on 2026-08-15 with
+[159](completed/159-the-lane-that-only-exists-at-the-station.md) and
 [158](completed/158-the-safe-zone-that-only-the-spawner-obeys.md). **#29** and
 **#28** closed on 2026-08-15
 with [157](completed/157-the-console-line-runs-off-both-edges.md) and
@@ -90,6 +88,45 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-15
+
+**159 — the lane that only exists at the station (GitHub #31).** Chris flew to
+the sun and reported: *"I don't think I encountered any NPC ships. We should
+come across some people."*
+
+**Measured, the report is exact.** The sun sits 320,000 units from the system
+origin and the station about 12,000, so the run to the fuel-scoop band is
+roughly 220,000 units — about 70 seconds under the torus drive. Every ship a
+system holds is within 22,000 units of the station. So more than nine tenths of
+that run was empty by construction.
+
+**One spawn is anchored to the commander, and it is gated shut.** A pirate wave
+needs a government of 3 or below. In a system of government 4 or higher nothing
+was ever placed near the commander at all.
+
+**The fix moves an anchor and nothing else.** `stepEncounters` keeps its clock
+and its cap. It now says WHERE the trader it already ordered should warp in:
+near the station for a commander near the station, and ahead of the commander
+out in deep space. Same traffic, somewhere a pilot can see it.
+
+**The cone is derived from `MASS_LOCK_SHIP`, and that is the design rather than
+a number.** It is the widest angle at which the arrival still mass-locks a
+commander who holds course, so the meeting is a meeting: the drive lets go, and
+you fly past a ship rather than a dot. **The first derivation used
+`SCANNER_RANGE` and was measured and rejected** — that guarantee is static and a
+`departing` trader is not, so about one run in ten met nobody.
+
+**The ship leaves.** A trader pointed at the station from out there would fly for
+sixteen minutes and hold one of the four trader slots for all of them.
+
+**`spawning.ts` crossed 400 lines on the way, and the seam was already in its own
+header.** It had said for months that the combat-training arena is the same job
+with a different plan. That half is `spawning-arena.ts` now, 202 lines against
+260 left behind, and the two neighbouring headers that named the old home were
+repaired in the same commit.
+
+**Measured, 20 sun runs of 20 meet somebody, and 60 of 60 do**, with exactly one
+ship inside scanner range in every flight. The same flight before the change met
+nobody, over 200 seeds. `npm run roster-probe` is byte-identical.
 
 **158 — the safe zone that only the spawner obeys (GitHub #30).** Chris flew it
 and reported: *"I was attacked by a bounty hunter when I was in range of a space
