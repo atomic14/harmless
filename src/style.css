@@ -366,6 +366,20 @@ body.screen-open #message {
  *
  * Sits just above #screen (10), below only the `?` guide (30) — it is
  * pointer-events: none, so it cannot intercept a click on the menu underneath.
+ *
+ * IT WRAPS, and that is GitHub #29. It was `white-space: nowrap` with no width
+ * at all, which is fine for "BOUNTY: 6.5 Cr" and wrong for the longest line the
+ * console ever prints: the Constrictor gun warning runs to about 90 characters,
+ * and at 15px with 3px of letter spacing that is roughly 1080px of unbreakable
+ * text. Centred on `left: 50%`, it then hung off BOTH edges of a window
+ * narrower than that, and the commander read the middle of a sentence whose two
+ * halves carried the numbers. `constrictorWarning` (game/missions.ts) is the one
+ * home of those words, and it must not be written to a width.
+ *
+ * `min()` rather than a flat pixel cap: 92vw keeps a margin on a narrow window,
+ * and 1100px stops a wide one stretching a line so far that the eye loses the
+ * start of it. Growth goes UPWARD, because the box is anchored by `bottom`, so
+ * a second row never covers the console it sits above.
  */
 #message {
   position: absolute;
@@ -377,7 +391,9 @@ body.screen-open #message {
   color: var(--hud-amber);
   text-shadow: 0 0 10px rgba(var(--hud-amber-rgb), 0.8);
   pointer-events: none;
-  white-space: nowrap;
+  max-width: min(92vw, 1100px);
+  text-align: center;
+  line-height: 1.5;
 }
 
 /*

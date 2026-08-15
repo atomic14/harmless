@@ -27,6 +27,7 @@ import { readFileSync } from 'node:fs';
 import { LASER_GAUGE_WARN, CABIN_GAUGE_WARN, SIGHT_Y } from '../src/constants/console.ts';
 import { LASER_CUTOUT } from '../src/constants/player-gun.ts';
 import { CABIN_TEMP_FATAL } from '../src/constants/sun.ts';
+import { constrictorWarning } from '../src/game/missions.ts';
 
 // --- the screen contract ----------------------------------------------------
 
@@ -414,4 +415,55 @@ console.log('\nthe console warns before the rule fires');
   const m = /#crosshair\s*{[^}]*top:\s*(\d+)%/s.exec(css);
   check(`#crosshair's top (${m?.[1]}%) is SIGHT_Y (${SIGHT_Y * 100}%) — the decided CSS twin`,
     m !== null && Number(m[1]) === SIGHT_Y * 100);
+}
+
+// --- the console line is wider than one row --------------------------------
+//
+// GitHub #29. `#message` had `white-space: nowrap` and no width, centred on
+// `left: 50%`, so a line wider than the window hung off BOTH edges and the
+// commander read the middle of the sentence. The longest one the console can
+// print is the Constrictor gun warning, and the two numbers that make it useful
+// are at the two ends (docs/TODO/157).
+//
+// THE MEASUREMENT COMES FIRST, and the stylesheet is checked against it. A gate
+// that only read the CSS back would be the stylesheet asserting itself.
+console.log('\nthe console line can hold the longest thing the game says');
+{
+  // Every laser a Cobra Mk III can mount, through the real rule. `''` is the
+  // case where the fitted gun is already the best one, and it is not a line.
+  const worst = (['pulse', 'beam', 'military'] as const)
+    .map((laser) => {
+      const c = newCommander();
+      c.equipment.laser = laser;
+      return constrictorWarning(c);
+    })
+    .reduce((a, b) => (b.length > a.length ? b : a), '');
+  check(`the warning is a real line (${worst.length} characters)`, worst.length > 60);
+
+  // How wide that is, from the two numbers the stylesheet declares. The face is
+  // Menlo, whose advance is 0.602em, so a character costs the type size times
+  // that plus the tracking. This is an estimate and it is stated as one; the
+  // reference window below is chosen so that being a few percent out cannot
+  // flip the answer.
+  const FONT_PX = 15;
+  const LETTER_SPACING_PX = 3;
+  const MENLO_ADVANCE = 0.602;
+  const width = worst.length * (FONT_PX * MENLO_ADVANCE + LETTER_SPACING_PX);
+
+  // 1024 CSS pixels: an ordinary laptop window, and far from the narrowest the
+  // page supports (`#screen` sets `min-width: 640px`). 92vw of it is the
+  // stylesheet's own bound.
+  const REFERENCE_WINDOW_PX = 1024;
+  const row = REFERENCE_WINDOW_PX * 0.92;
+  check(`...and it needs ${Math.round(width)}px, more than one row of a `
+    + `${REFERENCE_WINDOW_PX}px window (${Math.round(row)}px)`, width > row);
+
+  // So the element MUST be allowed to wrap, and must be bounded. Anchored on
+  // the bare rule: `body.screen-open #message` appears first in the file and
+  // sets only the plate.
+  const sheet = readFileSync(new URL('../src/style.css', import.meta.url), 'utf8');
+  const line = /\n#message\s*\{([^}]*)\}/s.exec(sheet)?.[1] ?? '';
+  check('#message is bounded rather than free to run off the screen',
+    /max-width:\s*min\(92vw,\s*1100px\)/.test(line), line);
+  check('...and nothing stops it wrapping', !/white-space:\s*nowrap/.test(line), line);
 }
