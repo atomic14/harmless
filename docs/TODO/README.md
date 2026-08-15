@@ -13,19 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [161 — A save that is refused rather than
-   raised](161-a-save-that-is-refused-rather-than-raised.md) · defect · small.
-2. [154 — The comments in src/ are not in Simplified Technical
+1. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
-**161 came out of 160, on Chris's call of 2026-08-16:** *"We should migrate
-snapshot v2 to v3."* `SNAPSHOT_VERSION` moved twice on 2026-08-15, and the door
-refuses anything that is not the current number. So a save written between those
-two commits is listed on the shelf and throws when it is picked. The refusal was
-160's own recorded reasoning, and this overrules it.
+**161 landed on 2026-08-16 and is below.** It came out of 160, on Chris's call:
+*"We should migrate snapshot v2 to v3."*
 
-**154 is the rest of the queue.** It was parked on 2026-08-15, and five items went in front
+**154 is the queue.** It was parked on 2026-08-15, and five items went in front
 of it (Chris): *"I want to park that for a while and pick up the GitHub
 issues."* All five landed the same day and are below. 154 is a sweep, and a
 sweep waits.
@@ -93,6 +88,49 @@ docs/TODO/135 argues against building avoidance for that, with the design bias
 recorded (wait, do not swerve) if the answer is yes anyway. 136 M4 is where it
 would go if it is ever wanted — the curve takes a plane as a parameter, so a path
 pushed off the traffic is still a path of the same shape.
+
+## What landed on 2026-08-16
+
+**161 — a save that is refused rather than raised.** Chris's call: *"We should
+migrate snapshot v2 to v3."*
+
+**`SNAPSHOT_VERSION` moved twice on 2026-08-15**, to 2 for the escape capsule
+and to 3 for the atonement ledger. `parseSnapshot` refused anything that was not
+the current number, and 160 recorded that refusal as deliberate. This overrules
+it.
+
+**The refusal was silent in the worst way.** `SAVE_RECORD_VERSION` did not move,
+so a version 2 record IS on the shelf and IS listed. The snapshot's version is
+not read until the world is restored. So the save appears, the player picks it,
+and it throws.
+
+**`MIGRATIONS` sits under `SNAPSHOT_VERSION`**, because that constant's doc says
+what each version ADDED and this says how to add it. Written apart, one of them
+would rot. `migrateSnapshot` climbs on a COPY, and only when it has a step to
+run: a current snapshot is not cloned, and one it cannot raise leaves the
+caller's bytes as they were.
+
+**The v2 step WRITES the field rather than permitting its absence.**
+`Persistence.restore` clones the commander straight in, so an absent
+`atonement` reaches `recordWorkedOff` as `undefined` and the ledger runs at NaN
+— for the rest of that career, saying nothing. The cost of the raise is bounded
+at four pirate kills, once.
+
+**Two things the work found.** `parseSnapshot` returned `raw` rather than the
+object it had validated. The two were the same object until a migration copied
+one, so nothing had ever noticed; with the migration in, the door validated the
+copy and handed back the version 2 original. And **the first gate died rather
+than failing**: proving it could fail found a bare `parseSnapshot` call ending
+the run, which reported nothing and counted nothing. A gate that cannot report
+its own failure is not a gate, and only the break-it step finds that.
+
+**`snapshot.ts` crossed 400 lines, and the seam was already a banner in the
+file.** The door is `snapshot-parse.ts` now, 157 lines against 311 left behind.
+One file says what a snapshot IS — the shape, the version, the table that climbs
+it, and the codec — and the other says what makes one trustworthy.
+
+**Version 1 is still refused, and that is a decision waiting on Chris.** The
+step is one entry in the same table, and the plan holds the argument both ways.
 
 ## What landed on 2026-08-15
 
