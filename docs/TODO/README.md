@@ -17,6 +17,10 @@ active context:
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
+**154 was parked on 2026-08-15, and two defects went in front of it** (Chris):
+*"I want to park that for a while and pick up the GitHub issues."* Both landed
+the same day, and both are below. 154 is a sweep, and a sweep waits.
+
 **151 to 154 came out of one review, on Chris's question of 2026-08-14:** *"Are
 they in ASD-STE100 and are they useful — we don't need comments that contain the
 whole history of the project. Comments should help explain the code."* The
@@ -45,7 +49,10 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds no open work. **#27** closed on 2026-08-13 with
+The GitHub inbox holds no open work. **#29** and **#28** closed on 2026-08-15
+with [157](completed/157-the-console-line-runs-off-both-edges.md) and
+[156](completed/156-the-escape-capsule-nobody-chose-to-shoot.md). **#27** closed
+on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
 2026-08-13 with
 [143](completed/143-the-counter-never-says-which-tonnes-are-spoken-for.md).
@@ -64,6 +71,58 @@ docs/TODO/135 argues against building avoidance for that, with the design bias
 recorded (wait, do not swerve) if the answer is yes anyway. 136 M4 is where it
 would go if it is ever wanted — the curve takes a plane as a parameter, so a path
 pushed off the traffic is still a path of the same shape.
+
+## What landed on 2026-08-15
+
+**156 — the escape capsule nobody chose to shoot (GitHub #28).** Chris flew it
+and reported two things at once: *"Escape pods seem to be too easy to destroy.
+And destroying a pirate's escape pod should not make me a criminal."* They have
+different causes.
+
+**A capsule launched AT the wreck**, which is the one place the gun is certainly
+already pointed, and a beam laser fires ten times a second. The burst that
+killed the ship killed the pilot, and the commander never chose it.
+`POD_LAUNCH_GRACE` is 1.5 seconds, and `shot.ts` spends it in BOTH passes, so a
+graced capsule can be neither struck squarely nor grazed. Chris chose the grace
+over a bigger bank, and the reason is the one the fault has: it is where the
+capsule appears, not how tough it is.
+
+**Every capsule was a Fugitive offence whoever was inside**, so shooting a
+raider's pod outranked shooting the raider. The capsule could not answer the
+question, because `Combat.wreck` despawns the ship in the frame that launches
+it. It carries the role now, and the record comes off `offenceFor` — the same
+rule that prices the hull.
+
+**Triage found a third fault the report did not.** The Character ladder was
+never charged for this at all, so a commander could shoot a lawful pilot in his
+capsule and buy the name back with the fine. It costs a murder now, and it costs
+one for a raider's capsule too: Chris's call, *"Character only"*. Not a crime,
+and still a deed. That is the clearest case in the game of the two ladders
+moving apart.
+
+**`combat.ts` crossed 400 on the way, and the seam was already in its header.**
+The two functions that assemble the player's trigger out of a GameState are
+`combat-player.ts` now, which takes `GameState` and `viewDirection` out of the
+pure rule. That is the architectural argument; the line count is only what made
+somebody look.
+
+**157 — the console line runs off both edges (GitHub #29).** `#message`
+declared `white-space: nowrap` and no width at all, centred on `left: 50%`. So a
+line wider than the window hung off BOTH edges, and the commander read the
+middle of the sentence.
+
+**The measurement is the item.** The Constrictor gun warning is 91 characters,
+which at 15px Menlo with 3px of tracking is 1095 pixels. One row of an ordinary
+1024px window is 942. It has never fitted, on any window a player is likely to
+use. The two numbers that make the sentence useful sit at the two ends.
+
+**The queue was never at fault**, and that is worth recording because it is
+where a reader would look first: `later` and `tickMessage` deliver the line
+whole. It is then painted off the screen.
+
+**The words are untouched.** docs/TODO/144 M1 cut that sentence once already on
+a length argument, then put it back when length stopped being the constraint.
+Writing a rule to a width is the mistake this item exists to stop repeating.
 
 ## What landed on 2026-08-14
 
