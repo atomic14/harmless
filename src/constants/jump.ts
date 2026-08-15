@@ -11,6 +11,11 @@
  * `audio.ts`'s countdown blip is pitched at `700 + (COUNTDOWN - n) * 100`. The
  * first blip is therefore 700 Hz whatever this is, and each second climbs 100 Hz.
  * `test/audio.test.ts` asserts the climb, so the pitch tracks this value.
+ *
+ * It has its own rule id. It is a duration in SECONDS, and the other constants
+ * at 5 are counts, a ratio and a rate.
+ *
+ * @rule jump.countdown
  */
 export const COUNTDOWN = 5;
 

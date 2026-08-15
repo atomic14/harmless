@@ -21,7 +21,7 @@ import { formatCredits } from './commander.ts';
 import { nearestEngaging, nearestNpc, type NpcShip } from './npc.ts';
 import {
   bribeOffered, carryingContraband, inspectionPrice, patrolPrice, patrolReach,
-  recordCleared, recordVerdict,
+  recordCleared, recordVerdict, recordWorkedOff,
 } from './law.ts';
 import { launchStationDefence } from './spawning.ts';
 import { offerBribe, type Dumped } from './jettison.ts';
@@ -94,12 +94,43 @@ export class LawActions {
     if (level <= CLEAN) return;   // shooting a pirate is nobody's business
     const moved = this.state.commander.legalStatus < level;
     if (moved) this.state.commander.legalStatus = level;
+    // A fresh crime clears the ledger. Without this a commander banks four
+    // pirate kills, commits one offence, and shoots one more to be Clean again
+    // (docs/TODO/160).
+    if (moved) this.state.commander.atonement = 0;
     // The sky first: Vipers leaving the slot are happening NOW, and a pilot
     // being shot at wants that ahead of a sentence about paperwork.
     this.callStationDefence();
     if (moved) {
       this.host.queueMessage(recordVerdict(this.state.commander.legalStatus), SCAN_LINE_SECONDS);
     }
+  }
+
+  /**
+   * ...and the way a record comes back DOWN without a station: police work.
+   *
+   * `recordWorkedOff` (law.ts) owns the rule and this applies it. The role test
+   * is the rule's, not this file's — a caller hands over whatever it destroyed,
+   * and a kill that pays down nothing is a no-op.
+   *
+   * **Only a MOVE speaks**, which is the rule `raiseLegal` above already
+   * states: a line for each of the five kills would shout the ledger down the
+   * length of a fight. The line itself is `recordVerdict`, the one home of what
+   * a moved record says, and it reads both directions — a commander who falls
+   * to Offender is told that bounty hunters still engage.
+   *
+   * @internal — driven by src/game/flight-weapons.ts. A destroyed pirate is a
+   * `CombatEvent`, and this half pays it (invariant 15).
+   */
+  lowerLegal(role: string): void {
+    if (role !== 'pirate') return;
+    const c = this.state.commander;
+    const worked = recordWorkedOff(c.legalStatus, c.atonement);
+    if (!worked) return;
+    const moved = worked.legalStatus !== c.legalStatus;
+    c.legalStatus = worked.legalStatus;
+    c.atonement = worked.atonement;
+    if (moved) this.host.queueMessage(recordVerdict(c.legalStatus), SCAN_LINE_SECONDS);
   }
 
   /**

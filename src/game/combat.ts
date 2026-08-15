@@ -54,6 +54,12 @@ export type CombatEvent =
   | { kind: 'message'; text: string; seconds: number; queued?: boolean }
   /** raise the legal status — the Game does it, because it launches the Vipers */
   | { kind: 'offence'; level: number }
+  /**
+   * A ship the law is glad to see the back of went down, credited to the
+   * commander. `recordWorkedOff` (law.ts) decides what that pays off, and the
+   * role travels rather than the answer, so the rule stays in one file.
+   */
+  | { kind: 'atonement'; role: string }
   /** this ship has left the sky; drop any missile lock on it */
   | { kind: 'wrecked'; npc: NpcShip }
   /** point the cockpit beams here, or straight ahead when null */
@@ -271,6 +277,10 @@ export class Combat {
 
     const crime = offenceFor(npc.role, true);
     out.push({ kind: 'offence', level: crime });
+    // ...and the other direction. A pirate down is police work, and it pays a
+    // record off a rung at a time (docs/TODO/160). It is pushed for every kill
+    // and answered by the rule, which is what keeps the role list in one file.
+    out.push({ kind: 'atonement', role: npc.role });
 
     // What it does to your NAME, which the fine will not wash off. Cracking a
     // hermit is a career-marking act; so is destroying any lawful ship (the

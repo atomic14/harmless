@@ -60,5 +60,12 @@ export const CABIN_TEMP_LAG = 1.2;
  */
 export const CABIN_TEMP_FATAL = 0.99;
 
-/** Tonnes of fuel gathered per second on a scoop — tenths of a light year. */
+/**
+ * Tonnes of fuel gathered per second on a scoop — tenths of a light year.
+ *
+ * It has its own rule id. It is a RATE, in tenths of a light year a second, and
+ * the other constants at 5 are counts, a ratio and durations.
+ *
+ * @rule sun.scoopRate
+ */
 export const SCOOP_RATE = 5;

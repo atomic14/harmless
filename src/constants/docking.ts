@@ -16,6 +16,11 @@
  * is a RATIO, not a distance. The gate scales with the hull, so a Dodo's longer
  * approach comes from its bigger box. Five half-widths is 800 units at a
  * Coriolis, and 980 at a Dodo.
+ *
+ * It has its own rule id. Several unrelated constants sit at 5, and this is the
+ * only one that is a RATIO. Every other is a count or a duration.
+ *
+ * @rule docking.gateHalfWidths
  */
 export const GATE_HALF_WIDTHS = 5;
 

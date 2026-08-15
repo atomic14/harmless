@@ -60,6 +60,11 @@ export const TACTIC_WEIGHTS = {
  * bracketed on both sides. It is longer than one pass, so a tactic is seen in a
  * record. It is shorter than one full cycle — the median merge-to-merge is 7.2s —
  * so a hammered ship can rethink.
+ *
+ * It has its own rule id. It is a duration in SECONDS, bracketed by two measured
+ * facts about a dogfight, and nothing else at 5 answers to either of them.
+ *
+ * @rule tactic.minDwell
  */
 export const TACTIC_MIN_DWELL = 5;
 

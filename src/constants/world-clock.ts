@@ -25,6 +25,11 @@ export const MAX_FRAME_TIME = 0.25;
  * ...and the most steps one frame may run, so a stall cannot spiral. If the
  * catch-up costs more real time than it buys, the backlog grows every frame. At
  * the cap, the loop drops the backlog entirely (`accumulator = 0`).
+ *
+ * It has its own rule id. It is a count of STEPS in one frame of real time, and
+ * it is the only constant at 5 that is about the loop rather than the game.
+ *
+ * @rule clock.maxStepsPerFrame
  */
 export const MAX_STEPS_PER_FRAME = 5;
 

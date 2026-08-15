@@ -11,5 +11,10 @@ export const THREAT_SWITCH_MARGIN = 2.0;
 /**
  * Seconds that the defender fights a threat before it considers a rival. A
  * threat that dies or leaves is replaced at once, whatever this value is.
+ *
+ * It has its own rule id. It is a duration in SECONDS inside one fight, and the
+ * other constants at 5 answer to counts, a ratio and a rate.
+ *
+ * @rule threat.minHold
  */
 export const THREAT_MIN_HOLD = 5;

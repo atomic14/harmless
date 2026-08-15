@@ -136,6 +136,23 @@ export interface CommanderData {
   equipment: Equipment;
   legalStatus: number; // 0 clean, 1 offender, 2 fugitive
   /**
+   * Atonement: pirate kills counted toward the record since it last ROSE.
+   *
+   * The record only ever went up, and the fine at a station was the only thing
+   * that took it down. `recordWorkedOff` (game/law.ts) is the second way, and
+   * this is its ledger (docs/TODO/160, GitHub #32). `KILLS_PER_RUNG` of them
+   * take one rung off `legalStatus` and the ledger returns to 0.
+   *
+   * A Clean commander banks nothing, so a crime cannot be paid for in advance.
+   * A fresh offence clears it, so nobody banks four kills and then commits one.
+   *
+   * It is the RECORD that a kill works off and never the name: `disrepute`
+   * below is untouched by it. That is docs/TODO/156's split — what the
+   * Government holds, against what people think of you — read from the other
+   * side.
+   */
+  atonement: number;
+  /**
    * Disrepute: the reputation for dirty dealing that clings after the fine is
    * paid. Shady deeds raise it, time erodes it; `game/character.ts` turns it
    * into a name (Honest…Cutthroat). 0 is Honest.
@@ -206,6 +223,7 @@ export function newCommander(): CommanderData {
     survivors: 0,
     equipment: defaultEquipment(),
     legalStatus: 0,
+    atonement: 0,
     disrepute: 0,
     mission: { stage: 0, targetIndex: null },
     trumbles: 0,

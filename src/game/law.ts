@@ -11,7 +11,7 @@
 import { COMMODITIES } from '../galaxy/galaxy.ts';
 import {
   BRIBE_FLOOR, BRIBE_REFUSED, BRIBE_SHARE, CLEAN, CONTRABAND, FUGITIVE,
-  FUGITIVE_FINE, LAW_ROLE_NAMES, LEGAL_NAMES, OFFENDER, OFFENDER_FINE,
+  FUGITIVE_FINE, KILLS_PER_RUNG, LAW_ROLE_NAMES, LEGAL_NAMES, OFFENDER, OFFENDER_FINE,
   PATROL_BRIBE_FINES, SCAN_RANGE, SCAN_WARN_RANGE, STATION_TRUCE,
 } from '../constants/law.ts';
 import { DISREPUTE_BRIBE, DISREPUTE_MAX } from '../constants/character.ts';
@@ -47,6 +47,10 @@ export function fineFor(legalStatus: number, credits: number): number {
  * optional half. The charge is `fineFor`, capped at what you can pay, so a broke
  * commander is not trapped as a Fugitive; the cost is the credits, not the
  * impossibility. The caller applies the result and sets the status Clean.
+ *
+ * It is the FAST way and no longer the only one. `recordWorkedOff` below takes
+ * a record down a rung at a time for pirate kills, and needs no station
+ * (docs/TODO/160). This clears the whole record in one act, and costs money.
  */
 export function recordCleared(
   legalStatus: number, credits: number,
@@ -162,6 +166,35 @@ export function bribeOffered(
   const paid = afterDeed(disrepute, DISREPUTE_BRIBE);
   if (roll < refusalChance(disrepute)) return { outcome: 'refused', price, disrepute: paid };
   return { outcome: 'paid', price, creditsLeft: credits - price, disrepute: paid };
+}
+
+/**
+ * A pirate kill, against a record: what the commander now holds, and what is
+ * left on the ledger — or `null` when the kill pays down nothing.
+ *
+ * The SECOND way a record comes down, beside `recordCleared` above. That one is
+ * a fine paid at a station by choice. This one is police work, and it needs no
+ * station (docs/TODO/160, GitHub #32).
+ *
+ * **A Clean commander banks nothing.** There is no record to work off, and a
+ * bank of credit earned before a crime is not atonement. So the answer is
+ * `null`, and the ledger stays where it is.
+ *
+ * **The record moves and the NAME does not.** Disrepute is no business of this
+ * function, and no caller should make it one. Otherwise a commander could
+ * murder a trader, shoot five pirates, and end Clean and Honest at a profit.
+ * docs/TODO/156 drew the same line from the other side.
+ *
+ * The rule does the arithmetic and the caller writes it down (invariant 10),
+ * which is the shape `recordCleared` and `bribeOffered` already have.
+ */
+export function recordWorkedOff(
+  legalStatus: number, atonement: number,
+): { legalStatus: number; atonement: number } | null {
+  if (legalStatus <= CLEAN) return null;
+  const paid = atonement + 1;
+  if (paid < KILLS_PER_RUNG) return { legalStatus, atonement: paid };
+  return { legalStatus: legalStatus - 1, atonement: 0 };
 }
 
 /**

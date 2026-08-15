@@ -28,8 +28,12 @@ import {
  * 2 adds `occupant` and `grace` to a canister (GitHub #28). A version 1 save
  * holds capsules that cannot say who was inside, and guessing would decide a
  * commander's record for them.
+ *
+ * 3 adds `atonement` to the commander (GitHub #32). A version 2 save cannot say
+ * how far through a rung its pilot was, and a default of 0 would silently take
+ * four pirates back off them.
  */
-export const SNAPSHOT_VERSION = 2;
+export const SNAPSHOT_VERSION = 3;
 
 /** The part every ship has, player or not. */
 export interface ShipSnapshot {

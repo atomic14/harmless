@@ -269,6 +269,12 @@ export class Weapons {
       switch (e.kind) {
         case 'message': this.host.sayEvent(e); break;
         case 'offence': this.host.raiseLegal(e.level); break;
+        // Straight to the law rather than out through the host, and the
+        // asymmetry with `offence` above is the reason: raising a record
+        // launches the station's Vipers, which is the orchestrator's act. A
+        // record worked off queues one console line and nothing else, so it
+        // goes the way `throwOverboard` already does.
+        case 'atonement': this.law.lowerLegal(e.role); break;
         case 'wrecked': if (this.ordnance.targetLock === e.npc) this.ordnance.targetLock = null; break;
         case 'beam': this.cockpit.aimBeams(e.at); break;
         case 'fired': this.state.session.beamTimer = BEAM_FLASH; break;

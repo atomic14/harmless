@@ -116,5 +116,11 @@ export const MAX_THARGONS = 4;
  * A mothership keeps deployment up while it lives, so this is the pressure that
  * makes a kill of the mother the objective. At 5 seconds it replaces a drone
  * faster than most commanders kill one.
+ *
+ * It has its own rule id, and one of the constants it shares 5 with is about
+ * this very number: `KILLS_PER_RUNG` (law.ts) counts pirates only BECAUSE a
+ * mothership replaces a drone this fast. The two must stay free to move apart.
+ *
+ * @rule encounters.thargonRedeploy
  */
 export const THARGON_REDEPLOY = 5;

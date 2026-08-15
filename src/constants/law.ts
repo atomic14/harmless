@@ -69,6 +69,37 @@ export const OFFENDER_FINE = 250;
 export const FUGITIVE_FINE = 750;
 
 /**
+ * Pirate kills that take a legal record down one rung.
+ *
+ * The second way a record comes down, and the first that needs no station
+ * (`recordWorkedOff`, game/law.ts, docs/TODO/160). Ten of them take a Fugitive
+ * to Clean.
+ *
+ * **The arithmetic that chooses five.** A pirate's bounty runs 4 to 22 credits
+ * across the roster (game/ship-specs.ts) and most of the band sits near 10, so
+ * five kills earn about 50 credits. One rung costs 25 credits as an Offender
+ * and 75 as a Fugitive. So the fight route pays for itself and then some, and
+ * it costs five fights and a survival. The fine is the fast way and needs a
+ * station; the fight is the slow way and needs none.
+ *
+ * **Pirates only, and a Thargon is why.** `THARGON_REDEPLOY` is 5 seconds
+ * (constants/encounters.ts) and a live mothership keeps replacing drones, so
+ * counting them would make a record free.
+ *
+ * It has its own rule id. It shares the value 5 with a ratio, a rate and three
+ * durations, and it is a count of KILLS against one rung of the legal ladder.
+ *
+ * The token heuristic reads "kills" and offers the rating domain. The rating
+ * ladder counts kills for a NAME — Harmless to Elite — and this counts them
+ * against a legal record. The two ladders are unrelated, and `rating.ts` must
+ * stay free to re-cut its rungs without moving this.
+ *
+ * @rule law.killsPerRung
+ * @domain law
+ */
+export const KILLS_PER_RUNG = 5;
+
+/**
  * Misbehave within this range of the station slot, and the Vipers launch. It is
  * the same number as `PLAYER_INTEREST_RANGE`, and a different rule. This one is
  * measured from the STATION, and it decides whether the law shows up, not who

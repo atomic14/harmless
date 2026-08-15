@@ -190,3 +190,51 @@ answer is MINE rather than Chris's, so each is cheap to overrule:
   sentence for a record that fell; the one home already reads both directions.
 - docs/TODO/158 changes who engages the commander near a station. It does not
   touch this rule, and this rule does not touch it. Land them in either order.
+
+## Outcome — landed 2026-08-15
+
+M1 landed as planned. `npm run check` passes: **4,667 assertions, 0 failed**,
+and `constants:check` reports 387 exports and 76 rule ids. `npm run elite-a` is
+byte-identical.
+
+**Both gates were proved able to fail, and they fail separately.** A
+`recordWorkedOff` that answers `null` for every input turns **13 assertions**
+red. Restoring it and deleting the reset in `raiseLegal` turns **1** red — the
+one that says a fresh crime takes the banked kills with it.
+
+### What the work found that the plan did not have
+
+**The atonement is a `CombatEvent`, and the plan had `Combat.destroy` calling
+the law directly.** It cannot: invariant 15 says an NPC reports and an
+orchestrator resolves, and `destroy` already pushes `{ kind: 'offence' }` for
+exactly that reason. So `{ kind: 'atonement'; role }` travels beside it. The
+ROLE travels rather than the answer, which is what keeps the "pirates only" test
+inside `law.ts`.
+
+**It goes straight to `LawActions` rather than out through the host, and the
+asymmetry with `offence` is the reason.** Raising a record launches the
+station's Vipers, which is the orchestrator's act, so `offence` climbs out to
+`Game.raiseLegal`. A record worked off queues one console line and nothing else,
+so it goes the way `throwOverboard` already does — `Weapons` holds a
+`LawActions` and calls it. That saved a method on three interfaces.
+
+**`combat-sim.ts` had to refuse the new event**, exactly as it refuses
+`offence`. An exercise must not pay a career's record off.
+
+**Seven unrelated constants needed `@rule` ids.** `KILLS_PER_RUNG` arrived on
+the value 5, which nine constants share, and only two of them carried an id.
+Each of the seven now says what its own 5 is: a ratio, a rate, three durations,
+a count of steps in a frame, and this one, a count of kills against a rung. One
+of them is about this very rule — `THARGON_REDEPLOY` is 5 seconds, and it is WHY
+this counts pirates only.
+
+**`KILLS_PER_RUNG` needed `@domain law`.** The token heuristic reads "kills" and
+offers the rating domain. The rating ladder counts kills for a NAME, Harmless to
+Elite. This counts them against a legal record, and the two must stay free to
+move apart.
+
+**The console line waits for the bounty, and the test had to wait with it.** A
+kill says `BOUNTY:` for three seconds, and `recordVerdict` is queued behind it.
+A fixture that flew thirty frames after the fifth kill saw no line at all. That
+is the queue working — the rule `session.ts` states — and the fixture now flies
+260 frames and says why.

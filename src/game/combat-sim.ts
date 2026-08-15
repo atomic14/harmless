@@ -749,6 +749,9 @@ export class CombatSim {
         // REFUSED. The clone's legal status is nobody's business, and raising
         // the career's is what launches the Vipers.
         case 'offence': break;
+        // REFUSED for the same reason, from the other side: an exercise must
+        // not pay a career's record off.
+        case 'atonement': break;
         case 'wrecked':
           if (this.ordnance.targetLock === e.npc) this.ordnance.targetLock = null;
           this.down(e.npc, credited);
