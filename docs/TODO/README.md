@@ -13,13 +13,29 @@ active context:
 
 ## Execution queue
 
-1. [154 — The comments in src/ are not in Simplified Technical
+1. [158 — The safe zone that only the spawner
+   obeys](158-the-safe-zone-that-only-the-spawner-obeys.md) · defect · medium.
+2. [159 — The lane that only exists at the
+   station](159-the-lane-that-only-exists-at-the-station.md) · defect · medium.
+   Depends on 158.
+3. [160 — A record you cannot work off](160-a-record-you-cannot-work-off.md) ·
+   enhancement · medium.
+4. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
-**154 was parked on 2026-08-15, and two defects went in front of it** (Chris):
-*"I want to park that for a while and pick up the GitHub issues."* Both landed
-the same day, and both are below. 154 is a sweep, and a sweep waits.
+**154 was parked on 2026-08-15, and five items have gone in front of it**
+(Chris): *"I want to park that for a while and pick up the GitHub issues."* Two
+of them landed the same day and are below. 154 is a sweep, and a sweep waits.
+
+**158, 159 and 160 came out of the triage of GitHub #30, #31 and #32 on
+2026-08-15.** Two of the three share one root, and the triage found it rather
+than the reports: **the idle waypoint is anchored to the station.** The last
+branch of `NpcShip.update` draws a waypoint 800 to 3,300 units from the station
+for every role except the trader, so a system's ships converge on the port. That
+is why a bounty hunter is on the doorstep (#30) and why deep space holds nobody
+(#31). 158 stops a hostile loitering there; 159 puts traffic where the commander
+is. **160 is independent** and adds the second way a legal record can come down.
 
 **151 to 154 came out of one review, on Chris's question of 2026-08-14:** *"Are
 they in ASD-STE100 and are they useful — we don't need comments that contain the
@@ -49,7 +65,8 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds no open work. **#29** and **#28** closed on 2026-08-15
+The GitHub inbox holds three open items, and all three are planned: **#30** is
+158, **#31** is 159 and **#32** is 160. **#29** and **#28** closed on 2026-08-15
 with [157](completed/157-the-console-line-runs-off-both-edges.md) and
 [156](completed/156-the-escape-capsule-nobody-chose-to-shoot.md). **#27** closed
 on 2026-08-13 with
