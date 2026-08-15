@@ -300,7 +300,7 @@ console.log('\nscooping');
   const reached = (dist: number): boolean => {
     const field = new CargoField(new THREE.Object3D());
     field.restore(new THREE.Vector3(dist, 0, 0), new THREE.Vector3(),
-      new THREE.Vector3(1, 0, 0), 'cargo', 0, canisterMaxEnergy('cargo'));
+      new THREE.Vector3(1, 0, 0), 'cargo', 0, canisterMaxEnergy('cargo'), '', 0);
     return field.update(0, new THREE.Vector3()).length > 0;
   };
   let furthest = 0;

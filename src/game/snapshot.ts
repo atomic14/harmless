@@ -22,8 +22,14 @@ import {
   requirePlayerHullId, requireShipDesignId, requireNpcCombatProfileId,
 } from './ship-identity.ts';
 
-/** Bump when the shape changes so stale snapshots are refused, not misread. */
-export const SNAPSHOT_VERSION = 1;
+/**
+ * Bump when the shape changes so stale snapshots are refused, not misread.
+ *
+ * 2 adds `occupant` and `grace` to a canister (GitHub #28). A version 1 save
+ * holds capsules that cannot say who was inside, and guessing would decide a
+ * commander's record for them.
+ */
+export const SNAPSHOT_VERSION = 2;
 
 /** The part every ship has, player or not. */
 export interface ShipSnapshot {
@@ -135,6 +141,10 @@ export interface CanisterSnapshot {
    * here.
    */
   energy: number;
+  /** who is inside a capsule, and `''` for a canister — see `Canister` */
+  occupant: string;
+  /** seconds of launch grace left, so a capsule saved fresh comes back safe */
+  grace: number;
 }
 
 export interface WorldSnapshot {
@@ -303,6 +313,8 @@ export function parseSnapshot(raw: unknown): WorldSnapshot {
     if (can.kind !== 'cargo' && can.kind !== 'capsule') bad(`canisters[${i}].kind`);
     finite(can.commodity, `canisters[${i}].commodity`);
     finite(can.energy, `canisters[${i}].energy`);
+    if (typeof can.occupant !== 'string') bad(`canisters[${i}].occupant`);
+    finite(can.grace, `canisters[${i}].grace`);
   }
 
   record(s.encounterTimers, 'encounterTimers');

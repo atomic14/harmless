@@ -264,7 +264,7 @@ console.log('\nworld objects — source profiles where the game can damage them'
     field.takeLaserHit(canister, playerLaserHit(COBRA_MK_3_HULL_ID, 'pulse')));
   check('...and it leaves the field', field.items.length === 0);
 
-  field.spawnCapsule(new THREE.Vector3());
+  field.spawnCapsule(new THREE.Vector3(), 'pirate');
   eq('an escape capsule carries the released escape pod\'s bank',
     field.items[0].energy,
     npcEnergyPolicy(recommendedProfileIdFor(OBJECT_DESIGNS.escapePod)).maxEnergy);

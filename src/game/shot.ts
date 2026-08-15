@@ -6,6 +6,10 @@
 //   2. a grazing cone, consulted ONLY if the ray missed everything, so a
 //      near-miss that clips a silhouette still counts (see gunnery.ts)
 //
+// Both passes skip what cannot be shot: a dead ship, and a drifting object still
+// inside its launch grace (GitHub #28). This is the one home of that skip, so a
+// graced capsule cannot be struck squarely OR grazed.
+//
 // I nearly left this in game.ts on the grounds that "there is no honest way to
 // test a raycast without the hulls". That was wrong, and worth recording: this
 // project already proved three.js maths runs under node with no canvas and no
@@ -29,6 +33,12 @@ export interface ShootableShip extends Solid {
 /** A drifting object, whose graze comes from its KIND — see `driftingCone`. */
 export interface Drifting extends Solid {
   kind: 'cargo' | 'capsule';
+  /**
+   * Seconds of launch grace left. Above zero, the beam passes straight through
+   * it — see `POD_LAUNCH_GRACE` (constants/wreck.ts) for why a fresh capsule
+   * gets one, and `cargo.ts` for where it is counted down.
+   */
+  grace: number;
 }
 
 export type ShotHit<S extends ShootableShip, C extends Drifting> =
@@ -80,6 +90,9 @@ export function traceShot<S extends ShootableShip, C extends Drifting>(
   // station: canisters are not in the ship list, so shots passed straight
   // through them and nothing happened at all.
   for (const c of cargo) {
+    // A capsule still inside the fireball is not a target, exactly as a dead
+    // ship is not one two lines up.
+    if (c.grace > 0) continue;
     c.object.updateMatrixWorld(true);
     for (const h of ray.intersectObject(c.object, true)) {
       if (h.distance < bestDist) {
@@ -114,6 +127,7 @@ export function traceShot<S extends ShootableShip, C extends Drifting>(
     }
   }
   for (const c of cargo) {
+    if (c.grace > 0) continue;
     const to = scratch.copy(c.object.position).sub(origin);
     const dist = to.length();
     if (dist > bestDist) continue;

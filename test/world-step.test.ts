@@ -29,11 +29,10 @@ import type { NpcSnapshot, WorldSnapshot } from '../src/game/snapshot.ts';
 import { newCommander, cargoCapacity, cargoTonnes } from '../src/game/commander.ts';
 import {
   Combat,
-  firePlayerLaser,
-  damagePlayer,
   type CombatEvent,
   type DamageSource,
 } from '../src/game/combat.ts';
+import { firePlayerLaser, damagePlayer } from '../src/game/combat-player.ts';
 import { seedWorld, rngState, restoreRng } from '../src/game/rng.ts';
 import { pirateSpecForTier } from '../src/game/ship-specs.ts';
 import {
@@ -539,7 +538,7 @@ console.log('\nheadless world step');
       r.state.commander.equipment.scoops = true;
       r.state.commander.cargo[0] = tonnes;
       const where = r.state.player.position.clone();
-      if (kind === 'capsule') r.state.world.cargo.spawnCapsule(where);
+      if (kind === 'capsule') r.state.world.cargo.spawnCapsule(where, 'trader');
       else r.state.world.cargo.spawn(where, 1, [0]);
       return { r, said: said(fly(r, 1)) };
     };
@@ -572,7 +571,7 @@ console.log('\nheadless world step');
     {
       const r = arrival(4_255);
       r.state.commander.equipment.scoops = false;
-      r.state.world.cargo.spawnCapsule(r.state.player.position.clone());
+      r.state.world.cargo.spawnCapsule(r.state.player.position.clone(), 'trader');
       const lines = said(fly(r, 1));
       check('ramming a capsule without scoops names the capsule',
         lines.includes('ESCAPE CAPSULE DESTROYED ON HULL'));
@@ -580,9 +579,10 @@ console.log('\nheadless world step');
         r.log.hits.filter((h) => h.source === 'cargo')
           .every((h) => h.amount === playerImpactDamage(IMPACT.canisterOnHull))
         && r.log.hits.some((h) => h.source === 'cargo'));
-      // Message only: shooting one is the deliberate act and stays FUGITIVE
-      // (combat.ts); flying into one with no scoops is the same accident it is
-      // for a canister, and the step never asks the host to mark you for it.
+      // Message only. Shooting one is the deliberate act, and combat.ts prices
+      // it by who was inside (GitHub #28). Flying into one with no scoops is the
+      // same accident it is for a canister, whoever was inside, and the step
+      // never asks the host to mark you for it.
       check('...and is not an offence', r.log.legal === 0);
     }
   }

@@ -1,5 +1,5 @@
-// What destruction leaves behind: whether the pilot got out, and what a mined
-// rock pays.
+// What destruction leaves behind: whether the pilot got out, how long their
+// capsule is safe, and what a mined rock pays.
 //
 // The rule that spends these is `Combat.wreck` and `Combat.destroy` in
 // game/combat.ts. WHAT spills — the cargo list a wreck sheds, the ore list a rock
@@ -20,6 +20,30 @@
  * here.
  */
 export const ESCAPE_CHANCE = { trader: 0.45, other: 0.2 } as const;
+
+/**
+ * Seconds a fresh capsule cannot be shot, counted from the moment it launches
+ * (GitHub #28).
+ *
+ * A capsule appears AT the wreck, which is the one place the gun is certainly
+ * already pointed. So the shot that killed the ship killed the pilot too, and
+ * the commander never chose it. This is the grace that makes it a choice.
+ *
+ * The number comes from the two rules it sits between. A capsule drifts at 40 to
+ * 70 units a second (`CargoField.spawnCapsule`), and it leaves the graze cone
+ * once it is more than `POD_GRAZE` — 16 units — off the line of fire. The worst
+ * lateral case is therefore 16/40, which is 0.4 seconds. The rest is the
+ * commander: a beam laser fires 10 times a second, and a held trigger outlives
+ * the kill by about a second. 1.5 covers both, and it is short enough that a
+ * commander who WANTS the capsule gone still gets it.
+ *
+ * It has its own rule id. It shares the value 1.5 with `DISREPUTE_DECAY`
+ * (constants/character.ts), which is a score a day rather than a span of
+ * seconds, and the two must stay free to move apart.
+ *
+ * @rule wreck.podLaunchGrace
+ */
+export const POD_LAUNCH_GRACE = 1.5;
 
 /**
  * Canisters of ore that a mined asteroid yields: at least the first one, plus a

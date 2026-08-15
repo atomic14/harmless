@@ -263,7 +263,7 @@ check('the canister, the pod and the missile are released designs 4, 2 and 15',
 
   seedWorld(108);
   const field = new CargoField(new THREE.Object3D());
-  field.spawnCapsule(new THREE.Vector3());
+  field.spawnCapsule(new THREE.Vector3(), 'pirate');
   field.spawn(new THREE.Vector3(500, 0, 0), 1, [0]);
   eq('a spawned capsule is the escape pod\'s mesh', edgeCount(field.items[0].object), pod);
   eq('...and a canister beside it is still the canister\'s',

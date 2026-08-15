@@ -37,7 +37,8 @@ import { Ordnance } from '../src/game/ordnance.ts';
 import { SPECS } from '../src/game/ship-specs.ts';
 import { WorldStep, type StepEvent, type StepHost } from '../src/game/world-step.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
-import { Combat, damagePlayer } from '../src/game/combat.ts';
+import { Combat } from '../src/game/combat.ts';
+import { damagePlayer } from '../src/game/combat-player.ts';
 import { freshState } from '../src/game/state.ts';
 import { newCommander } from '../src/game/commander.ts';
 import {

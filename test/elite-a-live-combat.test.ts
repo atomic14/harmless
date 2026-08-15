@@ -36,7 +36,8 @@ import {
 } from '../src/game/npc-energy.ts';
 import { npcEnergyPoints, type NpcEnergyPoints } from '../src/game/damage-units.ts';
 import { NpcShip } from '../src/game/npc.ts';
-import { Combat, firePlayerLaser } from '../src/game/combat.ts';
+import { Combat } from '../src/game/combat.ts';
+import { firePlayerLaser } from '../src/game/combat-player.ts';
 import { CONSTRICTOR_SPEC, SPECS } from '../src/game/ship-specs.ts';
 import { freshState } from '../src/game/state.ts';
 import { newCommander } from '../src/game/commander.ts';

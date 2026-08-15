@@ -22,7 +22,8 @@ import {
   writeDockSave, writeFlightSave, writeNamedSave,
 } from '../src/game/storage.ts';
 import { commanderOf, dockId, flightIds, type SaveRecord } from '../src/game/save-file.ts';
-import { Combat, firePlayerLaser, damagePlayer } from '../src/game/combat.ts';
+import { Combat } from '../src/game/combat.ts';
+import { firePlayerLaser, damagePlayer } from '../src/game/combat-player.ts';
 import { MAX_ENERGY } from '../src/constants/pools.ts';
 import { durability } from '../src/game/systems.ts';
 import { CONTRABAND, CLEAN, FUGITIVE } from '../src/constants/law.ts';

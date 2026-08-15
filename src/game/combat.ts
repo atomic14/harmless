@@ -12,18 +12,16 @@
 // The geometry of what a shot passes through is shot.ts; the numbers are
 // gunnery.ts. This is the consequences.
 //
-// The two free functions at the bottom are the player's own gun and hull, over
-// a GameState: they build the arguments `Combat.fire`/`hitPlayer` want out of
-// the state and hand the events back. That is what lets a caller other than
-// the Game pull the real trigger and decide for itself what the events mean.
+// IT TAKES EACH INGREDIENT SEPARATELY and never a GameState. That is what makes
+// the class testable, and what lets `destroy()` be handed a different commander.
+// Assembling the seven arguments the player's own trigger wants is a different
+// job, and `combat-player.ts` is where it lives (docs/TODO/156).
 
 import * as THREE from 'three';
 import type { World } from './world.ts';
 import type { NpcShip } from './npc.ts';
-import type { GameState } from './state.ts';
 import type { ShipSystems } from './systems.ts';
 import type { PlayerPoolPoints } from './damage-units.ts';
-import { viewDirection } from './views.ts';
 import { type CommanderData, formatCredits, killValue } from './commander.ts';
 import { laserForView, canFire, chargeShot } from './gunnery.ts';
 import { traceShot } from './shot.ts';
@@ -173,7 +171,7 @@ export class Combat {
       if (!broke) return [...sounds, ...out];
       if (shot.cargo.kind === 'capsule') {
         // there is someone in that thing
-        out.push(say('ESCAPE CAPSULE DESTROYED', 3), { kind: 'offence', level: FUGITIVE });
+        out.push(say('ESCAPE CAPSULE DESTROYED', 3), ...this.podKilled(commander, shot.cargo));
       } else {
         out.push(say('CARGO DESTROYED', 2));
       }
@@ -219,6 +217,31 @@ export class Combat {
       }
     }
     return [...sounds, ...out];
+  }
+
+  /**
+   * What killing the pilot in a capsule costs: the record, and the name.
+   *
+   * THE LAW ASKS THE SAME QUESTION IT ASKS ABOUT THE SHIP. `offenceFor` is the
+   * one home of "whose destruction is a crime", and the capsule carries the role
+   * it needs (`Canister.occupant`). Every capsule used to be a Fugitive offence
+   * whoever was in it, so destroying a raider's pod outranked destroying the
+   * raider — which is GitHub #28. A Clean answer is a no-op at `raiseLegal`,
+   * exactly as it is for a pirate's hull.
+   *
+   * THE NAME IS CHARGED WHATEVER THE RECORD SAYS. A pirate in a capsule is still
+   * somebody who cannot shoot back, so the deed is `DISREPUTE_MURDER` like any
+   * other murder. This is the clearest case in the game of the two ladders
+   * moving apart: shoot a raider's capsule and no Viper comes, and your name is
+   * made anyway.
+   */
+  private podKilled(c: CommanderData, pod: { occupant: string }): CombatEvent[] {
+    const out: CombatEvent[] = [{ kind: 'offence', level: offenceFor(pod.occupant, true) }];
+    const wasNamed = c.disrepute ?? 0;
+    c.disrepute = afterDeed(wasNamed, DISREPUTE_MURDER);
+    const named = characterVerdict(wasNamed, c.disrepute);
+    if (named) out.push(later(named, CHARACTER_LINE_SECONDS));
+    return out;
   }
 
   /**
@@ -301,7 +324,11 @@ export class Combat {
     // wily traders and many pirates punch out at the last moment
     if (npc.role === 'trader' || npc.role === 'pirate' || npc.role === 'hunter') {
       const chance = npc.role === 'trader' ? ESCAPE_CHANCE.trader : ESCAPE_CHANCE.other;
-      if (random() < chance) this.world.cargo.spawnCapsule(npc.object.position.clone());
+      // The role goes WITH the capsule, because the ship is despawned three
+      // lines up and nothing else remembers who was flying it (GitHub #28).
+      if (random() < chance) {
+        this.world.cargo.spawnCapsule(npc.object.position.clone(), npc.role);
+      }
     }
     if (npc.cargoDrop > 0) {
       this.world.cargo.spawn(npc.object.position,
@@ -351,45 +378,4 @@ export class Combat {
     if (result.destroyed) out.push({ kind: 'died', reason: 'SHIP DESTROYED' });
     return out;
   }
-}
-
-// --- the player's gun and the player's hull, over a state --------------------
-//
-// `Combat` takes each ingredient separately, deliberately — it is what makes it
-// testable, and what lets `destroy()` be handed a different commander. The
-// player's own trigger always wants the same seven arguments and they all come
-// out of one GameState: this is assembly over an argument.
-//
-// Neither applies anything. The caller decides what the events mean — the HUD
-// and the law for the Game, a report for a caller that wants the numbers.
-
-/**
- * Pull the player's trigger, in whatever view they are looking through.
- *
- * @param scratch reused across frames; `b` carries the view direction, because
- * `Combat.fire` writes the trace's own working vector into `a`.
- */
-export function firePlayerLaser(
-  state: GameState, combat: Combat, scratch: CombatScratch,
-): CombatEvent[] {
-  const { commander, sys, player, session } = state;
-  return combat.fire(
-    commander, sys, player.position,
-    viewDirection(player.quaternion, session.view, scratch.b),
-    session.view, session.witchspace, scratch);
-}
-
-/**
- * The player takes a hit of `damage` pool points, from `from`.
- *
- * The source of the hit is NOT here: `Combat.hitPlayer` only needs to know
- * whether it came from ahead, and who is attributing the damage is the caller's
- * business — see `DamageSource` and `StepHost.applyPlayerDamage`.
- */
-export function damagePlayer(
-  state: GameState, combat: Combat, damage: PlayerPoolPoints, from: THREE.Vector3,
-  scratch: CombatScratch,
-): CombatEvent[] {
-  const { sys, player } = state;
-  return combat.hitPlayer(sys, damage, from, player.position, player.quaternion, scratch);
 }

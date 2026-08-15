@@ -345,7 +345,7 @@ console.log('\nsnapshot round trip');
     seedWorld(20_260_804);
     const field = new CargoField(new THREE.Object3D());
     field.spawn(at(0, 0, 0), 1, [0]);
-    field.spawnCapsule(at(50, 0, 0));
+    field.spawnCapsule(at(50, 0, 0), 'trader');
     // Wounded by hand, deliberately: every laser a flyable hull can carry breaks
     // a canister in ONE hit today (test/damage-paths.test.ts), so the live game
     // cannot reach this state and a save that dropped the bank would have looked

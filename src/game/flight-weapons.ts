@@ -21,7 +21,8 @@
 
 import * as THREE from 'three';
 import { sfx } from '../audio.ts';
-import { Combat, BEAM_FLASH, firePlayerLaser, damagePlayer, type CombatEvent, type DamageSource } from './combat.ts';
+import { Combat, BEAM_FLASH, type CombatEvent, type DamageSource } from './combat.ts';
+import { firePlayerLaser, damagePlayer } from './combat-player.ts';
 import { CombatInstrumentation, type CombatObserver } from './instrumentation.ts';
 import { fireEcm, ordnanceMessage, type Ordnance, type OrdnanceOutcome } from './ordnance.ts';
 import { dealToNpc } from './damage-dealt.ts';

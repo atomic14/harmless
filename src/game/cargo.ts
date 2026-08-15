@@ -21,6 +21,12 @@
 // with a single hit, so nothing about shooting cargo has changed today; what
 // changed is that "one hit" is now a consequence of the catalogue rather than a
 // line of code that could not be wrong.
+//
+// A CAPSULE IS NOT A TARGET FOR ITS FIRST SECOND AND A HALF (GitHub #28). It
+// launches at the wreck, where the gun already points, so the shot that killed
+// the ship used to kill the pilot as well. `grace` is that span, counted down
+// here. WHAT IT MEANS is `shot.ts`'s: the trace skips a graced object, so the
+// beam passes through it to whatever is behind.
 
 import * as THREE from 'three';
 import { buildShip } from '../ships/geometry.ts';
@@ -34,6 +40,7 @@ import { random, randomDirection, randomInt } from './rng.ts';
 import type { CanisterSnapshot } from './snapshot.ts';
 import { SCOOP_RANGE } from '../constants/scoop.ts';
 import { JETTISON_CLEARANCE } from '../constants/jettison.ts';
+import { POD_LAUNCH_GRACE } from '../constants/wreck.ts';
 
 export interface Canister {
   object: THREE.Object3D;
@@ -44,6 +51,29 @@ export interface Canister {
   kind: 'cargo' | 'capsule';
   /** what is left of its released bank — 8 points, and it does not regenerate */
   energy: number;
+  /**
+   * The role of the pilot inside, for a capsule. `''` for a canister, which
+   * carries a tonne of something and nobody at all.
+   *
+   * WHO IT WAS is the fact the law needs, and the capsule is the only place it
+   * survives: the ship it came out of is despawned in the same frame
+   * (`Combat.wreck`). Destroying a capsule used to make every commander a
+   * Fugitive, pirate or not, which is the half of GitHub #28 that made shooting
+   * a raider's pod worse than shooting the raider.
+   *
+   * `''` is inert rather than a default, and that distinction is docs/TODO/108's:
+   * `offenceFor('')` is Clean because an unknown role is nobody's business, so a
+   * reader that forgets to check `kind` gets a harmless answer instead of a
+   * quietly wrong one.
+   */
+  occupant: string;
+  /**
+   * Seconds left before this object can be shot, counted down by `update`.
+   *
+   * `POD_LAUNCH_GRACE` for a fresh capsule and 0 for everything else. See that
+   * constant for why a capsule needs one.
+   */
+  grace: number;
 }
 
 /** The released cargo canister — one hull, resolved once. */
@@ -145,14 +175,19 @@ export class CargoField {
       spinAxis: randomDirection(new THREE.Vector3()),
       kind: 'cargo',
       energy: canisterMaxEnergy('cargo'),
+      occupant: '',
+      grace: 0,
     });
   }
 
   /**
    * "Most wily traders, and many pirates, have this device fitted" — a
    * destroyed ship may eject its crew.
+   *
+   * @param occupant the role of the ship that launched it. The law asks who was
+   * inside, and this is the only place that fact survives the wreck.
    */
-  spawnCapsule(at: THREE.Vector3): void {
+  spawnCapsule(at: THREE.Vector3, occupant: string): void {
     const object = build('capsule');
     object.position.copy(at);
     this.add(object, {
@@ -164,6 +199,8 @@ export class CargoField {
       spinAxis: randomDirection(new THREE.Vector3()),
       kind: 'capsule',
       energy: canisterMaxEnergy('capsule'),
+      occupant,
+      grace: POD_LAUNCH_GRACE,
     });
   }
 
@@ -171,13 +208,16 @@ export class CargoField {
   restore(
     pos: THREE.Vector3, velocity: THREE.Vector3, spinAxis: THREE.Vector3,
     kind: 'cargo' | 'capsule', commodity: number, energy: number,
+    occupant: string, grace: number,
   ): void {
     const object = build(kind);
     object.position.copy(pos);
     // The bank is taken from the snapshot like everything else here. It used to
     // default to full for a save written before canisters had one; that
-    // tolerance went with the rest of the legacy handling (2026-08-04).
-    this.add(object, { commodity, velocity, spinAxis, kind, energy });
+    // tolerance went with the rest of the legacy handling (2026-08-04). The
+    // occupant and the grace are taken the same way, so a save made in the
+    // second after a kill comes back with the capsule still safe.
+    this.add(object, { commodity, velocity, spinAxis, kind, energy, occupant, grace });
   }
 
   private add(object: THREE.Object3D, rest: Omit<Canister, 'object'>): void {
@@ -194,6 +234,10 @@ export class CargoField {
   update(dt: number, playerPos: THREE.Vector3): CargoReached[] {
     const reached: CargoReached[] = [];
     for (const c of [...this.items]) {
+      // The launch grace runs down on the world's own clock, so it is spent by
+      // drifting rather than by a frame rate (invariant 11). Scooping is NOT
+      // gated on it: a capsule you fly to is a capsule you chose.
+      if (c.grace > 0) c.grace = Math.max(0, c.grace - dt);
       c.object.position.addScaledVector(c.velocity, dt);
       c.object.rotateOnAxis(c.spinAxis, dt * SPIN_RATE);
       if (c.object.position.distanceTo(playerPos) > SCOOP_RANGE) continue;
@@ -232,6 +276,8 @@ export class CargoField {
       kind: c.kind,
       commodity: c.commodity,
       energy: c.energy,
+      occupant: c.occupant,
+      grace: c.grace,
     } satisfies CanisterSnapshot));
   }
 
@@ -241,7 +287,8 @@ export class CargoField {
     for (const c of saved) {
       this.restore(
         new THREE.Vector3(...c.pos), new THREE.Vector3(...c.velocity),
-        new THREE.Vector3(...c.spinAxis), c.kind, c.commodity, c.energy);
+        new THREE.Vector3(...c.spinAxis), c.kind, c.commodity, c.energy,
+        c.occupant, c.grace);
     }
   }
 

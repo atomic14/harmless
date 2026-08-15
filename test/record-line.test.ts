@@ -137,8 +137,15 @@ console.log('...and never over the deed that caused it');
   // that proves the launch waits rather than merely that the record does.
   const { g, fly } = flying(20_300_812);
   const c = g.state.commander;
-  g.state.world.cargo.spawnCapsule(ahead(g, 400));
-  for (const item of g.state.world.cargo.items) item.object.updateMatrixWorld(true);
+  // A TRADER'S capsule, because that is the one that still moves the record
+  // (GitHub #28). Its launch grace is cleared by hand: the pod would drift out
+  // of the shot in the 1.5 seconds it takes to run down, and this case is about
+  // the ORDER of the three lines rather than about the grace.
+  g.state.world.cargo.spawnCapsule(ahead(g, 400), 'trader');
+  for (const item of g.state.world.cargo.items) {
+    item.grace = 0;
+    item.object.updateMatrixWorld(true);
+  }
 
   g.fireLaser();
   const said = fly(SETTLE);
