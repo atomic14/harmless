@@ -323,6 +323,23 @@ directory at 6% and this one file at 17%, so it is an outlier inside a swept
 surface rather than a swept file. **The decision is Chris's to revisit, and this
 item will not take it silently.**
 
+**The fifth M3 pass landed on 2026-08-15**, over `game/station.ts`,
+`game/ship-specs.ts`, `game/screens/test-mode.ts` and `game/contracts.ts`: 304
+sentences with **91 over the cap (30%)** and 14 perfect tenses, down to 481 with
+one over and none of either fault. The cost is 53 lines. **The tree is at 1,355
+long sentences, which is 12%.**
+
+**30% is the worst starting share of any M3 pass**, and these are four ordinary
+game files rather than a trainer or a report. The rate is the tree's own: the
+files at the top of `--work` were the big ones, and the files below them are
+just as far from the style.
+
+**The value test cut one comment.** `station.ts` opened its dock with *"whatever
+flew us in, we're down: drop the autopilot and cut the music"* over the two
+lines that do exactly that. It named no reason and no consequence. Everything
+else in the four earns its place: an absence explained so nobody re-adds it, a
+measured figure, a defect that a comment stops somebody from re-creating.
+
 **Four things came out of the first pass that the plan did not have.**
 
 1. **A fifth exclusion was needed, and it is a table in COLUMNS.** Several

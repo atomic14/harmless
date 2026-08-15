@@ -3,17 +3,19 @@
 // Pure data tables, in the spirit of the 1984 originals.
 //
 // EVERY NUMBER IN THIS FILE IS HARMLESS'S. The rows say colour, cruise, turn
-// rate, bounty and racks — presentation, motion and selection policy. Not one
-// source combat field is copied in: energy, defence, laser power and the
-// released bounty live in the catalogue and are reached through `profileId`, so
-// re-importing the pack cannot leave a stale twin here. The one source number
-// the rows DO consume is a released top speed, and it arrives converted
-// (`cruise`), never copied. A row's toughness is the released bank its
-// `profileId` resolves to, and nothing else.
+// rate, bounty and racks, which is presentation, motion and selection policy.
 //
-// Nothing here decides anything: `ship-roles.ts` says which designs a role may
-// fly at all, population.ts chooses how many, contracts.ts chooses the threat
-// tier, spawning.ts puts them in the sky.
+// Not one source combat field is copied in. Energy, defence, laser power and
+// the released bounty live in the catalogue, and are reached through
+// `profileId`. So a re-import of the pack cannot leave a stale twin here.
+//
+// The one source number the rows DO consume is a released top speed, and it
+// arrives converted (`cruise`) rather than copied. A row's toughness is the
+// released bank its `profileId` resolves to, and nothing else.
+//
+// Nothing here decides anything. `ship-roles.ts` says which designs a role may
+// fly at all. population.ts chooses how many. contracts.ts chooses the threat
+// tier. spawning.ts puts them in the sky.
 
 import { ACCEL_FRACTION } from '../constants/hull-motion.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
@@ -29,8 +31,8 @@ import {
 /**
  * Which source design each roster hull IS, stated once.
  *
- * Written down rather than inferred because inferring it is the failure
- * ship-identity.ts exists to prevent: `spec.def === COBRA_MK3` makes the
+ * Written down rather than inferred, because an inference is the failure
+ * ship-identity.ts exists to prevent. `spec.def === COBRA_MK3` makes the
  * geometry table the identity table, and a hull reused for two ships would
  * silently change what a ship is. These are the pack's own design ids, each
  * validated by `eliteAShipIdentity` as the table below is built.
@@ -68,13 +70,17 @@ const own = (o: HarmlessOverlay): ShipIdentity =>
  * What an asteroid is. The `asteroid` role has no `NpcSpec` — its size is
  * rolled from the seed — so its identity lives here beside the roster.
  *
- * The IDS only: a rock is generated (`buildAsteroid`) at a size drawn from its
- * seed, so it is the one design whose mesh and radius do not come from the
- * registry. A Harmless deviation (the released asteroid is one fixed 20-unit
- * lump), stated here rather than left silent: a field where every rock is
- * identical is worse to fly through, and the size variety is what makes one
- * worth aiming at. The three exact designs stay registered and viewable — the
- * deviation is which mesh the `asteroid` role spawns, not which designs exist.
+ * The IDS only. A rock is generated (`buildAsteroid`) at a size drawn from its
+ * seed. So it is the one design whose mesh and radius do not come from the
+ * registry.
+ *
+ * That is a Harmless deviation, because the released asteroid is one fixed
+ * 20-unit lump. It is stated here rather than left silent. A field where every
+ * rock is identical is worse to fly through, and the variety in size is what
+ * makes one worth aiming at.
+ *
+ * The three exact designs stay registered and viewable. The deviation is which
+ * mesh the `asteroid` role spawns, and not which designs exist.
  */
 export const ASTEROID_IDENTITY: ShipIdentity = eliteAShipIdentity(SOURCE_DESIGN.asteroid);
 
@@ -83,14 +89,14 @@ export const ASTEROID_IDENTITY: ShipIdentity = eliteAShipIdentity(SOURCE_DESIGN.
 /**
  * World units per second for one unit of released top speed.
  *
- * Anchored on the Cobra Mk III, the way the geometry is: the released player
- * Cobra tops out at 42 source units and the Harmless player ship at 400, so one
- * source unit is 400/42 ≈ 9.52 units/s. Read from both tables rather than
- * written down, so neither can drift from it quietly.
+ * Anchored on the Cobra Mk III, the way the geometry is. The released player
+ * Cobra tops out at 42 source units, and the Harmless player ship at 400. So
+ * one source unit is 400/42 ≈ 9.52 units/s. It is read from both tables rather
+ * than written down, so neither can drift from it quietly.
  *
- * Not in `src/constants/`: half of it is `PLAYER_FLIGHT`, which is there, but
- * the other half is a released hull, and reaching one means a chain of imports
- * that directory may not make. So the expression stays here where both halves
+ * It is not in `src/constants/`. Half of it is `PLAYER_FLIGHT`, which is there.
+ * The other half is a released hull, and to reach one means a chain of imports
+ * that directory may not make. So the expression stays here, where both halves
  * are in scope.
  */
 export const WORLD_SPEED_PER_SOURCE_SPEED =
@@ -102,13 +108,14 @@ export function sourceSpeedToWorld(sourceSpeed: number): number {
 }
 
 /**
- * The cruise for a hull Harmless has never chosen one for.
+ * The cruise for a hull Harmless never chose one for.
  *
- * Used by the designs this phase brought into the roster. The ones already
- * flying keep the speeds they were tuned and trained at — those numbers are the
- * world the shipped brains were fitted in — so the conversion applies only
- * where there was nothing, which is why a Shuttle cruises at 180 and a
- * converted Shuttle Mk II at 86.
+ * The designs this phase brought into the roster use it. The ones already in
+ * the sky keep the speeds they were tuned and trained at. Those numbers are the
+ * world the shipped brains were fitted in.
+ *
+ * So the conversion applies only where there was nothing. That is why a Shuttle
+ * cruises at 180 and a converted Shuttle Mk II at 86.
  */
 const cruise = (sourceDesignId: number): number =>
   sourceSpeedToWorld(eliteADesign(sourceDesignId).maxSpeed);
@@ -124,20 +131,22 @@ export interface NpcSpec extends ShipIdentity {
   /**
    * Radians/second of yaw authority — and OURS.
    *
-   * The Harmless motion overlay, with `accel`: the pack has a top speed per
-   * design and nothing else, because the original's handling is a table of
-   * per-frame rotation bytes for a 2 MHz 6502, not a number this flight model
-   * could take. So every turn rate below is a browser-game constant chosen for
-   * feel. The per-hull half is data; the shared multipliers `TURN` and
-   * `ACCEL_FRACTION` are `constants/hull-motion.ts`.
+   * The Harmless motion overlay, with `accel`. The pack has a top speed per
+   * design and nothing else. The original's handling is a table of per-frame
+   * rotation bytes for a 2 MHz 6502, and not a number this flight model could
+   * take.
+   *
+   * So every turn rate below is a browser-game constant chosen for feel. The
+   * per-hull half is data. The shared multipliers `TURN` and `ACCEL_FRACTION`
+   * are `constants/hull-motion.ts`.
    */
   turnRate: number;
   bounty: number; // tenths of a credit
   /**
-   * Units/s of thrust. Omitted means ACCEL_FRACTION of top speed, which is
-   * what every hull wants unless it is deliberately sluggish or brisk — use
-   * `shipAccel()` rather than reading this field. Also part of the motion
-   * overlay: the pack does not define it.
+   * Units/s of thrust. Omitted means ACCEL_FRACTION of top speed, which is what
+   * every hull wants unless it is deliberately sluggish or brisk. Use
+   * `shipAccel()` rather than a read of this field. It is also part of the
+   * motion overlay, because the pack does not define it.
    */
   accel?: number;
   missiles?: number;
@@ -158,18 +167,21 @@ export type RosterSpecs = Record<Exclude<NpcRole, 'asteroid'>, readonly NpcSpec[
  * The roster with NO blueprint set in force — every row Harmless has.
  *
  * Which designs each role MAY contain is `ship-roles.ts`'s answer, read off the
- * released blueprint slots, and `test/ship-roles.test.ts` holds every row below
- * to it — so a hull cannot be filed as a trader because it looked like one.
- * Which of the permitted designs a role actually flies is a choice, and this is
- * where it is made.
+ * released blueprint slots. `test/ship-roles.test.ts` holds every row below to
+ * it, so a hull cannot be filed as a trader because it looked like one. Which
+ * of the permitted designs a role actually flies is a choice, and this is where
+ * it is made.
  *
  * A system narrows this to the designs its own set files (`specsForSet`). This
- * table is what is left when nothing narrows it, and it has three callers that
- * want exactly that: the training world, which must not move under a trained
- * brain (invariant 5); the viewer and the combat exercises, which are about the
- * catalogue rather than about a place; and `specForDesign`, which looks a
- * RESTORED ship up by the design its snapshot recorded and so may not be
- * narrowed by where the commander happens to be now.
+ * table is what is left when nothing narrows it. Three callers want exactly
+ * that:
+ *
+ * - the training world, which must not move under a trained brain
+ *   (invariant 5);
+ * - the viewer and the combat exercises, which are about the catalogue rather
+ *   than about a place;
+ * - `specForDesign`, which looks a RESTORED ship up by the design its snapshot
+ *   recorded, and so may not be narrowed by where the commander is now.
  */
 export const SPECS: Record<Exclude<NpcRole, 'asteroid'>, NpcSpec[]> = {
   trader: [
@@ -211,10 +223,10 @@ export const SPECS: Record<Exclude<NpcRole, 'asteroid'>, NpcSpec[]> = {
     { ...flying('pirate', SOURCE_DESIGN.iguana), color: 0xffb078, maxSpeed: cruise(SOURCE_DESIGN.iguana), turnRate: 1.0, bounty: 110 },
     { ...flying('pirate', SOURCE_DESIGN.chameleon), color: 0xff9a80, maxSpeed: cruise(SOURCE_DESIGN.chameleon), turnRate: 0.9, bounty: 190, missiles: 1, ecmChance: 0.4, cargoDrop: 2 },
     { ...flying('pirate', SOURCE_DESIGN.monitor), color: 0xff7a5c, maxSpeed: cruise(SOURCE_DESIGN.monitor), turnRate: 0.35, bounty: 220, missiles: 2, ecmChance: 0.6, cargoDrop: 4 },
-    // The Asp Mk II. Its byte, 73, is laser power NINE: 36 before armour, 29 to
-    // a Cobra Mk III, one of the hardest guns any pirate carries. The source
-    // filed it as a pirate (I:23, N:23, T:23), so this is released permission,
-    // and it is fast: source speed 40, the quickest of the fighters.
+    // The Asp Mk II. Its byte, 73, is laser power NINE: 36 before armour, and
+    // 29 to a Cobra Mk III. It is one of the hardest guns any pirate carries.
+    // The source filed it as a pirate (I:23, N:23, T:23), so this is released
+    // permission. It is fast too, at source speed 40, the quickest fighter.
     { ...flying('pirate', SOURCE_DESIGN.asp), color: 0xff6a48, maxSpeed: cruise(SOURCE_DESIGN.asp), turnRate: 1.1, bounty: 200, missiles: 1, ecmChance: 0.5, cargoDrop: 2 },
   ],
   police: [
@@ -253,16 +265,18 @@ export const SPECS: Record<Exclude<NpcRole, 'asteroid'>, NpcSpec[]> = {
 };
 
 /**
- * Pirate hulls by threat tier (see pirateThreat() in threat.ts). Tier is
- * decided by how attractive a target the player looks — a poor Cobra full of
- * food draws opportunists in Sidewinders; a fat, notorious one draws a gang in
- * Fer-de-Lances. Passed to spawnNpc as a specOverride, so these stay ordinary
- * pirates for every other purpose (bounty, legality, police response).
+ * Pirate hulls by threat tier (see pirateThreat() in threat.ts).
  *
- * DERIVED from `hullThreatTier` — energy, defence and laser power off the exact
- * released build — so a hull moves tier only when the pack says it got tougher.
- * Order within a tier is roster order, so a given seed always picks the same
- * hull.
+ * The tier is decided by how attractive a target the player looks. A poor Cobra
+ * full of food draws opportunists in Sidewinders. A fat, notorious one draws a
+ * gang in Fer-de-Lances. It is passed to spawnNpc as a specOverride, so these
+ * stay ordinary pirates for every other purpose: bounty, legality and the
+ * police response.
+ *
+ * DERIVED from `hullThreatTier`, off energy, defence and laser power on the
+ * exact released build. So a hull moves tier only when the pack says it got
+ * tougher. Order within a tier is roster order, so a given seed always picks
+ * the same hull.
  *
  * These are `SPECS`'s tiers, so they are the tiers with NO set in force. A
  * system's own are `pirateTiersFor`, and this is also what they fall back to.
@@ -279,11 +293,12 @@ const tiersBySet = new Map<RosterSpecs, NpcSpec[][]>();
 /**
  * The same three tiers, inside the set in force.
  *
- * EVERY PIRATE THE GAME SPAWNS COMES THROUGH HERE, not through `rosterSpec`:
- * `spawnPopulation` picks a tier from how attractive a target the commander
- * looks and hands the hull in as an override. So this is the seam the pirate
- * band actually turns on, and narrowing `SPECS.pirate` alone would have left the
- * one band docs/TODO/138 is about untouched.
+ * EVERY PIRATE THE GAME SPAWNS COMES THROUGH HERE, and not through
+ * `rosterSpec`. `spawnPopulation` picks a tier from how attractive a target the
+ * commander looks, and hands the hull in as an override.
+ *
+ * So this is the seam the pirate band actually turns on. A narrowed
+ * `SPECS.pirate` alone left the one band docs/TODO/138 is about untouched.
  */
 export function pirateTiersFor(roster: RosterSpecs): NpcSpec[][] {
   if (roster === SPECS) return PIRATE_TIERS;
@@ -297,18 +312,22 @@ export function pirateTiersFor(roster: RosterSpecs): NpcSpec[][] {
 /**
  * Pick a hull for a pirate of the given threat tier.
  *
- * A NARROWED SET CAN EMPTY A TIER, and twelve of the 23 do: sets D, G, H and R
- * file no pirate design tough enough to be tier 2, and eight others file none
- * soft enough to be tier 0. The full roster's tier answers there, which is the
- * SAME rule `specsForSet` states for a band the set leaves empty, one level
- * down — where the set files nothing for this job, the roster does.
+ * A NARROWED SET CAN EMPTY A TIER, and twelve of the 23 do. Sets D, G, H and R
+ * file no pirate design tough enough to be tier 2. Eight others file none soft
+ * enough to be tier 0.
+ *
+ * The full roster's tier answers there. `specsForSet` states the SAME rule one
+ * level down, for a band the set leaves empty. Where the set files nothing for
+ * this job, the roster does.
  *
  * IT IS THE THREAT RULE THAT MAY NOT BE VETOED. The tier is what the commander
- * LOOKS worth: fat, notorious and far from help draws an organised gang
- * (`pirateThreat` in threat.ts). Letting a local blueprint file downgrade that
- * would mean notoriety quietly stopped mattering wherever the file was thin,
- * and the measurement says by how much — a tier-2 hit falls from 17.5 points to
- * 15.8 on the mean under a downgrade, against 17.5 under this rule.
+ * LOOKS worth. Fat, notorious and far from help draws an organised gang
+ * (`pirateThreat` in threat.ts).
+ *
+ * A local blueprint file allowed to downgrade that would mean notoriety quietly
+ * stopped mattering wherever the file was thin. The measurement says by how
+ * much. A tier-2 hit falls from 17.5 points to 15.8 on the mean under a
+ * downgrade, against 17.5 under this rule.
  */
 export function pirateSpecForTier(
   tier: number, variantSeed: number, roster: RosterSpecs = SPECS,
@@ -321,7 +340,7 @@ export function pirateSpecForTier(
 
 export const CONSTRICTOR_SPEC: NpcSpec = {
   // `pirate` is the role it flies with, and its released slot 31 is in no
-  // pirate band — so `role-variants.ts` leaves it on the pack's recommended
+  // pirate band. So `role-variants.ts` leaves it on the pack's recommended
   // build, `G:28`, which is the only one there is.
   ...flying('pirate', SOURCE_DESIGN.constrictor), color: 0xffd24d, maxSpeed: 370, turnRate: 1.2,
   bounty: 2500, missiles: 2, ecmChance: 1,
@@ -330,16 +349,16 @@ export const CONSTRICTOR_SPEC: NpcSpec = {
 /**
  * The roster row for a design a ship ALREADY knows it is.
  *
- * Restoring a save is the caller (persistence.ts): a snapshot carries the
- * ship's `designId`, and looking the row up by design cannot disagree with the
- * saved identity the way rebuilding from a tier table could.
+ * A restored save is the caller (persistence.ts). A snapshot carries the ship's
+ * `designId`. A row looked up by design cannot disagree with the saved identity,
+ * the way a rebuild from a tier table could.
  *
  * The Constrictor is included under `pirate` because that is the role it flies
  * with; it is not in `SPECS.pirate` for the reason `ship-roles.ts` gives.
  *
- * `KEY_SEP` joins the two halves of a key, written as an ESCAPE: a raw NUL byte
- * made this file `data` to file(1), which both grep and ripgrep skip in
- * silence. test/ship-roles.test.ts fails if a raw one comes back.
+ * `KEY_SEP` joins the two halves of a key, written as an ESCAPE. A raw NUL byte
+ * made this file `data` to file(1), and both grep and ripgrep skip such a file
+ * in silence. test/ship-roles.test.ts fails if a raw one comes back.
  */
 const KEY_SEP = '\u0000';
 
@@ -355,9 +374,9 @@ const BY_ROLE_AND_DESIGN = new Map<string, NpcSpec>(
  * The roster row a ship of this role and seed flies — the rule the NpcShip
  * constructor applies, as a function.
  *
- * `roster` is the set in force. It defaults to `SPECS` because a ship built
- * without a world — an arena, a trainer, a test — is not in a system, and
- * `World.spawn` is what hands in a narrowed one.
+ * `roster` is the set in force. It defaults to `SPECS`, because a ship built
+ * without a world is not in a system. An arena, a trainer and a test are the
+ * three. `World.spawn` is what hands in a narrowed one.
  *
  * `null` for a rock: its size is rolled from the seed, so it has no row.
  */

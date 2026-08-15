@@ -1,16 +1,18 @@
 // Station bulletin-board contracts: what taking work costs your hold, what
 // delivering it pays, and what failing it costs.
 //
-// What is ON the board, and how a job reads, is game/contract-offers.ts — the
-// two left when docs/TODO/113's bill took the pair over the size ceiling, along
-// the seam the tests had already found. What a station CHARGES is
-// game/market.ts; those two were unrelated subjects sharing a name, and split
-// when passenger work landed (docs/TODO/109).
+// What is ON the board, and how a job reads, is game/contract-offers.ts. The
+// two split when docs/TODO/113's bill took the pair over the size ceiling,
+// along the seam the tests already found.
 //
-// Pure functions, deliberately free of three.js and DOM so that both the
-// game (src/game/game.ts) and the headless campaign simulator
-// (test/campaign.ts) run the *same* rules — a balance test that mirrored
-// the logic instead of calling it would be worthless.
+// What a station CHARGES is game/market.ts. Those two were unrelated subjects
+// that shared a name, and they split when passenger work landed
+// (docs/TODO/109).
+//
+// Pure functions, deliberately free of three.js and DOM. So both the game
+// (src/game/game.ts) and the headless campaign simulator (test/campaign.ts) run
+// the *same* rules. A balance test that mirrored the logic rather than called
+// it would be worthless.
 //
 // Erasable-TypeScript only: Node runs this directly via
 // --experimental-strip-types.
@@ -33,10 +35,10 @@ import { afterDeed, characterVerdict } from './character.ts';
 
 // --- taking work, and being paid for it -------------------------------------
 //
-// These were `acceptContract` and `settleContracts`, two methods of game.ts —
-// which is exactly what docs/INVARIANTS.md invariant 10 forbids, and it had already
-// cost something: test/campaign.ts carried its own transcription of the
-// settlement, so the balance harness was scoring rules that only resembled the
+// These were `acceptContract` and `settleContracts`, two methods of game.ts.
+// That is exactly what docs/INVARIANTS.md invariant 10 forbids, and it cost
+// something. test/campaign.ts carried its own transcription of the
+// settlement, so the balance harness scored rules that only resembled the
 // shipped ones. It calls these now.
 //
 // Same shape as missions.ts, which is the in-repo precedent: pure, mutates the
@@ -46,13 +48,16 @@ import { afterDeed, characterVerdict } from './character.ts';
 /**
  * What settling or accepting work did.
  *
- * A failed freight run carries `reclaimed`: the tonnage taken back off the ship
- * (docs/TODO/112). It is on the EVENT rather than being a new event kind,
- * because nothing new happened — the contract failed, exactly as before, and
- * the orchestrators have no consequence of their own to apply. But the number
- * cannot be recovered from the contract afterwards (the hold may have been
- * short), and both the HUD line and the campaign's ledger need it. Courier,
- * passenger and bounty work always reports 0.
+ * A failed freight run carries `reclaimed`, which is the tonnage taken back off
+ * the ship (docs/TODO/112).
+ *
+ * It is on the EVENT rather than a new event kind, because nothing new
+ * happened. The contract failed, exactly as before, and the orchestrators have
+ * no consequence of their own to apply.
+ *
+ * But the number cannot be recovered from the contract afterwards, because the
+ * hold may be short. Both the HUD line and the campaign's ledger need it.
+ * Courier, passenger and bounty work always reports 0.
  */
 export type ContractEvent =
   | { kind: 'paid'; contract: Contract }
@@ -60,25 +65,27 @@ export type ContractEvent =
   | { kind: 'incomplete'; contract: Contract; reclaimed: number }
   /**
    * ...and the shipper charged you for the part you could not hand back
-   * (docs/TODO/113). A new KIND rather than a field on `incomplete`, because a
-   * new thing happened: money left the account and the name was marked. It
-   * carries `reclaimed` as well so the ledger a failure feeds is the same one
-   * whichever of the two lands — `tonnes` is what was missing, `reclaimed` what
-   * was still aboard, and the two add up to the consignment.
+   * (docs/TODO/113). It is a new KIND rather than a field on `incomplete`,
+   * because a new thing happened. Money left the account, and the name was
+   * marked.
+   *
+   * It carries `reclaimed` as well, so the ledger a failure feeds is the same
+   * one whichever of the two lands. `tonnes` is what was missing, `reclaimed`
+   * is what was still aboard, and the two add up to the consignment.
    */
   | { kind: 'billed'; contract: Contract; reclaimed: number; tonnes: number; charged: number }
   | { kind: 'expired'; contract: Contract; reclaimed: number }
   | { kind: 'accepted'; contract: Contract }
   | { kind: 'refused'; reason: 'tooMuchWork' | 'noHoldSpace' }
   /**
-   * Settling this lot moved your name onto a new rung of the Character ladder
-   * (docs/TODO/129) — `line` is what to say about it, assembled by
+   * This lot settled moved your name onto a new rung of the Character ladder
+   * (docs/TODO/129). `line` is what to say about it, assembled by
    * `characterVerdict` rather than written out here.
    *
-   * ONE per settlement, not one per job: a shorted consignment and a smuggling
-   * run landed in the same breath are one visit to the counter, and the rung
-   * you end on is the only one worth naming. It comes last, so the orchestrator
-   * says it behind the receipts that caused it.
+   * ONE per settlement, and not one per job. A shorted consignment and a
+   * smuggling run landed in the same breath are one visit to the counter. The
+   * rung you end on is the only one worth naming. It comes last, so the
+   * orchestrator says it behind the receipts that caused it.
    */
   | { kind: 'character'; line: string };
 
@@ -86,17 +93,18 @@ export type ContractEvent =
 /**
  * Take a failed consignment back off the ship, and say how much that was.
  *
- * The freight was never yours: the station supplied it at acceptance
- * (`acceptContract`) against a fee for carrying it, so a run that fails —
- * late, or short at the door — hands it back. Before docs/TODO/112 it stayed
- * in the hold and the trade screen sold it at the local quote, which made the
- * best job on the board one you never delivered: a 10t cargo run is ~470 Cr of
- * goods against a fee of ~79.
+ * The freight was never yours. The station supplied it at acceptance
+ * (`acceptContract`), against a fee for the carriage. So a run that fails hands
+ * it back, whether it is late or short at the door.
  *
- * `min`, not `qty`: goods are fungible and the hold keeps no per-contract
- * provenance, so a commander who bought more of the same commodity has in
- * effect covered the consignment, and one who sold it can only hand back what
- * is left. It is also what keeps the hold out of negative tonnage.
+ * Before docs/TODO/112 it stayed in the hold, and the trade screen sold it at
+ * the local quote. That made the best job on the board one you never delivered.
+ * A 10t cargo run is about 470 Cr of goods, against a fee of about 79.
+ *
+ * `min`, and not `qty`. Goods are fungible, and the hold keeps no per-contract
+ * provenance. So a commander who bought more of the same commodity has in
+ * effect covered the consignment. One who sold it can only hand back what is
+ * left. It is also what keeps the hold out of negative tonnage.
  *
  * Courier, passenger and bounty work carries nothing, so it reclaims nothing.
  */
@@ -111,20 +119,24 @@ function reclaim(c: CommanderData, k: Contract): number {
  * Bill the commander for the tonnes that never arrived, and say what was taken
  * (docs/TODO/113).
  *
- * `basePrice * 4` is a tonne's base value in ledger tenths — the same scaling
- * `generateMarket` applies before its `/10` into whole credits
- * (`galaxy/galaxy.ts`). Base price rather than the local quote for two reasons:
- * `settleContracts` takes only the commander, so a local quote would mean
- * threading a market lookup through all three of its call sites into a function
- * whose purity is what invariant 10 is protecting; and the base is *below* what
- * a dear market pays, which is the leniency that keeps the robbed-by-pirates
- * case survivable — settlement cannot see WHY a hold is short, so it charges
- * the sold and the robbed alike and the gentleness has to live in the price.
+ * `basePrice * 4` is a tonne's base value in ledger tenths. It is the same
+ * scaling `generateMarket` applies before its `/10` into whole credits
+ * (`galaxy/galaxy.ts`).
  *
- * Capped at what the commander has, the shape `fineFor` uses (`law.ts`), so a
- * broke commander is never trapped: the cost is the credits, not the
- * impossibility. Spelled out here rather than imported, because this is the
- * shipper's invoice and not the Government's fine.
+ * It is the base price rather than the local quote, for two reasons.
+ * `settleContracts` takes only the commander. A local quote would thread a
+ * market lookup through all three of its call sites, into a function whose
+ * purity is what invariant 10 protects.
+ *
+ * The base is also *below* what a dear market pays, and that leniency is what
+ * keeps the robbed-by-pirates case survivable. Settlement cannot see WHY a hold
+ * is short. It charges the sold and the robbed alike, so the gentleness has to
+ * live in the price.
+ *
+ * Capped at what the commander has, the shape `fineFor` uses (`law.ts`). So a
+ * broke commander is never trapped. The cost is the credits, and not the
+ * impossibility. It is spelled out here rather than imported, because this is
+ * the shipper's invoice and not the Government's fine.
  */
 function billShortfall(c: CommanderData, k: Contract, tonnes: number): number {
   const owed = tonnes * COMMODITIES[k.commodity].basePrice * 4;
@@ -137,24 +149,28 @@ function billShortfall(c: CommanderData, k: Contract, tonnes: number): number {
  * Pay out anything delivered here, drop anything overdue, and take back the
  * freight that was riding on it (`reclaim`, docs/TODO/112).
  *
- * Mutates the commander's cargo, credits, DISREPUTE and contract list; the
- * surviving work stays on it. A bounty job standing at its destination with the
- * count unfilled is NOT settled and NOT dropped — you can come back to it until
- * the deadline, which is the one branch a re-implementation is most likely to
- * get wrong.
+ * It mutates the commander's cargo, credits, DISREPUTE and contract list, and
+ * the surviving work stays on it.
  *
- * Disrepute is the newest of those (docs/TODO/110) and worth saying out loud,
- * because the campaign's numbers move once settlement starts applying deeds:
- * landing a smuggling run marks the name exactly as a dirty market sale does,
- * and so does arriving short (docs/TODO/113). Being LATE does neither — that
- * is an honest failure, and 112 already priced it by taking the freight back.
- * The regional heat that goes with it is `LivingGalaxy` state this pure module
- * cannot see, so the orchestrators apply that from the `paid` event.
+ * A bounty job at its destination with the count unfilled is NOT settled and
+ * NOT dropped. You can come back to it until the deadline. That is the one
+ * branch a re-implementation is most likely to get wrong.
  *
- * Passengers need no branch of their own: they travel with the contract and
- * cannot be sold off en route the way a consignment can, so arriving in time
- * pays and arriving late expires — a courier run with luggage. Dropping the
- * contract is what frees their berths, because `cargoTonnes` reads the list.
+ * Disrepute is the newest of those (docs/TODO/110), and it is worth saying out
+ * loud. The campaign's numbers move once settlement applies deeds. A smuggling
+ * run landed marks the name exactly as a dirty market sale does, and so does an
+ * arrival short (docs/TODO/113).
+ *
+ * LATE does neither. That is an honest failure, and 112 already priced it by
+ * taking the freight back. The regional heat that goes with it is
+ * `LivingGalaxy` state this pure module cannot see, so the orchestrators apply
+ * that from the `paid` event.
+ *
+ * Passengers need no branch of their own. They travel with the contract, and
+ * cannot be sold off en route the way a consignment can. So an arrival in time
+ * pays, and an arrival late expires. It is a courier run with luggage. The
+ * contract dropped is what frees their berths, because `cargoTonnes` reads the
+ * list.
  */
 export function settleContracts(c: CommanderData): ContractEvent[] {
   const events: ContractEvent[] = [];
@@ -165,15 +181,15 @@ export function settleContracts(c: CommanderData): ContractEvent[] {
     const late = c.day > k.deadlineDay;
     if (here && !late && (k.kind !== 'bounty' || k.progress >= k.qty)) {
       if (k.kind === 'cargo' || k.kind === 'smuggle') {
-        // the consignment must still be aboard — and a smuggling run is exactly
-        // as voidable as freight, because what you sold at a better price on
-        // the way is the temptation the job is built around
+        // The consignment must still be aboard. A smuggling run is exactly as
+        // voidable as freight. What you sold at a better price on the way is
+        // the temptation the job is built around.
         if (c.cargo[k.commodity] < k.qty) {
-          // What is still aboard goes back (112); what is not, you are billed
-          // for and remembered for (113). The deed marks the act, not the
-          // payment: a commander with nothing in the account pays nothing —
-          // the cap says so — but spending down before docking must not launder
-          // a shorted consignment into a free one.
+          // What is still aboard goes back (112). What is not, you are billed
+          // for and remembered for (113). The deed marks the act rather than
+          // the payment. A commander with nothing in the account pays nothing,
+          // because the cap says so. But a spend-down before the dock must not
+          // launder a shorted consignment into a free one.
           const reclaimed = reclaim(c, k);
           const tonnes = k.qty - reclaimed;
           const charged = billShortfall(c, k, tonnes);
@@ -220,9 +236,9 @@ export function acceptContract(
   if (c.contracts.length >= MAX_CONTRACTS) {
     return [{ kind: 'refused', reason: 'tooMuchWork' }];
   }
-  // A smuggling run loads like freight, and that is the whole mechanism: from
-  // the next line on `carryingContraband` is true, so the police scan, the
-  // pirates' appetite and the hermit outlet all apply without a word of new code.
+  // A smuggling run loads like freight, and that is the whole mechanism. From
+  // the next line on, `carryingContraband` is true. So the police scan, the
+  // pirates' appetite and the hermit outlet all apply, with no new code.
   if (k.kind === 'cargo' || k.kind === 'smuggle') {
     if (cargoTonnes(c) + k.qty > cargoCapacity(c)) {
       return [{ kind: 'refused', reason: 'noHoldSpace' }];
@@ -260,11 +276,12 @@ export interface ContractMessage {
 /**
  * What the station took back, if anything — the tail of a failure message.
  *
- * Read off the event's own tonnage rather than the contract's, because a run
- * that arrived short hands back what is there and not what was owed. A job
- * carrying nothing (courier, passenger, bounty) and a hold with nothing left in
- * it both reclaim 0, and say nothing: the line must not claim a seizure that
- * did not happen.
+ * Read off the event's own tonnage rather than the contract's. A run that
+ * arrived short hands back what is there, and not what was owed.
+ *
+ * A job that carries nothing — courier, passenger, bounty — reclaims 0. So does
+ * a hold with nothing left in it. Both say nothing, because the line must not
+ * claim a seizure that did not happen.
  */
 function reclaimedClause(e: { contract: Contract; reclaimed: number }): string {
   if (e.reclaimed <= 0) return '';
@@ -286,10 +303,10 @@ export function contractMessage(e: ContractEvent, systems: StarSystem[]): Contra
         sound: null,
       };
     case 'billed':
-      // Says what was taken and what it was for, and names the goods ONCE —
-      // this is an invoice from the shipper, not the station taking an interest
-      // in what a smuggler was carrying. No sound of its own: it is the same
-      // failure `incomplete` is, with a charge attached.
+      // It says what was taken and what it was for, and names the goods ONCE.
+      // This is an invoice from the shipper. It is not the station taking an
+      // interest in what a smuggler carried. It has no sound of its own,
+      // because it is the same failure `incomplete` is, with a charge on it.
       return {
         text: `CONSIGNMENT SHORT — BILLED ${formatCredits(e.charged)} FOR `
           + `${e.tonnes}T ${COMMODITIES[e.contract.commodity].name.toUpperCase()}`
@@ -318,8 +335,8 @@ export function contractMessage(e: ContractEvent, systems: StarSystem[]): Contra
         sound: 'refused',
       };
     case 'character':
-      // No sound: a name changing makes no noise (docs/TODO/129), and the
-      // receipts it follows have already made theirs.
+      // No sound. A change of name makes no noise (docs/TODO/129), and the
+      // receipts it follows already made theirs.
       return { text: e.line, seconds: CHARACTER_LINE_SECONDS, sound: null, queued: true };
   }
 }
