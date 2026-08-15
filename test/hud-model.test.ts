@@ -31,7 +31,7 @@ console.log('\nhud model');
     const npc = new NpcShip('pirate', new THREE.Vector3(0, 0, -2000), 0);
     npc.object.quaternion.setFromAxisAngle(new THREE.Vector3(0, 1, 0), Math.PI / 2);
     npc.state.speed = speed;
-    return screenTargets([npc], origin, ahead, camera, 0, npc, scratch)[0];
+    return screenTargets([npc], origin, ahead, camera, 0, npc, scratch, Infinity)[0];
   };
 
   const slow = lockedAt(100);
@@ -67,7 +67,7 @@ console.log('\nscanner contacts');
   const contacts = scannerContacts(
     new THREE.Vector3(0, 0, 5_000), [], [],
     [{ ...at(100), kind: 'cargo' as const }, { ...at(200), kind: 'capsule' as const }],
-    0);
+    0, Infinity);
   const kinds = contacts.map((c) => c.kind);
   check('a canister and a capsule are two different contacts',
     kinds.includes('cargo') && kinds.includes('pod'));

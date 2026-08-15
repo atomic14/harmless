@@ -171,7 +171,7 @@ console.log('\na Viper takes credits to break off — and the record stays where
   const c = g.state.commander;
   c.credits = 100_000;
   cop.state.provokedByPlayer = true;
-  check('the Viper is on you', isHostileToPlayer(cop, c.legalStatus));
+  check('the Viper is on you', isHostileToPlayer(cop, c.legalStatus, Infinity));
 
   nextOffer('taken');
   g.bribePolice();
@@ -184,7 +184,7 @@ console.log('\na Viper takes credits to break off — and the record stays where
   // with you and the record has not moved. The rule and the paperwork moving
   // independently is the point of the milestone.
   check('the same call that said he was hostile now says he is not',
-    !isHostileToPlayer(cop, c.legalStatus));
+    !isHostileToPlayer(cop, c.legalStatus, Infinity));
   eq('...and the record is exactly where it was', c.legalStatus, CLEAN);
   check('...because the mechanism is the field a pirate takes cargo for',
     cop.state.satisfied);
@@ -201,12 +201,12 @@ console.log('...and a Fugitive pays the Fugitive rate, and is still a Fugitive')
   c.credits = 100_000;
   c.legalStatus = FUGITIVE;
   check('police hunt Fugitives, so he is hostile on the record alone',
-    isHostileToPlayer(cop, c.legalStatus) && !cop.state.provokedByPlayer);
+    isHostileToPlayer(cop, c.legalStatus, Infinity) && !cop.state.provokedByPlayer);
 
   nextOffer('taken');
   g.bribePolice();
   eq('the Fugitive rate is what it costs', c.credits, 100_000 - patrolPrice(FUGITIVE));
-  check('...he breaks off', !isHostileToPlayer(cop, c.legalStatus));
+  check('...he breaks off', !isHostileToPlayer(cop, c.legalStatus, Infinity));
   eq('...and you are still a Fugitive: the next patrol is a fresh problem',
     c.legalStatus, FUGITIVE);
 }
@@ -226,7 +226,7 @@ console.log('...and a pair costs twice, one press at a time');
   check('the nearer of the two breaks off first',
     cop.state.satisfied && !second.state.satisfied);
   check('...and the far one is still coming',
-    isHostileToPlayer(second, c.legalStatus));
+    isHostileToPlayer(second, c.legalStatus, Infinity));
 
   nextOffer('taken', c.disrepute ?? 0);
   g.bribePolice();
@@ -247,7 +247,7 @@ console.log('...and an escort you cannot pay for keeps shooting');
   check(`the console names the shortfall (${g.state.session.messageText})`,
     g.state.session.messageText.startsWith('THEY WANT MORE'));
   eq('...and not a tenth is spent', c.credits, was);
-  check('...and he is still hostile', isHostileToPlayer(cop, c.legalStatus)
+  check('...and he is still hostile', isHostileToPlayer(cop, c.legalStatus, Infinity)
     && !cop.state.satisfied);
 }
 
@@ -282,7 +282,7 @@ console.log('\na refused offer is an offence, and the scan still comes');
   c.credits = 100_000;
   fly(1);
   check('the patrol has done nothing to you yet',
-    !isHostileToPlayer(cop, c.legalStatus) && !cop.state.provokedByPlayer);
+    !isHostileToPlayer(cop, c.legalStatus, Infinity) && !cop.state.provokedByPlayer);
 
   nextOffer('refused');
   g.bribePolice();
@@ -293,7 +293,7 @@ console.log('\na refused offer is an offence, and the scan still comes');
   // The offence: you tried to buy an officer in front of him. `provokedByPlayer`
   // rather than `provoked`, so he engages under the rule that already exists.
   check('the Viper you tried to buy is now on you',
-    cop.state.provokedByPlayer && isHostileToPlayer(cop, c.legalStatus));
+    cop.state.provokedByPlayer && isHostileToPlayer(cop, c.legalStatus, Infinity));
   check('...and he was NOT bought', !cop.state.satisfied);
 
   // ...and nothing was latched, so the hold is still his to read.

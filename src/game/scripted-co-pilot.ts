@@ -88,6 +88,7 @@ export class ScriptedCoPilot {
     legalStatus: number,
     manualInput: boolean,
     missilePos: V3 | null,
+    playerToStation = Infinity,
   ): CoPilotStep {
     if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE' };
     this.underFire = Math.max(0, this.underFire - dt);
@@ -97,7 +98,7 @@ export class ScriptedCoPilot {
       .angleTo(this.toThreat.copy(npc.object.position).sub(player.position));
     const threat = this.lock.pick(
       dt,
-      npcs.filter((npc) => isHostileToPlayer(npc, legalStatus)
+      npcs.filter((npc) => isHostileToPlayer(npc, legalStatus, playerToStation)
         && npc.object.position.distanceTo(player.position) < THREAT_RANGE),
       // EASIEST to lock, not nearest: rank by the off-nose angle (the turn it
       // costs to get guns on) plus distance as a secondary tiebreak. Chris

@@ -41,7 +41,7 @@ import { playerVsNpcs, npcVsNpcs, npcsVsStation } from './collisions.ts';
 import { assignNpcTargets } from './npc-targeting.ts';
 import { stepEncounters } from './encounters.ts';
 import { spawnArrivingTrader } from './spawning.ts';
-import { AMBUSH_STANDOFF } from '../constants/encounters.ts';
+import { STATION_TRUCE } from '../constants/law.ts';
 import {
   PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN, THARGON_DEPLOY_RANGE,
   TRADER_ARRIVAL_RANGE,
@@ -367,6 +367,12 @@ export class WorldStep {
     const s = this.state;
     const { world, player, session } = s;
 
+    // ONE measurement, two readers. The truce (game/law.ts) asks whether a
+    // pirate or a bounty hunter may engage at all, and the spawner asks whether
+    // a wave is worth warping in. Measured twice, the two could disagree about
+    // the same frame.
+    const playerToStation = player.position.distanceTo(world.station.position);
+
     // periodic NPC-vs-NPC targeting: pirates prey on traders, the law hunts pirates
     session.npcTargetTimer -= dt;
     if (session.npcTargetTimer <= 0) {
@@ -390,6 +396,7 @@ export class WorldStep {
       brains: s.brains,
       missileInbound: this.ordnance.missileInbound,
       sunPos: world.sunPos,
+      playerToStation,
     };
     for (const npc of [...world.npcs]) {
       const event = npc.update(dt, player, view);
@@ -449,8 +456,7 @@ export class WorldStep {
       traderCount: world.npcs.filter((n) => n.role === 'trader').length,
       activeThargons: world.npcs.filter((n) => n.state.alive && n.role === 'thargon' && !n.state.inert).length,
       hasThargoidMother: world.npcs.some((n) => n.state.alive && n.role === 'thargoid'),
-      playerFarFromStation:
-        player.position.distanceTo(world.station.position) > AMBUSH_STANDOFF,
+      playerFarFromStation: playerToStation > STATION_TRUCE,
     })) {
       if (order.kind === 'trader') {
         spawnArrivingTrader(world, TRADER_ARRIVAL_RANGE);

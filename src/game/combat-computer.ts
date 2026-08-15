@@ -153,6 +153,7 @@ export class CombatComputer {
     manualInput: boolean,
     brain: Brain | null,
     missilePos: V3 | null = null,
+    playerToStation = Infinity,
   ): AutopilotStep {
     if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE' };
 
@@ -160,8 +161,12 @@ export class CombatComputer {
     // fought ship up to 26.8 times a minute and the brain's bearing slots
     // jumped ~90 degrees each flip — the rule and the measurements are
     // game/threat-lock.ts's, shared with the armed trader and the trainer.
-    const hostiles = npcs.filter((npc) => isHostileToPlayer(npc, legalStatus)
-      && npc.object.position.distanceTo(player.position) < THREAT_RANGE);
+    // The station's truce is read here too, and that is the point of it having
+    // one home: a co-pilot that fought a ship the ship itself will not fight
+    // would start the fight the truce exists to prevent (docs/TODO/158).
+    const hostiles = npcs.filter(
+      (npc) => isHostileToPlayer(npc, legalStatus, playerToStation)
+        && npc.object.position.distanceTo(player.position) < THREAT_RANGE);
     const threat = this.threatLock.pick(
       dt, hostiles, (npc) => npc.object.position.distanceTo(player.position),
     );

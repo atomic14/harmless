@@ -847,7 +847,7 @@ console.log('\nheadless world step');
         const fleet = ships.map(([role]) => r.state.world.spawn(role as 'police', at, 5));
         for (const status of [CLEAN, OFFENDER, FUGITIVE]) {
           const hostile = ships
-            .filter(([, ], i) => isHostileToPlayer(fleet[i], status))
+            .filter(([, ], i) => isHostileToPlayer(fleet[i], status, Infinity))
             .map(([, called]) => called);
           const line = recordVerdict(status);
           const named = ships.filter(([, called]) => line.includes(called))

@@ -104,18 +104,6 @@ export const LAWLESS_GOVERNMENT = 3;
 export const ANARCHY_GOVERNMENT = 1;
 
 /**
- * A commander closer than this to the station is not worth an ambush. The
- * station's Vipers start a fight that the pirate cannot finish, and this keeps
- * the one place where a player can catch their breath. It is well outside the
- * station's mass lock (5,000, `torus.ts`), so the safe zone is bigger than the
- * mass-lock zone.
- *
- * It is the same number as `npc.ts`'s 7,000 give-up range for NPC-on-NPC hunts,
- * which is a different rule.
- */
-export const AMBUSH_STANDOFF = 7000;
-
-/**
  * How many drones one Thargoid mothership keeps in the sky. It is the same number
  * as `MAX_TRADERS`, and NOT the same rule. This is how much a single mothership
  * can put in front of you at once.

@@ -27,6 +27,33 @@ export const OFFENDER = 1;
 export const FUGITIVE = 2;
 
 /**
+ * How close to the station the commander must be for the truce to hold.
+ *
+ * A **truce** is the promise that a pirate and a bounty hunter leave the
+ * commander alone near the port. The station's Vipers start a fight that
+ * neither can finish, and this keeps the one place where a player can catch
+ * their breath.
+ *
+ * TWO rules spend it, which is why it lives with the law rather than with the
+ * spawner that used to own it as `AMBUSH_STANDOFF`. `game/law.ts`'s
+ * `truceHolds` decides who may engage. `game/encounters.ts` refuses to warp a
+ * pirate wave in inside the same range, because a wave that arrived would be
+ * bound by the truce the moment it existed.
+ *
+ * It is well outside the station's mass lock (5,000, `torus.ts`), so the quiet
+ * zone is bigger than the mass-lock zone. It is the same number as `npc.ts`'s
+ * 7,000 give-up range for NPC-on-NPC hunts, which is a different rule.
+ *
+ * The token heuristic reads the name and offers the amble as its home. The
+ * amble is a READER of this, not its owner: `constants/amble.ts` uses it as a
+ * floor because a truced role can do nothing inside it. What the number states
+ * is who may engage the commander, and that is the law's.
+ *
+ * @domain law
+ */
+export const STATION_TRUCE = 7000;
+
+/**
  * The commodity indices that the Galactic Government defines as illegal: slaves,
  * narcotics and firearms. It is the single home for the definition. They are
  * indices into the same 1984 table as `commodities.ts`, and none of the classes

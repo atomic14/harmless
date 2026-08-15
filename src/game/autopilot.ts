@@ -111,6 +111,19 @@ export class Autopilot {
   }
 
   /**
+   * How far the commander is from the station, for the station's truce
+   * (`truceHolds`, law.ts).
+   *
+   * ONE home for it in this file. All three combat members ask the same
+   * question — the engage key, the brain co-pilot and the scripted one — and a
+   * co-pilot that fought a ship the engage key called absent would be the
+   * defect docs/TODO/158 is about, reintroduced one layer up.
+   */
+  private get playerToStation(): number {
+    return this.state.player.position.distanceTo(this.state.world.station.position);
+  }
+
+  /**
    * The combat computer, on or off.
    *
    * It refuses to engage with nothing to fight, which is not a limitation: the
@@ -126,7 +139,8 @@ export class Autopilot {
       s.session.ccEngaged = false;
       return [say('COMBAT COMPUTER OFF', 2)];
     }
-    if (!hostilesNear(s.world.npcs, s.player.position, s.commander.legalStatus)) {
+    if (!hostilesNear(
+      s.world.npcs, s.player.position, s.commander.legalStatus, this.playerToStation)) {
       return [say('NO HOSTILES — COMBAT COMPUTER IDLE', 3), REFUSED];
     }
     // The LIVE BRAINS row can set the co-pilot to NONE outright — refusing
@@ -162,7 +176,7 @@ export class Autopilot {
     const s = this.state;
     const step = this.computer.step(
       dt, s.player, s.sys, s.world.npcs, s.commander.legalStatus, handsOn, brain,
-      missilePos);
+      missilePos, this.playerToStation);
     if (step.kind === 'disengage') {
       s.session.ccEngaged = false;
       return {
@@ -186,7 +200,8 @@ export class Autopilot {
   combatSteer(dt: number, handsOn: boolean, missilePos: V3 | null): AutopilotDemand {
     const s = this.state;
     const step = this.scripted.step(
-      dt, s.player, s.world.npcs, s.commander.legalStatus, handsOn, missilePos);
+      dt, s.player, s.world.npcs, s.commander.legalStatus, handsOn, missilePos,
+      this.playerToStation);
     if (step.kind === 'disengage') {
       s.session.ccEngaged = false;
       return {

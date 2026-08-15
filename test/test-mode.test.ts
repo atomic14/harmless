@@ -311,12 +311,12 @@ console.log('\nthe legal-status lever is the one 122 and 123 are tested through'
   } } as unknown as Parameters<typeof isHostileToPlayer>[0];
 
   check('a clean commander is nobody the police want',
-    !isHostileToPlayer(police, state.commander.legalStatus));
+    !isHostileToPlayer(police, state.commander.legalStatus, Infinity));
   pull('LEGAL STATUS');
   pull('LEGAL STATUS');
   eq('two pulls and you are a Fugitive', state.commander.legalStatus, FUGITIVE);
   check('...and the same police ship now comes for you',
-    isHostileToPlayer(police, state.commander.legalStatus));
+    isHostileToPlayer(police, state.commander.legalStatus, Infinity));
 }
 
 // --- the flight lever -------------------------------------------------------

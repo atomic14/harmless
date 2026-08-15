@@ -40,7 +40,15 @@ export const THARGOID_AMBUSH_EXTRA_CHANCE = 0.3;
  */
 export const THARGOID_AMBUSH_RANGE = 3500;
 
-/** ...and the width of that band, so they do not all arrive at one distance. */
+/**
+ * ...and the width of that band, so they do not all arrive at one distance.
+ *
+ * It has its own rule id. It shares the value 2,500 with `PIRATE_SCATTER`
+ * (spawn-placement.ts) and `AMBLE_SPAN` (constants/amble.ts). This one is the
+ * width of an ambush in limbo, where there is no station and no reception.
+ *
+ * @rule witchspace.thargoidAmbushRangeSpan
+ */
 export const THARGOID_AMBUSH_RANGE_SPAN = 2500;
 
 // What used to end this file — STRANDED_HINT_FIRST and STRANDED_HINT_REPEAT, the

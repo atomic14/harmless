@@ -229,8 +229,8 @@ console.log('\ncombat arena');
     // Police ignore a clean commander unless provoked — an authored
     // interdiction has to say it was, or two Vipers fly past and nothing happens.
     check('`hostile` is what makes an authored interdiction fight at all',
-      ships.slice(0, 2).every((n) => isHostileToPlayer(n, 0)));
+      ships.slice(0, 2).every((n) => isHostileToPlayer(n, 0, Infinity)));
     check('...and it is not the default',
-      !isHostileToPlayer(ships[3], 0) && !ships[3].state.provokedByPlayer);
+      !isHostileToPlayer(ships[3], 0, Infinity) && !ships[3].state.provokedByPlayer);
   }
 }

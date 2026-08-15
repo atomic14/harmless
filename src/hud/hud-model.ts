@@ -32,6 +32,7 @@ export function scannerContacts(
   missiles: readonly { object: THREE.Object3D }[],
   canisters: readonly { object: THREE.Object3D; kind: 'cargo' | 'capsule' }[],
   legalStatus: number,
+  playerToStation: number,
 ): ScannerContact[] {
   const contacts: ScannerContact[] = [{ position: stationPos, kind: 'station' }];
   for (const npc of npcs) {
@@ -39,7 +40,7 @@ export function scannerContacts(
     const kind =
       npc.role === 'asteroid' ? 'asteroid'
       : npc.role === 'thargoid' || npc.role === 'thargon' ? 'thargoid'
-      : isHostileToPlayer(npc, legalStatus) ? 'hostile'
+      : isHostileToPlayer(npc, legalStatus, playerToStation) ? 'hostile'
       : 'ship';
     contacts.push({ position: npc.object.position, kind });
   }
@@ -103,12 +104,13 @@ export function nearestHostile(
   npcs: readonly NpcShip[],
   playerPos: THREE.Vector3,
   legalStatus: number,
+  playerToStation: number,
 ): { npc: NpcShip; count: number } | null {
   let nearest: NpcShip | null = null;
   let best = Infinity;
   let count = 0;
   for (const npc of npcs) {
-    if (!isHostileToPlayer(npc, legalStatus)) continue;
+    if (!isHostileToPlayer(npc, legalStatus, playerToStation)) continue;
     const d = npc.object.position.distanceTo(playerPos);
     if (d > PLAYER_INTEREST_RANGE) continue;
     count += 1;
@@ -196,6 +198,7 @@ export function screenTargets(
   legalStatus: number,
   locked: NpcShip | null,
   scratch: THREE.Vector3,
+  playerToStation: number,
 ): ScreenTarget[] {
   const out: ScreenTarget[] = [];
   for (const npc of npcs) {
@@ -212,7 +215,7 @@ export function screenTargets(
       x: ndc.x,
       y: ndc.y,
       size: Math.min(0.5, (npc.radius * 2.2) / dist),
-      hostile: isHostileToPlayer(npc, legalStatus),
+      hostile: isHostileToPlayer(npc, legalStatus, playerToStation),
       locked: isLocked,
       // NORMALIZED at the boundary: the bracket paints a 0..1 bar, and combat
       // stores whole source energy points — see NpcShip.healthFraction.

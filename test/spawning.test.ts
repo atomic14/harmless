@@ -135,7 +135,7 @@ console.log('\nstation defence');
   check('...which are actually in the sky', world.npcs.length === before + vipers.length);
   check('...all of them police', vipers.every((v: NpcShip) => v.role === 'police'));
   check('station defence vipers still come for you',
-    vipers.every((v: NpcShip) => isHostileToPlayer(v, 0)));
+    vipers.every((v: NpcShip) => isHostileToPlayer(v, 0, Infinity)));
 
   // The count and the stack, bisected out of many launches rather than written
   // down: the constants say one or two of them, 500 out along the slot normal,

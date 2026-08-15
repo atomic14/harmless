@@ -20,6 +20,7 @@ import { renderDockedMenu } from '../src/ui/screens.ts';
 import { capture } from './screen-capture.ts';
 import { Autopilot, type AutopilotEvent } from '../src/game/autopilot.ts';
 import { DOCK_COMPUTER_RANGE } from '../src/constants/docking-computer.ts';
+import { STATION_TRUCE } from '../src/constants/law.ts';
 import { CombatComputer } from '../src/game/combat-computer.ts';
 import { CC_MAX_SPEED } from '../src/constants/combat-computer.ts';
 import { check, eq, cmds, eqc, keys } from './harness.ts';
@@ -315,6 +316,17 @@ console.log('\nautopilots');
   };
   const texts = (events: readonly AutopilotEvent[]): string[] =>
     events.flatMap((e) => (e.kind === 'message' ? [e.text] : []));
+  /**
+   * Push the commander clear of the station's truce (docs/TODO/158).
+   *
+   * `rig` parks on the slot, which is right for the DOCKING computer and wrong
+   * for the combat one: no pirate engages a commander on the doorstep, so a
+   * fixture that spawns one there is asking the computer to fight a ship that
+   * has decided nothing.
+   */
+  const clearOfTruce = (state: { player: { position: THREE.Vector3 } }): void => {
+    state.player.position.addScaledVector(new THREE.Vector3(0, 1, 0), STATION_TRUCE * 4);
+  };
 
   {
     const { state, auto } = rig();
@@ -349,6 +361,7 @@ console.log('\nautopilots');
 
   {
     const { state, auto } = rig({ combatComputer: true });
+    clearOfTruce(state);
     eq('the combat computer refuses an empty sky',
       texts(auto.toggleCombat())[0], 'NO HOSTILES — COMBAT COMPUTER IDLE');
     check('...and stays off', !state.session.ccEngaged);
@@ -372,6 +385,7 @@ console.log('\nautopilots');
     // not any particular brain's, and this keeps the socket tested for a future
     // candidate. The `null`-brain hand-back below is the empty-bundle reality.
     const { state, auto } = rig({ combatComputer: true });
+    clearOfTruce(state);
     state.world.spawn('pirate',
       state.player.position.clone().add(new THREE.Vector3(0, 0, -1200)), 1);
     auto.toggleCombat();

@@ -180,7 +180,8 @@ export class LawActions {
     // would be money for nothing. One press buys ONE ship, and `PATROL_PRICE`
     // (constants/law.ts) says why the price is per ship.
     const hunter = nearestEngaging(this.state.world.npcs, this.state.player.position,
-      c.legalStatus, 'police');
+      c.legalStatus, 'police',
+      this.state.player.position.distanceTo(this.state.world.station.position));
     if (hunter) {
       const paid = this.offerTo(hunter.npc, patrolPrice(c.legalStatus));
       if (paid === null) return;

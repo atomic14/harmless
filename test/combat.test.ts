@@ -615,21 +615,21 @@ console.log('\npolice hostility');
     } }) as unknown as Parameters<typeof isHostileToPlayer>[0];
 
   check('pirates are hostile to anyone',
-    isHostileToPlayer(npcLike('pirate'), 0));
+    isHostileToPlayer(npcLike('pirate'), 0, Infinity));
   check('a pirate paid off in cargo breaks off',
-    !isHostileToPlayer(npcLike('pirate', { satisfied: true }), 0));
+    !isHostileToPlayer(npcLike('pirate', { satisfied: true }), 0, Infinity));
   check('police ignore a clean commander',
-    !isHostileToPlayer(npcLike('police'), 0));
+    !isHostileToPlayer(npcLike('police'), 0, Infinity));
   check('police hunt a fugitive',
-    isHostileToPlayer(npcLike('police', { legalStatus: 2 }), 2));
+    isHostileToPlayer(npcLike('police', { legalStatus: 2 }), 2, Infinity));
   check('POLICE IN A FIGHT WITH SOMEONE ELSE STAY FRIENDLY',
-    !isHostileToPlayer(npcLike('police', { provoked: true }), 0));
+    !isHostileToPlayer(npcLike('police', { provoked: true }), 0, Infinity));
   check('police you shot at come for you',
-    isHostileToPlayer(npcLike('police', { provoked: true, provokedByPlayer: true }), 0));
+    isHostileToPlayer(npcLike('police', { provoked: true, provokedByPlayer: true }), 0, Infinity));
   check('bounty hunters ignore a clean commander',
-    !isHostileToPlayer(npcLike('hunter'), 0));
+    !isHostileToPlayer(npcLike('hunter'), 0, Infinity));
   check('bounty hunters in a fight with someone else stay friendly',
-    !isHostileToPlayer(npcLike('hunter', { provoked: true }), 0));
+    !isHostileToPlayer(npcLike('hunter', { provoked: true }), 0, Infinity));
   check('a destroyed ship is hostile to nobody',
-    !isHostileToPlayer(npcLike('pirate', { alive: false }), 0));
+    !isHostileToPlayer(npcLike('pirate', { alive: false }), 0, Infinity));
 }

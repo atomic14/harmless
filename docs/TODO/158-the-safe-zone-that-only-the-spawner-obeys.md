@@ -222,3 +222,66 @@ hiding place.
 - `launchStationDefence` (`src/game/spawning.ts:377`) launches Vipers that are
   already `provokedByPlayer`. They are police, so the truce never reads them.
   Do not add a second guard there.
+
+## Outcome — landed 2026-08-15
+
+Both milestones landed. `npm run check` passes: **4,597 assertions, 0 failed**,
+and `constants:check` reports 383 exports and 65 rule ids.
+
+**Both gates were proved able to fail, and they fail separately.** A
+`truceHolds` that answers `false` for every input turns **13 assertions red**.
+Reverting M2's waypoint alone, with the rule intact, turns **2** red — the two
+that measure where an idle pirate and an idle bounty hunter put a waypoint.
+
+**The three named probes are byte-identical.** `npm run defence-probe`,
+`npm run survivability` and `npm run dock-traffic` were captured before the
+change and diffed after it. The docking sweep still reports 40 of 40 docked on
+both seed sets, 0 rams and 0 station scrapes.
+
+### What the work found that the plan did not have
+
+**`src/game/encounters.ts` never imported the constant, and the plan said it
+did.** The rule takes `playerFarFromStation` as a boolean, and `world-step.ts`
+is the only file that ever read `AMBUSH_STANDOFF`. So the move cost one import
+line rather than two, and the two readers meet in `world-step.ts` rather than
+in the rule.
+
+**`PromptWorld` already carried the measurement.** It has a `stationDistance`
+field for the docking prompt, and *"in witch-space it is banished out of
+reach"* — which is exactly right for the truce as well, because limbo has no
+station. The cockpit prompt needed no new field.
+
+**The truce reaches the jettison prompt, and that is correct.** Inside the
+truce no pirate is engaging, so the cockpit no longer offers a tonne over the
+side. The prompt reports the fight rather than the sky.
+
+**`WorldView.playerToStation` is optional where `isHostileToPlayer`'s parameter
+is required, and the asymmetry is deliberate.** Ten test files build a
+`WorldView` literal, and most of them put the station at the origin and the
+duel beside it. The omitted value is INFINITE, so a forgotten field can only
+lose a promise of peace and can never invent one. That is docs/TODO/156's
+inert-default argument, applied to a distance.
+
+**Four existing fixtures were parked on the slot, and all four were fights.**
+`test/missiles.test.ts` launched from the station and spawned a gang around the
+commander; `test/ui.test.ts`'s `rig` parks on the slot, which is right for the
+DOCKING computer and wrong for the combat one; `test/defence-answer.test.ts`
+copied the station's own position. Each now stands off, and each says why. **No
+assertion was weakened.** The change to each is one position.
+
+**Three unrelated constants needed `@rule` ids**, because the gate asks every
+member of an equal-value group to have one rather than only the newcomer.
+`AMBLE_NEAR` arrived on 800, where `TARGET_DIST_WEIGHT` already sat, and
+`AMBLE_SPAN` on 2,500, where `PIRATE_SCATTER` and `THARGOID_AMBUSH_RANGE_SPAN`
+both sat. A rule id's namespace must be lowercase, so the co-pilot's is
+`copilot.targetDistWeight` beside the `copilot.turnFloor` already in that file.
+
+**`STATION_TRUCE` needed `@domain law`.** The token heuristic reads the name and
+offers the amble as the home. The amble is a reader of the constant and not its
+owner, and the doc comment now argues that.
+
+**The amble is a new constants file rather than a new section of an old one.**
+`npm run constants:find` was run for the amble, for an idle patrol radius and
+for the value 800, and it returned nothing that owned the question.
+`spawn-placement.ts` says where a ship APPEARS, which is a different claim, so
+`constants/amble.ts` states the one it makes.

@@ -33,7 +33,9 @@ import {
 import { TACTICS, type TacticId } from '../constants/tactics.ts';
 import { chooseTactic, tacticSwitchReason, type TacticHull } from './tactic-choice.ts';
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
-import { lawTakesInterest } from './law.ts';
+import { lawTakesInterest, truceHolds } from './law.ts';
+import { STATION_TRUCE } from '../constants/law.ts';
+import { AMBLE_NEAR, AMBLE_SPAN } from '../constants/amble.ts';
 import { separationFrom } from './separation.ts';
 import { SEPARATION_PUSH } from '../constants/separation.ts';
 import type { BrainSelection } from './brain-names.ts';
@@ -288,6 +290,19 @@ export interface WorldView {
    * (updateTrader).
    */
   sunPos?: THREE.Vector3;
+  /**
+   * How far the COMMANDER is from the station, for the station's truce
+   * (`truceHolds`, law.ts). It is measured once a frame in `world-step.ts` and
+   * handed down, because the ship, the HUD blip, the combat computer and the
+   * bribe key must all read one number.
+   *
+   * It is optional, and the omitted value is INERT rather than convenient: a
+   * missing distance is infinite, so no truce holds and every ship behaves as
+   * it did before docs/TODO/158. A reader that forgets the field therefore
+   * loses a promise of peace, and can never invent one. That is the same
+   * bargain `Canister.occupant` strikes with `''` (docs/TODO/156).
+   */
+  playerToStation?: number;
 }
 
 /**
@@ -308,8 +323,15 @@ export type FireEvent =
  *
  * Both the NPC's own decision loop and the game's condition and HUD logic use
  * it. legalStatus: 0 clean, 1 offender, 2 fugitive.
+ *
+ * @param playerToStation how far the commander is from the station, for the
+ * truce below. It is REQUIRED rather than defaulted: a reader that forgot it
+ * would paint a red blip, or aim the commander's own combat computer, at a ship
+ * that attacks nobody (docs/TODO/158).
  */
-export function isHostileToPlayer(npc: NpcShip, legalStatus: number): boolean {
+export function isHostileToPlayer(
+  npc: NpcShip, legalStatus: number, playerToStation: number,
+): boolean {
   if (!npc.state.alive || npc.state.inert) return false;
   // A ship that took its payday stops caring about you. That is what makes a
   // jettisoned cargo a real escape rather than a donation. It is asked FIRST,
@@ -317,6 +339,11 @@ export function isHostileToPlayer(npc: NpcShip, legalStatus: number): boolean {
   // bought. A pirate takes cargo and a policeman takes credits (docs/TODO/123).
   // What they have in common is that they are done with you.
   if (npc.state.satisfied) return false;
+  // The station's truce, and the commander who ends it. `provokedByPlayer` is
+  // set by `takeDamage` for damage from the commander, whatever the role, so a
+  // ship shot at inside the truce answers exactly as it does outside one. A
+  // truce that covered that case would make the port a free firing position.
+  if (!npc.state.provokedByPlayer && truceHolds(npc.role, playerToStation)) return false;
   return (
     npc.role === 'pirate' || npc.role === 'thargoid' || npc.role === 'thargon' ||
     // The law's two roles. They come for you on the record, by
@@ -339,8 +366,10 @@ export function isHostileToPlayer(npc: NpcShip, legalStatus: number): boolean {
  * answers "who is in this fight" has to agree. Those are the condition light
  * below, and the bribe key, which may only buy off a ship that is on you.
  */
-function engaging(npc: NpcShip, playerPos: THREE.Vector3, legalStatus: number): boolean {
-  return isHostileToPlayer(npc, legalStatus)
+function engaging(
+  npc: NpcShip, playerPos: THREE.Vector3, legalStatus: number, playerToStation: number,
+): boolean {
+  return isHostileToPlayer(npc, legalStatus, playerToStation)
     && npc.object.position.distanceTo(playerPos) < PLAYER_INTEREST_RANGE;
 }
 
@@ -352,8 +381,9 @@ function engaging(npc: NpcShip, playerPos: THREE.Vector3, legalStatus: number): 
  */
 export function hostilesNear(
   npcs: readonly NpcShip[], playerPos: THREE.Vector3, legalStatus: number,
+  playerToStation: number,
 ): boolean {
-  return npcs.some((npc) => engaging(npc, playerPos, legalStatus));
+  return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation));
 }
 
 /**
@@ -365,9 +395,10 @@ export function hostilesNear(
  */
 export function nearestEngaging(
   npcs: readonly NpcShip[], playerPos: THREE.Vector3, legalStatus: number, role: string,
+  playerToStation: number,
 ): { npc: NpcShip; distance: number } | null {
   return nearestNpc(npcs, playerPos,
-    (npc) => npc.role === role && engaging(npc, playerPos, legalStatus));
+    (npc) => npc.role === role && engaging(npc, playerPos, legalStatus, playerToStation));
 }
 
 /**
@@ -764,7 +795,8 @@ export class NpcShip {
     const distPlayer = toPlayer.length();
 
     const aggressiveToPlayer =
-      isHostileToPlayer(this, playerLegal) && distPlayer < PLAYER_INTEREST_RANGE;
+      isHostileToPlayer(this, playerLegal, view.playerToStation ?? Infinity)
+      && distPlayer < PLAYER_INTEREST_RANGE;
 
     if (aggressiveToPlayer) {
       // A pirate a player meets flies the `pursuit` dogfighter by default — the
@@ -854,13 +886,18 @@ export class NpcShip {
       return null;
     }
 
-    // amble between waypoints near home
+    // Amble between waypoints near home. A role the station's truce covers
+    // ambles OUTSIDE the truce: it can do nothing inside one, so a waypoint in
+    // there parks a hostile over the port and calls it traffic (docs/TODO/158).
+    // `truceHolds` at distance 0 asks "would the truce cover this role at the
+    // station itself?", so the list of covered roles keeps one home.
     this.state.waypointTimer -= dt;
     if (this.state.waypointTimer <= 0) {
       this.state.waypointTimer = 12 + random() * 15;
+      const near = truceHolds(this.role, 0) ? STATION_TRUCE : AMBLE_NEAR;
       this.state.waypoint
         .copy(station.position)
-        .add(randomDirection(new THREE.Vector3()).multiplyScalar(800 + random() * 2500));
+        .add(randomDirection(new THREE.Vector3()).multiplyScalar(near + random() * AMBLE_SPAN));
     }
     this.steerToward(this.state.waypoint, dt);
     const arrived = this.object.position.distanceTo(this.state.waypoint) < 200;

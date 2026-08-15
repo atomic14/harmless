@@ -186,5 +186,12 @@ export const ENGAGED_CONE = 0.6;
  * among comparable ranges. But it will NOT chase a far dead-ahead ship over a
  * close one: a fixation on a distant near-boresight target feeds the approach
  * roll-spin. It is feel, not fit, and it was chosen on the wave harness.
+ *
+ * It has its own rule id. It shares the value 800 with `AMBLE_NEAR`
+ * (constants/amble.ts), which is a distance from a station. This one is an
+ * exchange rate between world units and radians, and it must stay free to be
+ * re-fitted on the wave harness without moving where a Viper loiters.
+ *
+ * @rule copilot.targetDistWeight
  */
 export const TARGET_DIST_WEIGHT = 800;

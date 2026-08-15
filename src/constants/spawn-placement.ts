@@ -80,6 +80,13 @@ export const CORRIDOR_SPAN = 0.75;
 /**
  * How far off the corridor's line each pirate sits. It is a spread rather than a
  * firing line, so an organised gang arrives together and feels like a gang.
+ *
+ * It has its own rule id. It shares the value 2,500 with `AMBLE_SPAN`
+ * (constants/amble.ts) and `THARGOID_AMBUSH_RANGE_SPAN` (witchspace.ts). This
+ * one says how wide a reception is. Widening a gang must not widen either of
+ * the other two.
+ *
+ * @rule spawn.pirateScatter
  */
 export const PIRATE_SCATTER = 2500;
 

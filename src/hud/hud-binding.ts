@@ -126,6 +126,10 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
   const legal = commander.legalStatus;
 
   const altitude = playerPos.distanceTo(world.planetPos) - world.planetRadius;
+  // The station's truce (game/law.ts), measured once for the four surfaces
+  // below. A blip, a threat arrow, a target bracket and the condition light all
+  // report the same rule, so all four read one number (docs/TODO/158).
+  const playerToStation = playerPos.distanceTo(world.station.position);
 
   let dockAid: HudState['dockAid'] = null;
   let slotMarker: HudState['slotMarker'] = null;
@@ -138,7 +142,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
   // the off-screen arrow to the nearest thing that wants you dead
   let threatMarker: HudState['threatMarker'] = null;
   if (s.inFlight && !s.witchspace) {
-    const found = nearestHostile(world.npcs, playerPos, legal);
+    const found = nearestHostile(world.npcs, playerPos, legal, playerToStation);
     if (found) {
       threatMarker = {
         ...projectMarker(found.npc.object.position, playerPos, s.playerForward,
@@ -150,7 +154,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
 
   const targets = s.inFlight
     ? screenTargets(world.npcs, playerPos, s.viewDir, s.camera, legal,
-      s.targetLock, scratch.a)
+      s.targetLock, scratch.a, playerToStation)
     : [];
 
   return {
@@ -160,7 +164,8 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     playerPos: s.playerPos,
     playerQuat: s.playerQuat,
     contacts: scannerContacts(
-      world.station.position, world.npcs, s.missiles, s.canisters, legal),
+      world.station.position, world.npcs, s.missiles, s.canisters, legal,
+      playerToStation),
     targets,
     compassTarget: compassTarget(s),
     speedFrac: s.speedFrac,
@@ -187,7 +192,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     missiles: commander.missiles,
     locked: s.targetLock !== null,
     condition: !s.inFlight ? 'GREEN'
-      : hostilesNear(world.npcs, playerPos, legal) ? 'RED' : 'YELLOW',
+      : hostilesNear(world.npcs, playerPos, legal, playerToStation) ? 'RED' : 'YELLOW',
     credits: commander.credits,
     day: commander.day,
     view: s.view,

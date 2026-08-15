@@ -112,7 +112,8 @@ export function flightPrompts(w: PromptWorld): Prompt[] {
   // A policeman already shooting: the most expensive problem in the game that
   // money can still answer. Priced off the rung you are on (`patrolPrice`), so
   // the line says what pressing the key will actually cost.
-  const hunter = nearestEngaging(w.npcs, w.playerPos, c.legalStatus, 'police');
+  const hunter = nearestEngaging(
+    w.npcs, w.playerPos, c.legalStatus, 'police', w.stationDistance);
   if (hunter) {
     out.push({
       command: 'bribePolice',
@@ -123,7 +124,10 @@ export function flightPrompts(w: PromptWorld): Prompt[] {
   // Pirates came for the cargo, not for you, and a tonne over the side is what
   // makes an opportunist break off (jettison.ts). Below the fight the law is
   // in, because a Viper you have not paid keeps shooting whatever you dump.
-  if (nearestEngaging(w.npcs, w.playerPos, c.legalStatus, 'pirate')
+  // `stationDistance` is the truce's own measurement (game/law.ts), and it is
+  // already on this view for the docking prompt. Inside the truce no pirate is
+  // engaging, so the cockpit offers no tonne over the side.
+  if (nearestEngaging(w.npcs, w.playerPos, c.legalStatus, 'pirate', w.stationDistance)
     && holdHasCargo(c.cargo)) {
     out.push({ command: 'jettison1', what: 'JETTISON A TONNE' });
   }

@@ -28,6 +28,7 @@ import {
   Ordnance, launchNpcMissile, type OrdnanceWorld,
 } from '../src/game/ordnance.ts';
 import { MISSILE_RELOAD } from '../src/constants/ordnance.ts';
+import { STATION_TRUCE } from '../src/constants/law.ts';
 import { playerImpactDamage } from '../src/game/impact-damage.ts';
 import { IMPACT } from '../src/constants/impact.ts';
 import { MAX_ENERGY, MAX_SHIELD } from '../src/constants/pools.ts';
@@ -229,6 +230,12 @@ console.log('\nmissiles: in the real game, headless');
     const missilesInFlight = (handle('__game') as { missiles: readonly unknown[] }).missiles;
     const world = g.state.world;
     world.clearNpcs();
+    // Clear of the station's truce (docs/TODO/158). `launch()` puts the
+    // commander on the slot, and no pirate engages one there — this fixture is
+    // about the missile path, not about where the fight is.
+    g.state.player.position.addScaledVector(
+      g.state.player.position.clone().sub(world.station.position).normalize(),
+      STATION_TRUCE * 4);
 
     const python = SPECS.pirate.find((s) => s.missiles === 2)!;
     const gang: NpcShip[] = [];

@@ -47,6 +47,7 @@ import { newCommander } from '../src/game/commander.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { serialiseState, restoreState } from '../src/game/snapshot.ts';
 import { Autopilot } from '../src/game/autopilot.ts';
+import { STATION_TRUCE } from '../src/constants/law.ts';
 import { CombatComputer, freshAutopilot } from '../src/game/combat-computer.ts';
 {
   console.log('\nthe defence encoder');
@@ -295,7 +296,11 @@ console.log('\ncombat computer: the E.C.M.');
   const state = freshState(newCommander());
   state.world.build(state.systems[state.commander.systemIndex]);
   state.commander.equipment.combatComputer = true;
-  state.player.position.copy(state.world.station.position);
+  // Clear of the station's truce (docs/TODO/158): no pirate engages a commander
+  // on the doorstep, and the combat computer reads the same rule, so a fixture
+  // parked on the slot would be asking it to fight a ship that decided nothing.
+  state.player.position.copy(state.world.station.position)
+    .addScaledVector(new THREE.Vector3(0, 1, 0), STATION_TRUCE * 4);
   const auto = new Autopilot(state, new CombatComputer());
   state.world.spawn('pirate',
     state.player.position.clone().add(new THREE.Vector3(0, 0, -1200)), 1);

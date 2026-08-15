@@ -12,7 +12,7 @@ import { COMMODITIES } from '../galaxy/galaxy.ts';
 import {
   BRIBE_FLOOR, BRIBE_REFUSED, BRIBE_SHARE, CLEAN, CONTRABAND, FUGITIVE,
   FUGITIVE_FINE, LAW_ROLE_NAMES, LEGAL_NAMES, OFFENDER, OFFENDER_FINE,
-  PATROL_BRIBE_FINES, SCAN_RANGE, SCAN_WARN_RANGE,
+  PATROL_BRIBE_FINES, SCAN_RANGE, SCAN_WARN_RANGE, STATION_TRUCE,
 } from '../constants/law.ts';
 import { DISREPUTE_BRIBE, DISREPUTE_MAX } from '../constants/character.ts';
 import { VALUE_PER_TONNE } from '../constants/jettison.ts';
@@ -183,6 +183,31 @@ export function lawTakesInterest(role: string, legalStatus: number): boolean {
   if (role === 'police') return legalStatus >= FUGITIVE;
   if (role === 'hunter') return legalStatus >= OFFENDER;
   return false;
+}
+
+/**
+ * Does the station's truce cover a ship of this role right now?
+ *
+ * A **truce** is the promise that the lawless leave the commander alone near
+ * the port (`STATION_TRUCE`, constants/law.ts). `npc.ts`'s `isHostileToPlayer`
+ * is its only reader, which is what makes the ship, the HUD blip, the combat
+ * computer and the bribe key give one answer (docs/TODO/158).
+ *
+ * **The police are NOT covered.** They are the station's own, and a Fugitive
+ * who parks on the doorstep must still be hunted. The alternative makes the
+ * station the one place a Fugitive is safe from the law.
+ *
+ * **A Thargoid is not covered.** It does not read the Galactic Government's
+ * mail.
+ *
+ * @param playerToStation how far the COMMANDER is from the station, not the
+ * ship. That is what the report asks for, it is one measurement a frame rather
+ * than one for every hull, and it stops a hunter holding station just outside
+ * the line and shooting across it.
+ */
+export function truceHolds(role: string, playerToStation: number): boolean {
+  if (role !== 'pirate' && role !== 'hunter') return false;
+  return playerToStation < STATION_TRUCE;
 }
 
 /**

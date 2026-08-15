@@ -147,9 +147,9 @@ console.log('\nNPC break-off');
   const hostile = new NpcShip('pirate', new THREE.Vector3(0, 0, 0), 0);
   Object.assign(hostile.state, { provoked: true, provokedByPlayer: true });
   check('the condition light is red just inside the range',
-    hostilesNear([hostile], new THREE.Vector3(0, 0, PLAYER_INTEREST_RANGE - 10), 0));
+    hostilesNear([hostile], new THREE.Vector3(0, 0, PLAYER_INTEREST_RANGE - 10), 0, Infinity));
   check('...and yellow just outside it',
-    !hostilesNear([hostile], new THREE.Vector3(0, 0, PLAYER_INTEREST_RANGE + 10), 0));
+    !hostilesNear([hostile], new THREE.Vector3(0, 0, PLAYER_INTEREST_RANGE + 10), 0, Infinity));
 }
 
 // --- who hunts whom ---------------------------------------------------------
