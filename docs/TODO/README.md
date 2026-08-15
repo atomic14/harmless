@@ -13,15 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [160 — A record you cannot work off](160-a-record-you-cannot-work-off.md) ·
-   enhancement · medium.
-2. [154 — The comments in src/ are not in Simplified Technical
+1. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
-**154 was parked on 2026-08-15, and five items have gone in front of it**
-(Chris): *"I want to park that for a while and pick up the GitHub issues."* Four
-of them landed the same day and are below. 154 is a sweep, and a sweep waits.
+**154 is the queue.** It was parked on 2026-08-15, and five items went in front
+of it (Chris): *"I want to park that for a while and pick up the GitHub
+issues."* All five landed the same day and are below. 154 is a sweep, and a
+sweep waits.
 
 **158, 159 and 160 came out of the triage of GitHub #30, #31 and #32 on
 2026-08-15.** Two of the three share one root, and the triage found it rather
@@ -29,8 +28,8 @@ than the reports: **the idle waypoint is anchored to the station.** The last
 branch of `NpcShip.update` draws a waypoint 800 to 3,300 units from the station
 for every role except the trader, so a system's ships converge on the port. That
 is why a bounty hunter is on the doorstep (#30) and why deep space holds nobody
-(#31). **158 and 159 both landed the same day** and are below. **160 is
-independent** and adds the second way a legal record can come down.
+(#31). **All three landed the same day** and are below. **160 is independent**
+of the other two, and adds the second way a legal record can come down.
 
 **151 to 154 came out of one review, on Chris's question of 2026-08-14:** *"Are
 they in ASD-STE100 and are they useful — we don't need comments that contain the
@@ -60,8 +59,8 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds one open item, and it is planned: **#32** is 160.
-**#31** and **#30** closed on 2026-08-15 with
+The GitHub inbox holds no open work. **#32**, **#31** and **#30** closed on
+2026-08-15 with [160](completed/160-a-record-you-cannot-work-off.md),
 [159](completed/159-the-lane-that-only-exists-at-the-station.md) and
 [158](completed/158-the-safe-zone-that-only-the-spawner-obeys.md). **#29** and
 **#28** closed on 2026-08-15
@@ -88,6 +87,41 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-15
+
+**160 — a record you cannot work off (GitHub #32).** Chris asked for one thing:
+*"Killing pirates should decrease your criminal status."*
+
+**A legal record only ever went up.** `raiseLegal` raised it, and
+`recordCleared` — the fine paid at a station, by choice — was the only rule that
+took it down. Its own doc comment said so in as many words, and that sentence
+changed with the code.
+
+**`KILLS_PER_RUNG` is five, on arithmetic rather than taste.** A pirate's bounty
+runs 4 to 22 credits across the roster and most of the band sits near 10, so
+five kills earn about 50 credits. A rung costs 25 credits as an Offender and 75
+as a Fugitive. The fine is the fast way and needs a station; the fight is the
+slow way and needs none. Ten kills take a Fugitive to Clean.
+
+**The record moves and the NAME does not, and that is what makes it safe.**
+Disrepute is untouched. Otherwise a commander could murder a trader, shoot five
+pirates, and end Clean and Honest at a profit. It is docs/TODO/156's split read
+from the other side.
+
+**Pirates only.** A mothership replaces a Thargon every five seconds, so
+counting drones would make a record free. A Clean commander banks nothing, so a
+crime cannot be paid for in advance, and a fresh offence clears a part-paid
+ledger.
+
+**The atonement is a `CombatEvent`**, because an NPC reports and an orchestrator
+resolves (invariant 15). It goes straight to `LawActions` rather than out
+through the host, and the asymmetry with the offence beside it is the reason:
+raising a record launches the station's Vipers and is the orchestrator's act,
+while a record worked off queues one console line and nothing else.
+
+**`SNAPSHOT_VERSION` went to 3**, because a version 2 save cannot say how far
+through a rung its pilot was, and a default of 0 would silently take four
+pirates back off them. **Seven unrelated constants gained `@rule` ids**, because
+the value 5 is shared nine ways and only two of them carried one.
 
 **159 — the lane that only exists at the station (GitHub #31).** Chris flew to
 the sun and reported: *"I don't think I encountered any NPC ships. We should
