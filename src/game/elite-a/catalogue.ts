@@ -1,20 +1,22 @@
-// Looking things up in the Elite-A catalogue — the only way in.
+// The Elite-A catalogue, and the only way to look anything up in it.
 //
-// The generated modules are flat arrays in source order, which is what makes
+// The generated modules are flat arrays in source order. That is what makes
 // their diffs reviewable and their emission deterministic. Nothing outside this
-// file should scan them: ask here by id and get one record, or a merged combat
-// profile, back.
+// file should scan them. Ask here by id, and get back one record or a merged
+// combat profile.
 //
 // `recommendedNpcProfile(designId)` is the one that matters today. The pack
-// suggests a stat block per design; the importer resolved it to an ACTUAL exact
-// variant with that combat tuple — first in A-W order where several matched —
-// and stored the id. So the current roster flies a real released build of the
-// ship rather than an average of them, and when a later feature picks a variant
-// by system instead, combat does not notice: it was already reading a variant.
+// suggests a stat block per design. The importer resolved that to an ACTUAL
+// exact variant with the same combat tuple, and stored the id. Where several
+// matched, it took the first in A-W order.
 //
-// Everything here is data lookup. There is no combat arithmetic in this file
-// and there must not be: how a hit resolves is the combat module's rule, and
-// this is where it gets its numbers.
+// So the current roster flies a real released build of the ship, rather than an
+// average of several. A later feature may pick a variant by system instead, and
+// combat will not notice: it already read a variant.
+//
+// Everything here is data lookup. There is no combat arithmetic in this file,
+// and there must not be. How a hit resolves is the combat module's rule. This
+// is where that module gets its numbers.
 
 import { ELITE_A_DESIGNS } from './designs.generated.ts';
 import { ELITE_A_GEOMETRY } from './geometry.generated.ts';
@@ -62,9 +64,10 @@ export function eliteAGeometry(id: EliteADesignId): EliteAGeometry {
 /**
  * Target radius in source units.
  *
- * The pack stores the target AREA, and most designs have a whole-number root;
- * the eight that do not (Dragon, Monitor, Ophidian and the other recovered
- * hulls) store null and take the square root here. One home for that choice.
+ * The pack stores the target AREA, and most designs have a whole-number root.
+ * Eight do not: the Dragon, the Monitor, the Ophidian and the other recovered
+ * hulls. Those store null, and take the square root here. One home for that
+ * choice.
  */
 export function eliteATargetRadius(design: EliteADesign): number {
   return design.targetableRadiusSourceUnits ?? Math.sqrt(design.targetableArea);
@@ -88,10 +91,10 @@ export function eliteANewbFlags(newbRaw: number): EliteANewbFlags {
 /**
  * Every id there is, in source order — the three enumerations.
  *
- * Here rather than at the call site because the flat arrays are this file's
- * secret: a caller that wanted "all the variants" would otherwise import
- * `ELITE_A_VARIANTS` and map it, which is the one thing the header asks nobody
- * to do. Copies, so a caller cannot reorder the catalogue by accident.
+ * Here rather than at the call site, because the flat arrays are this file's
+ * secret. A caller who wanted "all the variants" would otherwise import
+ * `ELITE_A_VARIANTS` and map it. That is the one thing the header asks nobody
+ * to do. Each is a copy, so a caller cannot reorder the catalogue by accident.
  */
 export function eliteAPlayerHullIds(): EliteAPlayerHullId[] {
   return ELITE_A_PLAYER_HULLS.map((hull) => hull.playerShipId);
@@ -109,9 +112,11 @@ export function eliteAVariantIds(): EliteAVariantId[] {
  * The 23 released blueprint sets, in source order — `A` to `W`.
  *
  * Read off the slot table rather than written down, because the count IS the
- * pack's: a set exists here exactly when the pack filed slots for it. The
- * chooser (`game/blueprint-set.ts`) indexes this, so a re-import that shipped a
- * 24th set would widen the choice rather than disagree with a literal.
+ * pack's. A set exists here exactly when the pack filed slots for it.
+ *
+ * The chooser (`game/blueprint-set.ts`) indexes this. So a re-import that
+ * shipped a 24th set would widen the choice, rather than disagree with a
+ * literal.
  */
 export function eliteABlueprintSets(): string[] {
   return [...new Set(ELITE_A_SLOTS.map((slot) => slot.blueprintSet))];
@@ -127,10 +132,11 @@ export function eliteASlotsForSet(blueprintSet: string): EliteASlot[] {
  * released set, in design order.
  *
  * The occupancy, not the permission. `EliteADesign.allowedBlueprintSlots` is
- * the wider set the pack says a design MAY sit in, and reading it would let a
- * Sidewinder be a trader because no released set ever made it one. This asks
- * the 713-row slot table what the 23 sets between them actually did, which is
- * what `game/ship-roles.ts` turns into role membership.
+ * the wider set the pack says a design MAY sit in. A read of that would let a
+ * Sidewinder be a trader, and no released set ever made it one.
+ *
+ * This asks the 713-row slot table what the 23 sets between them really did.
+ * `game/ship-roles.ts` turns that into role membership.
  *
  * Here rather than at that call site for the reason the header gives: nothing
  * outside this file scans the flat generated arrays.

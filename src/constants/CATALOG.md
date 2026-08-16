@@ -110,14 +110,14 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | contracts | <code>SMUGGLE_DELIVERY_NOTORIETY</code> | <code>0.06</code> | How loudly a delivered smuggling run is talked about, per tonne landed. | <code>contracts.smuggleDeliveryNotoriety</code> | [contracts.ts:73](./contracts.ts#L73) |
 | docking | <code>GATE_HALF_WIDTHS</code> | <code>5</code> | How far out the approach gate sits, in multiples of the station half-width. | <code>docking.gateHalfWidths</code> | [docking.ts:25](./docking.ts#L25) |
 | docking | <code>TURN_IN</code> | <code>Math.PI / 4</code> | How far round from the slot axis an approach turns in, in radians. |  | [docking.ts:49](./docking.ts#L49) |
-| docking | <code>RUN_IN_WIDTHS</code> | <code>GATE_HALF_WIDTHS * 0.6</code> | Where the approach stops the curve and flies straight, in station half-widths. |  | [docking.ts:82](./docking.ts#L82) |
-| docking | <code>LINED_UP_LATERAL</code> | <code>45</code> | The off-axis error we insist on before we commit to the run in, in world units. |  | [docking.ts:93](./docking.ts#L93) |
-| docking | <code>HULL_BOX_MARGIN</code> | <code>50</code> | The bounding cube around the station: a margin over the half-width, in world units, a little larger than the hull. |  | [docking.ts:105](./docking.ts#L105) |
-| docking | <code>NPC_HULL_BOX_MARGIN</code> | <code>HULL_BOX_MARGIN</code> | The same cube for every NPC. |  | [docking.ts:110](./docking.ts#L110) |
-| docking | <code>SLOT_HALF_ACROSS</code> | <code>26</code> | The slot channel, as half-extents ACROSS the slot and ALONG it, in station-local world units. |  | [docking.ts:118](./docking.ts#L118) |
-| docking | <code>SLOT_HALF_ALONG</code> | <code>62</code> |  |  | [docking.ts:119](./docking.ts#L119) |
-| docking | <code>SLOT_DEPTH</code> | <code>60</code> | How far into the -Z face counts as being in the channel, in world units. |  | [docking.ts:122](./docking.ts#L122) |
-| docking | <code>ROLL_TOLERANCE</code> | <code>0.65</code> | The wings against the slot's long axis, in radians: how badly you may be rolled and still fit through the letterbox. |  | [docking.ts:133](./docking.ts#L133) |
+| docking | <code>RUN_IN_WIDTHS</code> | <code>GATE_HALF_WIDTHS * 0.6</code> | Where the approach stops the curve and flies straight, in station half-widths. |  | [docking.ts:87](./docking.ts#L87) |
+| docking | <code>LINED_UP_LATERAL</code> | <code>45</code> | The off-axis error we insist on before we commit to the run in, in world units. |  | [docking.ts:100](./docking.ts#L100) |
+| docking | <code>HULL_BOX_MARGIN</code> | <code>50</code> | The bounding cube around the station: a margin over the half-width, in world units, a little larger than the hull. |  | [docking.ts:112](./docking.ts#L112) |
+| docking | <code>NPC_HULL_BOX_MARGIN</code> | <code>HULL_BOX_MARGIN</code> | The same cube for every NPC. |  | [docking.ts:117](./docking.ts#L117) |
+| docking | <code>SLOT_HALF_ACROSS</code> | <code>26</code> | The slot channel, as half-extents ACROSS the slot and ALONG it, in station-local world units. |  | [docking.ts:125](./docking.ts#L125) |
+| docking | <code>SLOT_HALF_ALONG</code> | <code>62</code> |  |  | [docking.ts:126](./docking.ts#L126) |
+| docking | <code>SLOT_DEPTH</code> | <code>60</code> | How far into the -Z face puts a ship in the channel, in world units. |  | [docking.ts:129](./docking.ts#L129) |
+| docking | <code>ROLL_TOLERANCE</code> | <code>0.65</code> | The wings against the slot's long axis, in radians: how badly you may be rolled and still fit through the letterbox. |  | [docking.ts:140](./docking.ts#L140) |
 | docking-computer | <code>DOCK_COMPUTER_RANGE</code> | <code>3500</code> | How close to the station the docking computer will take the job, in world units. |  | [docking-computer.ts:46](./docking-computer.ts#L46) |
 | docking-computer | <code>DC_SLOT_MARGIN</code> | <code>0.30</code> | How much of the slot's roll tolerance the TURN may spend, as a fraction. | <code>docking.slotMargin</code> | [docking-computer.ts:97](./docking-computer.ts#L97) |
 | docking-computer | <code>DC_TURN_FADE_ANGLE</code> | <code>0.10</code> | The off-nose angle, in radians, over which the TURN's claim on the roll axis ramps in. | <code>docking.turnFadeAngle</code> | [docking-computer.ts:151](./docking-computer.ts#L151) |

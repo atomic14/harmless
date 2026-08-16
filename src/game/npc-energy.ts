@@ -6,13 +6,13 @@
 // three decisions kept out of the call sites:
 //
 //   1. IMMUNITY AND THE CONSTRICTOR ARE THE TARGET'S OWN PROPERTIES. A station
-//      shrugs off a laser and the Constrictor halves it BEFORE defence, and
-//      both arrive as fields of the profile, so `Combat.fire` has no idea what
-//      it is shooting at.
-//   2. REGENERATION IS A PROPERTY OF THE DESIGN, not of the frame rate.
-//      Accumulated as whole sub-ticks (see ELITE_A_REGEN_TICKS_PER_SECOND) so
-//      the same elapsed time gives the same points at any Hz, with no catch-up
-//      burst for a paused tab.
+//      shrugs off a laser. The Constrictor halves one BEFORE defence. Both
+//      arrive as fields of the profile, so `Combat.fire` never learns which
+//      ship is in front of it.
+//   2. REGENERATION IS A PROPERTY OF THE DESIGN, not of the frame rate. It
+//      accumulates as whole sub-ticks (see ELITE_A_REGEN_TICKS_PER_SECOND). So
+//      the same elapsed time gives the same points at any Hz, and a paused tab
+//      buys no catch-up burst.
 //   3. WHAT ONE SHIP'S GUN IS WORTH AGAINST ANOTHER'S BANK —
 //      `npcCrossfireDamage`. The pack does not tabulate this direction, so it
 //      is composed from the two source rules that do apply.
@@ -52,10 +52,15 @@ export interface NpcEnergyPolicy extends EliteALaserTarget {
  * The designs the fidelity contract says do not recover: "stations, missiles,
  * cargo and rocks".
  *
- * Written as the pack's own design ids so that phrase lands on something
- * checkable: stations 0-1, escape pod, alloy plate and canister 2-4, the three
- * rocks 5-7, and the common missile 15. Everything else is an AI ship with a
- * working generator.
+ * They are written as the pack's own design ids, so that the phrase lands on
+ * something checkable:
+ *
+ *   - the stations, 0-1;
+ *   - the escape pod, the alloy plate and the canister, 2-4;
+ *   - the three rocks, 5-7;
+ *   - the common missile, 15.
+ *
+ * Everything else is an AI ship with a generator that runs.
  */
 const NON_REGENERATING_DESIGNS: ReadonlySet<number> =
   new Set([0, 1, 2, 3, 4, 5, 6, 7, 15]);
@@ -77,34 +82,34 @@ export const ANCHOR_NPC_MAX_ENERGY =
 /**
  * Explicit policy for the ships the pack has no record of.
  *
- * They are OURS and excluded from every claim of source parity — the same
- * separation `ship-identity.ts` keeps for their ids. Giving them a released
- * variant's numbers would put invented figures inside a matrix the oracle is
+ * They are OURS, and every claim of source parity excludes them. That is the
+ * same separation `ship-identity.ts` keeps for their ids. A released variant's
+ * numbers on them would put invented figures inside a matrix the oracle is
  * checked against.
  */
 const HARMLESS_POLICY: Readonly<Record<string, NpcEnergyPolicy>> = {
   /**
    * The rock hermit is a hollowed asteroid outpost you dock with, and one you
-   * can blast open. NOT laser-immune like the two source stations: 300 is
-   * tougher than the heaviest hull (the 255 Dragon), so cracking a smuggler's
-   * den is a deliberate job, and it sheds its contraband when it goes
+   * can blast open. It is NOT laser-immune like the two source stations. 300
+   * is tougher than the heaviest hull, the 255 Dragon. So a smuggler's den
+   * cracked open is a deliberate job, and it sheds its contraband as it goes
    * (combat.ts). A hollowed rock has no generator, so it recovers nothing.
    */
   [HARMLESS_OVERLAYS.rockHermit.profileId]: {
     maxEnergy: 300, laserImmune: false, playerLaserMultiplier: 1, regenPerSecond: 0,
   },
   /**
-   * The derelict generation ship is the largest hull in the sky and dead: 252
-   * is the Anaconda's bank, the heaviest hull on the trader roster (not the
-   * heaviest in the catalogue, the `W:29` Dragon at 255). Its reactors have
-   * been cold for centuries, so it recovers nothing.
+   * The derelict generation ship is the largest hull in the sky, and it is
+   * dead. 252 is the Anaconda's bank, which is the heaviest hull on the trader
+   * roster. It is not the heaviest in the catalogue: that is the `W:29` Dragon
+   * at 255. Its reactors went cold centuries ago, so it recovers nothing.
    */
   [HARMLESS_OVERLAYS.generationShip.profileId]: {
     maxEnergy: 252, laserImmune: false, playerLaserMultiplier: 1, regenPerSecond: 0,
   },
 };
 
-// --- resolving one ship's policy ---------------------------------------------
+// --- one ship's policy, resolved ---------------------------------------------
 
 const cache = new Map<NpcCombatProfileId, NpcEnergyPolicy>();
 
@@ -125,8 +130,9 @@ export function npcEnergyPolicy(profileId: NpcCombatProfileId): NpcEnergyPolicy 
       regenPerSecond: NON_REGENERATING_DESIGNS.has(record!.profile.designId)
         ? 0 : ELITE_A_DEFAULT_REGEN_PER_SECOND,
     }
-    // An overlay id with no policy above is a Harmless invention somebody added
-    // without deciding what it is made of. That is a decision, not a default.
+    // An overlay id with no policy above is a Harmless invention that somebody
+    // added and never said what it is made of. That is a decision, not a
+    // default.
     : missingPolicy(profileId));
   cache.set(profileId, policy);
   return policy;
@@ -146,8 +152,8 @@ export function npcMaxEnergy(profileId: NpcCombatProfileId): number {
 /**
  * Energy a registered player-laser hit of `hit` strength removes.
  *
- * The whole rule is the oracle's; immunity and the Constrictor's halving are
- * inside `policy`, which is why no caller of this ever names a ship.
+ * The whole rule is the oracle's. Immunity, and the Constrictor's half, are
+ * both inside `policy`. That is why no caller of this ever names a ship.
  */
 export function playerLaserDamage(policy: NpcEnergyPolicy, hit: number): NpcEnergyPoints {
   return npcEnergyPoints(eliteADamageToNpc(hit, policy));
@@ -156,19 +162,21 @@ export function playerLaserDamage(policy: NpcEnergyPolicy, hit: number): NpcEner
 /**
  * Energy one ship's registered laser hit removes from ANOTHER ship's bank.
  *
- * The direction the pack does not tabulate, so it is COMPOSED from the two
- * source rules each half does have: the firing build's own laser strength
- * (`laserPower << 2`) less the target's own per-hit defence (`maxEnergy & 7`),
- * both from `elite-a/combat-math.ts` — so a crossfire kill and a player kill
- * agree about what a Krait's gun is worth against an Adder.
+ * The pack does not tabulate this direction. So it is COMPOSED from the two
+ * source rules each half does have. It takes the laser strength of the
+ * attacker's own build (`laserPower << 2`), less the target's own per-hit
+ * defence (`maxEnergy & 7`). Both come from `elite-a/combat-math.ts`.
  *
- * IT IS NOT A PLAYER LASER: `playerLaserMultiplier` (the Constrictor's halving,
- * which hardens it against the commander's guns specifically) and `laserImmune`
- * (a station shrugging off the commander) deliberately do not apply here. See
- * `test/damage-paths.test.ts`, which asserts both.
+ * So a crossfire kill and a player kill agree about what a Krait's gun is worth
+ * against an Adder.
  *
- * @param attackerWeaponByte the FIRING ship's packed byte (`npcWeaponByte`)
- * @param target the ship being hit — its own bank, and nothing else's
+ * IT IS NOT A PLAYER LASER. Two fields deliberately do not apply here.
+ * `playerLaserMultiplier` is the Constrictor's half, which hardens it against
+ * the commander's guns in particular. `laserImmune` is a station that shrugs
+ * the commander off. See `test/damage-paths.test.ts`, which asserts both.
+ *
+ * @param attackerWeaponByte the ATTACKER's packed byte (`npcWeaponByte`)
+ * @param target the ship that takes the hit — its own bank, and nothing else's
  */
 export function npcCrossfireDamage(
   attackerWeaponByte: number, target: NpcEnergyPolicy,
@@ -177,7 +185,7 @@ export function npcCrossfireDamage(
     eliteANpcLaserStrength(attackerWeaponByte) - eliteANpcDefence(target.maxEnergy)));
 }
 
-/** The bank after taking `damage`. Floored at zero so destruction reads exactly 0. */
+/** The bank once `damage` comes off. Floored at zero, so destruction reads 0. */
 export function energyAfterDamage(energy: number, damage: NpcEnergyPoints): number {
   return eliteAEnergyAfterDamage(energy, damage);
 }
@@ -187,7 +195,7 @@ export function isDestroyed(energy: number): boolean {
   return eliteAIsDestroyed(energy);
 }
 
-// --- coming back -------------------------------------------------------------
+// --- recovery -------------------------------------------------------------
 
 /**
  * Advance one ship's bank by a frame of elapsed time.
