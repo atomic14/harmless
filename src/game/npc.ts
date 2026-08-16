@@ -292,12 +292,12 @@ export interface WorldView {
   sunPos?: THREE.Vector3;
   /**
    * How far the COMMANDER is from the station, for the station's truce
-   * (`truceHolds`, law.ts). It is measured once a frame in `world-step.ts` and
-   * handed down, because the ship, the HUD blip, the combat computer and the
-   * bribe key must all read one number.
+   * (`truceHolds`, law.ts). `world-step.ts` measures it once a frame and hands
+   * it down. The ship, the HUD blip, the combat computer and the bribe key must
+   * all read one number.
    *
-   * It is optional, and the omitted value is INERT rather than convenient: a
-   * missing distance is infinite, so no truce holds and every ship behaves as
+   * It is optional, and the omitted value is INERT rather than convenient. An
+   * absent distance is infinite, so no truce holds, and every ship behaves as
    * it did before docs/TODO/158. A reader that forgets the field therefore
    * loses a promise of peace, and can never invent one. That is the same
    * bargain `Canister.occupant` strikes with `''` (docs/TODO/156).
@@ -325,9 +325,9 @@ export type FireEvent =
  * it. legalStatus: 0 clean, 1 offender, 2 fugitive.
  *
  * @param playerToStation how far the commander is from the station, for the
- * truce below. It is REQUIRED rather than defaulted: a reader that forgot it
- * would paint a red blip, or aim the commander's own combat computer, at a ship
- * that attacks nobody (docs/TODO/158).
+ * truce below. It is REQUIRED rather than defaulted. A reader that forgot it
+ * would treat a ship that attacks nobody as a threat: a red blip, or the
+ * commander's own combat computer aimed at it (docs/TODO/158).
  */
 export function isHostileToPlayer(
   npc: NpcShip, legalStatus: number, playerToStation: number,
@@ -340,7 +340,7 @@ export function isHostileToPlayer(
   // What they have in common is that they are done with you.
   if (npc.state.satisfied) return false;
   // The station's truce, and the commander who ends it. `provokedByPlayer` is
-  // set by `takeDamage` for damage from the commander, whatever the role, so a
+  // set by `takeDamage` for damage from the commander, whatever the role. So a
   // ship shot at inside the truce answers exactly as it does outside one. A
   // truce that covered that case would make the port a free firing position.
   if (!npc.state.provokedByPlayer && truceHolds(npc.role, playerToStation)) return false;
@@ -887,8 +887,9 @@ export class NpcShip {
     }
 
     // Amble between waypoints near home. A role the station's truce covers
-    // ambles OUTSIDE the truce: it can do nothing inside one, so a waypoint in
-    // there parks a hostile over the port and calls it traffic (docs/TODO/158).
+    // ambles OUTSIDE the truce, because it can do nothing inside one. A
+    // waypoint in there parks a hostile over the port and calls it traffic
+    // (docs/TODO/158).
     // `truceHolds` at distance 0 asks "would the truce cover this role at the
     // station itself?", so the list of covered roles keeps one home.
     this.state.waypointTimer -= dt;

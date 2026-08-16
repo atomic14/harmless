@@ -257,13 +257,13 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | player-gun | <code>LASER_PACING</code> | <code>{ pulse: { cooldown: 0.24, heat: 0.067 }, beam: { cooldown: 0.09, heat: 0.05 }, military: { cooldown: 0.09, heat: 0.05 }, } as const</code> | The cadence and the heat of each fitted laser. |  | [player-gun.ts:29](./player-gun.ts#L29) |
 | player-gun | <code>LASER_CUTOUT</code> | <code>0.98</code> | The laser cuts out at this temperature. |  | [player-gun.ts:36](./player-gun.ts#L36) |
 | player-gun | <code>LASER_COOL_RATE</code> | <code>0.22</code> | ...and how fast it cools, in units of that same 0..1 scale per second. |  | [player-gun.ts:54](./player-gun.ts#L54) |
-| player-gun | <code>LASER_ENERGY_COST</code> | <code>1</code> | What one laser shot draws from the energy bank. |  | [player-gun.ts:68](./player-gun.ts#L68) |
-| player-gun | <code>LASER_GRAZE</code> | <code>0.9</code> | How much of a target's silhouette counts as a hit, as a multiple of its radius. |  | [player-gun.ts:76](./player-gun.ts#L76) |
-| player-gun | <code>CANISTER_GRAZE</code> | <code>20</code> | Grazing radius for drifting cargo, in world units. | <code>gun.graze.canister</code> | [player-gun.ts:86](./player-gun.ts#L86) |
-| player-gun | <code>POD_GRAZE</code> | <code>16</code> | The same allowance for an escape capsule. | <code>gun.graze.pod</code> | [player-gun.ts:102](./player-gun.ts#L102) |
-| player-gun | <code>AIM_ASSIST</code> | <code>0.035</code> | Aim assist: an angular allowance ON TOP of the target's silhouette, so a shot that is nearly right still connects. |  | [player-gun.ts:124](./player-gun.ts#L124) |
-| player-gun | <code>ASSIST_FADE_START</code> | <code>900</code> |  |  | [player-gun.ts:125](./player-gun.ts#L125) |
-| player-gun | <code>ASSIST_FADE_END</code> | <code>2400</code> |  |  | [player-gun.ts:126](./player-gun.ts#L126) |
+| player-gun | <code>LASER_ENERGY_COST</code> | <code>1</code> | What one laser shot draws from the energy bank. |  | [player-gun.ts:71](./player-gun.ts#L71) |
+| player-gun | <code>LASER_GRAZE</code> | <code>0.9</code> | How much of a target's silhouette counts as a hit, as a multiple of its radius. |  | [player-gun.ts:79](./player-gun.ts#L79) |
+| player-gun | <code>CANISTER_GRAZE</code> | <code>20</code> | Grazing radius for drifting cargo, in world units. | <code>gun.graze.canister</code> | [player-gun.ts:89](./player-gun.ts#L89) |
+| player-gun | <code>POD_GRAZE</code> | <code>16</code> | The same allowance for an escape capsule. | <code>gun.graze.pod</code> | [player-gun.ts:108](./player-gun.ts#L108) |
+| player-gun | <code>AIM_ASSIST</code> | <code>0.035</code> | Aim assist: an angular allowance ON TOP of the target's silhouette, so a shot that is nearly right still connects. |  | [player-gun.ts:132](./player-gun.ts#L132) |
+| player-gun | <code>ASSIST_FADE_START</code> | <code>900</code> |  |  | [player-gun.ts:133](./player-gun.ts#L133) |
+| player-gun | <code>ASSIST_FADE_END</code> | <code>2400</code> |  |  | [player-gun.ts:134](./player-gun.ts#L134) |
 | player-interest | <code>PLAYER_INTEREST_RANGE</code> | <code>9000</code> | A hostile closer than this is engaged with you. |  | [player-interest.ts:16](./player-interest.ts#L16) |
 | pools | <code>MAX_ENERGY</code> | <code>255</code> | Released capacity of every flyable hull's energy bank and each shield. |  | [pools.ts:6](./pools.ts#L6) |
 | pools | <code>MAX_SHIELD</code> | <code>255</code> |  |  | [pools.ts:7](./pools.ts#L7) |
@@ -335,8 +335,8 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | sun | <code>CABIN_TEMP_LAG</code> | <code>1.2</code> | How fast the cabin follows the temperature that its distance implies, as a first-order lag in reciprocal seconds. |  | [sun.ts:54](./sun.ts#L54) |
 | sun | <code>CABIN_TEMP_FATAL</code> | <code>0.99</code> | The cabin temperature that kills you, on the gauge's own 0..1 scale. |  | [sun.ts:61](./sun.ts#L61) |
 | sun | <code>SCOOP_RATE</code> | <code>5</code> | Tonnes of fuel gathered per second on a scoop — tenths of a light year. | <code>sun.scoopRate</code> | [sun.ts:71](./sun.ts#L71) |
-| survivors | <code>SURVIVOR_SALE_TONNES</code> | <code>4</code> | What a PERSON is worth on the Slaves row, counted in tonnes of it. docs/TODO/127 priced a sale at the market's own quote for one tonne, and recorded the result as a question for the playtest. | <code>survivors.saleTonnes</code> | [survivors.ts:48](./survivors.ts#L48) |
-| survivors | <code>SURVIVOR_RELEASE_SHARE</code> | <code>0.5</code> | What somebody pays you to be let go rather than sold, as a share of what a sale would have fetched. | <code>survivors.releaseShare</code> | [survivors.ts:68](./survivors.ts#L68) |
+| survivors | <code>SURVIVOR_SALE_TONNES</code> | <code>4</code> | What a PERSON is worth on the Slaves row, counted in tonnes of it. docs/TODO/127 priced a sale at the market's own quote for one tonne, and recorded the result as a question for the playtest. | <code>survivors.saleTonnes</code> | [survivors.ts:49](./survivors.ts#L49) |
+| survivors | <code>SURVIVOR_RELEASE_SHARE</code> | <code>0.5</code> | What somebody pays you for their freedom rather than a sale, as a share of what that sale would fetch. | <code>survivors.releaseShare</code> | [survivors.ts:69](./survivors.ts#L69) |
 | tactic-choice | <code>PASS_CLEARANCE</code> | <code>1.6</code> | How much wider than contact a pass has to be AIMED to actually clear, as a multiple of the two hulls' radii. |  | [tactic-choice.ts:18](./tactic-choice.ts#L18) |
 | tactic-choice | <code>RAM_MIN_SPEED</code> | <code>PLAYER_FLIGHT.maxSpeed * 0.7</code> | The slowest hull that may be offered a ram, as a fraction of the commander's top speed. |  | [tactic-choice.ts:27](./tactic-choice.ts#L27) |
 | tactic-choice | <code>TACTIC_HURT_HEALTH</code> | <code>0.6</code> | How hurt a ship has to be before a hit makes it rethink. |  | [tactic-choice.ts:34](./tactic-choice.ts#L34) |

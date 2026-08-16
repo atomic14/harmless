@@ -1,10 +1,11 @@
 // What a ship is FOR, and which released designs are ALLOWED to be it.
 //
-// `ship-specs.ts` says which hulls Harmless actually flies in each role. This
-// says which hulls it may choose from, and the roster does not get a vote:
-// Elite-A files every ship into one of 31 numbered blueprint slots, the same
-// slot means the same job in all 23 released sets, and a design that never
-// occupies a band is not a ship of that kind however much it looks like one.
+// `ship-specs.ts` says which hulls Harmless really flies in each role. This
+// file says which hulls it may choose from, and the roster gets no vote.
+//
+// Elite-A files every ship into one of 31 numbered blueprint slots. The same
+// slot means the same job in all 23 released sets. A design that never occupies
+// a band is not a ship of that kind, however much it looks like one.
 //
 //     6-8    mining        boulder, asteroid, splinter
 //     9-10   shuttle, transporter
@@ -22,19 +23,22 @@
 // ever put one there, so counting permissions would quietly widen every role.
 //
 // Harmless's roles are COARSER than the source's bands, so the mapping below is
-// a decision and is written down as one. The one that matters: a Harmless
-// `trader` covers the shuttle, transporter, trader and child bands, because
-// Harmless has no separate role for a station shuttle or for the small craft a
-// carrier launches, and both are civilian traffic here.
+// a decision, and it is written down as one. The one that matters is the
+// Harmless `trader`. It covers the shuttle, transporter, trader and child
+// bands. Harmless has no separate role for a station shuttle, and none for the
+// small craft a carrier launches. Both are civilian traffic here.
 //
 // That last band has a consequence worth stating. Slot 15 holds the Worm and
-// the Sidewinder, so admitting it makes a Sidewinder a PERMITTED trader — and
-// the alternative was to drop the band and with it the Worm, which has flown as
-// civilian traffic here since long before the catalogue arrived and occupies no
-// other civilian slot. Permission is not selection: the roster puts no
+// the Sidewinder. So the band admitted makes a Sidewinder a PERMITTED trader.
+//
+// The alternative was to drop the band, and with it the Worm. The Worm flew as
+// civilian traffic here since long before the catalogue arrived, and it
+// occupies no other civilian slot.
+//
+// Permission is not selection. The roster puts no
 // Sidewinder in the trader list and `test/ship-roles.test.ts` says so. This
-// module's job is to stop a hull being filed somewhere the source never filed
-// it, not to make every choice for the roster.
+// module's job is to stop a hull from a filing the source never made. It does
+// not make every choice for the roster.
 //
 // Two roles are OURS and have no band at all — the rock hermit and the
 // generation ship. That emptiness is the point: a custom ship must not be able
@@ -115,9 +119,9 @@ export function roleSourceBands(role: NpcRole): readonly SourceSlotBand[] {
  *
  * The slot numbers themselves stay private — `BAND_SLOTS` is this file's rule
  * and nothing outside it should hold a copy of "17 to 24 means pirate". What a
- * caller may ask is the question, and `game/role-variants.ts` is the one that
- * asks it: a variant occupies slots in its own set, and whether any of them is
- * a slot for THIS job is what decides if the role may fly that build.
+ * caller may ask is the question, and `game/role-variants.ts` is what asks it.
+ * A variant occupies slots in its own set. Whether any of them is a slot for
+ * THIS job decides whether the role may fly that build.
  */
 export function roleBandContainsSlot(role: NpcRole, slot: number): boolean {
   return ROLE_BANDS[role].some((band) => {
@@ -139,9 +143,9 @@ export function roleAllowsDesign(role: NpcRole, designId: ShipDesignId): boolean
 /**
  * The Navy's Constrictor — its own released slot, and nothing else's.
  *
- * It spawns with the `pirate` role because that is what it behaves like for
- * bounty, legality and police purposes, but slot 31 is not in the pirate band
- * and pretending it is would widen every ordinary pirate spawn to include it.
+ * It spawns with the `pirate` role, because that is how it behaves for bounty,
+ * legality and police purposes. Slot 31 is not in the pirate band. A claim that
+ * it is would widen every ordinary pirate spawn to include it.
  * So it is named here instead, and `CONSTRICTOR_SPEC` is checked against this.
  */
 export const MISSION_TARGET_DESIGNS: readonly ShipDesignId[] =

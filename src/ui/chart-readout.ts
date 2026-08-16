@@ -1,12 +1,15 @@
 // What the chart says about the star under the cursor.
 //
-// Split out of `ui/screens.ts` by docs/TODO/149. Two questions, and they are one
-// subject because the second is always asked about the answer to the first:
-// WHICH star is under the cursor (`nearestSystem`), and what it would cost to
-// go there (`journey`, and the two terms that word it).
+// Split out of `ui/screens.ts` by docs/TODO/149. Two questions live here, and
+// they are one subject, because the second is always asked about the answer to
+// the first:
 //
-// ONE MEASUREMENT, HANDED TO BOTH TERMS. The info line says the journey twice —
-// once as what it costs, once as how far away a deadline is — and two
+//   1. WHICH star is under the cursor (`nearestSystem`);
+//   2. what it would cost to go there (`journey`, and the two terms that word
+//      it).
+//
+// ONE MEASUREMENT, HANDED TO BOTH TERMS. The info line says the journey twice:
+// once as what it costs, and once as how far off a deadline is. Two
 // measurements would let one line contradict itself. `journey` is called once
 // per repaint and the number is passed in, which is why `daysTerm` and
 // `contractTerm` take a `Journey` rather than a galaxy.
@@ -84,9 +87,9 @@ export function journey(
  * contract needs the third one.
  *
  * Beyond the tank the term becomes ` &middot; EST 7 DAYS, 2 JUMPS`
- * (docs/TODO/140 M3). The word EST is the difference between the two answers
- * and it is not decoration: one jump either happens or mis-jumps, and a route
- * of several jumps is a plan the pilot has not made yet.
+ * (docs/TODO/140 M3). The word EST is the difference between the two answers,
+ * and it is not decoration. One jump either happens or mis-jumps. A route of
+ * several jumps is a plan the pilot did not make yet.
  *
  * Two systems get no term at all. The system you stand in costs nothing to
  * reach. A system no chain of full-tank jumps reaches has no cost to state.
@@ -108,9 +111,9 @@ export function daysTerm(trip: Journey | null): string {
  * sends this commander to, or nothing — on both charts.
  *
  * The board sold the job and the chart draws the world. The pilot held the
- * subtraction between them (docs/TODO/140 M4). docs/TODO/144 added the Navy
- * mission to the same line, because the chart is where a pilot decides where to
- * go and the Constrictor's system looked like any other world.
+ * subtraction between them (docs/TODO/140 M4). Then docs/TODO/144 added the
+ * Navy mission to the same line. The chart is where a pilot decides where to
+ * go, and the Constrictor's system looked like any other world.
  *
  * `game/orders.ts` owns the words and the verdict. This function owns the
  * markup only, so the two charts cannot word one commitment differently. It
@@ -131,8 +134,8 @@ export function contractTerm(c: CommanderData, near: StarSystem, trip: Journey |
 /**
  * The chart keys and what the overlays mean. ONE home, used by both charts:
  * they were two hand-written copies and the second was always the one that
- * fell behind. Chart keys are the screen's own and exempt from the binding
- * tables (see the note at the top of this file), so this line is where they
+ * fell behind. Chart keys are the screen's own, and the binding tables exempt
+ * them (see the note at the top of this file). So this line is where they
  * live.
  */
 export const chartKeyline = (mode: ChartOverlay): string =>

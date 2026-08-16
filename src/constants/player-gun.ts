@@ -54,10 +54,13 @@ export const LASER_CUTOUT = 0.98;
 export const LASER_COOL_RATE = 0.22;
 
 /**
- * What one laser shot draws from the energy bank. The Elite-A player laser spends
- * one energy point per firing event (spec §11), and our energy pool IS the
- * released 255 (`MAX_ENERGY`, constants/pools.ts), so the number transfers
- * directly. It is a soft, secondary limit. Sustained fire slowly erodes the bank
+ * What one laser shot draws from the energy bank.
+ *
+ * The Elite-A player laser spends one energy point per firing event (spec §11).
+ * Our energy pool IS the released 255 (`MAX_ENERGY`, constants/pools.ts). So
+ * the number transfers directly.
+ *
+ * It is a soft, secondary limit. Sustained fire slowly erodes the bank
  * that also recharges the shields, so a held trigger costs you defence. Heat is
  * the hard limit (`LASER_CUTOUT`).
  *
@@ -86,11 +89,14 @@ export const LASER_GRAZE = 0.9;
 export const CANISTER_GRAZE = 20;
 
 /**
- * The same allowance for an escape capsule. Since docs/TODO/108 that is a
- * different hull rather than a small canister: released design 2, whose catalogue
- * radius is 16 source units against the canister's 20. It is four fifths of the
- * canister's tolerance, which is the ratio that the two silhouettes had while a
- * capsule was drawn as a canister at 0.8 scale. A shot at one is therefore no
+ * The same allowance for an escape capsule.
+ *
+ * Since docs/TODO/108 a capsule is a different hull, rather than a small
+ * canister. It is released design 2, and its catalogue radius is 16 source
+ * units against the canister's 20.
+ *
+ * It is four fifths of the canister's tolerance. That is the ratio the two
+ * silhouettes had while a capsule was drawn as a canister at 0.8 scale. A shot at one is therefore no
  * harder than it was, and the number now has a hull behind it.
  *
  * It is its own rule, not `CANISTER_GRAZE * 0.8`. These are two objects'
@@ -114,12 +120,14 @@ export const POD_GRAZE = 16;
  * ray against the actual mesh, rather than a cone around a sphere. A hull's shape
  * therefore decides how hard it is to hit. An Anaconda subtends 1.3 degrees
  * nose-on and 2.5 broadside. A Sidewinder subtends 1.6 across its wings and 0.6
- * vertically, and one at 500 units is 1.9 degrees. To hold a mouse inside that
- * while both ships manoeuvre is most of why fights read as flailing, and it is
+ * vertically, and one at 500 units is 1.9 degrees. A mouse held inside that
+ * while both ships manoeuvre is most of why a fight reads as a flail. It is
  * the half of the combat problem that belongs to the player rather than to the
- * AI. The alternative was a cone sized from the target's MAXIMUM radius, and that
- * makes every ship a ball: an Anaconda no easier to hit down its long flank than
- * head-on, and shots that land on empty space beside a thin hull.
+ * AI.
+ *
+ * The alternative was a cone sized from the target's MAXIMUM radius, and that
+ * makes every ship a ball. An Anaconda is then no easier to hit down its long
+ * flank than head-on, and a shot lands on empty space beside a thin hull.
  */
 export const AIM_ASSIST = 0.035;
 export const ASSIST_FADE_START = 900;
