@@ -1,20 +1,20 @@
-// Buying your way out of a fight.
+// How a commander buys her way out of a fight.
 //
-// Pirates came for cargo, not for you. Give them enough of it and the
-// opportunists break off to go collect, which turns "I can't win this fight"
-// from a death into a decision — the most interesting thing you can do with a
-// full hold and failing shields.
+// Pirates came for cargo, not for you. Give them enough of it, and the
+// opportunists break off to go collect. That turns "I can't win this fight"
+// from a death into a decision. It is the best thing you can do with a full
+// hold and a shield about to go.
 //
-// Two rules, and they were braided together inside a 65-line method of
-// game.ts: WHAT you dump (the most valuable thing first, because that is what
-// buys peace) and WHETHER it is enough (an appetite that scales with what you
-// arrived carrying, so a fat trader is asked for more than a poor one).
+// Two rules, and a 65-line method of game.ts braided them together. WHAT you
+// dump is the most valuable thing first, because that is what buys peace.
+// WHETHER it is enough runs off an appetite that scales with the load you
+// arrived under. So a fat trader is asked for more than a poor one.
 //
-// ...and then a third, because there is a second reason to empty a hold in a
-// hurry and it wants the opposite tonne. A police warning asks for the
+// A third rule follows, because there is a second reason to empty a hold in a
+// hurry, and it wants the opposite tonne. A police warning asks for the
 // EVIDENCE, which on the 1984 price table is usually not the good stuff — see
-// `dumpContraband`. One ordering, two eligible sets, and each rule stated
-// where somebody changing it will read it.
+// `dumpContraband`. One ordering, two eligible sets, and each rule stated where
+// the next person to change it will read it.
 //
 // All pure. The Game spawns the canisters and says the lines.
 
@@ -34,10 +34,11 @@ export interface Dumped {
 }
 
 /**
- * Take `tonnes` off the hold, most valuable first, out of `eligible` when it is
- * given and out of the whole hold when it is not. Mutates `cargo`.
+ * Take `tonnes` off the hold, most valuable first. It draws out of `eligible`
+ * where that is given, and out of the whole hold where it is not. It mutates
+ * `cargo`.
  *
- * The ordering is one mechanism; WHAT it may reach is the difference between
+ * The ordering is one mechanism. WHAT it may reach is the difference between
  * the two rules below, and each of them says its own out loud.
  */
 function dumpBest(cargo: number[], tonnes: number, eligible?: readonly number[]): Dumped {
@@ -64,10 +65,10 @@ function dumpBest(cargo: number[], tonnes: number, eligible?: readonly number[])
 /**
  * Take `tonnes` off the hold, most valuable first. Mutates `cargo`.
  *
- * Most-valuable-first is the rule that makes jettisoning a real choice: it
- * costs you the good stuff, so it is never free to try. Pirate appetites are
- * priced against that (`constants/jettison.ts`), which is why it is a rule and
- * not a convenience.
+ * Most-valuable-first is the rule that makes the dump key a real choice. It
+ * costs you the good stuff, so it is never free to try. The pirate appetites
+ * are priced against that (`constants/jettison.ts`), which is why it is a rule
+ * and not a convenience.
  */
 export function dumpCargo(cargo: number[], tonnes: number): Dumped {
   return dumpBest(cargo, tonnes);
@@ -78,15 +79,17 @@ export function dumpCargo(cargo: number[], tonnes: number): Dumped {
  * Mutates `cargo`.
  *
  * A separate rule rather than a flag on `dumpCargo`, because the two orderings
- * answer different questions. The pirate's is "what buys peace", and against
- * the 1984 price table it reaches Narcotics (the most valuable commodity in the
- * game) at once — but Firearms are 7th of 17 and Slaves are 14th, so a smuggler
- * running slaves under a hold of furs and platinum had to throw nearly the
- * whole cargo overboard to reach the evidence. The warning said dump and the
- * dump key threw the profit away while the crime stayed aboard.
+ * answer different questions. The pirate's question is "what buys peace".
+ * Against the 1984 price table that reaches Narcotics at once, which is the
+ * most valuable commodity in the game.
  *
- * This reaches the evidence, and only the evidence, from `CONTRABAND` — the set
- * that already has exactly one home. The value still counts toward a bribe:
+ * Firearms are 7th of 17, and Slaves are 14th. So a smuggler with slaves under
+ * a hold of furs and platinum had to throw nearly the whole cargo overboard to
+ * reach the evidence. The warning said dump, and the dump key threw the profit
+ * away while the crime stayed aboard.
+ *
+ * This reaches the evidence, and only the evidence, from `CONTRABAND`. That set
+ * already has exactly one home. The value still counts toward a bribe:
  * contraband thrown at a pirate buys peace exactly as anything else does.
  */
 export function dumpContraband(cargo: number[], tonnes: number): Dumped {
@@ -96,13 +99,14 @@ export function dumpContraband(cargo: number[], tonnes: number): Dumped {
 /**
  * Is there anything at all for `dumpCargo` to reach?
  *
- * The dump key's own precondition, as a predicate, because the cockpit now asks
- * it before the key is pressed rather than after: `game/prompts.ts` only offers
- * JETTISON to a pirate when there is a tonne to throw, and a prompt for a key
- * that answers HOLD EMPTY is worse than silence. Deliberately every slot rather
- * than `cargoTonnes`, which counts passenger berths and skips the units sold by
- * weight — `dumpBest` reaches any slot with something in it, and this is that
- * same question asked without mutating the hold.
+ * The dump key's own precondition, as a predicate. The cockpit now asks it
+ * before the key is pressed rather than after. `game/prompts.ts` offers
+ * JETTISON to a pirate only where there is a tonne to throw. A prompt for a key
+ * that answers HOLD EMPTY is worse than silence.
+ *
+ * Deliberately every slot, rather than `cargoTonnes`. That function counts
+ * passenger berths, and skips the units sold by weight. `dumpBest` reaches any
+ * slot with something in it. This asks that same question, and mutates no hold.
  */
 export function holdHasCargo(cargo: readonly number[]): boolean {
   return cargo.some((qty) => qty > 0);

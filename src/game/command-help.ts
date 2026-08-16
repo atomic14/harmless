@@ -1,12 +1,14 @@
 // What each command DOES, in the player's words. The captions to controls.ts.
 //
-// `controls.ts` owns which KEY asks for a command; this file owns the one line
-// that says what the player gets, and `Record<Command, CommandHelp>` welds the
-// two together: add a `Command` next door and this file does not compile until
-// somebody has written down what it does. That is the whole point. Invariant 9
-// used to be four hand-maintained lists, and what it cost was two live keys —
-// the distress beacon, which hands GalCop your cargo, and ⇧Y, which dumps five
-// tonnes — that appeared in NO help surface the game shipped.
+// `controls.ts` owns which KEY asks for a command. This file owns the one line
+// that says what the player gets. `Record<Command, CommandHelp>` welds the two
+// together. Add a `Command` next door, and this file does not compile until
+// somebody writes down what it does. That is the whole point.
+//
+// Invariant 9 used to be four hand-maintained lists, and it cost two live keys.
+// The first is the distress beacon, which hands GalCop your cargo. The second
+// is ⇧Y, which dumps five tonnes. Neither appeared in ANY help surface the game
+// shipped.
 //
 // Nothing here is a rule and nothing branches on it. Three surfaces render it
 // and none of them holds a copy:
@@ -16,9 +18,11 @@
 //   the station menu   ui/screens.ts builds its rows and keyline from it
 //
 // so a key that changes in `controls.ts` changes in all three, or the build
-// fails. The README is the one surface still written by hand, because it is
-// prose for people who have not launched the game — `test/key-help.test.ts`
-// holds it to this table in both directions.
+// fails.
+//
+// The README is the one surface still written by hand. It is prose for a reader
+// who never launched the game. `test/key-help.test.ts` holds it to this table
+// in both directions.
 
 import type { Command } from './controls.ts';
 import { TORUS_MULTIPLIER } from '../constants/torus.ts';
@@ -40,13 +44,13 @@ export interface CommandHelp {
   /**
    * The station menu's own words for it, when the command gets a MENU ROW.
    *
-   * A row is a click target (`data-key`, invariant 13), so this is the label of
-   * a control rather than a description of one — short and upper case.
+   * A row is a click target (`data-key`, invariant 13). So this is the label of
+   * a control, rather than a description of one. Short, and upper case.
    */
   menu?: string;
   /**
-   * The same, for the keyline UNDER the menu: bound at the station, worth
-   * advertising, but not a row you can arrow onto.
+   * The same, for the keyline UNDER the menu. It is bound at the station and
+   * worth a mention, and it is not a row you can arrow onto.
    */
   keyline?: string;
 }
@@ -54,9 +58,9 @@ export interface CommandHelp {
 /**
  * Every command, with what it does.
  *
- * Exhaustive by type. The order is the order the `?` guide and the manual
- * read in, since both render from the binding tables rather than from this
- * one — this is a dictionary, not a layout.
+ * Exhaustive by type. The order is the order the `?` guide and the manual read
+ * in, because both render from the binding tables rather than from this one.
+ * This is a dictionary, not a layout.
  */
 export const COMMAND_HELP: Record<Command, CommandHelp> = {
   // --- the station menu -----------------------------------------------------
@@ -64,8 +68,8 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   openMarket: { what: 'market prices — buy and sell cargo', menu: 'MARKET PRICES' },
   openEquip: { what: 'equip ship — fuel, missiles and upgrades', menu: 'EQUIP SHIP' },
   openBriefing: {
-    // No page count in the caption: the pages are ui/screens.ts's BRIEFING
-    // array, and a number here is a copy of its length going stale.
+    // No page count in the caption. The pages are ui/screens.ts's BRIEFING
+    // array, and a number here is a copy of its length, ready to go stale.
     what: "new pilot's briefing — what to actually do, page by page",
     menu: "NEW PILOT'S BRIEFING",
   },
@@ -83,9 +87,9 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   },
   openTestMode: {
     what: 'test mode — development levers; the career that uses them is marked for good',
-    // The keyline, not a menu row: the keyline is for keys that work here but
-    // are not controls you arrow onto (see CommandHelp.keyline), which is the
-    // right shelf for a development door.
+    // The keyline, and not a menu row. The keyline holds keys that work here
+    // and are not controls you arrow onto (see CommandHelp.keyline). That is
+    // the right shelf for a development door.
     keyline: 'TEST MODE',
   },
   payFine: { what: 'pay your fine — clears an Offender or Fugitive legal status', menu: 'PAY FINE' },
@@ -93,7 +97,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   importSave: { what: 'import a save file', keyline: 'IMPORT' },
   toggleLayout: { what: 'switch keyboard layout: classic / modern', keyline: 'KEYBOARD LAYOUT' },
 
-  // --- putting a commander down ----------------------------------------------
+  // --- the end of a commander -------------------------------------------------
   askNewGame: { what: 'start a new commander (asks first)', keyline: 'NEW COMMANDER' },
   newGame: { what: 'yes — name a new commander and start again' },
   cancelNewGame: { what: 'keep flying this commander' },
@@ -143,7 +147,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   },
   toggleTorus: {
     // The one caption that carries a number, and it is the drive's own rather
-    // than a digit: it read "8×" while the step wrote 7 and only agreed
+    // than a digit. It read "8×" while the step wrote 7. The two agreed only
     // because the step's 7 is one less than the total.
     what: `torus jump drive (${TORUS_MULTIPLIER}×; cuts out when something massive is near)`,
     section: 'flight',

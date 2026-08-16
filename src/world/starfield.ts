@@ -32,10 +32,12 @@ export function createStarfield(count = 2600, radius = 400000): THREE.Points {
  * Near-field space dust that wraps around the player to convey motion.
  *
  * Two layers over the same particles: dots for ordinary flight, and streaks
- * that stretch backwards along your heading as you go faster. The streaks are
- * invisible at cruise and take over under the torus drive, which is what sells
- * "we are moving very fast" — the real starfield sits on a 400k sphere
- * precisely so it *doesn't* move, so it can't do that job.
+ * that stretch backwards along your heading as you go faster.
+ *
+ * The streaks are invisible at cruise, and they take over under the torus
+ * drive. That is what sells "we are moving very fast". The real starfield sits
+ * on a 400k sphere precisely so that it *does not* move, so it cannot do that
+ * job.
  */
 export class SpaceDust {
   readonly points: THREE.Points;
@@ -46,24 +48,26 @@ export class SpaceDust {
   /** streak length in world units per unit of speed, at full strength */
   private static readonly LENGTH_PER_SPEED = 0.075;
   /**
-   * Streaks start above the fastest ordinary cruise so they read as a
-   * torus-drive effect and not as normal flight, and reach full strength well
-   * inside torus range.
+   * Streaks start above the fastest ordinary cruise, so that they read as a
+   * torus-drive effect rather than as normal flight. They reach full strength
+   * well inside torus range.
    *
-   * BOTH ENDS ARE DERIVED NOW, because both were prose: the comment argued
-   * from "max ship speed is 400" and "8 x 400 = 3200", writing out two numbers
-   * this file could not see — the commander's top speed, which was
-   * module-private in player.ts, and the torus multiplier, which was a 7 in the
-   * world step. 1.3x cruise and 0.75 of torus top speed are the shipped 520 and
-   * 2400 exactly; they now move with the ship instead of describing one that
-   * has been retuned.
+   * BOTH ENDS ARE DERIVED NOW, because both were prose. The comment argued from
+   * "max ship speed is 400" and "8 x 400 = 3200". It wrote out two numbers this
+   * file could not see. The first is the commander's top speed, which was
+   * module-private in player.ts. The second is the torus multiplier, which was
+   * a 7 in the world step.
+   *
+   * 1.3x cruise and 0.75 of torus top speed are the shipped 520 and 2400
+   * exactly. They now move with the ship, rather than describe a ship somebody
+   * has since retuned.
    */
   private static readonly FADE_IN = PLAYER_FLIGHT.maxSpeed * 1.3;
   private static readonly FULL = PLAYER_FLIGHT.maxSpeed * TORUS_MULTIPLIER * 0.75;
   /**
-   * No dust closer than this. At `size` 3.5 with sizeAttenuation the sprite
-   * subtends roughly 3.5/distance of the viewport, so 150 units keeps the
-   * worst case at about a 2% square — a dot, which is what it is meant to be.
+   * No dust closer than this. At `size` 3.5 with sizeAttenuation, the sprite
+   * subtends roughly 3.5/distance of the viewport. So 150 units keeps the worst
+   * case at about a 2% square. That is a dot, which is what it is meant to be.
    */
   private static readonly NEAR_CLIP = 150;
 
@@ -86,7 +90,7 @@ export class SpaceDust {
     this.points = new THREE.Points(geo, mat);
     this.points.frustumCulled = false;
 
-    // one line per particle: head at the particle, tail trailing behind it
+    // one line per particle: the head at the particle, the tail behind it
     const streakGeo = new THREE.BufferGeometry();
     streakGeo.setAttribute('position', new THREE.BufferAttribute(new Float32Array(count * 6), 3));
     this.streakMat = new THREE.LineBasicMaterial({
@@ -116,14 +120,14 @@ export class SpaceDust {
         else if (d < -this.half) arr[i + a] += size * Math.ceil((-d - this.half) / size);
       }
       // Keep dust off the camera. These are untextured point sprites, so they
-      // draw as squares, and sizeAttenuation scales them by 1/distance — a
-      // mote that drifts through the cockpit becomes a grey-green square
-      // filling a chunk of the screen. The wrap above keeps particles inside
-      // the cube but nothing stopped one landing on the player's nose.
+      // draw as squares, and sizeAttenuation scales them by 1/distance. A mote
+      // that drifts through the cockpit becomes a grey-green square over a
+      // chunk of the screen. The wrap above keeps particles inside the cube,
+      // and nothing stopped one from landing on the player's nose.
       //
-      // Respawn rather than push aside: shoving it outwards would smear it
-      // across the view as you close on it, where a teleport is one frame and
-      // one particle in 500.
+      // Respawn rather than push aside. A push outwards would smear the mote
+      // across the view as you close on it. A teleport is one frame, and one
+      // particle in 500.
       const dx = arr[i] - center.x;
       const dy = arr[i + 1] - center.y;
       const dz = arr[i + 2] - center.z;
@@ -152,9 +156,9 @@ export class SpaceDust {
     (this.points.material as THREE.PointsMaterial).opacity = 0.4 * (1 - 0.45 * strength);
     if (!this.streaks.visible || !velocity) return;
 
-    // trail each particle backwards along our heading
-    // scale by strength too, so streaks grow out of the dots rather than
-    // appearing full-length and merely faint
+    // trail each particle backwards along our heading.
+    // Scale by strength too, so that a streak grows out of its dot. Otherwise
+    // it arrives at full length and merely faint.
     const len = speed * SpaceDust.LENGTH_PER_SPEED * strength;
     const ux = (velocity.x / speed) * len;
     const uy = (velocity.y / speed) * len;
