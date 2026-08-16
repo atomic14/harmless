@@ -1,16 +1,20 @@
-// Ships are solid: who is overlapping whom, and how to separate them.
+// Ships are solid: which two overlap, and how to separate them.
 //
 // The three collision loops used to sit inside updateFlight, interleaved with
-// spawning, energy regeneration and cabin temperature. They are the most
-// purely physical thing the game does — geometry in, positions out — so they
-// come out first.
+// spawning, energy regeneration and cabin temperature. They are the most purely
+// physical thing the game does — geometry in, positions out — so they came out
+// first.
 //
-// The split follows the house rule that NpcShip already uses for firing: this
-// module resolves the OVERLAP and reports what happened; the Game decides what
-// it costs. That line matters, because the cost is not symmetric or even
-// consistent — the player's shields absorb a ram, two NPCs colliding must NOT
-// credit the player with anything (see wreckNpc vs destroyNpc), and a ship
-// bouncing off the station takes no damage at all.
+// The split follows the house rule that NpcShip already uses for the gun. This
+// module resolves the OVERLAP and reports what happened. The Game decides what
+// it costs.
+//
+// That line matters, because the cost is neither symmetric nor even consistent:
+//
+//   - the player's shields absorb a ram;
+//   - two NPCs that collide must NOT credit the player with anything (see
+//     wreckNpc against destroyNpc);
+//   - a ship that bounces off the station takes no damage at all.
 
 import * as THREE from 'three';
 import type { NpcShip } from './npc.ts';
@@ -19,11 +23,13 @@ import {
 } from '../constants/collision.ts';
 
 // WHAT A RAM COSTS IS NOT HERE. It was `RAM_DAMAGE = 0.45`, a normalized
-// fraction that meant 44 points to a ship and 115 to the commander once it had
-// crossed a conversion — the mixing TODO 28 removed. The two numbers are
-// `IMPACT.ram` in constants/impact.ts now, stated in the units they are spent
-// in. This file still says who touched whom and how much speed they keep; the
-// price stays the caller's, exactly as the header says.
+// fraction. Across a conversion, that meant 44 points to a ship and 115 to the
+// commander. TODO 28 removed that mix of two scales.
+//
+// The two numbers are `IMPACT.ram` in constants/impact.ts now, stated in the
+// units they are spent in. This file still says who touched whom, and how much
+// speed each one keeps. The price stays the caller's, exactly as the header
+// says.
 
 /** Scratch vectors, so a per-frame call allocates nothing. */
 export interface CollisionScratch {
@@ -66,12 +72,14 @@ export function playerVsNpcs(
  *
  * Symmetric, because neither party has the player's shields.
  *
- * @returns each touching pair, for the Game to bill. It must bill them with
- * `wreckNpc`, NOT `destroyNpc`: two NPCs colliding has nothing to do with the
- * player, and destroyNpc credits the kill, pays a bounty and calls
- * raiseLegal(2) when the casualty is a trader, police or bounty hunter. Two
- * ships bumping in a dogfight was making the player a FUGITIVE and scrambling
- * the station's Vipers at them for something they had no part in.
+ * @returns each pair in contact, for the Game to bill. It must bill them with
+ * `wreckNpc`, NOT `destroyNpc`. A collision between two NPCs has nothing to do
+ * with the player. The other verb credits the kill, pays a bounty, and calls
+ * raiseLegal(2) where the casualty is a trader, a police ship or a bounty
+ * hunter.
+ *
+ * Two ships that bumped in a dogfight used to make the player a FUGITIVE. The
+ * station then scrambled its Vipers at her, for something she had no part in.
  */
 export function npcVsNpcs(
   npcs: readonly NpcShip[],
@@ -106,10 +114,10 @@ export function npcVsNpcs(
 /**
  * Ships are solid to the station too, which they used to fly straight through.
  *
- * A bounce only, deliberately: damaging them here would kill traffic at random
- * right outside the docking slot, and the problem being fixed is only that
- * ships passed visibly through the hull. Nothing is returned because nothing
- * is owed.
+ * A bounce only, and that is deliberate. Damage here would kill traffic at
+ * random, right outside the docking slot. The one defect this fixes is that a
+ * ship passed visibly through the hull. It returns nothing, because nothing is
+ * owed.
  */
 export function npcsVsStation(
   npcs: readonly NpcShip[],

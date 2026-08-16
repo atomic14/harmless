@@ -5,11 +5,16 @@
 // second paragraph beside the goat-soup line, generated offline by a model and
 // committed as JSON — see docs/TODO/58 and tools/system-prompts.ts.
 //
-// The whole design rests on one property: **a missing entry is normal.** No
-// entry for a system, no file for a galaxy, an empty overlay — every one of
-// those renders exactly what the game rendered before this existed. That is
-// what lets galaxy 1 ship first, lets a refused record be harmless, and stops
-// generated prose from becoming load-bearing over data that is not generated.
+// The whole design rests on one property: **an absent entry is normal.** Three
+// cases render exactly what the game rendered before this existed:
+//
+//   - no entry for a system;
+//   - no file for a galaxy;
+//   - an empty overlay.
+//
+// That property does three things. It lets galaxy 1 ship first. It makes a
+// refused record harmless. It keeps generated prose out of any load-bearing
+// role over data that nothing generated.
 
 import type { StarSystem } from './galaxy.ts';
 import galaxy1 from './descriptions/galaxy-1.json' with { type: 'json' };
@@ -35,36 +40,41 @@ export interface Overlay {
   model: string;
   generated: string;
   /**
-   * What the run cost, in tokens. Committed because it is the durable half of
-   * the answer to "what would regenerating this cost?" — a token count stays
-   * true, a price does not, so the money is printed by the generator and never
-   * stored. Counted over every request including the ones whose prose was
-   * dropped: those were billed too.
+   * What the run cost, in tokens. It is committed because it is the durable
+   * half of the answer to "what would a second run cost?". A token count stays
+   * true, and a price does not. So the generator prints the money, and nothing
+   * stores it.
+   *
+   * It counts every request, and that includes the ones whose prose was
+   * dropped. Those were billed too.
    */
   usage: { requests: number; inputTokens: number; outputTokens: number };
   entries: Record<string, Entry>;
 }
 
 /**
- * Galaxy 1 only, for the same reason `portraitUrl` is galaxy 1 only: the eight
- * galaxies share a name pool, so a galaxy 2 world can land on the same index
- * as a galaxy 1 world and would confidently show another planet's prose. When
- * the other seven are generated they become entries in this map and the guard
- * goes away by itself.
+ * Galaxy 1 only, for the same reason `portraitUrl` is galaxy 1 only. The eight
+ * galaxies share a name pool. So a galaxy 2 world can land on the same index
+ * as a galaxy 1 world, and confidently show another planet's prose.
+ *
+ * Once the other seven are generated, they become entries in this map, and the
+ * guard goes away by itself.
  */
 const OVERLAYS: Record<number, Overlay> = { 1: galaxy1 as Overlay };
 
 /**
  * What we say about this world beyond the goat-soup line, or `undefined`.
  *
- * The name check is the interesting part. Filing by index is what makes the
- * committed file small and diffable, but an index is only meaningful against
- * the galaxy that produced it — so a regenerated or mis-keyed file would put
- * Lave's paragraph under Riedquat and nothing would look wrong. Comparing the
- * stored name against the live one costs a string compare and turns that
- * failure into a silent fallback rather than a confident lie. `npm test`
- * asserts the same thing across the whole file, so the mismatch is loud in
- * CI and harmless in the browser, which is the right way round.
+ * The name check is the part worth a look. An index key is what makes the
+ * committed file small and diffable. An index only means anything against the
+ * galaxy that produced it. So a regenerated or mis-keyed file would put Lave's
+ * paragraph under Riedquat, and nothing would look wrong.
+ *
+ * A check of the stored name against the live one costs a string compare. It
+ * turns that failure into a silent fallback rather than a confident lie.
+ *
+ * `npm test` asserts the same thing across the whole file. So the mismatch is
+ * loud in CI and harmless in the browser, which is the right way round.
  */
 export function systemDescription(
   sys: StarSystem, galaxy: number,

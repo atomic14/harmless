@@ -1,12 +1,14 @@
 // The galactic chart: all 256 systems, and the reach of one tank.
 //
-// Split out of `ui/screens.ts` by docs/TODO/149, where it shared a file with the
-// short range chart and 23 other screens. They are two SCREENS — two projections, two readouts, two
-// click surfaces — and the things they genuinely share went to
-// `chart-overlays.ts` and `chart-readout.ts` rather than being duplicated.
+// Split out of `ui/screens.ts` by docs/TODO/149, where it shared a file with
+// the short-range chart and 23 other screens.
 //
-// The y axis is squashed by `CHART_Y_SQUASH`, which is the 1984 map's own
-// proportion; `chartCoordsFromClick` undoes exactly that, so a click lands
+// They are two SCREENS: two projections, two readouts, two click surfaces. What
+// the two genuinely share went to `chart-overlays.ts` and `chart-readout.ts`,
+// rather than into a second copy.
+//
+// `CHART_Y_SQUASH` squashes the y axis, and that is the 1984 map's own
+// proportion. `chartCoordsFromClick` undoes exactly that, so a click lands
 // where the eye says it should.
 
 import { type StarSystem, ECONOMY_NAMES, GOVERNMENT_NAMES } from '../galaxy/galaxy.ts';
@@ -39,8 +41,8 @@ export function renderChart(
 /**
  * Redraw only the canvas + info line (cheap, for cursor moves).
  *
- * `overlays` is decided by the models in `galaxy/` — this only paints it, and
- * draws whatever it is handed without knowing which mode is up.
+ * The models in `galaxy/` decide `overlays`. This function only paints it. It
+ * draws whatever it is handed, and never learns which mode is up.
  */
 export function drawChart(
   systems: StarSystem[],
@@ -61,9 +63,10 @@ export function drawChart(
 
   ctx.clearRect(0, 0, w, h);
 
-  // Fuel range. An ellipse is correct HERE — unlike the short-range chart —
-  // because sx and sy scale the two axes independently to fit the whole galaxy
-  // into the canvas, so a circle in light years is not a circle in pixels.
+  // Fuel range. An ellipse is correct HERE, unlike on the short-range chart.
+  // The two scale factors sx and sy take the two axes independently, to fit
+  // the whole galaxy into the canvas. So a circle in light years is not a
+  // circle in pixels.
   // Semi-axes are R*sx and R*sy with R = fuel/TENTHS_PER_CHART_UNIT (the chart
   // metric read backwards, hence the import rather than a literal 4).
   ctx.strokeStyle = TINT.fuelRing;
@@ -78,8 +81,8 @@ export function drawChart(
   // serves, and a line over a 2.5px dot would swallow it.
   drawLanes(ctx, overlays, systems, px, py);
 
-  // Systems. Given size and light because 256 of them are the whole point of
-  // this screen and 1.5px of dim green on near-black is close to invisible.
+  // Systems. They are given size and light, because 256 of them are the whole
+  // point of this screen. 1.5px of dim green on near-black is nearly invisible.
   for (const s of systems) {
     const within = distanceTenths(current, s) <= c.fuel;
     ctx.fillStyle = within ? TINT.lift : TINT.far;
@@ -90,8 +93,8 @@ export function drawChart(
   drawPriceTells(ctx, overlays.prices, systems, px, py, 8);
 
   // Pirate activity: the same fact the system data screen prints in words.
-  // Drawn over the dots so a flagged world reads at a glance, in the red the
-  // cursor already uses rather than a colour of its own.
+  // Drawn over the dots, so a flagged world reads at a glance. It takes the red
+  // the cursor already uses, rather than a colour of its own.
   ctx.strokeStyle = HUD.red;
   for (const index of overlays.danger) {
     const s = systems[index];
@@ -130,8 +133,8 @@ export function drawChart(
 
   const info = maybeById('chart-info');
   if (info) {
-    // A lane under the pointer takes the line: it is what you are pointing at,
-    // and the cursor's system comes back the moment you leave it.
+    // A lane under the pointer takes the line, because it is what the pilot
+    // means. The cursor's system comes back the moment the pointer leaves it.
     if (overlays.hovered) {
       info.innerHTML = laneSummary(overlays.hovered, systems, overlays.day);
       return;

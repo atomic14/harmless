@@ -1,13 +1,14 @@
 // THE DOOR: untrusted bytes become a `WorldSnapshot` here, or they do not
 // become one at all.
 //
-// `Persistence.restore` consumes nothing that has not been through
-// `parseSnapshot`, so "refused" and "half applied" are different states
-// (docs/TODO/94). It is also where a STORED snapshot is RAISED to the current
-// version, by `migrateSnapshot` — one door, two jobs, in that order: what an
-// old version did not have is filled in first, and then everything is checked.
-// A save from an older build is therefore loaded rather than listed and then
-// refused (docs/TODO/161).
+// `Persistence.restore` consumes nothing that did not come through
+// `parseSnapshot`. So "refused" and "half applied" are different states
+// (docs/TODO/94).
+//
+// It is also where `migrateSnapshot` RAISES a STORED snapshot to the current
+// version. One door, two jobs, in that order. What an old version lacked is
+// filled in first. Everything is then checked. So a save from an older build
+// loads, rather than gets listed and then refused (docs/TODO/161).
 //
 // `snapshot.ts` owns what a snapshot IS — the shape, the version, the table
 // that climbs it, and the codec that turns vectors into arrays. This file owns
@@ -15,19 +16,26 @@
 // took the pair over the size ceiling.
 //
 // WHAT IT CHECKS, AND WHAT IT DELIBERATELY DOES NOT. The parser checks what
-// has invariants: the version, the two branded id families, the mode enum,
-// the galaxy and system bounds the generator would hang or crash on, array
-// arities, finite numbers, and every fleet index. The opaque halves —
-// `galaxyState`, `session`, `dockPlan`, `combatComputer`, the market arrays —
-// are checked for PRESENCE and container shape only, because they are walked
-// generically ON PURPOSE: enumerating their fields here would re-home
-// `SessionState` and its kin into the save format, which is worse than no
-// validation. The owning modules default and validate their own.
+// carries an invariant:
 //
-// The gate cannot rot: `test/snapshot-parse.test.ts` deletes and corrupts
-// every key of a REAL captured snapshot, walked off the object itself rather
-// than a written list, so a field `capture()` gains later is covered the day
-// it exists — or the sweep finds this parser not checking it.
+//   - the version;
+//   - the two branded id families;
+//   - the mode enum;
+//   - the galaxy and system bounds the generator would hang or crash on;
+//   - array arities;
+//   - finite numbers;
+//   - every fleet index.
+//
+// The opaque halves are checked for PRESENCE and container shape only. Those
+// are `galaxyState`, `session`, `dockPlan`, `combatComputer`, and the market
+// arrays. A generic walk covers them ON PURPOSE. Their fields enumerated here
+// would re-home `SessionState` and its kin into the save format, which is worse
+// than no validation. Each owning module defaults and validates its own.
+//
+// The gate cannot rot. `test/snapshot-parse.test.ts` deletes and corrupts every
+// key of a REAL captured snapshot. It walks the object itself, rather than a
+// written list. So a field `capture()` gains later is covered the day it
+// exists. Otherwise the sweep finds that this parser does not check it.
 // `test/snapshot-migrate.test.ts` owns the other half: what is RAISED.
 
 import {
@@ -58,14 +66,16 @@ const fleetIndex = (v: unknown, fleet: number, what: string): void => {
 /**
  * Validate untrusted bytes as a `WorldSnapshot`, whole, or throw.
  *
- * Returns its input, typed: the interface stays the single declaration of the
- * shape and this is the only place `unknown` becomes one.
+ * It returns its input, typed. The interface stays the single declaration of
+ * the shape, and this is the only place an `unknown` becomes one.
  *
- * AN OLD SNAPSHOT AND AN INVALID ONE ARE DIFFERENT THINGS (docs/TODO/161). An
- * old one is RAISED first, by `migrateSnapshot`, which fills in what its
- * version did not have and hands back a copy. An invalid one is still refused
- * whole and repaired never, and the refusal still happens before anything has
- * mutated — of the live session, and of the caller's own bytes.
+ * AN OLD SNAPSHOT AND AN INVALID ONE ARE DIFFERENT THINGS (docs/TODO/161).
+ * `migrateSnapshot` RAISES an old one first. It fills in what that version
+ * lacked, and hands back a copy.
+ *
+ * An invalid one is still refused whole, and repaired never. The refusal still
+ * comes before any mutation, of the live session and of the caller's own bytes
+ * alike.
  */
 export function parseSnapshot(raw: unknown): WorldSnapshot {
   const s = record(migrateSnapshot(raw), 'snapshot');
@@ -148,10 +158,10 @@ export function parseSnapshot(raw: unknown): WorldSnapshot {
   fleetIndex(s.targetLock, npcs.length, 'targetLock');
   if (typeof s.missileArmed !== 'boolean') bad('missileArmed is not a boolean');
 
-  // `s`, not `raw`. They are the same object for a current snapshot, and for a
-  // raised one `s` is the copy that carries what the migration filled in
-  // (docs/TODO/161). Returning `raw` here would validate the copy and hand back
-  // the original, which is the version 2 save unchanged.
+  // `s`, not `raw`. The two are the same object for a current snapshot. For a
+  // raised one, `s` is the copy that carries what the migration filled in
+  // (docs/TODO/161). A `raw` returned here would validate the copy and hand
+  // back the original, which is the version 2 save unchanged.
   return s as unknown as WorldSnapshot;
 }
 
