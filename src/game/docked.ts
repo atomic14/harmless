@@ -1,22 +1,24 @@
 // What a commander does while she is docked.
 //
-// One half of the orchestrator, split from the other by docs/TODO/155 M1 on
+// One half of the orchestrator. docs/TODO/155 M1 split it from the other, on
 // Chris's rule of 2026-08-14: *"It makes sense to split docked from flight -
 // they are very different things."* `game.ts` keeps the mode machine, the frame
-// and the routing; this holds everything that only happens with the ship on a
-// pad, and `flight.ts` will hold everything that only happens with it in the
-// sky.
+// and the routing. This holds everything that only happens with the ship on a
+// pad. `flight.ts` holds everything that only happens with it in the sky.
 //
-// ONE RESPONSIBILITY: what a commander does when the ship has stopped.
-// Arriving, leaving, the menu she reads, the market and the outfitters she
-// trades at, the board she takes work from, and the one question the station
-// will not let her leave without answering.
+// ONE RESPONSIBILITY: what a commander does once the ship stops. That is:
+//
+//   - the arrival and the departure;
+//   - the menu she reads;
+//   - the market and the outfitters she trades at;
+//   - the board she takes work from;
+//   - the one question the station will not let her leave unanswered.
 //
 // "STOPPED" RATHER THAN "DOCKED", and one member is why. A hermit opens his
-// door to a ship that is still flying, so `openHermitTrade` is not a dock by
-// the mode machine's reckoning — but `tradeContext` holds `leaveHermit`, and
-// entering and leaving one market is one rule. Putting the two ends in two
-// files is how a rule grows a second home, so the sentence widened instead.
+// door to a ship that is still in flight, so `openHermitTrade` is not a dock by
+// the mode machine's reckoning. But `tradeContext` holds `leaveHermit`, and one
+// market's entry and exit are one rule. Two ends in two files is how a rule
+// grows a second home, so the sentence widened instead.
 //
 // `station.ts` next door owns the RULES of the two transitions — what a dock
 // costs, what a launch rolls, what a fine leaves. This spends them.
@@ -92,9 +94,9 @@ export class Docked {
   /**
    * Docking, launching, and the menu between them — see station.ts.
    *
-   * The two transitions that switch the mode, and the only two places the
-   * station's own rules (the fine, the market roll, the bulletin board) are
-   * applied.
+   * The two transitions that switch the mode. They are also the only two places
+   * that apply the station's own rules: the fine, the market roll and the
+   * bulletin board.
    */
   private readonly station: Station;
   /** the market screen, which owns the row the buy and sell keys act on */
@@ -164,11 +166,11 @@ export class Docked {
   /**
    * The docked menu, drawn.
    *
-   * ONE HOME, and it had three before docs/TODO/155 M1: the station event that
-   * asks for the menu, the keyboard-layout key, and backing out of the new
-   * commander panel. All three spelled out the same three-part call, so the
-   * orders on the menu could have gone stale in two of them without the third
-   * noticing.
+   * ONE HOME, and it had three before docs/TODO/155 M1. Those three were the
+   * station event that asks for the menu, the keyboard-layout key, and the way
+   * back out of the new commander panel. All three spelled out the same
+   * three-part call. So the orders on the menu could go stale in two of them,
+   * and the third would not notice.
    */
   showDockedMenu(): void {
     renderDockedMenu(this.host.system(), this.state.commander, this.station.orderLines());
@@ -183,21 +185,21 @@ export class Docked {
   enterDocked(arrival: DockArrival = 'arrived'): void {
     // Once per commander, whatever brought them here: a fresh boot, a real
     // docking, or a restored save from before the marker existed. The marker
-    // moves BEFORE the dock so an 'arrived' checkpoint persists it in the same
-    // act; the other arrivals write nothing here (docs/TODO/43/45), so theirs
-    // rides the next ordinary save. Opening counts as shown — abandoning the
-    // briefing must not trap a player in an onboarding loop, and H is the
-    // permanent way back (docs/TODO/106).
+    // moves BEFORE the dock, so an 'arrived' checkpoint persists it in the same
+    // act. The other arrivals write nothing here (docs/TODO/43/45), so theirs
+    // rides the next ordinary save. To open it counts as shown. A player who
+    // abandons the briefing must not be trapped in an onboarding loop, and H is
+    // the permanent way back (docs/TODO/106).
     const brief = this.state.commander.briefingSeen < BRIEFING_VERSION;
     if (brief) this.state.commander.briefingSeen = BRIEFING_VERSION;
     this.applyStation(this.station.dock(arrival));
     if (brief) this.host.openScreen('briefing');
     // ...and the question the station will not proceed without an answer to,
-    // pushed LAST so it is on TOP (docs/TODO/127). Both can be due at once — a
-    // save from before the briefing marker, restored with somebody aboard — and
-    // the order is decided here rather than left to whichever happens to open:
-    // the forced choice is what is holding the clearance up, and the briefing
-    // is reading matter that will still be there behind it.
+    // pushed LAST so it is on TOP (docs/TODO/127). Both are due at once for a
+    // save taken before the briefing marker and restored with somebody aboard.
+    // The order is decided here, rather than left to whichever opens first. The
+    // forced choice is what holds the clearance up. The briefing is reading
+    // matter, and it is still there behind it.
     if (this.state.commander.survivors > 0) this.host.openScreen('survivors');
   }
 
@@ -212,22 +214,23 @@ export class Docked {
    *
    * IT IS HERE RATHER THAN IN `flight.ts`, AND THE REASON IS ONE HOME. The
    * ship is in flight when a hermit opens his door, so by the mode machine's
-   * own reckoning this is not a dock at all. But `tradeContext` below already
-   * holds `leaveHermit`, and entering and leaving one market are the same
-   * rule — split across two files, the two halves of "the hermit's prices are
-   * in force" could drift apart. That is the failure this codebase is
-   * organised against, so the market's file takes both ends.
+   * own reckoning this is not a dock at all.
+   *
+   * But `tradeContext` below already holds `leaveHermit`, and one market's
+   * entry and exit are the same rule. Split across two files, the two halves of
+   * "the hermit's prices are in force" could drift apart. That is the failure
+   * this codebase is organised against, so the market's file takes both ends.
    *
    * @internal — driven by src/game/game.ts, whose flight host relays the step's
    * request. The step never calls it for a pilot the miner refused.
    */
   openHermitTrade(): void {
     this.state.session.hermitTrading = true;
-    // what the miner charges is a price rule, and price rules live in
-    // contracts.ts so the headless campaign can reach them (invariant 10)
-    // What the miner charges depends on who is asking: a known smuggler gets
-    // mates' rates (docs/TODO/96). Whether he opens the door at all was decided
-    // before this — `world-step.ts` never calls this for a refused pilot.
+    // What the miner charges is a price rule, and a price rule lives in
+    // contracts.ts, so the headless campaign reaches it (invariant 10). The
+    // charge depends on who asks: a known smuggler gets mates' rates
+    // (docs/TODO/96). Whether he opens the door at all was decided before this,
+    // because `world-step.ts` never calls this for a refused pilot.
     this.state.hermitMarket = hermitMarket(this.host.system(), this.state.commander.disrepute ?? 0);
     this.state.market = this.state.hermitMarket;
 
@@ -236,8 +239,8 @@ export class Docked {
     // is DERIVED from the stack.
     this.host.openScreen('market');
     // ...and the ship is still FLYING. The hermit is the one market a commander
-    // reaches without docking, so the base mode underneath the screen stays
-    // flight and Escape puts her back in the cockpit.
+    // reaches without a dock. So the base mode under the screen stays flight,
+    // and Escape puts her back in the cockpit.
     this.host.setBaseMode('flight');
     this.state.player.speed = 0;
     sfx.dock();
@@ -278,7 +281,7 @@ export class Docked {
   buyEquipment(id: string): void { buyEquipment(id, this.tradeContext()); }
 
   /**
-   * Work on offer here today — see `generateContractOffers` in
+   * Work on offer here today. See `generateContractOffers` in
    * contract-offers.ts, which says why the board is more generous than the
    * original's (docs/TODO/153).
    *
@@ -293,15 +296,15 @@ export class Docked {
   /**
    * The bulletin board decides; this half says it and plays its named sound.
    *
-   * Messages come back as StationEvents rather than going straight to the HUD
-   * because docking says several things in a row and the last one is the one
-   * the player reads — see station.ts.
+   * A message comes back as a StationEvent rather than straight to the HUD. A
+   * dock says several things in a row, and the last one is what the player
+   * reads. See station.ts.
    *
    * ...and the consequences the pure module cannot reach: landing a smuggling
    * run raises the destination's temperature, which is `LivingGalaxy` state
    * `settleContracts` has no handle on. The module decides, the orchestrator
    * applies (invariant 15). ONE application per event, here and at the
-   * campaign's own settle site — the dock path in station.ts must not add a
+   * campaign's own settle site. The dock path in station.ts must not add a
    * second, which would double the heat of every delivery.
    */
   private applyContracts(events: readonly ContractEvent[]): StationEvent[] {
@@ -340,18 +343,18 @@ export class Docked {
   /**
    * The survivors rule decides; this half says it (docs/TODO/127).
    *
-   * Same shape as `applyContracts` and for the same reason: `survivors.ts` is
-   * pure, and everything a choice touches outside the commander — the console,
-   * and in M3 the region's heat and the Government's opinion — lands here.
+   * Same shape as `applyContracts`, and for the same reason. `survivors.ts` is
+   * pure. Everything a choice touches outside the commander lands here: the
+   * console, and in M3 the region's heat and the Government's opinion.
    */
   answerForSurvivors(choice: SurvivorChoice): void {
     const c = this.state.commander;
     const before = c.disrepute ?? 0;
     const e = resolveSurvivors(c, choice, this.survivorOffers());
     if (!e) return;
-    // The law and the region first, so the SALE has the console after them:
-    // `raiseLegal` QUEUES what the record now means (docs/TODO/130), so the
-    // line the player reads first is the one explaining what they just did.
+    // The law and the region come first, so the SALE has the console after
+    // them. `raiseLegal` QUEUES what the record now means (docs/TODO/130). So
+    // the line the player reads first is the one that explains what she did.
     if (e.kind === 'sold') {
       this.state.living.addNotoriety(c.systemIndex, e.heat);
       this.host.raiseLegal(e.offence);

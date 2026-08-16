@@ -1,22 +1,27 @@
 // Saves that leave the browser: the JSON file you can keep, mail, or attach to
 // a bug report.
 //
-// Split from `screens/saves.ts` because it is not a screen — a Blob, an anchor
-// and a file picker, with no keys, state or outcome. What it shares with the
-// list is the SavesContext.
+// Split from `screens/saves.ts`, because it is not a screen. It is a Blob, an
+// anchor and a file picker, with no keys, no state and no outcome. What it
+// shares with the list is the SavesContext.
 //
-// An exported file carries its NAME and its world, and an import never lands on
-// top of an existing save: the name is made unique first and the player is told
-// which name it took. AN IMPORT EITHER BECOMES A RECORD THIS BUILD CAN READ, OR
-// IS REFUSED OUT LOUD — the file's payload (its world, its commander) is the
-// only thing taken from it; every field that says what the RECORD is is minted
-// here, so `readSave` never faces a version or shape it will later reject.
+// An exported file carries its NAME and its world. An import never lands on top
+// of an existing save: the name is made unique first, and the player is told
+// which name it took.
 //
-// THE DOM IS AT THE EDGE. `exportedSaveFile` says what a file contains,
-// `adoptSaveFile` says what name and CAREER it takes on this shelf, and
-// `receiveSaveFile` says what the player is told — none touches a Blob, anchor,
-// file picker or `location`, and all three are synchronous, so all three are
-// testable without a file picker.
+// AN IMPORT EITHER BECOMES A RECORD THIS BUILD CAN READ, OR IS REFUSED OUT
+// LOUD. The file's payload is the only thing taken from it, and that is its
+// world and its commander. Every field that says what the RECORD is is minted
+// here. So `readSave` never faces a version or a shape it will later reject.
+//
+// THE DOM IS AT THE EDGE. Three pure functions split the job:
+//
+//   - `exportedSaveFile` says what a file contains;
+//   - `adoptSaveFile` says what name and CAREER it takes on this shelf;
+//   - `receiveSaveFile` says what the player is told.
+//
+// None of the three touches a Blob, an anchor, a file picker or `location`. All
+// three are synchronous, so all three are testable without a file picker.
 
 import type { CommanderData } from '../commander.ts';
 import {
@@ -31,9 +36,9 @@ import type { SavesContext } from './saves.ts';
 /**
  * The current career, as the bytes of a file and the name to offer them under.
  *
- * A whole SAVE RECORD, name included, rather than a bare commander: an export
- * that lost its name would come back untitled, and one that lost its world would
- * put you somewhere you had never been.
+ * A whole SAVE RECORD, name included, rather than a bare commander. An export
+ * that lost its name comes back untitled. One that lost its world puts you
+ * somewhere you never went.
  */
 export function exportedSaveFile(ctx: SavesContext): { fileName: string; json: string } {
   const record = makeRecord(ctx.career, ctx.career, 'file', ctx.capture());
@@ -63,13 +68,13 @@ const STORE_FULL = 'IMPORT FAILED — STORAGE FULL. NOTHING WAS CHANGED';
 /**
  * What a file CONTAINS: the name it asks for, and the career inside it.
  *
- * Deliberately NOT a `SaveRecord`. A record has a version and a `savedAt`, and a
+ * Deliberately NOT a `SaveRecord`. A record has a version and a `savedAt`. A
  * parser that returned one would hand its caller two fields that came off a
- * stranger's disk. What a file gets to say is what is in it; what the record IS
- * gets minted (see `adoptSaveFile`).
+ * stranger's disk. A file gets to say what is in it. What the record IS is
+ * minted here (see `adoptSaveFile`).
  */
 interface SaveFileContents {
-  /** the name it would LIKE — the shelf decides whether it may have it */
+  /** the name it asks for — the shelf decides whether it gets one */
   name: string;
   world: WorldSnapshot | null;
   commander: CommanderData | null;
@@ -79,13 +84,13 @@ interface SaveFileContents {
  * A file that might be a save — its contents, or the line that refuses it.
  *
  * THE VERSION IS CHECKED HERE, where the bytes are still a file rather than a
- * record. `readSave` refuses anything whose `v` is not this build's, so a file
- * this build cannot READ is a file it must not WRITE: writing it puts bytes on
- * the shelf that `listSaves` cannot see, the file list cannot show and no delete
- * can reach, under a boot pointer aimed at nothing.
+ * record. `readSave` refuses anything whose `v` is not this build's. So a file
+ * this build cannot READ is a file it must not WRITE. A write puts bytes on the
+ * shelf under a boot pointer aimed at nothing. `listSaves` cannot see them, the
+ * file list cannot show them, and no delete can reach them.
  *
  * A RECORD IS THE ONLY SHAPE. A bare `CommanderData` is not a save FILE, so it
- * gets `NOT_A_SAVE` rather than `WRONG_VERSION` — which would be a lie about
+ * gets `NOT_A_SAVE` rather than `WRONG_VERSION`. The second would be a lie about
  * bytes that carry no `v` to be wrong.
  */
 function readSaveFile(parsed: unknown): SaveFileContents | { why: string } {
@@ -96,9 +101,9 @@ function readSaveFile(parsed: unknown): SaveFileContents | { why: string } {
     if (rec.v !== SAVE_RECORD_VERSION) return { why: WRONG_VERSION };
     const whole = rec as SaveRecord;
     const commander = commanderOf(whole);
-    // A world is kept only when it carries the commander, because that is what
-    // the record shape means by a world (save-file.ts) and `makeRecord` holds
-    // the two to it. Anything else is a commander and no world.
+    // A world is kept only when it carries the commander. That is what the
+    // record shape means by a world (save-file.ts), and `makeRecord` holds the
+    // two to it. Anything else is a commander and no world.
     if (commander) {
       return { name: whole.name, world: whole.world?.commander ? whole.world : null, commander };
     }
@@ -109,9 +114,9 @@ function readSaveFile(parsed: unknown): SaveFileContents | { why: string } {
 /**
  * What became of a file.
  *
- * A refusal carries THE LINE THE PLAYER IS TOLD, because the difference between
- * "that is not a save", "that save is from another build" and "there is no room
- * on the disk" is the only part of a refusal anybody can act on, and a single
+ * A refusal carries THE LINE THE PLAYER IS TOLD. Three refusals differ: "that
+ * is not a save", "that save is from another build", and "there is no room on
+ * the disk". Which one it is is the only part anybody can act on, and a single
  * IMPORT FAILED tells them none of it.
  */
 export type AdoptedFile =
@@ -127,17 +132,17 @@ export type AdoptedFile =
  *     on top of a save you meant to keep. `save:file:<NAME>`.
  *   - the CAREER, against the careers already on the shelf, so the file cannot
  *     land on top of an autosave GROUP. Everybody's commander is called JAMESON
- *     by default, so without this a friend's export shares your keys — and the
- *     imported career is what `bootCareer()` reads into the next boot, so it is
- *     the career the session then autosaves into. The career the file claims is
- *     discarded whatever it says: naming a career is the same act as writing to
- *     it.
+ *     by default, so without this a friend's export shares your keys. The
+ *     imported career is also what `bootCareer()` reads into the next boot, so
+ *     it is the career the session then autosaves into. The career the file
+ *     claims is discarded whatever it says: to name a career is the same act as
+ *     to write to it.
  *
  * AND THE RECORD IS MINTED, NOT SPREAD. `makeRecord` is the one place a record
- * is built, so `v` is this build's by construction and `savedAt` is when the
- * import happened — which matters twice: the flight ring evicts by `savedAt`,
- * and `bootSave()`'s fallback resumes the newest record on the shelf. Only the
- * world and the commander come from the file, because only they are its to give.
+ * is built. So `v` is this build's by construction, and `savedAt` is when the
+ * import happened. That matters twice: the flight ring evicts by `savedAt`, and
+ * `bootSave()`'s fallback resumes the newest record on the shelf. Only the world
+ * and the commander come from the file, because only they are its to give.
  *
  * @returns the id it took and the name to tell the player, or a refusal and the
  * line that says why. Nothing is ever overwritten — a false from `writeSave` is
@@ -160,21 +165,22 @@ export function adoptSaveFile(text: string): AdoptedFile {
 }
 
 /**
- * A file has arrived: put it on the shelf and boot into it.
+ * A file arrives. Put it on the shelf, then boot into it.
  *
- * It NEVER lands on top of an existing save — see `adoptSaveFile`. Then the boot
- * pointer moves to it and the page reloads, which is how every load in this file
- * works: a career leaves state across the living galaxy, contracts, chart target
- * and mission progress, and a clean boot is more trustworthy than zeroing all of
- * it.
+ * It NEVER lands on top of an existing save (see `adoptSaveFile`). The boot
+ * pointer then moves to it, and the page reloads. Every load in this file works
+ * that way. A career leaves state across the living galaxy, the contracts, the
+ * chart target and the mission progress. A clean boot is more trustworthy than
+ * a zero of all of it.
  *
- * THE POINTER IS MOVED HERE, beside the reload it authorises, and a refused
- * pointer is honoured the way `saves.ts` and `new-commander.ts` honour theirs: a
- * reload on a pointer that never landed resumes whatever `bootSave()` falls back
- * to — the career the player was already flying — so it says so rather than
- * claiming the import. The record stays on the shelf, loadable from the file
- * list, because deleting it would be a destructive write on the strength of a
- * write that failed.
+ * THE POINTER IS MOVED HERE, beside the reload it authorises. A refused pointer
+ * is honoured the way `saves.ts` and `new-commander.ts` honour theirs. A reload
+ * on a pointer that never landed resumes whatever `bootSave()` falls back to,
+ * which is the career the player was already flying. So it says so, rather than
+ * claim the import.
+ *
+ * The record stays on the shelf and loads from the file list. A delete would be
+ * a destructive write on the strength of a write that failed.
  *
  * Takes the TEXT rather than the file, so everything a player can observe about
  * an import is reachable without a file picker. `importSaveFile` below is then

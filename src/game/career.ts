@@ -1,22 +1,24 @@
 // What a career keeps when a flight ends.
 //
-// A CAREER is one commander's continuing record — the thing `state.career`
-// names, the thing a save is filed under, and the thing that outlives any
-// single flight. Split out of `game.ts` by docs/TODO/150 M5.
+// A CAREER is one commander's continuing record. It is the thing `state.career`
+// names, the thing a save is filed under, and the thing that outlives any single
+// flight. docs/TODO/150 M5 split it out of `game.ts`.
 //
-// `persistence.ts` writes a world down and puts it back, `storage.ts` says
-// where a save lives and `screens/saves.ts` shows a player the shelf. This is
-// what the Game DOES with them: writing the checkpoint down, taking it back,
-// handing the file to another machine, and starting again with nothing.
+// `persistence.ts` writes a world down and puts it back. `storage.ts` says where
+// a save lives. `screens/saves.ts` shows a player the shelf. This is what the
+// Game DOES with them. It writes the checkpoint down and takes it back. It
+// hands the file to another machine. It starts again with nothing.
 //
 // ONE RESPONSIBILITY, AND DEATH IS INSIDE IT rather than beside it. In this
 // game a death is not a game over. It is a return to the last checkpoint, which
 // is why `abandonFlight` below can say "it costs what dying costs because it
-// lands where dying lands". The two halves reach INTO each other, and that is
-// measured rather than asserted: `die` reads the saves context and forgets the
-// flight ring, `savesContext` reports whether the commander is dead, and
-// `respawn` is the way back that both of them lead to. Two files would need a
-// link in both directions.
+// lands where dying lands".
+//
+// The two halves reach INTO each other, and that is measured rather than
+// asserted. `die` reads the saves context and forgets the flight ring.
+// `savesContext` reports whether the commander is dead. `respawn` is the way
+// back that both of them lead to. Two files would need a link in both
+// directions.
 //
 // THE ORDER IN `die` IS LOAD-BEARING. The in-flight ring is forgotten BEFORE
 // anything else, so a reload cannot resume the seconds before the wreck. The
@@ -47,15 +49,15 @@ import type { GameState } from './state.ts';
  *
  * EIGHT, and not one of them is a rule. Three are the mode machine, which the
  * orchestrator owns and this file only asks about or asks for. Two are the
- * simulator, which is a room at the station rather than a flight — a death in
+ * simulator, which is a room at the station rather than a flight. A death in
  * there ends the exercise and not the career. The rest are the console, the
- * screen stack and the one instrument a fresh ship must forget.
+ * screen stack, and the one instrument a fresh ship must forget.
  *
  * THE MODE IS READ TWICE AND THEY ARE DIFFERENT QUESTIONS, the same way they
  * are in `law-actions.ts`. `mode()` includes an open screen, so a death cannot
  * arrive while the game-over panel is up. `baseMode()` does not, because a
- * screen CAN be open over a dead commander — the panel offers her the file —
- * and a save asked which mode to write would then find `'saves'`.
+ * screen CAN be open over a dead commander: the panel offers her the file. A
+ * save asked which mode to write would then find `'saves'`.
  */
 export interface CareerHost {
   /** the mode INCLUDING an open screen */
@@ -98,9 +100,9 @@ export class Career {
 
   /**
    * @internal — the same act the NAME YOUR COMMANDER prompt performs, for a
-   * driver with no keyboard. It forwards and nothing else: what the act IS
-   * lives in `startNewCommander`, and what a player is TOLD when it fails lives
-   * in the screen that asked them.
+   * driver with no keyboard. It forwards and nothing else. What the act IS
+   * lives in `startNewCommander`. What a player is TOLD on a failure lives in
+   * the screen that asked them.
    * @returns false when the boot pointer would not move, so nothing happened.
    */
   newCommanderGame(name: string): boolean {
@@ -119,8 +121,8 @@ export class Career {
 
   importSave(): void {
     // The reason comes back from the importer, which is the only thing that
-    // knows which of them it was — not a save, not this build's save, or no
-    // room for it (save-transfer.ts).
+    // knows which of the three it was. It is not a save, it is not this build's
+    // save, or there is no room for it (save-transfer.ts).
     importSaveFile(this.savesContext(), (why) => {
       this.host.showMessage(why, 4);
       sfx.refused();
@@ -163,8 +165,8 @@ export class Career {
     if (this.host.mode() === 'dead' || this.host.mode() === 'docked') return;
     // A death in the simulator ends the SIMULATION, not the career. The
     // exercise's own StepHost already redirects this, so no path reaches here
-    // with one running — but the next line deletes the in-flight ring, so it is
-    // worth being unreachable twice over.
+    // with an exercise live. But the next line deletes the in-flight ring, so
+    // the guard is worth having twice over.
     if (this.host.inSimulator()) { this.host.quitSimulator(); return; }
     // The in-flight autosaves must not outlive the ship, or a reload would
     // resume the snapshot from seconds before the death. The DOCKED checkpoint
@@ -188,15 +190,14 @@ export class Career {
   /**
    * Ask whether to give up on this flight — but only with the world stopped.
    *
-   * The gate is PAUSE, and it is the whole point of the key's shape: giving up
-   * a flight is a deliberate act, and requiring the world to be stopped first
-   * makes it two decisions rather than one mistyped letter. `WHILE_PAUSED` is
-   * what lets Q reach this handler at all while paused; this is what refuses it
-   * the rest of the time.
+   * The gate is PAUSE, and it is the whole point of the key's shape. To give up
+   * a flight is a deliberate act. A stopped world makes it two decisions rather
+   * than one mistyped letter. `WHILE_PAUSED` is what lets Q reach this handler
+   * at all while paused. This is what refuses it the rest of the time.
    *
-   * It SAYS SO rather than doing nothing. A bound key that appears dead is a
-   * bug report, and the same refusal answers a Q pressed during the launch
-   * tunnel, where nothing is paused either.
+   * It SAYS SO rather than doing nothing. A bound key that appears dead is a bug
+   * report. The same refusal answers a Q pressed during the launch tunnel, where
+   * nothing is paused either.
    */
   quitFlight(): void {
     if (!this.state.session.paused) {
@@ -213,16 +214,15 @@ export class Career {
    * Give up on this flight and take the way back — the confirmed half of
    * `screens/quit.ts`.
    *
-   * `forgetFlight` FIRST, and it is the same first move `die()` makes: the
+   * `forgetFlight` FIRST, and it is the same first move `die()` makes. The
    * in-flight ring must not outlive the flight it recorded, or the next boot
-   * would resume the run that was just abandoned. `clearFlightSaves` re-aims
-   * the boot pointer at the checkpoint on its way past, which is what makes the
+   * resumes the run that was just abandoned. `clearFlightSaves` re-aims the boot
+   * pointer at the checkpoint on its way past. That is what makes the
    * `respawn()` below land on the station rather than on a guess.
    *
    * It costs what dying costs because it lands where dying lands. That is the
-   * whole reason it can be offered to every pilot rather than only to a marked
-   * career: there is nothing to gain by quitting that flying home would not
-   * have paid better.
+   * whole reason it is offered to every pilot rather than only to a marked
+   * career. A flight home always pays better than a quit.
    *
    * @internal — driven by src/game/game.ts, which hands it to the quit screen.
    */
@@ -236,8 +236,8 @@ export class Career {
    * Take the way back: this career's docked checkpoint, whole.
    *
    * A full world restore rather than a commander reload, because the checkpoint
-   * IS a world — written on docking and again immediately before launch, so it
-   * puts the ship back at the station it left with what it left with.
+   * IS a world. It is written at a dock, and again immediately before a launch.
+   * So it puts the ship back at the station it left, with what it left with.
    *
    * @internal — driven by src/game/game.ts, which delegates to it.
    */
@@ -246,19 +246,19 @@ export class Career {
     this.state.chart.targetIndex = null;
     this.state.session.witchspace = false;
     if (this.saves.resume()) return;
-    // Nothing to come back to — a career that has never docked. Boot as the
-    // first launch did.
+    // Nothing to come back to, because this career never docked. Boot the way
+    // the first launch did.
     this.state.commander = bootCommander();
-    // The loaded commander may name a DIFFERENT galaxy than the one we died in,
-    // so `systems` and the living galaxy are rebuilt from it — otherwise every
+    // The loaded commander may name a DIFFERENT galaxy from the one we died in.
+    // So `systems` and the living galaxy are rebuilt from it. Otherwise every
     // `get system()` lookup reads the wrong star.
     this.state.systems = generateGalaxy(this.state.commander.galaxy);
     this.state.living = new LivingGalaxy(this.state.systems);
     this.jump.loadOrWarmGalaxy();
     this.world.chooseBlueprintSet();
     this.world.buildWorld();
-    // 'fresh', not 'resumed': there was no checkpoint to come back to, so
-    // nothing has stocked this station and `bootCommander` brought no market.
+    // 'fresh', and not 'resumed'. There was no checkpoint to come back to, so
+    // nothing stocked this station and `bootCommander` brought no market.
     this.host.enterDocked('fresh');
   }
 }

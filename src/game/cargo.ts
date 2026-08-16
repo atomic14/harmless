@@ -1,26 +1,30 @@
 // Cargo adrift: canisters and escape capsules, their drift, and being scooped.
 //
-// The field owns the objects and moves them. It does NOT decide what picking
-// one up means — whether you have the scoops, whether the hold is full,
-// whether an occupant becomes inventory — because those are commander rules
-// with consequences (legal status, messages, damage), and the Game owns
-// consequences. So `update` reports a REACHED event and stops there.
+// The field owns the objects and moves them. It does NOT decide what a pick-up
+// means. Three questions are commander rules rather than field rules: have you
+// the scoops, is the hold full, and does an occupant become inventory? Each one
+// has consequences — the legal status, the messages and the damage. The Game
+// owns a consequence. So
+// `update` reports a REACHED event and stops there.
 //
-// Escape capsules SHARE THIS FIELD with canisters — one pool, one drift, one
-// clear() — but they are not canisters, and `kind` is the seam that keeps them
-// apart. Each kind builds its own released hull (design 2 against design 4),
-// carries its own bank, grazes at its own tolerance and, once reached, is worth
-// something entirely different: a person, not a tonne. Everything that reads a
-// drifting object reads `kind` first, and nothing may narrow it away (docs/TODO/108).
+// An escape capsule SHARES THIS FIELD with a canister: one pool, one drift, one
+// clear(). But a capsule is not a canister, and `kind` is the seam that keeps
+// them apart. Each kind builds its own released hull, design 2 against design 4.
+// Each carries its own bank and grazes at its own tolerance. Once reached, each
+// is worth something entirely different: a person, and not a tonne. Everything
+// that reads a drifting object reads `kind` first, and nothing may narrow it
+// away (docs/TODO/108).
 //
-// A CANISTER IS ALSO A TARGET, and since TODO 28 it is a source-profiled one.
-// Shooting one used to delete it whatever the laser was; it now carries the
-// pack's own energy for its design — the cargo canister (4) and the escape pod
-// (2), eight points each, no defence — and the shot is resolved through the
-// same oracle a ship's is. Every laser a flyable hull can carry still breaks one
-// with a single hit, so nothing about shooting cargo has changed today; what
-// changed is that "one hit" is now a consequence of the catalogue rather than a
-// line of code that could not be wrong.
+// A CANISTER IS ALSO A TARGET, and since TODO 28 it is a source-profiled one. A
+// shot used to delete one whatever the laser was. It now carries the pack's own
+// energy for its design. The cargo canister is design 4 and the escape pod is
+// design 2, at eight points each and no defence. The shot resolves through the
+// same oracle a ship's does.
+//
+// Every laser a flyable hull can carry still breaks one with a single hit, so
+// nothing about a shot at cargo changed today. What changed is that "one hit" is
+// now a consequence of the catalogue, rather than a line of code that could not
+// be wrong.
 //
 // A CAPSULE IS NOT A TARGET FOR ITS FIRST SECOND AND A HALF (GitHub #28). It
 // launches at the wreck, where the gun already points, so the shot that killed
@@ -56,15 +60,17 @@ export interface Canister {
    * carries a tonne of something and nobody at all.
    *
    * WHO IT WAS is the fact the law needs, and the capsule is the only place it
-   * survives: the ship it came out of is despawned in the same frame
-   * (`Combat.wreck`). Destroying a capsule used to make every commander a
-   * Fugitive, pirate or not, which is the half of GitHub #28 that made shooting
-   * a raider's pod worse than shooting the raider.
+   * survives. The ship it came out of is despawned in the same frame
+   * (`Combat.wreck`).
    *
-   * `''` is inert rather than a default, and that distinction is docs/TODO/108's:
-   * `offenceFor('')` is Clean because an unknown role is nobody's business, so a
-   * reader that forgets to check `kind` gets a harmless answer instead of a
-   * quietly wrong one.
+   * A destroyed capsule used to make every commander a Fugitive, pirate or not.
+   * That is the half of GitHub #28 which made a shot at a raider's pod worse
+   * than a shot at the raider.
+   *
+   * `''` is inert rather than a default, and that distinction is
+   * docs/TODO/108's. `offenceFor('')` is Clean, because an unknown role is
+   * nobody's business. So a reader that forgets to check `kind` gets a harmless
+   * answer instead of a quietly wrong one.
    */
   occupant: string;
   /**
@@ -103,15 +109,17 @@ export function canisterMaxEnergy(kind: Canister['kind']): number {
  * The mesh for a kind, at its own size.
  *
  * Through `buildShip`, which turns a +Z-nose definition with a half turn about
- * Y: the escape pod is one of the eight asymmetric released hulls, so a mirror
- * would be a different object. See docs/INVARIANTS.md invariant 7.
+ * Y. The escape pod is one of the eight asymmetric released hulls, so a mirror
+ * is a different object. See docs/INVARIANTS.md invariant 7.
  */
 function build(kind: Canister['kind']): THREE.Object3D {
   return buildShip(LOOK[kind].hull, LOOK[kind].color);
 }
 
-/** Tumble rate, radians per second — how a drifting canister LOOKS, not a rule:
- *  nothing reads an object's orientation back. */
+/**
+ * Tumble rate, in radians per second. It is how a drifting canister LOOKS rather
+ * than a rule: nothing reads an object's orientation back.
+ */
 const SPIN_RATE = 0.8;
 
 /** The player reached this one — the Game decides what that costs or gains. */
@@ -141,16 +149,17 @@ export class CargoField {
    * A tonne over the side: CLEAR of the ship that dropped it, and behind.
    *
    * Not `spawn`, and the difference is the whole point. `spawn` scatters a
-   * destroyed ship's hold around the wreck, where 20 units is right; a tonne
-   * you threw out of your own hold has to leave your own scoop reach, or you
-   * collect it again on the next frame and the bribe you just paid a pirate is
-   * undone before he has seen it. The distance is `SCOOP_RANGE` plus a stated
-   * margin (`JETTISON_CLEARANCE`) rather than a number of its own, so it cannot
-   * fall back inside a reach that grows.
+   * destroyed ship's hold around the wreck, where 20 units is right.
    *
-   * BEHIND the nose, not in a random direction, and that is not decoration: a
-   * random bearing puts it in front of you about as often as not, and flying
-   * forward through your own jettisoned cargo scoops it back just as surely.
+   * A tonne you threw out of your own hold must leave your own scoop reach.
+   * Otherwise you collect it again on the next frame, and the bribe you just
+   * paid a pirate is undone before he sees it. The distance is `SCOOP_RANGE`
+   * plus a stated margin (`JETTISON_CLEARANCE`), rather than a number of its
+   * own. So it cannot fall back inside a reach that grows.
+   *
+   * BEHIND the nose, and not in a random direction. That is not decoration. A
+   * random bearing puts it in front of you about as often as not. A run forward
+   * through your own jettisoned cargo then scoops it back.
    *
    * @param nose the ship's forward direction — the drop goes the other way
    */
@@ -164,8 +173,8 @@ export class CargoField {
   /**
    * Give a built canister its drift, its spin and its bank, and add it.
    *
-   * The one home for what a loose tonne IS, shared by the wreck scatter and the
-   * jettison — the draws happen in the same order either way, so neither caller
+   * The one home for what a loose tonne IS. The wreck scatter and the jettison
+   * share it. The draws happen in the same order either way, so neither caller
    * can quietly diverge from the other on the seeded stream (invariant 11).
    */
   private adrift(object: THREE.Object3D, commodity: number): void {
@@ -215,7 +224,7 @@ export class CargoField {
     // The bank is taken from the snapshot like everything else here. It used to
     // default to full for a save written before canisters had one; that
     // tolerance went with the rest of the legacy handling (2026-08-04). The
-    // occupant and the grace are taken the same way, so a save made in the
+    // occupant and the grace are taken the same way. So a save made in the
     // second after a kill comes back with the capsule still safe.
     this.add(object, { commodity, velocity, spinAxis, kind, energy, occupant, grace });
   }
@@ -251,8 +260,10 @@ export class CargoField {
    * A registered player-laser hit of `hit` strength lands on one.
    *
    * The same call a ship takes (`NpcShip.takeLaserHit`), against the same
-   * oracle: the object's own bank and its own defence decide, so nothing here
-   * knows what a canister is made of. @returns true if it broke up.
+   * oracle. The object's own bank and its own defence decide it. So nothing here
+   * knows what a canister is made of.
+   *
+   * @returns true if it broke up.
    */
   takeLaserHit(c: Canister, hit: number): boolean {
     c.energy = energyAfterDamage(c.energy, playerLaserDamage(POLICY[c.kind], hit));
