@@ -36,10 +36,16 @@ byte-identical.
 
 **The GitHub inbox holds two items the queue does not.** **#35** is
 `needs investigation`: a police ship turned hostile after a pirate kill, and the
-triage of 2026-08-16 found two candidate routes and measured neither. **#36**
-closed the same day as already fixed. docs/TODO/162 removed
-`V AND L BOTH COST YOUR NAME` on 2026-08-16, and the live bundle was measured:
-zero uses of the old words, and four of `REPUTATION`.
+triage of 2026-08-16 found two candidate routes and measured neither. **#36** is
+open, and it waits on Chris.
+
+**#36 was closed as already fixed, and then reopened the same day.** The close
+was wrong. docs/TODO/162 took the retired words out of `src/`, and the live
+bundle carries zero of them. **The words are still on `main` eight times**: one
+is the fixture that proves `test/ladder-words.test.ts` can fail, and seven are
+records that quote what was replaced. A code search reads all eight. The triage
+answered the shipped game rather than the report, and closed on that reading
+instead of asking which one Chris meant.
 
 **164, 163, 167 and 165 landed on 2026-08-16 and are below.** They were the
 first four items of the sweep's queue. Each of the four was one thing written
@@ -99,8 +105,8 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds two open items, and the queue section above says where
-each one stands. **#36** closed on 2026-08-16 as already fixed. **#33** closed on
+The GitHub inbox holds three open items, and the queue section above says where
+each one stands. **#33** closed on
 2026-08-16 with
 [162](completed/162-one-word-that-means-five-things.md). **#32**, **#31** and
 **#30** closed on
