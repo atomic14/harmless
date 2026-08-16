@@ -163,6 +163,92 @@ unnamed modules must fall, and the fourteen above must leave the list.
 - **Should `npm run ste:check` read `docs/` too?** That is docs/TODO/168, and it
   is a bigger question than this item. Do not answer it here.
 
+## What landed, 2026-08-16
+
+All three milestones landed. `npm run check` passes at 4,715 assertions.
+
+### M1 — the three claims, and three more
+
+**The plan named three false claims. The repair found five.** The two it did not
+have are the same defect at a different site:
+
+1. **The blueprint override.** The map said *"`missions.ts` and `game.ts` name
+   the override"*. `missionBlueprintOverride` has one caller, and it is
+   `world-build.ts:112`. `game.ts:379` forwards `enterWitchspace` and nothing
+   else. docs/TODO/150 M2 moved that job, and the map stayed.
+2. **The chart painters.** The map said *"`ui/screens.ts` paints only what those
+   models return"*. docs/TODO/149 split that file eight ways.
+   `ui/chart-galactic.ts` and `ui/chart-local.ts` paint the stars, and
+   `ui/chart-overlays.ts` paints the marks. `ui/screens.ts` holds no chart code
+   at all.
+3. **The prompt label.** The map said the edge looks a label up in `game.ts`.
+   `cockpit-view.ts:190` calls `flightPrompts`, and the `boundKey` join is
+   beside it.
+
+**A fourth claim was incomplete rather than false.** The map said the HUD is
+`hud-model.ts` plus `hud.ts`. It is three files: `hud-model.ts` works out where
+a marker goes, `hud-binding.ts` turns the state into a dashboard, and `hud.ts`
+paints one.
+
+**A fifth was stale prose rather than a wrong path.** The console bullet still
+said *"what a deed cost your name"*. docs/TODO/162 made REPUTATION the player's
+word, and made `name` mean what a thing is CALLED. That line is
+*"what a deed cost your reputation"* now.
+
+**The fourteen modules are named**, and three more went in with them:
+`spawning.ts`, `screen-shell.ts` and `snapshot.ts`. Two of the fourteen needed a
+section rather than a line — `orders.ts` states invariant 16, and
+`spawning-arena.ts` is the counterpart to `spawning.ts`.
+
+**The children are a section of their own**, and its shape is `game.ts`'s own
+header: the two halves over their children, then the seven subjects. It ends
+with the pointer the plan asked for, so no rule gained a second home.
+
+### M1's open question — the roster block
+
+**Shortened, and it lost four sentences.** The three-way split stays whole,
+because it is the map's job to say which module answers which part. What came
+out is the detail each header already states: how permission is read off all 23
+sets, what `blueprint-set.ts` is a pure function OF, and how the chooser is told
+which override applies. One sentence now points at the three headers.
+
+**Nothing else in "Combat and pilots" was cut.** The plan asked about the
+section's whole length. Measured, the rest of it names one module per bullet and
+says what that module owns, which is what a map does.
+
+### M2 — the rule covers the map
+
+One clause, beside docs/TODO/152's sentence in `CLAUDE.md`. It is not restated
+in `docs/PROCESS.md`.
+
+### M3 — `npm run map:report`
+
+`tools/map-coverage.mjs`, in `npm run check`, and it never exits 1.
+
+**42 of 56 before M1, and 28 of 56 after it.** All fourteen modules left the
+list, and so did `law.ts`, `snapshot.ts` and `spawning.ts`.
+
+**Two decisions are in the tool.** The threshold is 200 lines, which is half of
+`tools/sizes.mjs`'s ceiling: that ceiling detects a file with two
+responsibilities, and this one detects a file with one big enough to name. A
+generated file is skipped, because the map describes code.
+
+**A file in a subdirectory carries that directory.** `src/game/combat-sim.ts`
+and `src/game/screens/combat-sim.ts` share a base name, so a base-name match
+would report the second one as named.
+
+**Proved able to detect**, which is the honest test for a report. With
+`src/game/world.ts` renamed to a name no file carries, the count goes 28 to 29.
+It cannot be proved able to FAIL, because by design it never does.
+
+### What the report says next
+
+**28 modules are still unnamed, and that is not a debt list.** Seven of the 28
+are one subject the map never describes: the combat trainer, at 4,274 lines
+across five modules and two screens. Five more are screens, which the map covers
+by the seam rather than one at a time. A map is not an index, so what to do
+about the trainer is a reader's call rather than a queue item.
+
 ## Watch out for
 
 - **Do not renumber an invariant.** M1 touches the map and never

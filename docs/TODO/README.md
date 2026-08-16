@@ -13,23 +13,20 @@ active context:
 
 ## Execution queue
 
-**Three items, and they came out of one sweep on 2026-08-16.** Chris asked for
+**Two items, and they came out of one sweep on 2026-08-16.** Chris asked for
 an architectural and bug sweep against a tree where `npm run check` passed. The
 order below is by value over cost, and not by severity.
 
-1. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
-   · defect · medium. `docs/ARCHITECTURE.md` makes three false claims and names
-   none of the fourteen modules the decomposition programme created.
-2. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
+1. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
    · gap · medium. `ste:check` reads comments in source. The style's stated
    scope also holds ten markdown documents, and the tool finds no sentence in
    one.
-3. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
+2. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**Nothing in the queue changes a game rule.** Two are defects in a document. The
-third is a decomposition, and its evidence is five probes that must come back
+**Neither item changes a game rule.** One is a defect in a document. The other
+is a decomposition, and its evidence is five probes that must come back
 byte-identical.
 
 **164, 163, 167 and 165 landed on 2026-08-16 and are below.** They were the
@@ -120,6 +117,37 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**166 — the map was not repaired with the headers.** The decomposition
+programme moved nine responsibilities out of `game.ts`, and four more splits
+followed it. Every module header was repaired. `docs/ARCHITECTURE.md` was not.
+
+**docs/TODO/152 wrote that rule for a FILE.** The map is not a file's header, so
+the rule never reached it. `CLAUDE.md` carries one more clause now, beside 152's
+sentence.
+
+**THE PLAN NAMED THREE FALSE CLAIMS, AND THE REPAIR FOUND FIVE.** The two extra
+are the same defect at another site. `missionBlueprintOverride` has one caller,
+and it is `world-build.ts` rather than `game.ts`. The chart painters left
+`ui/screens.ts` in docs/TODO/149, so `ui/chart-galactic.ts`,
+`ui/chart-local.ts` and `ui/chart-overlays.ts` paint them now.
+
+**A sixth line was stale prose rather than a wrong path.** The console bullet
+said *"what a deed cost your name"*, which docs/TODO/162 retired. It says
+*"what a deed cost your reputation"* now.
+
+**The fourteen modules are named**, in a section shaped like `game.ts`'s own
+header: the two halves over their children, then the seven subjects. The roster
+block lost four sentences to the three headers that already state them.
+
+**`npm run map:report` is the check, and no build turns red on it.** A gate that
+demanded a line per file would turn the map into an index. It went **42 of 56
+unnamed to 28 of 56**. It is proved able to detect: one name taken out of the
+map moves the count by one.
+
+**Seven of the 28 that are left are one subject the map never describes.** That
+is the combat trainer, at 4,274 lines. What to do about it is a reader's call
+rather than a queue item.
 
 **165 — a citation that names nothing.** The tree cites a plan document more
 often than it cites an invariant. Three of those numbers resolved to nothing,
