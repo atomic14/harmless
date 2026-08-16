@@ -1,33 +1,38 @@
 // Closed polygons, worked back out of the source's face/edge adjacency.
 //
 // The released tables never stored a polygon. A face is a normal and a
-// visibility distance; an edge says which two faces it lies BETWEEN. That was
-// enough for the original renderer, which drew lines and hid them with a
-// per-face facing test, and it is not enough for Harmless, which fills the hull
-// matte black under the wireframe so a ship occludes what is behind it. So the
-// boundary of each face has to be reconstructed, and this is the only place
-// that happens.
+// visibility distance. An edge says which two faces it lies BETWEEN.
 //
-// Three passes, narrowing:
+// That was enough for the original renderer, which drew lines and hid them with
+// a per-face test of which way each one turned. It is not enough for Harmless,
+// which fills the hull matte black under the wireframe, so that a ship occludes
+// what is behind it. So the boundary of each face has to be reconstructed, and
+// this is the only place that happens.
+//
+// Three passes, and each one is narrower:
 //
 //   1. BOUNDARY. A face's boundary is the edges that name it on exactly one
-//      side. Some of those are decorative spurs — the Cobra's nose laser is an
-//      edge given two real face ids purely so it disappears with them — so
-//      dangling ends are pruned until every vertex has two neighbours, and the
-//      result must be one cycle covering every remaining edge.
+//      side. Some of those are decorative spurs. The Cobra's nose laser is an
+//      edge given two real face ids purely so that it disappears with them. So
+//      a loose end is pruned, until every vertex has two neighbours. What is
+//      left must be one cycle over every edge that survived.
 //   2. COPLANAR MERGE. A flat back split into several faces with the SAME
-//      normal has no closed boundary of its own: the Adder's rear hexagon is
-//      three faces contributing two edges each. Faces that failed pass 1 and
-//      share a normal are retried as one region.
-//   3. WHOLE HULL. A design whose face is named by no edge at all — the alloy
-//      plate, one face and four edges that all say "no face" — is a single
-//      polygon, so its own edge cycle is the loop.
+//      normal has no closed boundary of its own. The Adder's rear hexagon is
+//      three faces, and each one supplies two edges. Faces that failed pass 1
+//      and share a normal are retried as one region.
+//   3. WHOLE HULL. A design whose face is named by no edge at all is a single
+//      polygon, so its own edge cycle is the loop. The alloy plate is that
+//      case: one face, and four edges that all say "no face".
 //
-// Nothing is dropped quietly. A face that survives all three unresolved is
-// REPORTED, as are the edges that end up in no loop and the faces whose stored
-// normal disagrees with the polygon that was found. `test/geometry.test.ts`
-// reads those reports and pins the counts, so a re-import that changed the
-// topology could not slip past as "it still renders".
+// Nothing is dropped quietly. Three things are REPORTED:
+//
+//   - a face that survives all three passes unresolved;
+//   - an edge that ends up in no loop;
+//   - a face whose stored normal disagrees with the polygon that was found.
+//
+// `test/geometry.test.ts` reads those reports and pins the counts. So a
+// re-import that changed the topology could not slip past as "it still
+// renders".
 
 import { ELITE_A_NO_FACE } from '../game/elite-a/catalogue.ts';
 import type { EliteAGeometry } from '../game/elite-a/types.ts';
@@ -139,11 +144,12 @@ function candidates(hull: SourceHull, faces: ReadonlySet<number>): number[] {
 /**
  * One closed cycle through these edges, or null.
  *
- * Prunes dangling ends first — an edge given a face id for visibility rather
- * than because it bounds anything leaves a vertex with one neighbour — then
- * insists that what is left is a single cycle using every edge. Two disjoint
- * rings, or a vertex with three neighbours, means the region is not one
- * polygon and the caller must widen it or report it.
+ * It prunes the loose ends first. An edge given a face id for visibility, and
+ * not because it bounds anything, leaves a vertex with one neighbour. It then
+ * insists that what is left is a single cycle over every edge.
+ *
+ * Two disjoint rings, or a vertex with three neighbours, means the region is
+ * not one polygon. The caller must then widen it or report it.
  */
 function closeLoop(
   hull: SourceHull, edgeIds: readonly number[],
@@ -234,12 +240,14 @@ function loopCentre(
 /**
  * Wind the polygon outwards and say how that was decided.
  *
- * The stored normal is the authority where it agrees with the geometry at all;
- * where it does not (or is zero, as the alloy plate's is) the loop is wound
- * away from the hull's centroid, which is right for every convex region and is
- * only reached by rocks. The FILL is double-sided either way, so winding is a
- * correctness claim about the data rather than something the frame depends on
- * — which is exactly why it is asserted instead of assumed.
+ * The stored normal is the authority wherever it agrees with the geometry at
+ * all. Otherwise the loop winds away from the hull's centroid. That covers the
+ * alloy plate, whose stored normal is zero. It is right for every convex
+ * region, and only a rock reaches it.
+ *
+ * The FILL is double-sided either way. So the winding is a correctness claim
+ * about the data, rather than something the frame depends on. That is exactly
+ * why a test asserts it, rather than assumes it.
  */
 function orient(
   hull: SourceHull, loop: number[], stored: readonly number[],

@@ -1,21 +1,27 @@
 // The commander file: the saves you made, the saves the game made, and the
 // three screens over them.
 //
-// `storage.ts` owns where a save lives and `save-file.ts` owns what one is and
-// what taking one costs. What lives here is the half above both: the list, the
-// deliberate act of naming a save, and renaming a commander — plus the keyboard
-// state machine for each, behind the Screen contract (invariant 13). Typing a
-// name is `typed-name.ts`, saves that leave the browser are `save-transfer.ts`,
-// and STARTING a commander is `new-commander.ts`.
+// `storage.ts` owns where a save lives. `save-file.ts` owns what one is, and
+// what one costs to take. What lives here is the half above both:
 //
-// Following the same discipline as NpcShip: these screens decide nothing about
+//   - the list;
+//   - the deliberate act that gives a save a name;
+//   - a commander renamed;
+//   - the keyboard state machine for each, behind the Screen contract
+//     (invariant 13).
+//
+// Three neighbours take the rest. A name typed in is `typed-name.ts`. A save
+// that leaves the browser is `save-transfer.ts`. A commander STARTED is
+// `new-commander.ts`.
+//
+// It follows the same discipline as NpcShip. These screens decide nothing about
 // game state. They return an OUTCOME and the host applies it, so the mode
 // machine stays in one place.
 //
-// AND NOTHING HERE WRITES BECAUSE IT WAS LOOKED AT (docs/TODO/55): the run in
-// progress is a LINE ABOVE THE TABLE, read out of state, not a checkpoint filed
-// on open — a screen that files a save the moment you press S is one you cannot
-// open just to check something.
+// NOTHING HERE WRITES BECAUSE SOMEBODY LOOKED (docs/TODO/55). The run in
+// progress is a LINE ABOVE THE TABLE, read out of state. It is not a checkpoint
+// filed on open. A screen that files a save the moment you press S is one you
+// cannot open merely to check something.
 
 import { generateGalaxy } from '../../galaxy/galaxy.ts';
 import type { CommanderData } from '../commander.ts';
@@ -41,10 +47,14 @@ export interface SavesContext {
   /** which career's autosaves this session writes — see state.ts */
   readonly career: string;
   /**
-   * The ship is destroyed. Read, never set: this screen is reachable over a
-   * wreck (the game-over panel offers it), and three of its promises are only
-   * true for a commander who still has a ship — a checkpoint that can be
-   * written, a run that can be lost, and a name worth changing.
+   * The ship is destroyed. It is read, and never set here.
+   *
+   * This screen is reachable over a wreck, because the game-over panel offers
+   * it. Three of its promises hold only for a commander who still has a ship:
+   *
+   *   1. a checkpoint that can be written;
+   *   2. a run that can be lost;
+   *   3. a name worth a change.
    */
   readonly dead: boolean;
   message(text: string, seconds: number): void;
@@ -61,8 +71,8 @@ export interface SavesContext {
 }
 
 /**
- * Which galaxy a save is in need not be the one being played, so the system
- * name is resolved per galaxy and cached for the length of one render.
+ * A save need not sit in the galaxy this session plays. So the system name
+ * resolves per galaxy, and it is cached for the length of one render.
  */
 function systemNamer(ctx: SavesContext): (galaxy: number, index: number) => string {
   const cache = new Map<number, StarSystem[]>([[ctx.commander.galaxy, ctx.systems]]);
@@ -126,13 +136,13 @@ export class SavesScreen implements Screen {
   readonly id = 'saves' as const;
   private selected = 0;
   private rows: SaveSummary[] = [];
-  /** a delete waiting on a Y — deleting a save is not undoable */
+  /** a delete that needs a Y — no delete of a save can be undone */
   private pendingDelete: SaveSummary | null = null;
   /**
-   * ...and a load waiting on a second Enter, for a worse reason: a delete costs
-   * you a save you can see, and a load can cost you the run you are in, which is
-   * not on the list at all (docs/TODO/55). The panel names both sides before it
-   * happens and ESC backs out.
+   * ...and a load that needs a second Enter, for a worse reason. A delete costs
+   * you a save you can see. A load can cost you the run you are in, and that
+   * run is not on the list at all (docs/TODO/55). The panel names both sides
+   * first, and ESC backs out.
    */
   private pendingLoad: SaveSummary | null = null;
 
@@ -142,7 +152,7 @@ export class SavesScreen implements Screen {
     this.ctx = ctx;
   }
 
-  /** Looking at the shelf. It writes NOTHING — see this file's header. */
+  /** A look at the shelf. It writes NOTHING — see this file's header. */
   open(): void {
     this.selected = 0;
     this.pendingDelete = null;
@@ -185,9 +195,9 @@ export class SavesScreen implements Screen {
       this.render();
     }
     if (i.pressed('KeyS')) {
-      // A wreck captures as a DOCKED world at the point of death, so saving one
-      // and loading it back would be a way to un-die. The panel does not offer S
-      // over a wreck; this is the same answer for the key.
+      // A wreck captures as a DOCKED world at the point of death. So a save of
+      // one, loaded back, would be a way to un-die. The panel does not offer S
+      // over a wreck. This is the same answer, for the key.
       if (ctx.dead) {
         ctx.message('YOUR SHIP IS GONE — THERE IS NOTHING LEFT TO SAVE', 4);
         sfx.refused();
@@ -196,8 +206,8 @@ export class SavesScreen implements Screen {
       return { open: 'save-name' };
     }
     if (i.pressed('KeyR')) {
-      // Renaming writes a checkpoint to persist the new name, and a dead
-      // commander has none to write, so the panel offers it only to the living.
+      // A rename writes a checkpoint, to hold the new name. A dead commander
+      // has none to write. So the panel offers it to a live one only.
       if (ctx.dead) return 'stay';
       return { open: 'naming' };
     }
@@ -251,14 +261,14 @@ export class SavesScreen implements Screen {
       this.render();
       return 'stay';
     }
-    // The remedy the panel offers, and it stacks: the prompt returns here, and
-    // the run has a name on it by the time the second Enter is pressed.
+    // The remedy the panel offers, and it stacks. The prompt returns here, and
+    // the run carries a name by the second Enter.
     if (i.pressed('KeyS') && !ctx.dead) return { open: 'save-name' };
     if (!i.pressed('Enter')) return 'stay';
-    // Write the run we are leaving before we leave it. A commander who has just
-    // been told "PUT DOWN AT LAVE AS YOU ARE NOW" must not have that quietly
-    // fail: a refused checkpoint is the one case where loading really does cost
-    // the run, so it refuses the load instead (docs/TODO/44's rule).
+    // Write the run we leave, before we leave it. A commander just told "PUT
+    // DOWN AT LAVE AS YOU ARE NOW" must not lose that quietly. A refused
+    // checkpoint is the one case where a load really does cost the run. So a
+    // refused checkpoint refuses the load instead (docs/TODO/44's rule).
     if (!ctx.dead && !ctx.checkpoint()) {
       ctx.message('STORAGE FULL — COULD NOT KEEP THIS RUN, SO NOTHING WAS LOADED', 5);
       sfx.refused();

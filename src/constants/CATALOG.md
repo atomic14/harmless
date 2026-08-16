@@ -348,19 +348,19 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | tactics | <code>TACTICS</code> | <code>{ run: { id: 'run', missDistance: PASS_MISS_DISTANCE, arcAngle: EXTEND_ARC_ANGLE, throttleFloor: CLOSING_THROTTLE_MIN, aimsToHit: false, }, slash: { id: 'slash', missDistance: 175, arcAngle: (45 * Math.PI) / 180, throttleFloor: 0.72, aimsToHit: false, }, knife: { id: 'knife', missDistance: 100, arcAngle: (70 * Math.PI) / 180, throttleFloor: CLOSING_THROTTLE_MIN, aimsToHit: false, }, ram: { id: 'ram', missDistance: 0, arcAngle: EXTEND_ARC_ANGLE, throttleFloor: 1, aimsToHit: true, }, }</code> | The four tactics, as the three numbers each one overrides. |  | [tactics.ts:52](./tactics.ts#L52) |
 | tech-level | <code>TECH_MIN</code> | <code>1</code> | The lowest tech level any system shows. |  | [tech-level.ts:9](./tech-level.ts#L9) |
 | tech-level | <code>TECH_MAX</code> | <code>15</code> | The highest. |  | [tech-level.ts:12](./tech-level.ts#L12) |
-| threat | <code>FAME_FULL</code> | <code>RATINGS.find(([, name]) =&gt; name === 'Dangerous')![0]</code> | The combat score at which fame is fully "worth coming for". |  | [threat.ts:16](./threat.ts#L16) |
-| threat | <code>CHALLENGE_RATE</code> | <code>0.35</code> | The share of receptions that are challengers, at full fame. | <code>threat.challengeRate</code> | [threat.ts:29](./threat.ts#L29) |
-| threat | <code>DISREPUTE_FULL</code> | <code>CHARACTER.find(([, name]) =&gt; name === 'Notorious')![0]</code> | The disrepute at which your CHARACTER is as bad as it needs to get for a pirate. |  | [threat.ts:45](./threat.ts#L45) |
-| threat | <code>DISREPUTE_HEAT</code> | <code>SALE_NOTORIETY_MAX</code> | What a fully notorious name is worth as HEAT. |  | [threat.ts:71](./threat.ts#L71) |
-| threat | <code>DISREPUTE_DRAW</code> | <code>0.5</code> | How much a criminal name draws challengers, against combat fame's 1. | <code>threat.disreputeDraw</code> | [threat.ts:84](./threat.ts#L84) |
-| threat | <code>COURTESY_RATE</code> | <code>0.15</code> | Professional courtesy: the share of receptions that never form at all, because somebody recognised a commander they would rather not cross. |  | [threat.ts:99](./threat.ts#L99) |
-| threat | <code>PRIZE_SATURATION</code> | <code>25000</code> | The cargo value at which the prize term saturates, in tenths of a credit: 25,000, which is 2,500 Cr. |  | [threat.ts:107](./threat.ts#L107) |
-| threat | <code>DEFENCE_WEIGHT</code> | <code>12</code> | The weights on the three fields of `sourceThreatScore`. |  | [threat.ts:117](./threat.ts#L117) |
-| threat | <code>LASER_WEIGHT</code> | <code>8</code> |  |  | [threat.ts:118](./threat.ts#L118) |
-| threat | <code>PROFESSIONAL_SCORE</code> | <code>110</code> | The tier ladder over `sourceThreatScore`. |  | [threat.ts:124](./threat.ts#L124) |
-| threat | <code>GANG_SCORE</code> | <code>160</code> |  |  | [threat.ts:125](./threat.ts#L125) |
-| threat | <code>MAX_TIER</code> | <code>2</code> | The ladder's top rung. |  | [threat.ts:129](./threat.ts#L129) |
-| threat | <code>CURATED_TIER</code> | <code>{ 'elite-a:design:17': 0, }</code> | Hulls held at a tier that the score alone would not give them. |  | [threat.ts:139](./threat.ts#L139) |
+| threat | <code>FAME_FULL</code> | <code>RATINGS.find(([, name]) =&gt; name === 'Dangerous')![0]</code> | The combat score at which fame is fully "worth coming for". |  | [threat.ts:20](./threat.ts#L20) |
+| threat | <code>CHALLENGE_RATE</code> | <code>0.35</code> | The share of receptions that are challengers, at full fame. | <code>threat.challengeRate</code> | [threat.ts:33](./threat.ts#L33) |
+| threat | <code>DISREPUTE_FULL</code> | <code>CHARACTER.find(([, name]) =&gt; name === 'Notorious')![0]</code> | The disrepute at which your CHARACTER is as bad as it needs to get for a pirate. |  | [threat.ts:50](./threat.ts#L50) |
+| threat | <code>DISREPUTE_HEAT</code> | <code>SALE_NOTORIETY_MAX</code> | What a fully notorious name is worth as HEAT. |  | [threat.ts:78](./threat.ts#L78) |
+| threat | <code>DISREPUTE_DRAW</code> | <code>0.5</code> | How much a criminal name draws challengers, against combat fame's 1. | <code>threat.disreputeDraw</code> | [threat.ts:92](./threat.ts#L92) |
+| threat | <code>COURTESY_RATE</code> | <code>0.15</code> | Professional courtesy: the share of receptions that never form at all, because somebody recognised a commander they would rather not cross. |  | [threat.ts:110](./threat.ts#L110) |
+| threat | <code>PRIZE_SATURATION</code> | <code>25000</code> | The cargo value at which the prize term saturates, in tenths of a credit: 25,000, which is 2,500 Cr. |  | [threat.ts:118](./threat.ts#L118) |
+| threat | <code>DEFENCE_WEIGHT</code> | <code>12</code> | The weights on the three fields of `sourceThreatScore`: 1. how much fire a hull survives (`maxEnergy`, weight 1, the base); 2. how much of each hit it shrugs off (`perHitDefence`, a subtraction); 3. how hard it hits back (`laserPower`). |  | [threat.ts:131](./threat.ts#L131) |
+| threat | <code>LASER_WEIGHT</code> | <code>8</code> |  |  | [threat.ts:132](./threat.ts#L132) |
+| threat | <code>PROFESSIONAL_SCORE</code> | <code>110</code> | The tier ladder over `sourceThreatScore`. |  | [threat.ts:138](./threat.ts#L138) |
+| threat | <code>GANG_SCORE</code> | <code>160</code> |  |  | [threat.ts:139](./threat.ts#L139) |
+| threat | <code>MAX_TIER</code> | <code>2</code> | The ladder's top rung. |  | [threat.ts:143](./threat.ts#L143) |
+| threat | <code>CURATED_TIER</code> | <code>{ 'elite-a:design:17': 0, }</code> | Hulls held at a tier that the score alone would not give them. |  | [threat.ts:153](./threat.ts#L153) |
 | threat-lock | <code>THREAT_SWITCH_MARGIN</code> | <code>2.0</code> | A rival threat must be this much NEARER than the threat under fire before the defender may switch to it. |  | [threat-lock.ts:9](./threat-lock.ts#L9) |
 | threat-lock | <code>THREAT_MIN_HOLD</code> | <code>5</code> | Seconds that the defender fights a threat before it considers a rival. | <code>threat.minHold</code> | [threat-lock.ts:20](./threat-lock.ts#L20) |
 | torus | <code>TORUS_MULTIPLIER</code> | <code>8</code> | How much faster the torus drive travels than ordinary flight. |  | [torus.ts:17](./torus.ts#L17) |

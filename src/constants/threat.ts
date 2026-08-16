@@ -1,5 +1,9 @@
-// Who is worth robbing, as numbers: what makes a commander look like a prize,
-// what makes one look like trouble, and which tier of hull comes to collect.
+// Who is worth a raid, as numbers. Three questions live here:
+//
+//   1. what makes a commander look like a prize;
+//   2. what makes one look like trouble;
+//   3. which tier of hull comes to collect.
+//
 // `pirateThreat`, `sourceThreatScore` and `hullThreatTier` in game/threat.ts
 // spend these. `npm run campaign`'s 33 balance rows are the measurement that a
 // change here has to answer to.
@@ -36,32 +40,35 @@ export const CHALLENGE_RATE = 0.35;
  * stays constants/character.ts.
  *
  * It is Notorious rather than the ceiling (`DISREPUTE_MAX`, a little past
- * Cutthroat). A pirate does not grade you finely at the top end. One hermit kill
- * puts you halfway up this curve, and two put you at the top of it, which is the
- * resolution that the reception actually needs (docs/TODO/96). What the saturated
- * curve is then WORTH — as regional heat, and as a draw — is the two weights
- * below.
+ * Cutthroat). A pirate does not grade you finely at the top end. One hermit
+ * kill puts you halfway up this curve, and two put you at the top. That is the
+ * resolution the reception really needs (docs/TODO/96).
+ *
+ * What the saturated curve is then WORTH is the two weights below: as regional
+ * heat, and as a draw.
  */
 export const DISREPUTE_FULL = CHARACTER.find(([, name]) => name === 'Notorious')![0];
 
 /**
  * What a fully notorious name is worth as HEAT. It is the same channel that a
- * region's memory of your last big sale feeds (`Mark.notoriety`), because to a
- * pirate they are the same fact: how visibly known you are.
+ * region's memory of your last big sale feeds (`Mark.notoriety`). To a pirate
+ * the two are the same fact: how visibly known you are.
  *
- * A Notorious pilot who flies clean through a quiet system looks about as
- * interesting as an honest one who just sold a fat cargo here. To fold it in,
- * rather than add a fourth independent term, is the decision that the plan
- * records: one "how you are seen" model, not two.
+ * Compare two pilots. A Notorious one flies clean through a quiet system. An
+ * honest one just sold a fat cargo here. Each is about as much of a draw as the
+ * other. It folds in, rather
+ * than adds a fourth independent term. The plan records that decision: one
+ * "how you are seen" model, not two.
  *
- * **EXPRESSED, NOT TYPED** (docs/TODO/132). That sentence names a number the game
- * already has. `SALE_NOTORIETY_MAX` is the most a sale can put on this exact
- * channel, so "as interesting as the fattest sale" IS that constant, and `infamy`
- * is already normalised to 1 at Notorious. Written out as 0.5, the two were free
- * to drift, and the rationale above would have quietly become false. It is the
- * same trick as `FAME_FULL` and `DISREPUTE_FULL` beside it. 96 shipped this as an
- * unflown starting value, and there is nothing left to fly: it is not a knob, it
- * is an equivalence.
+ * **EXPRESSED, NOT TYPED** (docs/TODO/132). That sentence names a number the
+ * game already has. `SALE_NOTORIETY_MAX` is the most a sale can put on this
+ * exact channel. So "as much of a draw as the fattest sale" IS that constant,
+ * and `infamy` is already normalised to 1 at Notorious.
+ *
+ * Written out as 0.5, the two were free to drift, and the reasoning above would
+ * quietly become false. It is the same trick as `FAME_FULL` and
+ * `DISREPUTE_FULL` beside it. 96 shipped this as a start value nobody flew, and
+ * there is nothing left to fly. It is not a knob. It is an equivalence.
  *
  * The owner is confirmed as the threat model rather than character.ts. The ladder
  * and what moves a commander up it belong there. What a rung is WORTH to a pirate
@@ -76,21 +83,25 @@ export const DISREPUTE_HEAT = SALE_NOTORIETY_MAX;
  * and for a Cutthroat because a robbery is safe. The second is a real draw, and
  * the weaker one.
  *
- * It has its own rule id, for the reason given on `DISREPUTE_HEAT` above: the
- * same value, a different question, and they must stay free to move apart.
+ * It has its own rule id, for the reason given on `DISREPUTE_HEAT` above. It is
+ * the same value against a different question, and the two must stay free to
+ * move apart.
  *
  * @rule threat.disreputeDraw
  */
 export const DISREPUTE_DRAW = 0.5;
 
 /**
- * Professional courtesy: the share of receptions that never form at all, because
- * somebody recognised a commander they would rather not cross. It is the carrot half
- * of a criminal reputation. It is also the reason infamy is NOT also folded into
- * `deter`: a term in appeal and a term in deterrence would partly cancel into one
- * coefficient, which is the same rule written twice. This is a distinct event
- * with a distinct texture. More of them want you, and occasionally one calls it
- * off.
+ * Professional courtesy: the share of receptions that never form at all,
+ * because somebody recognised a commander they would rather not cross. It is
+ * the carrot half of a criminal reputation.
+ *
+ * It is also the reason infamy is NOT folded into `deter` as well. A term in
+ * appeal and a term in deterrence would partly cancel into one coefficient.
+ * That is the same rule written twice.
+ *
+ * This is a distinct event with a distinct texture. More of them want you, and
+ * occasionally one calls it off.
  *
  * It is rolled only when there is a name to recognise. An honest commander
  * therefore draws exactly the numbers off the world stream that they drew before
@@ -107,10 +118,13 @@ export const COURTESY_RATE = 0.15;
 export const PRIZE_SATURATION = 25000;
 
 /**
- * The weights on the three fields of `sourceThreatScore`. They are how much
- * shooting a hull survives (`maxEnergy`, weight 1, the base), how much of each
- * hit it shrugs off (`perHitDefence`, a subtraction), and how hard it hits back
- * (`laserPower`). Speed is deliberately absent: a fast hull is harder to catch,
+ * The weights on the three fields of `sourceThreatScore`:
+ *
+ *   1. how much fire a hull survives (`maxEnergy`, weight 1, the base);
+ *   2. how much of each hit it shrugs off (`perHitDefence`, a subtraction);
+ *   3. how hard it hits back (`laserPower`).
+ *
+ * Speed is deliberately absent: a fast hull is harder to catch,
  * not harder to beat. The weights are Harmless's. The numbers they multiply are
  * the source's.
  */
@@ -131,8 +145,8 @@ export const MAX_TIER = 2;
 /**
  * Hulls held at a tier that the score alone would not give them. There is one
  * curated exception. The Sidewinder and Krait pirate builds are identical in
- * every scored field — energy 82, defence 2, laser 5, score 146 — so no
- * classifier can separate them. But the Sidewinder is the opportunist's hull, and
+ * every scored field: energy 82, defence 2, laser 5, score 146. So no
+ * classifier can separate them. The Sidewinder is the opportunist's hull, and
  * the Krait is what turns up when somebody means it. It is keyed on the design-id
  * string that `hullThreatTier` is handed. `test/ship-roles.test.ts` pins it.
  */

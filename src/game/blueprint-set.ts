@@ -1,20 +1,22 @@
 // Which of the 23 released blueprint sets a system flies.
 //
-// Elite-A did not ship one roster. It shipped 23 — the files `S.A` to `S.W` —
-// and it chose between them on arrival, in `LOMOD`, at a launch from a station
-// or on a jump into a new system. Each file is 31 numbered slots, a slot is a
-// job, and a file fills those slots with its own designs and its own stat
-// blocks. So where you were decided both who jumped you and how hard they hit.
+// Elite-A did not ship one roster. It shipped 23, the files `S.A` to `S.W`. It
+// chose between them on arrival, in `LOMOD`, at a launch from a station, and on
+// a jump into a new system.
 //
-// This is that choice, as a pure function. It decides nothing else: what a set
-// then means for the roster is `game/ship-specs.ts`, and which BUILD of a design
-// a job flies inside the chosen set stays `game/role-variants.ts`.
+// Each file is 31 numbered slots. A slot is a job. A file fills those slots
+// with its own designs and its own stat blocks. So where you were decided both
+// who jumped you and how hard they hit.
+//
+// This is that choice, as a pure function. It decides nothing else. What a set
+// then means for the roster is `game/ship-specs.ts`. Which BUILD of a design a
+// job flies inside the chosen set stays `game/role-variants.ts`.
 //
 // ## The rule, and where it came from
 //
 // docs/TODO/138 recovers it from bbcelite's deep dives, which are a fourth
-// source: the vendored pack has the sets, their slots and their variants, and no
-// selection metadata at all. A number 0-15, built bitwise:
+// source. The vendored pack has the sets, their slots and their variants, and
+// no selection metadata at all. It is a number 0-15, built bitwise:
 //
 //     bit 0    1 for a high-tech system, 0 for the rest
 //     bit 1    0 for anarchy, feudal and multi-government; 1 for everything safer
@@ -28,18 +30,17 @@
 //
 // IT DOES NOT DRAW THE DICE. Bits 2-3 are a coin the source flipped on arrival,
 // and here they are an argument. Invariant 11 puts all world chance on the one
-// seeded stream, and `role-variants.ts` records the standing rule that nothing
-// which decides a future frame draws rng at resolve time. The caller draws once,
-// on entry, and saves what it drew (invariant 12).
+// seeded stream. `role-variants.ts` records the standing rule: nothing that
+// decides a future frame draws rng at resolve time. The caller draws once, on
+// entry, and saves what it drew (invariant 12).
 //
 // IT DOES NOT RESTATE BIT 0. That test already picks the Dodo station over the
-// Coriolis, and `galaxy/tech.ts` is its one home — in the released game one bit
-// did both jobs, and here half of it has been running since long before the
-// catalogue arrived.
+// Coriolis, and `galaxy/tech.ts` is its one home. In the released game one bit
+// did both jobs. Here, half of it ran since long before the catalogue arrived.
 //
-// IT DOES NOT KNOW WHEN AN OVERRIDE APPLIES. Two of them exist and both are
-// released rules, but whether the commander is carrying the plans is the
-// mission's fact, not this file's, so the caller names the override.
+// IT DOES NOT KNOW WHEN AN OVERRIDE APPLIES. Two of them exist, and both are
+// released rules. Whether the commander holds the plans is the mission's fact
+// rather than this file's. So the caller names the override.
 
 import { eliteABlueprintSets } from './elite-a/catalogue.ts';
 import { isHighTechSystem } from '../galaxy/tech.ts';
@@ -56,8 +57,8 @@ const sets = eliteABlueprintSets();
  * A released blueprint set, by its letter. `A` to `W`.
  *
  * A plain string rather than a union of 23 letters, because the count is the
- * pack's: `eliteABlueprintSets` reads it off the slot table, and a re-import is
- * allowed to change it.
+ * pack's. `eliteABlueprintSets` reads it off the slot table, and a re-import
+ * may change it.
  */
 export type BlueprintSet = string;
 
