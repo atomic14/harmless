@@ -19,10 +19,12 @@ import { isHostileToPlayer, type NpcShip } from '../src/game/npc.ts';
 import { slotNormal } from '../src/world/slot.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import {
-  ASTEROID_SCATTER, CORRIDOR_SPAN, CORRIDOR_START, HERMIT_SCATTER, HUNTER_SCATTER,
-  PIRATE_SCATTER, POLICE_SCATTER, STATION_DEFENCE_JITTER, STATION_DEFENCE_MIN,
-  STATION_DEFENCE_SPAN, STATION_DEFENCE_STACK, STATION_DEFENCE_STANDOFF, TRADER_SCATTER,
+  ASTEROID_LANE_SCATTER, ASTEROID_SCATTER, CORRIDOR_SPAN, CORRIDOR_START, HERMIT_SCATTER,
+  HUNTER_SCATTER, PIRATE_SCATTER, POLICE_PATROL_RANGE, POLICE_SCATTER, STATION_DEFENCE_JITTER,
+  STATION_DEFENCE_MIN, STATION_DEFENCE_SPAN, STATION_DEFENCE_STACK, STATION_DEFENCE_STANDOFF,
+  TRADER_SCATTER,
 } from '../src/constants/spawn-placement.ts';
+import { SCANNER_RANGE } from '../src/constants/console.ts';
 import { BANISHED } from '../src/constants/witchspace.ts';
 import { PLAYER_INTEREST_RANGE } from '../src/constants/player-interest.ts';
 import { MASS_LOCK_STATION } from '../src/constants/torus.ts';
@@ -44,47 +46,72 @@ console.log('\nwhere a system puts its traffic');
   /** a long route, so the reception's own scatter is a small share of it */
   const ROUTE = 400_000;
 
-  const band: Record<string, { lo: number; hi: number }> = {};
-  const along: Record<string, { lo: number; hi: number }> = {};
-  const off: Record<string, number> = {};
+  type Span = { lo: number; hi: number };
+  /** what one situation put where, over every seed and every role. */
+  type Sweep = {
+    /** how far from the station a role landed */
+    band: Record<string, Span>;
+    /** where along the route it landed, as a share of the route */
+    along: Record<string, Span>;
+    /** the furthest any one of them sat off that line */
+    off: Record<string, number>;
+  };
+
   const sys = generateGalaxy(1)[7];
   const route = new THREE.Vector3();
   const rel = new THREE.Vector3();
   const foot = new THREE.Vector3();
-  for (let s = 0; s < 40; s++) {
-    seedWorld(90_600 + s);
-    const world = new World();
-    world.build(sys);
-    world.clearNpcs();
-    const home = world.station.position;
-    const player = home.clone().add(new THREE.Vector3(0, 0, ROUTE));
-    spawnPopulation(world, PLAN, sys, player, false);
-    route.copy(home).sub(player).normalize();
-    for (const npc of world.npcs) {
-      const d = npc.object.position.distanceTo(home);
-      const b = band[npc.role] ?? (band[npc.role] = { lo: Infinity, hi: -Infinity });
-      b.lo = Math.min(b.lo, d); b.hi = Math.max(b.hi, d);
-      // where on the route the ship sits, and how far off its line
-      const f = rel.copy(npc.object.position).sub(player).dot(route) / ROUTE;
-      const a = along[npc.role] ?? (along[npc.role] = { lo: Infinity, hi: -Infinity });
-      a.lo = Math.min(a.lo, f); a.hi = Math.max(a.hi, f);
-      const perp = foot.copy(player).addScaledVector(route, f * ROUTE)
-        .distanceTo(npc.object.position);
-      off[npc.role] = Math.max(off[npc.role] ?? 0, perp);
+
+  /**
+   * Fly 40 seeds of one situation, and measure what the spawner did.
+   *
+   * A launch starts the commander AT the slot, so it has no route. `along` and
+   * `off` are meaningless there, and this fills neither of them.
+   */
+  const sweep = (situation: 'launch' | 'arrival'): Sweep => {
+    const out: Sweep = { band: {}, along: {}, off: {} };
+    const arriving = situation === 'arrival';
+    for (let s = 0; s < 40; s++) {
+      seedWorld(90_600 + s);
+      const world = new World();
+      world.build(sys);
+      world.clearNpcs();
+      const home = world.station.position;
+      const player = arriving ? home.clone().add(new THREE.Vector3(0, 0, ROUTE)) : home.clone();
+      spawnPopulation(world, PLAN, sys, player, false, situation);
+      route.copy(home).sub(player).normalize();
+      for (const npc of world.npcs) {
+        const d = npc.object.position.distanceTo(home);
+        const b = out.band[npc.role] ?? (out.band[npc.role] = { lo: Infinity, hi: -Infinity });
+        b.lo = Math.min(b.lo, d); b.hi = Math.max(b.hi, d);
+        if (!arriving) continue;
+        // where on the route the ship sits, and how far off its line
+        const f = rel.copy(npc.object.position).sub(player).dot(route) / ROUTE;
+        const a = out.along[npc.role] ?? (out.along[npc.role] = { lo: Infinity, hi: -Infinity });
+        a.lo = Math.min(a.lo, f); a.hi = Math.max(a.hi, f);
+        const perp = foot.copy(player).addScaledVector(route, f * ROUTE)
+          .distanceTo(npc.object.position);
+        out.off[npc.role] = Math.max(out.off[npc.role] ?? 0, perp);
+      }
     }
-  }
+    return out;
+  };
+
+  const arrival = sweep('arrival');
+  const launch = sweep('launch');
+  const { band, along, off } = arrival;
 
   /** the measured spread of a role, against the nominal it was spawned from. */
-  const scattered = (role: string, nominal: number, what: string) => {
-    const b = band[role];
+  const scattered = (m: Sweep, role: string, nominal: number, what: string) => {
+    const b = m.band[role];
     check(`${what} (${Math.round(b.lo)}-${Math.round(b.hi)}, nominal ${nominal})`,
       b.lo >= nominal * NEAR - 1 && b.hi <= nominal * FAR + 1
       && b.lo < nominal * (NEAR + 0.15) && b.hi > nominal * (FAR - 0.15),
       `expected the band ${nominal * NEAR}-${nominal * FAR} to be reached and not exceeded`);
   };
-  scattered('asteroid', ASTEROID_SCATTER, 'the rocks scatter wide, as scenery');
-  scattered('hunter', HUNTER_SCATTER, '...a bounty hunter works the whole system');
-  scattered('hermit', HERMIT_SCATTER, '...and the hermit hides at the far edge of the rocks');
+  scattered(arrival, 'hunter', HUNTER_SCATTER, 'a bounty hunter works the whole system');
+  scattered(arrival, 'hermit', HERMIT_SCATTER,
+    '...and the hermit hides at the far edge of the rocks');
 
   // A corridor role sits along the lane, between CORRIDOR_START and its end, and
   // off that line by no more than its own scatter.
@@ -114,6 +141,34 @@ console.log('\nwhere a system puts its traffic');
 
   check('...so no arrival pirate is ever waiting at the station itself',
     CORRIDOR_START + CORRIDOR_SPAN < 1);
+
+  // --- the rocks read the situation, like the police (docs/TODO/170) ---------
+  //
+  // The report was that every rock sits at the port. An arrival strings them
+  // down the lane now. A launch has no lane, so it keeps the station anchor.
+  // The two branches need two measurements: neither one is evidence for the
+  // other.
+  onCorridor('asteroid', ASTEROID_LANE_SCATTER, 'the rocks are strung down the lane too');
+  scattered(launch, 'asteroid', ASTEROID_SCATTER, '...and a launch still leaves through them');
+
+  // What the pilot meets, as a distance from the station. This is the pair of
+  // claims `ASTEROID_SCATTER` and `ASTEROID_LANE_SCATTER` make in their own doc
+  // comments, and no stylesheet of constants can state it.
+  check(`no arrival rock is inside the station's mass lock `
+    + `(nearest ${Math.round(band.asteroid.lo)}, lock ${MASS_LOCK_STATION})`,
+  band.asteroid.lo > MASS_LOCK_STATION);
+  check(`a launch field still straddles that lock `
+    + `(${Math.round(launch.band.asteroid.lo)}-${Math.round(launch.band.asteroid.hi)})`,
+  launch.band.asteroid.lo < MASS_LOCK_STATION && launch.band.asteroid.hi > MASS_LOCK_STATION);
+  // The whole field is on the scanner as the commander passes it. That is the
+  // derivation `ASTEROID_LANE_SCATTER` is written from.
+  check(`...and every lane rock is within scanner range of the lane `
+    + `(furthest ${Math.round(off.asteroid)} off, scanner ${SCANNER_RANGE})`,
+  off.asteroid <= SCANNER_RANGE);
+
+  // The police answer the same two-branch question, and the launch half of it
+  // had no measurement at all before this.
+  scattered(launch, 'police', POLICE_PATROL_RANGE, 'a launch patrol spreads across the system');
 }
 
 // --- the station's own Vipers ------------------------------------------------

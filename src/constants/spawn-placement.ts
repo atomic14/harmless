@@ -14,6 +14,7 @@
 // deliberately different numbers, chosen for what the pilot can see rather than
 // for where traffic would be.
 
+import { SCANNER_RANGE } from './console.ts';
 import { MASS_LOCK_SHIP } from './torus.ts';
 
 /**
@@ -45,6 +46,24 @@ export const POLICE_PATROL_RANGE = 18_000;
  * is NOT that rule. Rocks land 2,500-7,500 out, so the field straddles the lock.
  */
 export const ASTEROID_SCATTER = 5000;
+
+/**
+ * How far off the arrival corridor each rock sits.
+ *
+ * It is DERIVED rather than chosen. `scatter()` (game/spawning.ts) puts a rock
+ * at up to 1.5 times the nominal, so this nominal puts the outermost rock at
+ * 6,000. That is `SCANNER_RANGE` (console.ts). So the whole field is on the
+ * scanner as the commander passes it. The run in from the witchpoint then reads
+ * as a rock field rather than as empty space.
+ *
+ * `DEEP_TRADER_CONE` below measured the same derivation and rejected it. A
+ * trader moves, so it leaves the scanner before the commander arrives. A rock
+ * does not move.
+ *
+ * It is the widest thing a peaceful system strings down the lane. A gang sits
+ * 2,500 off the line (`PIRATE_SCATTER`), and a patrol 1,200 (`POLICE_SCATTER`).
+ */
+export const ASTEROID_LANE_SCATTER = SCANNER_RANGE / 1.5;
 
 /**
  * How far out a bounty hunter starts, at work on the whole system. It shares its

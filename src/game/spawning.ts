@@ -26,7 +26,7 @@ import { random, randomInt, randomDirection } from './rng.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { ORDINARY_GOODS } from '../constants/commodities.ts';
 import {
-  ASTEROID_SCATTER, CORRIDOR_SPAN, CORRIDOR_START, DEEP_TRADER_CONE,
+  ASTEROID_LANE_SCATTER, ASTEROID_SCATTER, CORRIDOR_SPAN, CORRIDOR_START, DEEP_TRADER_CONE,
   DEEP_TRADER_RANGE, DEEP_TRADER_RUN, GENERATION_CARGO_SCATTER,
   GENERATION_SHIP_RANGE, GENERATION_SHIP_RANGE_SPAN, HERMIT_SCATTER, HUNTER_SCATTER,
   MISSION_TARGET_RANGE, MISSION_TARGET_RANGE_SPAN, PIRATE_SCATTER, POLICE_PATROL_RANGE,
@@ -116,7 +116,14 @@ export function spawnPopulation(
     world.spawn('police', pos, i);
   }
   for (let i = 0; i < plan.asteroids; i++) {
-    world.spawn('asteroid', home.clone().add(scatter(ASTEROID_SCATTER)), sys.seed[0] + i * 37);
+    // On an arrival the rocks line the lane the commander flies down, so the run
+    // in from the witchpoint holds scenery (docs/TODO/170, GitHub #34). On a
+    // launch the commander starts at the slot and there is no lane, so the field
+    // keeps its station anchor. The seed is untouched: a system shows the same
+    // rocks on every visit.
+    const pos = arriving ? corridorPos(ASTEROID_LANE_SCATTER)
+      : home.clone().add(scatter(ASTEROID_SCATTER));
+    world.spawn('asteroid', pos, sys.seed[0] + i * 37);
   }
 
   if (plan.threat && plan.pirates > 0) {
