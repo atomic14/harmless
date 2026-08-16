@@ -17,6 +17,16 @@ active context:
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
+**154's twelfth M3 pass landed on 2026-08-16.** It took `game/systems.ts`,
+`game/snapshot.ts`, `game/combat-computer.ts` and `game/combat.ts` from 20% over
+the cap to 0%, and the tree is at 952 long sentences. **The size gate fired on
+the way**, because the conversion pushed `combat.ts` from 391 lines to 406. The
+value test paid 2 lines and the gate needed 7, so the answer was the gate's own:
+`game/combat-events.ts` is the vocabulary a combat report is written in, at 59
+lines against 368 left behind. Six modules READ a combat event and one BUILDS
+one, so a module that merely applies an event no longer imports the module that
+resolves a hit.
+
 **162 landed on 2026-08-16 and is below.** It came out of the triage of GitHub
 #33 the same day, and Chris re-cut it twice while it ran.
 

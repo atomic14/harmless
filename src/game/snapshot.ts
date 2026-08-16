@@ -1,22 +1,30 @@
 // The whole world, as plain data.
 //
-// This is what makes saving anywhere possible: a station save is the commander
-// alone, but mid-flight there is a great deal more that matters — where you are,
-// what is shooting at you, what your shields are down to, and which way the
-// random stream was about to break.
+// This is what makes a save anywhere possible. A station save is the commander
+// alone. Mid-flight there is a great deal more that matters:
+//
+// - where you are;
+// - which ships have you under fire;
+// - what your shields are down to;
+// - which way the random stream was about to break.
 //
 // Everything here is JSON: no THREE objects, no class instances, no functions.
 // That is the point — `structuredClone` gives you a save, a replay checkpoint
 // and a test fixture from the same call.
 //
 // A SNAPSHOT DELIBERATELY DOES NOT SAY WHOSE IT IS (docs/TODO/43). A world is a
-// place and a moment; which CAREER's autosave group it belongs to is the
-// shelf's question, answered in `SaveRecord.career` (save-file.ts), which is
-// what `save:auto:<CAREER>:*` is keyed by. One home: the record.
+// place and a moment. Which CAREER's autosave group it belongs to is the
+// shelf's question. `SaveRecord.career` (save-file.ts) answers it, and
+// `save:auto:<CAREER>:*` is keyed by that field. One home: the record.
 //
-// This file owns what a snapshot IS: the shape, the version, the `MIGRATIONS`
-// table that climbs it, and the codec that turns live vectors into arrays and
-// back. What makes one TRUSTWORTHY is `snapshot-parse.ts`, which split off on
+// This file owns what a snapshot IS. That is four things:
+//
+// - the shape;
+// - the version;
+// - the `MIGRATIONS` table that climbs it;
+// - the codec that turns live vectors into arrays and back.
+//
+// What makes one TRUSTWORTHY is `snapshot-parse.ts`, which split off on
 // 2026-08-16. Nothing here validates anything.
 
 import type { CommanderData } from './commander.ts';
@@ -28,25 +36,24 @@ import type { BrainSelection } from './brain-names.ts';
  * Bump when the shape changes so stale snapshots are refused, not misread.
  *
  * 2 adds `occupant` and `grace` to a canister (GitHub #28). A version 1 save
- * holds capsules that cannot say who was inside, and guessing would decide a
+ * holds capsules that cannot say who was inside, and a guess would decide a
  * commander's record for them.
  *
  * 3 adds `atonement` to the commander (GitHub #32).
  *
  * A BUMP IS NOT A REFUSAL ANY MORE (docs/TODO/161). `MIGRATIONS` below says how
  * to climb each step, and a stored save is raised on its way through the door.
- * A bump therefore costs one entry in that table, and a version left out of it
- * is a version that still cannot be loaded — which is a decision, not an
- * oversight.
+ * A bump therefore costs one entry in that table. A version left out of that
+ * table still cannot be loaded. That is a decision, not an oversight.
  */
 export const SNAPSHOT_VERSION = 3;
 
 /**
  * A plain object rather than an array or a null.
  *
- * It sits above both halves of this file because both need it: a migration asks
- * it of a snapshot it is about to raise, and the parse boundary asks it of
- * every record it validates.
+ * It sits above both halves of this file because both need it. A migration asks
+ * it of a snapshot it is about to raise. The parse boundary asks it of every
+ * record it validates.
  */
 export const isRecord = (v: unknown): v is Record<string, unknown> =>
   !!v && typeof v === 'object' && !Array.isArray(v);
@@ -65,9 +72,10 @@ interface Migration {
  * It sits beside the version because the constant's doc says what each number
  * ADDED and this says how to add it. Written apart, one of them would rot.
  *
- * **A save that will not load costs a career** (Chris, 2026-08-16), which is
- * what makes this the right trade even where the raised value is a guess. What
- * a step may guess is bounded: it fills in what a version did not have, and it
+ * **A save that will not load costs a career** (Chris, 2026-08-16). That is
+ * what makes this the right trade, even where the raised value is a guess.
+ *
+ * What a step may guess is bounded. It fills in what a version did not have. It
  * never repairs a field that version was supposed to carry. That second half is
  * still junk, and the parser below still refuses it whole.
  *
@@ -76,9 +84,9 @@ interface Migration {
  */
 const MIGRATIONS: readonly Migration[] = [
   {
-    // 2 → 3. `commander.atonement` is WRITTEN rather than left to a default:
-    // `Persistence.restore` clones the commander straight in, so an absent
-    // field reaches `recordWorkedOff` as undefined and the ledger runs at NaN.
+    // 2 → 3. `commander.atonement` is WRITTEN rather than left to a default.
+    // `Persistence.restore` clones the commander straight in. So an absent
+    // field reaches `recordWorkedOff` as undefined, and the ledger runs at NaN.
     // A commander in that state can never work a record off again, and nothing
     // says so. 0 costs a pilot up to `KILLS_PER_RUNG - 1` kills of credit, once
     // (docs/TODO/161).
@@ -95,15 +103,15 @@ const MIGRATIONS: readonly Migration[] = [
 /**
  * Raise `raw` to `SNAPSHOT_VERSION`, or hand it back exactly as it arrived.
  *
- * It COPIES before it changes anything, and only when it has a step to run — so
- * a current snapshot is not cloned at all, and a snapshot this cannot raise
- * leaves the caller's bytes byte for byte as they were. That is the same
- * promise `parseSnapshot` makes about the live session.
+ * It COPIES before it changes anything, and only when it has a step to run. So
+ * a current snapshot is not cloned at all. A snapshot this cannot raise leaves
+ * the caller's bytes byte for byte as they were. That is the same promise
+ * `parseSnapshot` makes about the live session.
  *
- * A version it does not know — an absent one, a string, or one NEWER than this
- * build — matches nothing and falls through unchanged, to the check that
- * refuses it. Each step raises the version by exactly one, so the loop cannot
- * spin.
+ * A version it does not know matches nothing. An absent version, a string, and
+ * a version NEWER than this build are all of that kind. Each falls through
+ * unchanged, to the check that refuses it. Each step raises the version by
+ * exactly one, so the loop cannot spin.
  */
 export function migrateSnapshot(raw: unknown): unknown {
   if (!isRecord(raw)) return raw;
@@ -139,9 +147,9 @@ export type NpcSnapshot = {
   role: string;
   seed: number;
   /**
-   * What it IS — see ship-identity.ts. Immutable, so it is beside the state
-   * rather than in it, and REQUIRED: a ship that does not say what it is makes
-   * the snapshot unreadable, which is old junk rather than a world.
+   * What it IS — see ship-identity.ts. It is immutable, so it sits beside the
+   * state rather than in it. It is also REQUIRED: a ship that does not say what
+   * it is makes the snapshot unreadable. That is old junk rather than a world.
    */
   designId: string;
   profileId: string;
@@ -153,8 +161,9 @@ export type NpcSnapshot = {
 /**
  * Recursively turn vectors and quaternions into arrays.
  *
- * Recurses because nested state (e.g. `NpcState.dockPlan`) holds live vector
- * identities, so it stays plain JSON without the codec knowing its field names.
+ * It recurses because nested state (e.g. `NpcState.dockPlan`) holds live vector
+ * identities. So the state stays plain JSON, and the codec never needs its
+ * field names.
  */
 function serialiseValue(value: unknown): unknown {
   if (value && typeof value === 'object' && 'x' in value && 'y' in value && 'z' in value) {
@@ -178,11 +187,12 @@ export function serialiseState(state: Record<string, unknown>): Record<string, u
 }
 
 /**
- * Restore one value, recursing into existing objects where possible.
+ * Restore one value. It recurses into an object that is already there, where
+ * possible.
  *
- * Writing through existing objects is what preserves the mesh transform and
- * docking plan's scratch-vector identities. A missing target (for example a
- * nullable cached brain decision) is still replaced as before.
+ * A write through an object that is already there preserves the mesh transform
+ * and the docking plan's scratch-vector identities. A target that is absent
+ * (for example a nullable cached brain decision) is still replaced as before.
  */
 function restoreValue(target: unknown, saved: unknown): unknown {
   if (Array.isArray(saved)
@@ -203,7 +213,7 @@ function restoreValue(target: unknown, saved: unknown): unknown {
   return saved;
 }
 
-/** ...and back, writing INTO live vectors and nested reusable objects. */
+/** ...and back. It writes INTO live vectors and nested reusable objects. */
 export function restoreState(state: Record<string, unknown>, saved: Record<string, unknown>): void {
   for (const [k, v] of Object.entries(saved)) state[k] = restoreValue(state[k], v);
 }
@@ -211,7 +221,7 @@ export function restoreState(state: Record<string, unknown>, saved: Record<strin
 export interface MissileSnapshot {
   pos: [number, number, number];
   quat: [number, number, number, number];
-  /** index into `npcs`, or -1 for a hostile missile homing on the player */
+  /** index into `npcs`, or -1 for a hostile missile that flies at the player */
   targetIndex: number;
   life: number;
 }
@@ -223,9 +233,8 @@ export interface CanisterSnapshot {
   kind: 'cargo' | 'capsule';
   commodity: number;
   /**
-   * What is left of its released bank (TODO 28), so a canister that has been
-   * shot at but not destroyed comes back wounded. REQUIRED, like every field
-   * here.
+   * What is left of its released bank (TODO 28). A canister that was shot at,
+   * and not destroyed, comes back wounded. REQUIRED, like every field here.
    */
   energy: number;
   /** who is inside a capsule, and `''` for a canister — see `Canister` */
@@ -265,23 +274,23 @@ export interface WorldSnapshot {
   /**
    * Generator state, not just the seed.
    *
-   * Restoring the seed alone would rewind the stream to the moment you entered
-   * the system, so the next pirate wave and every damage roll after a reload
-   * would differ from the run you saved. The distinction between a snapshot
-   * and an approximation.
+   * A restore of the seed alone would rewind the stream to the moment you
+   * entered the system. The next pirate wave and every damage roll after a
+   * reload would then differ from the run you saved. This is the distinction
+   * between a snapshot and an approximation.
    */
   rng: { seed: number; state: number };
-  /** hyperspace target, so the chart still points where you were going */
+  /** hyperspace target, so the chart still points at the world you chose */
   chartTarget: number | null;
-  /** missiles in flight — a save taken mid-launch keeps them coming */
+  /** missiles in flight — a save taken mid-launch keeps them on their way */
   missiles: MissileSnapshot[];
   /**
    * The market and the work on offer.
    *
-   * Not cosmetic and not optional: both are rolled fresh when a station is
-   * entered, so a save that dropped them would let you reload to reroll
-   * prices and contracts until you liked them. Persisting them is what makes
-   * "save anywhere" a convenience rather than an exploit.
+   * Not cosmetic and not optional. Both are rolled fresh when the ship enters a
+   * station. So a save that dropped them would let you reload, and reroll
+   * prices and contracts until you liked them. A save that keeps them is what
+   * makes "save anywhere" a convenience rather than an exploit.
    */
   market: unknown[];
   hermitMarket: unknown[];
@@ -289,17 +298,17 @@ export interface WorldSnapshot {
   /** index into `npcs` of the missile-locked ship, or -1 */
   targetLock: number;
   /**
-   * Whether a missile is armed. A live behaviour gate — updateLock() returns
-   * immediately when it is false — so it must survive a reload or the pylon
-   * cools and the lock is lost.
+   * Whether a missile is armed. It is a live behaviour gate: `updateLock()`
+   * returns immediately when it is false. So it must survive a reload.
+   * Otherwise the pylon cools, and the lock is lost.
    */
   missileArmed: boolean;
   /** where the chart cursor was left */
   chartCursor: [number, number];
   /**
-   * The station's orientation. Not cosmetic: the slot normal, the docking box
-   * and the bounce in npcsVsStation are computed from it, so a station rebuilt
-   * at its starting angle changes what every ship near it does.
+   * The station's orientation. It is not cosmetic: the slot normal, the docking
+   * box and the bounce in `npcsVsStation` are all computed from it. So a
+   * station rebuilt at its initial angle changes what every ship near it does.
    */
   stationQuat: [number, number, number, number];
 }

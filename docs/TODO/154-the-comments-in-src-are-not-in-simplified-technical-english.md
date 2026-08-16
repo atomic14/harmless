@@ -343,7 +343,7 @@ measured figure, a defect that a comment stops somebody from re-creating.
 ### Where the full sweep stands
 
 **M3 is a full sweep of `src/`, and it is more than one sitting.** The table
-below is the state after the eighth pass on 2026-08-16. **`npm run ste -- --work`
+below is the state after the twelfth pass on 2026-08-16. **`npm run ste -- --work`
 is the resume point** — it names the file to take next, in the order that clears
 the most breaches per pass.
 
@@ -355,15 +355,16 @@ the most breaches per pass.
 | after the eighth pass | 1,211 | 10% | 15.3 | 168 |
 | after the ninth pass | 1,139 | 9% | 14.9 | 153 |
 | after the tenth pass | 1,071 | 9% | 14.4 | 137 |
-| **now** | **1,010** | **8%** | **13.9** | **127** |
+| after the eleventh pass | 1,010 | 8% | 13.9 | 127 |
+| **now** | **952** | **8%** | **13.2** | **121** |
 
-**THE TREE IS UNDER 10% FOR THE FIRST TIME.** It was 20% when the checker was
-written. `src/constants/`, the surface docs/TODO/141 swept in one pass, reads at
-6% by the same tool. So the gap that this item's whole argument rests on has
-closed from 4 to 1 down to about 1.5 to 1.
+**THE TREE IS UNDER 10%.** It was 20% when the checker was written.
+`src/constants/`, the surface docs/TODO/141 swept in one pass, reads at 6% by
+the same tool. So the gap that this item's whole argument rests on has closed
+from 4 to 1 down to about 1.3 to 1.
 
-**Forty files are converted, and each one measured 0% on the day.** They
-held 876 of the tree's long sentences, and every one of the five worst
+**Forty-four files are converted, and each one measured 0% on the day.** They
+held 934 of the tree's long sentences, and every one of the five worst
 directories still has files in it. The `-ing` words and every tense breach that
 remain in a converted file are recorded above and below as deliberate.
 
@@ -525,6 +526,65 @@ the numeric walk reports 47 numbers and 0 lost.
 five long sentences. A later milestone put them there, and the seventh pass
 records which one. A converted file is converted on the day, and nothing holds
 it there. That is M4's question, now with a named example.
+
+### The twelfth pass
+
+**It landed on 2026-08-16**, over the next four by count: `game/systems.ts`,
+`game/snapshot.ts`, `game/combat-computer.ts` and `game/combat.ts`.
+
+| | sentences | over cap | `-ing` | tense |
+| --- | ---: | ---: | ---: | ---: |
+| before | 290 | **58 (20%)** | 79 | **7** |
+| after | 442 | **0** | 8 | **0** |
+
+**The cost is 67 lines**, which is the most expensive pass of the item. Six of
+the pass's worst sentences became a vertical list, and a list is what costs the
+lines. **Nothing was dropped**: the numeric walk reports 65 numbers across the
+four files and 0 lost.
+
+**Four things came out of the twelfth pass that the plan did not have.**
+
+1. **THE SIZE GATE FIRED, AND THE CONVERSION IS WHAT FIRED IT.**
+   `game/combat.ts` went 391 lines to 406 and crossed the 400 ceiling. That is
+   the seventh pass's `flight.ts` case, but past the line rather than five short
+   of it.
+   - **The value test paid 2 or 3 lines, and the gate needed 7.** The one real
+     duplicate inside the file was the `offence` rule, stated in the header and
+     again on the event's own doc. `CLAUDE.md` forbids a cut of prose to reach a
+     line count, so a trim to fit was not available.
+   - **So the answer was the gate's own answer: a split.** It is the third time
+     this item has met that gate, and the second time the answer was a new file.
+2. **THE SEAM IS THE VOCABULARY RATHER THAN THE LOGIC**, and the argument is the
+   import direction. `src/game/combat-events.ts` holds `CombatEvent` and the
+   three helpers that build one, at 59 lines against 368 left behind. One module
+   BUILDS a combat event and six READ one, so a module that merely applies an
+   event had to import the module that resolves a hit. `combat-sim.ts` and
+   `law-actions.ts` both did that and neither fires a gun. **`sounds.ts` already
+   states the same argument for `SoundEvent`**, which is a member of the union.
+3. **A STRANDED DOC BLOCK IN `combat-computer.ts`, AND ONLY A LINE-BY-LINE READ
+   FINDS IT.** Three doc comments were stacked above `private readonly
+   threatLock`. Two of them were `@param` blocks for `step`, which is declared
+   BELOW the field. So the three documented parameters of `step` documented a
+   `ThreatLock` instead, and no tool in the repository can see that. They are one
+   block on `step` now.
+4. **THE CHECKER MISSED TWO PERFECT TENSES, AND READING FOUND THEM.**
+   `combat-computer.ts` held "had only ever been flown" and "which has always
+   written". `tools/ste-rules.mjs` allows ONE adverb between the auxiliary and
+   the participle, and its list is `not never already also still only just`.
+   "only ever" is two of them, and "always" is on neither list. **The tool is
+   not amended**: both shapes are rare, and a wider window buys false positives
+   in a rule that is already the item's most delicate. The count is a FLOOR on
+   the tense breaches, exactly as it is on the verb forms.
+
+**THE `-ing` COUNT FELL BY 90%, WHICH IS THE LARGEST FALL OF ANY PASS**, from 79
+to 8. Nothing was contorted to reach it, and Chris's rule is not amended
+(2026-08-14: *"We only need to fix -ing where we have to"*). The reason is the
+SUBJECT: these four files describe MECHANISM, and mechanism prose reaches for a
+gerund as the subject of a sentence — *"guessing it afterwards"*, *"resolving a
+shot"*, *"destroying a raider's pod"*. Each becomes a plain noun in a split
+sentence. **The eight that remain are `fitting`, `facing` and `rescaling`**,
+which are technical nouns here, plus `fit-anything`, which is a hyphenated
+compound the tool reads as a word.
 
 **The sixth pass was `src/constants/docking-computer.ts` and `game/gunnery.ts`**:
 219 sentences with 47 over the cap and 5 perfect tenses, down to 288 with none

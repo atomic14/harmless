@@ -53,9 +53,9 @@ import * as THREE from 'three';
 
 import type { CommanderData, Equipment } from './commander.ts';
 import {
-  Combat, BEAM_FLASH,
-  type CombatEvent, type CombatScratch, type DamageSource,
+  Combat, BEAM_FLASH, type CombatScratch, type DamageSource,
 } from './combat.ts';
+import type { CombatEvent } from './combat-events.ts';
 import { damagePlayer, firePlayerLaser } from './combat-player.ts';
 import {
   CombatSimRecorder, aimAngle, furthestWave, makeSimLog,

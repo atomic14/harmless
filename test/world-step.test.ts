@@ -27,11 +27,8 @@ import {
 } from '../src/game/storage.ts';
 import type { NpcSnapshot, WorldSnapshot } from '../src/game/snapshot.ts';
 import { newCommander, cargoCapacity, cargoTonnes } from '../src/game/commander.ts';
-import {
-  Combat,
-  type CombatEvent,
-  type DamageSource,
-} from '../src/game/combat.ts';
+import { Combat, type DamageSource } from '../src/game/combat.ts';
+import type { CombatEvent } from '../src/game/combat-events.ts';
 import { firePlayerLaser, damagePlayer } from '../src/game/combat-player.ts';
 import { seedWorld, rngState, restoreRng } from '../src/game/rng.ts';
 import { pirateSpecForTier } from '../src/game/ship-specs.ts';

@@ -19,7 +19,8 @@ import * as THREE from 'three';
 import type { GameState } from './state.ts';
 import type { PlayerPoolPoints } from './damage-units.ts';
 import { viewDirection } from './views.ts';
-import type { Combat, CombatEvent, CombatScratch } from './combat.ts';
+import type { Combat, CombatScratch } from './combat.ts';
+import type { CombatEvent } from './combat-events.ts';
 
 /**
  * Pull the player's trigger, in whatever view they are looking through.

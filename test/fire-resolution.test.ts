@@ -37,9 +37,8 @@ import { resolveNpcFire, type FireWorld } from '../src/game/fire-resolution.ts';
 import { hitFromAhead } from '../src/game/shield-face.ts';
 import { freshState } from '../src/game/state.ts';
 import { newCommander } from '../src/game/commander.ts';
-import {
-  Combat, type CombatEvent, type CombatScratch,
-} from '../src/game/combat.ts';
+import { Combat, type CombatScratch } from '../src/game/combat.ts';
+import type { CombatEvent } from '../src/game/combat-events.ts';
 import { damagePlayer } from '../src/game/combat-player.ts';
 import { MAX_ENERGY, MAX_SHIELD } from '../src/constants/pools.ts';
 import { applyDamage, freshSystems } from '../src/game/systems.ts';
