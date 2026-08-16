@@ -25,7 +25,13 @@ const el = (): HTMLElement => elementById('screen');
 const body = (): HTMLElement => (typeof document === 'undefined'
   ? inertElement() : document.body);
 
-/** These four callers already handle a missing element, so null is the honest answer. */
+/**
+ * Every caller of this already handles a missing element, so null is the honest
+ * answer. Use `elementById` where the caller wants a sink to write to instead.
+ *
+ * The count of callers used to be written here. It went out of date the first
+ * time a fifth one arrived (docs/TODO/163), and no gate could say so.
+ */
 export const maybeById = (id: string): HTMLElement | null => (typeof document === 'undefined'
   ? null : document.getElementById(id));
 

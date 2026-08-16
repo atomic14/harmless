@@ -105,3 +105,59 @@ None.
 - **`ui/screen-host.ts:207` is the pattern to copy for a guard.** It tests
   `typeof document === 'undefined'` and returns early. It also states why that
   is safe. A paint may take the `null` path instead, which is shorter.
+
+## What landed
+
+**M1 landed on 2026-08-16.** `npm run check` passes at **4,719 assertions**, up
+11. All eleven are the new gate. No rule moved, and `constants:check` reports
+387 exports and 76 rule ids, unchanged.
+
+**The fix is one line, and the remedy was the seam the plan named.**
+`screens/chart.ts` asks `maybeById` now, exactly as the two painters beside it
+do. The `if (info)` guard below it already handled `null`, so no other line
+moved.
+
+**The gate is a new file rather than a block in `test/chart-days.test.ts`, and
+that is a deviation from the plan.** The reason is that the two files want
+opposite environments. `chart-days` paints both charts through
+`test/screen-capture.ts`, which INSTALLS a recording document for the length of
+one paint. This gate needs no document at all, which is the whole subject. A
+no-document block inside a file that installs one could pass for the wrong
+reason, and nothing would say so. `test/run.ts` states the same idiom in its own
+header: a new subject is a new file and one line in the index.
+
+**`test/chart-headless.test.ts` is 11 assertions, and it drives BOTH charts.**
+The defect line branches on `this.local` and reads a different element id on
+each side, so one chart is not evidence for the other. The first assertion is
+the control: it asserts that there is no document. A document leaked from an
+earlier test file would let the old line pass, and the gate would then prove
+nothing.
+
+**The cursor check is what proves the path is reachable.** `L` moves the cursor
+to Leleer, and `A` then narrows it to Lave. Two calls rather than one, because
+`typeToFind` drains a whole frame of presses at once. So the second letter is
+shown to NARROW the match, rather than merely to leave it alone. Each expected
+system is found by its exact name, and not by the prefix rule the code under
+test uses.
+
+**Proved able to fail.** With `document.getElementById` put back, six of the
+twelve checks go red — three on each chart, and both errors read
+`ReferenceError: document is not defined`. The two open checks stay green, which
+is correct: `open()` never reaches the line.
+
+**Measured with docs/TODO/164's tool.** `src/game/screens/chart.ts` went from
+**89.3% to 91.8%**, and it is no longer the worst-covered screen in the tree.
+That is the cost of the defect, paid back.
+
+**The three other direct callers of `document` stay, as the plan predicted.**
+`screens/save-transfer.ts:55` builds an anchor for a file download,
+`screens/save-transfer.ts:204` builds a file input for an import, and
+`screens/combat-sim.ts:335` builds an anchor for a report export. Each is a
+platform ACTION rather than a paint. A file download has no headless meaning, so
+a seam would give a caller nothing to do. **Do not re-open them.**
+
+**One thing came out of it that the plan did not have.** `maybeById`'s doc
+comment said *"These four callers already handle a missing element"*. This item
+made a fifth. A count written in prose is the same defect docs/TODO/164 fixed in
+a path: written down one time, and never checked again. The count is gone, and
+the sentence says what is true of every caller.

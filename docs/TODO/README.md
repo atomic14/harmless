@@ -13,37 +13,33 @@ active context:
 
 ## Execution queue
 
-**Six items, and they came out of one sweep on 2026-08-16.** Chris asked for
+**Five items, and they came out of one sweep on 2026-08-16.** Chris asked for
 an architectural and bug sweep against a tree where `npm run check` passed. The
 order below is by value over cost, and not by severity.
 
-1. [163 — the chart key that needs a browser](163-the-chart-key-that-needs-a-browser.md)
-   · defect · small. `screens/chart.ts:194` reaches for `document` rather than
-   the seam beside it, so type-to-find throws under node. No headless test can
-   drive that path at all.
-2. [167 — the ledger that pays a rung for one kill](167-the-ledger-that-pays-a-rung-for-one-kill.md)
+1. [167 — the ledger that pays a rung for one kill](167-the-ledger-that-pays-a-rung-for-one-kill.md)
    · defect · small. The comment that justifies the version 2 migration states
    the opposite of what `recordWorkedOff` does.
-3. [165 — a citation that names nothing](165-a-citation-that-names-nothing.md)
+2. [165 — a citation that names nothing](165-a-citation-that-names-nothing.md)
    · defect · small. Three cited plan numbers resolve to no file. One is cited
    from `src/`. 147 was never committed, and 162 rests a decision on it.
-4. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
+3. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
    · defect · medium. `docs/ARCHITECTURE.md` makes three false claims and names
    none of the fourteen modules the decomposition programme created.
-5. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
+4. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
    · gap · medium. `ste:check` reads comments in source. The style's stated
    scope also holds ten markdown documents, and the tool finds no sentence in
    one.
-6. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
+5. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**Nothing in the queue changes a game rule.** Five are defects in a tool, a seam
-or a document. The sixth is a decomposition, and its evidence is five probes
-that must come back byte-identical.
+**Nothing in the queue changes a game rule.** Four are defects in a seam or a
+document. The fifth is a decomposition, and its evidence is five probes that
+must come back byte-identical.
 
-**164 landed on 2026-08-16 and is below.** It was the head of the sweep's queue,
-and it took two milestones.
+**164 and 163 landed on 2026-08-16 and are below.** They were the first two
+items of the sweep's queue, and the second was found by the first.
 
 **154 landed on 2026-08-16 and is below.** It was the last item in the queue,
 and the largest of the four that came out of the 2026-08-14 review. Its own
@@ -128,6 +124,51 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**163 — the chart key that needs a browser.** `src/engine/shell.ts` promises a
+headless game. `src/ui/screen-shell.ts` holds the seam that keeps the promise:
+`maybeById` answers `null` where there is no page. `screens/chart.ts` reached
+for `document.getElementById` instead.
+
+**The screen and its painters disagreed about one lookup.** The two chart
+painters read the same two element ids through the seam. The screen did not. The
+line runs under a guard that the `F` key turns on, so type-to-find threw under
+node.
+
+**No player could see this, and that is the shape of the defect.** The browser
+was never affected. The cost was the seam. No headless test, replay or harness
+could drive type-to-find at all.
+
+**The fix is one line**, and the remedy was the seam rather than a new one. The
+`if (info)` guard below it already handled `null`, so nothing else moved.
+
+**The gate is a new file, and that is a deviation from the plan.** The plan
+asked for a block in `test/chart-days.test.ts`. That file paints both charts
+through `test/screen-capture.ts`, which INSTALLS a recording document for the
+length of one paint. This gate needs no document at all. A no-document block
+inside a file that installs one could pass for the wrong reason, and nothing
+would say so.
+
+**`test/chart-headless.test.ts` is 11 assertions, and it drives both charts.**
+The defect line branches on `this.local` and reads a different id on each side,
+so one chart is not evidence for the other. Its first assertion is the control:
+there is no document.
+
+**The cursor check is what proves the path is reachable.** `L` moves the cursor
+to Leleer, and `A` then narrows it to Lave. Six of the twelve checks go red with
+the old line put back.
+
+**`screens/chart.ts` went from 89.3% to 91.8%**, measured with 164's repaired
+tool. It is no longer the worst-covered screen in the tree.
+
+**Three other direct callers of `document` stay, and the plan predicted all
+three.** `save-transfer.ts` builds an anchor and a file input.
+`screens/combat-sim.ts` builds an anchor. Each is a platform ACTION rather than
+a paint, and a file download has no headless meaning. Do not re-open them.
+
+**One thing came out of it that the plan did not have.** `maybeById`'s doc
+comment said *"These four callers"*, and this item made a fifth. It is the same
+defect 164 fixed in a path: written down one time, and never checked again.
 
 **164 — the tool that reports every file as untested.** `npm run coverage`
 printed a false report, and it printed it with confidence. It said that 259 of

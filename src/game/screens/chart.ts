@@ -29,6 +29,7 @@ import {
   renderLocalChart, drawLocalChart, renderMarketEstimate, localCoordsFromClick,
 } from '../../ui/chart-local.ts';
 import { nearestSystem } from '../../ui/chart-readout.ts';
+import { maybeById } from '../../ui/screen-shell.ts';
 import type { Screen, ScreenOutcome, ScreenId } from '../../ui/screen-host.ts';
 import type { CommanderData } from '../commander.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
@@ -191,7 +192,10 @@ export class ChartScreen implements Screen {
     if (this.local) drawLocalChart(systems, commander, chart, overlays);
     else drawChart(systems, commander, chart, overlays);
     if (this.find !== null) {
-      const info = document.getElementById(this.local ? 'local-info' : 'chart-info');
+      // Through the seam, and not through `document`. The two painters read
+      // these same two ids the same way. A direct lookup here threw under node,
+      // so no headless test could drive type-to-find at all (docs/TODO/163).
+      const info = maybeById(this.local ? 'local-info' : 'chart-info');
       if (info) info.textContent = `FIND: ${this.find}_`;
     }
   }
