@@ -343,7 +343,7 @@ measured figure, a defect that a comment stops somebody from re-creating.
 ### Where the full sweep stands
 
 **M3 is a full sweep of `src/`, and it is more than one sitting.** The table
-below is the state after the sixth pass on 2026-08-15. **`npm run ste -- --work`
+below is the state after the seventh pass on 2026-08-16. **`npm run ste -- --work`
 is the resume point** — it names the file to take next, in the order that clears
 the most breaches per pass.
 
@@ -351,17 +351,69 @@ the most breaches per pass.
 | --- | ---: | ---: | ---: | ---: |
 | when the checker was written | 1,988 | 20% | 23.4 | 309 |
 | at the head of M3 | 1,842 | 18% | 21.0 | 265 |
-| **now** | **1,309** | **12%** | **17.2** | **194** |
+| **now** | **1,297** | **11%** | **16.1** | **184** |
 
-**Twenty files are converted, and each one measures 0% afterwards.** They held
-529 of the tree's long sentences, which is 29% of the job, and every one of the
-five worst directories still has files in it. The two `-ing` words and every
-tense breach that remain in a converted file are recorded above as deliberate.
+**Twenty-three files are converted, and each one measured 0% on the day.** They
+held 592 of the tree's long sentences, and every one of the five worst
+directories still has files in it. The `-ing` words and every tense breach that
+remain in a converted file are recorded above and below as deliberate.
+
+**ONE OF THE TWENTY-THREE NO LONGER MEASURES 0%**, and it is `game/npc.ts` at
+five long sentences. A later milestone put them there, and the seventh pass
+records which one. A converted file is converted on the day, and nothing holds
+it there. That is M4's question, now with a named example.
 
 **The sixth pass was `src/constants/docking-computer.ts` and `game/gunnery.ts`**:
 219 sentences with 47 over the cap and 5 perfect tenses, down to 288 with none
 of either. `npm run generate:constants` ran before the gates, and
 `constants:check` reports 380 exports and 59 rule ids, unchanged.
+
+**The seventh pass landed on 2026-08-16**, over `src/music.ts`,
+`game/break-off.ts` and `game/flight.ts`: 240 sentences with **63 over the cap
+(26%)**, 95 `-ing` words and 10 tense breaches, down to 379 with none of the
+caps and none of the tenses. **THE PASS COST NOTHING IN LINES**: 268 insertions
+against 270 deletions, so the three files are two lines SHORTER than they were.
+Every number in the prose of all three survives, at the same count, by a walk
+before and after. `npm run check` passes at 4,686 assertions, unchanged.
+
+**Five things came out of the seventh pass that the plan did not have.**
+
+1. **THE TREE GREW BETWEEN THE SIXTH PASS AND THIS ONE, BY 51 LONG SENTENCES.**
+   The table above read 1,309 after the sixth pass. The checker read 1,360 at
+   the head of this one. The sixth pass had cleared 47, so four milestones put
+   back more than one pass takes out.
+   - **A CONVERTED FILE REGRESSED, AND `git blame` NAMES THE COMMIT.**
+     `game/npc.ts` measured 0% on 2026-08-14, at the end of the first M3 pass.
+     It holds five long sentences today. All five are lines 294, 299, 327, 342
+     and 889, and `git blame` puts every one of them in commit `86fdd05` —
+     docs/TODO/158 M1 and M2, written on 2026-08-15.
+   - **This is the plan's central claim, measured a third way.** The first two
+     measurements were populations: a swept directory against an unswept one,
+     and the files docs/TODO/150 wrote. This one is a single file, converted to
+     zero and then regressed by one later milestone. A sweep converts a
+     surface. An intention does not hold one.
+2. **`game/flight.ts` was 5 lines under the size ceiling**, at 395 of 400. The
+   conversion adds lines at 11% in M2's measurement, so the file could not take
+   this pass as an addition. It went the other way, and the value test is why.
+3. **THREE SECTION DIVIDERS IN `flight.ts` NAMED NOTHING**, and dropping them is
+   what paid for the conversion. `// --- the racks ---`, `// --- the ship's own
+   instruments ---` and `// --- the guns ---` had no member under them:
+   docs/TODO/155 M2 moved those members into `flight-weapons.ts` and
+   `flight-instruments.ts`, and left the headings behind. A divider over nothing
+   is a map of a file that no longer exists. `// --- the training simulator ---`
+   still has members and stays.
+4. **A LITERAL SAMPLE OF OUTPUT READS AS PROSE.** `break-off.ts` shows what the
+   trainer's column prints — `RUN CLOSING 8.2s · RUN EXTENDING 6.9s · …` — as an
+   indented line rather than in backticks. The checker counts `EXTENDING` and
+   `EVADING` as two `-ing` breaches. It is an exact output string, which the
+   style never touches, so both stay. This is a sixth false-positive shape, and
+   it is the one the tool cannot see: an indented line of prose and an indented
+   line of output look the same.
+5. **`routing` is a technical noun that the list does not have.** It is left in
+   `music.ts` and `flight.ts`, at one use each, and the list is NOT amended for
+   it: `npm run ste -- --words` puts it far below the entries the audit already
+   holds, and a two-use word does not earn a list entry that every later pass
+   then trusts. Chris's rule stands — fix `-ing` only where a rewrite needs it.
 
 **Four things came out of the first pass that the plan did not have.**
 
@@ -393,6 +445,13 @@ Two questions, and M3's numbers answer them:
 2. **If it gates, is it diff-scoped or whole-tree?** `constants:check` is
    diff-scoped, and docs/TODO/141 recorded what that let through: an export sat
    undocumented until somebody edited its file.
+
+**THE SEVENTH PASS SUPPLIES THE EVIDENCE FOR QUESTION 1.** `game/npc.ts` was
+converted to 0% on 2026-08-14. docs/TODO/158 put five long sentences back into
+it on 2026-08-15, and no gate said so. A diff-scoped gate would have caught
+every one of those five, because docs/TODO/158 edited that file. That answers
+question 2 as well, at least as a floor: diff-scoped is enough for the shape of
+drift this item has actually measured.
 
 **Prove that any gate can fail.** Write a 30-word sentence. Confirm the failure.
 Remove it.
