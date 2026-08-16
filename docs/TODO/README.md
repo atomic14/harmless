@@ -13,31 +13,44 @@ active context:
 
 ## Execution queue
 
-**Three items. Two came out of one sweep on 2026-08-16, and one out of the
-triage of GitHub #34 the same day.** Chris asked for an architectural and bug
-sweep against a tree where `npm run check` passed. The order below is by value
-over cost, and not by severity.
+**Five items. Two came out of one sweep on 2026-08-16, and three out of the
+triage of GitHub #34, #36 and #37 the same day.** Chris asked for an
+architectural and bug sweep against a tree where `npm run check` passed. The
+order below is by value over cost, and not by severity.
 
-1. [170 — the rocks are all at the station](170-the-rocks-are-all-at-the-station.md)
+1. [172 — an empty console line still draws its box](172-an-empty-console-line-still-draws-its-box.md)
+   · defect · small · GitHub #37. A screen gives the console line a background
+   and a border. Nothing asks whether the line holds any words, so an empty one
+   paints a rectangle.
+2. [170 — the rocks are all at the station](170-the-rocks-are-all-at-the-station.md)
    · defect · small · GitHub #34. Every asteroid is placed at the station, on an
    arrival and on a launch. The file already holds the corridor helper that
    three other roles use.
-2. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
+3. [171 — the briefing says reputation when it means rating](171-the-briefing-says-reputation-when-it-means-rating.md)
+   · gap · medium · GitHub #36. The word `reputation` reaches a player four
+   times, and three of the four mean a different score. The banned-word check
+   that docs/TODO/162 wrote reads shouted console lines only, so it sees none of
+   them.
+4. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
    · gap · medium. `ste:check` reads comments in source. The style's stated
    scope also holds ten markdown documents, and the tool finds no sentence in
    one.
-3. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
+5. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**170 is the only one that a player can see.** 168 is a defect in a document.
-169 is a decomposition, and its evidence is five probes that must come back
-byte-identical.
+**The first three are what a player can see, and 172 leads because it is one
+line of CSS.** 170 comes next because it can finish alone. 171's M2 changes
+words on Chris's own pages, so it waits on him after its gate runs. 168 is a
+defect in a document, and 169 is a decomposition.
 
-**The GitHub inbox holds two items the queue does not.** **#35** is
+**171 and 168 are adjacent and are not the same item.** 171 is the player's
+vocabulary on the player's pages. 168 is the house prose style over `docs/`.
+Neither one answers the other.
+
+**The GitHub inbox holds one item the queue does not.** **#35** is
 `needs investigation`: a police ship turned hostile after a pirate kill, and the
-triage of 2026-08-16 found two candidate routes and measured neither. **#36** is
-open, and it waits on Chris.
+triage of 2026-08-16 found two candidate routes and measured neither.
 
 **#36 was closed as already fixed, and then reopened the same day.** The close
 was wrong. docs/TODO/162 took the retired words out of `src/`, and the live
