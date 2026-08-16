@@ -175,7 +175,7 @@ function billShortfall(c: CommanderData, k: Contract, tonnes: number): number {
 export function settleContracts(c: CommanderData): ContractEvent[] {
   const events: ContractEvent[] = [];
   const kept: Contract[] = [];
-  const wasNamed = c.disrepute ?? 0;
+  const wasDisrepute = c.disrepute ?? 0;
   for (const k of c.contracts) {
     const here = k.destination === c.systemIndex;
     const late = c.day > k.deadlineDay;
@@ -215,8 +215,8 @@ export function settleContracts(c: CommanderData): ContractEvent[] {
     kept.push(k);
   }
   c.contracts = kept;
-  const named = characterVerdict(wasNamed, c.disrepute ?? 0);
-  if (named) events.push({ kind: 'character', line: named });
+  const verdict = characterVerdict(wasDisrepute, c.disrepute ?? 0);
+  if (verdict) events.push({ kind: 'character', line: verdict });
   return events;
 }
 

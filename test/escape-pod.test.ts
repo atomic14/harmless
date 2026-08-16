@@ -28,7 +28,7 @@ import { CargoField } from '../src/game/cargo.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { random, seedWorld } from '../src/game/rng.ts';
-import { characterName } from '../src/game/character.ts';
+import { characterRung } from '../src/game/character.ts';
 import { offenceFor } from '../src/game/law.ts';
 import { CLEAN, FUGITIVE } from '../src/constants/law.ts';
 import { DISREPUTE_MURDER } from '../src/constants/character.ts';
@@ -152,8 +152,8 @@ console.log('\nwhat a destroyed capsule costs is decided by who was inside');
     // THE OTHER HALF OF THE ANSWER. It is not a crime and it is still a deed:
     // the man in the pod cannot shoot back. Two ladders, moving apart.
     eq('...and it costs the name a murder', c.disrepute ?? 0, DISREPUTE_MURDER);
-    eq(`...which is two rungs (${characterName(DISREPUTE_MURDER)})`,
-      characterName(c.disrepute ?? 0), 'Dodgy');
+    eq(`...which is two rungs (${characterRung(DISREPUTE_MURDER)})`,
+      characterRung(c.disrepute ?? 0), 'Dodgy');
   }
   {
     const c = shot('trader').state.commander;

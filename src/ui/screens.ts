@@ -10,7 +10,7 @@ import type { MissionLeg } from '../game/missions.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 
 import { rating } from '../game/rating.ts';
-import { characterName } from '../game/character.ts';
+import { characterRung } from '../game/character.ts';
 import { equipmentOwned } from '../game/shop.ts';
 import { EQUIPMENT_CATALOGUE } from '../constants/shop.ts';
 import { describeContract } from '../game/contract-offers.ts';
@@ -119,7 +119,7 @@ export function renderStatus(
       Present system: ${sys.name}<br/>
       Hyperspace target: ${targetIndex === null ? 'None' : systems[targetIndex].name}<br/>
       Legal status: ${legalName}<br/>
-      Reputation: ${characterName(c.disrepute ?? 0)}<br/>
+      Reputation: ${characterRung(c.disrepute ?? 0)}<br/>
       Fuel: ${(c.fuel / 10).toFixed(1)} / ${(MAX_FUEL / 10).toFixed(1)} light years<br/>
       Elapsed: ${c.day} days<br/>
       Cash: ${formatCredits(c.credits)}<br/>

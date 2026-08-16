@@ -273,7 +273,7 @@ export class Game {
       queueMessage: (text, seconds) => this.queueMessage(text, seconds),
       sayEvent: (e) => this.sayEvent(e),
       playSound: (e) => this.playSound(e),
-      markName: (before, after) => this.markName(before, after),
+      markCharacter: (before, after) => this.markCharacter(before, after),
       raiseLegal: (level) => this.raiseLegal(level),
       system: () => this.system,
       lookAlong: (dir) => this.lookAlong(dir),
@@ -306,7 +306,7 @@ export class Game {
   private readonly law_ = new LawActions(this.state, {
     showMessage: (text, seconds) => this.showMessage(text, seconds),
     queueMessage: (text, seconds) => this.queueMessage(text, seconds),
-    markName: (before, after) => this.markName(before, after),
+    markCharacter: (before, after) => this.markCharacter(before, after),
     mode: () => this.mode,
     baseMode: () => this.baseMode,
     refused: () => sfx.refused(),
@@ -340,7 +340,7 @@ export class Game {
    */
   private readonly jump_ = new HyperspaceActions(this.state, this.world_, {
     showMessage: (text, seconds) => this.showMessage(text, seconds),
-    markName: (before, after) => this.markName(before, after),
+    markCharacter: (before, after) => this.markCharacter(before, after),
     system: () => this.system,
     lookAlong: (dir) => this.lookAlong(dir),
     startTunnel: (seconds) => this.tunnel.start(seconds),
@@ -568,9 +568,9 @@ export class Game {
    * about either. Why only a crossing speaks is stated there too
    * (docs/TODO/153).
    */
-  private markName(before: number, after: number): void {
-    const named = characterVerdict(before, after);
-    if (named) this.queueMessage(named, CHARACTER_LINE_SECONDS);
+  private markCharacter(before: number, after: number): void {
+    const verdict = characterVerdict(before, after);
+    if (verdict) this.queueMessage(verdict, CHARACTER_LINE_SECONDS);
   }
 
   constructor(makeShell: ShellFactory) {

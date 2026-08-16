@@ -655,8 +655,8 @@ export class WorldStep {
         out.push(say('POLICE SCAN: CONTRABAND DETECTED', SCAN_LINE_SECONDS));
         // ...and then what it cost your REPUTATION, if the same scan moved it onto a
         // new rung (docs/TODO/129).
-        const named = characterVerdict(was, commander.disrepute);
-        if (named) queueMessage(session, named, CHARACTER_LINE_SECONDS);
+        const verdict = characterVerdict(was, commander.disrepute);
+        if (verdict) queueMessage(session, verdict, CHARACTER_LINE_SECONDS);
       } else {
         copInBand = reach === 'warn';
       }

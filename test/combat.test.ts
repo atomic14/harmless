@@ -25,7 +25,7 @@ import {
   isContraband, contrabandTonnes, carryingContraband,
 } from '../src/game/law.ts';
 import { CLEAN, FUGITIVE, CONTRABAND } from '../src/constants/law.ts';
-import { characterName } from '../src/game/character.ts';
+import { characterRung } from '../src/game/character.ts';
 import type { CommanderData } from '../src/game/commander.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { isHostileToPlayer } from '../src/game/npc.ts';
@@ -90,7 +90,7 @@ console.log('\ncombat');
     check('destroying a trader makes you a fugitive', offence(evs) === FUGITIVE);
     check('...and pays nothing', c.credits === 0);
     check('...and marks your character: murder is a career-marking deed',
-      characterName(c.disrepute) !== 'Honest');
+      characterRung(c.disrepute) !== 'Honest');
   }
   {
     const { world, combat, c } = setup();
@@ -107,7 +107,7 @@ console.log('\ncombat');
       cans.length >= HERMIT_CONTRABAND_MIN && cans.every((i) => CONTRABAND.includes(i.commodity)));
     check('...and is nobody\'s business legally', offence(evs) === CLEAN);
     check('...but it marks your character — the law forgets, the name does not',
-      characterName(c.disrepute) === 'Dodgy');
+      characterRung(c.disrepute) === 'Dodgy');
   }
   {
     // the wreck path exists so a fight you only WATCHED does not pay you

@@ -23,7 +23,7 @@ import { SurvivorsScreen, type SurvivorsContext } from '../src/game/screens/surv
 import { priceInTenths, saleFallout } from '../src/game/market.ts';
 import { offenceFor, recordVerdict } from '../src/game/law.ts';
 import { CLEAN, FUGITIVE, OFFENDER, OFFENDER_FINE } from '../src/constants/law.ts';
-import { characterName } from '../src/game/character.ts';
+import { characterRung } from '../src/game/character.ts';
 import { generateGalaxy, generateMarket } from '../src/galaxy/galaxy.ts';
 import { SLAVES } from '../src/constants/commodities.ts';
 import {
@@ -120,7 +120,7 @@ console.log('\n...and the two that do not');
     c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
   eq('...and it marks the reputation at the career-marking weight',
     c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
-  eq('one sale takes an Honest commander to Dodgy', characterName(c.disrepute ?? 0), 'Dodgy');
+  eq('one sale takes an Honest commander to Dodgy', characterRung(c.disrepute ?? 0), 'Dodgy');
   // THE THING THAT MUST NOT HAPPEN (docs/TODO/108): a person is not stock. A
   // sale that routed through the hold would let a full ship refuse it.
   eq('...and nothing went through the hold', cargoTonnes(c), before.hold);
@@ -141,7 +141,7 @@ console.log('\n...and the two that do not');
   eq('...and costs less of the reputation', go.c.disrepute ?? 0, DISREPUTE_SURVIVOR_RELEASED);
   check('...which is a nudge and not a career',
     DISREPUTE_SURVIVOR_RELEASED < DISREPUTE_SLAVE_SALE
-    && characterName(go.c.disrepute ?? 0) !== 'Dodgy');
+    && characterRung(go.c.disrepute ?? 0) !== 'Dodgy');
   eq('...and it too clears the crew spaces', go.c.survivors, 0);
 
   // The market is the price, so a system that pays differently for people

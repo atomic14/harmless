@@ -48,7 +48,7 @@ import { WITCHPOINT_RADII } from '../constants/planet.ts';
 export interface HyperspaceHost {
   showMessage(text: string, seconds: number): void;
   /** a deed moved the Character score — see game/character.ts */
-  markName(before: number, after: number): void;
+  markCharacter(before: number, after: number): void;
   /** the system we are standing in */
   system(): StarSystem;
   /** point the ship down a direction — the arrival faces the witchpoint in */
@@ -114,9 +114,9 @@ export class HyperspaceActions {
     // the galaxy forgets a little on the way — a jump is days of honest
     // distance, and falling back down a rung is the one piece of good news the
     // character system has, so it is said too (docs/TODO/129)
-    const wasNamed = this.state.commander.disrepute ?? 0;
-    this.state.commander.disrepute = afterDecay(wasNamed, jump.days);
-    this.host.markName(wasNamed, this.state.commander.disrepute);
+    const wasDisrepute = this.state.commander.disrepute ?? 0;
+    this.state.commander.disrepute = afterDecay(wasDisrepute, jump.days);
+    this.host.markCharacter(wasDisrepute, this.state.commander.disrepute);
     this.state.chart.targetIndex = null;
     this.arriveInSystem();
     this.host.showMessage(`ARRIVED: ${this.host.system().name.toUpperCase()}`, 4);
@@ -185,9 +185,9 @@ export class HyperspaceActions {
     c.systemIndex = target;
     c.day += 3; // the tow takes a while
     this.state.living.advance(3, COMMODITIES.map((cm) => cm.gradient));
-    const wasNamed = c.disrepute ?? 0;
-    c.disrepute = afterDecay(wasNamed, 3);
-    this.host.markName(wasNamed, c.disrepute);
+    const wasDisrepute = c.disrepute ?? 0;
+    c.disrepute = afterDecay(wasDisrepute, 3);
+    this.host.markCharacter(wasDisrepute, c.disrepute);
     this.state.chart.targetIndex = null;
     this.state.session.witchspace = false;
     this.arriveInSystem();

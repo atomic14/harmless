@@ -17,7 +17,7 @@ import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { random, seedWorld } from '../src/game/rng.ts';
 import { refusalChance } from '../src/game/law.ts';
-import { characterName } from '../src/game/character.ts';
+import { characterRung } from '../src/game/character.ts';
 import { distanceTenths, daysForJump } from '../src/galaxy/navigation.ts';
 import {
   CHARACTER, CHARACTER_LINE_SECONDS, DISREPUTE_BRIBE, DISREPUTE_MURDER,
@@ -93,7 +93,7 @@ console.log('\nthe console says when a bribe changes your reputation');
   nextOffer('taken');
   g.bribePolice();
   const said = fly(SETTLE);
-  const rung = characterName(c.disrepute ?? 0);
+  const rung = characterRung(c.disrepute ?? 0);
   eq('one bribe takes an Honest commander off Honest', rung, 'Dubious');
 
   const bribe = said.findIndex((t) => t.startsWith('PATROL BREAKS OFF'));
@@ -145,7 +145,7 @@ console.log('...and a deed that crosses nothing says nothing');
   const said = fly(SETTLE);
   check(`the score really did move (${c.disrepute})`,
     (c.disrepute ?? 0) === DISREPUTE_BRIBE * 2);
-  eq('...and it is still the same rung', characterName(c.disrepute ?? 0), 'Dubious');
+  eq('...and it is still the same rung', characterRung(c.disrepute ?? 0), 'Dubious');
   check(`...so the console said nothing about it (${said.join(' / ')})`,
     said.every((t) => !t.startsWith('REPUTATION:')));
 }
@@ -160,7 +160,7 @@ console.log('\na kill names the rung it landed on, not each one it passed');
 
   g.destroyNpc(trader);
   const said = fly(SETTLE);
-  const rung = characterName(c.disrepute ?? 0);
+  const rung = characterRung(c.disrepute ?? 0);
   check(`murder is worth two rungs at once (${DISREPUTE_MURDER} → ${rung})`, rung === 'Dodgy');
 
   const { line } = named(said);
@@ -202,7 +202,7 @@ console.log('\nand the good news half: a reputation fading says so too');
   // thing that moves the score here, and it moves it DOWN through a threshold.
   const DODGY = CHARACTER.find(([, n]) => n === 'Dodgy')![0];
   c.disrepute = DODGY + 0.5;
-  eq('the pilot leaves as a Dodgy character', characterName(c.disrepute), 'Dodgy');
+  eq('the pilot leaves as a Dodgy character', characterRung(c.disrepute), 'Dodgy');
 
   g.state.chart.targetIndex = target;
   g.startHyperspace();

@@ -24,7 +24,7 @@ import type { GameState } from '../state.ts';
 import {
   defaultEquipment, formatCredits, markTested, LASER_TYPES, type Equipment,
 } from '../commander.ts';
-import { characterName } from '../character.ts';
+import { characterRung } from '../character.ts';
 import {
   renderTestMode,
 } from '../../ui/screens-career.ts';
@@ -133,7 +133,7 @@ const fittingName = (field: string): string =>
 
 /**
  * Which rung of the character ladder a disrepute score is standing on — the
- * highest threshold it clears, which is what `characterName` names.
+ * highest threshold it clears, which is what `characterRung` names.
  *
  * A score between two rungs — a career's, mid-decay — rounds DOWN to the rung
  * it cleared. So → from 7 lands on Dubious rather than skips it.
@@ -267,9 +267,9 @@ export class TestModeScreen implements Screen {
         //
         // It sets the rung's own threshold. So the name on the status screen
         // and the number the rules read agree by construction, and
-        // `characterName` reads the same table back.
+        // `characterRung` reads the same table back.
         label: 'REPUTATION',
-        value: `${characterName(c.disrepute ?? 0).toUpperCase()} (${Math.round(c.disrepute ?? 0)})`,
+        value: `${characterRung(c.disrepute ?? 0).toUpperCase()} (${Math.round(c.disrepute ?? 0)})`,
         act: (d) => { c.disrepute = CHARACTER[cycle(rungOf(c.disrepute ?? 0), CHARACTER.length, d)][0]; },
       }),
 

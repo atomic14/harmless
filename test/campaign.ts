@@ -20,7 +20,7 @@ import { LivingGalaxy, prewarm } from '../src/galaxy/living.ts';
 import { generateContractOffers, chartDistanceTenths } from '../src/game/contract-offers.ts';
 import { settleContracts, acceptContract } from '../src/game/contracts.ts';
 import { applyMarketPressure, marketEstimate, saleFallout } from '../src/game/market.ts';
-import { afterDeed, characterName } from '../src/game/character.ts';
+import { afterDeed, characterRung } from '../src/game/character.ts';
 import { MAX_CONTRACTS, SMUGGLE_DELIVERY_NOTORIETY } from '../src/constants/contracts.ts';
 import { pirateThreat, markOf, memberTier } from '../src/game/threat.ts';
 import {
@@ -774,7 +774,7 @@ function report(label: string, careers: CareerResult[], strategy: Strategy): voi
     const peak = median(careers.map((r) => r.peakDisrepute));
     console.log(`CHARACTER mean disrepute at reception `
       + `${num(careers.map((r) => r.disrepute)).toFixed(1)} · `
-      + `median career peak ${peak.toFixed(1)} (${characterName(peak)}) · `
+      + `median career peak ${peak.toFixed(1)} (${characterRung(peak)}) · `
       + `worst ${Math.max(...careers.map((r) => r.peakDisrepute)).toFixed(1)}`);
   }
 

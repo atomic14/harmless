@@ -20,7 +20,7 @@ import {
 } from '../src/game/commander.ts';
 import { buyEquipment, type TradeContext } from '../src/game/screens/trade.ts';
 import { EQUIPMENT_CATALOGUE } from '../src/constants/shop.ts';
-import { characterName } from '../src/game/character.ts';
+import { characterRung } from '../src/game/character.ts';
 import { isHostileToPlayer } from '../src/game/npc.ts';
 import {
   BINDINGS,
@@ -199,11 +199,11 @@ console.log('\nthe commander levers, with the door open');
   pull('LEGAL STATUS');
   eq('...and round to Clean again', c.legalStatus, CLEAN);
 
-  eq('a fresh career is Honest', characterName(c.disrepute), CHARACTER[0][1]);
+  eq('a fresh career is Honest', characterRung(c.disrepute), CHARACTER[0][1]);
   pull('REPUTATION');
   eq('CHARACTER steps onto the next rung of the ladder', c.disrepute, CHARACTER[1][0]);
   eq('...and the status screen would call it that',
-    characterName(c.disrepute), CHARACTER[1][1]);
+    characterRung(c.disrepute), CHARACTER[1][1]);
   pull('REPUTATION', 'ArrowLeft');
   eq('...and ← walks back down it', c.disrepute, CHARACTER[0][0]);
 

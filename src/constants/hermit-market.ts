@@ -41,7 +41,7 @@ export const HERMIT_SUPPLY_PRICE = 1.3;
  * has to decide how dirty is too dirty (docs/TODO/96). It is also the top of the
  * `HERMIT_FAVOUR` ramp below: the welcome is widest one point before the door.
  */
-export const HERMIT_REFUSES_AT = CHARACTER.find(([, name]) => name === 'Dodgy')![0];
+export const HERMIT_REFUSES_AT = CHARACTER.find(([, rung]) => rung === 'Dodgy')![0];
 
 /**
  * Mates' rates, at the widest. It is what a character worth exactly as much as

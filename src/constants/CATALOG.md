@@ -152,7 +152,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | hermit-market | <code>HERMIT_ORE_PRICE</code> | <code>0.75</code> | Ore is a quarter off here, and there is plenty of it. |  | [hermit-market.ts:22](./hermit-market.ts#L22) |
 | hermit-market | <code>HERMIT_ORE_GLUT</code> | <code>20</code> | Bulk stock a rock miner is never short of, on top of the rolled quantity. |  | [hermit-market.ts:25](./hermit-market.ts#L25) |
 | hermit-market | <code>HERMIT_SUPPLY_PRICE</code> | <code>1.3</code> | Supplies cost a third more: nobody else delivers out here. |  | [hermit-market.ts:28](./hermit-market.ts#L28) |
-| hermit-market | <code>HERMIT_REFUSES_AT</code> | <code>CHARACTER.find(([, name]) =&gt; name === 'Dodgy')![0]</code> | The character a hermit will not deal with: the ladder's Dodgy rung. |  | [hermit-market.ts:44](./hermit-market.ts#L44) |
+| hermit-market | <code>HERMIT_REFUSES_AT</code> | <code>CHARACTER.find(([, rung]) =&gt; rung === 'Dodgy')![0]</code> | The character a hermit will not deal with: the ladder's Dodgy rung. |  | [hermit-market.ts:44](./hermit-market.ts#L44) |
 | hermit-market | <code>HERMIT_FAVOUR</code> | <code>0.2</code> | Mates' rates, at the widest. | <code>hermit.favour</code> | [hermit-market.ts:63](./hermit-market.ts#L63) |
 | hull-breach | <code>EQUIPMENT_DAMAGE_CHANCE</code> | <code>0.25</code> | The chance that a hit which reaches the hull wrecks cargo or a fitting. |  | [hull-breach.ts:15](./hull-breach.ts#L15) |
 | hull-breach | <code>CARGO_LOSS_CHANCE</code> | <code>0.7</code> | Cargo is lost this often when there is any aboard. | <code>breach.cargoLossChance</code> | [hull-breach.ts:31](./hull-breach.ts#L31) |

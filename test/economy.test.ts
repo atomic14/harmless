@@ -39,7 +39,7 @@ import {
 } from '../src/constants/market.ts';
 import { MarketScreen, type TradeContext } from '../src/game/screens/trade.ts';
 import { CHARACTER, DISREPUTE_CONTRABAND_SALE } from '../src/constants/character.ts';
-import { characterName } from '../src/game/character.ts';
+import { characterRung } from '../src/game/character.ts';
 import { LivingGalaxy } from '../src/galaxy/living.ts';
 import { pirateThreat, markOf, memberTier, type Mark } from '../src/game/threat.ts';
 import {
@@ -185,7 +185,7 @@ console.log('\nrock hermit prices');
     }
     eq('the door shuts at HERMIT_REFUSES_AT', hi, HERMIT_REFUSES_AT);
     check(`...which is the character ladder's Dodgy rung (${hi})`,
-      characterName(hi) === 'Dodgy' && characterName(hi - 1) !== 'Dodgy');
+      characterRung(hi) === 'Dodgy' && characterRung(hi - 1) !== 'Dodgy');
     check('a spotless commander is always welcome', !hermitRefuses(0));
 
     // The favour, solved out of the market rather than restated: at the widest
@@ -496,7 +496,7 @@ console.log('\npirate economics');
     }
     eq('a name stops counting for more at DISREPUTE_FULL', dHi, DISREPUTE_FULL);
     check(`...which is the character ladder's Notorious rung (${dHi})`,
-      characterName(dHi) === 'Notorious' && characterName(dHi - 1) !== 'Notorious');
+      characterRung(dHi) === 'Notorious' && characterRung(dHi - 1) !== 'Notorious');
 
     // DISREPUTE_HEAT, measured as what it MEANS: the regional heat that makes a
     // spotless commander exactly as attractive as a fully notorious one with no

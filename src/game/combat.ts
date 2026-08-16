@@ -243,10 +243,10 @@ export class Combat {
    */
   private podKilled(c: CommanderData, pod: { occupant: string }): CombatEvent[] {
     const out: CombatEvent[] = [{ kind: 'offence', level: offenceFor(pod.occupant, true) }];
-    const wasNamed = c.disrepute ?? 0;
-    c.disrepute = afterDeed(wasNamed, DISREPUTE_MURDER);
-    const named = characterVerdict(wasNamed, c.disrepute);
-    if (named) out.push(later(named, CHARACTER_LINE_SECONDS));
+    const wasDisrepute = c.disrepute ?? 0;
+    c.disrepute = afterDeed(wasDisrepute, DISREPUTE_MURDER);
+    const verdict = characterVerdict(wasDisrepute, c.disrepute);
+    if (verdict) out.push(later(verdict, CHARACTER_LINE_SECONDS));
     return out;
   }
 
@@ -286,18 +286,18 @@ export class Combat {
     // hermit is a career-marking act; so is destroying any lawful ship (the
     // Fugitive-grade offence). Reached only through `destroy`, the
     // player-credited path.
-    const wasNamed = c.disrepute ?? 0;
+    const wasDisrepute = c.disrepute ?? 0;
     if (npc.role === 'hermit') {
-      c.disrepute = afterDeed(wasNamed, DISREPUTE_HERMIT_KILL);
+      c.disrepute = afterDeed(wasDisrepute, DISREPUTE_HERMIT_KILL);
     } else if (crime === FUGITIVE) {
-      c.disrepute = afterDeed(wasNamed, DISREPUTE_MURDER);
+      c.disrepute = afterDeed(wasDisrepute, DISREPUTE_MURDER);
     }
     // ...and what THAT is called, once the bounty and the record have been
     // read (docs/TODO/129). Either deed is 40, so it can cross two rungs at
     // once; `characterVerdict` names the one you landed on, not each one you
     // passed through.
-    const named = characterVerdict(wasNamed, c.disrepute ?? 0);
-    if (named) out.push(later(named, CHARACTER_LINE_SECONDS));
+    const verdict = characterVerdict(wasDisrepute, c.disrepute ?? 0);
+    if (verdict) out.push(later(verdict, CHARACTER_LINE_SECONDS));
 
     if (npc.bounty > 0) {
       c.credits += npc.bounty;

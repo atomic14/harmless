@@ -73,7 +73,7 @@ export interface DockedHost {
   /** the one place a SoundEvent becomes a noise (sounds.ts) */
   playSound(e: SoundEvent): void;
   /** a deed moved the Character score — see game/character.ts */
-  markName(before: number, after: number): void;
+  markCharacter(before: number, after: number): void;
   /** selling a person is an offence the Government notices */
   raiseLegal(level: number): void;
   /** the system we are standing in */
@@ -359,7 +359,7 @@ export class Docked {
     this.host.showMessage(survivorMessage(e), 4);
     // ...then the record, waiting behind the receipt that caused it
     // (docs/TODO/122), and then what it did to your name (docs/TODO/129).
-    this.host.markName(before, c.disrepute ?? 0);
+    this.host.markCharacter(before, c.disrepute ?? 0);
   }
 
   /** Pay out anything delivered here; drop anything overdue. */

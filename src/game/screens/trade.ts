@@ -202,12 +202,12 @@ export class MarketScreen implements Screen {
       // harness (game/market.ts). This screen only applies it.
       const fallout = saleFallout(idx, sold, revenue);
       ctx.addNotoriety(fallout.notoriety);
-      const wasNamed = ctx.commander.disrepute ?? 0;
-      ctx.commander.disrepute = afterDeed(wasNamed, fallout.disrepute);
+      const wasDisrepute = ctx.commander.disrepute ?? 0;
+      ctx.commander.disrepute = afterDeed(wasDisrepute, fallout.disrepute);
       // ...and what the counter's own paperwork calls you now, behind the
       // receipt that caused it (docs/TODO/129). Clean goods cross nothing and
       // say nothing.
-      const named = characterVerdict(wasNamed, ctx.commander.disrepute);
+      const named = characterVerdict(wasDisrepute, ctx.commander.disrepute);
       if (named) ctx.queueMessage(named, CHARACTER_LINE_SECONDS);
     } else {
       sfx.refused();

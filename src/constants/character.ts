@@ -12,7 +12,7 @@
 
 /**
  * The character ladder: the disrepute score, lowest first, and the rung that it
- * earns. Honest is the top rung, and the default. `characterName` reads it the
+ * earns. Honest is the top rung, and the default. `characterRung` reads it the
  * way `rating()` reads `RATINGS`. `test/economy.test.ts` bisects the rungs back
  * out.
  */

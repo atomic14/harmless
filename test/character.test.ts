@@ -1,7 +1,7 @@
 // The character ladder: the name a disrepute score earns, and how a deed or a
 // quiet week moves it.
 //
-// The rung thresholds are bisected out of the real `characterName` rather than
+// The rung thresholds are bisected out of the real `characterRung` rather than
 // restated, the same way economy.test.ts pins the fine and the combat ladder —
 // a re-tuned threshold moves the test with the function, not against it. The
 // deed hooks themselves (a hermit cracked, a trader murdered) are flown in
@@ -9,7 +9,7 @@
 
 import { check, eq } from './harness.ts';
 import {
-  characterName, characterVerdict, afterDeed, afterDecay, rungCrossed,
+  characterRung, characterVerdict, afterDeed, afterDecay, rungCrossed,
 } from '../src/game/character.ts';
 import {
   CHARACTER, DISREPUTE_BRIBE, DISREPUTE_DECAY, DISREPUTE_MAX, DISREPUTE_HERMIT_KILL,
@@ -22,24 +22,24 @@ import { g1 } from './fixtures.ts';
 console.log('\ncharacter');
 {
   eq('Honest is the top of the ladder — the best a name can be', CHARACTER[0][1], 'Honest');
-  eq('an unmarked pilot is Honest', characterName(0), 'Honest');
+  eq('an unmarked pilot is Honest', characterRung(0), 'Honest');
 
   // every rung, off the real function, and the point just below it is a lower rung
   for (const [threshold, name] of CHARACTER) {
-    eq(`${threshold} disrepute reads as ${name}`, characterName(threshold), name);
+    eq(`${threshold} disrepute reads as ${name}`, characterRung(threshold), name);
     if (threshold > 0) {
-      check(`...and a point below it does not (${name})`, characterName(threshold - 1) !== name);
+      check(`...and a point below it does not (${name})`, characterRung(threshold - 1) !== name);
     }
   }
   eq('the worst rung holds at the ceiling',
-    characterName(DISREPUTE_MAX), CHARACTER[CHARACTER.length - 1][1]);
+    characterRung(DISREPUTE_MAX), CHARACTER[CHARACTER.length - 1][1]);
 
   // a deed raises it, clamped both ends
   eq('a deed adds its weight', afterDeed(0, DISREPUTE_HERMIT_KILL), DISREPUTE_HERMIT_KILL);
   eq('...never below Honest', afterDeed(5, -100), 0);
   eq('...never past the ceiling', afterDeed(DISREPUTE_MAX, 100), DISREPUTE_MAX);
   eq('one hermit kill takes an Honest pilot to Dodgy',
-    characterName(afterDeed(0, DISREPUTE_HERMIT_KILL)), 'Dodgy');
+    characterRung(afterDeed(0, DISREPUTE_HERMIT_KILL)), 'Dodgy');
 
   // time erodes it — people forget, slowly
   eq('a day of honest flying fades it by the decay rate', afterDecay(50, 1), 50 - DISREPUTE_DECAY);
@@ -84,9 +84,9 @@ console.log('\na bribe is priced against the decay, not against a feeling');
     return s;
   };
   eq('one bribe marks an Honest commander',
-    characterName(afterDeed(0, DISREPUTE_BRIBE)), 'Dubious');
+    characterRung(afterDeed(0, DISREPUTE_BRIBE)), 'Dubious');
   eq('...and two quiet jumps wash it off completely',
-    characterName(quietJumps(afterDeed(0, DISREPUTE_BRIBE), 2)), 'Honest');
+    characterRung(quietJumps(afterDeed(0, DISREPUTE_BRIBE), 2)), 'Honest');
   check(`...because the deed is worth about two median jumps of decay`
     + ` (${DISREPUTE_BRIBE} vs ${forgiven})`,
     DISREPUTE_BRIBE > forgiven && DISREPUTE_BRIBE <= forgiven * 2.5);
@@ -97,7 +97,7 @@ console.log('\na bribe is priced against the decay, not against a feeling');
   const reached: Record<string, number> = {};
   for (let n = 1; n <= 12; n++) {
     habit = afterDeed(quietJumps(habit, 1), DISREPUTE_BRIBE);
-    const rung = characterName(habit);
+    const rung = characterRung(habit);
     if (reached[rung] === undefined) reached[rung] = n;
   }
   check(`a bribe every system reaches Dodgy by the 4th and Shady by the 8th`
@@ -108,7 +108,7 @@ console.log('\na bribe is priced against the decay, not against a feeling');
   // THE CONTROL: the habit is the thing, not the travelling. A commander who
   // bribes once and then flies must not drift upward on his own.
   check('...while one bribe and a career of honest flying stays Honest',
-    characterName(quietJumps(afterDeed(0, DISREPUTE_BRIBE), 40)) === 'Honest');
+    characterRung(quietJumps(afterDeed(0, DISREPUTE_BRIBE), 40)) === 'Honest');
 }
 
 // --- and the moment the name changes (docs/TODO/129) -------------------------
@@ -133,11 +133,11 @@ console.log('\nthe rung a deed puts you on');
         `REPUTATION: ${name.toUpperCase()} — WORD IS GETTING ROUND`);
       eq('...and the way back says the news is good',
         characterVerdict(threshold, threshold - 1),
-        `REPUTATION: ${characterName(threshold - 1).toUpperCase()} — WORD IS DYING DOWN`);
+        `REPUTATION: ${characterRung(threshold - 1).toUpperCase()} — WORD IS DYING DOWN`);
       // ...and downward, which is the decay's half: the rung you LAND on, not
       // the one you left.
       eq(`...falling back off ${threshold} names the rung below`,
-        rungCrossed(threshold, threshold - 1), characterName(threshold - 1));
+        rungCrossed(threshold, threshold - 1), characterRung(threshold - 1));
     }
     // a move that stays inside the rung says nothing, in either direction
     eq(`a move inside ${name} says nothing`, rungCrossed(threshold, threshold + 0.5), null);
@@ -148,8 +148,8 @@ console.log('\nthe rung a deed puts you on');
   // The two rungs a single deed can skip: `DISREPUTE_MURDER` is 40, which takes
   // an Honest commander past Dubious to Dodgy. It names where you ARE.
   const murdered = afterDeed(0, DISREPUTE_MURDER);
-  eq(`one murder crosses two rungs and names the far one (${characterName(murdered)})`,
-    rungCrossed(0, murdered), characterName(murdered));
+  eq(`one murder crosses two rungs and names the far one (${characterRung(murdered)})`,
+    rungCrossed(0, murdered), characterRung(murdered));
   check('...which really is two rungs away from Honest',
     CHARACTER.filter(([t]) => t > 0 && t <= murdered).length === 2);
 
@@ -163,7 +163,7 @@ console.log('\nthe rung a deed puts you on');
   eq('a quiet week at Honest says nothing', characterVerdict(0, afterDecay(0, 30)), null);
 
   // The line cannot promise a rung the status screen does not show: it is
-  // `characterName` and nothing else, asked at every threshold above.
+  // `characterRung` and nothing else, asked at every threshold above.
   check('every line the ladder can produce names a rung the ladder has',
     CHARACTER.every(([threshold, name]) =>
       characterVerdict(threshold - 1, threshold) === null

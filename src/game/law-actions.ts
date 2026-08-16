@@ -44,8 +44,8 @@ import type { GameState } from './state.ts';
 export interface LawHost {
   showMessage(text: string, seconds: number): void;
   queueMessage(text: string, seconds: number): void;
-  /** a deed moved the Character score — see game/character.ts */
-  markName(before: number, after: number): void;
+  /** a deed moved the character score — see game/character.ts */
+  markCharacter(before: number, after: number): void;
   /** the mode INCLUDING an open screen */
   mode(): string;
   /** the base state, ignoring any screen over it */
@@ -276,7 +276,7 @@ export class LawActions {
     // behind whichever of the four answers below the caller puts on the
     // console. A REFUSAL costs it as well, which is the one case that reads
     // like a bug until you have read docs/TODO/123: the deed is the asking.
-    this.host.markName(c.disrepute ?? 0, offer.disrepute);
+    this.host.markCharacter(c.disrepute ?? 0, offer.disrepute);
     c.disrepute = offer.disrepute;
     if (offer.outcome === 'refused') {
       target.state.provokedByPlayer = true;

@@ -19,27 +19,27 @@ import {
  * What a disrepute score is CALLED — the highest rung of the ladder it clears.
  * Honest at 0, and the default for anything below the first threshold.
  */
-export function characterName(disrepute: number): string {
-  let name = CHARACTER[0][1];
+export function characterRung(disrepute: number): string {
+  let earned = CHARACTER[0][1];
   for (const [threshold, rung] of CHARACTER) {
-    if (disrepute >= threshold) name = rung;
+    if (disrepute >= threshold) earned = rung;
   }
-  return name;
+  return earned;
 }
 
 /**
  * The rung a move onto `after` put you on, or null when it stayed inside the
  * one you were already on.
  *
- * `characterName` twice and nothing else, so a crossing cannot disagree with
+ * `characterRung` twice and nothing else, so a crossing cannot disagree with
  * the label the status screen prints — the same bargain `recordVerdict`
  * (law.ts) strikes with `lawTakesInterest`. It reads both directions: the
  * decay crosses rungs downward, and a reputation that fades is the one piece of
  * good news the character system has.
  */
 export function rungCrossed(before: number, after: number): string | null {
-  const name = characterName(after);
-  return characterName(before) === name ? null : name;
+  const rung = characterRung(after);
+  return characterRung(before) === rung ? null : rung;
 }
 
 /**
