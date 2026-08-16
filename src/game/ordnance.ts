@@ -1,17 +1,20 @@
 // Missiles, E.C.M. and the energy bomb — everything that is not the laser.
 //
-// This file owns missiles IN FLIGHT: spawn, homing, E.C.M. defeat, impact. It
-// does NOT decide who launches one — that is `npcMissileEmergency` in
-// `missile-launch.ts`, applied by `NpcShip.chooseWeapon`; `launchNpcMissile`
+// This file owns a missile IN FLIGHT: the spawn, the seeker, the E.C.M. defeat
+// and the impact.
+//
+// It does NOT decide who launches one. That is `npcMissileEmergency` in
+// `missile-launch.ts`, applied by `NpcShip.chooseWeapon`. `launchNpcMissile`
 // below spends the round and puts the warhead in the sky. It owns the target
-// lock too, since that is its state and nothing else writes it.
+// lock too, because that is its own state and nothing else writes it.
 //
-// The numbers — the seeker's envelope, the E.C.M.'s reach and price, the
-// bomb's radius — are constants/ordnance.ts.
+// The numbers are constants/ordnance.ts: the seeker's envelope, the E.C.M.'s
+// reach and price, and the bomb's radius.
 //
-// House rule: it decides and reports, the Game applies. A missile reaching its
-// target returns a `hit` for the Game to bill, because destroying a ship pays a
-// bounty, moves your legal status and can scramble the station's Vipers.
+// House rule: it decides and reports, and the Game applies. A missile that
+// reaches its target returns a `hit` for the Game to bill. A ship destroyed
+// pays a bounty, moves your legal status, and can scramble the station's
+// Vipers.
 
 import * as THREE from 'three';
 import { buildShip } from '../ships/geometry.ts';
@@ -33,7 +36,7 @@ const MISSILE_HULL = requireShipDef(OBJECT_DESIGNS.missile);
 
 export interface Missile {
   object: THREE.Object3D;
-  /** null → a hostile missile homing on the player */
+  /** null → a hostile missile that seeks the player */
   target: NpcShip | null;
   life: number;
 }
@@ -41,10 +44,10 @@ export interface Missile {
 /**
  * What the Game has to act on after a step.
  *
- * A warhead reaching something REPORTS THE IMPACT and carries no number:
- * whether a ship is destroyed is a consequence (a bounty, a legal status, a
- * contract tick) and therefore the Game's. What a warhead is worth is
- * `IMPACT.warhead` in constants/impact.ts, and the step spends it like any hit.
+ * A warhead that reaches something REPORTS THE IMPACT, and carries no number.
+ * A ship destroyed is a consequence — a bounty, a legal status, a contract
+ * tick — and so it is the Game's. What a warhead is worth is `IMPACT.warhead`
+ * in constants/impact.ts, and the step spends it like any hit.
  */
 export type OrdnanceEvent =
   /** a missile reached an NPC — the Game applies the warhead and bills what follows */
@@ -74,8 +77,8 @@ export interface OrdnanceOutcome {
 const heard = (name: SoundName): SoundEvent => ({ kind: 'sound', name });
 
 /**
- * One mapping from ordnance meaning to sound meaning. Callers apply these
- * events through the same sound path as every other rule module.
+ * One table from what ordnance means to what a sound means. A caller applies
+ * these events through the same sound path as every other rule module.
  */
 function outcome(reply: OrdnanceReply | null): OrdnanceOutcome {
   if (!reply || reply === 'alreadyLocked') return { reply, events: [] };
@@ -101,8 +104,8 @@ function outcome(reply: OrdnanceReply | null): OrdnanceOutcome {
  *
  * `offer` is the exception that proves it: a refusal that has an ANSWER names
  * the command, never the letter (docs/TODO/128 M3). This file is a rule module
- * and may not reach `ui/key-help.ts`, so `ALREADY LOCKED — U TO UNARM` was a
- * hard-coded binding in a message and free to lie the moment `disarmMissile`
+ * and may not reach `ui/key-help.ts`. So `ALREADY LOCKED — U TO UNARM` was a
+ * hard-coded binding inside a message, free to lie the moment `disarmMissile`
  * moved. The caller that says the line renders the key, exactly as it does for
  * a cockpit prompt.
  */
@@ -133,9 +136,10 @@ export function ordnanceMessage(r: OrdnanceReply): {
  * A sky, as much of one as ordnance needs: somewhere to put a warhead, and the
  * ships there are to lock onto or catch.
  *
- * `World` satisfies it; so does a TRAINING EPISODE, so the missile model is not
- * written twice. Attaching a mesh to nothing is inert, not broken — nothing
- * here reads the scene back, a missile's position is its own.
+ * `World` satisfies it, and so does a TRAINING EPISODE. That is what keeps the
+ * missile model out of a second file. A mesh attached to nothing is inert
+ * rather than broken. Nothing here reads the scene back, and a missile's
+ * position is its own.
  */
 export interface OrdnanceWorld {
   attach(object: THREE.Object3D): void;
@@ -146,9 +150,9 @@ export interface OrdnanceWorld {
 /**
  * An NPC spends a round, and it leaves the rail.
  *
- * ONE HOME for what a missile `FireEvent` MEANS — spend the round, launch the
- * missile — because two resolvers (`world-step.ts` and `ai-training/
- * scenario.ts`) call it, and the pair is a rule, not presentation.
+ * ONE HOME for what a missile `FireEvent` MEANS: spend the round, and launch
+ * the missile. Two resolvers call it — `world-step.ts` and
+ * `ai-training/scenario.ts` — and the pair is a rule rather than presentation.
  */
 export function launchNpcMissile(npc: NpcShip, ordnance: Ordnance): OrdnanceOutcome {
   npc.state.missiles -= 1;
@@ -156,11 +160,12 @@ export function launchNpcMissile(npc: NpcShip, ordnance: Ordnance): OrdnanceOutc
 }
 
 /**
- * WHO IS PRESSING IT — everything `triggerEcm` needs to know about the ship.
+ * WHOSE FINGER IS ON IT — everything `triggerEcm` needs to know about the ship.
  *
- * `CommanderData` satisfies it; so does a training episode's target (a hull id
- * and a `ShipSystems`), which must still carry the one fitting that answers a
- * warhead. The narrowest surface the rule reads, as with `OrdnanceWorld`.
+ * `CommanderData` satisfies it. So does a training episode's target, which is
+ * a hull id and a `ShipSystems`. That target must still carry the one fitting
+ * that answers a warhead. It is the narrowest surface the rule reads, as with
+ * `OrdnanceWorld`.
  */
 export interface EcmFit {
   readonly equipment: { readonly ecm: boolean };
@@ -169,10 +174,12 @@ export interface EcmFit {
 /**
  * The E.C.M. is pressed: the rule AND the price, in one call.
  *
- * The burst and its price travel together so the two orchestrators
- * (`world-step.ts` and `ai-training/scenario.ts`) cannot drift; the caller only
- * says the reply and plays the sound. Spent ONLY on `ecmFired` — a refusal
- * costs nothing, which makes an autopilot's hopeful press harmless.
+ * The burst and its price travel together, so the two orchestrators cannot
+ * drift. Those two are `world-step.ts` and `ai-training/scenario.ts`. The
+ * caller only says the reply and plays the sound.
+ *
+ * It is spent ONLY on `ecmFired`. A refusal costs nothing, which makes an
+ * autopilot's hopeful press harmless.
  */
 export function fireEcm(
   fit: EcmFit, sys: { energy: number }, ordnance: Ordnance,
@@ -183,13 +190,16 @@ export function fireEcm(
 }
 
 /**
- * Does an AUTOPILOT press it this frame? What the policy asked for, gated on
- * there being a warhead to answer.
+ * Does an AUTOPILOT press it this frame? It is what the policy asked for, gated
+ * on a warhead to answer.
  *
- * The twin of the gun gate in `NpcShip.brainFly` — the world's fact, not the
- * policy's guess — so the trainer and the 10 Hz combat computer spend the same
- * number of bursts per warhead rather than a second physics wearing a button.
- * It does not stop a HUMAN wasting one on an empty sky; it stops a co-pilot.
+ * It is the twin of the gun gate in `NpcShip.brainFly`. It reads the world's
+ * fact rather than the policy's guess. So the trainer and the 10 Hz combat
+ * computer spend the same number of bursts per warhead, and no second physics
+ * wears a button.
+ *
+ * It does not stop a HUMAN from a wasted press on an empty sky. It stops a
+ * co-pilot.
  */
 export function autopilotEcm(policyWantsIt: boolean, missileInbound: boolean): boolean {
   return policyWantsIt && missileInbound;
@@ -280,9 +290,9 @@ export class Ordnance {
     if (!commander.equipment.ecm) {
       return outcome('noEcm');
     }
-    // `<=`, so the burst can never spend the LAST point: a bank at exactly 0
-    // with the ship still flying is a state nothing else in the model reaches,
-    // and it would make an absorbed hit read as a kill.
+    // `<=`, so the burst can never spend the LAST point. A bank at exactly 0
+    // on a ship still in the air is a state nothing else in the model reaches.
+    // It would make an absorbed hit read as a kill.
     if (energy <= ECM_ENERGY_COST) {
       return outcome('noEnergy');
     }
@@ -291,22 +301,23 @@ export class Ordnance {
   }
 
   /**
-   * Is a hostile missile already homing on the player?
+   * Does a hostile missile already run at the player?
    *
-   * `target === null` IS what makes a missile hostile. Asked by the world step
-   * so an NPC can be told, through its `WorldView`, that the air is occupied:
-   * one at a time, gang-wide, so a single E.C.M. press is a complete answer.
-   * Reads the list rather than keeping a count — the list is the truth.
+   * `target === null` IS what makes a missile hostile. The world step asks it,
+   * so that an NPC can learn through its `WorldView` that the air is occupied.
+   * One at a time, gang-wide, so a single E.C.M. press is a complete answer.
+   * It reads the list rather than keeps a count. The list is the truth.
    */
   get missileInbound(): boolean {
     return this.missiles.some((m) => m.target === null);
   }
 
   /**
-   * WHERE the hostile warhead is, or null when the sky is clear — the same
-   * `target === null` test as `missileInbound`, returning the missile. The
-   * defence policy observes its bearing (`observeDefend` slots 24-26); the cap
-   * of one hostile missile in the air lets a single position be the answer.
+   * WHERE the hostile warhead is, or null when the sky is clear. It is the same
+   * `target === null` test as `missileInbound`, and it hands back the missile.
+   *
+   * The defence policy observes its bearing (`observeDefend` slots 24-26). The
+   * cap of one hostile missile in the air lets a single position be the answer.
    */
   get hostileMissilePos(): THREE.Vector3 | null {
     const m = this.missiles.find((m) => m.target === null);
@@ -365,7 +376,7 @@ export class Ordnance {
     return events;
   }
 
-  /** Drop a missile without an event — the caller has already decided why. */
+  /** Drop a missile with no event. The caller already decided why. */
   destroy(m: Missile): void {
     this.world.detach(m.object);
     const i = this.missiles.indexOf(m);

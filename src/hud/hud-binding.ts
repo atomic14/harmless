@@ -1,15 +1,17 @@
-// Reading the world onto the dashboard.
+// The world, read onto the dashboard.
 //
-// The single largest method left in game.ts (100 lines) was the one that
-// turned "what is happening" into "what the HUD draws" — the compass rule, the
-// condition light, the docking aid, the threat arrow, the target boxes, and
-// twenty-odd gauge values. None of it decides anything.
+// The single largest method left in game.ts, at 100 lines, was the one that
+// turned "what is happening" into "what the HUD draws". It covered the compass
+// rule, the condition light, the docking aid, the threat arrow, the target
+// boxes, and twenty-odd gauge values. None of it decides anything.
 //
 // That makes it the clearest statement of the north star in the codebase:
-// **the renderer only reads state**. It takes data and returns a picture; hand
-// it a snapshot and you get the same dashboard back. There is no `Game` here
-// and no callback out — the maths of *where a marker goes* lives in
-// hud-model.ts, the painting lives in hud.ts, and this is the wiring between.
+// **the renderer only reads state**. It takes data and returns a picture. Hand
+// it a snapshot, and you get the same dashboard back.
+//
+// There is no `Game` here and no callback out. The maths of *where a marker
+// goes* lives in hud-model.ts. The paint lives in hud.ts. This is the wiring
+// between the two.
 
 import * as THREE from 'three';
 import {
@@ -60,18 +62,18 @@ export interface HudSources {
   /**
    * The key prompts, already rendered — see `HudState.prompts`.
    *
-   * Arrives finished for the same reason the exercise strip does: WHICH keys
-   * are worth offering is `game/prompts.ts`, and which letter each is bound to
-   * is the binding table's answer through `boundKey`, which lives in `ui/` and
-   * so cannot be reached from a rule module. The dashboard is handed the line.
+   * It arrives finished, for the same reason the exercise strip does. WHICH
+   * keys are worth an offer is `game/prompts.ts`. Which letter each is bound to
+   * is the binding table's answer, through `boundKey`. That function lives in
+   * `ui/`, so a rule module cannot reach it. The dashboard is handed the line.
    */
   readonly prompts: readonly string[];
   /**
    * The training exercise in progress, or null in career flight.
    *
-   * Arrives finished from the exercise's own recorder — see
-   * game/combat-sim-strip.ts. The dashboard does not decide whether there is an
-   * exercise any more than it decides where the station is: it is handed one or
+   * It arrives finished from the exercise's own recorder — see
+   * game/combat-sim-strip.ts. The dashboard does not decide whether an exercise
+   * runs, any more than it decides where the station is. It is handed one, or
    * it is handed null.
    */
   readonly exercise: HudState['exercise'];
@@ -88,11 +90,14 @@ export interface HudScratch {
 /**
  * What the compass needle points at.
  *
- * Three rules in priority order, and the first is the one worth knowing: in
- * witch-space there is no planet and no station, so the needle finds the
- * nearest Thargoid instead. Otherwise the sun wins while you are close enough
- * to skim it — you navigate the heat by compass — then the station once you
- * are inside three planet radii, then the planet.
+ * Four rules, in priority order:
+ *
+ *   1. in witch-space there is no planet and no station, so the needle finds
+ *      the nearest Thargoid instead;
+ *   2. otherwise the sun wins while you are close enough to skim it, because
+ *      you navigate the heat by compass;
+ *   3. then the station, once you are inside three planet radii;
+ *   4. then the planet.
  */
 export function compassTarget(
   s: HudSources,
@@ -172,17 +177,19 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     rollFrac: s.rollFrac,
     pitchFrac: s.pitchFrac,
     // NORMALIZED at the boundary, like the target bracket's `hp` in
-    // hud-model.ts: the banks are whole 255-point pools and the console paints
-    // bars, so the division happens once, here, and no painter divides by a
-    // maximum it fetched for itself.
+    // hud-model.ts. The banks are whole 255-point pools, and the console paints
+    // bars. So the division happens once, here. No painter divides by a maximum
+    // it fetched for itself.
     foreShield: s.sys.foreShield / MAX_SHIELD,
     aftShield: s.sys.aftShield / MAX_SHIELD,
     energyFrac: s.sys.energy / MAX_ENERGY,
-    // The gauge's shape and its one reading, from the rules that own them: how
-    // many banks the pool reads as, and whether this is the last of them. The
-    // ANSWER travels, not a threshold for the painter to compare against — that
-    // comparison was a third opinion about the boundary, and it disagreed with
-    // the other two at exactly 64 (TODO 48).
+    // The gauge's shape and its one figure, from the rules that own them. The
+    // shape is how many banks the pool reads as. The figure is whether this is
+    // the last of them.
+    //
+    // The ANSWER travels, and never a threshold for the painter to compare
+    // against. That comparison was a third opinion about the boundary, and it
+    // disagreed with the other two at exactly 64 (TODO 48).
     energyBanks: ENERGY_BANKS,
     energyLow: energyLow(s.sys.energy),
     fuelFrac: commander.fuel / MAX_FUEL,

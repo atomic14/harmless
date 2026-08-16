@@ -1,26 +1,33 @@
 // The two stations: released geometry, at a size Harmless chose.
 //
-// Both hulls are exact — the Coriolis is design 1 and the Dodo design 0, read
-// out of the same generated catalogue as every ship — and both are drawn FOUR
-// TIMES the one geometry conversion. That factor is the only per-object scale
-// in the project and it is OURS, not a source value:
+// Both hulls are exact. The Coriolis is design 1 and the Dodo is design 0, read
+// out of the same generated catalogue as every ship. Both are drawn FOUR TIMES
+// the one geometry conversion. That factor is the only per-object scale in the
+// project, and it is OURS rather than a source value:
 //
 //     STATION_PRESENTATION_SCALE = 4
 //
 // Why it exists. `sourceGeometryToWorld` puts one world unit at four source
-// units, anchored on the Cobra Mk III, and through it the released Coriolis is
-// 40 world units across the half-diagonal — 1.7 Cobras wide. The Harmless scene
-// has always placed a 160-unit station, 4.7 Cobras wide, and `game/docking.ts`
-// is built on that width: the approach gate is five station half-widths out,
-// the launch standoff and the Vipers' stack are absolute distances, and the
-// slot channel is a tolerance in world units. Shrinking the station fourfold
-// would move all of them at once and turn a 900-unit approach into a 225-unit
-// one, which is a docking change and not a geometry one. So the SHAPE is the
-// released table and the SIZE is the scene's: a station is drawn at one world
-// unit per source unit, which is where the familiar 160 comes from.
+// units, anchored on the Cobra Mk III. Through it, the released Coriolis is 40
+// world units across the half-diagonal, which is 1.7 Cobras wide.
+//
+// The Harmless scene always placed a 160-unit station, 4.7 Cobras wide, and
+// `game/docking.ts` is built on that width. Three rules depend on it:
+//
+//   - the approach gate is five station half-widths out;
+//   - the launch standoff and the Vipers' stack are absolute distances;
+//   - the slot channel is a tolerance in world units.
+//
+// A station shrunk fourfold would move all three at once. It would turn a
+// 900-unit approach into a 225-unit one, which is a docking change rather than
+// a geometry one.
+//
+// So the SHAPE is the released table, and the SIZE is the scene's. A station is
+// drawn at one world unit per source unit, which is where the familiar 160
+// comes from.
 //
 // Nothing else may reach for this. A hull that looks wrong at the ship scale is
-// wrong in the source or wrong in the scene; this is not a knob, it is one
+// wrong in the source or wrong in the scene. This is not a knob. It is one
 // stated decision about two objects, and this file is where it is stated.
 
 import * as THREE from 'three';
@@ -33,14 +40,18 @@ import { SOURCE_UNITS_PER_WORLD_UNIT } from './elite-a-hulls.ts';
 /**
  * How much larger than the one geometry conversion a station is drawn.
  *
- * AN EXPRESSION, not a coincidence: it was a second `4` whose comment said "4
- * is exactly the factor that cancels the conversion" in English while nothing
- * enforced it. Written this way, a station is 1:1 with its source units — 160
- * for the Coriolis, 196 for the Dodo — whatever the ship conversion becomes,
- * which is what every absolute docking distance above is built on. It cannot
- * live in src/constants/ because its meaning IS this product over the ships'
- * own anchor, which that directory may not import — the
- * `WORLD_SPEED_PER_SOURCE_SPEED` shape (docs/TODO/completed/90-constants-cleanup.md).
+ * AN EXPRESSION, not a coincidence. It was a second `4`, and its comment said
+ * in English that "4 is exactly the factor that cancels the conversion". Nothing
+ * enforced that.
+ *
+ * Written this way, a station stays 1:1 with its source units, whatever the
+ * ship conversion becomes. That is 160 for the Coriolis and 196 for the Dodo.
+ * Every absolute docking distance above is built on it.
+ *
+ * It cannot live in src/constants/, because its meaning IS this product over
+ * the ships' own anchor, and that directory may not import the anchor. It is
+ * the `WORLD_SPEED_PER_SOURCE_SPEED` shape
+ * (docs/TODO/completed/90-constants-cleanup.md).
  */
 export const STATION_PRESENTATION_SCALE = SOURCE_UNITS_PER_WORLD_UNIT;
 
@@ -59,10 +70,10 @@ export interface StationHull {
   /**
    * Distance from the centre to the slot face plane, in world units.
    *
-   * Derived from the hull rather than written down: the slot sits on the face
-   * furthest along the source's +Z, which `buildShip`'s half turn puts on local
-   * -Z. 160 for the Coriolis — the number the scene and docking.ts have always
-   * used — and 196 for the Dodo.
+   * Derived from the hull rather than written down. The slot sits on the face
+   * furthest along the source's +Z, and `buildShip`'s half turn puts that on
+   * local -Z. It is 160 for the Coriolis, which is the number the scene and
+   * docking.ts always used. It is 196 for the Dodo.
    */
   readonly dockZ: number;
 }
@@ -91,7 +102,7 @@ export function buildStation(
   };
 }
 
-/** What a station of this design measures, without building one. */
+/** What a station of this design measures, and no station is built. */
 export function stationDockZ(designId: ShipDesignId): number {
   return slotFaceDistance(presented(designId));
 }

@@ -1,14 +1,17 @@
 // The player's flight model, and the language it is flown in.
 //
-// Elite-style flight: no inertia sliding, the ship goes where the nose
-// points. Roll/pitch rates ramp while a key is held and decay when released,
-// which gives the classic "keyboard analogue" feel.
+// Elite-style flight: no inertia, and the ship goes where the nose points. The
+// roll and pitch rates ramp while a key is held, and decay when it is released.
+// That gives the classic "keyboard analogue" feel.
 //
-// It knows nothing about keyboards. `update()` takes a FlightDemand — what
-// the pilot WANTS — and whoever is flying produces one: the human through
-// engine/flight-controls.ts, the defence policy through
-// game/combat-computer.ts, a harness or a replay by writing four numbers
-// down. That is the whole seam, and it is why no browser reaches this file.
+// It knows nothing about keyboards. `update()` takes a FlightDemand, which is
+// what the pilot WANTS. Whoever has the stick produces one:
+//
+//   - the human, through engine/flight-controls.ts;
+//   - the defence policy, through game/combat-computer.ts;
+//   - a harness or a replay, by four numbers written down.
+//
+// That is the whole seam, and it is why no browser reaches this file.
 //
 // The ENVELOPE it flies — top speed, thrust, the two turn caps and the ramp's
 // two rates — is `constants/player-flight.ts`. This file is the rule; that one
@@ -19,13 +22,14 @@ import * as THREE from 'three';
 import { PLAYER_FLIGHT } from './constants/player-flight.ts';
 
 /**
- * What a pilot is asking of the ship this frame.
+ * What a pilot asks of the ship this frame.
  *
  * Turn RATES rather than stick deflection, because the ramp belongs to the
- * pilot and not to the hull: the human ramps against `PLAYER_FLIGHT`'s caps at
- * its two rates, and the combat computer deliberately ramps against
- * the softer caps the defence brain was trained at (CC_MAX_*, ccRamp). Both
- * hand the ship a rate in rad/s; the ship turns at it and asks nothing.
+ * pilot rather than to the hull. The human ramps against `PLAYER_FLIGHT`'s caps
+ * at its two rates. The combat computer deliberately ramps against the softer
+ * caps the defence brain trained at (CC_MAX_*, ccRamp).
+ *
+ * Both hand the ship a rate in rad/s. The ship turns at it and asks nothing.
  */
 export interface FlightDemand {
   /** roll rate, rad/s, about the ship's own Z */
@@ -35,19 +39,22 @@ export interface FlightDemand {
   /** −1 brake · 0 coast · +1 open the throttle */
   throttle: number;
   /**
-   * The trigger. The ship does NOT fire — firing has consequences (legal
-   * status, bounties, the station's Vipers), so the Game reads this and
-   * decides, exactly as it does with an NPC's FireEvent.
+   * The trigger. The ship does NOT fire. A shot has consequences: legal status,
+   * bounties, and the station's Vipers. So the Game reads this and decides,
+   * exactly as it does with an NPC's FireEvent.
    */
   fire: boolean;
   /**
    * Throttle envelope to fly this demand at; the ship's own when omitted.
    *
-   * The one widening of the old `AutopilotDemand`, and it earns its keep: the
-   * combat computer cruises rather than sprints (CC_ACCEL 100 to a cap of
-   * 220, against the commander's 220 to 400). Routing its demand through the
-   * ship without this would quietly fly the autopilot at full commander
-   * throttle — a behaviour change smuggled in by a refactor.
+   * The one field that widens the old `AutopilotDemand`, and it earns its
+   * keep. The
+   * combat computer cruises rather than sprints: CC_ACCEL 100 to a cap of 220,
+   * against the commander's 220 to 400.
+   *
+   * Its demand routed through the ship without this would quietly fly the
+   * autopilot at full commander throttle. That is a behaviour change smuggled
+   * in by a refactor.
    */
   limits?: { accel: number; maxSpeed: number };
 }
@@ -55,37 +62,46 @@ export interface FlightDemand {
 /**
  * The frame-rate-independent approach toward a target rate.
  *
- * Was `min(1, rate * dt)`, a linear-in-dt approximation of exponential decay.
- * Two half-steps did not equal one whole step, so the SAME constant produced
- * different handling at different step rates — and it did, silently: the
- * training sim steps at 1/15 and the game at 1/60, so a released turn key
- * settled 0.80 per step in training against 0.59 over the same elapsed time in
- * the game. Same number in both files, different flight. That is the project's
- * one-rule-two-homes bug wearing a disguise, because the two homes agreed.
+ * It was `min(1, rate * dt)`, a linear-in-dt approximation of exponential
+ * decay. Two half-steps did not equal one whole step. So the SAME constant
+ * gave a different feel at a different step rate, and it did so silently.
  *
- * `1 - exp(-rate * dt)` is the exact form: the rate is now a time constant in
- * reciprocal seconds and means the same thing at any dt.
+ * The training sim steps at 1/15 and the game at 1/60. A released turn key
+ * settled 0.80 per step in training, against 0.59 over the same elapsed time
+ * in the game. Same number in both files, different flight. That is the
+ * project's one-rule-two-homes defect in disguise, because the two homes
+ * agreed.
  *
- * The constants were recalibrated (4.0 -> 4.1396, 12.0 -> 13.3886, 5.0 ->
- * 5.2207) so that behaviour at 1/60 is BIT-IDENTICAL to before. This is a
- * correctness fix, not a feel change; nothing about flying at 60Hz moved.
+ * `1 - exp(-rate * dt)` is the exact form. The rate is now a time constant in
+ * reciprocal seconds, and it means the same thing at any dt.
+ *
+ * The constants were recalibrated — 4.0 -> 4.1396, 12.0 -> 13.3886, 5.0 ->
+ * 5.2207 — so that behaviour at 1/60 is BIT-IDENTICAL to before. This is a
+ * correctness fix rather than a change of feel. Nothing at 60Hz moved.
  */
 function approach(current: number, target: number, rate: number, dt: number): number {
   return current + (target - current) * (1 - Math.exp(-rate * dt));
 }
 
 /**
- * A turn rate approaching what the pilot asked for — ramping while a control
- * is held, decaying when it is released, and snapping to zero once the tail is
- * below noise.
+ * A turn rate on its way to what the pilot asked for. It ramps while a control
+ * is held. It decays once that control is released. It snaps to zero when the
+ * tail falls below noise.
  *
- * ONE copy of this. There were four: here, `brainFly` in npc.ts, `ccRamp` in
- * combat-computer.ts and `ramp` in the training simulator's stepShip — the
- * same five lines with the constants written out again each time. That is how
- * the simulator's decay sat at 5.0 for six training rounds while the player's
- * moved to 12.0, and how "correcting" it then silently broke the NPC half,
- * which had been the one that matched. The constants differ per pilot and are
- * passed in; the RULE does not and is not.
+ * ONE copy of this. There were four:
+ *
+ *   1. here;
+ *   2. `brainFly` in npc.ts;
+ *   3. `ccRamp` in combat-computer.ts;
+ *   4. `ramp` in the training simulator's stepShip.
+ *
+ * They were the same five lines, with the constants written out again each
+ * time. That is how the simulator's decay sat at 5.0 for six training rounds
+ * while the player's moved to 12.0. A later "correction" then silently broke
+ * the NPC half, and the NPC half was the one that matched.
+ *
+ * The constants differ per pilot, and the caller passes them in. The RULE does
+ * not differ, and nobody passes it in.
  */
 export function rampToward(
   current: number, target: number, active: boolean, dt: number,
@@ -97,8 +113,8 @@ export function rampToward(
 
 /**
  * The ramp the player's own controls use, exported for the same reason
- * `PLAYER_FLIGHT` is: a harness that copies the caps but not the ramp is still
- * flying a different ship.
+ * `PLAYER_FLIGHT` is. A harness that copies the caps but not the ramp still
+ * flies a different ship.
  */
 export function rampFlightRate(
   current: number, target: number, active: boolean, dt: number,
@@ -136,8 +152,8 @@ export class PlayerShip {
    * Fly one step of whatever the pilot asked for.
    *
    * The order is load-bearing and unchanged: rates, then throttle, then roll,
-   * then pitch, then normalise, then move. Rotating before moving is what
-   * makes a turn bite on the frame you asked for it.
+   * then pitch, then normalise, then move. The rotation comes before the move,
+   * and that is what makes a turn bite on the frame you asked for it.
    */
   update(dt: number, demand: FlightDemand): void {
     this.rollRate = demand.rollRate;

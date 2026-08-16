@@ -1,23 +1,29 @@
 // Which named pilot flies, what each is LIKE, and the flags that change it.
 //
-// One home for the rule asked in three places: `NpcShip.update` needs the
-// pilot, the combat trainer's report needs the NAME, both pickers need the
-// LIST. Names, flags and the mapping between them live here; brains.ts turns a
-// name into a loaded policy. This module imports no weights, which lets the
-// trainer's pure rules ask the same question without pulling JSON into its
-// module graph.
+// One home for a rule that three places ask:
 //
-// The CHARACTER of each pilot lives here too — one line of behaviour with the
-// number that shows it — so a picker names what a playtester is about to fly,
-// and `npm test` refuses a name the pickers offer with no line beside it.
+//   - `NpcShip.update` needs the pilot;
+//   - the combat trainer's report needs the NAME;
+//   - both pickers need the LIST.
+//
+// The names, the flags and the table between them live here. brains.ts turns a
+// name into a loaded policy. This module imports no weights. So the trainer's
+// pure rules ask the same question, and no JSON enters their module graph.
+//
+// The CHARACTER of each pilot lives here too: one line of behaviour, with the
+// number that shows it. So a picker names what a playtester is about to fly.
+// `npm test` refuses a name the pickers offer with no line beside it.
 
 /**
  * Every pilot the game flies, by name. Three code paths, zero weights files.
- * `npm test` holds the weights directory to exactly what brains.ts imports, so
- * a name here with no file — or a file with no name — fails rather than lingers.
  *
- * A name promises brains.ts imports it, not that the file parsed: brains.ts
- * loads defensively and a mismatched file becomes null there.
+ * `npm test` holds the weights directory to exactly what brains.ts imports. So
+ * a name here with no file fails, and so does a file with no name. Neither
+ * lingers.
+ *
+ * A name promises that brains.ts imports it. It does not promise that the file
+ * parsed. brains.ts loads defensively, and a mismatched file becomes null
+ * there.
  */
 export type BrainName =
   | 'attack-run'
@@ -25,10 +31,13 @@ export type BrainName =
   | 'scripted';
 
 /**
- * The two picker values that are not pilots. "As shipped" is the career picker's
- * way of saying no override; "as the game flies" is the exercise picker's —
- * leave every ship on what it would fly. Listed beside the names so "every value
- * on this row has a name" is answerable for them too.
+ * The two picker values that are not pilots.
+ *
+ * "As shipped" is how the career picker says no override. "As the game flies"
+ * is the exercise picker's: leave every ship on what it would fly.
+ *
+ * They are listed beside the names, so that "every value on this row has a
+ * name" has an answer for them too.
  */
 export const AS_SHIPPED = 'as-shipped';
 export const AS_THE_GAME_FLIES = 'live';
@@ -87,7 +96,7 @@ export const BRAINS: Readonly<Record<BrainName, BrainProfile>> = Object.freeze({
   },
 });
 
-/** What the two sentinels read as; their MEANING is the panel's own prose. */
+/** What the two sentinels read as. What they MEAN is the panel's own prose. */
 const SENTINEL_NAMES: Readonly<Record<string, string>> = Object.freeze({
   [AS_THE_GAME_FLIES]: 'SAME AS OUTSIDE',
   [AS_SHIPPED]: 'THE ORIGINAL',
@@ -113,10 +122,11 @@ export function isNamedBrain(brain: string): brain is BrainName {
 }
 
 /**
- * Which pilots fly, when the answer is not "the shipped ones". A field of
- * `GameState` (AI state is game state: anything the step READS is state), so it
- * is snapshotted, passed as a test argument, and restored by the trainer's
- * ordinary teardown — not ambient globals.
+ * Which pilots fly, when the answer is not "the shipped ones".
+ *
+ * It is a field of `GameState`. AI state is game state: anything the step READS
+ * is state. So a snapshot takes it, a test passes it as an argument, and the
+ * trainer's ordinary teardown restores it. It is never an ambient global.
  *
  * From a console, go through the one documented handle:
  * `__game.state.brains.pursuit = true`. In the game, the LIVE BRAINS row on the
@@ -126,52 +136,70 @@ export function isNamedBrain(brain: string): brain is BrainName {
  */
 export interface BrainSelection {
   /**
-   * The A/B control: put every pirate on the `scripted` hand-written attack
-   * run, and switch the defence OFF — the combat computer refuses to engage
-   * (autopilot.ts) and an armed trader flees without turning to fight
-   * (npc.ts's defence gate). An old save carrying a deleted trained-pirate
-   * flag (`pack`/`trained`) rides along unread.
+   * The A/B control. It puts every pirate on the `scripted` hand-written
+   * attack run, and it switches the defence OFF. The combat computer then
+   * refuses to engage (autopilot.ts). An armed trader then runs, and never
+   * turns to fight (npc.ts's defence gate).
+   *
+   * An old save may carry a deleted trained-pirate flag, `pack` or `trained`.
+   * It rides along unread.
    */
   scripted?: boolean;
   /**
-   * The explicit name of the pirates' default (`pursuit`), kept so a career or
-   * exercise can name it out loud rather than only reaching it via "as shipped".
-   * It does not switch them onto it — `pirateBrainNameFor` returns `pursuit`
+   * The explicit name of the pirates' default (`pursuit`). It is kept so that a
+   * career or an exercise can name it out loud, rather than reach it only
+   * through "as shipped".
+   *
+   * It does not switch them onto it. `pirateBrainNameFor` returns `pursuit`
    * unless `scripted` is set.
    */
   pursuit?: boolean;
 }
 
 /**
- * The NAME the defence slots fly under with no overrides — one name, two
- * hand-written flights. An armed trader turns and fights with the three-phase
- * attack run the name is called after (npc.ts's defence gate compares against
- * this name and calls its own `attack()`). The combat computer you buy flies
- * a PURE-PURSUIT dogfighter on the commander's own ship (scripted-co-pilot.ts,
- * chosen by this name in game.ts's `pilotDemand`) — it first flew the attack
- * run and diverged deliberately when the run's steer-nowhere pass read as
- * letting go of a close target (git 3c7b8ea). Neither slot follows the
- * pirates' rule: pirates default to `pursuit` via `pirateBrainNameFor`.
+ * The NAME the defence slots fly under with no overrides: one name, two
+ * hand-written flights.
+ *
+ * An armed trader turns and fights with the three-phase attack run that the
+ * name is called after. The defence gate in npc.ts compares against this name,
+ * then calls its own `attack()`.
+ *
+ * The combat computer you buy flies a PURE-PURSUIT dogfighter on the
+ * commander's own ship. That is scripted-co-pilot.ts, chosen by this name in
+ * game.ts's `pilotDemand`. It first flew the attack run, and it diverged
+ * deliberately: the run's steer-nowhere pass read as a released grip on a close
+ * target (git 3c7b8ea).
+ *
+ * Neither slot follows the pirates' rule. A pirate defaults to `pursuit`, via
+ * `pirateBrainNameFor`.
  */
 const SHIPPED_DEFENCE: BrainName = 'attack-run';
 
 /**
- * No overrides: what the live game flies. Frozen — a shared default, and a
- * caller mutating it would move every other caller's pilots.
+ * No overrides: what the live game flies. It is frozen, because it is a shared
+ * default. A caller that mutated it would move every other caller's pilots.
  *
- * **THE LINE THAT CHANGES THE SHIPPED DEFAULT.** Everything downstream derives
- * from it — `pirateBrainFor`, `defenceBrain`, the trainer's `liveBrainFor` and
- * the `SHIPPED_*_BRAIN` ids in the report. Deliberately `{}`, and `npm test`
- * asserts it is empty, so changing what ships is a decision taken twice.
+ * **THE LINE THAT CHANGES THE SHIPPED DEFAULT.** Everything downstream comes
+ * off it:
+ *
+ *   - `pirateBrainFor`;
+ *   - `defenceBrain`;
+ *   - the trainer's `liveBrainFor`;
+ *   - the `SHIPPED_*_BRAIN` ids in the report.
+ *
+ * It is deliberately `{}`, and `npm test` asserts that it is empty. So a change
+ * to what ships is a decision taken twice.
  */
 export const SHIPPED_BRAINS: BrainSelection = Object.freeze({});
 
 /**
- * Which policy a pirate of this tier flies, BY NAME: `pursuit` by default, and
- * `scripted` when the A/B control asks for the hand-written attack run instead.
- * The shipped opposition is the pursuit dogfighter — the combat computer's own
- * pilot, turned on the pirates. Tier and organisation stay in the signature
- * even though the answer does not depend on them today.
+ * Which policy a pirate of this tier flies, BY NAME. It is `pursuit` by
+ * default. It is `scripted` when the A/B control asks for the hand-written
+ * attack run instead.
+ *
+ * The shipped opposition is the pursuit dogfighter: the combat computer's own
+ * pilot, turned on the pirates. Tier and organisation stay in the signature,
+ * even though the answer does not read them today.
  */
 export function pirateBrainNameFor(
   _tier: number, _organised: boolean, sel: BrainSelection = SHIPPED_BRAINS,
@@ -185,12 +213,15 @@ export function defenceBrainNameFor(sel: BrainSelection = SHIPPED_BRAINS): Brain
 }
 
 /**
- * A named policy, as the selection that makes the whole game fly it. Which pilot
- * a pirate flies is a decision per ROLE, not per ship, so "everybody flies the
- * gang policy" is a selection and "this one ship flies it" is not. The trainer's
- * `ExerciseSpec.brain` sets one per exercise; the LIVE BRAINS row sets one for
- * the career. Every name has an entry: a policy a picker offers is one the game
- * can be put into.
+ * A named policy, as the selection that makes the whole game fly it.
+ *
+ * Which pilot a pirate flies is a decision per ROLE, not per ship. So
+ * "everybody flies the gang policy" is a selection, and "this one ship flies
+ * it" is not.
+ *
+ * The trainer's `ExerciseSpec.brain` sets one per exercise. The LIVE BRAINS row
+ * sets one for the career. Every name has an entry: a policy a picker offers is
+ * one the game can be put into.
  */
 const SELECTIONS: Partial<Record<BrainName, BrainSelection>> = {
   'attack-run': {},
@@ -199,9 +230,9 @@ const SELECTIONS: Partial<Record<BrainName, BrainSelection>> = {
 };
 
 /**
- * The selection a named brain flies under, or undefined if the game cannot fly
- * it. Plain string because callers speak two different unions and a saved career
- * can hand over anything at all.
+ * The selection a named brain flies under, or undefined where the game cannot
+ * fly it. It takes a plain string, because the callers speak two different
+ * unions, and a saved career can hand over anything at all.
  */
 export function selectionForBrain(brain: string): BrainSelection | undefined {
   const sel = SELECTIONS[brain as BrainName];
@@ -212,23 +243,27 @@ export function selectionForBrain(brain: string): BrainSelection | undefined {
 export type LiveBrainId = BrainName | typeof AS_SHIPPED;
 
 /**
- * The live picker's list, in display order: no override first, then every policy
- * a selection can name. Derived from the table, so wiring a brain in is one entry.
+ * The live picker's list, in display order: no override first, then every
+ * policy a selection can name. It comes off the table, so one entry wires a
+ * brain in.
  */
 export const LIVE_BRAIN_IDS: readonly LiveBrainId[] = [
   AS_SHIPPED, ...(Object.keys(SELECTIONS) as BrainName[]),
 ];
 
-/** The selection a live-picker choice means. A fresh object: `state.brains` is mutable. */
+/** The selection a live-picker choice means. It is a fresh object, because
+ *  `state.brains` is mutable. */
 export function liveBrainSelection(id: LiveBrainId): BrainSelection {
   return id === AS_SHIPPED ? { ...SHIPPED_BRAINS } : (selectionForBrain(id) ?? { ...SHIPPED_BRAINS });
 }
 
 /**
- * Which live-picker choice a selection IS, or null when it is not one of them —
- * a combination the console made, or one a save carries from a deleted flag. The
- * panel says so rather than showing a name the game is not flying, and arrowing
- * the row takes it back.
+ * Which live-picker choice a selection IS, or null when it is not one of them.
+ * A null covers two cases: a combination the console made, and one a save
+ * carries from a deleted flag.
+ *
+ * The panel says so, rather than prints a name the game does not fly. One
+ * press of an arrow on that row takes it back.
  */
 export function liveBrainId(sel: BrainSelection): LiveBrainId | null {
   const wire = JSON.stringify(sel);

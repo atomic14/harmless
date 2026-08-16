@@ -1,11 +1,11 @@
 // What is painted OVER the stars, on either chart.
 //
-// Split out of `ui/screens.ts` by docs/TODO/149. Both maps draw the same marks —
-// the contract and mission diamonds, the trade lanes and the price tells — and
-// they are here rather than in either chart so that one overlay rule has one
-// home. Two copies of a diamond is the failure the size gate exists to prevent.
+// Split out of `ui/screens.ts` by docs/TODO/149. Both maps draw the same marks:
+// the contract and mission diamonds, the trade lanes, and the price tells. They
+// are here rather than in either chart, so that one overlay rule has one home.
+// Two copies of a diamond is the failure the size gate exists to prevent.
 //
-// A DIAMOND, NOT A SECOND RING, and the shape carries which fact it is: the
+// A DIAMOND, NOT A SECOND RING, and the shape carries which fact it is. The
 // jump target is already an amber circle, so a ring here would read as the
 // target. That reasoning travels with `drawContractMarks` below.
 //
@@ -25,9 +25,9 @@ import { LANE_CARGO_NAMED, LANE_FADE_FLOOR } from '../constants/chart-overlay.ts
  * A diamond around every system a standing order sends this commander to — on
  * both charts. The set is `orderDestinations` (game/orders.ts).
  *
- * ALWAYS DRAWN, beside the danger ring and for the same reason: a commitment
- * you accepted is a warning rather than a view, and 111's one-picture rule
- * governs the overlays `T` cycles.
+ * ALWAYS DRAWN, beside the danger ring and for the same reason. A commitment
+ * you accepted is a warning rather than a view. 111's one-picture rule governs
+ * the overlays that `T` cycles.
  *
  * A DIAMOND, and not a second amber circle. The jump target is already an amber
  * circle, so a ring here would read as the target. The shape carries which fact
@@ -60,14 +60,15 @@ export function drawContractMarks(
 /**
  * The trade lanes, faded by how much freight is on them — on both charts.
  *
- * Alpha rather than a second green: the busiest lane in the galaxy and the
- * quietest one drawn should not read alike, and a brightness ramp spelled in
- * new hex would be four more rungs on the chart ladder in src/palette.ts. The
- * floor keeps the quietest lane visible; without it the tail simply vanishes
- * and the threshold might as well have dropped it.
+ * Alpha rather than a second green. The busiest lane in the galaxy and the
+ * quietest one drawn must not read alike. A brightness ramp spelled in new hex
+ * would be four more rungs on the chart ladder in src/palette.ts.
  *
- * The pointed-at lane is drawn last at full strength, so the line you are
- * reading about is the one that stands out.
+ * The floor keeps the quietest lane visible. Without it the tail vanishes, and
+ * the threshold might as well drop it.
+ *
+ * The lane under the pointer is drawn last, at full strength. So the line you
+ * read about is the one that stands out.
  */
 export function drawLanes(
   ctx: CanvasRenderingContext2D,
@@ -96,7 +97,8 @@ export function drawLanes(
     stroke(lane, LANE_FADE_FLOOR + (1 - LANE_FADE_FLOOR) * (lane.tonnes / heaviest));
   }
   if (overlays.hovered) {
-    // the one being read about, in the brighter green the in-range systems use
+    // the one the pilot reads about, in the brighter green an in-range system
+    // takes
     ctx.strokeStyle = HUD.green;
     stroke(overlays.hovered, 1);
   }
@@ -104,11 +106,11 @@ export function drawLanes(
   ctx.globalAlpha = 1;
 }
 /**
- * What the lane under the pointer is carrying, in one line.
+ * What the lane under the pointer holds, in one line.
  *
- * Presentation, not a rule: `galaxy/trade-lanes.ts` decided which lane and
- * what is on it, and this only spells it — which is why the commodity NAMES
- * and the "in N days" arithmetic live here rather than in the model.
+ * Presentation, not a rule. `galaxy/trade-lanes.ts` decided which lane it is
+ * and what is on it. This only spells it. That is why the commodity NAMES and
+ * the "in N days" arithmetic live here rather than in the model.
  */
 export function laneSummaryParts(lane: TradeLane, systems: StarSystem[], day: number): [string, string] {
   const cargo = lane.commodities.slice(0, LANE_CARGO_NAMED)
@@ -118,9 +120,9 @@ export function laneSummaryParts(lane: TradeLane, systems: StarSystem[], day: nu
   const arrival = days <= 0 ? 'ARRIVING NOW'
     : days === 1 ? 'NEXT ARRIVAL TOMORROW'
       : `NEXT ARRIVAL IN ${days} DAYS`;
-  // Literal · and ↔ rather than &middot;/&harr;: this reads as HTML on the
-  // galactic chart's keyline and is painted into the canvas on the short-range
-  // one, and only the characters themselves work in both.
+  // Literal · and ↔ rather than &middot; and &harr;. This reads as HTML on the
+  // galactic chart's keyline, and it is painted into the canvas on the
+  // short-range one. Only the characters themselves work in both.
   return [
     `${systems[lane.a]?.name.toUpperCase()} ↔ ${systems[lane.b]?.name.toUpperCase()}`
       + ` · ${lane.convoys} CONVOYS · ${lane.tonnes}t`,
@@ -137,13 +139,15 @@ export const laneSummary = (lane: TradeLane, systems: StarSystem[], day: number)
 /**
  * A tick above a system trading dear, below one trading cheap — on both charts.
  *
- * The tell is a SHAPE and a DIRECTION rather than a second colour scale: the
- * palette is green and amber (src/palette.ts owns it), it has no blue, and
- * inventing one for a price would be a fifth colour in a game that has four.
- * Amber is the one the target marker already uses, and cheap borrows the green
- * a world in range is drawn in — the same invitation, said twice. Up and down
- * carry the meaning, so a reader who cannot separate the two greens still gets
- * it right.
+ * The tell is a SHAPE and a DIRECTION rather than a second colour scale. The
+ * palette is green and amber, and src/palette.ts owns it. It has no blue. A
+ * blue made up for a price would be a fifth colour in a game that has four.
+ *
+ * Amber is the one the target marker already uses. Cheap borrows the green a
+ * world in range is drawn in: the same invitation, said twice.
+ *
+ * Up and down carry the sense. So a reader who cannot separate the two greens
+ * still gets it right.
  */
 export function drawPriceTells(
   ctx: CanvasRenderingContext2D,
@@ -160,8 +164,8 @@ export function drawPriceTells(
     ctx.strokeStyle = up ? HUD.amber : TINT.lift;
     const x = px(s);
     const y = py(s);
-    // The tail starts clear of the dot rather than on it: at 2.5px a system,
-    // a tick that began at the centre read as a blob rather than an arrow.
+    // The tail starts clear of the dot rather than on it. At 2.5px a system, a
+    // tick that began at the centre read as a blob rather than an arrow.
     const tip = up ? y - reach : y + reach;
     const base = up ? y - reach * 0.55 : y + reach * 0.55;
     ctx.beginPath();

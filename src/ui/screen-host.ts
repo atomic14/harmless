@@ -1,24 +1,24 @@
 // The screen router: which overlay is open, and who gets the keyboard.
 //
 // A screen owns its rendering, its keys and its own state, in one file, behind
-// two required methods. It never sets the mode, never touches the Game, and
-// never reaches for another screen: it returns an OUTCOME and the host acts on
-// it — the same discipline NpcShip follows with FireEvent.
+// two required methods. It never sets the mode. It never touches the Game. It
+// never reaches for another screen. It returns an OUTCOME, and the host acts on
+// it. That is the same discipline NpcShip follows with FireEvent.
 //
-// FLIGHT IS NOT A SCREEN. The host handles overlays only; `Game` keeps flight
-// and the docked/dead base states. The mode you are in is the top of this
-// stack, or the base state when it is empty.
+// FLIGHT IS NOT A SCREEN. The host handles overlays only. `Game` keeps flight,
+// and the docked and dead base states. The mode you are in is the top of this
+// stack, or the base state when the stack is empty.
 
-// NO PARAMETER PROPERTIES in this file or in any screen: `npm test` runs under
-// node's --experimental-strip-types, which rejects `constructor(private x)`
-// (Vite compiles it happily, so the failure only shows in the test run).
-// Assign fields explicitly instead.
+// NO PARAMETER PROPERTIES in this file, or in any screen. `npm test` runs under
+// node's --experimental-strip-types, which rejects `constructor(private x)`.
+// Vite compiles it happily, so the failure only shows in the test run. Assign
+// each field explicitly instead.
 
 import type { Input } from '../engine/input.ts';
 
 /**
- * Every overlay in the game. One line per screen — the only shared edit adding
- * a screen requires, so two people adding two screens conflict on one line.
+ * Every overlay in the game, one line per screen. It is the only shared edit a
+ * new screen needs. So two people who add two screens collide on one line.
  */
 export type ScreenId =
   | 'market' | 'equip' | 'contracts' | 'status' | 'data' | 'missions'
@@ -40,7 +40,7 @@ export interface Screen {
   readonly id: ScreenId;
   /** Became visible — set up state and paint. */
   open(): void;
-  /** Re-paint from current data, without resetting state. */
+  /** Re-paint from the current data, and reset no state. */
   render(): void;
   /** One frame of keyboard. */
   input(i: Input): ScreenOutcome;
@@ -50,8 +50,8 @@ export interface Screen {
    */
   select?(row: number): void;
   /**
-   * Continuous motion, given the frame's dt. Only screens with held-key
-   * behaviour need it — the charts move a cursor while an arrow is down.
+   * Continuous motion, given the frame's dt. Only a screen with a held-key
+   * behaviour needs it. The charts move a cursor while an arrow is down.
    */
   tick?(dt: number, i: Input): void;
   /**
@@ -61,9 +61,9 @@ export interface Screen {
    */
   clickAt?(target: HTMLElement, e: MouseEvent): boolean;
   /**
-   * The pointer moved over the screen. Reporting only: a screen may repaint
-   * what it is describing, but nothing may be selected or spent here — that is
-   * `clickAt`'s and `input`'s job, and a pointer crossing a chart on its way
+   * The pointer moved over the screen. It reports only. A screen may repaint
+   * what it describes. Nothing may be selected or spent here: that is
+   * `clickAt`'s job and `input`'s. A pointer that crosses a chart on its way
    * somewhere else must not change the game.
    */
   hoverAt?(target: HTMLElement, e: MouseEvent): void;
@@ -73,24 +73,24 @@ export interface Screen {
  * Holds the stack, runs the menu cursor, turns clicks into input, and gives
  * one frame to whichever screen is on top.
  *
- * EVERY `ScreenId` has a registered `Screen`; `test/game.test.ts` opens every
- * id in the union to check it. Opening an id with nothing registered throws —
- * a screen that silently does nothing is the worse failure.
+ * EVERY `ScreenId` has a registered `Screen`. `test/game.test.ts` opens every
+ * id in the union to check it. An id with nothing registered throws when it
+ * opens. A screen that silently does nothing is the worse failure.
  */
 export class ScreenHost {
   private readonly registry = new Map<ScreenId, Screen>();
   private readonly stack: { id: ScreenId; screen: Screen }[] = [];
-  /** cursor position for the generic menu handling, see runMenuCursor */
+  /** cursor position for the generic menu code — see runMenuCursor */
   private menuSelected = 0;
 
   /**
    * @param showBase repaint whatever is underneath the stack — the docked
    * menu, or the flight view. Called whenever the last screen closes.
    *
-   * The host cannot know what the base state looks like, and the Game cannot
-   * know when a screen decided to close, so the two meet here.
+   * The host cannot know what the base state looks like. The Game cannot know
+   * when a screen decided to close. So the two meet here.
    *
-   * It must only paint. Touching the stack from here would recurse.
+   * It must only paint. A touch on the stack from here would recurse.
    */
   private readonly showBase: () => void;
 
@@ -105,7 +105,7 @@ export class ScreenHost {
     this.registry.set(screen.id, screen);
   }
 
-  /** The screen on top, or null when the base state is showing. */
+  /** The screen on top, or null when the base state has the display. */
   get top(): { id: ScreenId; screen: Screen } | null {
     return this.stack.length ? this.stack[this.stack.length - 1] : null;
   }
@@ -128,9 +128,9 @@ export class ScreenHost {
   }
 
   /**
-   * Replace the whole stack with one screen — for the places that jump
-   * sideways rather than deeper (opening the chart from the docked menu should
-   * not leave a trail to walk back through).
+   * Replace the whole stack with one screen. It is for a place that jumps
+   * sideways rather than deeper. The chart opened from the docked menu should
+   * leave no trail to walk back through.
    */
   replace(id: ScreenId): void {
     this.stack.length = 0;
@@ -140,8 +140,8 @@ export class ScreenHost {
   /** Pop one. @returns true if a screen is still open. */
   back(): boolean {
     // nothing open: do NOT repaint the base. Escape at the docked menu reaches
-    // here every frame it is held, and re-rendering the menu underneath it
-    // each time is both wasted work and a way to lose cursor state.
+    // here every frame a finger holds it down. A repaint of the menu underneath
+    // it each time is wasted work, and a way to lose the cursor state.
     if (!this.stack.length) return false;
     this.stack.pop();
     this.menuSelected = 0;
@@ -188,15 +188,17 @@ export class ScreenHost {
   }
 
   /**
-   * Arrow keys and Enter drive any menu on screen, so every menu gets cursor
-   * navigation without per-screen wiring: Enter injects the selected row's
+   * The arrow keys and Enter drive any menu on screen. So every menu gets a
+   * cursor with no per-screen wiring. Enter injects the selected row's
    * shortcut, which is the key the screen already handles.
    *
-   * ORDERING CONTRACT, and it is load-bearing: `Input.pressed()` CONSUMES the
-   * tap, so anything running before the top screen can silently eat a key the
-   * screen needed. This is safe only because it touches nothing unless a
-   * `.menu` with shortcuts is actually on screen, and even then only arrows
-   * and Enter. Do not widen it — add keys to the screen instead.
+   * ORDERING CONTRACT, and it is load-bearing. `Input.pressed()` CONSUMES the
+   * tap. So anything that runs before the top screen can silently eat a key the
+   * screen needed.
+   *
+   * This is safe only because it touches nothing unless a `.menu` with
+   * shortcuts is really on screen. Even then it takes only the arrows and
+   * Enter. Do not widen it. Add keys to the screen instead.
    */
   private runMenuCursor(i: Input): void {
     // With no document there is no rendered menu to move a cursor over, and
@@ -216,8 +218,8 @@ export class ScreenHost {
     if (i.pressed('Enter')) {
       const row = items[this.menuSelected];
       const key = row.dataset.key;
-      // Enter on a row is the row's keystroke, modifier included: arrowing onto
-      // a shifted row and pressing Enter took the same broken path as a click.
+      // Enter on a row is the row's keystroke, modifier included. An arrow onto
+      // a shifted row, then Enter, took the same broken path as a click.
       if (key) i.injectPress(key, row.dataset.shift === '1');
     }
   }
@@ -233,15 +235,15 @@ export class ScreenHost {
    */
   click(target: unknown, i: Input, event?: unknown): boolean {
     // `unknown` in, DOM types cast HERE, because this is the UI layer and the
-    // Game is not: game.ts forwards what the shell handed it without naming a
-    // single browser type, keeping the orchestrator out of the portable bucket.
+    // Game is not. The Game forwards what the shell handed it, and names no
+    // browser type at all. That keeps the orchestrator in the portable bucket.
     const el = target as HTMLElement;
     const e = event as MouseEvent | undefined;
     const key = el.dataset.key;
     if (key !== undefined) {
       // The row's own modifier travels with the tap. A click is the same
-      // keystroke as a key press (invariant 13), and that has to include the
-      // shift the row printed — see `injectPress` and docs/TODO/146.
+      // keystroke as a key press (invariant 13). That has to include the shift
+      // the row printed. See `injectPress` and docs/TODO/146.
       i.injectPress(key, el.dataset.shift === '1');
       return true;
     }
@@ -262,8 +264,8 @@ export class ScreenHost {
    * Route a pointer move to the top screen, if it wants one.
    *
    * Deliberately thin next to `click`: no `data-key`, no `select()`, no
-   * `Input`. A move is not a keystroke, and routing it through the same door
-   * would let a pointer crossing the screen press things.
+   * `Input`. A move is not a keystroke. Through the same door, a pointer that
+   * merely crossed the screen would press things.
    */
   hover(target: unknown, event?: unknown): void {
     const screen = this.top?.screen;

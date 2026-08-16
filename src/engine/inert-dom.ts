@@ -2,17 +2,19 @@ import { HEADLESS_WIDTH, HEADLESS_HEIGHT } from '../constants/camera.ts';
 
 // A DOM element that accepts every write and performs none of them.
 //
-// The painters — hud.ts, tunnel.ts — cache elements in field initializers, so a
+// The painters — hud.ts, tunnel.ts — cache elements in field initializers. So a
 // single `document.getElementById` in any of them made the whole `Game`
 // unconstructible under node. That is why the largest file in the project had
-// zero test coverage: not because the orchestrator needed a browser, but
-// because three of its fields did.
+// zero test coverage. The orchestrator did not need a browser. Three of its
+// fields did.
 //
-// The bargain is the same one game/storage.ts makes with localStorage and
-// world/corona-texture.ts makes with canvas: code that knows about the platform is
-// the code that copes with the platform being absent. None of what a painter
-// does has to SUCCEED for the game to be correct — the HUD is a dumb painter
-// (docs/INVARIANTS.md invariant 15) and nothing reads it back — it only has to not throw.
+// The bargain is the same one game/storage.ts makes with localStorage, and the
+// one world/corona-texture.ts makes with canvas. The code that knows about the
+// platform is the code that copes with an absent platform.
+//
+// Nothing a painter does has to SUCCEED for the game to be correct. The HUD is
+// a dumb painter (docs/INVARIANTS.md invariant 15), and nothing reads it back.
+// It only has to not throw.
 //
 // This is emphatically not a DOM implementation. If a rule ever depends on what
 // one of these returns, that rule is in the wrong file.
@@ -27,9 +29,9 @@ export function inertElement(): HTMLElement {
     innerHTML: '',
     width: 0,
     height: 0,
-    // Reads give '', writes go nowhere — and `style.setProperty()` is a WRITE
-    // that happens to be a call (the energy gauge sets a custom property), so
-    // the three CSSStyleDeclaration methods have to be callable sinks rather
+    // Reads give '', and writes go nowhere. `style.setProperty()` is a WRITE
+    // that happens to be a call: the energy gauge sets a custom property. So
+    // the three CSSStyleDeclaration methods have to be callable sinks, rather
     // than the empty string.
     style: new Proxy({}, {
       get: (_t, prop) => (STYLE_METHODS.has(prop as string) ? () => '' : ''),
@@ -38,10 +40,10 @@ export function inertElement(): HTMLElement {
     classList: {
       add: () => {}, remove: () => {}, toggle: () => false, contains: () => false,
     },
-    // Same bargain as `style`: a real element always has a `dataset`, and the
-    // short-range chart both reads and deletes one key of it to decide whether
-    // its portrait needs repainting. Reads give undefined, so the sink always
-    // says "the cursor moved" and the painter always repaints — nowhere.
+    // Same bargain as `style`. A real element always has a `dataset`. The
+    // short-range chart reads one key of it and deletes it, to decide whether
+    // to repaint its portrait. Reads give undefined here, so the sink always
+    // says "the cursor moved". The painter then always repaints — nowhere.
     dataset: new Proxy({}, {
       get: () => undefined,
       set: () => true,
@@ -69,13 +71,13 @@ export function elementById(id: string): HTMLElement {
 }
 
 /**
- * Replace an element's children with `count` fresh ones of `tag`, and hand them
- * back — or hand back that many sinks when there is no document.
+ * Replace an element's children with `count` fresh ones of `tag`, and hand
+ * them back. With no document, hand back that many sinks.
  *
- * For a gauge whose SHAPE is a rule rather than a layout: the energy gauge is
- * drawn in as many segments as the pool reads as banks (systems.ts's
- * `ENERGY_BANKS`), so the markup cannot be the place that says four. Writing
- * the count into play.html would be the same number in two files, kept in step
+ * It is for a gauge whose SHAPE is a rule rather than a layout. The energy
+ * gauge is drawn in as many segments as the pool reads as banks (systems.ts's
+ * `ENERGY_BANKS`). So the markup cannot be the place that says four. The count
+ * written into play.html would be the same number in two files, kept in step
  * by hope.
  */
 export function fillWith(parent: HTMLElement, tag: string, count: number): HTMLElement[] {
@@ -85,8 +87,8 @@ export function fillWith(parent: HTMLElement, tag: string, count: number): HTMLE
   parent.innerHTML = '';
   return Array.from({ length: count }, () => {
     const child = document.createElement(tag);
-    // `parent` may itself be a sink (a missing id in a real document), whose
-    // appendChild returns nothing — so the child is what we hand back, never
+    // `parent` may itself be a sink, from an id absent in a real document. Its
+    // appendChild returns nothing. So the child is what we hand back, and never
     // what appendChild gives us.
     parent.appendChild(child);
     return child;
@@ -97,9 +99,11 @@ export function fillWith(parent: HTMLElement, tag: string, count: number): HTMLE
  * The viewport, or a sensible pretend one with no window.
  *
  * The tunnel sizes its canvas to the window every frame it runs. That was the
- * last thing standing between a headless Game and a LAUNCH — and it was found
- * by the headless test, not by the compiler, because DOM globals are ambient
- * and `window.innerWidth` type-checks perfectly in a file that can never run.
+ * last thing between a headless Game and a LAUNCH.
+ *
+ * The headless test found it, and the compiler did not. A DOM global is
+ * ambient, so `window.innerWidth` type-checks perfectly in a file that can
+ * never run.
  */
 export function viewport(): { width: number; height: number } {
   if (typeof window === 'undefined') return { width: HEADLESS_WIDTH, height: HEADLESS_HEIGHT };
