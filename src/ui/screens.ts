@@ -24,16 +24,16 @@ import { portraitUrl } from './portrait.ts';
 export { hideScreen };
 
 // The station menu's rows ARE the docked binding table — see ui/key-help.ts.
-// A hand-written row here would be a second home for a key, and `data-key`
-// becomes a keystroke, so it could advertise a key nothing was bound to.
+// A hand-written row here would be a second home for a key. `data-key` becomes
+// a keystroke, so such a row could advertise a key nothing answers.
 import { dockedMenuHtml } from './key-help.ts';
 
 // Full-page overlay screens, rendered as DOM. The Game owns all input and
 // state; these are pure render functions.
 //
 // `show`, `hideScreen` and the inert-DOM seam under them are `screen-shell.ts`
-// since docs/TODO/149, so every screen module reaches the page the same way and
-// none of them reaches through another.
+// since docs/TODO/149. So every screen module reaches the page the same way,
+// and none of them reaches through another.
 
 export function renderDockedMenu(
   sys: StarSystem, c: CommanderData, orderLines: readonly string[] = [],
@@ -256,9 +256,9 @@ export function renderContracts(
 
   // The ACCEPTED half reads `standingOrders`, so the days-left subtraction has
   // one home rather than one here and one in `game/orders.ts`. The WORDS were
-  // never at risk — both halves call `describeContract` — but two copies of the
-  // same arithmetic are two chances to measure a deadline from the wrong day,
-  // which is the defect docs/TODO/140 M4 records for the charts.
+  // never at risk, because both halves call `describeContract`. Two copies of
+  // the same arithmetic are two chances to measure a deadline from the wrong
+  // day. That is the defect docs/TODO/140 M4 records for the charts.
   const taken = standingOrders(c, systems)
     .filter((o): o is ContractOrder => o.kind === 'contract')
     .map((o) => `

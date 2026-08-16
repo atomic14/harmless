@@ -1,18 +1,19 @@
 // Which systems the charts ring in red — the model half of the danger overlay.
 //
-// The living galaxy already knows where pirates are working; until now the only
-// way to hear about it was to put the cursor on a world and read its data
-// screen. This turns the same fact into something visible across all 256 dots
-// at once.
+// The living galaxy already knows where the pirates work. Until now, the only
+// way to hear about it was a cursor on a world and a read of its data screen.
+// This turns the same fact into something visible across all 256 dots at
+// once.
 //
 // It is a MODEL, deliberately: `ui/screens.ts` paints what this returns and
-// decides nothing. That is the HUD's model/painter split (docs/ARCHITECTURE.md)
-// and invariant 10 — a derived economic quantity does not live in a render
-// file — and it is what lets the rule be tested without a canvas.
+// decides nothing. That is the HUD's model and painter split
+// (docs/ARCHITECTURE.md), and invariant 10: a derived economic quantity does
+// not live in a render file. It is also what lets a test drive the rule with no
+// canvas.
 //
-// Pure and read-only by construction: it is handed a `danger` LOOKUP, never the
-// LivingGalaxy itself, so a draw path cannot reach `state()` and insert an
-// entry for a system merely by drawing it.
+// Pure and read-only by construction. It is handed a `danger` LOOKUP, and never
+// the LivingGalaxy itself. So a draw path cannot reach `state()` and insert an
+// entry for a system merely because it drew it.
 
 import { DANGER_VISIBLE } from '../constants/living-galaxy.ts';
 import type { StarSystem } from './galaxy.ts';

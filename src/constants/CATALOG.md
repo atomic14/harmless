@@ -49,9 +49,9 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | chart-metric | <code>CHART_SPAN_Y</code> | <code>CHART_SPAN_X / CHART_Y_SQUASH</code> | The height — half the width. |  | [chart-metric.ts:36](./chart-metric.ts#L36) |
 | chart-metric | <code>LOCAL_SCALE</code> | <code>15</code> | The console's short-range chart: canvas px per chart unit. |  | [chart-metric.ts:44](./chart-metric.ts#L44) |
 | chart-metric | <code>LOCAL_CANVAS</code> | <code>560</code> | Square, so a light year is the same number of pixels whichever way you go. |  | [chart-metric.ts:47](./chart-metric.ts#L47) |
-| chart-metric | <code>CHART_CANVAS_W</code> | <code>780</code> | The galactic chart's canvas, in px. |  | [chart-metric.ts:58](./chart-metric.ts#L58) |
-| chart-metric | <code>CHART_CANVAS_H</code> | <code>400</code> | Its height. |  | [chart-metric.ts:66](./chart-metric.ts#L66) |
-| chart-metric | <code>LANE_PICK_PX</code> | <code>8</code> | How near the pointer must come to a trade lane to be pointing AT it, in canvas pixels. |  | [chart-metric.ts:77](./chart-metric.ts#L77) |
+| chart-metric | <code>CHART_CANVAS_W</code> | <code>780</code> | The galactic chart's canvas, in px. |  | [chart-metric.ts:59](./chart-metric.ts#L59) |
+| chart-metric | <code>CHART_CANVAS_H</code> | <code>400</code> | Its height. |  | [chart-metric.ts:67](./chart-metric.ts#L67) |
+| chart-metric | <code>LANE_PICK_PX</code> | <code>8</code> | How near the pointer must come to a trade lane to be pointing AT it, in canvas pixels. |  | [chart-metric.ts:78](./chart-metric.ts#L78) |
 | chart-overlay | <code>LANE_FADE_FLOOR</code> | <code>0.35</code> | The alpha that the quietest drawn trade lane keeps, with the busiest at 1. | <code>chart.laneFadeFloor</code> | [chart-overlay.ts:24](./chart-overlay.ts#L24) |
 | chart-overlay | <code>LANE_CARGO_NAMED</code> | <code>3</code> | How many of a lane's commodities the detail line names before it counts the rest ("+2"). |  | [chart-overlay.ts:35](./chart-overlay.ts#L35) |
 | collision | <code>PLAYER_SPEED_KEPT</code> | <code>0.3</code> | Speed kept after a collision. |  | [collision.ts:10](./collision.ts#L10) |
@@ -104,10 +104,10 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | console | <code>LASER_GAUGE_WARN</code> | <code>0.8</code> | The laser gauge turns red above this fraction of the heat scale. |  | [console.ts:54](./console.ts#L54) |
 | console | <code>CABIN_GAUGE_WARN</code> | <code>0.72</code> | ...and the cabin gauge above this fraction, against a fatal `CABIN_TEMP_FATAL` of 0.99 (constants/sun.ts). |  | [console.ts:62](./console.ts#L62) |
 | console | <code>SIGHT_Y</code> | <code>0.42</code> | The gun axis sits above the canvas centre, as a fraction of half the view's height, because the console eats the bottom of the screen. |  | [console.ts:74](./console.ts#L74) |
-| contracts | <code>MAX_CONTRACTS</code> | <code>3</code> | The most work you may hold at once. |  | [contracts.ts:14](./contracts.ts#L14) |
-| contracts | <code>CONTRACT_RANGE</code> | <code>MAX_FUEL</code> | How far away a contract may send you, in tenths of a light year: exactly as far as a full tank reaches. |  | [contracts.ts:21](./contracts.ts#L21) |
-| contracts | <code>PASSENGER_BERTH_TONNES</code> | <code>2</code> | What one passenger costs the hold, in tonnes. | <code>contracts.passengerBerthTonnes</code> | [contracts.ts:43](./contracts.ts#L43) |
-| contracts | <code>SMUGGLE_DELIVERY_NOTORIETY</code> | <code>0.06</code> | How loudly a delivered smuggling run is talked about, per tonne landed. | <code>contracts.smuggleDeliveryNotoriety</code> | [contracts.ts:73](./contracts.ts#L73) |
+| contracts | <code>MAX_CONTRACTS</code> | <code>3</code> | The most work you may hold at once. |  | [contracts.ts:17](./contracts.ts#L17) |
+| contracts | <code>CONTRACT_RANGE</code> | <code>MAX_FUEL</code> | How far away a contract may send you, in tenths of a light year: exactly as far as a full tank reaches. |  | [contracts.ts:24](./contracts.ts#L24) |
+| contracts | <code>PASSENGER_BERTH_TONNES</code> | <code>2</code> | What one passenger costs the hold, in tonnes. | <code>contracts.passengerBerthTonnes</code> | [contracts.ts:48](./contracts.ts#L48) |
+| contracts | <code>SMUGGLE_DELIVERY_NOTORIETY</code> | <code>0.06</code> | How loudly a delivered smuggling run is talked about, per tonne landed. | <code>contracts.smuggleDeliveryNotoriety</code> | [contracts.ts:78](./contracts.ts#L78) |
 | docking | <code>GATE_HALF_WIDTHS</code> | <code>5</code> | How far out the approach gate sits, in multiples of the station half-width. | <code>docking.gateHalfWidths</code> | [docking.ts:25](./docking.ts#L25) |
 | docking | <code>TURN_IN</code> | <code>Math.PI / 4</code> | How far round from the slot axis an approach turns in, in radians. |  | [docking.ts:49](./docking.ts#L49) |
 | docking | <code>RUN_IN_WIDTHS</code> | <code>GATE_HALF_WIDTHS * 0.6</code> | Where the approach stops the curve and flies straight, in station half-widths. |  | [docking.ts:87](./docking.ts#L87) |
@@ -307,21 +307,21 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | spawn-placement | <code>PIRATE_SCATTER</code> | <code>2500</code> | How far off the corridor's line each pirate sits. | <code>spawn.pirateScatter</code> | [spawn-placement.ts:95](./spawn-placement.ts#L95) |
 | spawn-placement | <code>TRADER_ARRIVAL_RANGE</code> | <code>22_000</code> | How far out a fresh trader warps in. |  | [spawn-placement.ts:102](./spawn-placement.ts#L102) |
 | spawn-placement | <code>DEEP_TRADER_RANGE</code> | <code>12_000</code> | How far AHEAD OF THE COMMANDER a trader warps in, out in deep space. | <code>spawn.deepTraderRange</code> | [spawn-placement.ts:115](./spawn-placement.ts#L115) |
-| spawn-placement | <code>DEEP_TRADER_CONE</code> | <code>Math.asin(MASS_LOCK_SHIP / DEEP_TRADER_RANGE)</code> | The half-angle of the cone it warps into, about the commander's own heading, in RADIANS. 0.5 is about 29 degrees. | <code>spawn.deepTraderCone</code> | [spawn-placement.ts:140](./spawn-placement.ts#L140) |
-| spawn-placement | <code>DEEP_TRADER_RUN</code> | <code>30_000</code> | How far it runs before it jumps out. |  | [spawn-placement.ts:151](./spawn-placement.ts#L151) |
-| spawn-placement | <code>PIRATE_WAVE_RANGE</code> | <code>9000</code> | How far from the commander a pirate wave warps in. |  | [spawn-placement.ts:159](./spawn-placement.ts#L159) |
-| spawn-placement | <code>PIRATE_WAVE_RANGE_SPAN</code> | <code>4000</code> | ...and how much further out than that they may be. |  | [spawn-placement.ts:162](./spawn-placement.ts#L162) |
-| spawn-placement | <code>GENERATION_SHIP_RANGE</code> | <code>14_000</code> | How far from the commander a generation ship crosses. |  | [spawn-placement.ts:168](./spawn-placement.ts#L168) |
-| spawn-placement | <code>GENERATION_SHIP_RANGE_SPAN</code> | <code>8000</code> | ...and the width of that band. |  | [spawn-placement.ts:171](./spawn-placement.ts#L171) |
-| spawn-placement | <code>GENERATION_CARGO_SCATTER</code> | <code>700</code> | How far from a generation ship its shed cargo drifts. |  | [spawn-placement.ts:178](./spawn-placement.ts#L178) |
-| spawn-placement | <code>MISSION_TARGET_RANGE</code> | <code>4000</code> | How far from the commander the Constrictor hides on the mission leg. |  | [spawn-placement.ts:184](./spawn-placement.ts#L184) |
-| spawn-placement | <code>MISSION_TARGET_RANGE_SPAN</code> | <code>4000</code> | ...and the width of that band — the same again, so it can be twice as far. |  | [spawn-placement.ts:187](./spawn-placement.ts#L187) |
-| spawn-placement | <code>THARGON_DEPLOY_RANGE</code> | <code>150</code> | How far from its mother a Thargon drone appears. |  | [spawn-placement.ts:193](./spawn-placement.ts#L193) |
-| spawn-placement | <code>STATION_DEFENCE_MIN</code> | <code>1</code> | The fewest Vipers the station launches when you have shot at something you should not have. |  | [spawn-placement.ts:201](./spawn-placement.ts#L201) |
-| spawn-placement | <code>STATION_DEFENCE_SPAN</code> | <code>2</code> | ...and the width of that draw: one or two of them. |  | [spawn-placement.ts:207](./spawn-placement.ts#L207) |
-| spawn-placement | <code>STATION_DEFENCE_STANDOFF</code> | <code>500</code> | How far out of the slot the first one launches. |  | [spawn-placement.ts:213](./spawn-placement.ts#L213) |
-| spawn-placement | <code>STATION_DEFENCE_STACK</code> | <code>120</code> | ...and how much further out each one after it starts, so a pair does not arrive inside each other. |  | [spawn-placement.ts:219](./spawn-placement.ts#L219) |
-| spawn-placement | <code>STATION_DEFENCE_JITTER</code> | <code>80</code> | ...and the random nudge on each, so a second launch does not look like the first. |  | [spawn-placement.ts:229](./spawn-placement.ts#L229) |
+| spawn-placement | <code>DEEP_TRADER_CONE</code> | <code>Math.asin(MASS_LOCK_SHIP / DEEP_TRADER_RANGE)</code> | The half-angle of the cone it warps into, about the commander's own heading, in RADIANS. 0.5 is about 29 degrees. | <code>spawn.deepTraderCone</code> | [spawn-placement.ts:142](./spawn-placement.ts#L142) |
+| spawn-placement | <code>DEEP_TRADER_RUN</code> | <code>30_000</code> | How far it runs before it jumps out. |  | [spawn-placement.ts:153](./spawn-placement.ts#L153) |
+| spawn-placement | <code>PIRATE_WAVE_RANGE</code> | <code>9000</code> | How far from the commander a pirate wave warps in. |  | [spawn-placement.ts:161](./spawn-placement.ts#L161) |
+| spawn-placement | <code>PIRATE_WAVE_RANGE_SPAN</code> | <code>4000</code> | ...and how much further out than that they may be. |  | [spawn-placement.ts:164](./spawn-placement.ts#L164) |
+| spawn-placement | <code>GENERATION_SHIP_RANGE</code> | <code>14_000</code> | How far from the commander a generation ship crosses. |  | [spawn-placement.ts:170](./spawn-placement.ts#L170) |
+| spawn-placement | <code>GENERATION_SHIP_RANGE_SPAN</code> | <code>8000</code> | ...and the width of that band. |  | [spawn-placement.ts:173](./spawn-placement.ts#L173) |
+| spawn-placement | <code>GENERATION_CARGO_SCATTER</code> | <code>700</code> | How far from a generation ship its shed cargo drifts. |  | [spawn-placement.ts:180](./spawn-placement.ts#L180) |
+| spawn-placement | <code>MISSION_TARGET_RANGE</code> | <code>4000</code> | How far from the commander the Constrictor hides on the mission leg. |  | [spawn-placement.ts:186](./spawn-placement.ts#L186) |
+| spawn-placement | <code>MISSION_TARGET_RANGE_SPAN</code> | <code>4000</code> | ...and the width of that band — the same again, so it can be twice as far. |  | [spawn-placement.ts:189](./spawn-placement.ts#L189) |
+| spawn-placement | <code>THARGON_DEPLOY_RANGE</code> | <code>150</code> | How far from its mother a Thargon drone appears. |  | [spawn-placement.ts:195](./spawn-placement.ts#L195) |
+| spawn-placement | <code>STATION_DEFENCE_MIN</code> | <code>1</code> | The fewest Vipers the station launches after you shoot at something you should not. |  | [spawn-placement.ts:203](./spawn-placement.ts#L203) |
+| spawn-placement | <code>STATION_DEFENCE_SPAN</code> | <code>2</code> | ...and the width of that draw: one or two of them. |  | [spawn-placement.ts:209](./spawn-placement.ts#L209) |
+| spawn-placement | <code>STATION_DEFENCE_STANDOFF</code> | <code>500</code> | How far out of the slot the first one launches. |  | [spawn-placement.ts:215](./spawn-placement.ts#L215) |
+| spawn-placement | <code>STATION_DEFENCE_STACK</code> | <code>120</code> | ...and how much further out each one after it starts, so a pair does not arrive inside each other. |  | [spawn-placement.ts:221](./spawn-placement.ts#L221) |
+| spawn-placement | <code>STATION_DEFENCE_JITTER</code> | <code>80</code> | ...and the random nudge on each, so a second launch does not look like the first. |  | [spawn-placement.ts:231](./spawn-placement.ts#L231) |
 | station | <code>STATION_SPIN</code> | <code>0.26</code> | How fast the station spins about its slot axis, in radians a second. |  | [station.ts:16](./station.ts#L16) |
 | station | <code>DODO_TECH_LEVEL</code> | <code>10</code> | The tech level at which a system's station is the dodecahedral Dodo rather than the Coriolis, in SHOWN one-based units. |  | [station.ts:29](./station.ts#L29) |
 | station | <code>BOUNCE_STANDOFF</code> | <code>420</code> | Where a fluffed docking bounces you to. |  | [station.ts:43](./station.ts#L43) |

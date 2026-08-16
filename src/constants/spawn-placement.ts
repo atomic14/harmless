@@ -1,6 +1,6 @@
-// Where the sky puts a ship when it appears. Almost every value here is a
-// DISTANCE; `DEEP_TRADER_CONE` is the one angle, and it is derived from a
-// distance here and one in torus.ts rather than chosen.
+// Where the sky puts a ship as it appears. Almost every value here is a
+// DISTANCE. `DEEP_TRADER_CONE` is the one angle, and it is derived rather than
+// chosen: from a distance here, and one in torus.ts.
 // `population.ts` decides what a system holds on arrival. `encounters.ts` decides
 // what turns up while you fly. This file only says how far out.
 //
@@ -105,9 +105,9 @@ export const TRADER_ARRIVAL_RANGE = 22_000;
  * How far AHEAD OF THE COMMANDER a trader warps in, out in deep space.
  *
  * It is much closer than `TRADER_ARRIVAL_RANGE`, and the scanner is the reason.
- * `SCANNER_RANGE` is 6,000 (console.ts) and the torus drive covers 3,200 units a
- * second (torus.ts), so a ship at 12,000 is on the scanner inside two seconds
- * and is passed inside four. One at 22,000 would be reached only by a commander
+ * `SCANNER_RANGE` is 6,000 (console.ts). The torus drive covers 3,200 units a
+ * second (torus.ts). So a ship at 12,000 is on the scanner inside two seconds,
+ * and passed inside four. One at 22,000 would be reached only by a commander
  * who held the same course for seven seconds.
  *
  * @rule spawn.deepTraderRange
@@ -130,10 +130,12 @@ export const DEEP_TRADER_RANGE = 12_000;
  *
  * So the meeting is a meeting. The torus drive lets go, the commander flies
  * past a ship rather than a dot, and the drive picks up again a few seconds
- * later. `SCANNER_RANGE` (6,000, console.ts) would be the wider derivation and
- * it was measured and rejected: at that angle the arrival is on the scanner
- * only while it sits still, and a `departing` trader does not sit still, so
- * about one run in ten met nobody.
+ * later.
+ *
+ * `SCANNER_RANGE` (6,000, console.ts) would be the wider derivation, and it was
+ * measured and rejected. At that angle the arrival is on the scanner only while
+ * it sits still. A `departing` trader does not sit still, so about one run in
+ * ten met nobody.
  *
  * @rule spawn.deepTraderCone
  */
@@ -143,9 +145,9 @@ export const DEEP_TRADER_CONE = Math.asin(MASS_LOCK_SHIP / DEEP_TRADER_RANGE);
  * How far it runs before it jumps out.
  *
  * A trader met in deep space is LEAVING, and `departing` (game/npc.ts) despawns
- * a ship near its waypoint with the witch-flash. The alternative is to fly it to
- * the station, which is 200,000 units away on a sun run — sixteen minutes, with
- * one of the four `MAX_TRADERS` slots held for all of it. The lane at the
+ * a ship near its waypoint, with the witch-flash. The alternative flies it to
+ * the station, which is 200,000 units away on a sun run. That is sixteen
+ * minutes, with one of the four `MAX_TRADERS` slots held for all of it. The lane at the
  * station would starve to fill the lane out here.
  */
 export const DEEP_TRADER_RUN = 30_000;
@@ -193,8 +195,8 @@ export const MISSION_TARGET_RANGE_SPAN = 4000;
 export const THARGON_DEPLOY_RANGE = 150;
 
 /**
- * The fewest Vipers the station launches when you have shot at something you
- * should not have. This and the three below are ONE rule: a short jittered stack
+ * The fewest Vipers the station launches after you shoot at something you
+ * should not. This and the three below are ONE rule: a short jittered stack
  * along the slot normal, spent by `launchStationDefence`. WHETHER they launch is
  * `DEFENCE_RANGE` (constants/law.ts).
  */

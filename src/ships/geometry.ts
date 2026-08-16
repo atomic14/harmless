@@ -4,15 +4,16 @@ import * as THREE from 'three';
 // else.
 //
 // Ships are drawn the way the 1984 originals were defined: explicit vertex and
-// edge lists, so the wireframes stay clean (no triangulation diagonals), with
-// the faces filled matte black underneath the edges. That is the classic
+// edge lists. So the wireframes stay clean, with no triangulation diagonals.
+// The faces are filled matte black underneath the edges. That is the classic
 // "hidden line" look — a hull occludes whatever is behind it, including its own
 // far side.
 //
 // THE HULLS THEMSELVES LIVE ELSEWHERE. This file used to hold twenty-odd
-// hand-written approximations of the Elite ships, and every one of them is gone:
-// the released tables are exact and generated, so `ships/elite-a-hulls.ts` turns
-// them into `ShipDef`s and `ships/registry.ts` is how anything asks for one.
+// hand-written approximations of the Elite ships, and every one of them is
+// gone. The released tables are exact and generated.
+// `ships/elite-a-hulls.ts` turns them into a `ShipDef`, and
+// `ships/registry.ts` is how anything asks for one.
 // What is left here is the format they all share. `ships/harmless-hulls.ts`
 // holds the shapes that are ours and have no source record.
 
@@ -39,10 +40,16 @@ const HULL_MATERIAL = new THREE.MeshBasicMaterial({
  *
  * A HALF TURN about Y — both x and z negate — not the Z mirror this used to be.
  * The two agree exactly for a left/right symmetric hull, which every
- * hand-written ship here was, so nothing that existed before changes shape. The
- * released catalogue is not so tidy: eight of its thirty-eight designs
- * (Transporter, Thargoid, Thargon, escape pod, alloy plate, boulder, asteroid,
- * splinter) are asymmetric, and for those a mirror is a different ship. A
+ * hand-written ship here was, so nothing that existed before changes shape.
+ *
+ * The released catalogue is not so tidy. Eight of its thirty-eight designs are
+ * asymmetric:
+ *
+ *   - the Transporter, the Thargoid and the Thargon;
+ *   - the escape pod and the alloy plate;
+ *   - the boulder, the asteroid and the splinter.
+ *
+ * For those, a mirror is a different ship. A
  * rotation is what "point the nose the other way" actually means, so that is
  * what the builder does. See docs/INVARIANTS.md invariant 7.
  */
@@ -116,8 +123,9 @@ export const HERMIT_BEACON_PERIOD = 1.6;
 export const HERMIT_BEACON_ON = 0.5;
 
 /**
- * A bright nav beacon that marks a rock as an inhabited hermit — the tell that
- * stops a commander blasting an outpost he took for a plain asteroid. A small
+ * A bright nav beacon that marks a rock as an inhabited hermit. It is the tell
+ * that stops a commander from a shot at an outpost she took for a plain
+ * asteroid. A small
  * unlit mesh perched on the rock; `npc.ts` blinks it on the world step. Amber so
  * it reads against the grey rock and is not mistaken for a hostile's fire.
  */

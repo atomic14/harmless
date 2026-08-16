@@ -10,10 +10,10 @@
 // inside its launch grace (GitHub #28). This is the one home of that skip, so a
 // graced capsule cannot be struck squarely OR grazed.
 //
-// I nearly left this in game.ts on the grounds that "there is no honest way to
-// test a raycast without the hulls". That was wrong, and worth recording: this
-// project already proved three.js maths runs under node with no canvas and no
-// WebGL, so the hulls can simply be BUILT in a test. Which they are.
+// I nearly left this in game.ts, on the grounds that "there is no honest way to
+// test a raycast without the hulls". That was wrong, and worth the record. This
+// project already proved that three.js maths runs under node, with no canvas
+// and no WebGL. So a test can simply BUILD the hulls. It does.
 
 import * as THREE from 'three';
 import { LASER_RANGE } from '../constants/player-gun.ts';
@@ -35,8 +35,8 @@ export interface Drifting extends Solid {
   kind: 'cargo' | 'capsule';
   /**
    * Seconds of launch grace left. Above zero, the beam passes straight through
-   * it — see `POD_LAUNCH_GRACE` (constants/wreck.ts) for why a fresh capsule
-   * gets one, and `cargo.ts` for where it is counted down.
+   * it. `POD_LAUNCH_GRACE` (constants/wreck.ts) says why a fresh capsule gets
+   * one. `cargo.ts` is where it counts down.
    */
   grace: number;
 }
@@ -74,8 +74,8 @@ export function traceShot<S extends ShootableShip, C extends Drifting>(
     if (!ship.state.alive) continue;
     const dist = ship.object.position.distanceTo(origin);
     if (dist > bestDist + ship.radius) continue; // cheap reject before triangles
-    // Raycaster reads matrixWorld, which three.js only refreshes during
-    // render — without this the shot is tested against the ship's position one
+    // Raycaster reads matrixWorld, and three.js refreshes that only during a
+    // render. Without this, the shot tests against the ship's position one
     // frame ago, and against the ORIGIN for anything spawned this frame.
     ship.object.updateMatrixWorld(true);
     for (const h of ray.intersectObject(ship.object, true)) {
@@ -86,9 +86,9 @@ export function traceShot<S extends ShootableShip, C extends Drifting>(
     }
   }
 
-  // Drifting cargo is solid too, and was once in the same blind spot as the
-  // station: canisters are not in the ship list, so shots passed straight
-  // through them and nothing happened at all.
+  // Loose cargo is solid too, and it once sat in the same blind spot as the
+  // station. A canister is not in the ship list, so a shot passed straight
+  // through it and nothing happened at all.
   for (const c of cargo) {
     // A capsule still inside the fireball is not a target, exactly as a dead
     // ship is not one two lines up.

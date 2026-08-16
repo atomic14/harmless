@@ -1,11 +1,11 @@
-// The 1984 chart metric: the two numbers that turn a pair of chart coordinates
-// into a distance in tenths of a light year, and the span of the coordinate space
-// that every chart projects. The arithmetic is `distanceTenths` in
+// The 1984 chart metric. Two numbers turn a pair of chart coordinates into a
+// distance in tenths of a light year. A third is the span of the coordinate
+// space every chart projects. The arithmetic is `distanceTenths` in
 // galaxy/navigation.ts.
 //
-// A tenth of a light year is also the unit that the fuel tank holds. A jump's
-// fare and the reach of a full tank are therefore the same quantity as a chart
-// distance, which is why there is no light-years-per-unit-of-fuel constant.
+// A tenth of a light year is also the unit the fuel tank holds. So a jump's
+// fare, and the reach of a full tank, are the same quantity as a chart
+// distance. That is why there is no light-years-per-unit-of-fuel constant.
 
 /**
  * Tenths of a light year in one unit of chart x. It is the scale that makes the
@@ -47,10 +47,11 @@ export const LOCAL_SCALE = 15;
 export const LOCAL_CANVAS = 560;
 
 /**
- * The galactic chart's canvas, in px. It has its own home because two things now
- * read it: the markup that sizes the canvas, and the conversion from pixels to
- * chart units that decides how near the pointer must be to pick a trade lane.
- * That conversion runs with no DOM to ask, in tests and headless.
+ * The galactic chart's canvas, in px. It has its own home because two things
+ * now read it. The first is the markup that sizes the canvas. The second is the
+ * conversion from pixels to chart units, which decides how near the pointer
+ * must be to pick a trade lane. That conversion runs with no DOM to ask, in a
+ * test and headless.
  *
  * `CHART_CANVAS_W / CHART_SPAN_X` is about 3 px a system. That is the whole
  * legibility budget that every chart overlay is designed against.
@@ -70,8 +71,8 @@ export const CHART_CANVAS_H = 400;
  * pixels. Each chart converts it to chart units, because one pixel is about 13x
  * more chart on the galactic view than on the short-range one.
  *
- * It is smaller than the 28 px that a click snaps to a system by. Lanes are long
- * targets, and dozens of them are on screen, so a generous radius would pick a
+ * It is smaller than the 28 px a click snaps to a system by. Lanes are long
+ * targets, and dozens of them are on screen. A generous radius would pick a
  * neighbouring lane while the pointer sat on a star.
  */
 export const LANE_PICK_PX = 8;

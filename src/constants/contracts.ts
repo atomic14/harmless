@@ -1,6 +1,9 @@
-// The station bulletin board: how much work you may hold, how far away a job may
-// send you, what a berth costs the hold, and what notoriety a delivery of illicit
-// freight leaves behind at the far end.
+// The station bulletin board. Four things live here:
+//
+//   1. how much work you may hold;
+//   2. how far away a job may send you;
+//   3. what a berth costs the hold;
+//   4. what notoriety a delivery of illicit freight leaves at the far end.
 //
 // The board itself is game/contract-offers.ts, which owns the pay and the
 // deadlines. Its reward formula stays there, pinned in aggregate by
@@ -25,9 +28,11 @@ export const CONTRACT_RANGE = MAX_FUEL;
  *
  * A berth is bigger than the person in it: a bunk, air, water, and the bulkhead
  * around them. They are struck out of the same bays that would otherwise hold
- * freight. That competition is the point of passenger work. At 2 t, a three-berth
- * job takes 6 of a standard 20 t hold, which is a bite you feel, and one that the
- * 35 t Large Cargo Bay visibly relieves. 1 t would make the trade-off invisible.
+ * freight. That competition is the point of passenger work.
+ *
+ * At 2 t, a three-berth job takes 6 of a standard 20 t hold. That is a bite you
+ * feel, and one the 35 t Large Cargo Bay visibly relieves. 1 t would make the
+ * trade-off invisible.
  * 4 t would price passengers out of a small hold entirely.
  *
  * It is derived, never stored. `commander.ts`'s `cargoTonnes` counts the berths
@@ -50,9 +55,9 @@ export const PASSENGER_BERTH_TONNES = 2;
  * loudly. A market sale is one hold that empties into a legitimate exchange. A
  * consignment delivered with no questions asked is a working arrangement that
  * somebody remembers. At 0.06, a two-tonne job costs 0.12 heat, and a five-tonne
- * job costs 0.30. That is a whole grade of the 0..1 scale for the biggest run, so
- * the reward has bought you something that the *next* arrival pays for.
- * galaxy/living.ts spreads it to the neighbours, and `HEAT_DECAY` takes a
+ * job costs 0.30. That is a whole grade of the 0..1 scale for the biggest run.
+ * So the reward buys you something, and the *next* arrival pays for it. The
+ * neighbours get their share through galaxy/living.ts, and `HEAT_DECAY` takes a
  * fortnight to forget it.
  *
  * It is regional heat, NOT character. The deed also marks your reputation, and
@@ -62,9 +67,9 @@ export const PASSENGER_BERTH_TONNES = 2;
  * this (invariant 15). That is why it is a rate here, rather than a literal at
  * either call site.
  *
- * It lives with the board rather than beside the disrepute deeds, because it is a
- * property of the JOB, like `PASSENGER_BERTH_TONNES` above. character.ts is
- * explicitly not about the Government or the regions.
+ * It lives with the board rather than beside the disrepute deeds. It is a
+ * property of the JOB, like `PASSENGER_BERTH_TONNES` above. Meanwhile
+ * character.ts is explicitly not about the Government or the regions.
  *
  * It has its own rule id: it shares no meaning with any other small fraction.
  *

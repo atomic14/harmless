@@ -3,13 +3,15 @@
 //
 // CLAUDE.md's key-bindings invariant asks for one home per binding, and for
 // every surface that lists it to be rendered. A hand-written table here is the
-// one nobody remembers — a page you read once and never open again — and
-// this file HAD one: a COMMANDS array that had missed the combat computer, the
-// energy bomb, the galactic jump, the distress beacon and ⇧Y, and that listed D
-// as a flight key when it is bound at the station and nowhere else. So both
-// tables are generated now: the flight axes from `allLayouts()`, the commands
-// from `BINDINGS` and `COMMAND_HELP` via `ui/key-help.ts`, per mode, so the
-// scope cannot be wrong either.
+// one nobody remembers. It is a page you read once and never open again.
+//
+// This file HAD one: a COMMANDS array. It left out the combat computer, the
+// energy bomb, the galactic jump, the distress beacon and ⇧Y. It also listed D
+// as a flight key, and D is bound at the station and nowhere else.
+//
+// So both tables are generated now. The flight axes come from `allLayouts()`.
+// The commands come from `BINDINGS` and `COMMAND_HELP`, via `ui/key-help.ts`,
+// per mode. So the scope cannot be wrong either.
 
 import { allLayouts, type Keymap, type LayoutName } from './engine/keymap.ts';
 import { keyLabel, manualCommandsHtml } from './ui/key-help.ts';
@@ -50,9 +52,9 @@ if (host) {
     ${manualCommandsHtml()}`;
 }
 
-// The combat ladder, from the same table `rating()` reads. Hand-written here
-// once, and it had silently dropped BELOW AVERAGE — a commander could read
-// their own rating off the status screen and not find it on the chart.
+// The combat ladder, from the same table `rating()` reads. It was hand-written
+// here once, and it silently dropped BELOW AVERAGE. A commander could read her
+// own rating off the status screen, and not find it on the chart.
 const ladder = document.getElementById('rating-ladder');
 if (ladder) {
   const ranks = ratingLadder();
