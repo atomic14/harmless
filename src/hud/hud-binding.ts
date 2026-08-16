@@ -21,7 +21,8 @@ import {
   scannerContacts, projectMarker, shipIdUnderView, nearestHostile, dockingAid,
   screenTargets,
 } from './hud-model.ts';
-import { hostilesNear, type NpcShip } from '../game/npc.ts';
+import type { NpcShip } from '../game/npc.ts';
+import { hostilesNear } from '../game/hostility.ts';
 import type { CommanderData } from '../game/commander.ts';
 import { ENERGY_BANKS, MAX_ENERGY, MAX_SHIELD } from '../constants/pools.ts';
 import { energyLow, type ShipSystems } from '../game/systems.ts';

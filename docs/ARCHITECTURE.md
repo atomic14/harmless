@@ -116,8 +116,10 @@ Two quirks are deliberate:
 
 ## Combat and pilots
 
-- `src/game/npc.ts` owns the NPC behaviours. `brain-names.ts` is the source of
-  truth for a pilot assignment. `brains.ts` imports no trained weights today.
+- `src/game/npc.ts` owns the NPC behaviours. `hostility.ts` owns one rule over
+  a fleet: it answers whether a ship attacks the commander, and it names no
+  ship class (docs/TODO/169). `brain-names.ts` is the source of truth for a
+  pilot assignment. `brains.ts` imports no trained weights today.
 - `pursuit` flies the shipped opposition. `attack-run` names the defensive
   flight logic: the armed trader's three-phase run, and the player's
   pure-pursuit combat computer. `scripted` is the A/B control. It restores the

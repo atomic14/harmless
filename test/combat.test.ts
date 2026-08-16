@@ -28,7 +28,7 @@ import { CLEAN, FUGITIVE, CONTRABAND } from '../src/constants/law.ts';
 import { characterRung } from '../src/game/character.ts';
 import type { CommanderData } from '../src/game/commander.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { isHostileToPlayer } from '../src/game/npc.ts';
+import { isHostileToPlayer } from '../src/game/hostility.ts';
 import { npcImpactDamage } from '../src/game/impact-damage.ts';
 import { IMPACT } from '../src/constants/impact.ts';
 import {

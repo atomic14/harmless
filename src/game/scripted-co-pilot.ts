@@ -26,7 +26,8 @@
 
 import * as THREE from 'three';
 import { ThreatLock } from './threat-lock.ts';
-import { isHostileToPlayer, type NpcShip } from './npc.ts';
+import type { NpcShip } from './npc.ts';
+import { isHostileToPlayer } from './hostility.ts';
 import type { AutopilotShip } from './combat-computer.ts';
 import { hitCone } from './gunnery.ts';
 import { autopilotEcm } from './ordnance.ts';

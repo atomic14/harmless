@@ -21,7 +21,7 @@ import {
 import { buyEquipment, type TradeContext } from '../src/game/screens/trade.ts';
 import { EQUIPMENT_CATALOGUE } from '../src/constants/shop.ts';
 import { characterRung } from '../src/game/character.ts';
-import { isHostileToPlayer } from '../src/game/npc.ts';
+import { isHostileToPlayer } from '../src/game/hostility.ts';
 import {
   BINDINGS,
 } from '../src/game/bindings.ts';

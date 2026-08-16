@@ -18,7 +18,8 @@
 
 import * as THREE from 'three';
 import { formatCredits } from './commander.ts';
-import { nearestEngaging, nearestNpc, type NpcShip } from './npc.ts';
+import type { NpcShip } from './npc.ts';
+import { nearestEngaging, nearestNpc } from './hostility.ts';
 import {
   bribeOffered, carryingContraband, inspectionPrice, patrolPrice, patrolReach,
   recordCleared, recordVerdict, recordWorkedOff,

@@ -212,7 +212,7 @@ export function recordWorkedOff(
  * record alone?
  *
  * The other half of the ladder `offenceFor` climbs, and the only home of it.
- * `npc.ts`'s `isHostileToPlayer` spends this to decide who attacks. The console
+ * `hostility.ts`'s `isHostileToPlayer` spends this to decide who attacks. The console
  * spends it to say what a record just cost you. Written out in both places, the
  * message would be free to lie about the rule.
  *
@@ -232,8 +232,8 @@ export function lawTakesInterest(role: string, legalStatus: number): boolean {
  * Does the station's truce cover a ship of this role right now?
  *
  * A **truce** is the promise that the lawless leave the commander alone near
- * the port (`STATION_TRUCE`, constants/law.ts). `npc.ts`'s `isHostileToPlayer`
- * is its only reader. That is what makes the ship, the HUD blip, the combat
+ * the port (`STATION_TRUCE`, constants/law.ts). `hostility.ts`'s
+ * `isHostileToPlayer` is its only reader. That is what makes the ship, the HUD blip, the combat
  * computer and the bribe key give one answer (docs/TODO/158).
  *
  * **The police are NOT covered.** They are the station's own, and a Fugitive

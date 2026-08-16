@@ -17,7 +17,8 @@
 import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
 import { seedWorld } from '../src/game/rng.ts';
-import { NpcShip, hostilesNear } from '../src/game/npc.ts';
+import { NpcShip } from '../src/game/npc.ts';
+import { hostilesNear } from '../src/game/hostility.ts';
 import {
   nextAttackPhase, closingThrottle, describeFlight, type AttackPhase,
   rollExtendRange,
@@ -127,8 +128,11 @@ console.log('\nNPC break-off');
     // brains.ts left the consumer list on 2026-08-05: the guard went with
     // pirateBrainFor when the trained pirate policies were deleted.
     ['constants/attack-run.ts', BREAK_OFF_RANGE, ['game/npc.ts']],
+    // `game/hostility.ts` is the fourth reader, out of docs/TODO/169 M2. The
+    // fleet queries took the range with them when they left `game/npc.ts`.
     ['constants/player-interest.ts', PLAYER_INTEREST_RANGE,
-      ['game/npc.ts', 'game/npc-targeting.ts', 'hud/hud-model.ts']],
+      ['game/npc.ts', 'game/npc-targeting.ts', 'hud/hud-model.ts',
+        'game/hostility.ts']],
   ] as const;
   for (const [home, value, consumers] of ONE_HOME) {
     const literal = new RegExp(`\\b${value}\\b`), base = home.split('/').pop()!;

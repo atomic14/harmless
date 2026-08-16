@@ -4,6 +4,68 @@
 nothing · **Blocks:** nothing · **GitHub:** none — promoted from the backlog by
 the sweep of 2026-08-16
 
+## What M2 landed, 2026-08-17
+
+**The fleet queries are `src/game/hostility.ts` now, at 169 lines.** `npc.ts`
+went 1,677 lines to 1,566. `npm run check` passes at 4,752 assertions.
+
+**The recommendation was taken, and the narrow interface is two interfaces.**
+`FleetShip` is a position and `alive`, which is the whole of what `nearestNpc`
+reads. `HostileShip` adds the role and three more flags. The narrower question
+keeps the narrower dependency.
+
+**A generic parameter is what the plan did not have.** `nearestNpc` and
+`nearestEngaging` return the ship they were given. Written against the
+interface alone, each one would hand a caller back a `FleetShip`, and every
+call site would need a cast. `<T extends FleetShip>` returns the caller's own
+type, so `law-actions.ts` still gets an `NpcShip` back. That is what makes the
+move a move rather than a change to eight call sites.
+
+**`engaging` did not move as an export, because it never was one.** It is
+private to the new file, and `hostilesNear` and `nearestEngaging` are its only
+callers.
+
+**Eight files in `src/` and eight tests were repointed.** Six of the eight
+source files keep a `type NpcShip` import for their own signatures, so the
+import is split in two rather than deleted.
+
+### The gate, and the proof that it fails
+
+**`test/hostility.test.ts` is 13 assertions in two parts.** The first part is
+the source scan the plan asked for. The second is a fixture: an object literal
+with a role, four flags and a position drives all four exported functions.
+
+**A scan alone is not enough.** It cannot say whether the type is
+honestly narrow, and a signature can name no class while still needing one. The
+fixture constructs no ship at all, so it answers what the scan cannot.
+
+**Proved able to fail.** With `import type { NpcShip } from './npc.ts'` put
+into `hostility.ts`, both scan claims go red and the control stays green. The
+control is `game/combat-computer.ts`, which does name the class.
+
+**The scan strips the comments first, and the prose names `NpcShip` three
+times.** Each of the three tells a reader which callers hand one in. The test
+header says so, because a claim of "nowhere in the file" would be false.
+
+### Two stale claims came out of the move
+
+**`src/game/law.ts` named the wrong file twice.** Both `lawTakesInterest` and
+`truceHolds` said `npc.ts`'s `isHostileToPlayer` reads them. They say
+`hostility.ts` now.
+
+**`test/break-off.test.ts` held a consumer list that lost a member.**
+`PLAYER_INTEREST_RANGE` had three named readers, and the fleet queries took the
+constant with them. `game/hostility.ts` is the fourth, and the list names it.
+
+**`docs/ARCHITECTURE.md` gained a line**, under docs/TODO/166's rule. The map
+named `npc.ts` and could not name a module that did not exist yet.
+
+### The evidence that no rule moved
+
+**All five probes are byte-identical to the M1 baseline.** They are
+`roster-probe`, `survivability`, `defence-probe`, `aim-probe` and `gap-probe`.
+The item has no licence to move a rule, and a byte-identical table is the claim.
+
 ## What M1 landed, 2026-08-16
 
 **The file says what it does, and the debt row says what the measurement

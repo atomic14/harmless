@@ -15,7 +15,8 @@ import * as THREE from 'three';
 import { World } from '../src/game/world.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { launchStationDefence, spawnPopulation } from '../src/game/spawning.ts';
-import { isHostileToPlayer, type NpcShip } from '../src/game/npc.ts';
+import type { NpcShip } from '../src/game/npc.ts';
+import { isHostileToPlayer } from '../src/game/hostility.ts';
 import { slotNormal } from '../src/world/slot.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import {

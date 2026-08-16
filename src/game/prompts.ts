@@ -33,7 +33,8 @@ import { holdHasCargo } from './jettison.ts';
 import {
   carryingContraband, inspectionPrice, patrolPrice, patrolReach,
 } from './law.ts';
-import { nearestEngaging, nearestNpc, type NpcShip } from './npc.ts';
+import type { NpcShip } from './npc.ts';
+import { nearestEngaging, nearestNpc } from './hostility.ts';
 import { PROMPT_LIMIT } from '../constants/console.ts';
 import { DISREPUTE_BRIBE } from '../constants/character.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';

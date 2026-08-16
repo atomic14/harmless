@@ -16,7 +16,8 @@ import { freshState } from '../src/game/state.ts';
 import { newCommander } from '../src/game/commander.ts';
 import { pirateBrainNameFor } from '../src/game/brain-names.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { isHostileToPlayer, NpcShip } from '../src/game/npc.ts';
+import { NpcShip } from '../src/game/npc.ts';
+import { isHostileToPlayer } from '../src/game/hostility.ts';
 import { npcMaxEnergy } from '../src/game/npc-energy.ts';
 import {
   SPECS,

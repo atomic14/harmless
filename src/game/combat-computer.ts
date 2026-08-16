@@ -23,7 +23,8 @@ import {
 import {
   observeFor, shipView, writeView, type ThreatsView, type V3,
 } from '../ai-training/observation.ts';
-import { isHostileToPlayer, type NpcShip } from './npc.ts';
+import type { NpcShip } from './npc.ts';
+import { isHostileToPlayer } from './hostility.ts';
 import { autopilotEcm } from './ordnance.ts';
 import {
   aftShieldLeft, energyLeft, foreShieldLeft, poolsLeft, type ShipSystems,

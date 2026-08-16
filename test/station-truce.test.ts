@@ -19,7 +19,10 @@
 // they were spawned at. That is the cause the issue did not report.
 
 import * as THREE from 'three';
-import { NpcShip, isHostileToPlayer, hostilesNear, nearestEngaging } from '../src/game/npc.ts';
+import { NpcShip } from '../src/game/npc.ts';
+import {
+  isHostileToPlayer, hostilesNear, nearestEngaging,
+} from '../src/game/hostility.ts';
 import type { NpcRole } from '../src/game/ship-roles.ts';
 import { truceHolds } from '../src/game/law.ts';
 import { CLEAN, OFFENDER, FUGITIVE, STATION_TRUCE } from '../src/constants/law.ts';

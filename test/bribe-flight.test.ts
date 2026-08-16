@@ -24,7 +24,8 @@ import {
   inspectionPrice, patrolPrice, refusalChance,
 } from '../src/game/law.ts';
 import { formatCredits } from '../src/game/commander.ts';
-import { isHostileToPlayer, type NpcShip } from '../src/game/npc.ts';
+import type { NpcShip } from '../src/game/npc.ts';
+import { isHostileToPlayer } from '../src/game/hostility.ts';
 import {
   CLEAN, CONTRABAND, FUGITIVE, SCAN_RANGE, SCAN_WARN_RANGE,
 } from '../src/constants/law.ts';

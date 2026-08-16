@@ -23,24 +23,25 @@
 // static buffers for that reason alone. A fresh vector inside `update` costs an
 // allocation per ship per frame.
 //
-// FOUR THINGS HERE BELONG TO SOME OTHER FILE, and docs/TODO/169 measured all
-// four. This header names them, so the next reader sees the whole shape:
+// THE FLEET QUERIES LEFT IN docs/TODO/169 M2, and `game/hostility.ts` holds
+// them now. They are `isHostileToPlayer`, `hostilesNear`, `nearestEngaging` and
+// `nearestNpc`. This file asks the first of them, like the other seven readers
+// do. It is a rule over a fleet rather than a thing a ship does.
 //
-//  1. THE FLEET QUERIES, at 101 lines. `isHostileToPlayer`, `engaging`,
-//     `hostilesNear`, `nearestEngaging` and `nearestNpc` are pure functions
-//     over a fleet. `isHostileToPlayer` is a law rule that six surfaces read
-//     (docs/TODO/158), and it sits inside a class file.
-//  2. THE FLIGHT HALF, at 244 lines of the class. `brainFly`, `pursuitFly`,
+// THREE THINGS HERE STILL BELONG TO SOME OTHER FILE, and docs/TODO/169 measured
+// all three. This header names them, so the next reader sees the whole shape:
+//
+//  1. THE FLIGHT HALF, at 244 lines of the class. `brainFly`, `pursuitFly`,
 //     `steerToward`, `faceToward`, `advance`, `nosePosition`, `facing`,
 //     `bindTransform` and `matePositions` say HOW a ship moves. The behaviour
 //     half says WHERE it goes.
-//  3. `NpcState`, at 184 lines. It is the saved shape of a ship rather than a
+//  2. `NpcState`, at 184 lines. It is the saved shape of a ship rather than a
 //     behaviour, and a snapshot walks it generically.
-//  4. `steerQuatToward` and `velocityOf`, at 29 lines. Both are shared flight
+//  3. `steerQuatToward` and `velocityOf`, at 29 lines. Both are shared flight
 //     maths. The HUD's lead marker reads `velocityOf`, and the HUD flies
 //     nothing.
 //
-// Each of the four is a candidate rather than a decision. docs/TODO/169 M4
+// Each of the three is a candidate rather than a decision. docs/TODO/169 M4
 // measures again, and it says what leaves.
 import * as THREE from 'three';
 import { buildShip, buildAsteroid, buildHermitBeacon,
@@ -77,7 +78,8 @@ import {
 import { TACTICS, type TacticId } from '../constants/tactics.ts';
 import { chooseTactic, tacticSwitchReason, type TacticHull } from './tactic-choice.ts';
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
-import { lawTakesInterest, truceHolds } from './law.ts';
+import { truceHolds } from './law.ts';
+import { isHostileToPlayer } from './hostility.ts';
 import { STATION_TRUCE } from '../constants/law.ts';
 import { AMBLE_NEAR, AMBLE_SPAN } from '../constants/amble.ts';
 import { separationFrom } from './separation.ts';
@@ -361,118 +363,6 @@ export interface WorldView {
 export type FireEvent =
   | { at: 'player'; weapon: 'laser' | 'missile' }
   | { at: NpcShip; weapon: 'laser' };
-
-/**
- * The single source of truth for "does this ship attack the player?".
- *
- * Both the NPC's own decision loop and the game's condition and HUD logic use
- * it. legalStatus: 0 clean, 1 offender, 2 fugitive.
- *
- * @param playerToStation how far the commander is from the station, for the
- * truce below. It is REQUIRED rather than defaulted. A reader that forgot it
- * would treat a ship that attacks nobody as a threat. That is a red blip, or
- * the commander's own combat computer aimed at it (docs/TODO/158).
- */
-export function isHostileToPlayer(
-  npc: NpcShip, legalStatus: number, playerToStation: number,
-): boolean {
-  if (!npc.state.alive || npc.state.inert) return false;
-  // A ship that took its payday stops caring about you. That is what makes a
-  // jettisoned cargo a real escape rather than a donation. It is asked FIRST,
-  // before the role, so it means the same thing for every ship that can be
-  // bought. A pirate takes cargo and a policeman takes credits (docs/TODO/123).
-  // What they have in common is that they are done with you.
-  if (npc.state.satisfied) return false;
-  // The station's truce, and the commander who ends it. `provokedByPlayer` is
-  // set by `takeDamage` for damage from the commander, whatever the role. So a
-  // ship shot at inside the truce answers exactly as it does outside one. A
-  // truce that covered that case would make the port a free firing position.
-  if (!npc.state.provokedByPlayer && truceHolds(npc.role, playerToStation)) return false;
-  return (
-    npc.role === 'pirate' || npc.role === 'thargoid' || npc.role === 'thargon' ||
-    // The law's two roles. They come for you on the record, by
-    // `lawTakesInterest` in game/law.ts, which owns which status each of them
-    // reads. They also come because you shot at them.
-    //
-    // provokedByPlayer, not provoked. takeDamage() flags `provoked` for damage
-    // from any source. To read it would let a Viper in a firefight with a
-    // pirate turn on a clean commander as though he were a fugitive.
-    ((npc.role === 'police' || npc.role === 'hunter')
-      && (npc.state.provokedByPlayer || lawTakesInterest(npc.role, legalStatus)))
-  );
-}
-
-/**
- * Is this ship both cross with you and close enough to act on it?
- *
- * The same range the ship itself engages at, from
- * `constants/player-interest.ts`. One home for it, because everything that
- * answers "who is in this fight" has to agree. Those are the condition light
- * below, and the bribe key, which may only buy off a ship that is on you.
- */
-function engaging(
-  npc: NpcShip, playerPos: THREE.Vector3, legalStatus: number, playerToStation: number,
-): boolean {
-  return isHostileToPlayer(npc, legalStatus, playerToStation)
-    && npc.object.position.distanceTo(playerPos) < PLAYER_INTEREST_RANGE;
-}
-
-/**
- * Is anything close enough and cross enough to turn the condition light red?
- *
- * The light reports the rule rather than restating it. That is what stops the
- * console from going red at a ship which decided nothing.
- */
-export function hostilesNear(
-  npcs: readonly NpcShip[], playerPos: THREE.Vector3, legalStatus: number,
-  playerToStation: number,
-): boolean {
-  return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation));
-}
-
-/**
- * The nearest ship of `role` that is engaging you, and how far off it is.
- *
- * What the bribe key spends. An offer can only go to a ship that is in this
- * fight, and "in this fight" is the rule the red light reports. It is not a
- * range of its own.
- */
-export function nearestEngaging(
-  npcs: readonly NpcShip[], playerPos: THREE.Vector3, legalStatus: number, role: string,
-  playerToStation: number,
-): { npc: NpcShip; distance: number } | null {
-  return nearestNpc(npcs, playerPos,
-    (npc) => npc.role === role && engaging(npc, playerPos, legalStatus, playerToStation));
-}
-
-/**
- * The nearest LIVING ship the predicate accepts, and how far off it is — or
- * null when the sky holds none.
- *
- * "Which one is nearest, of the ones that count?" was written out wherever it
- * was asked. The step's police scan had its own loop. The bribe key (game.ts)
- * needed the same sweep at the same range, plus a second one for the ships
- * already in the fight.
- *
- * The predicate is the only thing that differs between them, so it is the only
- * thing passed. The aliveness and the distance are the part nobody should
- * restate.
- *
- * `inert` is deliberately NOT filtered here. A ship that stopped deciding is
- * still a ship in the sky, and `isHostileToPlayer` is the rule that knows
- * which questions care.
- */
-export function nearestNpc(
-  npcs: readonly NpcShip[], from: THREE.Vector3, wants: (npc: NpcShip) => boolean,
-): { npc: NpcShip; distance: number } | null {
-  let best: { npc: NpcShip; distance: number } | null = null;
-  for (const npc of npcs) {
-    if (!npc.state.alive || !wants(npc)) continue;
-    const distance = npc.object.position.distanceTo(from);
-    if (!best || distance < best.distance) best = { npc, distance };
-  }
-  return best;
-}
 
 export type TraderPhase = 'arriving' | 'trading' | 'departing' | 'docking';
 

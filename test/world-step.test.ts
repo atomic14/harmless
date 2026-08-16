@@ -50,7 +50,7 @@ import {
 } from '../src/constants/law.ts';
 import { SCANNER_RANGE } from '../src/constants/console.ts';
 import { recordVerdict } from '../src/game/law.ts';
-import { isHostileToPlayer } from '../src/game/npc.ts';
+import { isHostileToPlayer } from '../src/game/hostility.ts';
 import { DISREPUTE_CAUGHT } from '../src/constants/character.ts';
 import { check } from './harness.ts';
 

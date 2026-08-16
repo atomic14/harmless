@@ -35,7 +35,7 @@
 import type { FlightDemand } from '../player.ts';
 import type { Brain } from '../ai-training/policy.ts';
 import type { V3 } from '../ai-training/observation.ts';
-import { hostilesNear } from './npc.ts';
+import { hostilesNear } from './hostility.ts';
 import { defenceBrainNameFor } from './brain-names.ts';
 import type { CombatComputer } from './combat-computer.ts';
 import { ScriptedCoPilot } from './scripted-co-pilot.ts';
