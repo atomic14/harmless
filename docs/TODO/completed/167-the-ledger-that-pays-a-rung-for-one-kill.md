@@ -163,3 +163,79 @@ assertion 1 go red.
   band and the two fine levels. This item does not re-open that.
 - **`combat-sim.ts:767` drops the `atonement` event on purpose.** The exercise
   never moves the career's record. Leave it.
+
+## What landed
+
+**Both milestones landed on 2026-08-16.** `npm run check` passes at **4,721
+assertions**, up 2. No rule moved. `constants:check` reports 387 exports and 76
+rule ids, unchanged.
+
+**The report was exact, and the measurement confirms it:**
+
+```
+recordWorkedOff(FUGITIVE, undefined) -> { legalStatus: 1, atonement: 0 }
+recordWorkedOff(FUGITIVE, 0)         -> { legalStatus: 2, atonement: 1 }
+recordWorkedOff(FUGITIVE, 4)         -> { legalStatus: 1, atonement: 0 }
+```
+
+An absent ledger behaves exactly like a fully paid one. The comment named a
+silent loss. The behaviour is a loud gift of four kills.
+
+**The third claim is false, and the record proves it.** `git log -S` shows that
+`atonement` and `SNAPSHOT_VERSION = 3` arrived in ONE commit, 73dae16, which is
+docs/TODO/160 M1. So no version 2 save can hold a part-paid rung. The clause
+that priced the raise at up to `KILLS_PER_RUNG - 1` kills is gone from every
+copy.
+
+**THE ITEM'S REAL FINDING IS THE COUNT. One wrong sentence had six homes**, and
+the plan named two of them. The sweep found the rest:
+
+1. `src/game/snapshot.ts` — the migration comment, which is M1's subject;
+2. `docs/TODO/README.md` — the 161 entry;
+3. `docs/TODO/completed/161-a-save-that-is-refused-rather-than-raised.md` — the
+   triage paragraph the other five descend from;
+4. `docs/TODO/completed/README.md` — the 161 index entry;
+5. `test/snapshot-migrate.test.ts` — the comment over the last block;
+6. `test/atonement.test.ts` — the comment over the migration check, which
+   carried the third claim rather than the first.
+
+**A record is corrected rather than rewritten.** The three archive sites keep
+their words and carry a dated correction note. The house style does not rewrite
+a record of what somebody decided. A record that states a false FACT is a
+different case: correct the fact, and mark the correction.
+
+**M2's answer is no guard, and the proof is in the test.** `recordWorkedOff`
+stays three lines and trusts its two numbers. The cause is a save with no field,
+and two layers already answer it. A third would be a rule with two homes.
+
+**The two new assertions live in `test/atonement.test.ts` rather than in
+`test/snapshot-migrate.test.ts`, and that is a deviation from the plan.** They
+pin what `recordWorkedOff` RETURNS, and that file's rule block is the home of
+every other assertion of that kind. The migration file names it instead. The
+plan's third assertion is not added at all: `a ledger of 0 does NOT move the
+rung` is already the second check in that block, four lines above, so a copy
+would be the same defect this item is about.
+
+**Both gates were proved able to fail, and separately.**
+
+1. With the version 2 entry out of `MIGRATIONS`, the migration checks in
+   `test/snapshot-migrate.test.ts` go red. The raised snapshot comes back
+   `undefined`.
+2. With the guard M2 rejected put into `recordWorkedOff`, exactly the two new
+   assertions go red — `got 2, want 1` and `got 1, want 0`. Nothing else in the
+   file moves.
+
+**The second proof is also M2's evidence.** A guard is a real behaviour change
+rather than a tidy-up, and this test now says so out loud.
+
+**The shelf layer is read from the code and is NOT measured.** `repairCommander`
+(`src/game/storage.ts:492`) opens with `{ ...newCommander(), ...stored }`, and
+`newCommander()` sets `atonement: 0`. `JSON.parse` never produces an explicit
+`undefined`, so an absent key does not overwrite that 0. `repairCommander` is
+private and `readSave` needs a store, which node has not got. So this half stays
+an argument from the code. Do not upgrade it to a measurement without a store.
+
+**One thing came out of it that the plan did not have.** The first draft of M1's
+comment used a compound tense, and `npm run ste:check` failed it:
+`snapshot.ts:96 tense: had claimed`. The gate docs/TODO/154 M4 landed caught a
+comment written the same day it was told to gate.

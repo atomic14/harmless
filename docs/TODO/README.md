@@ -13,33 +13,31 @@ active context:
 
 ## Execution queue
 
-**Five items, and they came out of one sweep on 2026-08-16.** Chris asked for
+**Four items, and they came out of one sweep on 2026-08-16.** Chris asked for
 an architectural and bug sweep against a tree where `npm run check` passed. The
 order below is by value over cost, and not by severity.
 
-1. [167 — the ledger that pays a rung for one kill](167-the-ledger-that-pays-a-rung-for-one-kill.md)
-   · defect · small. The comment that justifies the version 2 migration states
-   the opposite of what `recordWorkedOff` does.
-2. [165 — a citation that names nothing](165-a-citation-that-names-nothing.md)
+1. [165 — a citation that names nothing](165-a-citation-that-names-nothing.md)
    · defect · small. Three cited plan numbers resolve to no file. One is cited
    from `src/`. 147 was never committed, and 162 rests a decision on it.
-3. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
+2. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
    · defect · medium. `docs/ARCHITECTURE.md` makes three false claims and names
    none of the fourteen modules the decomposition programme created.
-4. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
+3. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
    · gap · medium. `ste:check` reads comments in source. The style's stated
    scope also holds ten markdown documents, and the tool finds no sentence in
    one.
-5. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
+4. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**Nothing in the queue changes a game rule.** Four are defects in a seam or a
-document. The fifth is a decomposition, and its evidence is five probes that
-must come back byte-identical.
+**Nothing in the queue changes a game rule.** Three are defects in a document.
+The fourth is a decomposition, and its evidence is five probes that must come
+back byte-identical.
 
-**164 and 163 landed on 2026-08-16 and are below.** They were the first two
-items of the sweep's queue, and the second was found by the first.
+**164, 163 and 167 landed on 2026-08-16 and are below.** They were the first
+three items of the sweep's queue. Each of the three was one thing written down
+once and never checked again: a path, a lookup, and a paragraph.
 
 **154 landed on 2026-08-16 and is below.** It was the last item in the queue,
 and the largest of the four that came out of the 2026-08-14 review. Its own
@@ -124,6 +122,47 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**167 — the ledger that pays a rung for one kill.** The comment that justifies
+docs/TODO/161's version 2 migration stated the opposite of what the code does.
+It said an absent `atonement` leaves a commander who can never work a record off
+again, and that nothing says so.
+
+**Measured, both halves of that are false.** `undefined + 1` is `NaN`, and
+`NaN < KILLS_PER_RUNG` is false. So the rule skips the "part paid" branch and
+takes a whole rung on the FIRST pirate kill. It then writes `atonement: 0`, so
+the ledger heals itself. `LawActions.lowerLegal` queues `recordVerdict`, so the
+console announces the rung.
+
+**The comment named a silent loss. The behaviour is a loud gift of four kills.**
+
+**A third claim was false too.** `git log -S` shows that `atonement` and
+`SNAPSHOT_VERSION = 3` arrived in one commit, which is docs/TODO/160 M1. So no
+version 2 save can hold a part-paid rung, and the raise costs a pilot nothing.
+
+**THE ITEM'S REAL FINDING IS THE COUNT.** One wrong sentence had six homes, and
+the plan named two of them. The other four are 161's own plan doc, the completed
+index, `test/snapshot-migrate.test.ts` and `test/atonement.test.ts`.
+
+**A record is corrected rather than rewritten.** The three archive sites keep
+their words and carry a dated correction note. The house style does not rewrite
+a record of what somebody decided. A record that states a false FACT is a
+different case.
+
+**M2's answer is no guard.** `recordWorkedOff` stays three lines and trusts its
+two numbers. The cause is a save with no field, and two layers already answer
+it. A third would be a rule with two homes.
+
+**Both gates were proved able to fail, and separately.** With the version 2 entry
+out of `MIGRATIONS`, the migration checks go red. With the rejected guard put
+into the rule, exactly the two new assertions go red and nothing else moves.
+**The second proof is also M2's evidence**: a guard is a behaviour change rather
+than a tidy-up.
+
+**The shelf layer is read from the code and is NOT measured.**
+`repairCommander` opens with `{ ...newCommander(), ...stored }`, and
+`newCommander()` sets 0. It is private, and `readSave` needs a store that node
+has not got.
 
 **163 — the chart key that needs a browser.** `src/engine/shell.ts` promises a
 headless game. `src/ui/screen-shell.ts` holds the seam that keeps the promise:
@@ -338,6 +377,15 @@ caller's bytes as they were.
 `atonement` reaches `recordWorkedOff` as `undefined` and the ledger runs at NaN
 — for the rest of that career, saying nothing. The cost of the raise is bounded
 at four pirate kills, once.
+
+> **Correction, 2026-08-16 (docs/TODO/167).** The two sentences above state the
+> fault wrongly, and the same words were in the code. Measured, `NaN < 5` is
+> false, so the rule takes a whole rung on the first pirate kill and then writes
+> `atonement: 0`. The ledger heals itself, and `recordVerdict` announces the
+> rung. It is a gift of four kills rather than a silent loss. The raise costs
+> nothing at all: docs/TODO/160 added the field and raised the version in one
+> commit, so no version 2 save holds a part-paid rung. **The migration is still
+> right, and only this reason was wrong.**
 
 **Two things the work found.** `parseSnapshot` returned `raw` rather than the
 object it had validated. The two were the same object until a migration copied

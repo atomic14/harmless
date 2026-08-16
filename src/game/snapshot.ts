@@ -85,11 +85,23 @@ interface Migration {
 const MIGRATIONS: readonly Migration[] = [
   {
     // 2 → 3. `commander.atonement` is WRITTEN rather than left to a default.
-    // `Persistence.restore` clones the commander straight in. So an absent
-    // field reaches `recordWorkedOff` as undefined, and the ledger runs at NaN.
-    // A commander in that state can never work a record off again, and nothing
-    // says so. 0 costs a pilot up to `KILLS_PER_RUNG - 1` kills of credit, once
-    // (docs/TODO/161).
+    //
+    // `Persistence.restore` clones the commander straight in, so an absent
+    // field reaches `recordWorkedOff` as `undefined`. The arithmetic there is
+    // three lines, and it does not fail loudly. `undefined + 1` is `NaN`.
+    // `NaN < KILLS_PER_RUNG` is false. So the rule skips the "part paid"
+    // branch and takes a whole rung on the FIRST pirate kill. It then writes
+    // `atonement: 0`, and the ledger heals itself.
+    //
+    // A rung is worth five kills, so that is a gift rather than a loss.
+    // `LawActions.lowerLegal` queues `recordVerdict` to announce it. THE
+    // MIGRATION IS WHAT STOPS IT: this step writes 0, so no save reaches that
+    // branch. This paragraph claimed the opposite until docs/TODO/167 measured
+    // the rule (docs/TODO/161).
+    //
+    // The 0 costs a pilot nothing. docs/TODO/160 added `atonement` and raised
+    // the version to 3 in one commit, so no version 2 save can hold a part-paid
+    // rung.
     from: 2,
     up: (snap) => {
       const commander = snap.commander;

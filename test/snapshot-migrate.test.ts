@@ -127,9 +127,13 @@ withoutSaving(() => {
 //
 // The reason the field is WRITTEN rather than permitted to be absent.
 // `Persistence.restore` clones the commander straight in, so an absent
-// `atonement` reaches `recordWorkedOff` as undefined and the ledger runs at NaN
-// for the rest of that career. This asserts the behaviour rather than the
-// field: a raised commander can still work a record off.
+// `atonement` reaches `recordWorkedOff` as `undefined`. That does not stall the
+// ledger; it empties it. `NaN < KILLS_PER_RUNG` is false, so the first pirate
+// kill takes a whole rung. `test/atonement.test.ts` pins that arithmetic, and
+// docs/TODO/167 is where this paragraph was corrected.
+//
+// This asserts the behaviour rather than the field: a raised commander works a
+// record off in five kills, and not in one.
 
 console.log('...and the commander it restores can still work a record off');
 withoutSaving(() => {

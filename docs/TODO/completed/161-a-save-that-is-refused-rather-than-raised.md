@@ -52,6 +52,16 @@ and the sentence does not yet separate them.
 that commander could never work a record off again, and nothing would say so.
 The migration must WRITE the field, not merely permit its absence.
 
+> **Correction, 2026-08-16 (docs/TODO/167).** The two sentences above are wrong
+> about which way the fault runs. `NaN < KILLS_PER_RUNG` is false, not true, so
+> the rule skips the "part paid" branch and takes a whole rung on the FIRST
+> pirate kill. It then writes `atonement: 0`, so the ledger heals itself, and
+> `LawActions.lowerLegal` queues `recordVerdict` to announce the rung.
+> Measured: `recordWorkedOff(FUGITIVE, undefined)` returns
+> `{ legalStatus: 1, atonement: 0 }`. **The conclusion still holds.** The
+> migration must write the field, and a gift of four kills is as wrong as a
+> silent loss.
+
 **A newer version must still be refused, and one gate already says so.**
 `test/snapshot-parse.test.ts:96` poisons a real snapshot with `version + 1` and
 demands a refusal. A migration that climbs from known older versions leaves that

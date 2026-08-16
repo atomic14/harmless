@@ -39,6 +39,20 @@ console.log('\nwhat a pirate kill pays off');
   eq('the first kill of a rung moves no rung', one?.legalStatus, FUGITIVE);
   eq('...and goes on the ledger', one?.atonement, 1);
 
+  // An ABSENT ledger, which is the value the snapshot migration exists to keep
+  // out. The arithmetic does not fail loudly. `undefined + 1` is `NaN`, and
+  // `NaN < KILLS_PER_RUNG` is false, so the rule skips the "part paid" branch
+  // and takes a whole rung on ONE kill. It reads as a fully paid ledger rather
+  // than as an empty one.
+  //
+  // Pinned here so that `snapshot.ts`'s migration comment cannot rot again. It
+  // claimed the opposite for a day, and no assertion could say so
+  // (docs/TODO/167). The two checks above are the control: a ledger of 0 does
+  // NOT move the rung, which is what makes these two mean something.
+  const absent = recordWorkedOff(FUGITIVE, undefined as unknown as number);
+  eq('an absent ledger takes a whole rung on one kill', absent?.legalStatus, OFFENDER);
+  eq('...and then heals itself to nothing', absent?.atonement, 0);
+
   const rung = recordWorkedOff(FUGITIVE, KILLS_PER_RUNG - 1);
   eq('the last kill of a rung takes one off the record', rung?.legalStatus, OFFENDER);
   eq('...and returns the ledger to nothing', rung?.atonement, 0);
@@ -182,9 +196,13 @@ console.log('...and the ledger survives a save');
 
   // WHY the version had to move: a version 2 save holds a commander who cannot
   // say how far through a rung they were. It is RAISED rather than refused
-  // (docs/TODO/161), and the ledger it comes back with is empty — the one cost
-  // of the migration, and it is bounded at `KILLS_PER_RUNG - 1` kills, once.
-  // test/snapshot-migrate.test.ts owns the migration itself.
+  // (docs/TODO/161), and the ledger it comes back with is empty.
+  //
+  // That empty ledger costs a pilot nothing. docs/TODO/160 added the field and
+  // raised the version in one commit, so no version 2 save can hold a part-paid
+  // rung. This comment priced a loss of up to `KILLS_PER_RUNG - 1` kills until
+  // docs/TODO/167 checked the record. test/snapshot-migrate.test.ts owns the
+  // migration itself.
   const old = JSON.parse(JSON.stringify(g.captureSnapshot())) as Record<string, unknown>;
   old.version = SNAPSHOT_VERSION - 1;
   delete (old.commander as Record<string, unknown>).atonement;
