@@ -1,18 +1,22 @@
 // The instruments a pilot switches on, and what they do to the ship.
 //
-// A child of `flight.ts`, split from it by docs/TODO/155 M2 alongside
-// `flight-weapons.ts`, because the flight half reached 648 lines carrying three
-// subjects. `tools/sizes.mjs` calls its 400-line ceiling a detector rather than
+// A child of `flight.ts`, split from it by docs/TODO/155 M2, alongside
+// `flight-weapons.ts`. The flight half reached 648 lines over three subjects.
+// `tools/sizes.mjs` calls its 400-line ceiling a detector rather than
 // a rule, and this is what it detected.
 //
-// ONE RESPONSIBILITY: the instruments a pilot switches on. The two computers
-// that fly the ship for her, the drive that crosses the system, the mouse she
-// flies with and the view she flies by. Every one of them is a switch that
-// changes who or what is at the controls, and not one of them decides anything
-// about the world.
+// ONE RESPONSIBILITY: the instruments a pilot switches on. Five of them:
 //
-// `autopilot.ts` owns what a computer does with the stick and `world-step.ts`
-// owns what a mass lock IS. This holds the switching, and says what happened.
+//   - the two computers that fly the ship for her;
+//   - the drive that crosses the system;
+//   - the mouse she flies with;
+//   - the view she flies by.
+//
+// Every one is a switch that changes who or what is at the controls. Not one of
+// them decides anything about the world.
+//
+// `autopilot.ts` owns what a computer does with the stick. `world-step.ts` owns
+// what a mass lock IS. This file holds the switch, and says what happened.
 
 import { sfx } from '../audio.ts';
 import { Autopilot, type AutopilotEvent } from './autopilot.ts';
@@ -30,9 +34,9 @@ import type { GameState } from './state.ts';
 /**
  * What the instruments have to reach back for.
  *
- * Two, and both are the console. An instrument says what it did and nothing
- * else — the sounds are events rather than calls, because that is what keeps
- * `autopilot.ts` clear of `audio.ts` and therefore node-safe.
+ * Two, and both are the console. An instrument says what it did, and nothing
+ * else. The sounds are events rather than calls, and that is what keeps
+ * `autopilot.ts` clear of `audio.ts`, and so safe under node.
  */
 export interface InstrumentHost {
   showMessage(text: string, seconds: number): void;
@@ -58,10 +62,10 @@ export class Instruments {
   /**
    * The two computers that fly the ship for you — see autopilot.ts.
    *
-   * Kept beside `combatComputer` rather than owning it, because the SNAPSHOT
-   * needs the policy's mid-thought state (persistence.ts) and the autopilot is
-   * the thing that engages it. So the computer is lent from two files up and
-   * this holds the seat.
+   * It sits beside `combatComputer` rather than holds it. The SNAPSHOT needs
+   * the policy's mid-thought state (persistence.ts), and the autopilot is what
+   * engages it. So the computer is lent from two files up, and this holds the
+   * seat.
    */
   private readonly autopilot: Autopilot;
   private readonly host: InstrumentHost;
@@ -80,12 +84,14 @@ export class Instruments {
   /**
    * WHICH co-pilot, and what it asks for.
    *
-   * Under the shipped 'attack-run' name, the scripted PURE-PURSUIT co-pilot;
-   * otherwise the trained defence seat (dormant — defenceBrain() is null and the
-   * seat disengages). Both return a FlightDemand — the scripted one banks-to-turn
-   * through the commander's own envelope (scripted-co-pilot.ts), the trained one
-   * flies at its fitted CC_* caps — so the Game flies either the same way and
-   * the HUD reads both.
+   * Under the shipped 'attack-run' name it is the scripted PURE-PURSUIT
+   * co-pilot. Otherwise it is the trained defence seat, which is dormant:
+   * defenceBrain() is null, and the seat disengages.
+   *
+   * Both return a FlightDemand. The scripted one banks to turn, through the
+   * commander's own envelope (scripted-co-pilot.ts). The trained one flies at
+   * its fitted CC_* caps. So the Game flies either the same way, and the HUD
+   * reads both.
    */
   coPilot(dt: number, handsOn: boolean): CoPilotDemand {
     const auto = defenceBrainNameFor(this.state.brains) === 'attack-run'
@@ -96,12 +102,14 @@ export class Instruments {
     return { demand: auto.demand ?? null, ecm: auto.ecm };
   }
 
-  /** A hit worth evading: the co-pilot keeps its own record (scripted-co-pilot.ts). */
+  /** A hit worth a break: the co-pilot keeps its own record
+   *  (scripted-co-pilot.ts). */
   noteUnderFire(): void { this.autopilot.noteUnderFire(); }
 
   /**
-   * Whether the drive is held down — `massLocked` (world-step.ts) says what
-   * counts as close enough, and this is only the switch asking (docs/TODO/153).
+   * Whether the drive is held down. `massLocked` (world-step.ts) says what
+   * counts as close enough, and this is only the switch's question
+   * (docs/TODO/153).
    *
    * @internal — driven by src/game/flight.ts, and by the Game above it.
    */
@@ -113,9 +121,9 @@ export class Instruments {
 
   /**
    * @internal — the parent's command table calls it. docs/TODO/151 M1 recorded
-   * that nothing outside `game.ts` reached this, which was the argument for
-   * making it private; the split answers that instead, by putting the member
-   * and the table in different files.
+   * that nothing outside `game.ts` reached this, and that was the argument to
+   * make it private. The split answers it instead: the member and the table now
+   * live in different files.
    */
   toggleCombatComputer(): void {
     this.applyAutopilot(this.autopilot.toggleCombat());
@@ -127,8 +135,8 @@ export class Instruments {
       this.host.showMessage('MOUSE FLIGHT OFF', 2);
     } else {
       this.input.requestMouseFlight();
-      // ESC is the browser's own way out of a pointer lock and belongs to no
-      // table; the other one is this command's own key, read from it.
+      // ESC is the browser's own way out of a pointer lock, and no table owns
+      // it. The other one is this command's own key, read from the table.
       this.host.showMessage(
         `MOUSE FLIGHT — ESC OR ${boundKey('flight', 'toggleMouseFlight')} TO RELEASE`, 4);
     }
@@ -141,9 +149,9 @@ export class Instruments {
       return;
     }
     this.state.session.torusEngaged = !this.state.session.torusEngaged;
-    // Engaging the drive opens the throttle. Nobody engages a jump drive in
-    // order to crawl, and having to hold the accelerator afterwards was
-    // busywork with one sensible answer.
+    // The drive opens the throttle as it engages. Nobody engages a jump drive
+    // in order to crawl. A hand held on the accelerator afterwards was busywork
+    // with one sensible answer.
     if (this.state.session.torusEngaged) this.state.player.speed = this.state.player.maxSpeed;
     this.host.showMessage(
       this.state.session.torusEngaged ? 'TORUS DRIVE ENGAGED' : 'TORUS DRIVE OFF', 2);

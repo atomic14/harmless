@@ -5,11 +5,12 @@
 // one only ever READS a draft to describe it. Pure: no DOM, no Input, no Game.
 //
 // The second half of the file is the unusual part. Every note here is
-// conditional, so one appearing mid-interaction pushes every row below it down a
-// line — enough that the row under the cursor stops being the row the cursor is
-// on. So each block also states the tallest it could EVER be, for any draft, and
-// the renderer paints that invisibly underneath to hold the height open. That is
-// why the reserves take no argument: an upper bound that moved with the draft
+// conditional. One that appears mid-interaction pushes every row below it down
+// a line. That is enough to move the row under the cursor away from the cursor.
+//
+// So each block also states the tallest it could EVER be, for any draft. The
+// renderer paints that invisibly underneath, to hold the height open. That is
+// why the reserves take no argument. An upper bound that moved with the draft
 // would not be one.
 
 import {
@@ -64,17 +65,18 @@ export function draftNotes(d: SimDraft): string[] {
 /**
  * The tallest `draftNotes` can ever be, slot for slot.
  *
- * TWO slots, not three: the fight's blurb is only shown when the opposition
- * comes from the scenario table, so the second and third notes can never both be
- * there. One slot holds whichever is longer.
+ * TWO slots, not three. The fight's blurb appears only where the opposition
+ * comes from the scenario table. So the second and third notes can never both
+ * be there. One slot holds whichever is longer.
  *
- * Each slot holds the longest thing it can ever hold, for ANY draft — wrapping
- * included, because the panel is set in a monospace face at a fixed size.
+ * Each slot holds the longest thing it can ever hold, for ANY draft. That
+ * includes the wrap, because the panel is set in a monospace face at a fixed
+ * size.
  */
 export function draftNotesReserve(): string[] {
   return [
-    // The waves blurb carries the best wave, so the bound has to include every
-    // tail it can grow — the never-flown line, and a three-digit wave nobody
+    // The waves blurb carries the best wave. So the bound has to include every
+    // tail it can grow: the never-flown line, and a three-digit wave nobody
     // will ever reach.
     longest(Object.values(MODE_BLURB).flatMap((b) => [b + bestWave(999), b + bestWave(0)])),
     longest([...SCENARIOS.map((s) => s.blurb.toUpperCase()), wavesRamp()]),
@@ -83,10 +85,10 @@ export function draftNotesReserve(): string[] {
 
 // --- what the brain on the selected row does --------------------------------
 //
-// Its own block rather than a fourth line of the help above: the help's slots
-// are per-draft, but this line comes and goes with the CURSOR, so it would land
-// in a different slot depending on the fight and a per-slot upper bound would
-// stop meaning anything. Its own block is its own bound.
+// Its own block, rather than a fourth line of the help above. The help's slots
+// are per-draft. This line comes and goes with the CURSOR. So it would land in
+// a different slot for a different fight, and a per-slot upper bound would mean
+// nothing at all. Its own block is its own bound.
 
 /**
  * What the brain named on the selected row DOES — or null when the row names
@@ -97,7 +99,7 @@ export function brainNote(id: string | null | undefined): string | null {
   if (!id) return null;
   const character = brainCharacter(id);
   if (!character) return null;
-  // The stem last, for whoever is cross-referencing docs/TRAINING-LOG.md.
+  // The stem last, for a reader who cross-refers docs/TRAINING-LOG.md.
   return `${character} (${id.toUpperCase()})`;
 }
 

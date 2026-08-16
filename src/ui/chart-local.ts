@@ -67,17 +67,17 @@ export function drawLocalChart(
   ctx.setLineDash([4, 4]);
   ctx.beginPath();
   // A CIRCLE, and it has to be one. distanceTenths divides dy by
-  // CHART_Y_SQUASH and so does py(), so the plotted space is isotropic: equal
-  // pixels mean equal light years in every direction, and reachable is a circle
-  // of radius (fuel/TENTHS_PER_CHART_UNIT)*LOCAL_SCALE. The canvas is square
-  // (see renderLocalChart) so the circle fits without clipping.
+  // CHART_Y_SQUASH, and so does py(). So the plotted space is isotropic: equal
+  // pixels mean equal light years in every direction. What is reachable is then
+  // a circle of radius (fuel/TENTHS_PER_CHART_UNIT)*LOCAL_SCALE. The canvas is
+  // square (see renderLocalChart), so the circle fits with no clip.
   ctx.arc(cx, cy, (c.fuel / TENTHS_PER_CHART_UNIT) * LOCAL_SCALE, 0, Math.PI * 2);
   ctx.stroke();
   ctx.setLineDash([]);
 
   // Trade lanes, under the systems as on the galactic chart. Lanes run up to
-  // 7 LY, so one end is often off this zoom — the line is simply clipped by the
-  // canvas, which reads correctly as freight heading out of the neighbourhood.
+  // 7 LY, so one end is often off this zoom. The canvas simply clips the line,
+  // and that reads correctly: freight on its way out of the neighbourhood.
   drawLanes(ctx, overlays, systems, px, py);
 
   ctx.font = '10px Menlo, Consolas, monospace';
@@ -96,9 +96,9 @@ export function drawLocalChart(
 
   drawPriceTells(ctx, overlays.prices, systems, px, py, 8);
 
-  // Pirate activity, as on the galactic chart. Same cull as the dots above:
-  // a ring for a system this zoom has scrolled off would be drawn at a
-  // coordinate outside the canvas anyway.
+  // Pirate activity, as on the galactic chart. Same cull as the dots above. A
+  // ring for a system this zoom left off the edge would land at a coordinate
+  // outside the canvas anyway.
   ctx.strokeStyle = HUD.red;
   for (const index of overlays.danger) {
     const s = systems[index];
@@ -138,11 +138,11 @@ export function drawLocalChart(
   ctx.moveTo(ux, uy - 7); ctx.lineTo(ux, uy + 7);
   ctx.stroke();
 
-  // The pointed-at lane is painted INTO the canvas, bottom-left, and not into
-  // any row of chrome. `#local-info` is a 440px column measured to fit all 256
-  // planet descriptions without scrolling (style.css) so it cannot grow a row,
-  // and a new keyline pushed this screen's own keys under the controls banner.
-  // The canvas has empty sky down there and costs no layout at all.
+  // The lane under the pointer is painted INTO the canvas, bottom-left, and
+  // not into any row of chrome. `#local-info` is a 440px column, measured to
+  // fit all 256 planet descriptions with no scroll (style.css), so it cannot
+  // grow a row. A new keyline pushed this screen's own keys under the controls
+  // banner. The canvas has empty sky down there, and costs no layout at all.
   if (overlays.hovered) {
     const [head, tail] = laneSummaryParts(overlays.hovered, systems, overlays.day);
     ctx.fillStyle = HUD.amber;
@@ -160,8 +160,8 @@ export function drawLocalChart(
       return;
     }
     // Rebuild ONLY when the cursor lands on a different system. This runs on
-    // every cursor move, and re-setting innerHTML re-creates the <img>, making
-    // the portrait flicker as you sweep the chart. Cheap guard.
+    // every cursor move. A fresh innerHTML re-creates the <img>, and the
+    // portrait then flickers as you sweep the chart. Cheap guard.
     if (info.dataset.system === String(near.index)) return;
     info.dataset.system = String(near.index);
 
@@ -197,9 +197,9 @@ export function drawLocalChart(
       `</div>` +
       `<div class="sysblurb">${planetDescription(near)}</div>` +
       // The world half of the extended entry, under the 1984 line. The PEOPLE
-      // half is not here: the portrait and its species caption above already
-      // say who lives here, and both paragraphs together would scroll a panel
-      // that changes on every cursor move. `D` opens the full entry.
+      // half is not here. The portrait and its species caption above already
+      // say who lives here. Both paragraphs together would scroll a panel that
+      // changes on every cursor move. `D` opens the full entry.
       (more ? `<div class="sysblurb sysmore">${escapeHtml(more.description)}</div>` : '');
   }
 }
@@ -207,9 +207,9 @@ export function drawLocalChart(
  * Market estimate for a system you haven't visited. Opened from the charts
  * with M.
  *
- * A painter: `market.ts` owns what the numbers ARE (`marketEstimate`). What
- * it draws is a distribution — the AVERAGE of every quote the system can roll
- * and the range those quotes span — so no row promises a price the destination
+ * A painter. `market.ts` owns what the numbers ARE (`marketEstimate`). What
+ * it draws is a distribution: the AVERAGE of every quote the system can roll,
+ * and the range those quotes span. So no row promises a price the destination
  * will honour on the day.
  */
 export function renderMarketEstimate(

@@ -2,13 +2,18 @@
 // menu, all from `BINDINGS` and `COMMAND_HELP` and from nothing else.
 //
 // This file exists to DELETE homes rather than to add one. Before it, a binding
-// was written out by hand in six places: keymap.ts and controls.ts (which are
-// the bindings), then play.html's `?` panel, the README, `manual.ts`'s own
-// COMMANDS array and the docked menu in `ui/screens.ts` — four copies kept in
-// step by hope, and they were not in step. Three of those four render from here
-// now, so the only way to change what a key does without changing what the game
-// TELLS you it does is to edit the README, which `test/key-help.test.ts` holds
-// to the table in both directions.
+// was written out by hand in six places. Two of them are the bindings
+// themselves: keymap.ts and controls.ts. The other four were copies:
+//
+//   - play.html's `?` panel;
+//   - the README;
+//   - `manual.ts`'s own COMMANDS array;
+//   - the docked menu in `ui/screens.ts`.
+//
+// Hope kept those four in step, and they were not in step. Three of the four
+// render from here now. One surface is left where a key can move and leave what
+// the game TELLS you behind: the README.
+// `test/key-help.test.ts` holds that one to the table in both directions.
 //
 // It renders and nothing else: strings in, strings out, one guarded paint at
 // the end. No rule is read from it and nothing branches on what it returns.
@@ -44,9 +49,9 @@ const LABELS: Record<string, string> = {
  * The key that asks for `command` in `mode`'s table (or anywhere, for a
  * global binding), as the guide prints it.
  *
- * For PROSE that names a key — the briefing — so a sentence cannot outlive
- * the binding it quotes. Throwing on an unbound command is the point: prose
- * quoting a key nothing answers should fail the build, not ship.
+ * It is for PROSE that names a key, such as the briefing. So a sentence cannot
+ * outlive the binding it quotes. The throw on an unbound command is the point.
+ * Prose that quotes a key nothing answers should fail the build, not ship.
  */
 export function boundKey(mode: ControlMode, command: Command): string {
   const key = keyIfBound(mode, command);
@@ -55,14 +60,15 @@ export function boundKey(mode: ControlMode, command: Command): string {
 }
 
 /**
- * The same lookup, answering `null` instead of throwing.
+ * The same lookup. It answers `null`, and throws nothing.
  *
- * For the cockpit's key PROMPTS (game/prompts.ts), where an unbound command is
- * an ordinary answer rather than a mistake: the training arena subtracts eight
- * commands from the flight table (`NOT_IN_THE_SIMULATOR`), and a prompt for a
- * key that mode does not bind must simply not appear. Prose still uses
- * `boundKey`, which fails the build — the difference is that a sentence is
- * written once and a prompt is raised by a situation.
+ * It is for the cockpit's key PROMPTS (game/prompts.ts). There an unbound
+ * command is an ordinary answer rather than a mistake. The training arena
+ * subtracts eight commands from the flight table (`NOT_IN_THE_SIMULATOR`). A
+ * prompt for a key that mode does not bind must simply not appear.
+ *
+ * Prose still uses `boundKey`, which fails the build. The difference is that
+ * somebody writes a sentence once, and a situation raises a prompt.
  */
 export function keyIfBound(mode: ControlMode, command: Command): string | null {
   const b = [...BINDINGS[mode], ...GLOBAL_BINDINGS].find((x) => x.command === command);
@@ -85,10 +91,10 @@ export interface HelpRow {
 }
 
 /**
- * Bindings to rows, merging the keys that ask for the SAME command.
+ * Bindings to rows. It merges the keys that ask for the SAME command.
  *
- * ESC and Q both cancel a new commander, and printing that as two rows saying
- * the same thing reads like two different things.
+ * ESC and Q both cancel a new commander. Two rows that say the same thing read
+ * as two different things.
  */
 function helpRows(bindings: readonly Binding[]): HelpRow[] {
   const rows: HelpRow[] = [];
@@ -105,7 +111,7 @@ function helpRows(bindings: readonly Binding[]): HelpRow[] {
 
 /** A section of the `?` guide: the element that holds it, and what goes in it. */
 export interface GuideSection {
-  /** the id of its host in play.html — a missing one is a section nobody sees */
+  /** the id of its host in play.html — an absent one is a section nobody sees */
   id: string;
   bindings: readonly Binding[];
 }
@@ -116,11 +122,12 @@ const flightIn = (section: HelpSection): Binding[] =>
 /**
  * The whole guide, as data.
  *
- * Every binding the game has is in exactly one of these, and
- * `test/key-help.test.ts` asserts precisely that — which is what makes "a key
- * that is not documented anywhere" a test failure rather than a discovery six
- * months later. The cockpit is three sections because a guide of twenty
- * undifferentiated rows is not a guide; every other mode is one.
+ * Every binding the game has sits in exactly one of these, and
+ * `test/key-help.test.ts` asserts precisely that. So "a key documented nowhere"
+ * is a test failure, rather than a discovery six months later.
+ *
+ * The cockpit is three sections, because a guide of twenty rows all alike is
+ * not a guide. Every other mode is one section.
  */
 export function guideSections(): GuideSection[] {
   const inFlight = new Set<Binding>(BINDINGS.flight);
@@ -148,10 +155,11 @@ export const guideTableHtml = (bindings: readonly Binding[]): string =>
 /**
  * Paint every generated section of the `?` panel.
  *
- * Called once at boot — unlike the flight rows, which `refreshHelpPanel()`
- * rewrites whenever the layout is toggled, a command key is the same in both
- * layouts. A missing host is inert rather than fatal (engine/inert-dom.ts), so
- * this runs headlessly with no document at all.
+ * It is called once at boot. `refreshHelpPanel()` rewrites the flight rows on
+ * every toggle of the layout, and a command key is the same in both layouts.
+ *
+ * An absent host is inert rather than fatal (engine/inert-dom.ts). So this runs
+ * headless, with no document at all.
  */
 export function paintCommandGuide(): void {
   for (const section of guideSections()) {
@@ -165,8 +173,8 @@ export function paintCommandGuide(): void {
  * The manual's command tables: the cockpit, then the station.
  *
  * The scope is the point. A hand-written table here listed D as a flight key
- * for months; it is bound on the station menu and nowhere else, and rendering
- * per MODE is what makes that impossible to get wrong.
+ * for months. It is bound on the station menu and nowhere else. A render per
+ * MODE is what makes that impossible to get wrong.
  */
 export function manualCommandsHtml(): string {
   const table = (bindings: readonly Binding[]): string =>
@@ -239,11 +247,11 @@ export function dockedMenuHtml(): string {
 /**
  * The key and the label a console line points at, as `⇧I MISSIONS`.
  *
- * Invariant 9 forbids a message from spelling a key out, and invariant 16 wants
- * an announcement to say where the rest of it lives. Both hold at once only if
- * the rule NAMES a command and the edge renders it — which is what
- * `game/prompts.ts` already does for the cockpit, and what `game.ts` now does
- * for a `StationEvent` that carries one.
+ * Invariant 9 forbids a message that spells a key out. Invariant 16 wants an
+ * announcement to say where the rest of it lives. Both hold at once only where
+ * the rule NAMES a command and the edge renders it. `game/prompts.ts` already
+ * does that for the cockpit, and `game.ts` now does it for a `StationEvent`
+ * that carries one.
  *
  * The label is the menu row's, then the keyline's, then nothing beyond the key.
  * A command advertised nowhere still points somewhere.
