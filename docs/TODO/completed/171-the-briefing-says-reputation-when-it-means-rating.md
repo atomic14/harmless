@@ -195,17 +195,110 @@ the two tables above are the list.
 - **GitHub #36 is closed rather than carried here.** Its report named a string
   that docs/TODO/162 had already fixed, and a commit permalink is why it looked
   live.
+- **The three sentences on the pages are Chris's, and he chose all three**
+  (2026-08-16). The briefing says *"a rating of Harmless"*. The manual says
+  *"no rating whatsoever"* and *"danger builds along lawless routes"*.
 
 ## Open questions
 
-- **Which word does the RATING get on the two pages?** The game's own word is
-  RATING, and the briefing already uses it four lines below the offending
-  sentence. **Recommendation: use `rating` in both places**, so one screen stops
-  using two words for one ladder. Chris decides the sentence.
-- **Does `manual.html:193` want a word at all?** *"reputations build along
-  lawless routes"* is about the living galaxy's danger, which is a fourth
-  meaning. **Recommendation: say `danger`**, which is the word
-  `danger-overlay.ts` already uses.
+Both are answered, and both answers are Chris's.
+
+- **Which word does the RATING get on the two pages?** RATING. The briefing
+  names the rung as well, because the sentence four lines below already does.
+- **Does `manual.html:193` want a word at all?** Yes, and it is `danger`.
+
+## What landed
+
+**The gate is three rules over three surfaces, and each fails on its own.** The
+first is docs/TODO/162's shouted rule, unchanged. The second reads every
+mixed-case sentence a player reads. The third reads every comment in `src/`.
+
+**`test/ladder-scan.ts` decides what is read, and the test decides what is wrong
+with it.** That split is `tools/ste-read.mjs`'s, and the reader is reused rather
+than written a second time. **`tools/ste-read.d.mts` is what made the reuse
+possible**: `tools/` is plain JavaScript, `tsconfig.json` sets no `allowJs`, and
+a TypeScript file therefore could not import it at all. The plan did not have
+that.
+
+**Each rule reports what it read**: 815 shouted strings, 703 player sentences
+over 7 pages, and 7,179 comment paragraphs.
+
+### The prose rule is two tests, and neither one bans the word
+
+`reputation` is right where it means the disrepute ladder, so a ban would be
+wrong. The two tests are what is true of that ladder:
+
+1. **It is never negated.** Honest is its BEST rung, so a fresh commander has a
+   reputation at its best. A sentence that says she has none means the RATING.
+2. **It is singular.** A plural is a fourth meaning — a route's danger, or
+   somebody else's fame.
+
+Both known page rows fail one test each. `Your legal status follows you` passes,
+and so does the novella's *"Commanders of established reputation"*, which means
+the disrepute ladder and is correct.
+
+### The comment rule reads the ladder word beside `name`
+
+A paragraph is the unit rather than a sentence, because the word and the ladder
+are often two sentences apart. **`name` is wrong only where the comment never
+says WHAT is named.** That is the rule rather than an exception list, and the
+failure message asks for exactly that: *say which ladder, or say what has the
+name*.
+
+**Two files are exempt**, and the plan predicted both: `constants/character.ts`
+and `game/character.ts` state the rule, so they must be able to name the word
+the rule is about.
+
+### THE GATE FOUND TWENTY SITES, AND THE PLAN NAMED SIX
+
+**Seven of the extra fourteen are the same defect at another site.**
+`constants/rating.ts` glossed `FAME_FULL` as *"Your name fully precedes you"*.
+`constants/survivors.ts` said a cheap sale is *"not worth a name"*.
+`game/station.ts` called a clean legal record *"a cleared name"*.
+`game/docked.ts` and `game/screens/trade.ts` each said `name` for the disrepute
+ladder. `constants/threat.ts:81` is the second PUBLISHED one, and the plan's
+table missed it.
+
+**`game/commander.ts` is the mirror fault, and no rule in the plan covered it.**
+It called `combatScore` a *"Combat reputation"*. Since docs/TODO/162 that word
+belongs to the other ladder. So the comment rule has a second half: the combat
+ladder is the RATING, and its code word is `fame`.
+
+**Six sites were correct and are still repaired.** Each said `name` without ever
+saying what is named, inside a paragraph about a ladder. `the name rules` is
+`the save name rules`. `the name on the status screen` is `the rung name on the
+status screen`. Each repair is one word, and each sentence says more than it
+did. A file exemption was the other remedy, and it would have blinded the gate
+to the whole file.
+
+**`CATALOG.md` lost both of its `name` rows**, and `npm run generate:constants`
+ran before the gates.
+
+### The milestones landed in the order M3, M2, M1
+
+**That is a deviation, and the reason is that a gate cannot land red.** M1 first
+is right, and it was written first: it found the full list before any commit.
+The COMMIT order is then chosen so that every commit passes `npm run check`. M1
+lands last and lands green.
+
+### Verification
+
+`npm run check` passes: 4,739 assertions, 0 failed, 30 files over 400 lines and
+0 unlisted, 388 exports, 53 claims and 1,229 plan citations.
+
+**Proved able to fail six ways, each alone.** Each of the three rules goes red
+on its own offence put back, and on nothing else. The page walk pointed at a
+directory with no pages leaves the RULE green and reddens its CONTROL, which is
+the reason the control exists. The two rows that prove the rules are not blanket
+bans are assertions rather than proofs: `Your legal status follows you` and `a
+rung name`.
+
+### One thing is reported and not fixed
+
+**`novella.html:313` says *"attempts on your name"***, and it means the
+disrepute ladder. No rule here reads `name` on a page, because the plan scoped
+the prose axis to `reputation`. It is in-universe fiction in Chris's own voice,
+and the sentence beside it uses `reputation` correctly.
 
 ## Watch out for
 

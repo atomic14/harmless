@@ -13,30 +13,24 @@ active context:
 
 ## Execution queue
 
-**Three items. Two came out of one sweep on 2026-08-16, and one out of the
-triage of GitHub #36 the same day.** Chris asked for an
+**Two items, both out of one sweep on 2026-08-16.** Chris asked for an
 architectural and bug sweep against a tree where `npm run check` passed. The
 order below is by value over cost, and not by severity.
 
-1. [171 — the briefing says reputation when it means rating](171-the-briefing-says-reputation-when-it-means-rating.md)
-   · gap · medium. The banned-word check that docs/TODO/162 wrote strips every
-   comment and reads no mixed-case page. Six comments still use `name` for the
-   disrepute ladder, and two of the six reach `CATALOG.md`. The briefing and the
-   manual say `reputation` and mean the combat rating.
-2. [168 — the style checker never reads the documents](168-the-style-checker-never-reads-the-documents.md)
+1. [168 — the style checker never reads the documents](168-the-style-checker-never-reads-the-documents.md)
    · gap · medium. `ste:check` reads comments in source. The style also governs
    ten markdown documents and every plan title, and the tool finds no sentence
    in any of them. **It now gates a title too**, on Chris's call of 2026-08-16.
-3. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
+2. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**171 leads now.** Its M2 changes words on Chris's own pages, so it waits on him
-after its gate runs. 168 is a defect in a document, and 169 is a decomposition.
+**168 leads now.** It is a defect in a document, and 169 is a decomposition.
 
-**172 and 170 led this queue and both landed the same day.** They are below.
+**172, 170 and 171 led this queue and all three landed the same day.** They are
+below.
 
-**171 and 168 are adjacent and are not the same item.** 171 is the player's
+**171 and 168 were adjacent and were not the same item.** 171 was the player's
 vocabulary on the player's pages. 168 is the house prose style over `docs/`.
 Neither one answers the other.
 
@@ -54,9 +48,9 @@ never moves.
 it.** The triage answered the shipped game rather than the report, and closed on
 that reading instead of asking which one Chris meant.
 
-**The stale link still found a real gap**, and it is docs/TODO/171. Looking for
-the reported line is what showed that `test/ladder-words.test.ts` strips every
-comment before it reads.
+**The stale link still found a real gap**, and it is docs/TODO/171, which landed
+the same day. Looking for the reported line is what showed that
+`test/ladder-words.test.ts` stripped every comment before it read.
 
 **164, 163, 167 and 165 landed on 2026-08-16 and are below.** They were the
 first four items of the sweep's queue. Each of the four was one thing written
@@ -152,6 +146,66 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**171 — the briefing says reputation when it means rating.** GitHub #36 reported
+a string that docs/TODO/162 had already fixed, and a commit permalink is why it
+looked live. The triage then measured the tree and found something else.
+
+**docs/TODO/162's gate read about a third of what a player reads.** It read a
+shouted string, in TypeScript, under two directories. It stripped every comment
+before it read, and it saw no mixed-case page at all.
+
+**There are three rules over three surfaces now, and each one fails on its
+own.** The shouted rule is unchanged. The second reads every mixed-case sentence
+a player reads. The third reads every comment in `src/`.
+
+**The prose rule is two tests, and neither one bans the word.** `reputation` is
+the right word for the disrepute ladder. So the tests are what is true of that
+ladder: it is never negated, because Honest is its BEST rung, and it is never
+plural. The novella's *"Commanders of established reputation"* passes, and it is
+correct.
+
+**The comment rule reads the ladder word beside `name`, and a paragraph is the
+unit.** The word and the ladder are often two sentences apart. `name` is wrong
+only where the comment never says WHAT is named, and the failure message asks
+for exactly that.
+
+**THE GATE FOUND TWENTY SITES, AND THE PLAN NAMED SIX.** Seven of the extra
+fourteen are the same defect at another site, and one of those is the second
+PUBLISHED one. **`game/commander.ts` is the mirror fault, and no rule in the
+plan covered it**: it called `combatScore` a *"Combat reputation"*, which since
+docs/TODO/162 is the other ladder's word.
+
+**Six sites were correct and are still repaired.** Each said `name` without ever
+saying what is named, in a paragraph about a ladder. `the name rules` is `the
+save name rules`. Each repair is one word, and each sentence says more than it
+did. A file exemption was the other remedy, and it would have blinded the gate
+to a whole file.
+
+**Chris chose all three sentences on the pages.** The briefing says *"a rating
+of Harmless"*, and the manual says *"no rating whatsoever"* and *"danger builds
+along lawless routes"*. He also read the credits figure in the proposal: the
+briefing renders `STARTING_CREDITS / 10`, which is 100, and nothing there is
+wrong.
+
+**`tools/ste-read.d.mts` is what the plan did not have.** `tools/` is plain
+JavaScript and `tsconfig.json` sets no `allowJs`, so a TypeScript file could not
+import the reader at all. The declaration file is why the comment axis reuses
+`tools/ste-read.mjs` rather than writing a second character walker.
+
+**The milestones landed in the order M3, M2, M1, and that is a deviation.** M1
+first is right, and it was written first: it found the full list before any
+commit. The COMMIT order is chosen so that every commit passes `npm run check`,
+because a gate cannot land red.
+
+**Each rule reports what it read**: 815 shouted strings, 703 player sentences
+over 7 pages, and 7,179 comment paragraphs. **Proved able to fail six ways, each
+alone.** The page walk pointed at a directory with no pages leaves the rule
+green and reddens its control, which is the reason the control exists.
+
+**One thing is reported and not fixed.** `novella.html:313` says *"attempts on
+your name"* and means the disrepute ladder. No rule reads `name` on a page,
+because the plan scoped the prose axis to `reputation`.
 
 **170 — the rocks are all at the station.** Chris flew it and reported one
 thing: *"There always seem to be some asteroids near the space station. I think
