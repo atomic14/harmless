@@ -1,24 +1,34 @@
 // The combat trainer's front of house: pick a fight, read the report, hold two
 // of them against each other.
 //
-// The modules underneath answer everything — combat-sim-scenarios.ts says who
-// can be sent at you, combat-sim.ts runs the exercise, combat-sim-report.ts
-// counts what happened, combat-sim-compare.ts decides what two records may
-// honestly be said to show, and combat-sim-setup.ts owns the draft. What is left
-// here is the keyboard, the three panels, and the export.
+// The modules underneath answer everything:
+//
+//   - combat-sim-scenarios.ts says who can be sent at you;
+//   - combat-sim.ts runs the exercise;
+//   - combat-sim-report.ts counts what happened;
+//   - combat-sim-compare.ts decides what two records may honestly show;
+//   - combat-sim-setup.ts owns the draft.
+//
+// What is left here is the keyboard, the three panels, and the export.
 //
 // **The exercise is NOT this screen.** `Game.mode` is derived
-// (`screens.topId ?? baseMode`) and `updateFlight()` runs only while it is
-// `'flight'`, so the world does not step while an overlay is open. One screen id
-// holds three PANELS with the fight in between: pick a fight, launch, fly it as
-// ordinary flight with a different `StepHost`, and the Game re-opens this screen
-// on the report panel when it tears down. Compare is the report panel's own
-// second view — ENTER, from the record you want as the baseline.
+// (`screens.topId ?? baseMode`), and `updateFlight()` runs only while it is
+// `'flight'`. So the world does not step while an overlay is open.
 //
-// It obeys the Screen contract: it never sets the mode, never touches the Game,
-// and returns an outcome. What it needs from the Game is four things behind
-// `CombatSimContext` — the commander the fit-out starts from, the records of the
-// last exercise, something to say out loud, and `begin`.
+// One screen id holds three PANELS, with the fight in between. You pick a
+// fight. You launch. You fly it as ordinary flight, under a different
+// `StepHost`. The Game then re-opens this screen on the report panel as it
+// tears the fight down. Compare is the report panel's own second view: press
+// ENTER from the record you want as the baseline.
+//
+// It obeys the Screen contract. It never sets the mode. It never touches the
+// Game. It returns an outcome. What it needs from the Game is four things
+// behind `CombatSimContext`:
+//
+//   1. the commander the fit-out starts from;
+//   2. the records of the last exercise;
+//   3. something to say out loud;
+//   4. `begin`.
 
 import type { CommanderData } from '../commander.ts';
 import type { ExerciseFit } from '../combat-sim.ts';
@@ -47,7 +57,7 @@ export interface CombatSimContext {
   readonly commander: CommanderData;
   /** the records the last exercise produced, oldest first */
   readonly reports: readonly CombatSimReport[];
-  /** start one. False when the Game refused — you are dead, or one is running */
+  /** start one. False when the Game refused: you are dead, or one is live */
   begin(spec: ExerciseSpec, fit: ExerciseFit): boolean;
   message(text: string, seconds: number): void;
 }
@@ -65,22 +75,22 @@ export class CombatSimScreen implements Screen {
   /** setup, report or compare — three panels, one screen id, the fight in between */
   private panel: 'setup' | 'report' | 'compare' = 'setup';
   private row = 0;
-  /** which of the exercise's records the report panel is showing — THIS */
+  /** which of the exercise's records the report panel draws — THIS */
   private record = 0;
   /**
-   * The OTHER record the compare panel is holding this one against — THAT.
+   * The OTHER record the compare panel holds this one against — THAT.
    *
-   * Kept beside `record` rather than derived: the compare panel's whole gesture
-   * is to pin one record and walk the other — `←/→` moves this index and leaves
-   * `record` where it was.
+   * It sits beside `record` rather than comes out of it. The compare panel's
+   * whole gesture is to pin one record and walk the other. `←/→` moves this
+   * index, and leaves `record` where it was.
    */
   private other = 0;
   /**
-   * What has been picked, or null until the screen is first opened.
+   * What the pilot picked, or null until the screen first opens.
    *
-   * Built once and kept for the session: A/B-ing two brains over the same fight
-   * means launching the same setup twice, and re-deriving the draft on every
-   * open would throw the second one away.
+   * It is built once and kept for the session. An A/B run of two brains over
+   * one fight launches the same setup twice. A draft re-derived on every open
+   * would throw the second launch away.
    */
   private draft: SimDraft | null = null;
 
@@ -91,8 +101,8 @@ export class CombatSimScreen implements Screen {
   /**
    * Show the report panel next time this screen opens.
    *
-   * Called by the Game when an exercise tears down. The screen cannot notice
-   * that for itself — it is not running while one is flying.
+   * The Game calls it as an exercise tears down. The screen cannot notice that
+   * for itself, because it does not run while a fight is in the air.
    */
   showReport(): void {
     this.panel = 'report';
@@ -101,13 +111,14 @@ export class CombatSimScreen implements Screen {
 
   open(): void {
     this.draft ??= freshDraft(this.ctx().commander);
-    // The best wave is re-read on every open: the draft is kept for the
-    // session, and a run flown since the last open is exactly when it moves.
+    // The best wave is re-read on every open. The draft is kept for the
+    // session, and a run flown since the last open is when that figure moves.
     this.draft.furthestWave = this.ctx().commander.furthestWave ?? 0;
     const n = this.ctx().reports.length;
     if (this.panel === 'report' && n === 0) this.panel = 'setup';
-    // A pair needs two. The ring only grows while this screen is closed, but a
-    // panel that reopened onto one record would have nothing to compare it with.
+    // A pair needs two. The ring only grows while this screen is closed. A
+    // panel that reopened onto one record would find nothing to hold it
+    // against.
     if (this.panel === 'compare' && n < 2) this.panel = n ? 'report' : 'setup';
     this.render();
   }
@@ -179,10 +190,10 @@ export class CombatSimScreen implements Screen {
     }
     const left = i.pressed('ArrowLeft');
     const right = i.pressed('ArrowRight');
-    // HOME / END are the same gesture with a bigger step: a list of twelve
-    // brains or forty-odd hulls has ends you should not have to walk to. Rows
-    // over a number have no `jump`, so the key does nothing on them rather than
-    // meaning something different.
+    // HOME / END are the same gesture with a bigger step. A list of twelve
+    // brains, or of forty-odd hulls, has ends that nobody should walk to. A row
+    // over a number has no `jump`. So the key does nothing there, rather than
+    // something different.
     const home = i.pressed('Home');
     const end = i.pressed('End');
     if (left || right || home || end) {
@@ -217,17 +228,18 @@ export class CombatSimScreen implements Screen {
   private reportInput(i: Input): ScreenOutcome {
     const n = this.ctx().reports.length;
     if (i.pressed('Escape')) {
-      // back to the setup panel, not out of the screen: the seed is on the
-      // report, and the reason to read one is to change something and fly again
+      // back to the setup panel, not out of the screen. The seed is on the
+      // report, and you read a report in order to change something and fly it
+      // again.
       this.panel = 'setup';
       return this.repaint();
     }
-    // ENTER is the launch key on the setup panel and free here, so comparing
-    // costs no new binding: ENTER is what you press when you have chosen
+    // ENTER is the launch key on the setup panel, and it is free here. So a
+    // comparison costs no new binding. ENTER is what you press once you chose
     // something.
     if (i.pressed('Enter')) {
       if (n < 2) return this.refuse('NEED TWO RECORDS TO COMPARE');
-      // The one before it: two records flown back to back on one setup is the
+      // The one before it. Two records flown back to back on one setup are the
       // A/B, so the pair the pilot most likely wants is already made.
       this.other = cycle(this.record, n, -1);
       this.panel = 'compare';
@@ -258,9 +270,9 @@ export class CombatSimScreen implements Screen {
     const left = i.pressed('ArrowLeft');
     const right = i.pressed('ArrowRight');
     if (left || right) {
-      // The same key that walks the ring on the report panel, walking THAT and
-      // leaving THIS pinned — and never landing on THIS, because a record
-      // compared with itself is not a comparison.
+      // The same key that walks the ring on the report panel. Here it walks
+      // THAT and leaves THIS pinned. It never lands on THIS, because a record
+      // held against itself is not a comparison.
       do {
         this.other = cycle(this.other, n, right ? 1 : -1);
       } while (this.other === this.record && n > 1);
@@ -276,7 +288,7 @@ export class CombatSimScreen implements Screen {
   }
 
   /**
-   * The two records the compare panel is showing, held against each other.
+   * The two records the compare panel draws, held against each other.
    *
    * Derived on demand and kept nowhere: `compareReports` is a pure function of
    * two finished records, so there is no comparison state to go stale.
@@ -303,10 +315,10 @@ export class CombatSimScreen implements Screen {
   }
 
   private copy(json: string, what: string): ScreenOutcome {
-    // Say it NOW, and correct it if the write is refused: the clipboard wants a
-    // user gesture in a secure context, and in an automated tab `writeText`
-    // neither resolves nor rejects — so a `.then()` message would never run. X
-    // is the fallback and the records are on `window.__simLog` either way.
+    // Say it NOW, and correct it if the write is refused. The clipboard wants
+    // a user gesture in a secure context. In an automated tab `writeText`
+    // neither resolves nor rejects, so a `.then()` message would never run. X
+    // is the fallback, and the records are on `window.__simLog` either way.
     this.ctx().message(`${what} TO CLIPBOARD`, 3);
     navigator.clipboard?.writeText(json)
       .catch(() => this.ctx().message('CLIPBOARD REFUSED — PRESS X FOR A FILE', 5));
@@ -316,7 +328,7 @@ export class CombatSimScreen implements Screen {
   /**
    * JSON as a file. `screens/saves.ts`'s `exportCommanderFile` is the idiom — a
    * Blob, an anchor, a click, and revoke it again. One record, every record or
-   * the PAIR: what is being written is the caller's question.
+   * the PAIR: what goes into the file is the caller's question.
    */
   private download(json: string, stem: string, what: string): ScreenOutcome {
     const blob = new Blob([json], { type: 'application/json' });

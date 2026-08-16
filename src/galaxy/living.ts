@@ -1,22 +1,22 @@
 // The living galaxy — level 1 of a two-level simulation.
 //
-// While you are docked, jumping, or fighting somewhere else, the other 255
-// systems keep trading. This layer models that abstractly and cheaply:
-// ships between systems are records, not objects, and only materialise as
-// real NPCs when they arrive in the system you happen to be in
-// (see game.ts populateSystem / the arrivals it pulls from here).
+// The other 255 systems keep their trade up while you are docked, in a jump,
+// or in a fight somewhere else. This layer models that abstractly and cheaply.
+// A ship between systems is a record rather than an object. It becomes a real
+// NPC only where it arrives in the system you are in. See game.ts
+// populateSystem, and the arrivals it pulls from here.
 //
-// Erasable-TypeScript only (no parameter properties/enums): this module is
-// imported by test/run.ts, which Node runs directly via
+// Erasable-TypeScript only, so no parameter properties and no enums. test/run.ts
+// imports this module, and Node runs that file directly via
 // --experimental-strip-types.
 //
 // Design notes:
-//  - the 1984 seeded galaxy is the BASELINE; this layer stores only *deltas*
-//    (recent price pressure, traffic events), so saves stay small and the
+//  - the 1984 seeded galaxy is the BASELINE. This layer stores only *deltas* —
+//    recent price pressure and traffic events — so saves stay small and the
 //    original determinism survives underneath
-//  - it advances in whole days, driven by the same clock as contract
-//    deadlines, so it never needs a real-time tick
-//  - everything here is pure data + maths: no three.js, no DOM
+//  - it advances in whole days, on the same clock as the contract deadlines,
+//    so it never needs a real-time tick
+//  - everything here is pure data and maths: no three.js, no DOM
 
 import { COMMODITIES, type StarSystem } from './galaxy.ts';
 import { distanceTenths, daysForJump } from './navigation.ts';
@@ -30,7 +30,7 @@ import { MAX_FUEL } from '../constants/commander.ts';
 export interface Convoy {
   from: number;
   to: number;
-  /** commodity index being carried */
+  /** commodity index of the load */
   commodity: number;
   tonnes: number;
   /** day the convoy arrives */
@@ -45,14 +45,14 @@ export interface SystemState {
   pressure: Float32Array;
   /** recent pirate activity, 0..1; raises encounter rates and prices */
   danger: number;
-  /** convoys that have arrived here recently (for flavour + arrivals) */
+  /** convoys that landed here recently, for the flavour and the arrivals */
   recentArrivals: number;
   /** convoys lost en route to here recently */
   recentLosses: number;
   /**
-   * 0..1 — how loudly this region is talking about the player's cargo. Raised
-   * by landing big or contraband loads nearby, spread to jump-range
-   * neighbours, and decayed by lying low. Word of mouth, essentially.
+   * 0..1 — how loud this region's talk about the player's cargo is. A big or
+   * contraband load landed nearby raises it. It spreads to the jump-range
+   * neighbours. A quiet spell decays it. Word of mouth, essentially.
    */
   heat: number;
 }
@@ -60,24 +60,24 @@ export interface SystemState {
 export interface GalaxyStateSave {
   day: number;
   convoys: Convoy[];
-  /** sparse: only systems that have drifted from baseline */
+  /** sparse: only the systems that drifted from the baseline */
   systems: Record<number, { pressure: number[]; danger: number; arrivals: number; losses: number; heat?: number }>;
 }
 
 /**
  * One pressure slot per commodity — the length of every saved pressure array.
  *
- * DERIVED from `COMMODITIES.length`, not transcribed. It cannot move to
- * src/constants/ (the home may not import the table it is the length of), so it
- * stays here as a named entry on the constants gate — see
+ * DERIVED from `COMMODITIES.length`, and not transcribed. It cannot move to
+ * src/constants/, because that home may not import the table it is the length
+ * of. So it stays here, as a named entry on the constants gate. See
  * docs/TODO/completed/90-constants-cleanup.md, Blocked.
  */
 const COMMODITY_COUNT = COMMODITIES.length;
 
 /**
- * The galaxy ticks on the world's seeded stream by default. Passing an rng
- * explicitly (as test/campaign.ts does) still works and is how the balance
- * harness stays reproducible on its own seed.
+ * The galaxy ticks on the world's seeded stream by default. An explicit rng
+ * still works, as test/campaign.ts shows. That is how the balance harness
+ * stays reproducible on its own seed.
  */
 const defaultRng = (): number => random();
 
@@ -88,11 +88,12 @@ export class LivingGalaxy {
 
   private readonly systems: StarSystem[];
   /**
-   * Each system's plausible trading partners, precomputed. Ships have the same
-   * 7 LY jump range the commander's tank enforces (`MAX_FUEL`, in tenths), so
-   * trade is inherently local — sampling uniformly across 256 systems would
-   * scatter convoys instead of forming lanes that make some routes rich and
-   * others dangerous.
+   * Each system's plausible trading partners, precomputed.
+   *
+   * A ship has the same 7 LY jump range the commander's tank enforces
+   * (`MAX_FUEL`, in tenths). So trade is inherently local. A uniform sample
+   * across 256 systems would scatter the convoys. Lanes are what makes some
+   * routes rich and others dangerous.
    */
   private readonly neighbours: number[][];
 
@@ -124,9 +125,9 @@ export class LivingGalaxy {
 
   /**
    * How much a system's economy wants a commodity: negative where it is
-   * produced (industrial worlds make computers), positive where it is
-   * consumed. Uses the original's price gradient, so this agrees with the
-   * market model rather than fighting it.
+   * produced (an industrial world makes computers), positive where it is
+   * consumed. It reads the original's price gradient, so it agrees with the
+   * market model rather than works against it.
    */
   private demand(sys: StarSystem, gradient: number): number {
     // gradient > 0 → dearer at agricultural (high economy index) worlds
@@ -154,16 +155,16 @@ export class LivingGalaxy {
           // supply arrives: prices at the destination ease
           dest.pressure[c.commodity] -= 0.05 * c.tonnes / 10;
           dest.recentArrivals += 1;
-          // and the source has shipped its surplus away
+          // and the source shipped its surplus away
           this.state(c.from).pressure[c.commodity] += 0.03 * c.tonnes / 10;
         } else {
           // the cargo never came: scarcity, and a nervous reputation
           dest.pressure[c.commodity] += 0.08 * c.tonnes / 10;
           dest.recentLosses += 1;
-          // How much a loss damages a system's reputation depends on how well
-          // policed it is: an anarchy takes the full hit, a corporate state
-          // shrugs it off — otherwise busy well-governed hubs accumulate
-          // danger purely from traffic volume.
+          // How much a loss damages a system's standing depends on how well
+          // policed it is. An anarchy takes the full hit. A corporate state
+          // shrugs it off. Otherwise a busy, well-governed hub would gather
+          // danger purely from its traffic volume.
           const lawlessness = (7 - this.systems[c.to].government) / 7;
           dest.danger = Math.min(1, dest.danger + 0.22 * lawlessness);
           // raiders work a route, so the origin gets a milder reputation hit
@@ -218,7 +219,7 @@ export class LivingGalaxy {
     }
   }
 
-  /** A plausible partner: within jump range, and wanting what we have. */
+  /** A plausible partner: inside jump range, and short of what we have. */
   private pickTradePartner(sys: StarSystem, rng: () => number): number | null {
     const options = this.neighbours[sys.index];
     if (!options.length) return null;
@@ -267,17 +268,19 @@ export class LivingGalaxy {
     return this.states.get(systemIndex)?.danger ?? 0;
   }
 
-  /** How loudly this region is talking about the player, 0..1. */
+  /** How loud this region's talk about the player is, 0..1. */
   notoriety(systemIndex: number): number {
     return this.states.get(systemIndex)?.heat ?? 0;
   }
 
   /**
-   * Word gets around. Landing a fat or dirty cargo raises the player's profile
-   * here and, more faintly, everywhere within a jump — which is why running
-   * contraband makes the *next* system's reception worse rather than this one's.
-   * Reuses the same jump-range neighbour lists as trade, so heat travels along
-   * the routes that actually connect systems.
+   * Word gets around. A fat or dirty cargo landed here raises the player's
+   * profile here, and more faintly everywhere within a jump. That is why a
+   * contraband run makes the *next* system's reception worse rather than this
+   * one's.
+   *
+   * It reads the same jump-range neighbour lists as trade. So heat travels
+   * along the routes that really connect the systems.
    */
   addNotoriety(systemIndex: number, amount: number): void {
     if (amount <= 0) return;
@@ -324,9 +327,10 @@ export class LivingGalaxy {
       // reload lands on a NEARBY galaxy rather than the same one and every
       // subsequent day diverges.
       const pressure = Array.from(st.pressure);
-      // Skip only systems that are ACTUALLY untouched — including the arrivals
-      // and losses counters, or a system with convoy history but no price
-      // pressure yet has that history dropped on every save.
+      // Skip only a system that is REALLY untouched. The test covers the
+      // arrivals and the losses counters too. Without them, a system with a
+      // convoy history but no price pressure yet loses that history on every
+      // save.
       const untouched = !pressure.some((p) => p !== 0)
         && st.danger === 0 && st.heat === 0
         && st.recentArrivals === 0 && st.recentLosses === 0;
@@ -346,11 +350,12 @@ export class LivingGalaxy {
    * Put a saved galaxy back.
    *
    * EVERY FIELD DEFAULTS, and none of it is a migration. `save()` writes all
-   * five for every system it keeps; what arrives short is an IMPORTED FILE,
-   * whose `galaxyState` is `unknown` JSON a human can hand us. The defaults are
-   * that boundary's, uniform on purpose: a system this loader cannot read a
-   * number for is a system at rest, never a `NaN` compounding through every
-   * subsequent day.
+   * five for every system it keeps. What arrives short is an IMPORTED FILE,
+   * whose `galaxyState` is `unknown` JSON that a human can hand us.
+   *
+   * The defaults belong to that boundary, and they are uniform on purpose. A
+   * system this loader cannot read a number for is a system at rest. It is
+   * never a `NaN` that compounds through every later day.
    */
   load(data: GalaxyStateSave | undefined): void {
     if (!data) return;
@@ -369,24 +374,24 @@ export class LivingGalaxy {
 }
 
 /**
- * Give a fresh galaxy a past: `PREWARM_DAYS` of trade before anyone was
- * watching (docs/TODO/117).
+ * Give a fresh galaxy a past: `PREWARM_DAYS` of trade before anybody watched
+ * (docs/TODO/117).
  *
- * The simulation used to start when the player did — a new commander opened the
- * chart and saw nothing moving, because day 0 is the honest truth about a
- * galaxy that has never traded. This is the one place the number is spent, so
- * the game and the balance harness cannot disagree about what "a new galaxy"
- * means.
+ * The simulation used to start when the player did. A new commander opened the
+ * chart and saw a still galaxy, because day 0 is the honest truth about a
+ * galaxy that never traded. This is the one place the number is spent, so the
+ * game and the balance harness cannot disagree about what "a new galaxy" means.
  *
  * ONLY where there is no saved galaxy to load. The warmed deltas are ordinary
- * saved state from the first checkpoint on, so a reload resumes THIS galaxy
- * rather than warming a second one on top of it.
+ * saved state from the first checkpoint on. So a reload resumes THIS galaxy,
+ * rather than warms a second one on top of it.
  *
- * A DERIVED stream, never the world's. Determinism per seed is what invariant
- * 11 protects and `makeRng` keeps it — but consuming the world's stream at boot
- * would shift every draw after it and move the seeded pins that hold the rest
- * of the game still, for a galaxy that is no more repeatable than this one.
- * The caller supplies the seed, so one seed still means one starting galaxy.
+ * A DERIVED stream, never the world's. Invariant 11 protects determinism per
+ * seed, and `makeRng` keeps it. A spend from the world's stream at boot would
+ * shift every draw after it. That would move the seeded pins that hold the
+ * rest of the game still. It would buy a galaxy no more repeatable than this
+ * one. The caller supplies the seed, so one seed still means one galaxy
+ * at the start.
  */
 export function prewarm(living: LivingGalaxy, seed: number): void {
   living.advance(PREWARM_DAYS, COMMODITIES.map((c) => c.gradient), makeRng(seed));

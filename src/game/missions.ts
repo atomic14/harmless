@@ -1,21 +1,20 @@
 // The Navy mission: find the Constrictor, kill it, carry the plans home.
 //
-// A five-stage state machine that was spread across three private methods of
-// game.ts and one branch of destroyNpc, with the only piece that had escaped
-// — the raised mis-jump chance during the courier run — already living in
-// galaxy/navigation.ts. That stray was the clue that the rest belonged
-// somewhere.
+// A five-stage state machine. It was spread across three private methods of
+// game.ts and one branch of destroyNpc. One piece got out: the raised mis-jump
+// chance on the courier run, which already sat in galaxy/navigation.ts. That
+// stray was the clue that the rest belonged somewhere.
 //
 // Pure: it takes the commander and the galaxy, and returns what happened. The
 // Game announces it and pays it, because credits and legal status are its
-// business. That also means the headless campaign can score the mission,
-// which it could not before.
+// business. That also means the headless campaign can score the mission, which
+// it could not do before.
 //
-//   stage 0  not started — needs 16 kills, and galaxy 1
-//   stage 1  hunting the Constrictor at a known system
-//   stage 2  destroyed; report back for the next orders
-//   stage 3  carrying the plans to a named system
-//   stage 4  done
+//   stage 0     not started — needs 16 kills, and galaxy 1
+//   stage 1     the hunt for the Constrictor at a known system
+//   stage 2     destroyed; report back for the next orders
+//   stage 3     the plans, on their way to a named system
+//   stage 4     done
 
 import type { CommanderData } from './commander.ts';
 import type { BlueprintOverride } from './blueprint-set.ts';
@@ -97,7 +96,7 @@ export function constrictorDestroyed(
   return { kind: 'constrictorDestroyed', bounty: CONSTRICTOR_BOUNTY };
 }
 
-/** Is the Constrictor lurking in this system right now? */
+/** Does the Constrictor wait in this system right now? */
 export function constrictorLurksHere(commander: CommanderData): boolean {
   return commander.mission.stage === 1
     && commander.mission.targetIndex === commander.systemIndex;
@@ -106,16 +105,19 @@ export function constrictorLurksHere(commander: CommanderData): boolean {
 /**
  * Which released blueprint override this mission puts in force, or null.
  *
- * The released game overrode the blueprint file on two of these five stages, and
- * both facts are the mission's rather than the chooser's — `blueprint-set.ts`
- * says in its header that it is told which override applies and never works it
- * out. So the stage numbers stay in this file, which is their one home.
+ * The released game overrode the blueprint file on two of these five stages.
+ * Both facts are the mission's rather than the chooser's. `blueprint-set.ts`
+ * says in its header that something tells it which override applies, and that
+ * it never works one out. So the stage numbers stay in this file, which is
+ * their one home.
  *
- *   stage 1, AT the target — the Constrictor's system, which always flies set G.
- *   stage 3 — the courier run, and the Thargoids want the plans back.
+ *   stage 1, AT the target     the Constrictor's system, which always flies
+ *                              set G
+ *   stage 3                    the courier run, and the Thargoids want the
+ *                              plans back
  *
- * The third case is not a mission fact at all: witch-space takes the same
- * override, and the Game names that one because the flag is the Game's.
+ * The third case is not a mission fact at all. Witch-space takes the same
+ * override, and the Game names that one, because the flag is the Game's.
  */
 export function missionBlueprintOverride(
   commander: CommanderData,
@@ -128,20 +130,26 @@ export function missionBlueprintOverride(
 /**
  * What each laser this hull can mount is worth against the Constrictor.
  *
- * DERIVED, every time, through the same two functions a live shot goes through:
- * the fitted laser's byte (`playerLaser`) and what a hit off it is worth against
- * the target's own profile (`playerLaserDamage`, which is the oracle). Nothing
- * here restates a rule and nothing here CHANGES one — TODO 29 rules the
- * Constrictor's source-exact halving untouchable and calls this a signposting
+ * DERIVED, every time, through the same two functions a live shot goes
+ * through. The first is the fitted laser's byte (`playerLaser`). The second is
+ * what a hit off it is worth against the target's own profile
+ * (`playerLaserDamage`, which is the oracle).
+ *
+ * Nothing here restates a rule, and nothing here CHANGES one. TODO 29 rules
+ * the Constrictor's source-exact half untouchable, and calls this a signpost
  * problem instead.
  *
- * It is a signposting problem with teeth. The Constrictor halves a player hit
- * BEFORE its three points of defence subtract, so a BEAM laser's 7 becomes 3
- * and does exactly nothing, a pulse laser scores 1 and needs 115 unbroken hits,
- * and only the military laser's 3 kills it in a reasonable time — as in the
- * original. The one thing a commander must not do is fly forty light years to
- * find that out, and the beam laser is the trap, because it is the upgrade and
- * it is worse here than the gun it replaced.
+ * It is a signpost problem with teeth. The Constrictor halves a player hit
+ * BEFORE its three points of defence subtract. So the three guns land like
+ * this:
+ *
+ *   - a BEAM laser's 7 becomes 3, and does exactly nothing;
+ *   - a pulse laser scores 1, and needs 115 unbroken hits;
+ *   - only the military laser's 3 kills it in a reasonable time.
+ *
+ * That is the original's own outcome. The one thing a commander must not do is
+ * fly forty light years to find it out. The beam laser is the trap: it is the
+ * upgrade, and it is worse here than the gun it replaced.
  */
 export function constrictorGunCheck(
   commander: CommanderData,
@@ -162,12 +170,13 @@ export function constrictorGunCheck(
 /**
  * What the Navy tells you about the job, beyond where to go.
  *
- * It states the two NUMBERS and lets the commander decide, rather than issuing
- * an instruction: the figure her gun scores against this hull, and the figure
- * the best gun she could fit scores. Both come from the oracle.
+ * It states two NUMBERS and lets the commander decide. It issues no
+ * instruction. The first number is what her gun scores against this hull. The
+ * second is what the best gun she could fit scores. Both come from the oracle.
  *
- * '' when she is already carrying the best gun for it — so the line means
- * something the day it appears, instead of being one the player learns to skip.
+ * It returns '' when she already holds the best gun for the job. So the line
+ * means something on the day it appears, rather than a line the player learns
+ * to skip.
  */
 export function constrictorWarning(commander: CommanderData): string {
   const g = constrictorGunCheck(commander);
@@ -195,11 +204,11 @@ export function missionOrderLine(
 }
 
 /**
- * Where the Navy is sending her, or null when it is sending her nowhere.
+ * Where the Navy sends her, or null when it sends her nowhere.
  *
  * The charts mark it (docs/TODO/144 M4), and the standing orders report it. It
- * is deliberately NOT `mission.targetIndex` read directly: stage 2 and stage 4
- * both clear that field, and a caller that reads it raw would have to know
+ * is deliberately NOT a direct read of `mission.targetIndex`. Stage 2 and
+ * stage 4 both clear that field. A caller that read it raw would need to know
  * which stages mean anything.
  */
 export function missionDestination(commander: CommanderData): number | null {
@@ -220,17 +229,17 @@ export interface MissionLeg {
 }
 
 /**
- * Every fact about the running leg at once, or null when none runs.
+ * Every fact about the live leg at once, or null when no leg runs.
  *
- * ONE reader rather than four, because the four cannot disagree: the line, the
- * destination, the fee and the warning all answer for stages 1 and 3, and a
- * caller that assembled them itself would have to handle three combinations
- * that the machine cannot produce.
+ * ONE reader rather than four, because the four cannot disagree. The line, the
+ * destination, the fee and the warning all answer for stages 1 and 3. A caller
+ * that assembled them itself would need to handle three combinations that the
+ * machine cannot produce.
  *
- * The fee is read off the same two constants `stepMissionAtDock` and
- * `constrictorDestroyed` pay from, so a screen cannot quote a price the mission
- * does not settle. The warning is a stage 1 fact: it prices a gun against the
- * Constrictor's hull, and by stage 3 that ship is wreckage.
+ * The fee comes off the same two constants that `stepMissionAtDock` and
+ * `constrictorDestroyed` pay from. So a screen cannot quote a price the
+ * mission does not settle. The warning is a stage 1 fact: it prices a gun
+ * against the Constrictor's hull, and by stage 3 that ship is wreckage.
  */
 export function missionLeg(
   commander: CommanderData, systems: readonly StarSystem[],

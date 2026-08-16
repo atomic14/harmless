@@ -1,17 +1,21 @@
 // The world: the scene, and everything in it.
 //
-// One place that owns the ships, the cargo, the effects and the system's
-// scenery — so a module that needs "what is out there" takes a World instead
-// of inventing its own view of the Game. Every extraction before this one had
-// to define its own context interface (OrdnanceContext, TradeContext,
-// ChartContext…) because there was nothing else to hand it. Those are all
-// gone now: a module that needs the sky takes a World, and a module that
-// needs nothing takes plain data.
+// One place owns the ships, the cargo, the effects and the system's scenery. So
+// a module that needs "what is out there" takes a World, rather than a view of
+// the Game that it made up for itself.
 //
-// It owns objects and their lifetimes. It does NOT own rules: what a system
-// should contain lives in population.ts, what turns up later in encounters.ts,
-// and what any of it COSTS stays with the Game, which is the only thing that
-// may pay a bounty or move your legal status.
+// Every extraction before this one had to define its own context interface —
+// OrdnanceContext, TradeContext, ChartContext — because there was nothing else
+// to hand it. Those are all gone now. A module that needs the sky takes a
+// World. A module that needs nothing takes plain data.
+//
+// It owns objects and their lifetimes. It does NOT own rules:
+//
+//   - what a system should contain lives in population.ts;
+//   - what turns up later lives in encounters.ts;
+//   - what any of it COSTS stays with the Game.
+//
+// The Game is the only thing that may pay a bounty or move your legal status.
 
 import * as THREE from 'three';
 import { NpcShip } from './npc.ts';
@@ -34,7 +38,7 @@ export class World {
   /** the current system's sun, planet and station */
   scene3d!: SystemScene;
   /**
-   * The roster this system flies — the narrowing its blueprint set makes.
+   * The roster this system flies — how far its blueprint set narrows `SPECS`.
    *
    * Elite-A shipped 23 rosters and chose between them on arrival, so which
    * designs turn up is a fact about WHERE you are (docs/TODO/138). The World is
@@ -53,9 +57,9 @@ export class World {
    * Tear down the current system and build `system` in its place.
    *
    * `roster` is what that system's blueprint set files — see `specsForSet`. It
-   * is an ARGUMENT and not something the World works out, because choosing the
-   * set needs the galaxy, two draws of the seeded stream and the mission state,
-   * and none of those is the World's to know.
+   * is an ARGUMENT, and the World does not work it out. A choice of set needs
+   * the galaxy, two draws of the seeded stream and the mission state. None of
+   * those is the World's to know.
    */
   build(system: StarSystem, roster: RosterSpecs = SPECS): void {
     this.roster = roster;
@@ -72,9 +76,9 @@ export class World {
 
   /**
    * Witch-space: mis-jump limbo. The system scene is reused, but the planet,
-   * station and sun are banished beyond reach of every distance check — just
-   * stars, and Thargoids. Cheaper than a nullable world type, and every
-   * subsystem keeps working.
+   * station and sun are banished beyond reach of every distance check. What is
+   * left is stars, and Thargoids. This is cheaper than a nullable world type,
+   * and every subsystem still runs.
    */
   banishScenery(): void {
     this.scene3d.planet.mesh.position.set(BANISHED, BANISHED, 0);
@@ -92,11 +96,13 @@ export class World {
   /**
    * Put a ship in the sky.
    *
-   * The roster row is resolved HERE rather than inside `NpcShip`, because the
-   * World is the only thing that knows which system was built and therefore
-   * which roster is in force. A ship constructed on its own — an arena, a test —
-   * still resolves its own row against `SPECS`, which is the same answer this
-   * gives when no system has narrowed it.
+   * The roster row resolves HERE rather than inside `NpcShip`. The World is
+   * the only thing that knows which system was built, and so which roster is
+   * in force.
+   *
+   * A ship built on its own — in an arena, in a test — still resolves its own
+   * row against `SPECS`. That is the same answer this method gives where no
+   * system narrowed the roster.
    */
   spawn(
     role: NpcRole, position: THREE.Vector3, seed: number,
@@ -109,7 +115,7 @@ export class World {
     return npc;
   }
 
-  /** Take one out of the sky. The caller has already decided why. */
+  /** Take one out of the sky. The caller already decided why. */
   despawn(npc: NpcShip): void {
     this.scene.remove(npc.object);
     const i = this.npcs.indexOf(npc);
@@ -124,17 +130,19 @@ export class World {
   /**
    * The ships, as plain data.
    *
-   * The state is walked generically (serialiseState), so adding a field to
-   * NpcState saves it — there is no list here to keep in step. The spec is
-   * NOT stored: threatTier and isMissionTarget are in the state, and the hull
-   * is derivable from them plus the seed.
+   * `serialiseState` walks the state generically. So a new field on NpcState
+   * saves itself, and there is no list here to keep in step. The spec is NOT
+   * stored: threatTier and isMissionTarget are in the state, and the hull
+   * follows from those two plus the seed.
    *
-   * The IDENTITY is stored, and is the exception that proves that rule. It is
-   * immutable, so it is not in the state; and it is derivable today only
-   * because the roster's recommended variant is the only variant anything
-   * picks. Saving the id rather than re-deriving it is what lets a later
-   * blueprint loader choose a different exact build without every old save
-   * quietly turning back into the recommended one.
+   * The IDENTITY is stored, and it is the exception that proves that rule. It
+   * is immutable, so it is not in the state. It follows from the rest today
+   * only because the roster's recommended variant is the only variant anything
+   * picks.
+   *
+   * The stored id is what lets a later blueprint loader choose a different
+   * exact build. Without it, every old save would quietly turn back into the
+   * recommended one.
    */
   captureNpcs(): NpcSnapshot[] {
     return this.npcs.map((n) => ({
@@ -152,16 +160,17 @@ export class World {
    * game rule (tier tables, the Constrictor), not a world one.
    *
    * Every saved ship states what it is, and `savedShipIdentity` throws for one
-   * that does not — so a snapshot this build cannot read comes apart here, and
-   * `Persistence.resume` catches it and boots the commander normally. The fleet
-   * this leaves behind is whatever was rebuilt before the bad ship: the restore
-   * as a whole is already not atomic (the galaxy and the scene are rebuilt
-   * above it), so the guarantee is the boot's, not this loop's.
+   * that does not. So a snapshot this build cannot read comes apart here.
+   * `Persistence.resume` catches that and boots the commander normally.
    *
-   * Rebuilding a ship DOES draw, because the constructor rolls the things a
-   * fresh ship needs — but every one of them is then overwritten by the save,
-   * so nothing a restore rolls reaches the restored fleet. `Persistence.restore`
-   * puts the generator back last for the same reason.
+   * The fleet left behind is whatever was rebuilt before the bad ship. The
+   * restore as a whole is already not atomic, because the galaxy and the scene
+   * are rebuilt above it. So the guarantee is the boot's, not this loop's.
+   *
+   * A rebuilt ship DOES draw, because the constructor rolls the things a fresh
+   * ship needs. The save then overwrites every one of them, so nothing a
+   * restore rolls reaches the restored fleet. `Persistence.restore` puts the
+   * generator back last for the same reason.
    */
   restoreNpcs(
     saved: readonly NpcSnapshot[],
@@ -181,11 +190,13 @@ export class World {
       const prey = this.npcs[n.targetIndex];
       if (!hunter || !prey) return;
       hunter.npcTarget = prey;
-      // The same verb the live path calls, on the same terms: only a pirate
-      // registers, because npc-targeting.ts registers pirates and NOT police
-      // or hunters, which set npcTarget alone. Registering everyone invented
-      // links the live run never had, and a reloaded fleeing ship turned and
-      // duelled the police chasing it where before it just ran.
+      // The same verb the live path calls, on the same terms. Only a pirate
+      // registers, because npc-targeting.ts registers a pirate and NOT a
+      // police ship or a hunter, which set npcTarget alone.
+      //
+      // A register of everyone made up links that the live run never had. A
+      // reloaded ship in flight then turned and duelled the police behind it,
+      // where before it merely ran.
       if (hunter.role === 'pirate') prey.addAttacker(hunter);
     });
   }
@@ -197,7 +208,7 @@ export class World {
   get planetPos(): THREE.Vector3 { return this.scene3d.planet.mesh.position; }
   get planetRadius(): number { return this.scene3d.planetRadius; }
   get sunPos(): THREE.Vector3 { return this.scene3d.sun.group.position; }
-  /** where a launching ship is parked, just outside the slot */
+  /** where a ship that leaves the station is parked, just outside the slot */
   get spawnPosition(): THREE.Vector3 { return this.scene3d.spawnPosition; }
 
   /** Advance the scenery — the sun's shader clock and the station's spin. */

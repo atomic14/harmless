@@ -1,15 +1,25 @@
 // What the cockpit shows about the world.
 //
-// Split out of `game.ts` by docs/TODO/150 M3. `hud/hud-binding.ts` turns state
-// into a dashboard, `hud/hud.ts` paints one, and `prompts.ts` decides which
-// commands are worth offering — this is the ADAPTER between those rules and the
-// Game that holds the world. It is the layer `hud-binding.ts` deliberately
-// refuses in its own opening: "There is no `Game` here and no callback out."
+// Split out of `game.ts` by docs/TODO/150 M3. Three rule modules sit under it:
 //
-// ONE RESPONSIBILITY: what the cockpit shows about the world. The gunsight
-// lamp, the laser beams' meeting point, the prompt line and the dashboard frame
-// are four surfaces of that one question. Each one reads the world and returns
-// a picture; not one of them decides anything.
+//   - `hud/hud-binding.ts` turns state into a dashboard;
+//   - `hud/hud.ts` paints one;
+//   - `prompts.ts` decides which commands are worth an offer.
+//
+// This file is the ADAPTER between those rules and the Game that holds the
+// world. It is the layer `hud-binding.ts` deliberately refuses at the head of
+// its own header: "There is no `Game` here and no callback out."
+//
+// ONE RESPONSIBILITY: what the cockpit shows about the world. Four surfaces
+// answer that one question:
+//
+//   1. the gunsight lamp;
+//   2. where the laser beams meet;
+//   3. the prompt line;
+//   4. the dashboard frame.
+//
+// Each one reads the world and returns a picture. Not one of them decides
+// anything.
 //
 // IT ONLY READS. Nothing here writes to `state`, and that is the north star
 // invariant 1 states — the renderer only reads the world. The two vectors below
@@ -35,19 +45,22 @@ import { BEAM_Z } from '../engine/render-stack.ts';
  * What the cockpit has to reach back to the Game for.
  *
  * FIVE, and each is a thing only the orchestrator knows. Three of them answer a
- * question about the machine rather than about the world: which binding table
- * is live, whether the ship is flying, and whether an exercise is running. The
- * fourth is the sight lamp, which lives on the shell.
+ * question about the machine rather than about the world:
+ *
+ *   1. which binding table is live;
+ *   2. whether the ship is in flight;
+ *   3. whether an exercise runs.
+ *
+ * The fourth is the sight lamp, which lives on the shell.
  *
  * `inFlight` REPLACES THREE READS OF `mode`, and they were the same question
- * asked three times — the sight, the prompt line and the dashboard each tested
+ * asked three times. The sight, the prompt line and the dashboard each tested
  * `mode === 'flight'`. One host method now, so the three cannot drift apart.
  *
  * `view` IS A METHOD RATHER THAN A CONSTRUCTOR ARGUMENT, and boot order is why.
  * The Game builds its shell inside its own constructor, because the shell needs
- * the scene the Game has just made — so the `Presentation` does not exist while
- * the Game's fields are being initialised, and a copy taken then would be
- * undefined.
+ * the scene the Game just made. So the `Presentation` does not exist while the
+ * Game initialises its fields, and a copy taken then would be undefined.
  */
 export interface CockpitHost {
   /** in the cockpit with no screen over it: the only state that has a HUD */
@@ -82,10 +95,10 @@ export class CockpitView {
   /**
    * Two scratch vectors, and they are this file's OWN rather than the Game's.
    *
-   * The same reason `placeOf` keeps `soundAt` and `soundRight`: the draw runs in
-   * the middle of a frame whose step is already holding a vector in the Game's
-   * `tmp`, so a shared scratch would corrupt whatever that frame was measuring —
-   * silently, and only sometimes.
+   * The same reason `placeOf` keeps `soundAt` and `soundRight`. The draw runs
+   * in the middle of a frame, and that frame's step already holds a vector in
+   * the Game's `tmp`. A shared scratch would corrupt whatever that frame
+   * measures. It would do so silently, and only sometimes.
    */
   private readonly tmp = new THREE.Vector3();
   private readonly tmp2 = new THREE.Vector3();
@@ -105,10 +118,10 @@ export class CockpitView {
   /**
    * Light the sight when the aim assist would actually reach the target.
    *
-   * The circle shows the envelope at knife range; this tells the truth for
-   * the target in front of you right now, since the assist tapers with
-   * distance. Together they answer "will this shot land?" without the player
-   * having to learn the numbers.
+   * The circle shows the envelope at knife range. This lamp tells the truth
+   * for the target in front of you right now, because the assist tapers with
+   * distance. Together they answer "will this shot land?", and the player
+   * learns no numbers.
    */
   private updateSight(): void {
     let on = false;
@@ -130,10 +143,10 @@ export class CockpitView {
    * Point the cockpit beams at `target`, or straight down the gun axis when
    * there is nothing to converge on.
    *
-   * The beams are children of the camera and meet at (0, 0, -BEAM_Z), so the
-   * convergence point is simply the target direction in camera space at the
-   * same depth. Only the meeting point moves — the emitters stay on the hull
-   * corners, which is what sells the beams as bending.
+   * The beams are children of the camera, and they meet at (0, 0, -BEAM_Z). So
+   * the convergence point is merely the target direction in camera space, at
+   * the same depth. Only that point moves. The emitters stay on the hull
+   * corners, which is what sells the beams as bent.
    */
   aimBeams(target: THREE.Vector3 | null): void {
     const pos = this.render.beams.geometry.getAttribute('position') as THREE.BufferAttribute;
@@ -155,18 +168,21 @@ export class CockpitView {
   }
 
   /**
-   * The prompt line: what a key can do about what is happening, with the key
-   * the table actually binds in front of it.
+   * The prompt line: what a key can do about the situation, with the key the
+   * table really binds in front of it.
    *
    * The join between a pure rule and invariant 9. `prompts.ts` decides WHICH
-   * commands are worth offering and what each is worth right now; `boundKey`
-   * answers what to press, from `controls.ts`, which is the one home of that —
-   * so rebinding a command rewrites its own prompt and no letter is ever
-   * written out in prose. Only in flight: the station menu already renders its
-   * own keys from the same table.
+   * commands are worth an offer, and what each is worth right now. `boundKey`
+   * answers what to press. It answers from `controls.ts`, which is the one home
+   * of that. So a rebound command rewrites its own prompt, and no letter is
+   * ever written out in prose.
    *
-   * @internal — public so a test can read what the cockpit is offering without
-   * scraping the painted line, the way `jettisonCargo` is driven directly.
+   * Only in flight. The station menu already renders its own keys from the same
+   * table.
+   *
+   * @internal — public so that a test can read the cockpit's offers without a
+   * scrape of the painted line. `jettisonCargo` is driven directly the same
+   * way.
    */
   keyPrompts(): string[] {
     const mode = this.host.controlMode();
@@ -179,9 +195,9 @@ export class CockpitView {
       witchspace: this.state.session.witchspace,
       energy: this.state.sys.energy,
       missileInbound: this.ordnance.missileInbound,
-      // `>= 0` is `sendDistressBeacon`'s own reading of the timer, over in
-      // game.ts: a beacon already broadcasting is what that key refuses, and
-      // this is the prompt for that key.
+      // `>= 0` is how `sendDistressBeacon` reads the timer, over in game.ts. A
+      // beacon already on the air is what that key refuses, and this is the
+      // prompt for that key.
       beaconSent: this.state.session.beaconTimer >= 0,
       stationDistance: this.state.player.position
         .distanceTo(this.state.world.station.position),
@@ -196,11 +212,13 @@ export class CockpitView {
    * One offer as the cockpit prints it: the key this mode binds, then the
    * words. Null when it binds none.
    *
-   * `keyIfBound`, not `boundKey`: the arena's table subtracts eight of the
-   * cockpit's commands, so an unbound one here is an ordinary answer — the
-   * offer simply is not made — rather than a build failure. Shared with the
-   * ordnance refusals, which carry a `Prompt` for the same reason a prompt does
-   * (docs/TODO/128 M3): a rule module may not name a key.
+   * `keyIfBound`, not `boundKey`. The arena's table subtracts eight of the
+   * cockpit's commands. So an unbound command here is an ordinary answer
+   * rather than a build failure: the offer is simply not made.
+   *
+   * The ordnance refusals share this function. They carry a `Prompt` for the
+   * same reason a prompt does (docs/TODO/128 M3): a rule module may not name a
+   * key.
    */
   renderPrompt(p: Prompt): string | null {
     const mode = this.host.controlMode();
@@ -239,9 +257,9 @@ export class CockpitView {
       messageText: this.state.session.messageText,
       messageTimer: this.state.session.messageTimer,
       prompts: this.keyPrompts(),
-      // Null in career flight, and gated on the same `active` that decides the
-      // exercise owns the keyboard (controlMode) — the strip is the exercise's
-      // own view of itself, not a second opinion about one.
+      // Null in career flight. It is gated on the same `active` that gives the
+      // exercise the keyboard (controlMode). The strip is the exercise's own
+      // view of itself, not a second opinion about one.
       exercise: this.host.exerciseStrip(),
     }, this.hudScratch);
 

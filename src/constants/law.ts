@@ -37,7 +37,7 @@ export const FUGITIVE = 2;
  * TWO rules spend it, which is why it lives with the law rather than with the
  * spawner that used to own it as `AMBUSH_STANDOFF`. `game/law.ts`'s
  * `truceHolds` decides who may engage. `game/encounters.ts` refuses to warp a
- * pirate wave in inside the same range, because a wave that arrived would be
+ * pirate wave in inside the same range. A wave that arrived there would be
  * bound by the truce the moment it existed.
  *
  * It is well outside the station's mass lock (5,000, `torus.ts`), so the quiet
@@ -76,23 +76,23 @@ export const FUGITIVE_FINE = 750;
  * to Clean.
  *
  * **The arithmetic that chooses five.** A pirate's bounty runs 4 to 22 credits
- * across the roster (game/ship-specs.ts) and most of the band sits near 10, so
- * five kills earn about 50 credits. One rung costs 25 credits as an Offender
- * and 75 as a Fugitive. So the fight route pays for itself and then some, and
- * it costs five fights and a survival. The fine is the fast way and needs a
- * station; the fight is the slow way and needs none.
+ * across the roster (game/ship-specs.ts), and most of the band sits near 10.
+ * So five kills earn about 50 credits. One rung costs 25 credits as an
+ * Offender and 75 as a Fugitive. So the fight route pays for itself and then
+ * some, at a cost of five fights and a survival. The fine is the fast way and
+ * needs a station. The fight is the slow way and needs none.
  *
  * **Pirates only, and a Thargon is why.** `THARGON_REDEPLOY` is 5 seconds
- * (constants/encounters.ts) and a live mothership keeps replacing drones, so
- * counting them would make a record free.
+ * (constants/encounters.ts), and a live mothership replaces its drones on that
+ * clock. A count of drones would make a record free.
  *
  * It has its own rule id. It shares the value 5 with a ratio, a rate and three
- * durations, and it is a count of KILLS against one rung of the legal ladder.
+ * durations. It is a count of KILLS against one rung of the legal ladder.
  *
  * The token heuristic reads "kills" and offers the rating domain. The rating
- * ladder counts kills for a RATING — Harmless to Elite — and this counts them
+ * ladder counts kills for a RATING — Harmless to Elite. This counts them
  * against a legal record. The two ladders are unrelated, and `rating.ts` must
- * stay free to re-cut its rungs without moving this.
+ * stay free to re-cut its own rungs and leave this one alone.
  *
  * @rule law.killsPerRung
  * @domain law
@@ -114,7 +114,7 @@ export const SCAN_RANGE = 2600;
  * A police ship this close is about to be able to read your hold, and the console
  * says so while it stays there.
  *
- * There are two constraints, and the second one is worth pinning:
+ * There are two constraints, and the second one is worth a pin:
  *
  *  - it is ABOVE `SCAN_RANGE`, so the warning is a band that the scan sits
  *    inside, rather than a second name for it;
@@ -124,9 +124,9 @@ export const SCAN_RANGE = 2600;
  *
  * The width of the band is 1,800. That is the distance the player's Cobra covers
  * in about four and a half seconds, at its 400 u/s top speed (`PLAYER_FLIGHT`).
- * It is long enough to read a line and decide, while you fly flat out straight at
- * a patrol, which is the worst case that is not deliberate. A cop who closes on
- * you as well shortens it, and the repeat below is what covers that.
+ * That is long enough to read a line and decide. The worst case that is not
+ * deliberate is a flat-out run straight at a patrol. A cop who closes on you
+ * as well shortens it, and the repeat below is what covers that.
  */
 export const SCAN_WARN_RANGE = 4400;
 
@@ -135,13 +135,13 @@ export const SCAN_WARN_RANGE = 4400;
  *
  * It is a repeat rather than a one-shot on entry to the band. A one-shot has to
  * know whether a ship is CLOSING, which needs a previous distance per ship that
- * the step does not keep. A repeat while a cop is in the band is the same
- * information without the bookkeeping, and it goes quiet by itself.
+ * the step does not keep. A repeat while a cop is in the band carries the same
+ * information, keeps no record, and goes quiet by itself.
  *
  * It is in SECONDS. It shares its value with `FUGITIVE` eleven lines above, by
- * pure accident. The id says so, because a legal status and a message cadence
- * that both sit at 2 in the same file is exactly the coincidence somebody tidies
- * into a bug.
+ * pure accident. The id says so. A legal status and a message cadence that both
+ * sit at 2 in the same file are exactly the coincidence somebody tidies into a
+ * bug.
  *
  * @rule law.scanWarnRepeat
  */
@@ -153,20 +153,24 @@ export const SCAN_WARN_REPEAT = 2;
  * (constants/jettison.ts) is the one home of what a tonne fetches.
  *
  * HALF, and the half is the whole argument. The other answer to a patrol that
- * closes is to dump the evidence, which costs you all of it. A bribe that cost as
- * much as the cargo would therefore never be worth the offer, and one that cost a
- * token would delete the choice from the other side. Half of what he ignores is a
- * cut that a smuggler can live with and still feel.
+ * closes is to dump the evidence, which costs you all of it. So a bribe as dear
+ * as the cargo would never be worth the offer. A token bribe would delete the
+ * choice from the other side. Half of what he ignores is a cut that a smuggler
+ * can live with and still feel.
  *
  * It is deliberately NOT priced off `OFFENDER_FINE`. 25 Cr is what the station
- * charges for the paperwork, and a man who looks away from a hold of narcotics
- * does not sell the same thing. An anchor between them would make one move the
+ * charges for the paperwork. A man who looks away from a hold of narcotics does
+ * not sell the same thing. An anchor between them would make one move the
  * other. The floor below catches a light hold, and this does not.
  *
  * It has its own rule id. Half is a popular number, and every other 0.5 in the
- * catalogue is an answer to a different question: what a bad name is worth to a
- * pirate, how far a cone opens, how far a gun leads. Each must stay free to move
- * without a move to this.
+ * catalogue answers a different question:
+ *
+ *   - what a bad name is worth to a pirate;
+ *   - how far a cone opens;
+ *   - how far a gun leads.
+ *
+ * Each must stay free to move on its own, and leave this one where it is.
  *
  * @rule law.bribeShare
  */
@@ -177,9 +181,9 @@ export const BRIBE_SHARE = 0.5;
  * tenths of a credit (invariant 8).
  *
  * It has the same shape as `OPPORTUNIST_FLOOR`, and for the same reason. The
- * reason bites harder here. Slaves are 14th of 17 on the 1984 price table, so a
- * tonne of them is worth 16 Cr, and a share of that is not a bribe. It is a tip.
- * The floor is what the risk costs HIM, independent of what you happen to carry.
+ * reason bites harder here. Slaves are 14th of 17 on the 1984 price table, so
+ * one tonne is worth 16 Cr. A share of that is not a bribe. It is a tip.
+ * The floor is what the risk costs HIM, whatever you happen to carry.
  * That is also why the owner is the law, rather than the jettison domain it
  * resembles. A pirate's floor is the least he will call a payday. This is the
  * least a policeman will call a career worth a gamble.
@@ -197,10 +201,10 @@ export const BRIBE_FLOOR = 500;
  * multiple of the fine for the rung you are on. It is PER SHIP, so a pair costs
  * twice, exactly as a gang of pirates does.
  *
- * It is expressed from `OFFENDER_FINE` and `FUGITIVE_FINE`, because those are the
- * existing statement of what each rung is worth to the law. It is MUCH worse than
- * them, because it has to be: a bribe that undercut the fine would delete the
- * fine. To dock and pay clears the record for 75 Cr. To buy one Viper out of one
+ * It is expressed from `OFFENDER_FINE` and `FUGITIVE_FINE`, because those two
+ * already state what each rung is worth to the law. It is MUCH worse than them,
+ * because it has to be. A bribe that undercut the fine would delete the fine.
+ * To dock and pay clears the record for 75 Cr. To buy one Viper out of one
  * fight costs 300, and you are still a Fugitive when he goes.
  *
  * It is four, rather than two or ten. Two makes a run from the law cheaper than a
@@ -222,20 +226,27 @@ export const PATROL_BRIBE_FINES = 4;
  * `game/law.ts`.
  *
  * A Notorious pilot knows who to ask. An honest one asks the wrong man. This is
- * `disrepute` as a CREDENTIAL — the same shape docs/TODO/96 built for the rock
- * hermit, a credential up to a point — rather than a third idea about what a bad
- * name is for. It is why the offer is a gamble and not a purchase. A bribe that
- * always worked would be a price list, and the interesting version of this
- * feature is the one where a clean-handed smuggler thinks twice.
+ * `disrepute` as a CREDENTIAL, and it is not a third idea about what a bad name
+ * is for. docs/TODO/96 built the same shape for the rock hermit: a credential
+ * up to a point.
  *
- * A third, and not a half: refused more often than not, and a key nobody presses.
+ * It is why the offer is a gamble and not a purchase. A bribe that always
+ * worked would be a price list. The version of this feature that earns its
+ * place is the one where a clean-handed smuggler thinks twice.
  *
- * It has its own rule id. It shares the value 0.35 with an alpha and two steering
- * angles. Two more are worth a name, because they ARE rates that a reader could
- * think were this one: `HUNTER_CHANCE_ARRIVAL`, which is how often a bounty
- * hunter is in the sky you arrive into, and `CHALLENGE_RATE`, which is how often
- * a reception comes for your reputation rather than your cargo. Three different
- * questions about chance, and any of them may move alone.
+ * A third, and not a half: refused more often than not, and a key nobody
+ * presses.
+ *
+ * It has its own rule id. It shares the value 0.35 with an alpha and two
+ * steering angles. Two more are worth a name, because they ARE rates that a
+ * reader could take for this one:
+ *
+ *   - `HUNTER_CHANCE_ARRIVAL` — how often a bounty hunter is in the sky you
+ *     arrive into;
+ *   - `CHALLENGE_RATE` — how often a reception comes for your reputation
+ *     rather than your cargo.
+ *
+ * Three different questions about chance, and any of them may move alone.
  *
  * @rule law.bribeRefused
  */
