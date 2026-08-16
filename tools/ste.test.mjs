@@ -10,6 +10,10 @@
 // Run: node tools/ste.test.mjs   (also `npm run ste:test`)
 
 import assert from 'node:assert/strict';
+import { mkdtempSync, rmSync, writeFileSync } from 'node:fs';
+import { join } from 'node:path';
+import { tmpdir } from 'node:os';
+import { spawnSync } from 'node:child_process';
 import { comments, proseOf, prose, sentences, words } from './ste-read.mjs';
 import { capFor, isInstruction, ingWords, tenseBreaches } from './ste-rules.mjs';
 
@@ -186,5 +190,30 @@ assert.ok(words(only[0].sentence).length > capFor(only[0].sentence));
 assert.deepEqual(ingWords(only[0].sentence).flagged, ['flying']);
 assert.deepEqual(tenseBreaches(only[0].sentence), ['has been']);
 assert.equal(only[0].line, 2);
+
+// --- the gate, and the proof that it can fail -------------------------------
+
+// `npm run ste:check` is a gate, so it must be able to fail (docs/PROCESS.md).
+// These run the real command line against a written fixture, because the gate's
+// decision is the exit code and nothing above this line can see one.
+//
+// THE THIRD CASE IS THE POINT. An `-ing` word is reported and never gated, so a
+// file that holds one and nothing else must still exit 0. Without it, a change
+// that folded the third count into the gate would pass this file.
+const dir = mkdtempSync(join(tmpdir(), 'ste-gate-'));
+const gate = (body) => {
+  writeFileSync(join(dir, 'fixture.ts'), body);
+  const run = spawnSync(process.execPath, [
+    new URL('./ste.mjs', import.meta.url).pathname, '--gate', dir,
+  ], { encoding: 'utf8' });
+  return run.status;
+};
+
+assert.equal(gate('// The ship docks.\n'), 0);
+assert.equal(gate(`// ${long(30)}\n`), 1);
+assert.equal(gate('// The rule has been true.\n'), 1);
+assert.equal(gate('// The ship was flying home.\n'), 0);
+
+rmSync(dir, { recursive: true, force: true });
 
 console.log('ste fixtures: ok');

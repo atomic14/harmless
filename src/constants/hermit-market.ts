@@ -15,7 +15,7 @@ import { CHARACTER } from './character.ts';
  */
 export const HERMIT_ORE: ReadonlySet<string> = new Set(['Minerals', 'Gold', 'Platinum', 'Gem-Stones']);
 
-/** What a hermit has run out of: anything that has to be flown in. */
+/** What a hermit runs out of: anything that must be flown in. */
 export const HERMIT_SUPPLIES: ReadonlySet<string> = new Set(['Food', 'Liquor/Wines', 'Machinery']);
 
 /** Ore is a quarter off here, and there is plenty of it. */

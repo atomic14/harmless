@@ -68,7 +68,7 @@ export const GENERATION_SHIP_CHANCE = 0.08;
 export const ASTEROIDS_MIN = 2;
 
 /**
- * ...and how many more it may have, drawn flat: `ASTEROIDS_MIN` plus 0, 1 or 2.
+ * ...and how many more it holds, drawn flat: `ASTEROIDS_MIN` plus 0, 1 or 2.
  * It is a SPAN, not a maximum, because that is the shape of the draw
  * (`Math.floor(rng() * ASTEROIDS_VARIATION)`). The most a system holds is four.
  */

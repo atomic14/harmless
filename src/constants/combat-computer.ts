@@ -58,9 +58,9 @@ export const STEER_SATURATION = 0.35;
  * that weaves. At 0.08 — about 4.5 degrees — the nose is hauled on hard.
  *
  * It applies only when the target is AHEAD (`localZ > 0`). It blends back to
- * `STEER_SATURATION` as the target moves abeam or behind. A hard pitch before the
- * bank has brought a far-behind target into the pitch plane would loop the nose
- * the wrong way.
+ * `STEER_SATURATION` as the target moves abeam or behind. The bank brings a
+ * far-behind target into the pitch plane. A hard pitch before that would loop
+ * the nose the wrong way.
  */
 export const STEER_PITCH_SATURATION = 0.08;
 

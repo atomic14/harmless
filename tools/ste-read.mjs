@@ -2,7 +2,7 @@
 //
 // This is the half of the Simplified Technical English checker that decides
 // WHAT IS MEASURED. `tools/ste-rules.mjs` decides what is wrong with it, and
-// `tools/ste.mjs` is the parent that reports.
+// `tools/ste.mjs` is the parent that reports, and that gates under `--gate`.
 //
 // The exclusions live here, and they are the part that has to be right. The
 // house style never touches code, an exact command, an API name, an error

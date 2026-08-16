@@ -102,7 +102,13 @@ the user is familiar with all the documents you have read.
 Write the technical prose of this repository in ASD-STE100 Simplified Technical
 English. STE is a controlled language for one reader: somebody who must act on a
 written instruction, and who cannot ask the author what it meant. This is a
-house style. No gate checks it (Chris, 2026-08-12).
+house style.
+
+**A gate checks part of it, over `src/` only.** `npm run ste:check` reads every
+comment in `src/` and fails on two of the rules below: the sentence caps, and
+the tense. `npm run check` calls it. It never fails on an `-ing` word, and it
+never reads `docs/`. It was report-only until 2026-08-16, and it gates because
+a swept file drifted back in one day with nothing to say so (docs/TODO/154).
 
 The rules are countable:
 

@@ -62,8 +62,14 @@ Two things belong to the plan doc rather than to the commit message alone:
 
 **The gates always run**, and they are `npm run check`. That one command is the
 lint, the suite, the size ceilings, `constants:check`, `palette:check`,
-`claims:check` and the three generator drift checks. `npm run prebuild` runs it,
-so a build cannot skip it.
+`claims:check`, `ste:test`, `ste:check` and the three generator drift checks.
+`npm run prebuild` runs it, so a build cannot skip it.
+
+`ste:check` holds the house prose style over `src/`, and it holds two of its
+rules: the sentence caps, and the tense (docs/TODO/154 M4). It reads every
+comment in the tree, so a file converted last month cannot drift back. It never
+fails on an `-ing` word. **The remedy for a failure is to split the sentence.**
+Never drop a fact, a condition or a scope qualifier to meet a cap.
 
 `claims:check` holds one comment form. A doc comment may say
 `@internal — driven by <path>`, and the gate fails when the named file does not

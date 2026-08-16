@@ -1,13 +1,24 @@
 // Are the comments in this tree in Simplified Technical English?
 //
-// `CLAUDE.md` sets the house style, and states that no gate checks it. A rule
-// with no measurement is a preference, and docs/TODO/154 measured what that
-// costs. `src/constants/`, swept in one pass by docs/TODO/141, holds 7% long
-// sentences. The rest of `src/`, left to convert as each file was edited, holds
-// 24%. A sweep converts a surface. An intention does not.
+// `CLAUDE.md` sets the house style. It had no measurement until docs/TODO/154,
+// and a rule with no measurement is a preference. The numbers said so.
+// `src/constants/`, swept in one pass by docs/TODO/141, held 7% long sentences.
+// The rest of `src/`, left to convert as each file was edited, held 24%. A
+// sweep converts a surface. An intention does not.
 //
-// IT REPORTS. IT DOES NOT GATE (docs/TODO/154 M1). M4 decides whether it joins
-// `npm run check`, and that decision needs the numbers M2 and M3 produce.
+// IT GATES, UNDER `--gate`, AND ONLY THERE (docs/TODO/154 M4). Every other run
+// reports and exits 0. `npm run ste:check` is the gated one, and `npm run
+// check` calls it.
+//
+// THE GATE IS WHOLE-TREE, and it holds two of the three rules: the sentence
+// caps, and the tense. M3 swept `src/` to 0 of 14,582 sentences over the cap
+// and 0 in a compound tense, so a whole-tree gate costs nothing to adopt today.
+// A diff-scoped gate would cost the same and let more through: docs/TODO/141
+// recorded an export that sat undocumented until somebody edited its file.
+//
+// THE `-ing` COUNT NEVER GATES. It is 788, and a technical noun is the honest
+// answer for most of them. The allowlist decides what the number means, so the
+// number is a report and `--nouns` is its review surface (docs/TODO/154 M4).
 //
 // This file is the parent of two children. `tools/ste-read.mjs` decides what is
 // measured, and that is the harder half. The style never touches code, an exact
@@ -22,8 +33,9 @@
 //      node tools/ste.mjs --dirs          one row per directory
 //      node tools/ste.mjs --words         the flagged -ing words, by frequency
 //      node tools/ste.mjs --nouns         the audit of the technical-noun list
+//      node tools/ste.mjs --gate          the gate: exit 1 on a cap or a tense
 //
-// (also `npm run ste`, which needs `--` before a flag)
+// (also `npm run ste`, which needs `--` before a flag, and `npm run ste:check`)
 
 import { readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
@@ -120,10 +132,33 @@ function summary() {
     + ` · ${total.ing} -ing (${per100(total.ing, total.sentences)}/100)`
     + ` · ${total.tense} tense`);
   if (skipped.length) console.log(`${skipped.length} generated file(s) skipped`);
-  console.log('This tool reports. It does not gate (docs/TODO/154 M1).');
+  console.log('This run reports. `npm run ste:check` is the gate (docs/TODO/154 M4).');
 }
 
-if (flags.has('--words')) {
+if (flags.has('--gate')) {
+  // THE GATE. It prints only what fails, because a gate that prints 252 clean
+  // rows buries the one line somebody has to act on. The remedy is in the
+  // message: `CLAUDE.md` says to split a sentence, and never to drop a fact to
+  // meet a cap.
+  const bad = files
+    .map((f) => ({ path: f.path, breaches: f.breaches.filter((b) => !b.rule.startsWith('-ing')) }))
+    .filter((f) => f.breaches.length);
+  for (const f of bad) {
+    for (const b of f.breaches) {
+      console.log(`${f.path}:${b.line}  ${b.rule}`);
+      console.log(`  ${b.sentence}`);
+    }
+  }
+  const n = total.long + total.tense;
+  if (n) {
+    console.log(`\nste: ${n} breach(es) of the house style in ${bad.length} file(s).`);
+    console.log('Split the sentence. Never drop a fact to meet a cap (CLAUDE.md).');
+    process.exit(1);
+  }
+  console.log(`ste: ${total.sentences} sentences in ${files.length} files`
+    + ` — 0 over cap, 0 in a compound tense`
+    + ` · ${total.ing} -ing reported, not gated`);
+} else if (flags.has('--words')) {
   const counts = new Map();
   for (const f of files) for (const w of f.flagged) counts.set(w, (counts.get(w) ?? 0) + 1);
   const rows = [...counts].sort((a, b) => b[1] - a[1]);

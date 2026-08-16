@@ -148,7 +148,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | extend-arc | <code>EXTEND_ARC_ANGLE</code> | <code>(60 * Math.PI) / 180</code> | The angle that the run-out holds off the OUTWARD radial, at its tightest. |  | [extend-arc.ts:13](./extend-arc.ts#L13) |
 | extend-arc | <code>CLEAR_RANGE</code> | <code>340</code> | How far out the ship gets before it starts to curve at all. |  | [extend-arc.ts:22](./extend-arc.ts#L22) |
 | hermit-market | <code>HERMIT_ORE</code> | <code>new Set(['Minerals', 'Gold', 'Platinum', 'Gem-Stones'])</code> | What a hermit sits on: whatever they dug up. |  | [hermit-market.ts:16](./hermit-market.ts#L16) |
-| hermit-market | <code>HERMIT_SUPPLIES</code> | <code>new Set(['Food', 'Liquor/Wines', 'Machinery'])</code> | What a hermit has run out of: anything that has to be flown in. |  | [hermit-market.ts:19](./hermit-market.ts#L19) |
+| hermit-market | <code>HERMIT_SUPPLIES</code> | <code>new Set(['Food', 'Liquor/Wines', 'Machinery'])</code> | What a hermit runs out of: anything that must be flown in. |  | [hermit-market.ts:19](./hermit-market.ts#L19) |
 | hermit-market | <code>HERMIT_ORE_PRICE</code> | <code>0.75</code> | Ore is a quarter off here, and there is plenty of it. |  | [hermit-market.ts:22](./hermit-market.ts#L22) |
 | hermit-market | <code>HERMIT_ORE_GLUT</code> | <code>20</code> | Bulk stock a rock miner is never short of, on top of the rolled quantity. |  | [hermit-market.ts:25](./hermit-market.ts#L25) |
 | hermit-market | <code>HERMIT_SUPPLY_PRICE</code> | <code>1.3</code> | Supplies cost a third more: nobody else delivers out here. |  | [hermit-market.ts:28](./hermit-market.ts#L28) |
@@ -277,7 +277,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | population | <code>HERMIT_CHANCE</code> | <code>0.3</code> | The chance that a rock hermit hides out among the asteroids: a hollowed-out rock that trades ore and asks no questions. |  | [population.ts:54](./population.ts#L54) |
 | population | <code>GENERATION_SHIP_CHANCE</code> | <code>0.08</code> | The chance that a generation ship crosses, on arrival only. |  | [population.ts:61](./population.ts#L61) |
 | population | <code>ASTEROIDS_MIN</code> | <code>2</code> | The fewest rocks a system holds. |  | [population.ts:68](./population.ts#L68) |
-| population | <code>ASTEROIDS_VARIATION</code> | <code>3</code> | ...and how many more it may have, drawn flat: `ASTEROIDS_MIN` plus 0, 1 or 2. |  | [population.ts:75](./population.ts#L75) |
+| population | <code>ASTEROIDS_VARIATION</code> | <code>3</code> | ...and how many more it holds, drawn flat: `ASTEROIDS_MIN` plus 0, 1 or 2. |  | [population.ts:75](./population.ts#L75) |
 | rating | <code>RATINGS</code> | <code>[ [0, 'Harmless'], [8, 'Mostly Harmless'], [16, 'Poor'], [32, 'Below Average'], [64, 'Average'], [128, 'Above Average'], [512, 'Competent'], [2560, 'Dangerous'], [6400, 'Deadly'], [25600, 'E L I T E'], ]</code> | Score thresholds and the name that each one earns, lowest first. |  | [rating.ts:23](./rating.ts#L23) |
 | recharge | <code>ENERGY_REGEN_FRACTION</code> | <code>0.025</code> | The fraction of a full pool that a Cobra Mk III recovers each second. |  | [recharge.ts:41](./recharge.ts#L41) |
 | recharge | <code>SHIELD_REGEN_FRACTION</code> | <code>0.012</code> | The shield's half of the pair above, and the one docs/TODO/139 moved. |  | [recharge.ts:44](./recharge.ts#L44) |

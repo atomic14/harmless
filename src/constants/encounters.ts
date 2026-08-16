@@ -73,7 +73,7 @@ export const PIRATE_WAVE_GAP = 60;
  *
  * Piracy pressure scales with lawlessness. An anarchy (0) therefore waits the
  * base alone, and a corporate state waits nearly five minutes. By that point
- * `LAWLESS_GOVERNMENT` has refused the wave anyway. The ladder still runs the
+ * `LAWLESS_GOVERNMENT` refuses the wave anyway. The ladder still runs the
  * whole way up, because the timer is a clock and not a gate. It keeps refused
  * systems from all coming due at once, if that line ever moves.
  */

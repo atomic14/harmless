@@ -13,7 +13,8 @@
 // topic are all read rather than counted. A tool that guessed at them would
 // report noise beside three numbers that mean something.
 //
-// `tools/ste-read.mjs` decides what is measured. `tools/ste.mjs` reports.
+// `tools/ste-read.mjs` decides what is measured. `tools/ste.mjs` reports, and
+// gates under `--gate`.
 
 import { words } from './ste-read.mjs';
 

@@ -342,10 +342,10 @@ measured figure, a defect that a comment stops somebody from re-creating.
 
 ### Where the full sweep stands
 
-**M3 is a full sweep of `src/`, and it is more than one sitting.** The table
-below is the state after the twelfth pass on 2026-08-16. **`npm run ste -- --work`
-is the resume point** — it names the file to take next, in the order that clears
-the most breaches per pass.
+**M3 was a full sweep of `src/`, and it took twenty-nine passes.** It closed on
+2026-08-16. **`npm run ste -- --work` was the resume point** through pass 27.
+After that no file held more than three breaches, so the order stopped meaning
+anything, and `npm run ste -- --show --all` became the resume point instead.
 
 | | long sentences | share | `-ing` per 100 | tense |
 | --- | ---: | ---: | ---: | ---: |
@@ -356,17 +356,27 @@ the most breaches per pass.
 | after the ninth pass | 1,139 | 9% | 14.9 | 153 |
 | after the tenth pass | 1,071 | 9% | 14.4 | 137 |
 | after the eleventh pass | 1,010 | 8% | 13.9 | 127 |
-| **now** | **952** | **8%** | **13.2** | **121** |
+| after the twelfth pass | 952 | 8% | 13.2 | 121 |
+| after the fifteenth pass | — | 5% | — | — |
+| after the sixteenth pass | — | 4% | — | — |
+| after the eighteenth pass | — | 3% | — | — |
+| after the twenty-first pass | — | 2% | — | — |
+| after the twenty-sixth pass | — | 1% | — | — |
+| after the twenty-seventh pass | 126 | 1% | — | — |
+| after the twenty-eighth pass | 79 | 1% | — | — |
+| **after the twenty-ninth pass** | **0** | **0%** | **5.4** | **0** |
 
-**THE TREE IS UNDER 10%.** It was 20% when the checker was written.
-`src/constants/`, the surface docs/TODO/141 swept in one pass, reads at 6% by
-the same tool. So the gap that this item's whole argument rests on has closed
-from 4 to 1 down to about 1.3 to 1.
+A dash is a figure the pass's own commit did not record. The share is what each
+commit subject states, and it is the number those passes were steered by.
 
-**Forty-four files are converted, and each one measured 0% on the day.** They
-held 934 of the tree's long sentences, and every one of the five worst
-directories still has files in it. The `-ing` words and every tense breach that
-remain in a converted file are recorded above and below as deliberate.
+**THE TREE IS AT ZERO.** 0 of 14,582 sentences are over the cap. 0 are in a
+compound tense. About 130 files were converted over the twenty-nine passes, and
+every one measured 0% on the day it landed.
+
+The `-ing` count is 788, and it does not fall to zero. It is not meant to.
+Chris set that scope on 2026-08-14: *"We only need to fix -ing where we have
+to"*. What remains is mostly a technical noun that the allowlist already
+accepts, and `npm run ste -- --nouns` is the surface for reviewing it.
 
 ### The eighth pass
 
@@ -659,7 +669,48 @@ before and after. `npm run check` passes at 4,686 assertions, unchanged.
    accident. That is the one place in this pass where the tool changed the
    source's layout.
 
-### M4 — the gate, and the decision it needs
+### The thirteenth to the twenty-ninth passes
+
+Seventeen passes carried the tree from 952 long sentences to 0. They are one
+record rather than seventeen, because after the twelfth the work stopped
+producing new findings and started repeating four of them. **Six things came out
+of the tail that the earlier passes did not have.**
+
+1. **THE TAIL READS WORSE THAN THE HEAD, BY SHARE.** This is the nineteenth
+   pass's finding, and it held to the end. A file low in `--work` order starts
+   at about 30% over cap, exactly like a file at the top. It holds three
+   breaches rather than eighty. A small file with a dense header is as far from
+   the style as a large one. It merely clears in fewer edits.
+2. **A last breach is nearly always a header that states three or four things in
+   one sentence.** The remedy is the style's own vertical list, and it never
+   loses a fact. Eight files closed that way in the final pass alone.
+3. **A COLUMN TABLE NEEDS THREE SPACES, and two more tables were re-spaced.**
+   `game/missions.ts` and `galaxy/navigation.ts` laid their rows out with two.
+   Every stage number and every path survives the re-spacing.
+4. **A sentence can be unsplittable in prose and still clear as a list.** The
+   twenty-eighth pass met one: `engine/keymap.ts` ran four control groups along
+   one line separated by `·`, which the checker read as one 30-word sentence. No
+   rewrite of the prose cleared it. A four-item list did.
+5. **A SPLIT NEEDS A CAPITAL AFTER THE FULL STOP.** The twenty-second pass met
+   `…with the player. destroyNpc credits the kill`, which measured as one
+   sentence. A lowercase identifier after a full stop gives the reader no signal,
+   so the checker gives none either. The fix was to reword rather than to teach
+   the tool an exception.
+6. **A REAL DEFECT CAME OUT OF THE SWEEP.** `ships/elite-a-hulls.ts` claimed the
+   pack's gun-vertex byte is 0 for "thirty of the designs", and that "only five
+   ships" name a later vertex, then listed six names. Running `eliteADesign`
+   over every id says thirty-two of 38, and six ships. The comment now says so.
+   A rewrite that has to re-read a sentence is a rewrite that checks it.
+
+**The regression the seventh pass found was repaired in the twenty-fifth.**
+`game/npc.ts` was converted to 0% on 2026-08-14. docs/TODO/158 put five long
+sentences back into it on 2026-08-15. All five are converted, and the file is
+back at 0%. That closes the loop this item's central claim rests on: a sweep
+converts a surface, and an intention does not hold one.
+
+### M4 — the gate
+
+**LANDED on 2026-08-16.** Both questions are answered below, and the gate runs.
 
 Two questions, and M3's numbers answer them:
 
@@ -678,6 +729,53 @@ drift this item has actually measured.
 
 **Prove that any gate can fail.** Write a 30-word sentence. Confirm the failure.
 Remove it.
+
+#### What landed
+
+**ANSWER TO QUESTION 1: IT GATES.** `npm run ste:check` is `node tools/ste.mjs
+--gate`, and `npm run check` calls it. The cost the question named is real, and
+M3 paid it down first. The tool reported for twenty-nine passes, the sweep
+converted the tree, and the gate closed the door behind it. That is open
+question 2's answer, executed.
+
+**ANSWER TO QUESTION 2: WHOLE-TREE.** The plan expected diff-scoped, on the
+floor argument that a diff-scope would have caught all five of docs/TODO/158's
+regressions. It would have. Whole-tree is chosen anyway, for three reasons:
+
+1. **It costs nothing today.** M3 closed at 0 of 14,582. A whole-tree gate on a
+   clean tree fails on nothing, so there is no debt to scope around.
+2. **A diff-scope lets more through for the same price.** docs/TODO/141 recorded
+   the shape: an export sat undocumented until somebody edited its file.
+3. **It needs no diff base.** A fresh clone, a rebase and a squashed branch all
+   measure the same thing.
+
+**IT GATES TWO RULES OF THE THREE:** the sentence caps, and the tense. The
+`-ing` count never gates. It is 788, and a technical noun is the honest answer
+for most of them, so the allowlist decides what the number means rather than the
+prose. `--nouns` is its review surface. This is Chris's scope from 2026-08-14,
+unchanged: *"We only need to fix -ing where we have to"*.
+
+**THE TENSE RULE JOINED THE GATE because M4 cleared the last four breaches.**
+They were in `combat-computer.ts`, `encounters.ts`, `hermit-market.ts` and
+`population.ts`. Each one was a simple present in a compound tense's clothing,
+so each was one word's work. A rule at zero is a rule a gate can hold.
+
+**PROVED ABLE TO FAIL, three ways.** A 30-word sentence in `game/npc.ts` gave
+exit 1 and named the file, the line and the count. So did a compound tense in
+the same place. Both were removed. Neither is the lasting proof: **four
+assertions in `tools/ste.test.mjs` run the real command line against a written
+fixture**, and they are in `npm run check`. The third of the four is the one
+that matters. An `-ing` word alone must exit 0, so a change that quietly folded
+the third count into the gate cannot pass this file.
+
+**What else changed.** `CLAUDE.md` said *"No gate checks it"*, and that is no
+longer true, so it now states what the gate holds and what it does not.
+`docs/PROCESS.md` lists `ste:check` with the other gates, and states the remedy:
+split the sentence, and never drop a fact to meet a cap. The three `tools/ste*`
+headers named a tool that reports; they name a tool that gates.
+
+**Gates at the close:** 4,708 assertions, 387 exports, 76 rule ids. No assertion
+count moved across the whole item, which is this plan's own test of a refactor.
 
 ## Decisions already made
 
@@ -770,3 +868,16 @@ move, and no rule may change.
 `src/constants/` already reaches, measured per milestone by the M1 checker; and
 no fact, condition or scope qualifier is lost, which is checked by the reader
 rather than by the tool.
+
+### What the verification actually says, at the close
+
+**The target was 3%. The tree closed at 0%**, which is 0 of 14,582 sentences.
+The tense count closed at 0 as well. The `-ing` count is 788, and it was never a
+target.
+
+**No assertion count moved.** `npm run check` passed at 4,708 before M3's first
+pass and passes at 4,708 now. No rule changed. Four assertions were added to
+`tools/ste.test.mjs`, and they hold the new gate rather than a game rule.
+
+**One defect was found and fixed**, in `ships/elite-a-hulls.ts`. It is recorded
+above. A sweep that reads every comment is a sweep that checks every claim.
