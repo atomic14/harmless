@@ -136,6 +136,7 @@ import './key-prose.test.ts';
 import './site-footer.test.ts';
 import './input.test.ts';
 import './hud-binding.test.ts';
+import './console-plate.test.ts';
 import './elapsed-day.test.ts';
 import './chart-days.test.ts';
 import './chart-headless.test.ts';

@@ -100,6 +100,23 @@ body.screen-open #message {
   padding: 6px 16px;
 }
 
+/*
+ * The plate above belongs to the words, and it goes when they do — GitHub #37,
+ * docs/TODO/172. #message is position: absolute, so it is a block box. An empty
+ * one still paints 12px of vertical padding and a 1px border: a bare rectangle
+ * under the panel, which is what a pilot sees after a console line fades. It is
+ * also there before the first line, because play.html ships the element empty.
+ *
+ * hud.ts assigns '' when the timer runs out, and that leaves no child node at
+ * all, which is exactly what :empty asks for. A writer that assigned ' ' or an
+ * empty <span> would defeat this selector without saying so.
+ *
+ * The rule is here rather than in the painter. hud.ts owns one fact — whether
+ * the timer still runs. A painter that also toggled a class would give one rule
+ * two homes, and every path that empties the line would have to clear it.
+ */
+#message:empty { display: none; }
+
 /* Chart screens: map on the left, readout on the right. Stacked, the readout
    sat directly under a map that draws to its own bottom edge, so the two
    always looked like they were touching however much height the box had. */

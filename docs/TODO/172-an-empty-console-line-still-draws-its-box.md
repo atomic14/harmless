@@ -89,6 +89,61 @@ and which the assertion's own message must explain.
 Two things need an eye: the rectangle is gone, and a real console line on a
 screen still reads against the 92% ground.
 
+## What landed, 2026-08-16
+
+**M1 is one line of CSS, and it is `#message:empty { display: none; }`**, beside
+the block that gives the line its plate. `hud.ts` is untouched.
+
+**The open question is answered, and the code was right.** The rectangle is
+there before any message is shown. Measured in Chrome at `play.html`, at the
+first frame of a docked career: `#message` held `""`, held zero child nodes, and
+painted a box of 34 by 14 pixels with the background and the border in force.
+Those two numbers are the padding and the border alone — 16 + 16 + 1 + 1 across,
+and 6 + 6 + 1 + 1 down. **So no second cause exists.** A pilot notices the box
+after a line fades, because that is the moment the words leave.
+
+**The fix was measured in the same browser.** With the rule in force, an empty
+`#message` reads `display: none` and a box of 0 by 0. A line put back into the
+element reads `display: block`, 527 by 37 pixels, and keeps both the 92%-opaque
+background and the amber border. The screenshot after the change shows a clear
+screen where the rectangle was.
+
+**`test/console-plate.test.ts` is 4 assertions, and it holds three claims rather
+than two.** The stylesheet pair is the first two. The third is behaviour, and
+the plan named it as the risk the gate would not catch: `:empty` needs an
+element with no child node, so the painter must leave none. The test drives the
+real `Hud` through `test/screen-capture.ts` and reads the element back.
+
+**THE PAIR IS ASSERTED DIRECTLY, AND THAT IS A DEVIATION.** The Verification
+section asked for a gate that goes GREEN when the plate is deleted as well. It
+does not. Both halves are asserted, so deleting the plate turns the first
+assertion red. The reason is this plan's own "Decisions already made": the plate
+stays, and a decision with no measurement is a preference. A gate that passed
+on a stylesheet with no plate would let that decision go in silence. **The
+plan's stated intent still holds** — a stylesheet that had dropped both fails,
+which is what the section asked the pair to prevent. The failure message on each
+half names the other half, so a reader who deliberately drops the plate is told
+that the `:empty` rule is then unnecessary.
+
+**Proved able to fail three ways, and each one alone.**
+
+1. With the `:empty` rule deleted, the second assertion goes red and the other
+   three stay green.
+2. With the plate deleted as well, the first two go red and both messages read
+   correctly.
+3. With `hud.ts` writing `' '` in place of `''`, only the fourth goes red, and
+   it reports `got " ", want ""`.
+
+**`npm run check` passes at 4,719 assertions.** The tier table said "nothing
+more", and nothing more was run.
+
+**`#prompts` was not touched**, and the measurement supports the plan: it
+carries no background and a border width of 0.
+
+**Chris still flies it.** A stylesheet gate reads text, and a computed style
+read from a console is not an eye. Two things want one: the rectangle is gone,
+and a real console line raised by the game still reads against the 92% ground.
+
 ## Decisions already made
 
 - **The box stays.** A screen is 92% opaque, and a line without its own ground
@@ -97,17 +152,19 @@ screen still reads against the 92% ground.
 
 ## Open questions
 
-- **Does the rectangle appear before any message is shown?** The code says yes,
-  and the report says no. **Recommendation: check it before M1**, in the browser,
-  because the answer decides nothing about the fix and everything about whether
-  a second cause exists.
+- ~~**Does the rectangle appear before any message is shown?**~~ **Answered in
+  the browser, and the answer is yes.** The empty element painted 34 by 14
+  pixels at the first frame, which is its padding and its border and nothing
+  else. There is one cause, and M1 is the whole of it.
 
 ## Watch out for
 
 - **`:empty` matches an element with no child nodes at all.** A stray whitespace
   text node would defeat it. `hud.ts:261` assigns `''`, which leaves none, so
   the selector holds today. A future writer that assigns `' '` or an empty
-  `<span>` would break it silently, and the gate above would not catch that.
+  `<span>` would break it silently. **The gate covers this now.**
+  `test/console-plate.test.ts` drives the real painter and asserts the element
+  is left exactly empty. The `' '` case was one of the three failure proofs.
 - **`#message` is also the queued line's home** (`session.ts`, `tickMessage`).
   Hiding an empty box changes nothing about the queue, which decides words
   rather than paint.
