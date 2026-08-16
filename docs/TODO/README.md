@@ -13,36 +13,33 @@ active context:
 
 ## Execution queue
 
-**Five items. Two came out of one sweep on 2026-08-16, and three out of the
-triage of GitHub #34, #36 and #37 the same day.** Chris asked for an
+**Four items. Two came out of one sweep on 2026-08-16, and two out of the
+triage of GitHub #34 and #36 the same day.** Chris asked for an
 architectural and bug sweep against a tree where `npm run check` passed. The
 order below is by value over cost, and not by severity.
 
-1. [172 — an empty console line still draws its box](172-an-empty-console-line-still-draws-its-box.md)
-   · defect · small · GitHub #37. A screen gives the console line a background
-   and a border. Nothing asks whether the line holds any words, so an empty one
-   paints a rectangle.
-2. [170 — the rocks are all at the station](170-the-rocks-are-all-at-the-station.md)
+1. [170 — the rocks are all at the station](170-the-rocks-are-all-at-the-station.md)
    · defect · small · GitHub #34. Every asteroid is placed at the station, on an
    arrival and on a launch. The file already holds the corridor helper that
    three other roles use.
-3. [171 — the briefing says reputation when it means rating](171-the-briefing-says-reputation-when-it-means-rating.md)
+2. [171 — the briefing says reputation when it means rating](171-the-briefing-says-reputation-when-it-means-rating.md)
    · gap · medium. The banned-word check that docs/TODO/162 wrote strips every
    comment and reads no mixed-case page. Six comments still use `name` for the
    disrepute ladder, and two of the six reach `CATALOG.md`. The briefing and the
    manual say `reputation` and mean the combat rating.
-4. [168 — the style checker never reads the documents](168-the-style-checker-never-reads-the-documents.md)
+3. [168 — the style checker never reads the documents](168-the-style-checker-never-reads-the-documents.md)
    · gap · medium. `ste:check` reads comments in source. The style also governs
    ten markdown documents and every plan title, and the tool finds no sentence
    in any of them. **It now gates a title too**, on Chris's call of 2026-08-16.
-5. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
+4. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**The first three are what a player can see, and 172 leads because it is one
-line of CSS.** 170 comes next because it can finish alone. 171's M2 changes
-words on Chris's own pages, so it waits on him after its gate runs. 168 is a
-defect in a document, and 169 is a decomposition.
+**170 leads because it is what a player can see, and it can finish alone.**
+171's M2 changes words on Chris's own pages, so it waits on him after its gate
+runs. 168 is a defect in a document, and 169 is a decomposition.
+
+**172 led this queue and landed the same day**, at one line of CSS. It is below.
 
 **171 and 168 are adjacent and are not the same item.** 171 is the player's
 vocabulary on the player's pages. 168 is the house prose style over `docs/`.
@@ -124,8 +121,10 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds three open items, and the queue section above says where
-each one stands. **#33** closed on
+The GitHub inbox holds two open items, and the queue section above says where
+each one stands. **#37** closed on 2026-08-16 with
+[172](completed/172-an-empty-console-line-still-draws-its-box.md). **#33**
+closed on
 2026-08-16 with
 [162](completed/162-one-word-that-means-five-things.md). **#32**, **#31** and
 **#30** closed on
@@ -156,6 +155,43 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**172 — an empty console line still draws its box.** Chris flew it and
+photographed it. A screen is 92% opaque, so `body.screen-open #message` gives
+the console line a background and a border. Nothing asked whether the line holds
+any words.
+
+**`#message` is `position: absolute`, so it is a block box.** An empty one still
+paints 12px of vertical padding and a 1px border. That is the rectangle.
+
+**THE OPEN QUESTION IS ANSWERED, AND THE CODE WAS THE AUTHORITY.** The report
+said the box only appears after some text has been shown. Measured in Chrome at
+the first frame of a docked career, the empty element painted **34 by 14
+pixels**. Those two numbers are its padding and its border, and nothing else. So
+the box is there before any message, and there is one cause. A pilot notices it
+after a line fades, because that is the moment the words leave.
+
+**The fix is `#message:empty { display: none; }`**, and `hud.ts` is untouched.
+The painter owns one fact already, which is whether the timer still runs. A
+class it also toggled would give one rule two homes.
+
+**Measured after the change**: an empty line reads `display: none` and 0 by 0. A
+line put back reads `display: block`, 527 by 37, and keeps both the plate and
+the amber border.
+
+**`test/console-plate.test.ts` holds three claims rather than two.** The
+stylesheet pair is the first two. The third is behaviour that no stylesheet can
+state: `:empty` needs an element with no child node at all, so the painter must
+leave none. It drives the real `Hud` through `test/screen-capture.ts`.
+
+**THE PAIR IS ASSERTED DIRECTLY, AND THAT DEVIATES FROM THE PLAN.** The plan
+asked for a gate that goes green when the plate is deleted as well. The plate is
+a decision the plan records, and a decision with no measurement is a preference.
+Each failure message names the other half.
+
+**Proved able to fail three ways, and each one alone.** The `:empty` rule
+deleted. The plate deleted as well. And `hud.ts` writing `' '` in place of `''`,
+which is the risk the plan expected to escape the gate.
 
 **166 — the map was not repaired with the headers.** The decomposition
 programme moved nine responsibilities out of `game.ts`, and four more splits
