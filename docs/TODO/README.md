@@ -13,33 +13,28 @@ active context:
 
 ## Execution queue
 
-**Four items. Two came out of one sweep on 2026-08-16, and two out of the
-triage of GitHub #34 and #36 the same day.** Chris asked for an
+**Three items. Two came out of one sweep on 2026-08-16, and one out of the
+triage of GitHub #36 the same day.** Chris asked for an
 architectural and bug sweep against a tree where `npm run check` passed. The
 order below is by value over cost, and not by severity.
 
-1. [170 — the rocks are all at the station](170-the-rocks-are-all-at-the-station.md)
-   · defect · small · GitHub #34. Every asteroid is placed at the station, on an
-   arrival and on a launch. The file already holds the corridor helper that
-   three other roles use.
-2. [171 — the briefing says reputation when it means rating](171-the-briefing-says-reputation-when-it-means-rating.md)
+1. [171 — the briefing says reputation when it means rating](171-the-briefing-says-reputation-when-it-means-rating.md)
    · gap · medium. The banned-word check that docs/TODO/162 wrote strips every
    comment and reads no mixed-case page. Six comments still use `name` for the
    disrepute ladder, and two of the six reach `CATALOG.md`. The briefing and the
    manual say `reputation` and mean the combat rating.
-3. [168 — the style checker never reads the documents](168-the-style-checker-never-reads-the-documents.md)
+2. [168 — the style checker never reads the documents](168-the-style-checker-never-reads-the-documents.md)
    · gap · medium. `ste:check` reads comments in source. The style also governs
    ten markdown documents and every plan title, and the tool finds no sentence
    in any of them. **It now gates a title too**, on Chris's call of 2026-08-16.
-4. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
+3. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**170 leads because it is what a player can see, and it can finish alone.**
-171's M2 changes words on Chris's own pages, so it waits on him after its gate
-runs. 168 is a defect in a document, and 169 is a decomposition.
+**171 leads now.** Its M2 changes words on Chris's own pages, so it waits on him
+after its gate runs. 168 is a defect in a document, and 169 is a decomposition.
 
-**172 led this queue and landed the same day**, at one line of CSS. It is below.
+**172 and 170 led this queue and both landed the same day.** They are below.
 
 **171 and 168 are adjacent and are not the same item.** 171 is the player's
 vocabulary on the player's pages. 168 is the house prose style over `docs/`.
@@ -121,8 +116,10 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds two open items, and the queue section above says where
-each one stands. **#37** closed on 2026-08-16 with
+The GitHub inbox holds one open item, and the queue section above says where it
+stands. **#34** closed on 2026-08-16 with
+[170](completed/170-the-rocks-are-all-at-the-station.md). **#37** closed the
+same day with
 [172](completed/172-an-empty-console-line-still-draws-its-box.md). **#33**
 closed on
 2026-08-16 with
@@ -155,6 +152,62 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**170 — the rocks are all at the station.** Chris flew it and reported one
+thing: *"There always seem to be some asteroids near the space station. I think
+they should be spread along the path."*
+
+**The report was exact, and the placement was by construction.** The rock loop
+anchored every rock to the station, on an arrival and on a launch alike. So the
+run in from the witchpoint held no scenery at all.
+
+**The file already held the answer.** `corridorPos` sat ten lines above the
+loop, and the traders, the police and the pirates all used it. The rocks were
+the one thing that never asked. They read the situation now, in the same
+two-branch shape the police already had. A launch keeps the station anchor,
+because a commander who starts at the slot has no lane to string a field along.
+
+**The count and the seed expression are untouched**, so a system shows the same
+rocks on every visit.
+
+**`ASTEROID_LANE_SCATTER` IS DERIVED RATHER THAN CHOSEN, AND THE PLAN DID NOT
+HAVE THAT.** `scatter()` places a rock at up to 1.5 times the nominal. So
+`SCANNER_RANGE / 1.5` puts the outermost rock at exactly scanner range, and the
+whole field is on the scanner as the commander passes it. The measured furthest
+rock is 5,961 against a range of 6,000. `DEEP_TRADER_CONE` measured the same
+derivation and rejected it, because a trader moves off the scanner. A rock does
+not move.
+
+**The derivation is also what answers `constants:check`.** The plan expected an
+`@rule` id. Written as the literal 4,000, the constant repeats five others, and
+the checker's own message offers a derivation as the other remedy.
+
+**Measured over 40 systems at the real witchpoint distance, of 117 rocks: an
+arrival went from 64 inside `MASS_LOCK_STATION` to 0.** The mean nearest rock
+went 3,652 → 27,477 units from the station. A launch is unchanged at 57. The
+rock count is 117 on both sides.
+
+**`test/spawning.test.ts` sweeps both situations now.** One arrival sweep could
+not read a launch band at all, and neither branch is evidence for the other. Six
+assertions: the lane band, the launch band, the mass lock on each side, the
+scanner derivation, and the police launch spread. **The last of those had no
+measurement before either**, and `POLICE_PATROL_RANGE` is the same two-branch
+answer this item copied.
+
+**Proved able to fail twice, and separately.** The station anchor put back for
+an arrival reddens the three arrival claims alone. The corridor used on a launch
+reddens the launch claim alone.
+
+**Both probes are byte-identical, and neither one measured the change.**
+`roster-probe` reads `roster-census.ts`, and `dock-traffic` builds its own
+approach. Neither calls `spawnPopulation`, whose only caller in the tree is
+`world-build.ts`. So they prove that nothing else moved, and the rock count is
+the evidence for the change itself. `dock-traffic` reports 80 of 80 docked and
+0 rams.
+
+**One thing is reported and not fixed.** `HERMIT_SCATTER`'s doc comment claims
+2.5x the asteroid field's nominal radius. 14,000 against 5,000 is 2.8x. Neither
+number moved in this item.
 
 **172 — an empty console line still draws its box.** Chris flew it and
 photographed it. A screen is 92% opaque, so `body.screen-open #message` gives

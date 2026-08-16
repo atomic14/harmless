@@ -3,6 +3,75 @@
 **Kind:** defect · **Severity:** low · **Size:** small · **Depends on:**
 nothing · **Blocks:** nothing · **GitHub:** #34
 
+## What landed, 2026-08-16
+
+Both milestones landed the same day. The plan was correct on every fact it
+stated, and the work found four things it did not have.
+
+**M1 gave the rock loop the two-branch shape the police already had.** An
+arrival places each rock with `corridorPos`. A launch keeps the station anchor.
+The count and the seed expression are untouched.
+
+**`ASTEROID_LANE_SCATTER` is DERIVED rather than chosen, and that is the first
+thing the plan did not have.** `scatter()` places a rock at up to 1.5 times the
+nominal. So `SCANNER_RANGE / 1.5` puts the outermost rock at exactly
+`SCANNER_RANGE`. The whole field is on the scanner as the commander passes it.
+`DEEP_TRADER_CONE` measured that same derivation and rejected it, because a
+trader moves off the scanner before the commander arrives. A rock does not move.
+The measured furthest rock is 5,961 units off the lane, against a scanner range
+of 6,000, so the derivation is exercised rather than merely stated.
+
+**The derivation is also what answers `constants:check`, and that is the second
+thing.** The plan expected an `@rule` id. Written as the literal 4,000, the
+constant repeats five others, and the check fails. The checker's own message
+offers two remedies: a distinct `@rule` id, or a derivation. This takes the
+second, so the number carries its reason rather than an exception.
+
+**The measurement, over 40 systems at the real witchpoint distance.** Of 117
+rocks:
+
+| | inside `MASS_LOCK_STATION` | mean nearest rock |
+| --- | ---: | ---: |
+| arrival, before | 64 | 3,652 |
+| arrival, after | **0** | **27,477** |
+| launch, unchanged | 57 | 3,813 |
+
+The number fell, and it did not fall on a launch. The rock count is 117 on both
+sides, which is the plan's "do not change how many rocks spawn".
+
+**`test/spawning.test.ts` sweeps both situations now.** The measurement was one
+arrival sweep, so a launch band could not be read at all. It is a function of
+the situation, and it runs twice. Neither branch is evidence for the other.
+
+**Proved able to fail twice, and separately.** With the station anchor put back
+for an arrival, the three arrival claims go red and the launch claim stays
+green. With the corridor used on a launch, the launch claim goes red alone.
+
+**The launch police had no measurement either, and that is the third thing.**
+`POLICE_PATROL_RANGE` is the same two-branch answer this item copied, and no
+assertion read it. The new launch sweep asserts it in one line.
+
+**Both probes are byte-identical, and neither one measured the change.** That is
+the fourth thing, and the plan predicted the result for the wrong reason.
+`roster-probe` reads `train/roster-census.ts`, and `dock-traffic` builds its own
+approach. Neither calls `spawnPopulation` at all. `src/game/world-build.ts` is
+its only caller in the tree. So the two probes prove that nothing else moved,
+and the rock count above is the evidence for the change itself.
+`dock-traffic` reports 80 of 80 docked, 0 rams and 0 scrapes.
+
+**The open questions are answered as the plan recommended.** A launch keeps
+`ASTEROID_SCATTER` at 5,000 rather than spreading as wide as the police, and
+`CORRIDOR_SPAN` is unchanged, so the last 15% of the approach stays clear.
+Chris can fly it and re-open either one.
+
+**One thing is reported and not fixed.** `HERMIT_SCATTER`'s doc comment says the
+hermit sits at *"2.5x the asteroid field's nominal radius"*. It is 14,000
+against 5,000, which is 2.8x. The sentence was already wrong, and this item did
+not change either number. It is the same class of defect as docs/TODO/167: one
+sentence written once and never checked again.
+
+`npm run check` passes at 4,753 assertions.
+
 ## Where we are
 
 Chris flew it and reported one thing: *"There always seem to be some asteroids
