@@ -1,5 +1,9 @@
-// Your character, as a rule: the name a disrepute score earns, and how a deed or
-// a quiet week moves it.
+// Your character, as a rule: the rung a disrepute score earns, and how a deed
+// or a quiet week moves it.
+//
+// The player's word for this ladder is REPUTATION, and every screen and console
+// line says that (docs/TODO/162). `character` is the code's word, and it names
+// this module, its constants and its tests.
 //
 // The one home for the character reputation, the way `rating.ts` owns the combat
 // ladder and `law.ts` owns your legal standing. The numbers are `constants/
@@ -30,8 +34,8 @@ export function characterName(disrepute: number): string {
  * `characterName` twice and nothing else, so a crossing cannot disagree with
  * the label the status screen prints — the same bargain `recordVerdict`
  * (law.ts) strikes with `lawTakesInterest`. It reads both directions: the
- * decay crosses rungs downward, and your name fading is the one piece of good
- * news the character system has.
+ * decay crosses rungs downward, and a reputation that fades is the one piece of
+ * good news the character system has.
  */
 export function rungCrossed(before: number, after: number): string | null {
   const name = characterName(after);

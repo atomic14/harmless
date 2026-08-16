@@ -8,7 +8,7 @@
 //
 //   - the record never clears, and never rises either: an inspection bought off
 //     is an inspection that did not happen;
-//   - the NAME always pays, whichever half of the feature you used, and whether
+//   - your REPUTATION always pays, whichever half of the feature you used, and whether
 //     or not he takes the money;
 //   - an offer you cannot cover buys nothing and spends nothing. A bribe that
 //     half-works is the worst outcome there is.
@@ -101,7 +101,7 @@ console.log('\nan offer is taken, refused, or short — exactly one of the three
   const rich = bribeOffered(price, price * 4, 0, TAKEN);
   check('a commander who can cover it pays exactly the price',
     rich.outcome === 'paid' && rich.creditsLeft === price * 3);
-  check('...and it costs the name DISREPUTE_BRIBE, every time',
+  check('...and it costs the reputation DISREPUTE_BRIBE, every time',
     rich.outcome === 'paid' && rich.disrepute === DISREPUTE_BRIBE);
 
   const broke = bribeOffered(price, price - 1, 40, TAKEN);
@@ -114,8 +114,8 @@ console.log('\nan offer is taken, refused, or short — exactly one of the three
   check('...and it carries nothing to spend',
     !('creditsLeft' in broke) && !('disrepute' in broke));
   // ...nor is it an offer: a price you cannot meet is not spoken out loud, so
-  // it costs no name and consumes no draw off the seeded stream.
-  check('...and no name is spent on an offer that was never made',
+  // it costs no reputation and consumes no draw off the seeded stream.
+  check('...and no reputation is spent on an offer that was never made',
     bribeOffered(price, 0, 40, 0).outcome === 'short');
 
   // Exactly affordable is affordable: the boundary belongs to the commander.
@@ -126,7 +126,7 @@ console.log('\nan offer is taken, refused, or short — exactly one of the three
   // A roll of 0 is below every refusal chance an honest commander has.
   const turned = bribeOffered(price, price * 4, 0, 0);
   eq('a roll under the chance is a refusal', turned.outcome, 'refused');
-  check('...which costs the name exactly what a taken offer does',
+  check('...which costs the reputation exactly what a taken offer does',
     turned.outcome === 'refused' && turned.disrepute === DISREPUTE_BRIBE);
   check('...and carries no money to move', !('creditsLeft' in turned));
 }
@@ -150,11 +150,11 @@ console.log('\nwhat a Viper already shooting charges to break off');
   check('...and that is not nothing', patrolPrice(CLEAN) > 0);
 }
 
-console.log('\nthe cop who says no, and the Character that changes his mind');
+console.log('\nthe cop who says no, and the reputation that changes his mind');
 {
   eq('an Honest commander is refused at the top of the ramp',
     refusalChance(0), BRIBE_REFUSED);
-  check('...and a name fully made is never turned in',
+  check('...and a reputation fully made is never turned in',
     refusalChance(DISREPUTE_MAX) === 0 && refusalChance(DISREPUTE_MAX * 3) === 0);
   check('...with every rung of the ladder between them worth something',
     CHARACTER.every(([at], i) => i === 0

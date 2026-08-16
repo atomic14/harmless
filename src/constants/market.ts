@@ -14,7 +14,8 @@
 export const FLUCTUATIONS = 256;
 
 /**
- * What a sale does to your name. `saleFallout` in game/market.ts spends these.
+ * What a sale does to your reputation. `saleFallout` in game/market.ts spends
+ * these.
  *
  * The board's side of the same idea is `SMUGGLE_DELIVERY_NOTORIETY`
  * (constants/contracts.ts). That one prices a consignment landed for a shipper.
@@ -32,12 +33,13 @@ export const SALE_NOTORIETY_REVENUE = 40_000;
  * Extra talk per tonne of CONTRABAND sold, on top of the takings. It is
  * deliberately below `SMUGGLE_DELIVERY_NOTORIETY`'s 0.06 per tonne. A shipper's
  * consignment arrives somewhere that expects it, and a few tonnes over a counter
- * can be passed off. The counter sale also marks the NAME
+ * can be passed off. The counter sale also marks your REPUTATION
  * (`DISREPUTE_CONTRABAND_SALE`), which the heat alone does not.
  *
  * The owner is confirmed as the market rather than character.ts. This is REGIONAL
  * heat. It decays in days, and it belongs to the place where the deal was done.
- * What the same deal does to your name belongs to the character domain, and the
+ * What the same deal does to your reputation belongs to the character domain,
+ * and the
  * two must be free to move apart.
  */
 export const SALE_NOTORIETY_CONTRABAND = 0.04;

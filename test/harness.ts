@@ -169,7 +169,7 @@ export function dismissBriefing(g: {
  * (`session.queued`) reaches the console seconds after the event that owed it,
  * and one said over its own cause never reaches it at all.
  *
- * Shared by test/character-line.test.ts (what a deed cost your name,
+ * Shared by test/character-line.test.ts (what a deed cost your reputation,
  * docs/TODO/129) and test/record-line.test.ts (what it cost your record,
  * docs/TODO/130) — the same instrument, and a second copy of it would be free
  * to disagree about what "a player saw this" means.

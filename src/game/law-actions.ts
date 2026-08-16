@@ -4,7 +4,7 @@
 // `law.ts` next door owns the RULES — what a bribe costs, what a patrol is
 // worth, what a fine leaves you with — and this holds what the Game does with
 // them: offering money to a patrol, throwing the evidence overboard, raising a
-// record, scrambling the station's fleet, and buying a name back.
+// record, scrambling the station's fleet, and clearing a legal status.
 //
 // It is the same shape as `station.ts`: the state, plus a narrow host for the
 // few things it has to reach back for. It decides and it spends; the Game owns
@@ -13,7 +13,7 @@
 // ONE ASYMMETRY IS THE WHOLE FEATURE, and it lives in `bribePolice`: a bribe
 // never clears a record and never buys one back. The inspection latches the
 // scan without raising anything, and the fight buys one ship out of one fight
-// and leaves you exactly as Fugitive as you were. The NAME pays for both,
+// and leaves you exactly as Fugitive as you were. Your REPUTATION pays for both,
 // refusals included.
 
 import * as THREE from 'three';
@@ -134,7 +134,7 @@ export class LawActions {
   }
 
   /**
-   * Buy your name back at the station — the optional half of the law.
+   * Clear your legal status at the station — the optional half of the law.
    *
    * Docking no longer clears your record (station.ts); this is the choice that
    * does. `recordCleared` (law.ts) owns the rule — the fine, capped at what you
@@ -195,7 +195,7 @@ export class LawActions {
    * **Neither half touches the record.** The inspection latches `policeScanned`
    * with no `raiseLegal`, so the scan does not happen and the Government's
    * paperwork stays spotless; the fight buys one ship out of one fight and
-   * leaves you exactly as Fugitive as you were. The name pays for both
+   * leaves you exactly as Fugitive as you were. Your reputation pays for both
    * (`bribeOffered`), refusals included. That asymmetry is the whole feature: a
    * bribe never clears a record and never buys one back.
    *
@@ -250,7 +250,7 @@ export class LawActions {
    * nothing.
    *
    * Both halves of the key go through here, so neither can acquire an answer
-   * the other does not have — the shortfall, the refusal and the name are one
+   * the other does not have — the shortfall, the refusal and the reputation are one
    * rule about offering money to a policeman, and only the CONSEQUENCE of a
    * taken offer differs between them.
    *
@@ -260,7 +260,7 @@ export class LawActions {
    *
    * A refusal is an offence in front of a witness. `provokedByPlayer` — not
    * `provoked`, which is damage from any source — so he engages under the rule
-   * that already exists, and the name is charged for the asking.
+   * that already exists, and the reputation is charged for the asking.
    */
   private offerTo(target: NpcShip, price: number): number | null {
     const c = this.state.commander;
@@ -272,7 +272,7 @@ export class LawActions {
       this.host.refused();
       return null;
     }
-    // The name is charged here, so the line that says so is queued here too —
+    // The reputation is charged here, so the line that says so is queued here
     // behind whichever of the four answers below the caller puts on the
     // console. A REFUSAL costs it as well, which is the one case that reads
     // like a bug until you have read docs/TODO/123: the deed is the asking.

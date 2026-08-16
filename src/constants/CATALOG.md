@@ -31,18 +31,18 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | camera | <code>CAMERA_FAR</code> | <code>1_000_000</code> | Far plane — a million units. |  | [camera.ts:19](./camera.ts#L19) |
 | camera | <code>HEADLESS_WIDTH</code> | <code>1280</code> | The viewport that a run with no window pretends to have. |  | [camera.ts:27](./camera.ts#L27) |
 | camera | <code>HEADLESS_HEIGHT</code> | <code>720</code> |  |  | [camera.ts:28](./camera.ts#L28) |
-| character | <code>CHARACTER</code> | <code>[ [0, 'Honest'], [10, 'Dubious'], [25, 'Dodgy'], [50, 'Shady'], [80, 'Notorious'], [120, 'Cutthroat'], ]</code> | The character ladder: the disrepute score, lowest first, and the name that it earns. |  | [character.ts:14](./character.ts#L14) |
-| character | <code>DISREPUTE_HERMIT_KILL</code> | <code>40</code> | What each deed adds to disrepute, tuned in play. |  | [character.ts:28](./character.ts#L28) |
-| character | <code>DISREPUTE_MURDER</code> | <code>40</code> |  |  | [character.ts:29](./character.ts#L29) |
-| character | <code>DISREPUTE_CAUGHT</code> | <code>10</code> |  |  | [character.ts:30](./character.ts#L30) |
-| character | <code>DISREPUTE_SLAVE_SALE</code> | <code>40</code> | A sale of somebody you pulled out of an escape capsule (docs/TODO/127). | <code>character.disreputeSlaveSale</code> | [character.ts:52](./character.ts#L52) |
-| character | <code>DISREPUTE_SURVIVOR_RELEASED</code> | <code>10</code> | Money taken to let one go instead (docs/TODO/127). | <code>character.disreputeSurvivorReleased</code> | [character.ts:72](./character.ts#L72) |
-| character | <code>DISREPUTE_BRIBE</code> | <code>12</code> | A policeman bought: what the offer adds to disrepute, whether he takes it or refuses it (`game/law.ts`, docs/TODO/123). | <code>character.disreputeBribe</code> | [character.ts:103](./character.ts#L103) |
-| character | <code>DISREPUTE_CONTRABAND_SALE</code> | <code>5</code> | A sale of illicit goods over a market counter, or a consignment of them landed with no questions asked (`game/contracts.ts`). | <code>character.disreputeContrabandSale</code> | [character.ts:116](./character.ts#L116) |
-| character | <code>DISREPUTE_SHORTED_CONSIGNMENT</code> | <code>5</code> | An arrival at the far end without the consignment you were entrusted with (docs/TODO/113). | <code>character.disreputeShortedConsignment</code> | [character.ts:141](./character.ts#L141) |
-| character | <code>CHARACTER_LINE_SECONDS</code> | <code>4</code> | How long the line that says your name has changed holds the console (docs/TODO/129). | <code>character.lineSeconds</code> | [character.ts:166](./character.ts#L166) |
-| character | <code>DISREPUTE_DECAY</code> | <code>1.5</code> | How fast disrepute fades, per day. | <code>character.disreputeDecay</code> | [character.ts:177](./character.ts#L177) |
-| character | <code>DISREPUTE_MAX</code> | <code>160</code> | The ceiling, so a lifetime of villainy cannot run the score away past what a season of clean living can undo. |  | [character.ts:183](./character.ts#L183) |
+| character | <code>CHARACTER</code> | <code>[ [0, 'Honest'], [10, 'Dubious'], [25, 'Dodgy'], [50, 'Shady'], [80, 'Notorious'], [120, 'Cutthroat'], ]</code> | The character ladder: the disrepute score, lowest first, and the rung that it earns. |  | [character.ts:19](./character.ts#L19) |
+| character | <code>DISREPUTE_HERMIT_KILL</code> | <code>40</code> | What each deed adds to disrepute, tuned in play. |  | [character.ts:33](./character.ts#L33) |
+| character | <code>DISREPUTE_MURDER</code> | <code>40</code> |  |  | [character.ts:34](./character.ts#L34) |
+| character | <code>DISREPUTE_CAUGHT</code> | <code>10</code> |  |  | [character.ts:35](./character.ts#L35) |
+| character | <code>DISREPUTE_SLAVE_SALE</code> | <code>40</code> | A sale of somebody you pulled out of an escape capsule (docs/TODO/127). | <code>character.disreputeSlaveSale</code> | [character.ts:57](./character.ts#L57) |
+| character | <code>DISREPUTE_SURVIVOR_RELEASED</code> | <code>10</code> | Money taken to let one go instead (docs/TODO/127). | <code>character.disreputeSurvivorReleased</code> | [character.ts:77](./character.ts#L77) |
+| character | <code>DISREPUTE_BRIBE</code> | <code>12</code> | A policeman bought: what the offer adds to disrepute, whether he takes it or refuses it (`game/law.ts`, docs/TODO/123). | <code>character.disreputeBribe</code> | [character.ts:108](./character.ts#L108) |
+| character | <code>DISREPUTE_CONTRABAND_SALE</code> | <code>5</code> | A sale of illicit goods over a market counter, or a consignment of them landed with no questions asked (`game/contracts.ts`). | <code>character.disreputeContrabandSale</code> | [character.ts:121](./character.ts#L121) |
+| character | <code>DISREPUTE_SHORTED_CONSIGNMENT</code> | <code>5</code> | An arrival at the far end without the consignment you were entrusted with (docs/TODO/113). | <code>character.disreputeShortedConsignment</code> | [character.ts:146](./character.ts#L146) |
+| character | <code>CHARACTER_LINE_SECONDS</code> | <code>4</code> | How long the line that reports a new character rung holds the console (docs/TODO/129). | <code>character.lineSeconds</code> | [character.ts:171](./character.ts#L171) |
+| character | <code>DISREPUTE_DECAY</code> | <code>1.5</code> | How fast disrepute fades, per day. | <code>character.disreputeDecay</code> | [character.ts:182](./character.ts#L182) |
+| character | <code>DISREPUTE_MAX</code> | <code>160</code> | The ceiling, so a lifetime of villainy cannot run the score away past what a season of clean living can undo. |  | [character.ts:188](./character.ts#L188) |
 | chart-metric | <code>TENTHS_PER_CHART_UNIT</code> | <code>4</code> | Tenths of a light year in one unit of chart x. |  | [chart-metric.ts:15](./chart-metric.ts#L15) |
 | chart-metric | <code>CHART_Y_SQUASH</code> | <code>2</code> | The asymmetry: chart y counts for half of chart x. |  | [chart-metric.ts:22](./chart-metric.ts#L22) |
 | chart-metric | <code>CHART_SPAN_X</code> | <code>256</code> | The width of the coordinate space that every chart projects. |  | [chart-metric.ts:30](./chart-metric.ts#L30) |
@@ -107,7 +107,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | contracts | <code>MAX_CONTRACTS</code> | <code>3</code> | The most work you may hold at once. |  | [contracts.ts:14](./contracts.ts#L14) |
 | contracts | <code>CONTRACT_RANGE</code> | <code>MAX_FUEL</code> | How far away a contract may send you, in tenths of a light year: exactly as far as a full tank reaches. |  | [contracts.ts:21](./contracts.ts#L21) |
 | contracts | <code>PASSENGER_BERTH_TONNES</code> | <code>2</code> | What one passenger costs the hold, in tonnes. | <code>contracts.passengerBerthTonnes</code> | [contracts.ts:43](./contracts.ts#L43) |
-| contracts | <code>SMUGGLE_DELIVERY_NOTORIETY</code> | <code>0.06</code> | How loudly a delivered smuggling run is talked about, per tonne landed. | <code>contracts.smuggleDeliveryNotoriety</code> | [contracts.ts:72](./contracts.ts#L72) |
+| contracts | <code>SMUGGLE_DELIVERY_NOTORIETY</code> | <code>0.06</code> | How loudly a delivered smuggling run is talked about, per tonne landed. | <code>contracts.smuggleDeliveryNotoriety</code> | [contracts.ts:73](./contracts.ts#L73) |
 | docking | <code>GATE_HALF_WIDTHS</code> | <code>5</code> | How far out the approach gate sits, in multiples of the station half-width. | <code>docking.gateHalfWidths</code> | [docking.ts:25](./docking.ts#L25) |
 | docking | <code>TURN_IN</code> | <code>Math.PI / 4</code> | How far round from the slot axis an approach turns in, in radians. |  | [docking.ts:49](./docking.ts#L49) |
 | docking | <code>RUN_IN_WIDTHS</code> | <code>GATE_HALF_WIDTHS * 0.6</code> | Where the approach stops the curve and flies straight, in station half-widths. |  | [docking.ts:82](./docking.ts#L82) |
@@ -152,7 +152,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | hermit-market | <code>HERMIT_ORE_PRICE</code> | <code>0.75</code> | Ore is a quarter off here, and there is plenty of it. |  | [hermit-market.ts:22](./hermit-market.ts#L22) |
 | hermit-market | <code>HERMIT_ORE_GLUT</code> | <code>20</code> | Bulk stock a rock miner is never short of, on top of the rolled quantity. |  | [hermit-market.ts:25](./hermit-market.ts#L25) |
 | hermit-market | <code>HERMIT_SUPPLY_PRICE</code> | <code>1.3</code> | Supplies cost a third more: nobody else delivers out here. |  | [hermit-market.ts:28](./hermit-market.ts#L28) |
-| hermit-market | <code>HERMIT_REFUSES_AT</code> | <code>CHARACTER.find(([, name]) =&gt; name === 'Dodgy')![0]</code> | The name that a hermit will not deal with: the character ladder's Dodgy rung. |  | [hermit-market.ts:44](./hermit-market.ts#L44) |
+| hermit-market | <code>HERMIT_REFUSES_AT</code> | <code>CHARACTER.find(([, name]) =&gt; name === 'Dodgy')![0]</code> | The character a hermit will not deal with: the ladder's Dodgy rung. |  | [hermit-market.ts:44](./hermit-market.ts#L44) |
 | hermit-market | <code>HERMIT_FAVOUR</code> | <code>0.2</code> | Mates' rates, at the widest. | <code>hermit.favour</code> | [hermit-market.ts:63](./hermit-market.ts#L63) |
 | hull-breach | <code>EQUIPMENT_DAMAGE_CHANCE</code> | <code>0.25</code> | The chance that a hit which reaches the hull wrecks cargo or a fitting. |  | [hull-breach.ts:15](./hull-breach.ts#L15) |
 | hull-breach | <code>CARGO_LOSS_CHANCE</code> | <code>0.7</code> | Cargo is lost this often when there is any aboard. | <code>breach.cargoLossChance</code> | [hull-breach.ts:31](./hull-breach.ts#L31) |
@@ -202,9 +202,9 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | living-galaxy | <code>BUSY_LANE_CONVOYS</code> | <code>2</code> | How many convoys a lane needs in flight at once before the charts draw it. | <code>living.busyLaneConvoys</code> | [living-galaxy.ts:97](./living-galaxy.ts#L97) |
 | living-galaxy | <code>PRICE_DIVERGENCE_VISIBLE</code> | <code>0.15</code> | How far a price must have drifted from the 1984 baseline before the charts mark the system: 15%, against the +-25% clamp that `priceMultiplier` applies. | <code>living.priceDivergenceVisible</code> | [living-galaxy.ts:113](./living-galaxy.ts#L113) |
 | market | <code>FLUCTUATIONS</code> | <code>256</code> | Every value that the market's fluctuation byte can take. |  | [market.ts:14](./market.ts#L14) |
-| market | <code>SALE_NOTORIETY_REVENUE</code> | <code>40_000</code> | What a sale does to your name. |  | [market.ts:29](./market.ts#L29) |
-| market | <code>SALE_NOTORIETY_CONTRABAND</code> | <code>0.04</code> | Extra talk per tonne of CONTRABAND sold, on top of the takings. |  | [market.ts:43](./market.ts#L43) |
-| market | <code>SALE_NOTORIETY_MAX</code> | <code>0.5</code> | The most heat that one sale can raise, out of the 0..1 bar that `LivingGalaxy` keeps. | <code>market.saleNotorietyMax</code> | [market.ts:59](./market.ts#L59) |
+| market | <code>SALE_NOTORIETY_REVENUE</code> | <code>40_000</code> | What a sale does to your reputation. |  | [market.ts:30](./market.ts#L30) |
+| market | <code>SALE_NOTORIETY_CONTRABAND</code> | <code>0.04</code> | Extra talk per tonne of CONTRABAND sold, on top of the takings. |  | [market.ts:45](./market.ts#L45) |
+| market | <code>SALE_NOTORIETY_MAX</code> | <code>0.5</code> | The most heat that one sale can raise, out of the 0..1 bar that `LivingGalaxy` keeps. | <code>market.saleNotorietyMax</code> | [market.ts:61](./market.ts#L61) |
 | missions | <code>MISSION_KILL_THRESHOLD</code> | <code>16</code> | Kills before the Navy considers you worth a word: 16, as the original demanded. |  | [missions.ts:12](./missions.ts#L12) |
 | missions | <code>MISSION_HUNT_RANGE</code> | <code>{ min: 30, max: 80 } as const</code> | The Constrictor hides this far from where you are briefed, in tenths of a light year. |  | [missions.ts:20](./missions.ts#L20) |
 | missions | <code>MISSION_COURIER_RANGE</code> | <code>{ min: 50, max: 90 } as const</code> | The courier run is longer: the plans matter more than your convenience. |  | [missions.ts:23](./missions.ts#L23) |
@@ -350,10 +350,10 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | tech-level | <code>TECH_MAX</code> | <code>15</code> | The highest. |  | [tech-level.ts:12](./tech-level.ts#L12) |
 | threat | <code>FAME_FULL</code> | <code>RATINGS.find(([, name]) =&gt; name === 'Dangerous')![0]</code> | The combat score at which fame is fully "worth coming for". |  | [threat.ts:16](./threat.ts#L16) |
 | threat | <code>CHALLENGE_RATE</code> | <code>0.35</code> | The share of receptions that are challengers, at full fame. | <code>threat.challengeRate</code> | [threat.ts:29](./threat.ts#L29) |
-| threat | <code>DISREPUTE_FULL</code> | <code>CHARACTER.find(([, name]) =&gt; name === 'Notorious')![0]</code> | The disrepute at which your NAME is as bad as it needs to get for a pirate. |  | [threat.ts:45](./threat.ts#L45) |
+| threat | <code>DISREPUTE_FULL</code> | <code>CHARACTER.find(([, name]) =&gt; name === 'Notorious')![0]</code> | The disrepute at which your CHARACTER is as bad as it needs to get for a pirate. |  | [threat.ts:45](./threat.ts#L45) |
 | threat | <code>DISREPUTE_HEAT</code> | <code>SALE_NOTORIETY_MAX</code> | What a fully notorious name is worth as HEAT. |  | [threat.ts:71](./threat.ts#L71) |
 | threat | <code>DISREPUTE_DRAW</code> | <code>0.5</code> | How much a criminal name draws challengers, against combat fame's 1. | <code>threat.disreputeDraw</code> | [threat.ts:84](./threat.ts#L84) |
-| threat | <code>COURTESY_RATE</code> | <code>0.15</code> | Professional courtesy: the share of receptions that never form at all, because somebody recognised a name they would rather not cross. |  | [threat.ts:99](./threat.ts#L99) |
+| threat | <code>COURTESY_RATE</code> | <code>0.15</code> | Professional courtesy: the share of receptions that never form at all, because somebody recognised a commander they would rather not cross. |  | [threat.ts:99](./threat.ts#L99) |
 | threat | <code>PRIZE_SATURATION</code> | <code>25000</code> | The cargo value at which the prize term saturates, in tenths of a credit: 25,000, which is 2,500 Cr. |  | [threat.ts:107](./threat.ts#L107) |
 | threat | <code>DEFENCE_WEIGHT</code> | <code>12</code> | The weights on the three fields of `sourceThreatScore`. |  | [threat.ts:117](./threat.ts#L117) |
 | threat | <code>LASER_WEIGHT</code> | <code>8</code> |  |  | [threat.ts:118](./threat.ts#L118) |

@@ -90,7 +90,7 @@ export const FUGITIVE_FINE = 750;
  * durations, and it is a count of KILLS against one rung of the legal ladder.
  *
  * The token heuristic reads "kills" and offers the rating domain. The rating
- * ladder counts kills for a NAME — Harmless to Elite — and this counts them
+ * ladder counts kills for a RATING — Harmless to Elite — and this counts them
  * against a legal record. The two ladders are unrelated, and `rating.ts` must
  * stay free to re-cut its rungs without moving this.
  *

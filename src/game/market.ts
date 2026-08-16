@@ -90,7 +90,7 @@ export function priceInTenths(price: number): number {
   return Math.round(price * 10);
 }
 
-/** What one sale over a counter costs you in reputation. */
+/** What one sale over a counter costs your reputation. */
 export interface SaleFallout {
   /** heat to add HERE — `LivingGalaxy.addNotoriety` spreads it to the neighbours */
   notoriety: number;
@@ -102,7 +102,7 @@ export interface SaleFallout {
  * Word gets around. A big payday — or any quantity of contraband — makes you
  * worth watching for, here and in the systems within a jump, which is why
  * smuggling raises the temperature of your *next* arrival. Dealing in
- * contraband marks your NAME as well as the region: a dirty sale is a dirty
+ * contraband marks your REPUTATION as well as the region: a dirty sale is a dirty
  * sale however small, and unlike the heat it does not fade in a week
  * (game/character.ts).
  *
@@ -239,7 +239,7 @@ export function hermitRefuses(disrepute: number): boolean {
 }
 
 /**
- * How much of a credential your name is out here: 0 for a spotless commander,
+ * How much of a credential your reputation is out here: 0 for a spotless commander,
  * 1 for one standing at the very edge of what a hermit will tolerate.
  *
  * The same threshold as the refusal, deliberately. A miner's opinion of you is

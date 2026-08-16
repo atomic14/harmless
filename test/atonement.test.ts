@@ -116,7 +116,7 @@ console.log('\nfive pirates take a rung off a record');
     verdict, recordVerdict(OFFENDER));
 
   // THE HALF THAT MUST NOT MOVE.
-  eq('the name is untouched by any of it', c.disrepute ?? 0, nameBefore);
+  eq('the reputation is untouched by any of it', c.disrepute ?? 0, nameBefore);
 
   for (let i = 0; i < KILLS_PER_RUNG; i++) kill(g, fly);
   eq(`${KILLS_PER_RUNG * 2} pirates take a Fugitive to Clean`, c.legalStatus, CLEAN);

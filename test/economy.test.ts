@@ -173,7 +173,7 @@ console.log('\nrock hermit prices');
 
   // --- and who he deals with (docs/TODO/96, M3) ----------------------------
   //
-  // One number with a cliff at the end of it: a name is a credential out here
+  // One number with a cliff at the end of it: a reputation is a credential out here
   // until it is the reason the door is bolted. Both halves are measured out of
   // the real rule — the threshold bisected, the favour solved out of a price.
   {
@@ -224,7 +224,7 @@ console.log('\nrock hermit prices');
       const before = hermitMarket(g1[7], d - 1, 0)[gold].price;
       if (here > before) rising = false;
     }
-    check('the favour grows with the name all the way to the door', rising
+    check('the favour grows with the reputation all the way to the door', rising
       && hermitMarket(g1[7], HERMIT_REFUSES_AT - 1, 0)[gold].price < hermit[gold].price);
 
     // ...and an honest commander pays exactly what they always did, which is
@@ -254,7 +254,7 @@ console.log('\nwhat a sale is noticed as');
   // number, so notoriety × SALE_NOTORIETY_REVENUE IS the revenue.
   eq('a legal sale is talked about for its takings alone',
     saleFallout(LEGAL, 3, 1234).notoriety * SALE_NOTORIETY_REVENUE, 1234);
-  eq('...and leaves no mark on the name', saleFallout(LEGAL, 3, 1234).disrepute, 0);
+  eq('...and leaves no mark on the reputation', saleFallout(LEGAL, 3, 1234).disrepute, 0);
 
   // The contraband term, with the takings zeroed so only tonnage is left.
   check(`each tonne of contraband adds SALE_NOTORIETY_CONTRABAND (${SALE_NOTORIETY_CONTRABAND})`,
@@ -275,7 +275,7 @@ console.log('\nwhat a sale is noticed as');
 
   // A dirty sale is a dirty sale however small: the heat scales with the load,
   // the mark on the NAME does not.
-  check('the mark on the name does not scale with the tonnage',
+  check('the mark on the reputation does not scale with the tonnage',
     [1, 5, 30].every((t) =>
       saleFallout(DIRTY, t, 100 * t).disrepute === DISREPUTE_CONTRABAND_SALE));
 

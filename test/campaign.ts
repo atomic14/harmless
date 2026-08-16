@@ -185,7 +185,7 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
   let firstUpgradeLeg: number | null = null;
   let bankruptAtLeg: number | null = null;
   let peakCredits = c.credits;
-  // Your NAME, sampled where it is spent: at the reception. A career's peak
+  // Your REPUTATION, sampled where it is spent: at the reception. A career's peak
   // matters as much as its mean because disrepute decays between jumps — an
   // end-of-career reading would say Honest of a commander who spent forty legs
   // Dodgy (game/character.ts, docs/TODO/96).
@@ -287,7 +287,7 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
       c.credits += revenue;
       if (sold > 0) {
         // The GAME's rule, not a transcription of it: `saleFallout` is what
-        // screens/trade.ts applies too, heat AND the mark on the name. The
+        // screens/trade.ts applies too, heat AND the mark on the reputation. The
         // hand-written copy here had the heat and had lost the disrepute.
         const fallout = saleFallout(i, sold, revenue);
         living.addNotoriety(c.systemIndex, fallout.notoriety);
@@ -766,7 +766,7 @@ function report(label: string, careers: CareerResult[], strategy: Strategy): voi
     `${num(careers.map((r) => r.cargoLost)).toFixed(1)}t cargo lost to pirates per career`);
   console.log(`RATING   median ${rating(Math.round(median(careers.map((r) => r.combatScore))))}`);
   {
-    // What the pirates were reading off the name when they sized each
+    // What the pirates were reading off the reputation when they sized each
     // reception (docs/TODO/96). If this is flat zero the cohort never earns a
     // reputation and no character-driven balance change is visible to this
     // instrument — that is a fact about the strategy, and it has to be on the

@@ -71,7 +71,7 @@ console.log('\nhanding a survivor over costs nothing and pays nothing');
   check('the rule reports what happened', e?.kind === 'handed' && e.people === 2);
   eq('...and the crew spaces are clear', c.survivors, 0);
   eq('...for nothing', c.credits, before.credits);
-  eq('...and no mark on the name: being decent is not a trade',
+  eq('...and no mark on the reputation: being decent is not a trade',
     c.disrepute ?? 0, before.disrepute);
   eq('...and it is not a hold operation', cargoTonnes(c), before.hold);
   eq('the console line counts them', survivorMessage(e!), '2 SURVIVORS HANDED TO STATION MEDICAL');
@@ -114,11 +114,11 @@ console.log('\n...and the two that do not');
   check('...and it files you as an Offender, not a Fugitive',
     e?.kind === 'sold' && e.offence === OFFENDER
     && e.offence === offenceFor('trader', false) && e.offence < FUGITIVE);
-  // ...and the name is marked ONCE. `saleFallout` prices a tonne of narcotics;
+  // ...and the reputation is marked ONCE. `saleFallout` prices a tonne of narcotics;
   // this deed has a constant of its own, and charging both would price it twice.
-  eq('the name pays the person\'s weight and not also the cargo\'s',
+  eq('the reputation pays the person\'s weight and not also the cargo\'s',
     c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
-  eq('...and it marks the name at the career-marking weight',
+  eq('...and it marks the reputation at the career-marking weight',
     c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
   eq('one sale takes an Honest commander to Dodgy', characterName(c.disrepute ?? 0), 'Dodgy');
   // THE THING THAT MUST NOT HAPPEN (docs/TODO/108): a person is not stock. A
@@ -126,19 +126,19 @@ console.log('\n...and the two that do not');
   eq('...and nothing went through the hold', cargoTonnes(c), before.hold);
   eq('...and the crew spaces are clear', c.survivors, 0);
 
-  // LET THEM GO: less money, less of your name. You are not selling a person;
+  // LET THEM GO: less money, less of your reputation. You are not selling a person;
   // you are declining to file one.
   const go = aboard(2, quote);
   const paid = resolveSurvivors(go.c, 'released', go.offers)!;
   check('a release pays less than the sale', paid.kind === 'released'
     && paid.paid === go.offers.release && paid.paid < go.offers.sale);
   // ...and it is not a sale, so the law has nothing to file and the region has
-  // nothing to talk about. Only the name knows.
+  // nothing to talk about. Only the reputation knows.
   check('...and there is no record and no heat in it', paid.kind === 'released'
     && !('offence' in paid) && !('heat' in paid));
   eq('...at the share the rule sets',
     go.offers.release, Math.round(go.offers.sale * SURVIVOR_RELEASE_SHARE));
-  eq('...and costs less of the name', go.c.disrepute ?? 0, DISREPUTE_SURVIVOR_RELEASED);
+  eq('...and costs less of the reputation', go.c.disrepute ?? 0, DISREPUTE_SURVIVOR_RELEASED);
   check('...which is a nudge and not a career',
     DISREPUTE_SURVIVOR_RELEASED < DISREPUTE_SLAVE_SALE
     && characterName(go.c.disrepute ?? 0) !== 'Dodgy');
@@ -157,7 +157,7 @@ console.log('\n...and the sale is a choice rather than a mistake');
 {
   // WHAT `SURVIVOR_SALE_TONNES` IS FOR. Priced at one tonne each, a person
   // fetched 2–16 Cr and the sale filed an Offender record costing OFFENDER_FINE
-  // (25 Cr) to clear, on top of a career-marking hit to the name. The deed did
+  // (25 Cr) to clear, on top of a career-marking hit to the reputation. The deed did
   // not cover its own cleanup at ANY market in ANY galaxy, so 127's forced
   // choice had a branch no commander could rationally take.
   //
@@ -217,7 +217,7 @@ console.log('\n...and the sale is a choice rather than a mistake');
   eq(`handing them over pays nothing even at ${best} Cr a tonne`,
     resolveSurvivors(decent.c, 'medical', decent.offers)?.kind, 'handed');
   eq('...not a tenth of it', decent.c.credits, beforeCredits);
-  eq('...and not a point of the name', decent.c.disrepute ?? 0, 0);
+  eq('...and not a point of the reputation', decent.c.disrepute ?? 0, 0);
 }
 
 // --- the keyboard ------------------------------------------------------------
@@ -316,8 +316,8 @@ console.log('...and the sale is priced off the market that station rolled');
   eq('...and the console says what was done and what it paid',
     g.state.session.messageText,
     `1 SOLD ON THE SLAVE ROW — ${formatCredits(worth)}`);
-  eq('...and the name pays the career-marking weight', c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
-  // The name's own line is QUEUED behind the receipt (docs/TODO/129), so the
+  eq('...and the reputation pays the career-marking weight', c.disrepute ?? 0, DISREPUTE_SLAVE_SALE);
+  // The reputation's own line is QUEUED behind the receipt (docs/TODO/129), so the
   // rung it crossed is waiting rather than shouting over it.
   const queued = g.state.session.queued.map((q) => q.text);
   check(`the crossing is queued behind it (${queued.join(' / ')})`,

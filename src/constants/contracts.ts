@@ -55,7 +55,8 @@ export const PASSENGER_BERTH_TONNES = 2;
  * galaxy/living.ts spreads it to the neighbours, and `HEAT_DECAY` takes a
  * fortnight to forget it.
  *
- * It is regional heat, NOT character. The deed also marks the name, and that half
+ * It is regional heat, NOT character. The deed also marks your reputation, and
+ * that half
  * is `DISREPUTE_CONTRABAND_SALE` (constants/character.ts). Two consequences, two
  * owners: the pure settlement applies the disrepute, and the orchestrators apply
  * this (invariant 15). That is why it is a rate here, rather than a literal at

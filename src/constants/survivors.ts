@@ -1,6 +1,6 @@
 // What becomes of somebody you pulled out of an escape capsule (docs/TODO/127).
 //
-// The MONEY half only. What each answer does to your NAME is
+// The MONEY half only. What each answer does to your REPUTATION is
 // constants/character.ts, beside every other deed that the ladder prices. What
 // the Government makes of it is constants/law.ts. Three files, three subjects: a
 // re-tuned bribe must not have to touch the ladder to say so.

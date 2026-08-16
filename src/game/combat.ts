@@ -48,7 +48,7 @@ export type CombatEvent =
   /**
    * Something to say. `queued` holds it back until the console is free
    * (session.ts): a kill says several things at once — the bounty, the
-   * contract, what it did to your name — and a line that EXPLAINS another
+   * contract, what it did to your reputation — and a line that EXPLAINS another
    * cannot be the one that erases it.
    */
   | { kind: 'message'; text: string; seconds: number; queued?: boolean }
@@ -226,7 +226,7 @@ export class Combat {
   }
 
   /**
-   * What killing the pilot in a capsule costs: the record, and the name.
+   * What killing the pilot in a capsule costs: the record, and the reputation.
    *
    * THE LAW ASKS THE SAME QUESTION IT ASKS ABOUT THE SHIP. `offenceFor` is the
    * one home of "whose destruction is a crime", and the capsule carries the role
@@ -235,10 +235,10 @@ export class Combat {
    * raider — which is GitHub #28. A Clean answer is a no-op at `raiseLegal`,
    * exactly as it is for a pirate's hull.
    *
-   * THE NAME IS CHARGED WHATEVER THE RECORD SAYS. A pirate in a capsule is still
+   * THE REPUTATION IS CHARGED WHATEVER THE RECORD SAYS. A pirate in a capsule is still
    * somebody who cannot shoot back, so the deed is `DISREPUTE_MURDER` like any
    * other murder. This is the clearest case in the game of the two ladders
-   * moving apart: shoot a raider's capsule and no Viper comes, and your name is
+   * moving apart: shoot a raider's capsule and no Viper comes, and your reputation is
    * made anyway.
    */
   private podKilled(c: CommanderData, pod: { occupant: string }): CombatEvent[] {
@@ -282,7 +282,7 @@ export class Combat {
     // and answered by the rule, which is what keeps the role list in one file.
     out.push({ kind: 'atonement', role: npc.role });
 
-    // What it does to your NAME, which the fine will not wash off. Cracking a
+    // What it does to your REPUTATION, which the fine will not wash off. Cracking a
     // hermit is a career-marking act; so is destroying any lawful ship (the
     // Fugitive-grade offence). Reached only through `destroy`, the
     // player-credited path.

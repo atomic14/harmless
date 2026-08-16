@@ -40,8 +40,8 @@ export function fineFor(legalStatus: number, credits: number): number {
 }
 
 /**
- * Buying your name back at a station: what a commander is left with after
- * paying to clear a record, or `null` when there is nothing to clear.
+ * Clearing your legal status at a station: what a commander is left with after
+ * paying the fine, or `null` when there is nothing to clear.
  *
  * The station does not fine you at the door any more (station.ts) — this is the
  * optional half. The charge is `fineFor`, capped at what you can pay, so a broke
@@ -121,7 +121,7 @@ export function patrolPrice(legalStatus: number): number {
  * than four thresholds mattering and the rest being decoration. `DISREPUTE_MAX`
  * is the scale for the same reason `hermitFavour` uses the hermit's own
  * refusal point: the credential is measured against the thing it is a
- * credential for, and this one is "how completely is your name made".
+ * credential for, and this one is "how completely is your reputation made".
  */
 export function refusalChance(disrepute: number): number {
   return BRIBE_REFUSED * (1 - Math.min(1, Math.max(0, disrepute) / DISREPUTE_MAX));
@@ -152,12 +152,15 @@ export type BribeAnswer =
  * 11) — this file has no randomness of its own, so the same seed replays the
  * same refusals.
  *
- * **It always costs your name, refusal included.** `DISREPUTE_BRIBE` is applied
- * here rather than left to the caller, so no future half of this feature can
- * quietly ship the version where money makes consequences go away — and a
- * refusal costs it too, because the deed is the asking. The record is
- * untouched either way: buying your name back is `recordCleared` at a station,
- * by choice, and it is the only thing that clears one.
+ * **It always costs your reputation, refusal included.** `DISREPUTE_BRIBE` is
+ * applied here rather than left to the caller. So no future half of this
+ * feature can quietly ship the version where money makes consequences go away.
+ * A refusal costs it too, because the deed is the asking.
+ *
+ * **The RECORD is untouched either way, and that is a different ladder.** Two
+ * rules bring a record down, and neither is here: `recordCleared` above is the
+ * fine at a station, and `recordWorkedOff` below is five pirate kills a rung
+ * (docs/TODO/160).
  */
 export function bribeOffered(
   price: number, credits: number, disrepute: number, roll: number,

@@ -202,7 +202,7 @@ export const BINDINGS: Record<ControlMode, readonly Binding[]> = {
     // docked and launch-missile in flight. The tables are per mode.
     { key: 'KeyT', command: 'openCombatSim' },
     { key: 'KeyH', command: 'openBriefing' },
-    // P to buy your name back. The station clears an Offender or Fugitive
+    // P clears your legal status. The station clears an Offender or Fugitive
     // record for a fine, by choice. A dock does not charge it at the door.
     { key: 'KeyP', command: 'payFine' },
     // --- the keyline under the menu: bound here, but not rows you arrow onto -

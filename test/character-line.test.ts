@@ -1,4 +1,4 @@
-// Your name changing, flown: the console actually says it, and says it behind
+// Your reputation changing, flown: the console says it, and says it behind
 // the deed that caused it (docs/TODO/129).
 //
 // `test/character.test.ts` owns the arithmetic — which moves are crossings and
@@ -9,7 +9,7 @@
 // by frame, exactly as a pilot would.
 //
 // One deed per family, and the control that stops the whole thing being a
-// machine that says CHARACTER at every opportunity.
+// machine that says REPUTATION at every opportunity.
 
 import * as THREE from 'three';
 import { Game } from '../src/game/game.ts';
@@ -83,7 +83,7 @@ function provokedCop(g: Game) {
   return cop;
 }
 
-console.log('\nthe console says when a bribe changes your name');
+console.log('\nthe console says when a bribe changes your reputation');
 {
   const { g, fly } = flying(20_290_810);
   const c = g.state.commander;
@@ -99,7 +99,8 @@ console.log('\nthe console says when a bribe changes your name');
   const bribe = said.findIndex((t) => t.startsWith('PATROL BREAKS OFF'));
   const { line, at } = named(said);
   check(`the bribe is on the console (${said[bribe] ?? 'nothing'})`, bribe >= 0);
-  eq(`...and the name it cost follows it (${said.join(' / ')})`, line, 'REPUTATION: DUBIOUS — WORD IS GETTING ROUND');
+  eq(`...and the reputation it cost follows it (${said.join(' / ')})`,
+    line, 'REPUTATION: DUBIOUS — WORD IS GETTING ROUND');
   check('...AFTER it, not instead of it', at > bribe);
   check('...and it is said once, not on a timer that re-arms',
     fly(SETTLE * 2).filter((t) => t.startsWith('REPUTATION:')).length === 0);
@@ -108,7 +109,7 @@ console.log('\nthe console says when a bribe changes your name');
 console.log('...and when a REFUSED one does');
 {
   // The case that reads like a bug if you have not read docs/TODO/123: the deed
-  // is the ASKING, so the name is marked on a frame where no money moved.
+  // is the ASKING, so the reputation is marked on a frame where no money moved.
   const { g, fly } = flying(20_290_811);
   const c = g.state.commander;
   c.credits = 100_000;
@@ -118,12 +119,13 @@ console.log('...and when a REFUSED one does');
   g.bribePolice();
   const said = fly(SETTLE);
   eq('not a tenth was spent', c.credits, 100_000);
-  eq('...but the name was', c.disrepute ?? 0, DISREPUTE_BRIBE);
+  eq('...but the reputation was', c.disrepute ?? 0, DISREPUTE_BRIBE);
 
   const refused = said.indexOf('HE WILL NOT TAKE IT — AND NOW HE IS COMING FOR YOU');
   const { line, at } = named(said);
   check(`the refusal is on the console (${said.join(' / ')})`, refused >= 0);
-  eq('...and the name it cost follows it', line, 'REPUTATION: DUBIOUS — WORD IS GETTING ROUND');
+  eq('...and the reputation it cost follows it',
+    line, 'REPUTATION: DUBIOUS — WORD IS GETTING ROUND');
   check('...AFTER it', at > refused);
 }
 
@@ -162,7 +164,8 @@ console.log('\na kill names the rung it landed on, not each one it passed');
   check(`murder is worth two rungs at once (${DISREPUTE_MURDER} → ${rung})`, rung === 'Dodgy');
 
   const { line } = named(said);
-  eq(`the console names where you ARE (${said.join(' / ')})`, line, 'REPUTATION: DODGY — WORD IS GETTING ROUND');
+  eq(`the console names where you ARE (${said.join(' / ')})`,
+    line, 'REPUTATION: DODGY — WORD IS GETTING ROUND');
   check('...and never names the rung it passed through',
     !said.includes('REPUTATION: DUBIOUS — WORD IS GETTING ROUND'));
   // ...and it did not take the console away from the kill's own lines. Which of
@@ -170,13 +173,13 @@ console.log('\na kill names the rung it landed on, not each one it passed');
   // `raiseLegal`'s line was itself overwritten by STATION DEFENCE LAUNCHED in
   // the same frame, the same defect one rung up, and test/record-line.test.ts
   // is the file that holds the order those two arrive in. The claim here stays
-  // what it always was — the name waited its turn.
+  // what it always was — the reputation waited its turn.
   eq('the kill made you a Fugitive', c.legalStatus, FUGITIVE);
   check(`...and something else had the console first (${said[0]})`,
     named(said).at > 0);
 }
 
-console.log('\nand the good news half: a name fading says so too');
+console.log('\nand the good news half: a reputation fading says so too');
 {
   const { g, fly } = flying(20_290_814);
   const c = g.state.commander;
@@ -204,7 +207,7 @@ console.log('\nand the good news half: a name fading says so too');
   g.state.chart.targetIndex = target;
   g.startHyperspace();
   const said = fly(Math.ceil(12 * 60) + SETTLE);
-  check(`the jump took ${days} days off a name worth ${DODGY + 0.5}`,
+  check(`the jump took ${days} days off a reputation worth ${DODGY + 0.5}`,
     (c.disrepute ?? 0) < DODGY);
   const { line, at } = named(said);
   // The decay is the one direction that is GOOD news, so the clause is the

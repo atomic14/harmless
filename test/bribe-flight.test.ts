@@ -113,7 +113,7 @@ console.log('\na patrol paid off never reads the hold');
   check(`the offer is taken, and named on the console (${g.state.session.messageText})`,
     g.state.session.messageText.startsWith('PATROL LOOKS THE OTHER WAY'));
   eq('...and it costs exactly the price the rule set', c.credits, 100_000 - price);
-  eq('...and DISREPUTE_BRIBE off the name', c.disrepute ?? 0, DISREPUTE_BRIBE);
+  eq('...and DISREPUTE_BRIBE off the reputation', c.disrepute ?? 0, DISREPUTE_BRIBE);
 
   // THE CLAIM. Not "the scan is deferred" — it does not happen, however long he
   // stays alongside, and it never happens at knife range either.
@@ -151,7 +151,7 @@ console.log('\na bribe you cannot afford does not half-work');
   check(`the console names the shortfall (${g.state.session.messageText})`,
     g.state.session.messageText.startsWith('THEY WANT MORE'));
   eq('...and not a tenth is spent', c.credits, was);
-  eq('...and the name is untouched', c.disrepute ?? 0, 0);
+  eq('...and the reputation is untouched', c.disrepute ?? 0, 0);
   check('...and nothing is latched', !g.state.session.policeScanned);
 
   // ...so the scan still happens when he closes, which is the whole point of
@@ -178,7 +178,7 @@ console.log('\na Viper takes credits to break off — and the record stays where
   check(`the offer is taken, and named (${g.state.session.messageText})`,
     g.state.session.messageText.startsWith('PATROL BREAKS OFF'));
   eq('...at the price for the rung you are on', c.credits, 100_000 - patrolPrice(CLEAN));
-  eq('...and DISREPUTE_BRIBE off the name', c.disrepute ?? 0, DISREPUTE_BRIBE);
+  eq('...and DISREPUTE_BRIBE off the reputation', c.disrepute ?? 0, DISREPUTE_BRIBE);
 
   // THE CLAIM, and it is two claims that have to hold at once: the ship is done
   // with you and the record has not moved. The rule and the paperwork moving
@@ -233,7 +233,7 @@ console.log('...and a pair costs twice, one press at a time');
   check('a second press buys the second ship', second.state.satisfied);
   eq('...for twice the money, exactly as a gang of pirates costs',
     c.credits, 100_000 - 2 * patrolPrice(FUGITIVE));
-  eq('...and the name paid twice too', c.disrepute ?? 0, 2 * DISREPUTE_BRIBE);
+  eq('...and the reputation paid twice too', c.disrepute ?? 0, 2 * DISREPUTE_BRIBE);
 }
 
 console.log('...and an escort you cannot pay for keeps shooting');
@@ -288,7 +288,7 @@ console.log('\na refused offer is an offence, and the scan still comes');
   g.bribePolice();
   eq('he will not take it, and says so', g.state.session.messageText, REFUSED);
   eq('...and keeps his hands off the money', c.credits, 100_000);
-  eq('...while the name pays for the asking', c.disrepute ?? 0, DISREPUTE_BRIBE);
+  eq('...while the reputation pays for the asking', c.disrepute ?? 0, DISREPUTE_BRIBE);
 
   // The offence: you tried to buy an officer in front of him. `provokedByPlayer`
   // rather than `provoked`, so he engages under the rule that already exists.

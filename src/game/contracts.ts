@@ -66,7 +66,7 @@ export type ContractEvent =
   /**
    * ...and the shipper charged you for the part you could not hand back
    * (docs/TODO/113). It is a new KIND rather than a field on `incomplete`,
-   * because a new thing happened. Money left the account, and the name was
+   * because a new thing happened. Money left the account, and the reputation was
    * marked.
    *
    * It carries `reclaimed` as well, so the ledger a failure feeds is the same
@@ -78,7 +78,7 @@ export type ContractEvent =
   | { kind: 'accepted'; contract: Contract }
   | { kind: 'refused'; reason: 'tooMuchWork' | 'noHoldSpace' }
   /**
-   * This lot settled moved your name onto a new rung of the Character ladder
+   * This lot settled moved your reputation onto a new rung of the character ladder
    * (docs/TODO/129). `line` is what to say about it, assembled by
    * `characterVerdict` rather than written out here.
    *
@@ -158,7 +158,7 @@ function billShortfall(c: CommanderData, k: Contract, tonnes: number): number {
  *
  * Disrepute is the newest of those (docs/TODO/110), and it is worth saying out
  * loud. The campaign's numbers move once settlement applies deeds. A smuggling
- * run landed marks the name exactly as a dirty market sale does, and so does an
+ * run landed marks the reputation exactly as a dirty market sale does, and so does an
  * arrival short (docs/TODO/113).
  *
  * LATE does neither. That is an honest failure, and 112 already priced it by
@@ -335,7 +335,7 @@ export function contractMessage(e: ContractEvent, systems: StarSystem[]): Contra
         sound: 'refused',
       };
     case 'character':
-      // No sound. A change of name makes no noise (docs/TODO/129), and the
+      // No sound. A change of reputation makes no noise (docs/TODO/129), and the
       // receipts it follows already made theirs.
       return { text: e.line, seconds: CHARACTER_LINE_SECONDS, sound: null, queued: true };
   }

@@ -50,11 +50,11 @@ export interface SessionState {
    *
    * The console is one line, and some consequences only make sense AFTER the
    * thing that caused them has been read: what a police scan cost your record
-   * (docs/TODO/122), what a deed cost your name (docs/TODO/129). Said in the
+   * (docs/TODO/122), what a deed cost your reputation (docs/TODO/129). Said in the
    * same frame as their cause they would erase it.
    *
    * A list rather than the single countdown this replaced, because one act can
-   * owe the console two lines — a scan marks the record AND the name — and a
+   * owe the console two lines — a scan marks the record AND the reputation — and a
    * one-slot queue would have made the second silently overwrite the first.
    */
   queued: { text: string; seconds: number }[];
@@ -101,7 +101,7 @@ export function queueMessage(state: SessionState, text: string, seconds = 3): vo
  * console to whatever has been waiting for it.
  *
  * The promotion is here rather than in the world step because a queued line is
- * owed from the station too — a dirty sale over a counter marks your name the
+ * owed from the station too — a dirty sale over a counter marks your reputation the
  * same way a scan does — and `Game.step` ticks this whether the ship is flying
  * or docked.
  */

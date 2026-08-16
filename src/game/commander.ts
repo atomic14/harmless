@@ -146,7 +146,7 @@ export interface CommanderData {
    * A Clean commander banks nothing, so a crime cannot be paid for in advance.
    * A fresh offence clears it, so nobody banks four kills and then commits one.
    *
-   * It is the RECORD that a kill works off and never the name: `disrepute`
+   * It is the RECORD that a kill works off and never the reputation: `disrepute`
    * below is untouched by it. That is docs/TODO/156's split — what the
    * Government holds, against what people think of you — read from the other
    * side.
@@ -155,9 +155,9 @@ export interface CommanderData {
   /**
    * Disrepute: the reputation for dirty dealing that clings after the fine is
    * paid. Shady deeds raise it, time erodes it; `game/character.ts` turns it
-   * into a name (Honest…Cutthroat). 0 is Honest.
+   * into a rung (Honest…Cutthroat). 0 is Honest.
    *
-   * It is not just a label: `threat.ts` reads it as `infamy`, so a name draws
+   * It is not just a label: `threat.ts` reads it as `infamy`, so a reputation draws
    * people who want to be the ones who killed you, and a rock hermit refuses to
    * trade with a commander carrying enough of it (`hermitRefuses`).
    */

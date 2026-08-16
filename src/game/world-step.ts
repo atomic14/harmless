@@ -649,11 +649,11 @@ export class WorldStep {
         // nothing at all. That verdict used to be written out here too, and it
         // is `raiseLegal`'s one job now (docs/TODO/130).
         this.host.raiseLegal(OFFENDER);
-        // caught smuggling: the fine clears, but the name does not
+        // caught smuggling: the fine clears, but the reputation does not
         const was = commander.disrepute ?? 0;
         commander.disrepute = afterDeed(was, DISREPUTE_CAUGHT);
         out.push(say('POLICE SCAN: CONTRABAND DETECTED', SCAN_LINE_SECONDS));
-        // ...and then what it cost your NAME, if the same scan moved it onto a
+        // ...and then what it cost your REPUTATION, if the same scan moved it onto a
         // new rung (docs/TODO/129).
         const named = characterVerdict(was, commander.disrepute);
         if (named) queueMessage(session, named, CHARACTER_LINE_SECONDS);

@@ -39,7 +39,7 @@ export interface Mark {
   contraband: number;
   /** hold capacity — a big bay looks like a fat prize even when empty */
   capacity: number;
-  /** combat reputation — your name arrives before you do */
+  /** combat fame — your kills arrive before you do */
   combatScore: number;
   laser: 'pulse' | 'beam' | 'military';
   /** 0..1 regional heat from your recent big or dirty sales nearby */
@@ -84,7 +84,7 @@ export function markOf(
     notoriety,
     // Read off the CAREER commander the caller handed us — which is why the
     // trainer needs no knob for it: `ThreatContext` already carries the real
-    // commander, so "as they come" sizes its reception against your real name
+    // commander, so "as they come" sizes its reception against your real standing
     // while the clone still flies with no cargo and no reputation.
     disrepute: c.disrepute ?? 0,
   };
@@ -169,7 +169,7 @@ export interface PirateThreat {
   appeal: number;
   /**
    * 0..1 how much of this reception came for your REPUTATION rather than your
-   * hold — combat fame and a criminal name together, since both are reasons to
+   * hold — combat fame and a criminal reputation together, since both are reasons to
    * come for the pilot instead of the cargo. It is combat fame alone whenever
    * `disrepute` is 0, which is every lawful commander.
    */
@@ -178,7 +178,7 @@ export interface PirateThreat {
   challenged: boolean;
   /**
    * True when a reception that would have formed was called off because
-   * somebody recognised the name (`COURTESY_RATE`). `count` is 0 and the tier
+   * somebody recognised the commander (`COURTESY_RATE`). `count` is 0 and the tier
    * is meaningless; the Game says so on arrival, because an ambush the player
    * never hears about is a mechanic that does not exist.
    */
@@ -209,7 +209,7 @@ export function pirateThreat(
     + (mark.laser === 'military' ? 0.3 : mark.laser === 'beam' ? 0.12 : 0);
 
   // How visibly KNOWN you are: this region's memory of your last big or dirty
-  // sale, plus the galaxy's memory of your name. One channel, because to a
+  // sale, plus the galaxy's memory of your reputation. One channel, because to a
   // pirate they are one fact — and because a fourth independent term would
   // stop this being a model of how you are SEEN and start being a list.
   const infamy = Math.min(1, mark.disrepute / DISREPUTE_FULL);
@@ -227,14 +227,14 @@ export function pirateThreat(
   // ladder. Instead it rolls — at Dangerous, about a third of receptions are
   // someone coming for the reputation rather than the cargo.
   const fame = Math.max(0, Math.min(1, mark.combatScore / FAME_FULL));
-  // A criminal name draws them for the other reason: not the kill, the fact
+  // A criminal reputation draws them for the other reason: not the kill, the fact
   // that robbing you carries no consequence anyone will chase.
   const renown = Math.min(1, fame + DISREPUTE_DRAW * infamy);
   const challenged = rng() < CHALLENGE_RATE * renown;
 
   // ...and cuts the other way too. Professional courtesy: occasionally someone
-  // recognises the name and calls the whole thing off. Rolled only when there
-  // IS a name, so an honest commander consumes exactly the draws off the world
+  // recognises the commander and calls the whole thing off. Rolled only when
+  // there IS a reputation, so an honest commander consumes exactly the draws off the world
   // stream that they did before this existed and every seeded outcome after it
   // stands (invariant 11).
   const passed = infamy > 0 && !challenged && rng() < COURTESY_RATE * infamy;
@@ -243,7 +243,7 @@ export function pirateThreat(
 
   // Sub-linear: a fat commander draws about one extra attacker, not five.
   // Reputation adds its own challengers on top — and it is `renown` rather
-  // than `fame`, so a reception summoned by your name arrives with bodies in it.
+  // than `fame`, so a reception summoned by your reputation arrives with bodies in it.
   const count = Math.max(0, Math.round(place + appeal * 1.5 + renown * 1.2 + rng() * 2 - 1));
   // Thresholds, not the prize curve, set how often each tier appears — keeping
   // saturation high preserves the gap between a good load and a fat one.
