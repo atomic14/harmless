@@ -354,15 +354,16 @@ the most breaches per pass.
 | after the seventh pass | 1,297 | 11% | 16.1 | 184 |
 | after the eighth pass | 1,211 | 10% | 15.3 | 168 |
 | after the ninth pass | 1,139 | 9% | 14.9 | 153 |
-| **now** | **1,071** | **9%** | **14.4** | **137** |
+| after the tenth pass | 1,071 | 9% | 14.4 | 137 |
+| **now** | **1,010** | **8%** | **13.9** | **127** |
 
 **THE TREE IS UNDER 10% FOR THE FIRST TIME.** It was 20% when the checker was
 written. `src/constants/`, the surface docs/TODO/141 swept in one pass, reads at
 6% by the same tool. So the gap that this item's whole argument rests on has
 closed from 4 to 1 down to about 1.5 to 1.
 
-**Thirty-six files are converted, and each one measured 0% on the day.** They
-held 815 of the tree's long sentences, and every one of the five worst
+**Forty files are converted, and each one measured 0% on the day.** They
+held 876 of the tree's long sentences, and every one of the five worst
 directories still has files in it. The `-ing` words and every tense breach that
 remain in a converted file are recorded above and below as deliberate.
 
@@ -490,6 +491,35 @@ dropped**: the numeric walk reports 93 numbers across the four files and 0 lost.
    `CLAUDE.md` excludes from the style — but the SENTENCE is still a sentence,
    and splitting it changes no fact. All 880 champions, the 25-float buffer and
    the 2026-08-05 date all survive.
+
+### The eleventh pass
+
+**It landed on 2026-08-16**, over `game/docked.ts`,
+`game/screens/save-transfer.ts`, `game/cargo.ts` and `game/career.ts`.
+
+| | sentences | over cap | `-ing` | tense |
+| --- | ---: | ---: | ---: | ---: |
+| before | 260 | **61 (23%)** | 75 | **10** |
+| after | 375 | **0** | 36 | **0** |
+
+**The cost is 20 lines**, at 217 insertions against 197 deletions. That is the
+cheapest pass since the seventh, which cost nothing. **Nothing was dropped**:
+the numeric walk reports 47 numbers and 0 lost.
+
+**Two things came out of the eleventh pass that the plan did not have.**
+
+1. **THE TREE IS AT 8%, AND `src/constants/` IS AT 6%.** The gap the item exists
+   to close is now 1.3 to 1, from 4 to 1 when the checker was written. **The
+   plan's own success criterion is nearly met** — "the three counts fall toward
+   the 3% that `src/constants/` already reaches" — and it is worth saying that
+   the target moved. The 3% came from the throwaway tool, and 6% is what the
+   checker reads on the same directory.
+2. **FOUR OF THIS PASS'S WORST SENTENCES WERE A LIST OF FOUR OR MORE ITEMS**,
+   which is the eighth pass's finding a second time: `docked.ts`'s one
+   responsibility, `save-transfer.ts`'s three pure functions, `cargo.ts`'s three
+   commander rules, and `career.ts`'s four acts. **A list is now the first thing
+   to try**, ahead of a split. It is also the change that survives the next
+   edit, because an added item extends a list and lengthens a sentence.
 
 **ONE OF THE TWENTY-THREE NO LONGER MEASURES 0%**, and it is `game/npc.ts` at
 five long sentences. A later milestone put them there, and the seventh pass
