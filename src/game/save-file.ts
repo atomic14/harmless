@@ -1,17 +1,19 @@
-// What a save IS: its name, the id it lives under, the one line a player tells
-// two of them apart by, and what taking one COSTS. PURE — no localStorage, no
-// DOM, no clock.
+// What a save IS. Four things: its name, the id it lives under, the one line a
+// player tells two of them apart by, and what taking one COSTS. PURE: no
+// localStorage, no DOM and no clock.
 //
 // `storage.ts` owns WHERE a save lives and is still the only file that may
 // touch localStorage. This owns WHAT one is, which is why the name rules, the
 // id encoding and the list line can all be asserted under node.
 //
-// THE MODEL (docs/TODO/40): saving is a deliberate act, and the NAME IS THE
-// IDENTITY of a manual save — saving under a name that already exists replaces
-// it, so there is no rename, no duplicate and no hidden id. Autosaves are not
-// named by the player at all: they live under a reserved `auto:` id shape that
-// a typed name cannot reach, which is what makes "an autosave can never
-// overwrite a named save" a property of the key space rather than a promise.
+// THE MODEL (docs/TODO/40). To save is a deliberate act, and the NAME IS THE
+// IDENTITY of a manual save. A save under a name that already exists replaces
+// it. So there is no rename, no duplicate and no hidden id.
+//
+// The player does not name an autosave at all. An autosave lives under a
+// reserved `auto:` id shape that a typed name cannot reach. That is what makes
+// "an autosave can never overwrite a named save" a property of the key space
+// rather than a promise.
 
 import { formatCredits, type CommanderData } from './commander.ts';
 import { rating } from './rating.ts';
@@ -29,12 +31,14 @@ export type SaveKind = 'file' | 'dock' | 'fly';
  * Both halves in ONE record on purpose, so a save either lands or does not —
  * never two keys that could disagree.
  *
- * The commander lives INSIDE the world snapshot; `commander` at the top level
- * is only for a record that has no world. Nothing this build writes is in that
- * state — every automatic and named save carries a world — so the one producer
- * left is an IMPORTED FILE whose record named a commander but no world
- * (`save-transfer.ts`), a shape a human with a text editor can hand us and no
- * save of ours can be. `commanderOf` is the one place that knows which is which.
+ * The commander lives INSIDE the world snapshot. `commander` at the top level
+ * is only for a record that has no world.
+ *
+ * Nothing this build writes is in that state, because every automatic and named
+ * save carries a world. So the one producer left is an IMPORTED FILE whose
+ * record named a commander but no world (`save-transfer.ts`). A human with a
+ * text editor hands us that shape, and no save of ours can be it. `commanderOf`
+ * is the one place that knows which is which.
  */
 export interface SaveRecord {
   v: number;
@@ -42,15 +46,17 @@ export interface SaveRecord {
   name: string;
   /**
    * WHICH COMMANDER THIS SAVE BELONGS TO, and THE ONE HOME for that answer
-   * (docs/TODO/43): the name they were created under, and the segment
-   * `save:auto:<CAREER>:dock` and the flight ring are keyed by.
+   * (docs/TODO/43). It is the name they were created under. It is also the
+   * segment that `save:auto:<CAREER>:dock` and the flight ring are keyed by.
    * `GameState.career` is a read of this, and `WorldSnapshot` has no opinion.
    *
-   * NOT called `commander`: that name belongs to this record's `CommanderData`,
-   * one field down. `CommanderData.name` is what the pilot is called TODAY; this
-   * is who the save belongs to, fixed when they were created, because it is half
-   * of a STORAGE KEY and a key that moves is a multi-key write with a half-done
-   * state in the middle (docs/TODO/44). Renaming a commander deliberately leaves
+   * It is NOT called `commander`, because that name belongs to this record's
+   * `CommanderData`, one field down. `CommanderData.name` is what the pilot is
+   * called TODAY.
+   *
+   * This is who the save belongs to, and it is fixed at creation. It is half of
+   * a STORAGE KEY, and a key that moves is a multi-key write with a half-done
+   * state in the middle (docs/TODO/44). A renamed commander deliberately leaves
    * this alone.
    *
    * "Career" is the word docs/INVARIANTS.md invariant 3 documents the key space
@@ -77,8 +83,8 @@ export function commanderOf(rec: SaveRecord): CommanderData | null {
  * A typed name, as it will be stored: upper case, letters/digits/space only,
  * single-spaced, trimmed, and no longer than `MAX_SAVE_NAME`.
  *
- * One home for it because the prompt, the importer and the id encoder all need
- * the same answer — a name that normalises two ways is two saves.
+ * One home for it, because the prompt, the importer and the id encoder all need
+ * the same answer. A name that normalises two ways is two saves.
  */
 export function normaliseSaveName(raw: string): string {
   return raw
@@ -93,9 +99,9 @@ export function normaliseSaveName(raw: string): string {
 /**
  * `base`, or the first of `base 2`, `base 3`… that is not in `taken`.
  *
- * Deterministic, because an import runs it: everybody's commander is JAMESON,
- * so a file has to land beside the career you are playing rather than on it,
- * and re-importing the same file must count up rather than invent a name.
+ * Deterministic, because an import runs it. Everybody's commander is JAMESON,
+ * so a file must land beside the career you are playing rather than on it. A
+ * second import of the same file must also count up rather than invent a name.
  */
 export function uniqueSaveName(base: string, taken: Iterable<string>): string {
   const used = new Set([...taken].map((n) => normaliseSaveName(n)));
@@ -112,7 +118,7 @@ export function uniqueSaveName(base: string, taken: Iterable<string>): string {
 // --- ids --------------------------------------------------------------------
 //
 // An id is the part of a storage key AFTER the namespace prefix. Nothing
-// outside storage.ts ever sees a whole key, which is what stops a harness
+// outside storage.ts ever sees a whole key. That is what stops a harness from
 // addressing a player's save: the prefix is applied in exactly one place.
 
 /** Every save id starts with this, so enumeration is a prefix scan. */
@@ -203,9 +209,9 @@ export function describeAge(ms: number): string {
 /**
  * One row.
  *
- * `systemName` is a callback rather than a systems array because a save may be
- * in another galaxy than the one being played, and resolving that is the
- * caller's business — this file generates nothing.
+ * `systemName` is a callback rather than a systems array, because a save may be
+ * in a different galaxy from the one being played. To resolve that is the
+ * caller's business, and this file generates nothing.
  */
 export function summariseSave(
   id: string,
@@ -223,18 +229,17 @@ export function summariseSave(
     kind: rec.kind,
     career: rec.career,
     savedAt: rec.savedAt,
-    // Clamped: `savedAt` is monotonic per process (storage.ts), so several
-    // saves in one millisecond can carry a stamp a hair in the future, and
-    // "JUST NOW" is the honest answer for that, not a dash.
+    // Clamped. `savedAt` is monotonic per process (storage.ts), so several
+    // saves in one millisecond carry a stamp a hair in the future. "JUST NOW"
+    // is the honest answer for that, and a dash is not.
     when: describeAge(Math.max(0, now - rec.savedAt)),
     place,
     where: `${place} · ${inFlight ? 'IN FLIGHT' : 'DOCKED'}`,
     commanderName: c.name,
     credits: c.credits,
-    // Read straight, not defaulted: the only caller is `saveRows` over
-    // `listSaves()`, and every record on that path was already repaired by
-    // `readSave`, so defaulting here would be a second home for a rule
-    // `repairCommander` owns.
+    // Read straight rather than defaulted. The only caller is `saveRows` over
+    // `listSaves()`, and `readSave` already repaired every record on that path.
+    // A default here would be a second home for a rule `repairCommander` owns.
     rating: rating(c.combatScore).toUpperCase(),
     day: c.day,
   };
@@ -260,14 +265,14 @@ export function newestFirst(a: SaveSummary, b: SaveSummary): number {
 
 // --- what taking one costs ---------------------------------------------------
 //
-// ONE HOME for the answer to "what does ENTER do to the run I am in", and it is
-// here rather than in the screen because it is a claim about the SHELF: which
-// keys the load is about to write, and whether the run being left has anywhere
-// to land. The screen places the sentence; it does not decide it.
+// ONE HOME for the answer to "what does ENTER do to the run I am in". It is here
+// rather than in the screen, because it is a claim about the SHELF. It says
+// which keys the load is about to write, and whether the run being left has
+// anywhere to land. The screen places the sentence. It does not decide it.
 //
-// The act is not symmetrical: going back to an earlier save of the commander
-// you are flying throws that commander's progress away, while loading somebody
-// else's leaves them on the shelf exactly as you stand.
+// The act is not symmetrical. A step back to an earlier save of the commander
+// you fly throws that commander's progress away. A load of somebody else's save
+// leaves them on the shelf exactly as you stand.
 
 /** The run in progress, as much of it as the shelf has to describe. */
 export interface LiveRun {
@@ -298,15 +303,16 @@ export interface LoadCost {
 /**
  * The three ways a load can land, in the words the player is shown.
  *
- * 1. The ship is already gone — nothing is at risk, and saying so is what stops
- *    the warning below crying wolf on the one screen you reach by dying.
- * 2. The row belongs to the commander you are flying. This is the sharp one:
- *    the run is kept as that commander's station autosave only until the next
- *    launch writes over it, so the honest word is LOST and the remedy is a
- *    named save.
- * 3. The row belongs to somebody else. Nothing is lost — the load writes the
- *    current commander's station autosave on the way out (screens/saves.ts),
- *    which is why the screen may promise "as you are now" and mean it.
+ * 1. The ship is already gone. Nothing is at risk, and to say so is what stops
+ *    the warning below from crying wolf on the one screen you reach by dying.
+ * 2. The row belongs to the commander you fly. This is the sharp one. The run
+ *    is kept as that commander's station autosave only until the next launch
+ *    writes over it. So the honest word is LOST, and the remedy is a named
+ *    save.
+ * 3. The row belongs to somebody else. Nothing is lost, because the load writes
+ *    the current commander's station autosave on the way out
+ *    (screens/saves.ts). That is why the screen may promise "as you are now"
+ *    and mean it.
  */
 export function loadCost(row: SaveSummary, live: LiveRun): LoadCost {
   if (live.over) {

@@ -1,13 +1,16 @@
-// Tiny MLP policies: observation (ship frame) → discrete controls.
-// ~2k parameters — cheap enough to run per-ship at 10 Hz in-game, and small
-// enough for neuroevolution to optimise without gradients.
+// Tiny MLP policies: an observation in the ship frame becomes a discrete
+// control. About 2k parameters. That is cheap enough to run per ship at 10 Hz
+// in the game, and small enough for neuroevolution to optimise it without
+// gradients.
 //
-// WHAT SHAPE A GENOME IS lives here — the input count, the head count, the size
-// of the weights vector, and the four operations over one: load, mutate, widen
-// and run. WHAT IT SEES is `observation.ts`, which fills the input vector this
-// file's `act` consumes. They were one file until docs/TODO/71 and /72 added a
-// third encoder and a fourth output head; they meet at `ShipView` and at
-// `observeFor`, and nowhere else.
+// WHAT SHAPE A GENOME IS lives here. That is the input count, the head count and
+// the size of the weights vector. It also holds the four operations over one
+// genome: load, mutate, widen and run.
+//
+// WHAT IT SEES is `observation.ts`, which fills the input vector this file's
+// `act` consumes. They were one file until docs/TODO/71 and /72 added a third
+// encoder and a fourth output head. They meet at `ShipView` and at `observeFor`,
+// and nowhere else.
 //
 // Erasable-TypeScript only — runs in Node via --experimental-strip-types.
 
@@ -21,38 +24,40 @@ export interface Control {
   /**
    * Press the E.C.M. — the fourth head, and only the DEFENCE head has it.
    *
-   * Always false for a brain whose `outSize` is `OUT_SIZE`, because there is no
-   * logit to read: a pirate has no E.C.M. button (its `NpcState.hasEcm` is
-   * applied by `ordnance.ts` without anything deciding), and giving every policy
-   * the output would have invalidated all three shipped brains for a control
-   * two of them can never use (docs/TODO/72).
+   * It is always false for a brain whose `outSize` is `OUT_SIZE`, because there
+   * is no logit to read. A pirate has no E.C.M. button: `ordnance.ts` applies
+   * its `NpcState.hasEcm`, and nothing decides it. The output on every policy
+   * would also invalidate all three shipped brains, for a control two of them
+   * can never use (docs/TODO/72).
    */
   ecm: boolean;
 }
 
-// The solo observation. It was 14 until docs/TODO/91 deleted the
-// target-speed slot — the input the game clamped and the trainer did not, so
-// every genome was fitted on values the live game never produced.
+// The solo observation. It was 14 until docs/TODO/91 deleted the target-speed
+// slot. That input was clamped by the game and not by the trainer, so every
+// genome was fitted on values the live game never produced.
 export const OBS_SIZE = 13;
 /**
- * The DEFENDER's observation: the solo 13, plus everything a ship being shot
- * at by a gang needs and a lone hunter does not — how hurt she is, the
- * warhead, the fought threat's velocity, the SECOND threat, and the shield
- * split. The layout and the reasoning are `observeDefend`'s.
+ * The DEFENDER's observation: the solo 13, plus five things a ship under attack
+ * by a gang needs and a lone hunter does not.
  *
- * The defence encoder is dispatched by its HEAD count, not this number
- * (`observeFor`): after docs/TODO/91 shrank the solo sizes, the old defence
- * size collided with the new pack size, and the E.C.M. head is the defence
- * family's alone — so a stale defence file reaches its own encoder whatever
- * its width says.
+ * Those five are how hurt she is, the warhead, the fought threat's velocity, the
+ * SECOND threat, and the shield split. The layout and the reasoning are
+ * `observeDefend`'s.
+ *
+ * The defence encoder is dispatched by its HEAD count rather than by this number
+ * (`observeFor`). After docs/TODO/91 shrank the solo sizes, the old defence size
+ * collided with the new pack size. The E.C.M. head belongs to the defence family
+ * alone, so a stale defence file reaches its own encoder whatever its width
+ * says.
  */
 export const DEFEND_OBS_SIZE = 29;
 export const PACK_OBS_SIZE = 17; // solo + nearest-packmate dir (3) + distance (1)
-// Round 4: the r2/r3 pack brains could see *where* a mate was but not what it
-// was doing, and runs 4 and 6 both concluded the missing signal was
-// coordination, not reward. This adds the mate's health, whether it is
-// actually engaging the target, and which side of the target it is coming
-// from — the minimum needed to choose a complementary attack line.
+// Round 4. The r2/r3 pack brains could see *where* a mate was, and not what it
+// did. Runs 4 and 6 both concluded that the missing signal was coordination
+// rather than reward. This adds three things: the mate's health, whether it
+// engages the target, and which side of the target it comes from. That is the
+// minimum needed to choose a complementary attack line.
 export const PACK_WIDE_OBS_SIZE = 25;
 /** The widest observation any encoder writes — what an obs buffer must hold. */
 export const MAX_OBS_SIZE = DEFEND_OBS_SIZE;
@@ -60,24 +65,27 @@ export const MAX_OBS_SIZE = DEFEND_OBS_SIZE;
 /**
  * The observation buffer every caller of `observeFor`/`act` should hold.
  *
- * ONE home for its size, because sizing these by hand has now caused two
- * incidents: docs/TODO/71's buffer was one slot too small for the encoder it
- * fed, and the v2 selection gate (`flies()`, 2026-08-05) probed 29-input
- * genomes through a 25-float buffer — the out-of-range reads went NaN, every
- * argmax fell through to -1, and all 880 champions of a full training run
- * were rejected as 'constant throttle' by an instrument, not a measurement.
+ * ONE home for its size, because a size set by hand caused two incidents.
+ *
+ * docs/TODO/71's buffer was one slot too small for the encoder it fed. And the
+ * v2 selection gate (`flies()`, 2026-08-05) probed 29-input genomes through a
+ * 25-float buffer. The out-of-range reads went NaN, and every argmax fell
+ * through to -1. All 880 champions of a full training run were then rejected as
+ * 'constant throttle', by an instrument rather than by a measurement.
  */
 export function makeObs(): Float32Array {
   return new Float32Array(MAX_OBS_SIZE);
 }
 export const HIDDEN = 32;
 /**
- * The defence policy's hidden width. Twice `HIDDEN`, because docs/TODO/91's
- * diagnosis was as much capacity as inputs: a 29-input world with a second
- * threat and a warhead in it is asking a 32-unit network to represent more
- * situations than the lone-hunter phases ever faced, and parameters are cheap
- * at 10Hz (~7k weights at 64 vs ~2k at 32). The pirate phases keep 32 — their
- * genomes are shipped history and their world did not grow.
+ * The defence policy's hidden width. It is twice `HIDDEN`, because
+ * docs/TODO/91's diagnosis was as much capacity as inputs.
+ *
+ * A 29-input world holds a second threat and a warhead. It asks a 32-unit
+ * network to represent more situations than the lone-hunter phases ever faced.
+ * Parameters are cheap at 10Hz: about 7k weights at 64, against about 2k at 32.
+ * The pirate phases keep 32, because their genomes are shipped history and
+ * their world did not grow.
  */
 export const DEFEND_HIDDEN = 64;
 /** The widest hidden layer, which is the other thing `makeScratch` must fit. */
@@ -87,12 +95,13 @@ export const OUT_SIZE = 11;
 /**
  * ...and the DEFENDER's head, which has one more: E.C.M.(2).
  *
- * An ACTION rather than a reflex, and the reasoning is stated where the world
- * is (`ai-training/scenario.ts`). What it costs is confined to the defence
- * phase for the same reason `DEFEND_OBS_SIZE` is: `OUT_SIZE` is shared, so a
- * twelfth output on every policy would have invalidated `pirate-attack-g3` and
- * `pirate-pack-r4-selectonly` as well — three retrains for a button two of them
- * can never press (docs/TODO/72).
+ * An ACTION rather than a reflex. The reasoning is stated where the world is
+ * (`ai-training/scenario.ts`).
+ *
+ * Its cost is confined to the defence phase, for `DEFEND_OBS_SIZE`'s reason.
+ * `OUT_SIZE` is shared. So a twelfth output on every policy also invalidates
+ * `pirate-attack-g3` and `pirate-pack-r4-selectonly`. That is three retrains for
+ * a button two of them can never press (docs/TODO/72).
  */
 export const DEFEND_OUT_SIZE = 13;
 /** The widest head, which is all `makeScratch` needs to know. */
@@ -107,11 +116,12 @@ export interface Brain {
   obsSize: number;
   hidden: number;
   /**
-   * How many logits this genome emits — `OUT_SIZE`, or `DEFEND_OUT_SIZE` for a
-   * policy with an E.C.M. head. A property of the GENOME rather than a constant
-   * of the file, because the shape of the last layer is part of what a weights
-   * file is: reading a 13-head brain as an 11-head one silently mis-slices
-   * every bias.
+   * How many logits this genome emits: `OUT_SIZE`, or `DEFEND_OUT_SIZE` for a
+   * policy with an E.C.M. head.
+   *
+   * It is a property of the GENOME rather than a constant of the file. The shape
+   * of the last layer is part of what a weights file IS. A 13-head brain read as
+   * an 11-head one mis-slices every bias, and says nothing.
    */
   outSize: number;
 }
@@ -183,17 +193,18 @@ export function act(brain: Brain, obs: Float32Array, scratch: Float32Array): Con
     throttle: argmax3(6) as Control['throttle'],
     fire: logits[9 + 1] > logits[9], // fire head: [dont, fire]
     // ...and the E.C.M. head, which only a DEFEND_OUT_SIZE genome has. An
-    // 11-head brain has no logit 11 to read, so it never asks: false is the
+    // 11-head brain has no logit 11 to read, so it never asks. False is the
     // absence of the output rather than a decision not to press.
     ecm: OUT > OUT_SIZE && logits[11 + 1] > logits[11],
   };
 }
 
 /**
- * The forward pass's working memory. Sized for the WIDEST head and the WIDEST
- * hidden layer, so one scratch serves an attack brain and a defence brain —
- * a few floats, against a caller having to know which policy it is about to
- * run.
+ * The forward pass's working memory.
+ *
+ * It is sized for the WIDEST head and the WIDEST hidden layer, so one scratch
+ * serves an attack brain and a defence brain. That costs a few floats. The
+ * alternative costs a caller that must know which policy it is about to run.
  */
 export function makeScratch(hidden = MAX_HIDDEN): Float32Array {
   return new Float32Array(hidden * 2 + MAX_OUT_SIZE);
@@ -225,19 +236,22 @@ export function mutate(parent: Brain, rng: () => number, sigma: number): Brain {
  * The same policy, with room for inputs and outputs it did not have — and it
  * FLIES IDENTICALLY until something mutates the new weights.
  *
- * It exists so a retrain across an observation change can still be seeded from
- * the incumbent. `jameson-defend-t65c`, the only defence policy that has ever
- * fought, came from `--seed-brain jameson-defend-g1`; without this, widening the
- * encoder would have made that command impossible and the comparison would have
- * been a fresh random search against a hill-climb from a known-good brain — two
- * things changed at once, and the run would have said nothing about either.
+ * It exists so a retrain across an observation change is still seeded from the
+ * incumbent. `jameson-defend-t65c` is the only defence policy that ever fought,
+ * and it came from `--seed-brain jameson-defend-g1`.
+ *
+ * Without this, a wider encoder makes that command impossible. The comparison is
+ * then a fresh random search against a hill-climb from a known-good brain. Two
+ * things change at once, and the run says nothing about either.
  *
  * The new weights are ZERO, which is the whole point on both sides. A zero
  * column into the first layer means the new inputs contribute nothing, so the
- * pre-synaptic sums are bit-for-bit what they were. A zero row and bias on the
- * new head means its two logits are equal, and `act` reads `>` rather than
- * `>=`, so a freshly widened genome NEVER presses the E.C.M. — it has to learn
- * that, which is what makes the head an action rather than a gift.
+ * pre-synaptic sums are bit-for-bit what they were.
+ *
+ * A zero row and bias on the new head makes its two logits equal, and `act`
+ * reads `>` rather than `>=`. So a freshly widened genome NEVER presses the
+ * E.C.M. It must learn that, and that is what makes the head an action rather
+ * than a gift.
  */
 export function widenBrain(parent: Brain, obsSize: number, outSize: number): Brain {
   if (obsSize < parent.obsSize || outSize < parent.outSize) {

@@ -3,21 +3,21 @@
 // `snapshot.ts` says what a save LOOKS like, `storage.ts` says where it lives,
 // and this says how the running world turns into one and back.
 //
-// The pattern is the project's: a module decides, the orchestrator applies.
-// Restoring is the one place that cannot be purely declarative — putting a
-// world back means REBUILDING it, and a rebuild spawns ships, opens the
-// station menu and rerolls a market. Those reach outside the state, so they
-// come in through `PersistenceHost` (below), exactly as the world step asks for
+// The pattern is the project's: a module decides, and the orchestrator applies.
+// A restore is the one place that cannot be purely declarative. To put a world
+// back means to REBUILD it, and a rebuild spawns ships, opens the station menu
+// and rerolls a market. Those three reach outside the state, so they come in
+// through `PersistenceHost` (below). That is exactly how the world step asks for
 // its consequences through `StepHost`.
 //
 // TWO ORDERINGS ARE LOAD-BEARING and neither is obvious:
 //
 //   1. The galaxy is rebuilt BEFORE the ships are placed, because an NPC's
 //      position is only meaningful against a station that exists.
-//   2. `restoreRng` is LAST. Everything above it — buildWorld, enterWitchspace,
-//      enterDocked — draws from the seeded stream, and saving the generator's
-//      *state* rather than its seed is what makes the next draw after a reload
-//      the draw the run was about to make.
+//   2. `restoreRng` is LAST. Everything above it draws from the seeded stream:
+//      buildWorld, enterWitchspace and enterDocked. The generator's *state* is
+//      saved rather than its seed. That is what makes the next draw after a
+//      reload the draw the run was about to make.
 //
 // This file is NOT in the `purity` list in test/run.ts and should not be: it
 // reaches persistence through its host. Everything it does to the state,
@@ -43,17 +43,18 @@ import type { GameState } from './state.ts';
  * What restoring a world needs the orchestrator to do.
  *
  * Restore verbs, lifecycle questions, and the narrow persistence operations
- * that reach outside `GameState`: rebuilding the scene, re-entering witch-space
- * (which SPAWNS, and therefore draws), the mode machine, and the store, all of
- * which belong to the Game. Still small enough for a test fixture to own.
+ * that reach outside `GameState`. Those are the scene rebuild, the re-entry to
+ * witch-space (which SPAWNS, and therefore draws), the mode machine and the
+ * store. All four belong to the Game. It is still small enough for a test
+ * fixture to own.
  */
 export interface PersistenceHost {
   /** where the ship is right now — a snapshot records flight or docked */
   baseMode(): 'docked' | 'flight' | 'dead';
   /**
-   * Put the ship into the restored mode: clear the screen stack, and either
-   * open the station or hand the sky back. The mode machine has one writer and
-   * it is not this file.
+   * Put the ship into the restored mode. Clear the screen stack. Then open the
+   * station, or hand the sky back. The mode machine has one writer, and it is
+   * not this file.
    */
   enterMode(mode: 'docked' | 'flight'): void;
   /** rebuild the scene for the commander's current system */
@@ -67,10 +68,10 @@ export interface PersistenceHost {
   /**
    * The three writes, and they are three because a save says what it IS.
    *
-   * `dock` is the checkpoint (docking, and immediately before launch), `flight`
-   * is the ring that must never evict it, and `named` is the one the player
-   * asked for and which no automatic write can address. storage.ts owns the
-   * key shapes that make the last sentence true.
+   * `dock` is the checkpoint, taken at a dock and immediately before a launch.
+   * `flight` is the ring that must never evict it. `named` is the one the player
+   * asked for, and no automatic write can address it. The key shapes that make
+   * the last sentence true belong to storage.ts.
    */
   writeDockSave(career: string, world: WorldSnapshot): boolean;
   writeFlightSave(career: string, world: WorldSnapshot): boolean;
@@ -80,7 +81,7 @@ export interface PersistenceHost {
   /** Drop a career's in-flight ring — on docking, and on death. */
   clearFlightSaves(career: string): void;
   /**
-   * Refuse save writes for a span, returning the keys that would have changed.
+   * Refuse save writes for a span, and return the keys a write would change.
    *
    * The storage implementation owns the guard; Persistence only needs this
    * narrow capability to restore a simulator entry without risking its career.
@@ -108,8 +109,8 @@ export class Persistence {
    * The whole world as plain data — see snapshot.ts.
    *
    * This is what lets a commander be saved anywhere rather than only at a
-   * station: the station save is the commander alone, and mid-flight there is
-   * a great deal more that matters.
+   * station. The station save is the commander alone. Mid-flight there is a
+   * great deal more that matters.
    */
   capture(): WorldSnapshot {
     const s = this.state;
@@ -161,31 +162,33 @@ export class Persistence {
   /**
    * Put the world back exactly as a snapshot found it.
    *
-   * Order matters: the galaxy is rebuilt first because NPCs are placed
-   * relative to a station that has to exist, and the rng is restored LAST so
-   * that nothing rebuilt along the way consumes from the stream the snapshot
-   * was about to use.
+   * Order matters. The galaxy is rebuilt first, because an NPC is placed
+   * relative to a station that must exist. The rng is restored LAST, so nothing
+   * rebuilt along the way consumes from the stream the snapshot was about to
+   * use.
    */
   restore(snap: WorldSnapshot): void {
     // THE DOOR (docs/TODO/94), and it is `snapshot-parse.ts`. It also RAISES a
     // save from an older build on the way through, so an old snapshot and an
     // invalid one are different things (docs/TODO/161).
-    // Everything with an invariant — the version, the
-    // branded ids, the fleet indexes, the bounds the rebuild would hang on — is
-    // checked HERE, before a single field of the live session moves, so a
-    // refusal costs nothing. `restoreSnapshot` (the console-harness and
-    // combat-trainer entry) has no catch, on purpose: a harness handing over
-    // junk sees the throw, and the session it interrupted is untouched. Trusted
-    // callers pay the same toll — `capture()`'s own output parses by
-    // construction, and `test/snapshot-parse.test.ts` holds that both ways.
+    // Everything with an invariant is checked HERE, before a single field of
+    // the live session moves, so a refusal costs nothing. That is the version,
+    // the branded ids, the fleet indexes, and the bounds a rebuild would hang
+    // on.
+    //
+    // `restoreSnapshot` is the console-harness and combat-trainer entry, and it
+    // has no catch on purpose. A harness that hands over junk sees the throw,
+    // and the session it interrupted is untouched. A trusted caller pays the
+    // same toll: `capture()`'s own output parses by construction, and
+    // `test/snapshot-parse.test.ts` holds that both ways.
     snap = parseSnapshot(snap);
     const s = this.state;
     s.commander = structuredClone(snap.commander);
-    // `s.career` IS NOT TOUCHED HERE (docs/TODO/43). Restoring a world does not
-    // change whose autosave group this session writes: that was decided at boot
-    // by `bootCareer()` from the record the save came off the shelf in, and for
-    // a snapshot handed straight to a running session (the combat trainer, a
-    // console harness) it is the career already flying. A `snap.career`
+    // `s.career` IS NOT TOUCHED HERE (docs/TODO/43). A restored world does not
+    // change whose autosave group this session writes. `bootCareer()` decided
+    // that at boot, from the record the save came off the shelf in. For a
+    // snapshot handed straight to a running session — the combat trainer, or a
+    // console harness — it is the career already in flight. A `snap.career`
     // assignment here would point an imported file's autosaves at the exporting
     // career instead. One home: the record.
     s.systems = generateGalaxy(s.commander.galaxy);
@@ -194,13 +197,14 @@ export class Persistence {
     restoreState(s.session as unknown as Record<string, unknown>, snap.session);
     // A LOADED SAVE NEVER RESUMES A COUNTDOWN (docs/TODO/116). `session` is
     // walked generically, so the five seconds after `H` were saved along with
-    // everything else: load one of those and the world step finished the jump a
-    // moment later, spending the fare and arriving somewhere the player never
-    // chose. A save is a place and a moment; a jump nobody pressed is neither.
-    // Back to the at-rest value `freshSession` starts at, and NOT conditionally:
-    // that is what also repairs the saves already on the shelf, and it means a
-    // countdown arriving as junk cannot be mistaken for a live one — the door
-    // leaves `session` opaque on purpose (snapshot.ts). The player keeps their
+    // everything else. Load one of those, and the world step finished the jump a
+    // moment later. It spent the fare and arrived somewhere the player never
+    // chose. A save is a place and a moment. A jump nobody pressed is neither.
+    // Back to the at-rest value `freshSession` starts at, and NOT
+    // conditionally. That also repairs the saves already on the shelf. It means
+    // a countdown that arrives as junk cannot be mistaken for a live one, and
+    // the door leaves `session` opaque on purpose (snapshot.ts). The player
+    // keeps their
     // decision either way: `chartTarget` is its own field, so `H` costs one
     // keystroke. In witch-space the same clear lands a ship its pilot controls,
     // still in limbo, with the escape jump one press away.
@@ -220,15 +224,15 @@ export class Persistence {
     // Which hull each ship gets is a GAME rule — the roster, the tier tables
     // and the Constrictor — so the World asks rather than deciding.
     //
-    // THE SAVED DESIGN WINS. The combat trainer's hull picker can put any pirate
-    // hull in the sky, so looking the roster row up by the design the snapshot
-    // recorded is the only lookup that cannot make what a ship WAS and what it
-    // looks like disagree.
+    // THE SAVED DESIGN WINS. The combat trainer's hull picker puts any pirate
+    // hull in the sky. So the roster row is looked up by the design the
+    // snapshot recorded. That is the only lookup which cannot make what a ship
+    // WAS and what it looks like disagree.
     //
-    // The tier is what is left when that lookup MISSES, which happens when the
-    // roster no longer flies that design in that role (a retired hull, like the
-    // Asp Mk II taken off the pirate list). It is the answer for a hull that has
-    // been retired, not legacy tolerance.
+    // The tier is what is left when that lookup MISSES. That happens when the
+    // roster no longer flies that design in that role. A retired hull is the
+    // case: the Asp Mk II came off the pirate list. So the tier is the answer
+    // for a retired hull, and not legacy tolerance.
     this.ordnance.clear();
     s.world.restoreNpcs(snap.npcs, (n) => {
       if (n.state.isMissionTarget) return CONSTRICTOR_SPEC;
@@ -277,11 +281,13 @@ export class Persistence {
   /**
    * Which career's autosaves this session writes. One home for the read.
    *
-   * And one home for the VALUE, which is `SaveRecord.career` — `state.career`
-   * is `bootCareer()`'s answer, read off the record this session booted from
-   * and never written again. Every automatic write below addresses a key built
-   * from it, so a second home for it is data loss rather than untidiness: the
-   * loser of the two decides where the bytes land.
+   * And one home for the VALUE, which is `SaveRecord.career`. `state.career` is
+   * `bootCareer()`'s answer, read off the record this session booted from, and
+   * never written again.
+   *
+   * Every automatic write below addresses a key built from it. So a second home
+   * for it is data loss rather than untidiness: the loser of the two decides
+   * where the bytes land.
    */
   private get career(): string {
     return this.state.career;
@@ -318,8 +324,8 @@ export class Persistence {
   }
 
   /**
-   * Save under a name the player typed. Carries the world like every other
-   * save, so loading one never puts you somewhere you have never been.
+   * Save under a name the player typed. It carries the world like every other
+   * save, so a load never puts you somewhere you never went.
    */
   saveNamed(name: string): 'ok' | 'full' | 'failed' {
     try {
@@ -351,8 +357,8 @@ export class Persistence {
       if (snap.mode === 'flight') this.host.message('RESUMING FLIGHT', 3);
       return true;
     } catch {
-      // a world that will not come back must never cost you the commander, and
-      // it is NOT deleted for it: the save is still the player's to look at.
+      // a world that will not come back must never cost you the commander. It
+      // is NOT deleted for it: the save is still the player's to look at.
       return false;
     }
   }

@@ -353,15 +353,16 @@ the most breaches per pass.
 | at the head of M3 | 1,842 | 18% | 21.0 | 265 |
 | after the seventh pass | 1,297 | 11% | 16.1 | 184 |
 | after the eighth pass | 1,211 | 10% | 15.3 | 168 |
-| **now** | **1,139** | **9%** | **14.9** | **153** |
+| after the ninth pass | 1,139 | 9% | 14.9 | 153 |
+| **now** | **1,071** | **9%** | **14.4** | **137** |
 
 **THE TREE IS UNDER 10% FOR THE FIRST TIME.** It was 20% when the checker was
 written. `src/constants/`, the surface docs/TODO/141 swept in one pass, reads at
 6% by the same tool. So the gap that this item's whole argument rests on has
 closed from 4 to 1 down to about 1.5 to 1.
 
-**Thirty-two files are converted, and each one measured 0% on the day.** They
-held 747 of the tree's long sentences, and every one of the five worst
+**Thirty-six files are converted, and each one measured 0% on the day.** They
+held 815 of the tree's long sentences, and every one of the five worst
 directories still has files in it. The `-ing` words and every tense breach that
 remain in a converted file are recorded above and below as deliberate.
 
@@ -450,6 +451,45 @@ dropped**: the numeric walk reports 95 numbers across the four files and 0 lost.
    checker measures sentences, so a file can read perfectly and still not say
    what it is. **The backlog entry stands untouched**, and the same is true of
    `game/npc.ts`, which the first M3 pass converted.
+
+### The tenth pass
+
+**It landed on 2026-08-16**, over the next four by count:
+`ai-training/policy.ts`, `game/market.ts`, `game/persistence.ts` and
+`game/save-file.ts`.
+
+| | sentences | over cap | `-ing` | tense |
+| --- | ---: | ---: | ---: | ---: |
+| before | 261 | **68 (26%)** | 86 | **16** |
+| after | 397 | **0** | 38 | **0** |
+
+**The cost is 37 lines**, at 287 insertions against 250 deletions. **Nothing was
+dropped**: the numeric walk reports 93 numbers across the four files and 0 lost.
+
+**Three things came out of the tenth pass that the plan did not have.**
+
+1. **THE `-ing` COUNT FELL BY 56%, WHICH IS THE LARGEST FALL OF ANY PASS**, and
+   `ai-training/policy.ts` went 14 to 3. Nothing was contorted to reach it. The
+   reason is the SUBJECT: these four files describe what a past decision cost,
+   and that prose reaches for a gerund — *"sizing these by hand"*, *"looking the
+   roster row up"*, *"going back to an earlier save"*. Each one becomes a plain
+   verb in a split sentence, so the caps and the gerunds fall together. Chris's
+   rule holds and is not amended (2026-08-14: *"We only need to fix -ing where
+   we have to"*).
+2. **THE PATH-AT-SENTENCE-START DEFECT COST TWO MORE REWRITES**, in
+   `persistence.ts` this time. The ninth pass recorded it, and knowing it did
+   not stop it: *"…no automatic write can address it. storage.ts owns the key
+   shapes"* still measures as one 26-word sentence. **The finding is that a
+   recorded false positive is not a defence.** Only a checker fix or a habit
+   stops it, and the habit — never open a sentence with a path — is what these
+   two rewrites adopted.
+3. **`policy.ts` IS THE FIRST TRAINER FILE SINCE THE FIRST M3 PASS**, and it
+   reads differently from a game file. Its prose is a laboratory notebook: five
+   of its worst sentences are an incident report with a date, a count and a
+   verdict in one breath. **Nothing was cut.** A measurement is a record, which
+   `CLAUDE.md` excludes from the style — but the SENTENCE is still a sentence,
+   and splitting it changes no fact. All 880 champions, the 25-float buffer and
+   the 2026-08-05 date all survive.
 
 **ONE OF THE TWENTY-THREE NO LONGER MEASURES 0%**, and it is `game/npc.ts` at
 five long sentences. A later milestone put them there, and the seventh pass

@@ -1,18 +1,20 @@
-// What a station charges: the 1984 price model with the living galaxy's
-// pressure on it, what a world you have not been to is expected to quote, and
-// what a rock hermit asks in his tunnel.
+// What a station charges. Three things:
 //
-// It was the back half of game/contracts.ts, which had grown into two
-// subjects: what the bulletin board offers you and what the market charges
-// you. They share nothing but the system they happen in — no caller wants
-// both — and the file crossed the size ceiling when passenger work landed
+//   - the 1984 price model, with the living galaxy's pressure on it;
+//   - what a world you never visited is expected to quote;
+//   - what a rock hermit asks in his tunnel.
+//
+// It was the back half of game/contracts.ts, which grew into two subjects. One
+// is what the bulletin board offers you. The other is what the market charges
+// you. They share nothing but the system they happen in, and no caller wants
+// both. The file crossed the size ceiling when passenger work landed
 // (docs/TODO/109). This is the market half, unchanged.
 //
-// Pure functions, deliberately free of three.js and DOM, so that both the game
-// (src/game/game.ts) and the headless campaign simulator (test/campaign.ts)
-// run the *same* rules: invariant 10 puts the rule that decides what a station
-// charges here rather than in the screen that draws it — which is where
-// `makeLocalMarket` used to live, leaving station.ts importing a SCREEN in
+// Pure functions, deliberately free of three.js and DOM. So the game
+// (src/game/game.ts) and the headless campaign simulator (test/campaign.ts) run
+// the *same* rules. Invariant 10 puts the rule that decides what a station
+// charges here, rather than in the screen that draws it. That screen is where
+// `makeLocalMarket` used to live, and it left station.ts importing a SCREEN in
 // order to open a market.
 //
 // Erasable-TypeScript only: Node runs this directly via
@@ -58,13 +60,14 @@ export function applyMarketPressure(
 /**
  * Prices for the system you are standing in.
  *
- * The 1984 baseline, then the living galaxy's ±25% delta on top: a world that
- * has been buying computers all week pays less for the next batch, and one
- * that has been shipping them out is dearer. Baseline prices are untouched.
+ * The 1984 baseline, then the living galaxy's ±25% delta on top. A world that
+ * bought computers all week pays less for the next batch. One that shipped them
+ * out is dearer. Baseline prices are untouched.
  *
- * It lived in screens/trade.ts, which made the rule that decides what a station
- * charges a detail of the screen that draws it — and left station.ts having to
- * import a SCREEN to open a market. Invariant 10 says market rules live here.
+ * It lived in screens/trade.ts. That made the rule which decides what a station
+ * charges a detail of the screen that draws it. It also left station.ts with a
+ * SCREEN to import in order to open a market. Invariant 10 says a market rule
+ * lives here.
  */
 export function makeLocalMarket(
   system: StarSystem,
@@ -80,11 +83,13 @@ export function makeLocalMarket(
 /**
  * A quoted price as MONEY: tenths of a credit (invariant 8).
  *
- * `MarketEntry.price` is the human-facing figure — 40.6 Cr — and every ledger
- * in the game is integer tenths. The counter did this twice in
- * `screens/trade.ts` (buying and selling) and docs/TODO/127 needed it a third
- * time to price a person off the Slaves row, which is a rounding rule with
- * three homes waiting to disagree about a half-tenth.
+ * `MarketEntry.price` is the human-facing figure, such as 40.6 Cr. Every ledger
+ * in the game is integer tenths.
+ *
+ * The counter did this twice in `screens/trade.ts`, once to buy and once to
+ * sell. docs/TODO/127 then needed it a third time, to price a person off the
+ * Slaves row. That is a rounding rule with three homes, ready to disagree about
+ * a half-tenth.
  */
 export function priceInTenths(price: number): number {
   return Math.round(price * 10);
@@ -99,19 +104,21 @@ export interface SaleFallout {
 }
 
 /**
- * Word gets around. A big payday — or any quantity of contraband — makes you
- * worth watching for, here and in the systems within a jump, which is why
- * smuggling raises the temperature of your *next* arrival. Dealing in
- * contraband marks your REPUTATION as well as the region: a dirty sale is a dirty
- * sale however small, and unlike the heat it does not fade in a week
+ * Word gets around. A big payday, or any quantity of contraband, makes you
+ * worth watching for. That holds here and in the systems within a jump, which is
+ * why a smuggling run raises the temperature of your *next* arrival.
+ *
+ * A deal in contraband marks your REPUTATION as well as the region. A dirty sale
+ * is a dirty sale however small, and unlike the heat it does not fade in a week
  * (game/character.ts).
  *
- * One home for both halves, because it had two: the game applied this in
- * screens/trade.ts and the campaign harness in a hand-written copy that had
- * the heat and had silently dropped the disrepute. Nothing read `disrepute`
- * then, so the divergence cost nothing; docs/TODO/96 makes it drive the pirate
- * reception, at which point the instrument measuring that balance would have
- * been reading a cleaner commander than the game ships. Invariant 10.
+ * One home for both halves, because it had two. The game applied this in
+ * screens/trade.ts. The campaign harness applied a hand-written copy. That copy
+ * carried the heat, and it dropped the disrepute in silence. Nothing read
+ * `disrepute`
+ * then, so the divergence cost nothing. docs/TODO/96 makes it drive the pirate
+ * reception. At that point the instrument that measures the balance reads a
+ * cleaner commander than the game ships. Invariant 10.
  *
  * `revenue` is in tenths of a credit, like all money here (invariant 8).
  */
@@ -127,8 +134,8 @@ export function saleFallout(
 }
 
 /**
- * A quote you have not seen yet: the mean, the cheapest and the dearest the
- * fluctuation byte can make it, with today's pressure on top.
+ * A quote you never saw: the mean, the cheapest and the dearest the fluctuation
+ * byte can make it, with today's pressure on top.
  */
 export interface MarketEstimate extends MarketEntry {
   /** `price` is the MEAN over every fluctuation; these are its extremes. */
@@ -143,19 +150,19 @@ export interface MarketEstimate extends MarketEntry {
  * It runs `galaxy.ts`'s own model over every fluctuation and puts the living
  * galaxy's pressure on top, which is exactly what the destination will quote.
  * The chart renderer and the campaign harness each carried the 1984 formula
- * rewritten instead, with the byte wrap around the wrong expression and no
- * knowledge of pressure at all: 113 of the 4,352 system/commodity rows were
- * out by more than 5 Cr, Teanrebi Narcotics by 38.4. A third copy had already
- * been found wrong and fixed (`train/jameson-autopilot.js`) and these two were
- * left, which is what a transcribed rule costs.
+ * rewritten instead. The byte wrap sat around the wrong expression, and neither
+ * knew about pressure at all. 113 of the 4,352 system/commodity rows were out by
+ * more than 5 Cr, and Teanrebi Narcotics by 38.4. A third copy was already found
+ * wrong and fixed (`train/jameson-autopilot.js`), and these two were left. That
+ * is what a transcribed rule costs.
  *
- * Pressure goes on the summary rather than inside the loop because
- * `applyMarketPressure` scales the price and is monotonic in it: scaling the
- * mean is the mean of the scalings, and the cheapest quote stays the cheapest.
+ * Pressure goes on the summary rather than inside the loop, because
+ * `applyMarketPressure` scales the price and is monotonic in it. The scaled mean
+ * is the mean of the scalings, and the cheapest quote stays the cheapest.
  *
- * A mean is not a price, which is why `low`/`high` come with it. Narcotics is
- * the case that proves it: the model wraps at 0xff, so one fluctuation quotes
- * near 100 Cr and the next near nothing, and a mean of 58 describes neither.
+ * A mean is not a price, which is why `low` and `high` come with it. Narcotics
+ * is the case that proves it. The model wraps at 0xff, so one fluctuation quotes
+ * near 100 Cr and the next near nothing. A mean of 58 describes neither.
  */
 export function marketEstimate(
   system: StarSystem,
@@ -193,11 +200,12 @@ export function marketEstimate(
 /**
  * Prices at a rock hermit's tunnel, rolled fresh.
  *
- * The hermit economy should read as the opposite of a station's: a miner is
- * flush with what they dug up and desperate for what they cannot dig, so ore
- * goes cheap and in quantity while food, drink and machinery are dear. That is
- * the whole trade — buy ore here, sell it where the mining stopped — and it is
- * also the one market that never asks what else is in your hold.
+ * The hermit economy should read as the opposite of a station's. A miner is
+ * flush with what they dug up, and desperate for what they cannot dig. So ore
+ * goes cheap and in quantity, while food, drink and machinery are dear.
+ *
+ * That is the whole trade: buy ore here, and sell it where the mining stopped.
+ * It is also the one market that never asks what else is in your hold.
  *
  * `fluctuation` defaults to a seeded roll for the same reason
  * `makeLocalMarket`'s does: an unseeded market seed means a reload rerolls the
@@ -228,24 +236,27 @@ export function hermitMarket(
 /**
  * Will this hermit deal with you at all?
  *
- * The direct, thematic price of cracking rocks: the one market that never asks
+ * The direct, thematic price of a cracked rock. The one market that never asks
  * what is in your hold is also the one that remembers what you did to the last
- * miner. Binary, above `HERMIT_REFUSES_AT` — the beacon still blinks and the
- * hail still calls you in, and the door shuts at the tunnel mouth
- * (game/world-step.ts).
+ * miner.
+ *
+ * It is binary, above `HERMIT_REFUSES_AT`. The beacon still blinks and the hail
+ * still calls you in. The door shuts at the tunnel mouth (game/world-step.ts).
  */
 export function hermitRefuses(disrepute: number): boolean {
   return disrepute >= HERMIT_REFUSES_AT;
 }
 
 /**
- * How much of a credential your reputation is out here: 0 for a spotless commander,
- * 1 for one standing at the very edge of what a hermit will tolerate.
+ * How much of a credential your reputation is out here. It is 0 for a spotless
+ * commander, and 1 for one at the very edge of what a hermit will tolerate.
  *
- * The same threshold as the refusal, deliberately. A miner's opinion of you is
- * one number with a cliff at the end of it: known enough to be one of us, right
- * up until you are the reason we bolt the door. Scaled by `HERMIT_FAVOUR` into
- * a price; clamped, so the unreachable range above the door has no meaning.
+ * It is the same threshold as the refusal, deliberately. A miner's opinion of
+ * you is one number with a cliff at the end of it. You are known enough to be
+ * one of us, right up until you are the reason we bolt the door.
+ *
+ * `HERMIT_FAVOUR` scales it into a price. It is clamped, so the unreachable
+ * range above the door has no meaning.
  */
 export function hermitFavour(disrepute: number): number {
   return Math.min(1, Math.max(0, disrepute) / HERMIT_REFUSES_AT);
