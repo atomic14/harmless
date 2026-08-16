@@ -16,8 +16,8 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | attack-run | <code>UNDER_FIRE_SECONDS</code> | <code>1.2</code> | How long a ship keeps to evasive flight after the last hit. |  | [attack-run.ts:33](./attack-run.ts#L33) |
 | attack-run | <code>CLOSING_THROTTLE_MIN</code> | <code>0.45</code> | The slowest that an attacking ship throttles back to in order to turn. |  | [attack-run.ts:41](./attack-run.ts#L41) |
 | attack-run | <code>MIN_CRUISE_FRACTION</code> | <code>0.43</code> | A hostile cannot throttle below this fraction of its top speed. |  | [attack-run.ts:48](./attack-run.ts#L48) |
-| audio | <code>AUDIBLE_RANGE</code> | <code>SCANNER_RANGE</code> | How far a bang carries, in world units. | <code>audio.audibleRange</code> | [audio.ts:33](./audio.ts#L33) |
-| audio | <code>STEREO_WIDTH</code> | <code>0.7</code> | How far across the stereo field a sound may sit: 0 is mono, 1 is one ear only. | <code>audio.stereoWidth</code> | [audio.ts:56](./audio.ts#L56) |
+| audio | <code>AUDIBLE_RANGE</code> | <code>SCANNER_RANGE</code> | How far a bang carries, in world units. | <code>audio.audibleRange</code> | [audio.ts:35](./audio.ts#L35) |
+| audio | <code>STEREO_WIDTH</code> | <code>0.7</code> | How far across the stereo field a sound may sit: 0 is mono, 1 is one ear only. | <code>audio.stereoWidth</code> | [audio.ts:58](./audio.ts#L58) |
 | blueprint-set | <code>UNSETTLED_GOVERNMENT</code> | <code>2</code> | The highest government the blueprint rule counts as unsettled. | <code>blueprintset.unsettledGovernment</code> | [blueprint-set.ts:29](./blueprint-set.ts#L29) |
 | blueprint-set | <code>CONSTRICTOR_BLUEPRINT_SET</code> | <code>'G'</code> | The set the Constrictor's system always flies, in mission 1. |  | [blueprint-set.ts:38](./blueprint-set.ts#L38) |
 | blueprint-set | <code>THARGOID_BLUEPRINT_SET_LOW_TECH</code> | <code>'C'</code> | What a system flies while the commander carries the plans, and what witch-space flies. |  | [blueprint-set.ts:47](./blueprint-set.ts#L47) |

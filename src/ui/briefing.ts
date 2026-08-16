@@ -1,15 +1,15 @@
-// The new pilot's briefing: what to actually DO, for somebody who has never played.
+// The new pilot's briefing: what to actually DO, for somebody new to the game.
 //
-// Split out of `ui/screens.ts` by docs/TODO/149. It is the one block in that file
-// that was DATA plus the renderer for it, and the data is player-facing prose —
-// which `CLAUDE.md` deliberately exempts from the house style, because a person
-// who is stuck reads differently from a person who is maintaining something.
+// Split out of `ui/screens.ts` by docs/TODO/149. It is the one block in that
+// file that was DATA plus its own renderer. That data is player-facing prose,
+// which `CLAUDE.md` deliberately exempts from the house style. A person who is
+// stuck reads differently from a person at work on the code.
 //
-// Short and paged rather than one long screen: somebody reading this wants the
-// next action, not a manual. The manual is at /manual.html.
+// Short and paged, rather than one long screen. Somebody here wants the next
+// action, not a manual. The manual is at /manual.html.
 //
-// EVERY KEY IT NAMES IS READ OFF THE BINDING TABLE (`boundKey`), so a rebound
-// command rewrites its own prose and an unbound one fails the build. The chart's
+// EVERY KEY IT NAMES IS READ OFF THE BINDING TABLE (`boundKey`). So a rebound
+// command rewrites its own prose, and an unbound one fails the build. The chart's
 // cursor keys are the screen's own (`game/screens/chart.ts`), not bindings, so
 // those stay written out.
 
@@ -21,20 +21,21 @@ import { TORUS_MULTIPLIER } from '../constants/torus.ts';
 import { boundKey } from './key-help.ts';
 
 /**
- * Confirmation for starting over — spells out what is about to be destroyed
- * and points at the export key first, the only action that throws away a career.
+ * The confirmation before a fresh start. It spells out what is about to be
+ * destroyed, and it points at the export key first. It is the only act that
+ * throws a career away.
  */
 /**
- * The in-game briefing: what to actually DO, for someone who has never played.
+ * The in-game briefing: what to actually DO, for a pilot new to the game.
  *
- * Short and paged rather than one long screen: somebody reading this is stuck
- * and wants the next action, not a manual — the manual exists at /manual.html.
+ * Short and paged, rather than one long screen. Somebody here is stuck and
+ * wants the next action, not a manual. The manual is at /manual.html.
  */
-// Every key the briefing names is read off the binding table (`boundKey`), so
-// a rebound command rewrites its own prose and an unbound one fails the build.
+// Every key the briefing names is read off the binding table (`boundKey`). So
+// a rebound command rewrites its own prose, and an unbound one fails the build.
 // The chart's cursor keys are the screen's own (screens/chart.ts), not
 // bindings, so those stay written out. The briefing explains goals and
-// consequences; the complete key map is the `?` guide and the manual.
+// consequences. The complete key map is the `?` guide and the manual.
 const KEY = {
   market: boundKey('docked', 'openMarket'),
   contracts: boundKey('docked', 'openContracts'),
@@ -135,7 +136,7 @@ export const BRIEFING: { title: string; body: string }[] = [
       is at <b>/manual.html</b>.`,
   },
 ];
-/** How many pages the briefing has, so the Game can clamp without importing it. */
+/** How many pages the briefing has, so the Game clamps and imports nothing. */
 export const BRIEFING_PAGES = BRIEFING.length;
 export function renderBriefing(page: number): void {
   const p = BRIEFING[Math.max(0, Math.min(BRIEFING.length - 1, page))];

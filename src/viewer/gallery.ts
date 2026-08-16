@@ -1,18 +1,22 @@
 // Every released design on one screen — the dev tool for looking at geometry.
 //
 // It exists because "the hull is right" is not something a test can tell you.
-// The counts, the closed loops and the winding are asserted in
-// `test/geometry.test.ts`; whether the Ghavial looks like a Ghavial, whether a
-// hull occludes its own far side, and whether the target radius is a sane sphere
-// around the ship are things you have to see. So: all thirty-eight, labelled,
-// at either their true relative sizes or normalised to a common one, each inside
-// a wireframe sphere at its catalogue target radius.
+// `test/geometry.test.ts` asserts the counts, the closed loops and the winding.
+// Three things need an eye instead:
+//
+//   1. whether the Ghavial looks like a Ghavial;
+//   2. whether a hull occludes its own far side;
+//   3. whether the target radius is a sane sphere around the ship.
+//
+// So: all thirty-eight, labelled, at their true relative sizes or normalised to
+// a common one, each inside a wireframe sphere at its catalogue target
+// radius.
 //
 // Keyboard-driven and deliberately plain. It is not part of the game bundle —
 // gallery.html is its own Vite entry — and nothing in `src/game` imports it. The
-// keys are gallery-main.ts's, beside the page they drive; they used to be in the
-// combat viewer's handler behind a `G` toggle, which is why `/viewer` opened on
-// this grid.
+// keys are gallery-main.ts's, beside the page they drive. They used to sit in
+// the combat viewer's handler behind a `G` toggle, and that is why `/viewer`
+// opened on this grid.
 
 import * as THREE from 'three';
 
@@ -31,9 +35,9 @@ const COLUMNS = 8;
 /** Cell pitch in world units — the Dodo station is the widest thing shown. */
 const CELL = 190;
 const HULL_COLOUR = 0x9ad9ff;
-// The console's own two, reached rather than re-spelled — and this file needed
-// one of them in each of the two forms it exists in, a three.js number for a
-// material and a CSS string for a canvas, which is exactly how it came to hold
+// The console's own two, reached rather than re-spelled. This file needed one
+// of them in both of its forms. One form is a three.js number, for a material.
+// The other is a CSS string, for a canvas. That is exactly how it came to hold
 // a private copy of the amber.
 const RADIUS_COLOUR = rgb24(HUD.amber);
 const LABEL_COLOUR = HUD.green;
@@ -115,8 +119,8 @@ export interface Gallery {
 /**
  * Build the grid.
  *
- * Every hull is built ONCE, through `buildShip`, exactly as the game builds it —
- * a viewer that drew hulls its own way would be free to be wrong in a way the
+ * Every hull is built ONCE, through `buildShip`, exactly as the game builds it.
+ * A viewer that drew hulls its own way would be free to be wrong in a way the
  * game is not.
  */
 export function createGallery(): Gallery {

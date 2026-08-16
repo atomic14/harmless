@@ -1,13 +1,14 @@
 // The combat trainer's three screens: the setup, the report, and the comparison.
 //
-// Split out of `ui/screens.ts` by docs/TODO/149. One subject and one consumer
-// (`game/screens/combat-sim.ts`), and its five helpers — the two number
-// formatters, the opening geometry, the wave escalation and the damage-by-source
-// table — are used by nothing else in the game.
+// Split out of `ui/screens.ts` by docs/TODO/149. It is one subject with one
+// consumer, `game/screens/combat-sim.ts`. Nothing else in the game uses its
+// five helpers: the two number formatters, the geometry of the start, the wave
+// escalation, and the damage-by-source table.
 //
-// It reads a report and writes a table. The exercise itself is `game/combat-sim.ts`,
-// what it recorded is `game/combat-sim-report.ts`, and what two records differ by
-// is `game/combat-sim-compare.ts`. Nothing here decides anything about a fight.
+// It reads a report and writes a table. The exercise itself is
+// `game/combat-sim.ts`. What it recorded is `game/combat-sim-report.ts`. What
+// two records differ by is `game/combat-sim-compare.ts`. Nothing here decides
+// anything about a fight.
 
 import { escapeHtml } from '../engine/escape-html.ts';
 import { type CombatSimReport, type OpeningGeometry, type WaveEscalation } from '../game/combat-sim-report.ts';
@@ -21,9 +22,9 @@ import { reservedNotes } from './reserved-note.ts';
 /**
  * One line of the setup panel, with its group heading above it if it opens one.
  *
- * The heading is a `<tr>` with NO `data-row`, so a click on it walks up to a
- * table that has none either and is ignored: a heading cannot be selected, and
- * the row indices stay exactly `setupCells()`'s.
+ * The heading is a `<tr>` with NO `data-row`. So a click on it walks up to a
+ * table that has none either, and nothing answers. A heading cannot be
+ * selected, and the row indices stay exactly `setupCells()`'s.
  */
 const simSetupRow = (r: SimSetupRow, i: number, selected: number): string =>
   `${r.heading ? `<tr class="grouphead"><td colspan="2">${r.heading}</td></tr>` : ''}
@@ -35,8 +36,9 @@ const simSetupRow = (r: SimSetupRow, i: number, selected: number): string =>
  * The setup panel: a list of rows, and which one the cursor is on.
  *
  * A row list rather than a named field per control, because the panel's shape
- * depends on what has been picked. It paints a list; `screens/combat-sim-setup.ts`
- * decides what is in it and which one opens a group.
+ * follows what the pilot picked. It paints a list.
+ * `screens/combat-sim-setup.ts` decides what is in it, and which row opens a
+ * group.
  */
 export function renderCombatSimSetup(p: SimSetupPanel): void {
   const exercise = p.rows.map((r, i) => simSetupRow(r, i, p.selected)).join('');
@@ -109,15 +111,15 @@ function bySource(
 /**
  * The record from one exercise, as the pilot reads it.
  *
- * The JSON is the deliverable (docs/COMBAT-SIM.md) and this is the human half
- * of the same numbers — so it shows what a pilot can act on, and the export
- * keys carry the rest.
+ * The JSON is the deliverable (docs/COMBAT-SIM.md). This is the human half of
+ * the same numbers. So it shows what a pilot can act on, and the export keys
+ * carry the rest.
  */
 export function renderCombatSimReport(
   r: CombatSimReport, index: number, total: number,
 ): void {
-  // What a ship was DOING, longest first, as seconds. The columns beside it say
-  // where a ship was; this one says what it was trying to do, which is the only
+  // What a ship was DOING, longest first, as seconds. The columns beside it
+  // say where a ship was. This one says what it MEANT to do, and it is the only
   // one of them that explains the others.
   const spentDoing = (doing: Record<string, number>): string => {
     const parts = Object.entries(doing).filter(([, secs]) => secs >= 0.1);
@@ -234,11 +236,13 @@ const compareColumn = (which: string, r: CombatSimReport, index: number): string
 /**
  * Two records side by side — the A/B the trainer's whole method is.
  *
- * A dumb painter over `compareReports()`, which has already decided whether the
- * pair may be subtracted at all and formatted every figure in its own unit. The
- * one rule this renderer holds is that a null `delta` is painted as NOTHING: on
- * a mismatched pair the difference column does not exist, rather than existing
- * with dashes in it, because a column that is there is a column that gets read.
+ * A dumb painter over `compareReports()`. That function already decided whether
+ * the pair may be subtracted at all, and it formatted every figure in its own
+ * unit.
+ *
+ * The one rule this renderer holds is that a null `delta` paints as NOTHING. On
+ * a mismatched pair, the difference column does not exist. It is not there with
+ * dashes in it, because a column that is there is a column somebody reads.
  */
 export function renderCombatSimCompare(p: SimComparePanel): void {
   const c = p.compare;
@@ -302,4 +306,4 @@ export function renderCombatSimCompare(p: SimComparePanel): void {
   `);
 }
 
-// --- giving up on a flight ---------------------------------------------------
+// --- a flight given up ---------------------------------------------------

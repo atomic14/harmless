@@ -2,11 +2,12 @@
 //
 // `AUDIBLE_RANGE` is the reach. `STEREO_WIDTH` is the width.
 //
-// Both of these are facts about WHERE a thing is in the world, which is why they
-// are here rather than in `src/audio.ts` beside the frequencies. The line the
-// constants gate draws for `music.ts` is the same one: the SID clock and a
-// note's timbre are how a sound is MADE, and they stay with the synth; a range
-// in world units is a game rule and it lives in the home (docs/TODO/142).
+// Both are facts about WHERE a thing is in the world. That is why they are
+// here, rather than in `src/audio.ts` beside the frequencies.
+//
+// The constants gate draws the same line for `music.ts`. The SID clock and a
+// note's timbre are how a sound is MADE, and they stay with the synth. A range
+// in world units is a game rule, and it lives in the home (docs/TODO/142).
 //
 // `src/audio.ts` is the only module that spends either. It decides what to do
 // with them, exactly as it decides the countdown's pitch from `COUNTDOWN`.
@@ -17,15 +18,16 @@ import { SCANNER_RANGE } from './console.ts';
  * How far a bang carries, in world units.
  *
  * It is the scanner's reach, written as an expression over `SCANNER_RANGE`
- * rather than as a second copy of 6,000. That is a claim, and the claim is that
- * you hear what you could see: a ship beyond the scanner is one the cockpit has
- * no other way to report, so a bang from out there would be a sound with no
- * source the pilot can find. One number, one rule, and moving the scanner moves
- * the ear with it. Same trick as `HERMIT_REFUSES_AT` over `CHARACTER`
- * (hermit-market.ts).
+ * rather than as a second copy of 6,000. That is a claim: you hear what you
+ * could see. A ship beyond the scanner is one the cockpit has no other way to
+ * report. A bang from out there would be a sound with no source the pilot can
+ * find.
  *
- * It is deliberately NOT tied to `PIRATE_HUNT_RANGE` or `HUNTER_RANGE`, which
- * are the same 6,000 for an unrelated reason — `SCANNER_RANGE`'s own doc comment
+ * One number, one rule. A move to the scanner moves the ear with it. Same trick
+ * as `HERMIT_REFUSES_AT` over `CHARACTER` (hermit-market.ts).
+ *
+ * It is deliberately NOT tied to `PIRATE_HUNT_RANGE` or `HUNTER_RANGE`. Those
+ * are the same 6,000 for an unrelated reason. `SCANNER_RANGE`'s own doc comment
  * declines that merge, and this one inherits the refusal.
  *
  * @rule audio.audibleRange
@@ -42,14 +44,14 @@ export const AUDIBLE_RANGE = SCANNER_RANGE;
  * ship off the port bow.
  *
  * It is wider than `PAN` in music.ts (0.28 and 0.24), and that is the difference
- * between decoration and information. The waltz places three voices so that they
- * stop smearing into each other. This places a bang so that the pilot can turn
+ * between decoration and information. The waltz places three voices so that no two
+ * of them smear into each other. This places a bang so that the pilot can turn
  * towards it, so it has to be big enough to act on.
  *
  * It has its own rule id. It shares the value 0.7 with `CARGO_LOSS_CHANCE`
- * (hull-breach.ts) and `THARGOID_FIRE_RATE` (npc-gun.ts) — a stereo width beside
- * two probabilities — and all three must stay free to move apart. This one is
- * tuned by ear on headphones. Neither of those is.
+ * (hull-breach.ts) and `THARGOID_FIRE_RATE` (npc-gun.ts). That is a stereo
+ * width beside two probabilities, and all three must stay free to move apart.
+ * This one is tuned by ear on headphones. Neither of those is.
  *
  * @rule audio.stereoWidth
  */

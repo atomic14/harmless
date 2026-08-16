@@ -1,14 +1,15 @@
-// What the pilot has picked, and the rows that show it.
+// What the pilot picked, and the rows that show it.
 //
 // The setup half of the combat trainer's screen, and PURE: no DOM, no Input, no
-// Game, nothing from three.js. It holds a draft — mode, fight, tier, seed,
-// opposition, your fit-out — turns it into a list of rows for the renderer to
-// paint, and into the `ExerciseSpec` and `ExerciseFit` that combat-sim.ts runs.
-// The prose under the rows lives in combat-sim-notes.ts, which only reads a draft.
+// Game, nothing from three.js. It holds a draft: the mode, the fight, the tier,
+// the seed, the opposition, and your fit-out. It turns that into a list of rows
+// for the renderer to paint, and into the `ExerciseSpec` and `ExerciseFit` that
+// combat-sim.ts runs. The prose under the rows lives in combat-sim-notes.ts,
+// which only reads a draft.
 //
-// The half worth testing: `npm test` builds a draft, drives the same `change()`
-// functions an arrow key drives, and asserts the spec that comes out — the whole
-// screen minus the keyboard, under node.
+// This is the half worth a test. `npm test` builds a draft, drives the same
+// `change()` functions an arrow key drives, and asserts the spec that comes
+// out. That is the whole screen, minus the keyboard, under node.
 
 import { LASER_TYPES, type CommanderData, type LaserType } from '../commander.ts';
 import { MAX_MISSILES } from '../../constants/commander.ts';
@@ -33,8 +34,8 @@ export interface SimSetupRow {
   /**
    * A faint group heading painted ABOVE this row.
    *
-   * A property of the row it introduces rather than a list entry: the cursor and
-   * every click index THIS list, so a heading that was an entry would be a
+   * It is a property of the row it introduces, and not a list entry. The
+   * cursor and every click index THIS list. A heading as an entry would be a
    * selectable row that does nothing.
    */
   heading?: string;
@@ -65,20 +66,22 @@ export const MODES: readonly SimMode[] = ['scenario', 'sparring', 'waves'];
 const TIERS = ['0 OPPORTUNISTS', '1 PROFESSIONALS', '2 ORGANISED GANG'];
 
 /**
- * What the pirates can be set to fly — the two CODE pilots a commander can meet:
- * the pursuit dogfighter they fly by default (the combat computer's own pilot,
- * turned on them) and the scripted attack run. The choice is the fight's,
- * restored when you undock (combat-sim.ts's entry snapshot); there is no custom
- * opposition builder and no career-persisting brain row.
+ * What the pirates can be set to fly: the two CODE pilots a commander can meet.
+ * The first is the pursuit dogfighter they fly by default, which is the combat
+ * computer's own pilot turned on them. The second is the scripted attack run.
+ *
+ * The choice belongs to the fight, and an undock restores it (combat-sim.ts's
+ * entry snapshot). There is no custom opposition builder, and no brain row that
+ * outlives the exercise.
  */
 export const PIRATE_CHOICES: readonly BrainId[] = ['pursuit', 'scripted'];
 
 /**
  * The fit-out lent to the commander for the exercise.
  *
- * Fit-out, NOT hull, and docs/COMBAT-SIM.md says why: `ai-training/scenario.ts`
- * reads `PLAYER_FLIGHT` as the target every pirate brain was fitted against, so
- * a selectable hull would change the world those brains live in.
+ * Fit-out, NOT hull, and docs/COMBAT-SIM.md says why. `ai-training/scenario.ts`
+ * reads `PLAYER_FLIGHT` as the target every pirate brain was fitted against. A
+ * selectable hull would change the world those brains live in.
  */
 export interface FitDraft {
   laser: LaserType;
@@ -94,7 +97,7 @@ export interface FitDraft {
   missiles: number;
 }
 
-/** Everything the picker has been told, and nothing about how it was told. */
+/** Everything the pilot told the picker, and nothing about how she told it. */
 export interface SimDraft {
   mode: SimMode;
   /** index into SCENARIOS */
@@ -121,7 +124,7 @@ export interface SimDraft {
 export interface SetupCell extends SimSetupRow {
   change?: (d: number) => void;
   /**
-   * HOME / END: go to the first or the last value without walking there.
+   * HOME / END: go straight to the first or the last value.
    *
    * Only rows over a finite ordered LIST have one — a number row (seed, count,
    * missiles) has no end to go to.
@@ -156,8 +159,8 @@ const position = (at: number, len: number): string => `(${at + 1} OF ${len})`;
 /**
  * `HOLDS OFF` — how it flies, and only that.
  *
- * The name, not the file stem: the stem is a build artefact, and it lives in the
- * note underneath (combat-sim-notes.ts) for anyone cross-referencing
+ * The name, not the file stem. The stem is a build artefact. It lives in the
+ * note underneath (combat-sim-notes.ts), for a reader who cross-refers
  * docs/TRAINING-LOG.md.
  */
 const flies = (id: BrainId): string => brainName(id) ?? id.toUpperCase();
@@ -206,11 +209,13 @@ export function freshSeed(now = Date.now()): number {
 /**
  * The draft as the exercise the session will run.
  *
- * The pirate brain is the only override the game has: which policy a pirate
- * flies is one `BrainSelection` for the whole exercise (brain-names.ts), and
- * `combat-sim.ts` applies `spec.brain` to `state.brains` for the fight and
- * restores it on undock. `pursuit` is the default, so it goes in as NO override;
- * only a real change (`scripted`) is sent.
+ * The pirate brain is the only override the game has. Which policy a pirate
+ * flies is one `BrainSelection` for the whole exercise (brain-names.ts).
+ * `combat-sim.ts` applies `spec.brain` to `state.brains` for the fight, and
+ * restores it on undock.
+ *
+ * `pursuit` is the default, so it goes in as NO override. Only a real change
+ * (`scripted`) is sent.
  */
 export function specFrom(d: SimDraft, seed: number): ExerciseSpec {
   return {
@@ -242,8 +247,8 @@ export function fitFrom(d: SimDraft): ExerciseFit {
 /**
  * The panel, as a list.
  *
- * A cell owns its own label, its reading and what an arrow key does to it, so
- * nothing anywhere switches on a row index.
+ * A cell owns three things: its label, its value, and what an arrow key does
+ * to it. So nothing anywhere switches on a row index.
  *
  * Three groups — THE FIGHT, WHO YOU FIGHT, YOUR SHIP — as `heading` on the row
  * that opens each, not entries in the list. Who you fight is the scenario/mode;
