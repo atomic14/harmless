@@ -1,25 +1,29 @@
 // How far apart two systems are, and what it costs to jump between them.
 //
-// Extracted because this rule had grown THREE implementations, all of them
-// correct and none of them the owner:
+// Extracted because THREE implementations of this rule grew. All three were
+// correct, and none of them was the owner:
 //
-//   ui/screens.ts   distanceTenths       — what the charts and the game used
-//   game/contract-offers.ts chartDistanceTenths — what the campaign used
-//   game/game.ts    galacticJump()        — hand-inlined, squared, to pick the
-//                                           nearest system in the new galaxy
+//   ui/screens.ts             distanceTenths        what the charts and the
+//                                                   game used
+//   game/contract-offers.ts   chartDistanceTenths   what the campaign used
+//   game/game.ts              galacticJump()        hand-inlined and squared,
+//                                                   to pick the nearest system
+//                                                   in the new galaxy
 //
-// Byte-identical today, kept so by nothing. That is the same failure mode as
-// invariant 5, and it matters more here than it looks: `test/campaign.ts`
-// validates the whole economy against its own copy, so a drift would leave the
-// balance harness silently measuring a different game from the one shipped.
+// They were byte-identical, and nothing kept them so. That is the same failure
+// mode as invariant 5, and it matters more here than it looks.
+// `test/campaign.ts` validates the whole economy against its own copy. A drift
+// would silently leave the balance harness on a different game from the one
+// that shipped.
 //
-// It lives under galaxy/ because it is a property of the star map, not of the
-// UI that draws it or the ship that flies it. Everything above may import it;
-// it imports nothing but the system type and the two numbers the metric is.
+// It lives under galaxy/ because it is a property of the star map. It is not a
+// property of the UI that draws that map, or of the ship that flies it.
+// Everything above may import it. It imports nothing but the system type and
+// the two numbers the metric is.
 //
-// A FOURTH COPY had grown in galaxy/living.ts by the time the constants move
-// reached this file — a private `chartDistance()`, byte-identical down to the
-// doc sentence, and a hand-inlined `daysForJump` beside it. Both are this
+// A FOURTH COPY grew in galaxy/living.ts, by the time the constants move
+// reached this file. It was a private `chartDistance()`, byte-identical down to
+// the doc sentence, with a hand-inlined `daysForJump` beside it. Both are this
 // file's now.
 
 import type { StarSystem } from './galaxy.ts';
@@ -29,9 +33,9 @@ import {
 } from '../constants/jump.ts';
 
 /**
- * Chart distance in tenths of a light-year, after the original's asymmetric
- * metric: y counts half (the chart is drawn half-height), scaled so max fuel
- * 70 = the classic 7.0 LY range.
+ * Chart distance in tenths of a light-year, on the original's asymmetric
+ * metric. The y axis counts half, because the chart is drawn half-height. The
+ * scale puts max fuel 70 at the classic 7.0 LY range.
  */
 export function distanceTenths(a: StarSystem, b: StarSystem): number {
   const dx = a.x - b.x;
@@ -53,9 +57,9 @@ export function distanceSq(a: StarSystem, b: StarSystem): number {
 /**
  * Squared chart distance from a system to a bare chart coordinate.
  *
- * The charts need this for cursor hit-testing, where there is no second
- * StarSystem to measure against — which is exactly why a fourth copy of the
- * formula had grown in ui/screens.ts.
+ * The charts need it to test what the cursor is over. There is no second
+ * StarSystem to measure against there. That is exactly why a fourth copy of
+ * the formula grew in ui/screens.ts.
  */
 export function distanceSqToPoint(s: StarSystem, x: number, y: number): number {
   const dx = s.x - x;
@@ -65,15 +69,15 @@ export function distanceSqToPoint(s: StarSystem, x: number, y: number): number {
 
 /**
  * Squared chart distance from a chart coordinate to the SEGMENT between two
- * systems — what picks the trade lane you are pointing at.
+ * systems. It is what picks the trade lane under the pointer.
  *
- * A segment, not the infinite line through it: the projection is clamped to
- * the ends, so standing well past one end of a short lane measures to that
- * end rather than to some imaginary continuation of the route.
+ * A segment, and not the infinite line through it. The projection is clamped
+ * to the ends. So a cursor well past one end of a short lane measures to that
+ * end, rather than to some imaginary continuation of the route.
  *
- * The same y-squashed metric as its neighbours, so a lane is picked at the
- * distance it LOOKS on either chart rather than at its distance in raw chart
- * units, where the y axis is drawn at half weight.
+ * It uses the same y-squashed metric as its neighbours. So a lane is picked at
+ * the distance it LOOKS on either chart. It is not picked at its distance in
+ * raw chart units, where the y axis is drawn at half weight.
  */
 export function distanceSqToSegment(
   a: { x: number; y: number },
@@ -112,9 +116,9 @@ export function nearestSystemTo(from: StarSystem, systems: readonly StarSystem[]
  * Days a jump takes: `JUMP_DAYS_BASE` to make it, plus one per
  * `TENTHS_PER_JUMP_DAY` covered, rounded up.
  *
- * Duplicated in game.ts and test/campaign.ts before this existed, and again in
- * galaxy/living.ts, which meant the campaign's careers aged at whatever rate
- * its own copy said and a convoy's did too.
+ * Before this existed it was duplicated in game.ts and test/campaign.ts, and
+ * again in galaxy/living.ts. So the campaign's careers aged at whatever rate
+ * its own copy said, and a convoy's did too.
  */
 export function daysForJump(tenths: number): number {
   return JUMP_DAYS_BASE + Math.ceil(tenths / TENTHS_PER_JUMP_DAY);

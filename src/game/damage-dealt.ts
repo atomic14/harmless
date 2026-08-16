@@ -1,32 +1,37 @@
 // What the commander landed on a ship — the four causes, and the measurement.
 //
-// The other direction has had a home since TODO 28: `DamageSource` in combat.ts
+// The other direction has a home since TODO 28. `DamageSource` in combat.ts
 // names the five things that can hurt YOU, and every `applyPlayerDamage` call
-// carries one. Outbound had nothing. The laser measured itself inside the
-// exercise, and the missile, the ram and the energy bomb went straight to
-// `takeDamage` and then to the kill — so a record of a fight won with ordnance
-// read `damageDealt: 0` beside `kills: 1`, which is the report saying nothing
-// happened (TODO 47).
+// carries one.
 //
-// Two things live here, and they are the same rule seen twice:
+// Outbound had nothing. The laser measured itself inside the exercise. The
+// missile, the ram and the energy bomb went straight to `takeDamage`, and then
+// to the kill. So a record of a fight won with ordnance read `damageDealt: 0`
+// beside `kills: 1`. That is a report of nothing at all (TODO 47).
 //
-//   * `DealtSource` — the causes. NOT `DamageSource`: you cannot deal a canister
-//     on the hull or a Coriolis scrape, and nothing can drop an energy bomb on
-//     you. The three words the two lists share are the same words by
-//     construction (`Extract`), so a rename of one cannot leave the report
-//     printing two spellings of `ram`.
-//   * `dealToNpc()` — spend the points and say what they COST. What it reports is
-//     the reduction in the target's own bank, not the number spent on it: a
-//     250-point warhead into a Sidewinder with 73 energy left did 73 points of
-//     damage, and crediting 250 would put more damage on that opponent's line
-//     than the ship ever had. That is also exactly what the laser path already
-//     measures (combat-sim.ts `pullTrigger` reads the bank either side of the
-//     discharge), so the four buckets are comparable.
+// Two things live here, and they are the same rule seen twice.
 //
-// It applies and reports; it decides nothing else. Who is billed, whether a
-// bounty is paid and whether anyone was watching are the caller's — the ram and
-// the warhead go on to `StepHost.destroyNpc` through a returned event, the way
-// `npcFired` already reaches a measuring caller (docs/INVARIANTS.md invariant 15).
+// `DealtSource` is the causes. It is NOT `DamageSource`. You cannot deal a
+// canister on the hull, or a Coriolis scrape. Nothing can drop an energy bomb
+// on you. The three words the two lists share are the same words by
+// construction (`Extract`). So a rename of one cannot leave the report with two
+// spellings of `ram`.
+//
+// `dealToNpc()` spends the points, and says what they COST. It reports the fall
+// in the target's own bank, rather than the number spent on it. A 250-point
+// warhead into a Sidewinder with 73 energy left did 73 points of damage. A
+// credit of 250 would put more damage on that opponent's line than the ship
+// ever had.
+//
+// That is also exactly what the laser path already measures: combat-sim.ts's
+// `pullTrigger` reads the bank on either side of the discharge. So the four
+// buckets are comparable.
+//
+// It applies and reports, and it decides nothing else. Three questions are the
+// caller's: who is billed, whether a bounty is paid, and whether anybody saw
+// it. The ram and the warhead go on to `StepHost.destroyNpc` through a returned
+// event. That is how `npcFired` already reaches a caller that measures
+// (docs/INVARIANTS.md invariant 15).
 
 import type * as THREE from 'three';
 
@@ -37,18 +42,18 @@ import type { NpcShip } from './npc.ts';
 /**
  * What the commander can hurt a ship WITH.
  *
- * `Extract` rather than a fresh list of strings: `laser`, `missile` and `ram`
- * are the same three words in both directions, and writing them out twice is
- * how a report grows two spellings of one cause.
+ * `Extract` rather than a fresh list of strings. `laser`, `missile` and `ram`
+ * are the same three words in both directions. Two copies of them is how a
+ * report grows two spellings of one cause.
  */
 export type DealtSource = Extract<DamageSource, 'laser' | 'missile' | 'ram'> | 'bomb';
 
 /**
  * A ship took damage from the commander — reported, never a side effect.
  *
- * Carried in `StepEvent` so the world step can say it without knowing whether
- * anybody is counting: the career drops it, an exercise credits it to the
- * record (combat-sim.ts).
+ * It travels in a `StepEvent`, so the world step says it and never learns
+ * whether anybody keeps a count. The career drops it. An exercise credits it to
+ * the record (combat-sim.ts).
  */
 export interface DealtEvent {
   kind: 'playerDealt';

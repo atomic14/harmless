@@ -1,19 +1,28 @@
 // Build the sky, and fill it.
 //
-// Split out of `game.ts` by docs/TODO/150 M2. `spawning.ts` places ships,
-// `population.ts` decides how many and of what, and `blueprint-set.ts` decides
-// which of the 23 released rosters a system flies — this is the WIRING that
-// spends all three, plus the two consequences a new sky has: the arrival
-// bookkeeping `jettisonCargo` later reads, and the announcements.
+// Split out of `game.ts` by docs/TODO/150 M2. Three modules own the rules:
 //
-// ONE RESPONSIBILITY: what is in the sky when you get there. Building the scene,
-// choosing the roster, dropping into witch-space, and populating a system on a
-// launch or an arrival are four faces of that one question.
+//   - `spawning.ts` places the ships;
+//   - `population.ts` decides how many, and of what;
+//   - `blueprint-set.ts` decides which of the 23 released rosters a system
+//     flies.
 //
-// THE ORDER INSIDE `enterWitchspace` IS LOAD-BEARING and travels with it: the
-// flag, then the set, then the world built with it. The set is read while the
-// world is built, so a build before the choice would fly the previous system's
-// roster into limbo.
+// This file is the WIRING that spends all three. It also carries the two
+// consequences a new sky has: the arrival record that `jettisonCargo` later
+// reads, and the announcements.
+//
+// ONE RESPONSIBILITY: what is in the sky when you get there. Four faces of that
+// one question live here:
+//
+//   1. the scene, built;
+//   2. the roster, chosen;
+//   3. the drop into witch-space;
+//   4. a system filled, on a launch or on an arrival.
+//
+// THE ORDER INSIDE `enterWitchspace` IS LOAD-BEARING, and it travels with it:
+// the flag, then the set, then the world built with it. The build reads the
+// set. A build before the choice would fly the previous system's roster into
+// limbo.
 
 import * as THREE from 'three';
 import { blueprintRandomBits, blueprintSetFor } from './blueprint-set.ts';
@@ -35,12 +44,17 @@ import {
 import { THARGON_REDEPLOY } from '../constants/encounters.ts';
 
 /**
- * What building a sky has to reach back to the Game for.
+ * What a new sky has to reach back to the Game for.
  *
- * FIVE, and every one is a thing the orchestrator owns rather than a rule: the
- * console, the two pieces of cockpit furniture that react to a new system, the
- * sound, and which system we are standing in. No rule is behind this interface,
- * which is what lets this file be portable while `game.ts` is not.
+ * FIVE, and every one is a thing the orchestrator owns rather than a rule:
+ *
+ *   1. the console;
+ *   2. and 3. the two pieces of cockpit furniture that react to a new system;
+ *   4. the sound;
+ *   5. which system we stand in.
+ *
+ * No rule sits behind this interface. That is what makes this file portable
+ * while `game.ts` is not.
  */
 export interface WorldBuildHost {
   showMessage(text: string, seconds: number): void;
@@ -72,19 +86,20 @@ export class WorldBuild {
    *
    * ONE DRAW, AT ARRIVAL, AND THEN IT IS STATE. Bits 2-3 of the source's number
    * are a coin it flipped on entry, and invariant 11 puts all world chance on
-   * the one seeded stream — so the draw happens here, where `arriveInSystem` has
-   * just seeded that stream from where and when you are, and the letter is kept
-   * in `session` where a save carries it (invariant 12).
+   * the one seeded stream. So the draw happens here, right after
+   * `arriveInSystem` seeded that stream from where and when you are. The letter
+   * is kept in `session`, where a save carries it (invariant 12).
    *
-   * HARMLESS CHOOSES ON ARRIVAL ONLY, and the released game also reloaded on a
+   * HARMLESS CHOOSES ON ARRIVAL ONLY. The released game also reloaded on a
    * launch from a station. The difference is that Harmless does not tear the
-   * system down when you dock — the world you launch into is the world you
-   * docked out of, ships and all — so there is no second entry to choose at. A
+   * system down when you dock. The world you launch into is the world you
+   * docked out of, ships and all. So there is no second entry to choose at. A
    * roster that changed while the sky did not would be a worse answer than the
-   * faithful one. An override the mission raises WHILE YOU ARE DOCKED therefore
-   * takes effect at the next arrival: the courier orders come at a dock, and the
-   * system you are standing in does not restock its sky because you accepted
-   * them.
+   * faithful one.
+   *
+   * An override the mission raises WHILE YOU ARE DOCKED therefore takes effect
+   * at the next arrival. The courier orders come at a dock. The system you stand
+   * in does not restock its sky because you accepted them.
    *
    * THE OVERRIDE IS NAMED HERE AND DECIDED IN TWO PLACES. `blueprint-set.ts`
    * takes one and never works one out, `missions.ts` owns the two mission
@@ -96,9 +111,9 @@ export class WorldBuild {
     const override = this.state.session.witchspace
       ? 'thargoid' as const : missionBlueprintOverride(this.state.commander);
     // NO DRAW BEHIND AN OVERRIDE. `blueprintSetFor` does not consult the number
-    // when one is in force, so the 0 below is never read, and a draw made to
-    // fill it would spend the seeded stream on a value nothing reads — and would
-    // move the Thargoid ambush `enterWitchspace` rolls two lines after this.
+    // while one is in force, so nothing reads the 0 below. A draw made to fill
+    // it would spend the seeded stream on a value nothing reads. It would also
+    // move the Thargoid ambush that `enterWitchspace` rolls two lines below.
     const bits = override === null ? blueprintRandomBits(random()) : 0;
     this.state.session.blueprintSet = blueprintSetFor(
       this.host.system(), this.state.commander.galaxy, bits, override);
@@ -108,11 +123,11 @@ export class WorldBuild {
    * Witch-space: mis-jump limbo. We reuse the system scene but banish the
    * planet, station and sun beyond reach — just stars, and Thargoids.
    *
-   * The set is chosen again here, and it is the released override: limbo flies
-   * one of the two blueprint files that carry Thargoids. Which of the two is the
-   * tech level of the system the mis-jump left you standing in, because a
-   * mis-jump does not move `commander.systemIndex` — the target is retained for
-   * the escape jump and nothing else.
+   * The set is chosen again here, and it is the released override. Limbo flies
+   * one of the two blueprint files that carry Thargoids. The tech level of the
+   * system the mis-jump left you in picks between them. A mis-jump does not move
+   * `commander.systemIndex`: the target is retained for the escape jump, and for
+   * nothing else.
    */
   /** @internal — driven by src/game/game.ts, which delegates to it. */
   enterWitchspace(): void {
@@ -141,11 +156,11 @@ export class WorldBuild {
   }
 
   /**
-   * Station space is policed: launching only meets legitimate traffic.
-   * Arriving from hyperspace drops pirates along the corridor to the station.
+   * Station space is policed, so a launch meets legitimate traffic only. An
+   * arrival from hyperspace drops pirates along the corridor to the station.
    *
-   * The rules are in population.ts, the placement in spawning.ts. This is the
-   * wiring plus the consequences — the arrival bookkeeping that jettisonCargo
+   * The rules are in population.ts, and the placement is in spawning.ts. This
+   * is the wiring, plus the consequences: the arrival record that jettisonCargo
    * later reads, and the two announcements.
    */
   populateSystem(situation: 'launch' | 'arrival'): void {
@@ -153,9 +168,9 @@ export class WorldBuild {
     const plan = planPopulation(
       sys, situation,
       this.state.living.imminentArrivals(sys.index).length,
-      // Pirates are businesses: lawlessness and the living galaxy set how many
-      // are out here, but what you're visibly worth sets who they are and
-      // whether they bothered to organise.
+      // Pirates are businesses. Lawlessness and the galaxy's own traffic set
+      // how many are out here. What you visibly carry sets who they are, and
+      // whether they took the trouble to organise.
       situation === 'arrival'
         ? pirateThreat(sys, this.state.living.danger(sys.index),
           markOf(this.state.commander, this.state.living.notoriety(sys.index)))

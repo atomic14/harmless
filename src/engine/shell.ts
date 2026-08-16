@@ -1,22 +1,32 @@
-// The shell: everything the game needs from the machine it is running on.
+// The shell: everything the game needs from the machine under it.
 //
 // This is the seam a desktop port would reimplement, and it is deliberately
-// small — the whole interface is below, on one screen, the same bargain as
-// `StepHost` and `SimHost`. (It said "seven members" while it had nine; a
-// count of the thing directly underneath it is a claim with nothing to gain.)
-// The Game asks for a shell, not for a browser, so `game.ts` names no DOM API
+// small. The whole interface is below, on one screen. That is the same bargain
+// as `StepHost` and `SimHost`.
+//
+// (It said "seven members" while it had nine. A count of the thing directly
+// underneath it is a claim with nothing to gain.)
+//
+// The Game asks for a shell, not for a browser. So `game.ts` names no DOM API
 // at all.
 //
-// Before this existed, `game.ts` was 1,757 lines of which ELEVEN mentioned the
-// browser: a canvas in the constructor, a resize listener, a click listener,
-// the rAF loop, a CSS custom property, and two `getElementById` calls. Those
-// eleven lines made the whole file unportable AND unconstructible under node,
-// which is why the largest file in the project had zero test coverage. A thin
-// shell was welded to the orchestrator and both were stuck.
+// Before this existed, `game.ts` was 1,757 lines. ELEVEN of them mentioned the
+// browser:
+//
+//   - a canvas in the constructor;
+//   - a resize listener;
+//   - a click listener;
+//   - the rAF loop;
+//   - a CSS custom property;
+//   - two `getElementById` calls.
+//
+// Those eleven lines made the whole file unportable AND unconstructible under
+// node. That is why the largest file in the project had zero test coverage. A
+// thin shell was welded to the orchestrator, and both were stuck.
 //
 // `browser-shell.ts` is the real one. `headlessShell()` at the bottom of this
-// file is the other one, and it is not a stub for tests to tolerate: it is the
-// proof the seam is real, because a Game built on it runs the actual game loop
+// file is the other one, and it is not a stub for a test to tolerate. It is the
+// proof that the seam is real: a Game built on it runs the actual game loop,
 // with no DOM in the process.
 
 import * as THREE from 'three';
@@ -28,9 +38,9 @@ import {
  * What the Game needs in order to be SEEN.
  *
  * Narrower than the render stack on purpose. The Game never touches
- * `WebGLRenderer` — it reads the camera, toggles the cockpit beams and calls
- * one draw — so requiring a GPU type here would have made a headless
- * implementation impossible for no reason.
+ * `WebGLRenderer`. It reads the camera, toggles the cockpit beams, and calls
+ * one draw. A GPU type demanded here would make a headless implementation
+ * impossible, for no reason.
  */
 export interface Presentation {
   /** the player's eye; pure maths, so it works with or without a GPU */
@@ -38,9 +48,9 @@ export interface Presentation {
   /**
    * Cockpit laser beams, parented to the camera.
    *
-   * `LineSegments` rather than `Object3D` because the Game writes the
-   * convergence point straight into the position attribute every frame — and
-   * that is pure maths, so a headless shell can hand over a real one.
+   * `LineSegments` rather than `Object3D`, because the Game writes the
+   * convergence point straight into the position attribute every frame. That is
+   * pure maths, so a headless shell can hand over a real one.
    */
   readonly beams: THREE.LineSegments;
   /** put the current scene on screen */
@@ -56,9 +66,9 @@ export interface Shell {
   /** a click landed on the screen overlay — clicks are input (invariant 13) */
   onScreenClick(fn: (target: unknown, event: unknown) => void): void;
   /**
-   * the pointer moved across the screen overlay. Separate from the click seam
-   * because it is not input: nothing is selected, targeted or spent by moving a
-   * mouse, and a screen that ignores it loses nothing.
+   * the pointer moved across the screen overlay. It is separate from the click
+   * seam because it is not input. A mouse in motion selects nothing, targets
+   * nothing and spends nothing. A screen that ignores it loses nothing.
    */
   onScreenMove(fn: (target: unknown, event: unknown) => void): void;
   /** drive the frame loop; `now` is a monotonic clock in milliseconds */
@@ -90,9 +100,9 @@ function headlessBeams(): THREE.LineSegments {
  * A shell with no machine behind it.
  *
  * Everything here is either pure maths (the camera) or nothing at all. It
- * exists so a Game can be constructed and STEPPED under node — the 1,757-line
- * hole in the coverage report — and so the claim "only the shell is
- * platform-bound" is checkable rather than asserted.
+ * exists for two reasons. A Game can be constructed and STEPPED under node,
+ * which closes the 1,757-line hole in the coverage report. The claim "only the
+ * shell is platform-bound" then becomes checkable rather than asserted.
  *
  * `runLoop` deliberately does NOT run: a test drives `step()` itself, which is
  * the reliable way (CLAUDE.md: background tabs throttle rAF).

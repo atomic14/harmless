@@ -1,20 +1,22 @@
-// The game state: one object holding everything the world step may change.
+// The game state: one object that holds everything the world step may change.
 //
-// This is the missing half of "state lives in one place". SessionState already
-// collected the flight flags and NpcState the per-ship ones, but the rest —
-// the galaxy you are in, the commander, the sky, the market, the charts — sat
-// as fifteen separate properties of Game. That is what made game.ts hard to
-// break up: no extracted function could be given "the state", only fifteen
-// arguments, so every phase of the step had to stay a method with `this`.
+// This is the second half of "state lives in one place". SessionState already
+// collected the flight flags, and NpcState the per-ship ones. The rest sat as
+// fifteen separate properties of Game: the galaxy you are in, the commander,
+// the sky, the market and the charts.
+//
+// That is what made game.ts hard to break up. No extracted function could take
+// "the state", only fifteen arguments. So every phase of the step had to stay a
+// method with `this`.
 //
 // Chris's framing from the start of the refactor: *you have the game state
 // objects, and you have the physics/world simulator, and you have the
 // renderer*. This is the first of the three.
 //
 // The rule for what belongs here is unchanged: anything that drives behaviour
-// and is not a constant. Renderer handles (the HUD, the tunnel, the dust) and
-// scratch vectors are NOT state — deleting them changes nothing about what
-// happens next, only about what you see.
+// and is not a constant. A renderer handle — the HUD, the tunnel, the dust — is
+// NOT state, and neither is a scratch vector. Delete one, and nothing about
+// what happens next changes. Only what you see changes.
 
 import type { StarSystem, MarketEntry } from '../galaxy/galaxy.ts';
 import type { CommanderData, Contract } from './commander.ts';
@@ -45,25 +47,27 @@ export interface GameState {
    * Which commander's autosaves this session writes — see save-file.ts, where
    * the word is argued and where the one home for it lives.
    *
-   * STATE and not a module variable, for invariant 12's reason: it decides
-   * where an automatic write LANDS, and a rule read from ambient state is a
-   * rule nothing can test as an argument.
+   * STATE and not a module variable, for invariant 12's reason. It decides
+   * where an automatic write LANDS. A rule read from ambient state is a rule
+   * nothing can test as an argument.
    *
-   * It is a READ of `SaveRecord.career`, not a second home for it (TODO 43).
-   * `bootCareer()` takes it off the record this session booted from, once, and
-   * nothing writes it again — not even `restore()`, which used to assign the
-   * snapshot's copy over it one step after boot and so let an imported file
-   * redirect a stranger's autosaves onto yours. The snapshot carries none at
-   * all now; the record it lives in is the answer.
+   * It is a READ of `SaveRecord.career`, and not a second home for it (TODO
+   * 43). `bootCareer()` takes it off the record this session booted from, once,
+   * and nothing writes it again.
    *
-   * It is the name the player chose for this commander — and still NOT
-   * `commander.name`, which is what they are called today. Renaming changes
-   * that one and leaves this one where it is (TODO 56), so a rename can never
-   * move a save from one group to another underneath a player who only meant
-   * to change what they are called.
+   * Not even `restore()` writes it. That used to assign the snapshot's copy
+   * over it, one step after boot. So an imported file could redirect a
+   * stranger's autosaves onto yours. The snapshot carries no copy at all now,
+   * and the record it lives in is the answer.
+   *
+   * It is the name the player chose for this commander. It is still NOT
+   * `commander.name`, which is what they are called today. A rename moves that
+   * one and leaves this one where it is (TODO 56). So a rename can never move a
+   * save from one group to another under a player who only meant to change what
+   * they are called.
    */
   career: string;
-  /** level-1 simulation: trade flowing between all 256 systems */
+  /** level-1 simulation: the trade that runs between all 256 systems */
   living: LivingGalaxy;
 
   // --- the sky ------------------------------------------------------------
@@ -91,12 +95,13 @@ export interface GameState {
    */
   brains: BrainSelection;
   /**
-   * Playtesting: fit anything from the catalogue, free and at any tech level.
+   * For a playtest: fit anything from the catalogue, free and at any tech
+   * level.
    *
-   * Beside `brains` because it is the same kind of thing — a development
-   * override that changes what the game allows — and in the state for the same
-   * reason: it was `window.__cheat`, and an ambient global is not somewhere a
-   * rule can be found, tested, or saved. `TradeContext` already took it as a
+   * It sits beside `brains` because it is the same kind of thing: a development
+   * override that changes what the game allows. It is in the state for the same
+   * reason too. It was `window.__cheat`, and an ambient global is not somewhere
+   * a rule can be found, tested, or saved. `TradeContext` already took it as a
    * field, so only its SOURCE was ever the problem.
    */
   cheat: boolean;
@@ -113,10 +118,11 @@ export interface GameState {
 /**
  * A fresh flight: every session flag and timer at the value it starts a leg on.
  *
- * Split out of `freshState` because it has a second caller — the combat
- * simulator resets one when an exercise begins (combat-sim.ts) — and a
- * hand-written list of fields over there is precisely the bug this project has
- * shipped five times: a field added to `SessionState` would be reset in one
+ * Split out of `freshState`, because it has a second caller: the combat
+ * simulator resets one when an exercise begins (combat-sim.ts).
+ *
+ * A hand-written list of fields over there is precisely the defect this project
+ * shipped five times. A new field on `SessionState` would then be reset in one
  * place and inherited in the other. One home for what "a fresh flight" is.
  */
 export function freshSession(): SessionState {
@@ -126,7 +132,7 @@ export function freshSession(): SessionState {
     hyperCountdown: -1,
     torusEngaged: false,
     witchspace: false,
-    // No system has been arrived in yet, so no set is in force. See SessionState.
+    // No arrival happened yet, so no set is in force. See SessionState.
     blueprintSet: '',
     npcTargetTimer: 0,
     autoSaveTimer: AUTOSAVE_INTERVAL,
@@ -165,8 +171,9 @@ export function freshState(commander: CommanderData): GameState {
   return {
     systems,
     commander,
-    // The orchestrator sets this from the save it booted; a state built for a
-    // test or the campaign has no shelf to read one off, and writes nothing.
+    // The orchestrator sets this from the save it booted. A state built for a
+    // test or for the campaign has no shelf to read one off, and writes
+    // nothing.
     career: '',
     living: new LivingGalaxy(systems),
     world: new World(),
