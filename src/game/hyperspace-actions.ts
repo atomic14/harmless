@@ -1,18 +1,22 @@
-// Leaving a system, and arriving in one.
+// How a commander leaves a system, and how she arrives in one.
 //
 // The ORCHESTRATION half of the jump, split out of `game.ts` by docs/TODO/150
-// M4. `hyperspace.ts` next door owns the RULES, and states them in its own
-// opening; this holds what the Game does with them: starting the countdown,
-// spending the days, dropping the ship at the witchpoint, crossing to the next
-// galaxy, and the tow when a mis-jump leaves you stranded.
+// M4. `hyperspace.ts` next door owns the RULES, and states them at the head of
+// its own header. This file holds what the Game does with them:
+//
+//   - it starts the countdown;
+//   - it spends the days;
+//   - it drops the ship at the witchpoint;
+//   - it crosses to the next galaxy;
+//   - it tows a commander whom a mis-jump left stranded.
 //
 // ONE RESPONSIBILITY: what a jump does to the world. Five ways in and out of a
 // system, and every one of them ends at `arriveInSystem`.
 //
 // THE TOW IS THE JUMP GONE WRONG, which is why the distress beacon is here
-// rather than beside the contracts. A beacon is only legal in witch-space, and
-// `completeRescue` pays the days, decays the record and arrives — the same
-// three steps as `completeHyperspace`, at a different price.
+// rather than beside the contracts. A beacon is only legal in witch-space.
+// `completeRescue` pays the days, decays the record and arrives. Those are the
+// same three steps as `completeHyperspace`, at a different price.
 //
 // A GALAXY'S HISTORY IS ARRIVAL-SHAPED TOO. `loadOrWarmGalaxy` runs at a boot
 // and at a respawn, `galacticJump` warms a galaxy no save describes, and both
@@ -36,10 +40,13 @@ import { WITCHPOINT_RADII } from '../constants/planet.ts';
 /**
  * What a jump has to reach back to the Game for.
  *
- * Nothing here is a rule. Four of them are the machine — the console, the
- * cockpit tunnel and the two sounds a jump makes — and the other three are
- * facts only the orchestrator holds: where we are standing, where the nose
- * points, and whether this is the simulator rather than the sky.
+ * Nothing here is a rule. Four of them are the machine: the console, the
+ * cockpit tunnel, and the two sounds a jump makes. The other three are facts
+ * only the orchestrator holds:
+ *
+ *   1. where we stand;
+ *   2. where the nose points;
+ *   3. whether this is the simulator rather than the sky.
  *
  * THE SIMULATOR IS A ROOM AT THE STATION, not a place you can leave. It is a
  * question about the Game rather than about the commander, so the child asks
@@ -78,9 +85,9 @@ export class HyperspaceActions {
 
   /** @internal — driven by src/game/game.ts, which delegates to it. */
   startHyperspace(): void {
-    // The simulator is a room at the station, not a place you can leave: the
-    // exercise's StepHost refuses `completeHyperspace` anyway, so without this
-    // the countdown would run and then silently do nothing.
+    // The simulator is a room at the station, not a place you can leave. The
+    // exercise's StepHost refuses `completeHyperspace` anyway. So without this
+    // the countdown would run, and then silently do nothing.
     if (this.host.inSimulator()) {
       this.host.showMessage('HYPERSPACE IS OFFLINE IN THE SIMULATOR', 3);
       this.host.refused();
@@ -111,8 +118,8 @@ export class HyperspaceActions {
       return;
     }
     this.state.living.advance(jump.days, COMMODITIES.map((c) => c.gradient));
-    // the galaxy forgets a little on the way — a jump is days of honest
-    // distance, and falling back down a rung is the one piece of good news the
+    // the galaxy forgets a little on the way. A jump is days of honest
+    // distance. A fall back down a rung is the one piece of good news the
     // character system has, so it is said too (docs/TODO/129)
     const wasDisrepute = this.state.commander.disrepute ?? 0;
     this.state.commander.disrepute = afterDecay(wasDisrepute, jump.days);
@@ -124,8 +131,8 @@ export class HyperspaceActions {
 
   /** @internal — driven by src/game/game.ts, which delegates to it. */
   arriveInSystem(): void {
-    // Seed the world from WHERE and WHEN you are, so a given save arriving in
-    // a given system on a given day meets the same reception twice. Without
+    // Seed the world from WHERE and WHEN you are. One save that arrives in one
+    // system on one day then meets the same reception twice. Without
     // this the fixed timestep buys repeatable physics and nothing else.
     seedWorld(this.state.commander.galaxy * 0x9e3779b1
       ^ (this.state.commander.systemIndex << 8) ^ this.state.commander.day);
@@ -212,14 +219,15 @@ export class HyperspaceActions {
     }
     const jump = resolveGalacticJump(this.state.commander, this.host.system());
     this.state.systems = jump.systems;
-    // A NEW GALAXY BRINGS ITS OWN ECONOMY (docs/TODO/117). Keeping the old
-    // `LivingGalaxy` across the jump left galaxy 2's system 7 wearing galaxy
-    // 1's Lave danger and price pressure, and every convoy in the list flying
-    // between two systems it had never departed or been bound for. The state is
-    // per-galaxy, so it is rebuilt with the systems it describes — and warmed,
-    // because a galaxy arrived at has no more been standing still than the one
-    // left behind. The saved deltas describe the galaxy just left, so they are
-    // not reloaded here; the next checkpoint writes these over them.
+    // A NEW GALAXY BRINGS ITS OWN ECONOMY (docs/TODO/117). The old
+    // `LivingGalaxy` carried across the jump left galaxy 2's system 7 under
+    // galaxy 1's Lave danger and price pressure. Every convoy in the list then
+    // ran between two systems it never left and never aimed for.
+    //
+    // The state is per-galaxy, so it is rebuilt with the systems it describes.
+    // It is warmed too, because the galaxy you arrive in stood no more still
+    // than the one you left. The saved deltas describe the galaxy just left, so
+    // nothing reloads them here. The next checkpoint writes these over them.
     this.state.living = new LivingGalaxy(this.state.systems);
     prewarm(this.state.living, this.freshGalaxySeed());
     this.state.chart.targetIndex = null;
@@ -229,16 +237,16 @@ export class HyperspaceActions {
   }
 
   /**
-   * The living galaxy this career inherits: the saved one, or — for a career
-   * that has none — a warmed one (docs/TODO/117).
+   * The living galaxy this career inherits. It is the saved one. A career with
+   * no saved one takes a warmed galaxy instead (docs/TODO/117).
    *
-   * WARMING ONLY WHERE THERE IS NOTHING TO LOAD, and `prewarm`'s own doc in
-   * galaxy/living.ts says why — it is paid once, and the deltas are ordinary
+   * IT WARMS ONLY WHERE THERE IS NOTHING TO LOAD. `prewarm`'s own doc in
+   * galaxy/living.ts says why: it is paid once, and the deltas are ordinary
    * saved state from the first checkpoint on (docs/TODO/153).
    *
-   * What is this file's to say is WHICH SITES warm: this one, at a boot and a
-   * respawn, and `galacticJump` above, which arrives in a galaxy no save
-   * describes. Same seam, same seed rule, no state to consult.
+   * What is this file's to say is WHICH SITES warm. There are two: this one, at
+   * a boot and at a respawn, and `galacticJump` above, which arrives in a
+   * galaxy no save describes. Same seam, same seed rule, no state to consult.
    *
    * @internal — driven by src/game/game.ts. A boot and a respawn both reach it.
    */
@@ -251,13 +259,16 @@ export class HyperspaceActions {
   }
 
   /**
-   * The seed a galaxy's history is drawn on: the world's, salted by which
-   * galaxy it is — the same mixing `arriveInSystem` seeds arrivals with.
+   * The seed a galaxy's history is drawn on. It is the world's seed, salted by
+   * which galaxy this is. `arriveInSystem` mixes an arrival's seed the same
+   * way.
    *
-   * The salt is what stops the eighth galaxy being the first one again after a
-   * galactic jump. The world's stream is READ here and never drawn from — the
-   * history runs on `prewarm`'s own derived stream — so the seeded pins
-   * downstream of a boot are exactly where they were.
+   * The salt is what stops a galactic jump out of the eighth galaxy from
+   * landing in the first one again.
+   *
+   * The world's stream is READ here, and never drawn from. The history runs on
+   * `prewarm`'s own derived stream. So the seeded pins downstream of a boot are
+   * exactly where they were.
    */
   private freshGalaxySeed(): number {
     return rngState().seed ^ (this.state.commander.galaxy * 0x9e3779b1);

@@ -1,19 +1,19 @@
-// Turning a population plan into ships in the sky.
+// A population plan becomes ships in the sky.
 //
-// population.ts decides WHAT a system holds; this puts it there. The split is
-// worth the two files: the plan is pure and unit-tested against the rules that
-// make a galaxy feel inhabited, and this half is nothing but placement — where
-// a trader sits relative to the station, how a reception scatters along the
-// corridor you are about to fly down.
+// population.ts decides WHAT a system holds. This file puts it there. The
+// split is worth the two files. The plan is pure, and a unit test holds it
+// against the rules that make a galaxy feel inhabited. This half is nothing
+// but placement. It says where a trader sits relative to the station. It says
+// how a reception scatters along the corridor you are about to fly down.
 //
-// Nothing here decides anything. Give it the same plan twice and you get the
+// Nothing here decides anything. Give it the same plan twice, and you get the
 // same sky twice.
 //
-// The distances are constants/spawn-placement.ts. The combat-training arena is
-// the same job with a different plan, and it is `spawning-arena.ts` — a
-// separate file since 2026-08-15, because an exercise's ring is sized by what a
-// pilot can SEE rather than by where traffic would be. It borrows `ringBasis`
-// from here and nothing else.
+// The distances are constants/spawn-placement.ts. The arena for combat
+// training is the same job with a different plan, and it is
+// `spawning-arena.ts`. It became a separate file on 2026-08-15. An
+// exercise's ring is sized by what a pilot can SEE, rather than by where
+// traffic would be. It borrows `ringBasis` from here and nothing else.
 
 import * as THREE from 'three';
 import type { World } from './world.ts';
@@ -50,7 +50,7 @@ const _face = new THREE.Vector3();
  * Two unit vectors perpendicular to `axis` and to each other.
  *
  * EXPORTED for `spawning-arena.ts`, which lays an exercise's ring with it. It
- * is the one piece of geometry a system and an arena share, and it lives here
+ * is the one piece of geometry a system and an arena share. It lives here,
  * because this file is the older of the two homes.
  */
 export function ringBasis(axis: THREE.Vector3, u: THREE.Vector3, v: THREE.Vector3): void {
@@ -63,7 +63,7 @@ export function ringBasis(axis: THREE.Vector3, u: THREE.Vector3, v: THREE.Vector
 export interface SpawnResult {
   /** the generation ship, if one crossed — the Game announces it */
   generationShip: NpcShip | null;
-  /** the Constrictor, if this is where it was hiding */
+  /** the Constrictor, if this is the system it hid in */
   missionTarget: NpcShip | null;
 }
 
@@ -97,9 +97,9 @@ export function spawnPopulation(
       .add(scatter(spread));
 
   for (let i = 0; i < plan.traders; i++) {
-    // Half the traders are already trading by the slot; on an arrival the rest
-    // are inbound down the corridor, so you meet honest traffic flying in (and a
-    // pirate has someone to prey on). The `arriving` phase steers them to the
+    // Half the traders already trade by the slot. On an arrival the rest are
+    // inbound down the corridor. So you meet honest traffic on its way in, and
+    // a pirate has somebody to prey on. The `arriving` phase steers them to the
     // station on its own (npc.ts `updateTrader`).
     if (arriving && i % 2 === 0) {
       const trader = world.spawn('trader', corridorPos(TRADER_SCATTER), i + sys.index);
@@ -109,8 +109,8 @@ export function spawnPopulation(
     }
   }
   for (let i = 0; i < plan.police; i++) {
-    // On the corridor when arriving — a Viper you may pass and be scanned by —
-    // and scattered across the system on a launch, never sitting on the slot.
+    // On the corridor for an arrival, where a Viper may pass you and scan you.
+    // Scattered across the system for a launch, and never on the slot itself.
     const pos = arriving ? corridorPos(POLICE_SCATTER)
       : home.clone().add(scatter(POLICE_PATROL_RANGE));
     world.spawn('police', pos, i);
@@ -125,8 +125,8 @@ export function spawnPopulation(
       // ringleaders first, then the hangers-on they brought
       const seed = i + sys.index * 3;
       const tier = memberTier(plan.threat.tier, i);
-      // The tier table is the set's, not the catalogue's: this is the pirate
-      // band, and it is the band a system's blueprint set narrows (TODO 138).
+      // The tier table is the set's, not the catalogue's. This is the pirate
+      // band, and a system's blueprint set narrows that band (TODO 138).
       const npc = world.spawn('pirate', pos, seed, pirateSpecForTier(tier, seed, world.roster));
       npc.state.organised = plan.threat.organised;
       npc.state.threatTier = tier;
@@ -147,12 +147,12 @@ export function spawnPopulation(
       .add(randomDirection(new THREE.Vector3())
         .multiplyScalar(GENERATION_SHIP_RANGE + random() * GENERATION_SHIP_RANGE_SPAN));
     generationShip = world.spawn('generation', pos, 0);
-    // steerQuatToward, not lookAt: Object3D.lookAt aims +Z at its target and a
-    // hull's nose is -Z (invariant 7), so `lookAt(home)` would point the
+    // steerQuatToward, not lookAt. Object3D.lookAt aims +Z at its target, and a
+    // hull's nose is -Z (invariant 7). So `lookAt(home)` would point the
     // derelict exactly away from the station.
     steerQuatToward(generationShip.object.quaternion,
       _face.copy(home).sub(generationShip.object.position), Math.PI);
-    // still shedding cargo after centuries
+    // it still sheds cargo after centuries
     world.cargo.spawn(
       pos.clone().add(randomDirection(new THREE.Vector3())
         .multiplyScalar(GENERATION_CARGO_SCATTER)),
@@ -176,15 +176,15 @@ export function spawnPopulation(
 /**
  * A trader warps in AHEAD OF THE COMMANDER, out in deep space, and runs on.
  *
- * The lane the function above builds is anchored to the station, so it holds
+ * The lane the function above builds is anchored to the station. So it holds
  * nothing for a commander 200,000 units out on a sun run. Everything a system
- * holds sits within 22,000 units of the port, and the only spawn anchored to
- * the commander is a pirate wave that half the government ladder refuses. So a
- * long flight met nobody at all (docs/TODO/159, GitHub #31).
+ * holds sits within 22,000 units of the port. The only spawn anchored to the
+ * commander is a pirate wave that half the government ladder refuses. So a long
+ * flight met nobody at all (docs/TODO/159, GitHub #31).
  *
  * It is `departing` rather than `arriving`, and the reason is
- * `DEEP_TRADER_RUN`: a ship pointed at the station out here would fly for
- * sixteen minutes and hold one of the four trader slots for all of them.
+ * `DEEP_TRADER_RUN`. A ship pointed at the station out here would fly for
+ * sixteen minutes, and hold one of the four trader slots for all of them.
  *
  * @param forward where the commander is pointed. The cone is about that, so the
  * ship arrives where somebody can see it.
@@ -207,9 +207,9 @@ export function spawnPassingTrader(
 
   const trader = world.spawn('trader', pos, randomInt(100));
   trader.state.traderPhase = 'departing';
-  // Onward and out of the system: the heading is away from the station, which
-  // is the way a ship this far out is already going. `updateTrader` despawns it
-  // near the waypoint and the Game plays the flash.
+  // Onward and out of the system. The heading is away from the station, which
+  // is the way a ship this far out already points. `updateTrader` despawns it
+  // near the waypoint, and the Game plays the flash.
   const away = _face.copy(pos).sub(world.station.position);
   if (away.lengthSq() < 1e-6) randomDirection(away);
   trader.state.waypoint.copy(pos).addScaledVector(away.normalize(), DEEP_TRADER_RUN);
@@ -231,14 +231,17 @@ export function spawnArrivingTrader(world: World, range: number): void {
 /**
  * Vipers off the slot, launched because you shot at something you shouldn't.
  *
- * The rule the station enforces: one or two of them, stacked along the slot
- * normal, jittered so a second call does not look like the first, and PROVOKED
- * — launched specifically for you, so unlike ordinary police they are already
- * your business.
+ * The rule the station enforces has four parts:
  *
- * The stack does NOT guarantee they miss each other: the jitter is larger than
- * the spacing can absorb, and about one pair in a hundred launches with hulls
- * intersecting. See `STATION_DEFENCE_JITTER`.
+ *   1. one or two of them;
+ *   2. stacked along the slot normal;
+ *   3. jittered, so a second call does not look like the first;
+ *   4. PROVOKED, because the station launched them for you. Unlike ordinary
+ *      police, they are already your business.
+ *
+ * The stack does NOT guarantee that they miss each other. The jitter is larger
+ * than the spacing can absorb. About one pair in a hundred launches with its
+ * two hulls in contact. See `STATION_DEFENCE_JITTER`.
  *
  * Returns the ships so the caller can say the line and make the noise.
  */

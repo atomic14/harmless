@@ -1,13 +1,18 @@
-// Turning the world into the numbers the HUD paints.
+// The world becomes the numbers the HUD paints.
 //
-// The HUD itself is a dumb painter: hand it a HudState and it draws. What it
-// needs computing — where the scanner blips are, which ship the crosshair is
-// over, where the docking slot lands on screen — was 210 lines inside
-// game.ts's renderHud, mixed in with the assembly.
+// The HUD itself is a dumb painter: hand it a HudState and it draws. Three
+// things have to be worked out first:
+//
+//   1. where the scanner blips are;
+//   2. which ship the crosshair is over;
+//   3. where the docking slot lands on screen.
+//
+// Those three were 210 lines inside game.ts's renderHud, mixed in with the
+// assembly.
 //
 // These are pure functions over the state they are given. Nothing here mutates
-// the game, and the only THREE objects they touch are the scratch vectors
-// passed in, because this runs every frame and allocating would show.
+// the game. The only THREE objects they touch are the scratch vectors passed
+// in. This runs every frame, so a fresh allocation would show.
 
 import * as THREE from 'three';
 import type { HudState, ScannerContact, ScreenTarget } from './hud.ts';
@@ -20,10 +25,11 @@ import {
 import { TARGET_BRACKET_RANGE, BOLT_SPEED } from '../constants/console.ts';
 
 /**
- * Everything on the scanner: the station, ships, missiles and drifting objects.
+ * Everything on the scanner: the station, the ships, the missiles and the
+ * loose objects adrift.
  *
- * The drifting objects arrive with their `kind` because a capsule is not a
- * canister and reads as its own blip. This parameter used to narrow them to
+ * A loose object arrives with its `kind`, because a capsule is not a canister
+ * and reads as its own blip. This parameter used to narrow them to
  * `{ object }`, which threw the kind away one call before the blip was painted.
  */
 export function scannerContacts(
@@ -56,10 +62,10 @@ export function scannerContacts(
 /**
  * Project a world point into the HUD's marker space.
  *
- * Mirrored when the point is behind us, so an off-screen arrow points
- * BACKWARDS rather than at the point's reflection through the camera — project
- * a position behind the viewer and clip space hands you a plausible-looking
- * coordinate on the wrong side.
+ * A point behind us is mirrored, so an off-screen arrow points BACKWARDS. It
+ * does not point at the reflection of that point through the camera. Project a
+ * position behind the viewer, and clip space hands you a coordinate that looks
+ * plausible on the wrong side.
  *
  * Written once here because the docking-slot marker and the threat arrow both
  * need it, and both had their own copy.
@@ -122,11 +128,13 @@ export function nearestHostile(
 /**
  * Where the slot is on screen, and how well lined up you are.
  *
- * The marker is deliberately NOT gated on facing the station: "which way is
- * the slot" is exactly the question you have while looking the wrong way, and
- * close in the station fills the view with a blank black face. The alignment
- * aid IS gated, so it only appears once you are actually making an approach —
- * departures launch facing away, and the aid should stay out of the way.
+ * The marker is deliberately NOT gated on a nose pointed at the station.
+ * "Which way is the slot?" is exactly the question you have when you point the
+ * wrong way. Close in, the station fills the view with a blank black face.
+ *
+ * The alignment aid IS gated, so it appears only once the approach is real. A
+ * departure launches with the nose the other way, and the aid should stay out
+ * of the way.
  */
 export function dockingAid(
   station: THREE.Object3D,
@@ -156,9 +164,9 @@ export function dockingAid(
   station.worldToLocal(local);
   scratch.q.copy(station.quaternion).invert().multiply(playerQuat);
   const right = scratch.a.set(1, 0, 0).applyQuaternion(scratch.q);
-  // The slot's own rules, not a copy of them: this used to hardcode the
-  // channel and the roll tolerance, so the aid and the dock test could —
-  // and, when the letterbox turned upright, would — disagree.
+  // The slot's own rules, not a copy of them. This used to hardcode the
+  // channel and the roll tolerance. So the aid and the dock test could
+  // disagree, and once the letterbox turned upright they did.
   const inSlot = inSlotChannel(local.x, local.y);
   const rollOk = rollAlignedWithSlot(right.x, right.y);
   return {
@@ -169,11 +177,11 @@ export function dockingAid(
       roll: slotRollOffset(right.x, right.y),
       inSlot,
       rollOk,
-      // The CHOICE lives here rather than in the painter: green has to mean
-      // the dock test would pass, and `inSlot` alone is the lateral half of
-      // it, so a ship centred in the letterbox and rolled 30° out was being
-      // told LINED UP one moment before `dockingOutcome` returned 'slotMiss'.
-      // A canvas cannot be asserted against; this can (docs/TODO/120).
+      // The CHOICE lives here rather than in the painter. Green has to mean
+      // that the dock test would pass, and `inSlot` alone is the lateral half
+      // of it. So a ship centred in the letterbox and rolled 30° out read
+      // LINED UP one moment before `dockingOutcome` returned 'slotMiss'.
+      // A canvas cannot be asserted against. This can (docs/TODO/120).
       port: !inSlot ? 'off' : rollOk ? 'lined' : 'roll',
     },
   };
@@ -183,11 +191,14 @@ export function dockingAid(
  * Target brackets: ships in front of the current view, plus a lead marker on
  * the locked one.
  *
- * Laser bolts are instant, but the target keeps moving while you line up, so
- * the lead point shows where it will be after the bolt's flight time. Assumes
- * the target holds its current heading at its current speed — which is wrong
- * the moment it turns, and is exactly why it is an aid rather than an autoaim.
- * On a stopped target the lead sits on the hull, which is correct: no floor
+ * A laser bolt is instant, but the target moves on while you line up. So the
+ * lead point shows where the target will be after the bolt's flight time.
+ *
+ * It assumes that the target holds its heading at its speed. That is wrong the
+ * moment the target turns, which is exactly why it is an aid rather than an
+ * autoaim.
+ *
+ * On a stopped target the lead sits on the hull, and that is correct. No floor
  * keeps it off, because a floor is a lie about where the shot lands.
  */
 export function screenTargets(

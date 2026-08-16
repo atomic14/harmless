@@ -1,20 +1,23 @@
 // Combat viewer: watch the pilots the game ships actually fly.
 //
-// It replays `ai-training/scenario.ts` — the same episodes the trainer scores —
-// with the real wireframe hulls, so a pilot can be WATCHED rather than read off
-// a table. The design gallery used to be on the same page behind a `G` key,
-// which meant this page opened on the gallery and the combat viewer read as
-// deleted; it is `/gallery` now (viewer/gallery-main.ts) and neither page has a
-// mode key.
+// It replays `ai-training/scenario.ts`, which holds the same episodes the
+// trainer scores. It draws them with the real wireframe hulls. So a pilot can
+// be WATCHED rather than read off a table.
+//
+// The design gallery used to be on the same page behind a `G` key. So this page
+// opened on the gallery, and the combat viewer read as deleted. The gallery is
+// `/gallery` now (viewer/gallery-main.ts), and neither page has a mode key.
 //
 // This file is the page's DOM SHELL and nothing else: canvas, HUD, keys, and
 // the frame loop. The rows — which fight, flown by which pilot — are
-// `./scenarios.ts`, which is DOM-free so `npm test` can build and fly every
-// row headless. That split is the fix for this page's 2026-08 outage: a
-// module-scope call here still loaded a trained brain after the trained line
-// was retired, so `/viewer` threw at import and nothing went red
-// (docs/TODO/102). Anything that can go stale against the game belongs in
-// scenarios.ts, under the gate; nothing here may ask for a brain.
+// `./scenarios.ts`. That file is DOM-free, so `npm test` can build and fly
+// every row headless.
+//
+// That split is the fix for this page's 2026-08 outage. A module-scope call
+// here still loaded a trained brain after the trained line was retired. So
+// `/viewer` threw at import, and nothing went red (docs/TODO/102). Anything
+// that can go stale against the game belongs in scenarios.ts, under the gate.
+// Nothing here may ask for a brain.
 
 import * as THREE from 'three';
 
@@ -36,16 +39,18 @@ const SIDEWINDER = requireShipDef(shipDesignIdOf(17));
 /**
  * What the two sides are painted, read from the roster rather than copied.
  *
- * These were `0xff9a5c` and `0xffffff` written out here, which are exactly
- * `SPECS.pirate[0].color` and `SPECS.trader[0].color` — ship DATA, hand-copied
- * into a dev page, so a recoloured roster would have left this viewer showing
- * the old colours while claiming to show the fight (docs/TODO/93). Not the
- * phosphor palette: a hull colour says which ship, not which instrument.
+ * These were `0xff9a5c` and `0xffffff` written out here. Those are exactly
+ * `SPECS.pirate[0].color` and `SPECS.trader[0].color`. That is ship DATA,
+ * hand-copied into a dev page. A recoloured roster then left this viewer in the
+ * old colours, under a claim to show the fight (docs/TODO/93).
+ *
+ * It is not the phosphor palette. A hull colour says which ship, not which
+ * instrument.
  *
  * Index 0 of each role, which is what the copies were, so the viewer looks the
- * same as it did. Deliberately not `specForDesign` per pirate: every pirate in
- * an episode is drawn one colour here so that the eye can tell the sides apart
- * at a glance, which is the whole job of this page.
+ * same as it did. Deliberately not `specForDesign` per pirate. Every pirate in
+ * an episode takes one colour here, so that the eye tells the sides apart at a
+ * glance. That is the whole job of this page.
  */
 const PIRATE_COLOUR = SPECS.pirate[0].color;
 const TRADER_COLOUR = SPECS.trader[0].color;
@@ -99,19 +104,21 @@ const tracerDir = new THREE.Vector3();
 /**
  * The warheads currently on screen.
  *
- * A missile is not an `EpisodeShip` and does not want to be: `ordnance.ts`
- * already flies a real `Object3D` for it, so this page adds that object rather
- * than building a second one to copy a position into. Kept as a set because the
- * episode's list is the truth and this is only what has been shown of it.
+ * A missile is not an `EpisodeShip`, and does not want to be. `ordnance.ts`
+ * already flies a real `Object3D` for it. So this page adds that object,
+ * rather than builds a second one to copy a position into.
  *
- * It exists because pirates in an episode LAUNCH now (docs/TODO/62), and a
- * warhead is 250 of the commander's 765 pool points: without this the page would
- * show a target losing a third of herself to nothing at all, which is exactly
- * the kind of lie the viewer is here to stop telling.
+ * It is a set, because the episode's list is the truth. This is only the part
+ * of that list which reached the screen.
+ *
+ * It exists because a pirate in an episode LAUNCHES now (docs/TODO/62). A
+ * warhead is 250 of the commander's 765 pool points. Without this, the page
+ * would show a target down a third of herself to nothing at all. That is
+ * exactly the kind of lie the viewer exists to stop.
  */
 const drawnMissiles = new Set<THREE.Object3D>();
 
-/** Add what has been launched, drop what has gone off. */
+/** Add each new launch. Drop each warhead that went off. */
 function syncMissiles(): void {
   const live = new Set<THREE.Object3D>();
   for (const m of episode.missiles) {
@@ -137,11 +144,13 @@ function syncViews(events: ShotEvent[]): void {
   }
   for (const e of events) {
     // From the NOSE, along the nose. This used to draw hull-centre to
-    // target-centre, which made every shot look like it left the side of the
-    // ship and curved onto the target: at any bank angle the line visibly
-    // disagreed with where the ship was pointing. The sim never fired that way
-    // (measured: hits average 0.5 degrees off the nose, worst 1.9), so this was
-    // purely a drawing bug, and a misleading one.
+    // target-centre. So every shot looked like it left the side of the ship
+    // and curved onto the target. At any bank angle the line plainly
+    // disagreed with where the ship pointed.
+    //
+    // The sim never fired that way. Measured, a hit averages 0.5 degrees off
+    // the nose, and the worst is 1.9. So this was purely a drawing defect, and
+    // it misled a reader.
     //
     // A miss now flies PAST the target instead of into it. Drawing a miss to
     // the target's centre made it look like a hit that failed to register.
@@ -170,7 +179,8 @@ function syncViews(events: ShotEvent[]): void {
 }
 
 function updateCamera(dt: number): void {
-  // frame the action: midpoint of living ships, distance from their spread
+  // frame the action: the midpoint of the ships still alive, at a distance
+  // taken from how far apart they are
   const alive = views.filter((v) => v.sim.alive);
   if (!alive.length) return;
   const mid = new THREE.Vector3();
@@ -219,9 +229,9 @@ function renderHud(): void {
   hud.textContent = lines.join('\n');
 }
 
-// The rows are built here, from the table, so a label and the weights under it
-// cannot come apart — which is how this page came to show a pack it does not
-// ship under a label implying it does.
+// The rows are built here, from the table. So a label and the weights under it
+// cannot come apart. That is how this page came to show a pack the game does
+// not ship, under a label that said it did.
 const scenarioSelect = document.getElementById('scenario') as HTMLSelectElement;
 for (const s of SCENARIOS) {
   const option = document.createElement('option');

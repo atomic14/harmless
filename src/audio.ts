@@ -1,10 +1,10 @@
 // Tiny WebAudio synth — bleeps and zaps in the spirit of the BBC sound chip.
 // The context is created lazily on the first user gesture.
 //
-// One-shot noises only. The docking waltz is `music.ts` — three SID voices, a
-// 50 Hz clock and the arrangement in `music-danube.ts`, which is a different
-// subject and was pushing this file past the size ceiling. This file still owns
-// the CONTEXT, and hands it to the player, so "created lazily on the first
+// One-shot noises only. The docking waltz is `music.ts`: three SID voices, a
+// 50 Hz clock, and the arrangement in `music-danube.ts`. That is a different
+// subject, and it took this file past the size ceiling. This file still owns
+// the CONTEXT, and hands it to the player. So "created lazily on the first
 // gesture" stays one rule.
 
 import { AUDIBLE_RANGE, STEREO_WIDTH } from './constants/audio.ts';
@@ -15,9 +15,9 @@ import { playDanube } from './music.ts';
  * Where a sound happened, as the cockpit hears it (docs/TODO/142).
  *
  * The Game measures it; this file decides what it is worth. That is the same
- * bargain `countdown(n)` struck: the caller reports the occasion, and the audio
- * design is made here. A caller that hands over a place is not asking for a
- * volume, and a sound is free to spend one field and ignore the other.
+ * bargain `countdown(n)` struck. The caller reports the occasion, and the audio
+ * design is made here. A caller that hands over a place does not ask for a
+ * volume. A sound may spend one field and ignore the other.
  */
 export interface Place {
   /** world units from the cockpit to the source */
@@ -38,16 +38,16 @@ export interface Place {
  * How much of a sound survives the trip, from 1 at the hull to 0 at the edge of
  * earshot.
  *
- * Squared rather than linear, because linear is too flat to be information: a
- * kill at half the scanner would arrive at half volume, and every fight would
- * sit in the same narrow band of loudness. Squared puts that kill at a quarter
+ * Squared rather than linear, because linear is too flat to carry information.
+ * A kill at half the scanner would arrive at half volume, and every fight would
+ * sit in the same narrow band of loudness. Squared puts that kill at a quarter,
  * and leaves room underneath for the ones that matter.
  *
  * It is NOT the inverse-square law, and the departure is deliberate. True
  * inverse-square puts a wreck at 300 units a hundredth as loud as one on the
- * hull, so a fight would stop being audible long before it stopped being
- * dangerous. This reaches zero at a stated range instead, which is what lets a
- * voice beyond it be skipped rather than built and never heard.
+ * hull. A fight would then go quiet while it was still dangerous.
+ * This curve reaches zero at a stated range instead. That is what lets the
+ * code skip a voice beyond that range, rather than build one nobody hears.
  */
 function distanceGain(distance: number): number {
   const reach = Math.max(0, 1 - distance / AUDIBLE_RANGE);
@@ -72,10 +72,10 @@ function ac(): AudioContext | null {
  * The envelope, scaled by how far away the sound happened.
  *
  * @returns null when there is no note to build. A voice quieter than the level
- * the envelope decays TO would ramp upwards over its own length, which is a bang
- * played backwards. So the floor decides two things at once, and it is written
- * once: below it the sound is skipped, and above it the sound decays to it.
- * Skipping also means a wreck beyond earshot costs no oscillator and no buffer.
+ * the envelope decays TO would ramp upwards over its own length, which is a
+ * bang played backwards. So the floor decides two things at once, and it is
+ * written once. Below it the sound is skipped. Above it the sound decays to it.
+ * The skip also means a wreck beyond earshot costs no oscillator and no buffer.
  */
 function env(
   a: AudioContext, gain: number, duration: number, place?: Place,
@@ -87,8 +87,8 @@ function env(
   g.gain.setValueAtTime(level, a.currentTime);
   g.gain.exponentialRampToValueAtTime(floor, a.currentTime + duration);
   // Stereo width where the browser has a panner, straight through where it does
-  // not — the rule music.ts already states for the waltz, and it holds for the
-  // sky: a missing StereoPannerNode must cost the placement, not the sound.
+  // not. The same rule is already in music.ts for the waltz, and it holds for
+  // the sky. An absent StereoPannerNode must cost the placement, not the sound.
   const panner = place ? a.createStereoPanner?.() : undefined;
   if (panner) {
     panner.pan.value = place!.side * STEREO_WIDTH;
@@ -140,7 +140,7 @@ function noiseBurst(duration: number, gain: number, lowpass = 4000, place?: Plac
   src.start();
 }
 
-/** The teardown for the waltz while it is playing, or null when it is not. */
+/** The teardown for the waltz while it runs, or null when it does not. */
 let musicStop: (() => void) | null = null;
 
 export const sfx = {
@@ -148,27 +148,29 @@ export const sfx = {
     sweep('sawtooth', 900, 220, 0.18, 0.12);
   },
   /**
-   * Somebody is shooting at you. PLACED, and never attenuated.
+   * Somebody has their guns on you. PLACED, and never attenuated.
    *
    * This is the one sound of the four that ignores its own distance, and the
-   * reason is in `world-step.ts`: the bang is pushed only in the branch where
-   * the shot is at the PLAYER — an NPC firing on another NPC draws a tracer and
-   * says nothing — so the beam always ends on the hull, or within 220 units of
-   * it on a miss. How far the shooter sits is therefore not a fact about how
-   * loud the bolt was. What the place tells the pilot is which side it came
-   * from, which is the warning worth having.
+   * reason is in `world-step.ts`. The bang is pushed only in the branch where
+   * the shot is at the PLAYER. An NPC that shoots another NPC draws a tracer
+   * and says nothing. So the beam always ends on the hull, or within 220 units
+   * of it on a miss.
+   *
+   * How far off the shooter sits is therefore not a fact about how loud the
+   * bolt was. What the place tells the pilot is which side it came from, and
+   * that is the warning that matters.
    */
   enemyLaser(place?: Place): void {
     sweep('square', 500, 140, 0.22, 0.08,
       place && { distance: 0, side: place.side });
   },
-  /** Your own bolt striking something, out where the something is. */
+  /** Your own bolt lands on something, out where that something is. */
   hit(place?: Place): void {
     noiseBurst(0.12, 0.15, 2500, place);
   },
   /**
-   * You took a hit. No place: it happened to the hull you are sitting in, and a
-   * warning that faded with the shooter's range would be the wrong warning.
+   * You took a hit. No place: it happened to the hull around you. A warning
+   * that faded with the shooter's range would be the wrong warning.
    */
   damage(): void {
     noiseBurst(0.3, 0.22, 1200);
@@ -218,21 +220,22 @@ export const sfx = {
    * world step, which put audio design inside the simulation. Same tone as
    * before, decided here.
    *
-   * The 700 and the 100 are this file's; the length of the countdown is not,
-   * and it wrote `(5 - n)` out as a digit until `COUNTDOWN` was somewhere it
-   * could be imported from. A longer countdown would have started BELOW 700
-   * and climbed to it — the first blip of a jump is meant to be the base note
-   * whatever the drive's warning is. `test/audio.test.ts` asserts that climb
-   * rather than this expression.
+   * The 700 and the 100 are this file's. The length of the countdown is not.
+   * This wrote `(5 - n)` out as a digit until `COUNTDOWN` sat somewhere an
+   * import could reach.
+   *
+   * A longer countdown then started BELOW 700 and climbed to it. The first
+   * blip of a jump is meant to be the base note, whatever the drive's warning
+   * is. `test/audio.test.ts` asserts that climb rather than this expression.
    */
   countdown(n: number): void {
     const f = 700 + (COUNTDOWN - n) * 100;
     sweep('square', f, f, 0.07, 0.08);
   },
   /**
-   * Start the docking waltz. Safe to call repeatedly — a second call while it
-   * is already playing does nothing, so an autopilot that re-engages doesn't
-   * stack voices on top of each other.
+   * Start the docking waltz. It is safe to call repeatedly. A second call while
+   * the waltz already runs does nothing. So an autopilot that re-engages does
+   * not stack voices on top of each other.
    */
   dockingMusic(): void {
     const a = ac();

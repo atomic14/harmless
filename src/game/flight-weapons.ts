@@ -1,22 +1,33 @@
 // What the ship spends, and what it takes.
 //
-// A child of `flight.ts`, split from it by docs/TODO/155 M2 because the flight
-// half reached 648 lines and five section headers — which is `tools/sizes.mjs`
-// working as a detector rather than as a rule: a file rarely reaches 400 lines
-// doing one thing, and that one was doing three.
+// A child of `flight.ts`, split from it by docs/TODO/155 M2. The flight half
+// reached 648 lines and five section headers. That is `tools/sizes.mjs` as
+// a detector rather than as a rule: a file rarely reaches 400 lines on one
+// subject, and that one held three.
 //
 // ONE RESPONSIBILITY: what the ship spends, and what it takes. The racks and
-// the guns are the same subject read from both ends — a missile, a burst of
-// E.C.M., a bomb, a tonne over the side and a trigger pull are what a commander
-// SPENDS, and a hit on the hull is the bill. Both end in the same place, which
-// is why they are one file: `applyCombat` below pays for either.
+// the guns are the same subject read from both ends. Five things are what a
+// commander SPENDS:
 //
-// `ordnance.ts` owns what a rack holds and what firing one costs, `combat.ts`
-// resolves a hit, and `jettison.ts` decides what goes over the side first. This
-// spends all three, and says what happened.
+//   1. a missile;
+//   2. a burst of E.C.M.;
+//   3. a bomb;
+//   4. a tonne over the side;
+//   5. a pull on the trigger.
+//
+// A hit on the hull is the bill. Both halves end in the same place, which is
+// why they are one file: `applyCombat` below pays for either.
+//
+// Three modules own the rules under it:
+//
+//   - `ordnance.ts` owns what a rack holds, and what one shot costs;
+//   - `combat.ts` resolves a hit;
+//   - `jettison.ts` decides what goes over the side first.
+//
+// This file spends all three, and says what happened.
 //
 // IT DECIDES NOTHING ABOUT WHAT COMES NEXT. A death, an offence and a sound all
-// leave through the host, because who dies and what the law thinks are the
+// leave through the host. Who dies, and what the law thinks, are the
 // orchestrator's, two files up.
 
 import * as THREE from 'three';
@@ -42,7 +53,7 @@ import type { SoundEvent } from './sounds.ts';
 import type { GameState } from './state.ts';
 
 /**
- * What spending and taking damage has to reach back for.
+ * What a spend and a hit taken have to reach back for.
  *
  * EIGHT, and every one of them is a consequence that outlives the shot. What
  * the console says, what the law makes of it, whether the pilot is still alive,
@@ -59,7 +70,7 @@ export interface WeaponsHost {
   raiseLegal(level: number): void;
   /** the hull is gone: what happens next is the career's, not the gun's */
   die(reason: string): void;
-  /** the co-pilot's own record that the commander is being hit — see autopilot.ts */
+  /** the co-pilot's own record that a bolt landed on the commander — see autopilot.ts */
   noteUnderFire(): void;
   flashDamage(): void;
   flashBomb(): void;
@@ -76,15 +87,17 @@ export class Weapons {
   /**
    * The exercise, which credits its own clone rather than the career.
    *
-   * REACHED LAZILY, because the two are a cycle by construction: an exercise
+   * REACHED LAZILY, because the two are a cycle by construction. An exercise
    * runs the same gun the career does, so `CombatSim` takes this file's
-   * `Combat` — and a kill inside an exercise has to be credited to the
-   * exercise. A thunk is the smaller of the two evils; the alternative is a
-   * second `Combat`, and then a shot would resolve differently in a trainer.
+   * `Combat`. A kill inside an exercise then has to be credited to the
+   * exercise.
+   *
+   * A thunk is the smaller of the two evils. The alternative is a second
+   * `Combat`, and then a shot would resolve differently in a trainer.
    */
   private readonly exercise: () => CombatSim;
 
-  /** Resolving hits: shots, wrecks, bounties — see combat.ts. */
+  /** The resolver for a hit: shots, wrecks, bounties — see combat.ts. */
   private readonly combat: Combat;
   /** Explicit telemetry seam; absent during ordinary play. */
   private readonly instrumentation = new CombatInstrumentation();
@@ -112,10 +125,10 @@ export class Weapons {
   get gun(): Combat { return this.combat; }
 
   /**
-   * Observe live combat without replacing production methods.
+   * Observe live combat, and replace no production method.
    *
-   * The returned disposer removes only this registration, so one recorder
-   * stopping cannot detach another.
+   * The disposer that comes back removes only this registration. So one
+   * recorder that stops cannot detach another.
    */
   setCombatObserver(observer: CombatObserver | null): () => void {
     return this.instrumentation.setObserver(observer);
@@ -144,9 +157,9 @@ export class Weapons {
   }
 
   triggerEcm(): void {
-    // The burst and its price are `fireEcm` — one call, because the combat
-    // computer presses the same button from `pilotDemand` and a training
-    // episode's target presses it too (docs/TODO/72).
+    // The burst and its price are `fireEcm`, in one call. The combat computer
+    // presses the same button from `pilotDemand`, and a training episode's
+    // target presses it too (docs/TODO/72).
     this.applyOrdnance(fireEcm(this.state.commander, this.state.sys, this.ordnance));
   }
 
@@ -158,12 +171,12 @@ export class Weapons {
     this.host.flashBomb();
     for (const npc of outcome.caught) {
       // The bomb is a stated `IMPACT` like every other non-laser source, spent
-      // through the same `dealToNpc` — 255 points, above every released bank,
-      // so everything it caught is gone.
+      // through the same `dealToNpc`. It is 255 points, above every released
+      // bank, so everything it caught is gone.
       //
       // The two lines are the same pair as the step's: what it cost the ship,
       // then the kill. The bomb is the one damage path that never touches the
-      // world step, so both are handed to a running exercise here.
+      // world step. So a live exercise takes both from here.
       const hit = dealToNpc(
         npc, npcImpactDamage(IMPACT.energyBomb), this.state.player.position, 'bomb');
       this.exercise().playerDealt(hit.event);
@@ -171,7 +184,7 @@ export class Weapons {
     }
   }
 
-  /** Ordnance reports what it did; saying it is ours. */
+  /** Ordnance reports what it did. The words are ours. */
   say(reply: OrdnanceOutcome['reply']): void {
     if (!reply) return;
     const m = ordnanceMessage(reply);
@@ -184,8 +197,8 @@ export class Weapons {
   /**
    * Dump a tonne over the side.
    *
-   * WHY that buys a pirate off, and how much more an organised gang wants, is
-   * `jettison.ts`'s opening — it said both first and says them better
+   * The header of `jettison.ts` says WHY that buys a pirate off, and how much
+   * more an organised gang wants. It said both first, and it says them better
    * (docs/TODO/153).
    *
    * @internal — driven by test/jettison.test.ts
@@ -212,9 +225,11 @@ export class Weapons {
   }
 
   /**
-   * Pull the trigger. The arguments are built from the state by combat.ts, so
-   * the same gun can be fired against a state that is not this Game's; what
-   * lands on the HUD and in the law is what makes this one the Game's.
+   * Pull the trigger.
+   *
+   * combat.ts builds the arguments out of the state. So the same gun can fire
+   * against a state that is not this Game's. What lands on the HUD and in the
+   * law is what makes this one the Game's.
    *
    * @internal — driven by src/game/game.ts, which delegates to it.
    */
@@ -228,9 +243,10 @@ export class Weapons {
    * @internal — driven by src/game/game.ts, which delegates to it.
    */
   destroyNpc(npc: NpcShip): void {
-    // The ENERGY BOMB reaches this from runCommand rather than through the step,
-    // so it is the one kill an exercise cannot see through its own StepHost. An
-    // exercise credits its clone and its record instead (see combat-sim.ts).
+    // The ENERGY BOMB reaches this from runCommand rather than through the
+    // step. So it is the one kill an exercise cannot see through its own
+    // StepHost. An exercise credits its clone and its record instead. See
+    // combat-sim.ts.
     if (this.exercise().active) { this.exercise().destroyNpc(npc); return; }
     this.applyCombat(this.combat.destroy(this.state.commander, npc));
   }
@@ -243,14 +259,14 @@ export class Weapons {
   /**
    * The player takes a hit.
    *
-   * `source` says what did it. Mechanics treat every source the same, but the
-   * explicit CombatObserver seam records the fact without replacing this
-   * method at runtime.
+   * `source` says what did it. The mechanics treat every source the same. The
+   * explicit CombatObserver seam records the fact, and replaces no method at
+   * run time.
    */
   applyPlayerDamage(
     amount: PlayerPoolPoints, from: THREE.Vector3, source: DamageSource): void {
-    // the co-pilot's own record that the commander is being hit, kept live end
-    // to end so evasive behaviour can read it (scripted-co-pilot.ts)
+    // the co-pilot's own record that a bolt landed on the commander. It stays
+    // live end to end, so an evasive behaviour can read it (scripted-co-pilot.ts)
     this.host.noteUnderFire();
     this.host.flashDamage();
     this.applyCombat(damagePlayer(this.state, this.combat, amount, from, this.combatScratch));
@@ -270,11 +286,11 @@ export class Weapons {
       switch (e.kind) {
         case 'message': this.host.sayEvent(e); break;
         case 'offence': this.host.raiseLegal(e.level); break;
-        // Straight to the law rather than out through the host, and the
-        // asymmetry with `offence` above is the reason: raising a record
-        // launches the station's Vipers, which is the orchestrator's act. A
-        // record worked off queues one console line and nothing else, so it
-        // goes the way `throwOverboard` already does.
+        // Straight to the law rather than out through the host. The asymmetry
+        // with `offence` above is the reason. A record raised launches the
+        // station's Vipers, which is the orchestrator's act. A record worked
+        // off queues one console line and nothing else, so it goes the way
+        // `throwOverboard` already does.
         case 'atonement': this.law.lowerLegal(e.role); break;
         case 'wrecked': if (this.ordnance.targetLock === e.npc) this.ordnance.targetLock = null; break;
         case 'beam': this.cockpit.aimBeams(e.at); break;
@@ -285,7 +301,7 @@ export class Weapons {
     }
   }
 
-  /** A hull hit destroys a tonne of cargo, or knocks out a fitting. */
+  /** A hull hit destroys a tonne of cargo, or knocks a fitting out. */
   damageSomething(): void {
     const lost = breachLoss(this.state.commander, random);
     if (lost.kind === 'cargo') {
@@ -293,8 +309,8 @@ export class Weapons {
       this.host.showMessage(`CARGO LOST: 1${c.unit} ${c.name.toUpperCase()}`, 3);
       sfx.cargoLost();
     } else if (lost.kind === 'equipment') {
-      // Losing ANY fitting hands control back: a hit hard enough to knock out
-      // equipment is a moment the player should be flying.
+      // The loss of ANY fitting hands control back. A hit hard enough to knock
+      // equipment out is a moment for the player's own hands.
       this.state.session.ccEngaged = false;
       this.host.showMessage(`${lost.name} DESTROYED`, 4);
       sfx.equipmentDestroyed();
