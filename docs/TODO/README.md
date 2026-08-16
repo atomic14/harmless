@@ -13,17 +13,23 @@ active context:
 
 ## Execution queue
 
-1. [154 — The comments in src/ are not in Simplified Technical
+1. [162 — one word that means five things](162-one-word-that-means-five-things.md)
+   · bug · medium · GitHub #33.
+2. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
+
+**162 came out of the triage of GitHub #33 on 2026-08-16.** Chris reported one
+line: *"'Cost you name' doesn't mean anything."* The triage found five meanings
+for the word `name`, and the three ladders that already have three better words.
 
 **161 landed on 2026-08-16 and is below.** It came out of 160, on Chris's call:
 *"We should migrate snapshot v2 to v3."*
 
-**154 is the queue.** It was parked on 2026-08-15, and five items went in front
-of it (Chris): *"I want to park that for a while and pick up the GitHub
-issues."* All five landed the same day and are below. 154 is a sweep, and a
-sweep waits.
+**154 waits again, and the precedent is Chris's.** It was parked on 2026-08-15,
+and five items went in front of it (Chris): *"I want to park that for a while
+and pick up the GitHub issues."* All five landed the same day and are below. 154
+is a sweep, and a sweep waits.
 
 **158, 159 and 160 came out of the triage of GitHub #30, #31 and #32 on
 2026-08-15.** Two of the three share one root, and the triage found it rather
@@ -62,7 +68,8 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds no open work. **#32**, **#31** and **#30** closed on
+The GitHub inbox holds one open issue, **#33**, and it is 162 at the head of the
+queue. **#32**, **#31** and **#30** closed on
 2026-08-15 with [160](completed/160-a-record-you-cannot-work-off.md),
 [159](completed/159-the-lane-that-only-exists-at-the-station.md) and
 [158](completed/158-the-safe-zone-that-only-the-spawner-obeys.md). **#29** and
