@@ -8,10 +8,10 @@ import { PASSENGER_BERTH_TONNES } from '../constants/contracts.ts';
 
 // Commander Jameson: who you are, what you are carrying, and how you rank.
 //
-// PURE. No localStorage, no document, no window — it describes a commander as
-// plain data, so Node can build one, the headless campaign can run thousands,
-// and a test can assert against one. Reading and writing saves is storage.ts;
-// what things cost is shop.ts.
+// PURE. No localStorage, no document and no window. It describes a commander as
+// plain data. So Node builds one, the headless campaign runs thousands, and a
+// test asserts against one. A save is read and written in storage.ts. What
+// things cost is shop.ts.
 //
 // Imports carry explicit .ts extensions because Node loads this module
 // directly for the headless campaign simulator (test/campaign.ts).
@@ -25,9 +25,9 @@ export type LaserType = 'pulse' | 'beam' | 'military';
  * The front gun, worst to best — the order the outfitter's ladder climbs and
  * the order a picker walks.
  *
- * Exported because two screens walk it: the trainer's fit-out rows and test
- * mode's. It was private to the first of them, which meant the second would
- * have been a second copy of the same three words in the same order.
+ * It is exported because two screens walk it: the trainer's fit-out rows and
+ * test mode's. It was private to the first of them. The second then needed a
+ * second copy of the same three words in the same order.
  */
 export const LASER_TYPES: readonly LaserType[] = ['pulse', 'beam', 'military'];
 
@@ -103,9 +103,9 @@ export interface CommanderData {
   /**
    * Which hull you are flying, as a `PlayerHullId` (ship-identity.ts).
    *
-   * The ONE piece of player identity a later shipyard changes, which is why it
-   * is saved as an id rather than as a copied stat block. A save that does not
-   * name one is refused rather than given the Cobra — `requirePlayerHullId`.
+   * It is the ONE piece of player identity a later shipyard changes. So it is
+   * saved as an id rather than as a copied stat block. A save that does not name
+   * one is refused rather than given the Cobra (`requirePlayerHullId`).
    */
   shipId: PlayerHullId;
   galaxy: number;
@@ -126,10 +126,11 @@ export interface CommanderData {
    * Pilots pulled out of escape capsules, awaiting delivery to a station.
    *
    * NOT cargo, and deliberately not `cargo[3]` (SLAVES, which law.ts lists as
-   * contraband) — a rescued survivor must not read as smuggling. They are not
-   * stock, cannot be sold, and cost NO HOLD SPACE: a survivor rides in the crew
-   * spaces, so `cargoTonnes` does not count them and a full hold can still take
-   * one aboard (docs/TODO/108). Uncapped for the same reason — they occupy
+   * contraband), because a rescued survivor must not read as smuggling. They
+   * are not stock and cannot be sold. They also cost NO HOLD SPACE. A survivor
+   * rides in the crew spaces, so `cargoTonnes` does not count them, and a full
+   * hold still takes one aboard (docs/TODO/108). Uncapped for the same reason —
+   * they occupy
    * nothing, and docking hands them to station medical.
    */
   survivors: number;
@@ -157,9 +158,10 @@ export interface CommanderData {
    * paid. Shady deeds raise it, time erodes it; `game/character.ts` turns it
    * into a rung (Honest…Cutthroat). 0 is Honest.
    *
-   * It is not just a label: `threat.ts` reads it as `infamy`, so a reputation draws
-   * people who want to be the ones who killed you, and a rock hermit refuses to
-   * trade with a commander carrying enough of it (`hermitRefuses`).
+   * It is not just a label. `threat.ts` reads it as `infamy`, so a reputation
+   * draws people who want to be the ones who killed you. A rock hermit also
+   * refuses to trade with a commander who carries enough of it
+   * (`hermitRefuses`).
    */
   disrepute: number;
   mission: MissionState;
@@ -168,34 +170,37 @@ export interface CommanderData {
   /** elapsed days — advanced by hyperspace jumps, used for deadlines */
   day: number;
   /**
-   * The briefing edition this commander has been shown (`BRIEFING_VERSION`),
-   * or 0 for never. Saved state rather than an ambient browser flag, so the
-   * once-per-commander promise travels with the save: an export, an import or
+   * The briefing edition this commander saw (`BRIEFING_VERSION`), or 0 for
+   * never.
+   *
+   * It is saved state rather than an ambient browser flag, so the
+   * once-per-commander promise travels with the save. An export, an import and
    * an older record all answer it the same way (docs/TODO/106).
    */
   briefingSeen: number;
   /**
    * The furthest wave this commander has ever reached in the combat trainer.
    *
-   * THE ONE THING AN EXERCISE IS ALLOWED TO LEAVE BEHIND. It is state, so it is
-   * saved. Deliberately NOT a rating, a kill or a credit, and nothing in the
-   * career reads it — it is shown on the trainer's own setup panel and nowhere
-   * else, so the room's promise that nothing in it leaves it holds.
-   * `test/combat-sim-career.test.ts` pins that: after a run of waves it is the
-   * ONLY field of the career that has moved.
+   * THE ONE THING AN EXERCISE MAY LEAVE BEHIND. It is state, so it is saved.
+   *
+   * It is deliberately NOT a rating, a kill or a credit, and nothing in the
+   * career reads it. The trainer's own setup panel shows it, and nowhere else
+   * does. So the room's promise that nothing in it leaves it holds.
+   * `test/combat-sim-career.test.ts` pins that: after a run of waves, it is the
+   * ONLY field of the career that moved.
    */
   furthestWave: number;
   /**
-   * Test mode has been switched on in this career, ever.
+   * Somebody switched test mode on in this career, ever.
    *
-   * A ONE-WAY LATCH, and the reason is a bug report: docs/TODO/96 closed on the
-   * understanding that what plays wrong becomes a GitHub issue, and a report
-   * from a career that spent an afternoon with free equipment fitted is a
-   * different report. `GameState.cheat` is live and can be switched off before
-   * a screenshot; this cannot, so the status screen can say what happened.
+   * A ONE-WAY LATCH, and the reason is a bug report. docs/TODO/96 closed on the
+   * understanding that what plays wrong becomes a GitHub issue. A report from a
+   * career that spent an afternoon with free equipment fitted is a different
+   * report. `GameState.cheat` is live and switches off before a screenshot.
+   * This one cannot, so the status screen says what happened.
    *
-   * Read `?? false` the way `disrepute` is read `?? 0` — a save written before
-   * this field existed has no key for it, and `repairCommander` spreads
+   * Read `?? false` the way `disrepute` is read `?? 0`. A save written before
+   * this field existed has no key for it. `repairCommander` spreads
    * `newCommander()` under whatever it loaded, so an old career reads false
    * rather than undefined.
    */
@@ -208,8 +213,8 @@ export interface CommanderData {
 export function newCommander(): CommanderData {
   return {
     name: DEFAULT_NAME,
-    // Elite-A started you in an Adder; we deliberately do not, because switching
-    // the starting hull is a balance change, not an identity one
+    // Elite-A started you in an Adder. We deliberately do not. To switch the
+    // starting hull is a balance change rather than an identity one
     // (docs/TODO/completed/ELITE-A-COMBAT-PLAN.md defers it).
     shipId: COBRA_MK_3_HULL_ID,
     galaxy: 1,
@@ -236,11 +241,11 @@ export function newCommander(): CommanderData {
 }
 
 /**
- * A run of waves ended at `wave`. Keep it if it is the best there has been.
+ * A run of waves ended at `wave`. Keep it if it is the best so far.
  *
- * A rule rather than a `Math.max` at the call site because there are two call
- * sites — the Game and the harness that proves the Game is right — and a
- * monotonic record written out twice is a record that eventually goes backwards.
+ * It is a rule rather than a `Math.max` at the call site. There are two call
+ * sites: the Game, and the harness that proves the Game is right. A monotonic
+ * record written out twice is a record that eventually goes backwards.
  * It only ever grows: a bad run does not cost you a good one.
  *
  * @returns whether it moved, so the caller knows whether there is anything to save.
@@ -255,11 +260,12 @@ export function recordFurthestWave(c: CommanderData, wave: number): boolean {
 /**
  * Test mode was switched on. Mark the career, for good.
  *
- * A rule rather than an assignment at the call site for `recordFurthestWave`'s
- * reason: it is a MONOTONIC record, and a monotonic record written out twice is
- * one that eventually goes backwards. Switching test mode off is not a second
- * call to make — there is no unmark — so the one-way-ness is stated here, once,
- * and every caller gets it.
+ * It is a rule rather than an assignment at the call site, for
+ * `recordFurthestWave`'s reason. It is a MONOTONIC record, and a monotonic
+ * record written out twice is one that eventually goes backwards.
+ *
+ * There is no second call to make, because there is no unmark. So the one-way
+ * rule is stated here, once, and every caller gets it.
  *
  * @returns whether it moved, so a caller with somewhere to write it knows there
  * is something new to write.
@@ -275,8 +281,8 @@ export function markTested(c: CommanderData): boolean {
  *
  * Weighting by tier rewards taking on the fights that are actually dangerous,
  * rather than farming the weakest thing you can find as the original allowed.
- * (A deliberate deviation from the original, which scored every kill the same;
- * `kills` is still the literal body count, `combatScore` is what the ladder
+ * (A deliberate deviation from the original, which scored every kill the same.
+ * `kills` is still the literal body count. `combatScore` is what the ladder
  * reads, and the iconic 25,600 is untouched.)
  */
 export function killValue(tier: number): number {
@@ -287,15 +293,15 @@ export function killValue(tier: number): number {
  * Tonnes currently used: stock in the bays, plus a berth for every passenger
  * under contract (kg/g commodities don't count against the hold).
  *
- * A PAYING PASSENGER IS NOT A SURVIVOR. `survivors` was counted here once and
- * is deliberately gone again: a rescued pilot is a person in the crew spaces,
- * so rescuing one neither fills a bay nor is refused when the bays are full.
+ * A PAYING PASSENGER IS NOT A SURVIVOR. `survivors` was counted here once, and
+ * it is deliberately gone again. A rescued pilot is a person in the crew
+ * spaces. So a rescue neither fills a bay nor is refused with the bays full.
  * Someone who bought a ticket gets a berth struck out of the hold — that
  * competition with freight is the whole of passenger work (docs/TODO/109).
  *
- * Berths are DERIVED from the contracts the commander is already carrying
- * rather than stored, so the buy cap, the board's footer and
- * `acceptContract`'s refusal cannot disagree about how full the hold is.
+ * Berths are DERIVED from the contracts the commander already carries, rather
+ * than stored. So the buy cap, the board's footer and `acceptContract`'s
+ * refusal cannot disagree about how full the hold is.
  */
 export function cargoTonnes(c: CommanderData): number {
   const stock = c.cargo.reduce(
@@ -312,14 +318,14 @@ function berthTonnes(contracts: Contract[]): number {
 /**
  * Tonnes of one commodity that a contract has a claim on.
  *
- * DERIVED from the contract list, never stored, for the reason `berthTonnes`
- * gives above: a stored copy can disagree with the list, and the market screen,
- * the sale and `settleContracts` must not be able to hold three answers
+ * DERIVED from the contract list and never stored, for the reason `berthTonnes`
+ * gives above. A stored copy can disagree with the list. The market screen, the
+ * sale and `settleContracts` must not be able to hold three answers
  * (docs/TODO/143).
  *
  * Only a `cargo` or a `smuggle` job carries goods. A passenger job takes a
  * berth, which is `berthTonnes`. A bounty and a courier run carry nothing, and
- * their `commodity` field is unread — so a bounty on commodity 0 must not mark
+ * their `commodity` field is unread. So a bounty on commodity 0 must not mark
  * the Food row.
  *
  * It reports the JOB, not the hold. A commander who sold two tonnes of a five

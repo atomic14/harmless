@@ -12,11 +12,11 @@ import { HUD } from '../palette.ts';
 // The classic console: elliptical 3D scanner (dot + vertical stick per
 // contact), station compass, gauge bars, and the message line.
 
-// The four, under the names this painter has always used. They were three
-// hex literals here, and one of the three was then restated twenty lines
-// below itself in CONTACT_COLORS; the red had no name in this file at all and
-// was written out at six call sites. src/palette.ts owns them now, and the
-// stylesheet gets the same four from the same place.
+// The four, under the names this painter always used. They were three hex
+// literals here, and one of the three was restated twenty lines below itself in
+// CONTACT_COLORS. The red had no name in this file at all, and it was written
+// out at six call sites. src/palette.ts owns them now, and the stylesheet gets
+// the same four from the same place.
 const { green: GREEN, dim: DIM, amber: AMBER, red: RED } = HUD;
 
 export type ContactKind =
@@ -27,18 +27,22 @@ export interface ScannerContact {
   kind: ContactKind;
 }
 
-/** What the port marker should say: off the channel, in it but rolled, or in
- *  and rolled right. Decided in hud-model.ts rather than by a ternary here,
- *  because the two-state version painted LINED UP over a slot about to refuse
- *  you and no test could reach the choice to say so (docs/TODO/120). */
+/**
+ * What the port marker should say: off the channel, in it but rolled, or in and
+ * rolled right.
+ *
+ * hud-model.ts decides it, rather than a ternary here. The two-state version
+ * painted LINED UP over a slot about to refuse you, and no test could reach the
+ * choice to say so (docs/TODO/120).
+ */
 export type PortState = 'off' | 'roll' | 'lined';
 
 /**
  * The roll and pitch pointers travel ±45% either side of centre, so a fraction
  * outside -1..1 walks them off the end of their own bar. `HudState` declares the
- * range; this holds the painter to it. It is a guard, not a second home for the
- * flight envelope — `game.ts` divides by `PLAYER_FLIGHT`, and it once divided by
- * a stale copy of the caps, which drove the pointer to 106%.
+ * range, and this holds the painter to it. It is a guard rather than a second
+ * home for the flight envelope. `game.ts` divides by `PLAYER_FLIGHT`. It once
+ * divided by a stale copy of the caps, which drove the pointer to 106%.
  */
 const clampUnit = (n: number): number => Math.max(-1, Math.min(1, n));
 
@@ -65,8 +69,8 @@ export interface HudState {
    *
    * Finished strings for the same reason `messageText` is one: the painter
    * reads state and paints it. WHICH commands are worth offering is
-   * `game/prompts.ts`, and which letter each is bound to is `controls.ts`
-   * through `boundKey` — neither is a question a painter may answer.
+   * `game/prompts.ts`. Which letter each is bound to is `controls.ts` through
+   * `boundKey`. Neither is a question a painter may answer.
    */
   prompts: readonly string[];
   speedFrac: number;
@@ -75,10 +79,10 @@ export interface HudState {
   /**
    * The three banks as FRACTIONS, 0..1 — never their point values.
    *
-   * The painter draws bars and segments, and the number of points behind them
-   * is not its business: they were 1/1/4 before TODO 27 and are 255/255/255
-   * after it, and neither the CSS nor the segment count noticed, because the
-   * normalizing happens once at the boundary in hud-binding.ts.
+   * The painter draws bars and segments. The number of points behind them is
+   * not its business. They were 1/1/4 before TODO 27 and are 255/255/255 after
+   * it, and neither the CSS nor the segment count noticed. The normalisation
+   * happens once, at the boundary, in hud-binding.ts.
    */
   foreShield: number; // 0..1
   aftShield: number; // 0..1
@@ -88,11 +92,13 @@ export interface HudState {
    * last of them — `ENERGY_BANKS` (constants/pools.ts) and `energyLow`
    * (systems.ts).
    *
-   * The console draws one segment per bank and turns the last one red at
-   * exactly the moment the world step says ENERGY LOW. The ANSWER arrives, not
-   * the threshold: the painter must not be the second place that knows where a
-   * quarter ends — it was, and it read the boundary one point differently from
-   * the step and from the shield cut-off (TODO 48).
+   * The console draws one segment per bank. It turns the last one red at exactly
+   * the moment the world step says ENERGY LOW.
+   *
+   * The ANSWER arrives, and not the threshold. The painter must not be the
+   * second place that knows where a quarter ends. It was, and it read the
+   * boundary one point differently from the step and from the shield cut-off
+   * (TODO 48).
    */
   energyBanks: number;
   energyLow: boolean;
@@ -117,9 +123,9 @@ export interface HudState {
   /** name + range of the ship under the crosshair ('' when none) */
   shipId: string;
   /**
-   * Docking state. Once drove a separate corner overlay; that is gone — the
-   * port marker says whether you are lined up, and saying it twice in two
-   * places was worse than saying it once. Only `port` is read now.
+   * Docking state. It once drove a separate corner overlay, and that is gone.
+   * The port marker says whether you are lined up. Two places that said it were
+   * worse than one place that says it. Only `port` is read now.
    *
    * `roll` is how far the wings are off the slot's long axis, in radians —
    * unsigned, and zero when lined up. It was a signed bearing when the slot was
@@ -147,9 +153,9 @@ export interface HudState {
   /**
    * The training exercise in progress, or null in career flight.
    *
-   * Read from the running exercise's own recorder (game/combat-sim-strip.ts):
-   * the painter shows it and counts nothing, exactly as it shows a shield
-   * fraction without knowing what a shield is.
+   * It is read from the live exercise's own recorder
+   * (game/combat-sim-strip.ts). The painter shows it and counts nothing, exactly
+   * as it shows a shield fraction and knows nothing about a shield.
    */
   exercise: ExerciseStrip | null;
 }
@@ -295,12 +301,13 @@ export class Hud {
   /**
    * The prompt line: the keys worth pressing about what is happening.
    *
-   * Rebuilt only when the list CHANGES, because this runs every frame and the
-   * prompts are steady for seconds at a time — a patrol takes four and a half
-   * of them to cross its warning band. The key is separated from the words so
-   * the stylesheet can light it, which is the only reason this is markup rather
-   * than `textContent`; the strings themselves are built upstream and never
-   * here.
+   * It is rebuilt only when the list CHANGES. This runs every frame, and the
+   * prompts are steady for seconds at a time. A patrol takes four and a half of
+   * them to cross its warning band.
+   *
+   * The key is separated from the words so the stylesheet can light it. That is
+   * the only reason this is markup rather than `textContent`. The strings
+   * themselves are built upstream, and never here.
    */
   private paintPrompts(prompts: readonly string[]): void {
     const line = prompts.join(' ');   // em space: a gap, not a bullet
@@ -319,13 +326,15 @@ export class Hud {
   /**
    * The energy gauge: one bank per segment, and red once you are into the last.
    *
-   * The pool behind it is a single 255-point bank (TODO 27) and the frame
-   * brings it as a fraction — but a player reads energy the way the original's
-   * console showed it, in banks, and "three banks left" is a decision where
-   * "0.74" is a number. So the segments are a READING of one pool: how many of
-   * them there are, and whether this is the last, both arrive in the frame
-   * already decided by systems.ts, which is why the red can never come on at a
-   * different moment from the ENERGY LOW the world step announces.
+   * The pool behind it is a single 255-point bank (TODO 27), and the frame
+   * brings it as a fraction. But a player reads energy the way the original's
+   * console showed it, in banks. "Three banks left" is a decision, where "0.74"
+   * is a number.
+   *
+   * So the segments are a READING of one pool. How many of them there are, and
+   * whether this is the last, both arrive in the frame already decided by
+   * systems.ts. That is why the red can never come on at a different moment
+   * from the ENERGY LOW the world step announces.
    */
   private drawEnergy(frame: HudState): void {
     if (this.energySegs.length !== frame.energyBanks) {
@@ -339,27 +348,28 @@ export class Hud {
   }
 
   /**
-   * The exercise strip: you are in a simulation, this is how long it has run,
-   * and this is how it is going.
+   * The exercise strip: you are in a simulation, this is how long it ran, and
+   * this is how it goes.
    *
-   * Four writes and a class, and only when there is an exercise — career flight
-   * pays one null check. Nothing is computed here: the strip arrives finished
-   * from the exercise's own recorder, and the only choice the painter makes is
-   * the WORDS — what to call a standing, and how many decimals a pilot can read
-   * while being shot at.
+   * Four writes and a class, and only where there is an exercise. Career flight
+   * pays one null check. Nothing is computed here. The strip arrives finished
+   * from the exercise's own recorder. The only choice the painter makes is the
+   * WORDS: what to call a standing, and how many decimals a pilot reads while
+   * being shot at.
    */
   private drawExercise(strip: HudState['exercise']): void {
     this.exerciseEl.classList.toggle('hidden', !strip);
     if (!strip) return;
-    // The fight, and — in the waves mode — what the ramp has turned on so far.
-    // Painted, not decided: the list arrives finished from the round's setup.
+    // The fight, and in the waves mode what the ramp turned on so far. It is
+    // painted rather than decided: the list arrives finished from the round's
+    // setup.
     this.exScenarioEl.textContent = strip.escalation?.length
       ? `${strip.scenario.toUpperCase()} · ${strip.escalation.join(' · ')}`
       : strip.scenario.toUpperCase();
     this.exClockEl.textContent = `T+${strip.elapsed.toFixed(1)}s`;
-    // A timed mode counts down to the moment it will be called off; an endless
-    // one has nothing to count down TO, so it shows what it is scored on
-    // instead — the model has already asked MODES which this is.
+    // A timed mode counts down to the moment it is called off. An endless one
+    // has nothing to count down TO, so it shows what it is scored on instead.
+    // The model asks MODES which of the two this is.
     this.exMarkEl.textContent = strip.remaining === null
       ? `${SCORE_LABELS[strip.score]} ${strip.standing}`
       : `${strip.remaining.toFixed(0)}s LEFT`;
@@ -374,10 +384,10 @@ export class Hud {
    *
    * ONE `textContent` write, columns made with padding rather than elements.
    * Two reasons, and the first is not style. `engine/inert-dom.ts` is what a
-   * painter gets under node, where there is no `document` to build rows with —
-   * a painter with no DOM is inert, not broken, and an `Element` per ship per
-   * frame would have made this file the one that throws in `npm test`. The
-   * second is that a hull name written as text can never be read as markup.
+   * painter gets under node, where there is no `document` to build rows with. A
+   * painter with no DOM is inert rather than broken. An `Element` per ship per
+   * frame makes this file the one that throws in `npm test`. The second reason
+   * is that a hull name written as text can never be read as markup.
    */
   private drawLive(live: ExerciseStrip['live']): void {
     this.exLiveEl.textContent = live
@@ -444,9 +454,9 @@ export class Hud {
   /**
    * An arrow at the edge of the screen pointing at something you cannot see.
    *
-   * Shared by the docking port and the nearest hostile, because it is the same
-   * question in both cases — "which way do I turn?" — and it should look and
-   * behave identically whichever is asking.
+   * The docking port and the nearest hostile share it, because both ask the
+   * same question: "which way do I turn?". It should look and behave the same
+   * whichever one asks.
    */
   private drawEdgeArrow(marker: { x: number; y: number }, colour: string, label: string): void {
     const ctx = this.reticle;
@@ -494,9 +504,9 @@ export class Hud {
     const ctx = this.reticle;
     const w = ctx.canvas.width;
     const h = ctx.canvas.height;
-    // Green ONLY where the dock test would pass. Two colours for three states:
-    // amber already means "not yet", and the WORD says which of the two things
-    // is wrong, which is all a third palette entry would have bought.
+    // Green ONLY where the dock test passes. Two colours for three states.
+    // Amber already means "not yet", and the WORD says which of the two things
+    // is wrong. That is all a third palette entry would buy.
     const colour = port === 'lined' ? GREEN : AMBER;
     ctx.strokeStyle = colour;
     ctx.fillStyle = colour;
@@ -613,9 +623,9 @@ export class Hud {
 /**
  * The cockpit's elements, or inert stand-ins when there is no document.
  *
- * The HUD is a dumb painter (docs/INVARIANTS.md invariant 15): it reads a frame and
- * writes text, classes, styles and two canvases, and nothing reads any of it
- * back. So with no DOM every element becomes a sink — see engine/inert-dom.ts,
+ * The HUD is a dumb painter (docs/INVARIANTS.md invariant 15). It reads a frame
+ * and writes text, classes, styles and two canvases. Nothing reads any of it
+ * back. So with no DOM every element becomes a sink. See engine/inert-dom.ts,
  * which explains why this exists at all.
  */
 function byId(id: string): HTMLElement {

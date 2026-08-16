@@ -1,9 +1,9 @@
 // Who is worth robbing: the threat model.
 //
-// This lived in contracts.ts, which is about the jobs you take on. A pirate
-// sizing you up is not a contract — it is the other half of the economy, and
-// the file that owns it should say so in its name. `npm run campaign` tunes
-// against these numbers, and they are the ones a balance change touches.
+// This lived in contracts.ts, which is about the jobs you take on. A pirate who
+// sizes you up is not a contract. It is the other half of the economy, and the
+// file that owns it should say so in its name. `npm run campaign` tunes against
+// these numbers, and a balance change touches these ones.
 //
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
 import { isContraband } from './law.ts';
@@ -23,10 +23,10 @@ import { VALUE_PER_TONNE } from '../constants/jettison.ts';
 // you'd visibly cost them, and a poor Cobra full of food is not worth three
 // Fer-de-Lances. Two rules keep this from becoming rubber-banding:
 //
-//   1. Only things a pirate can SEE count. Cargo (they scan, as police do),
-//      hold size, fitted laser, reputation. Never your bank balance — a
-//      commander who banks the money and flies clean has genuinely made
-//      themselves a poor target, and that should be a real strategy.
+//   1. Only things a pirate can SEE count. Those are the cargo (they scan, as
+//      police do), the hold size, the fitted laser and the reputation. Never
+//      your bank balance. A commander who banks the money and flies clean is
+//      genuinely a poor target, and that should be a real strategy.
 //   2. Threat grows SUB-LINEARLY with the prize. Across a career the player's
 //      combat power grows maybe tenfold; this should grow two- or threefold,
 //      so upgrades are felt rather than cancelled out.
@@ -48,7 +48,7 @@ export interface Mark {
    * Your CHARACTER, raw off the commander (game/character.ts) — the galaxy's
    * memory of what you are, where `notoriety` is one region's memory of what
    * you just did. Raw like `combatScore` and for the same reason: what a pirate
-   * observes is a fact, and the curve over it (`DISREPUTE_FULL`) is policy that
+   * observes is a fact. The curve over it (`DISREPUTE_FULL`) is policy, and it
    * belongs in `pirateThreat` with the rest of the policy.
    */
   disrepute: number;
@@ -82,10 +82,10 @@ export function markOf(
     combatScore: c.combatScore ?? c.kills,
     laser: (c.equipment.laser as Mark['laser']) ?? 'pulse',
     notoriety,
-    // Read off the CAREER commander the caller handed us — which is why the
+    // Read off the CAREER commander the caller handed us. That is why the
     // trainer needs no knob for it: `ThreatContext` already carries the real
-    // commander, so "as they come" sizes its reception against your real standing
-    // while the clone still flies with no cargo and no reputation.
+    // commander. So "as they come" sizes its reception against your real
+    // standing, while the clone still flies with no cargo and no reputation.
     disrepute: c.disrepute ?? 0,
   };
 }
@@ -93,14 +93,14 @@ export function markOf(
 /**
  * Which tier of hull the Nth member of a group flies.
  *
- * A gang is not five Fer-de-Lances. It's one or two ringleaders who decided
- * you were worth organising for, plus hangers-on in whatever they could
- * afford — which is both more believable and what lets gangs be *common*
- * rather than an overwhelming rarity.
+ * A gang is not five Fer-de-Lances. It is one or two ringleaders who decided
+ * you were worth the trouble, plus hangers-on in whatever they could afford.
+ * That is more believable, and it is what lets a gang be *common* rather than
+ * an overwhelming rarity.
  *
- * Lives here rather than in npc.ts so the campaign simulator resolves each
- * attacker at the same strength the game spawns it at; npc.ts owns the hulls,
- * this owns the rule.
+ * It lives here rather than in npc.ts, so the campaign simulator resolves each
+ * attacker at the strength the game spawns it at. The hulls belong to npc.ts,
+ * and the rule belongs here.
  */
 export function memberTier(groupTier: number, memberIndex: number): number {
   const leaders = groupTier >= 2 ? 2 : 1;
@@ -109,13 +109,15 @@ export function memberTier(groupTier: number, memberIndex: number): number {
 
 // --- which tier a HULL belongs to -------------------------------------------
 //
-// Threat tiers are a Harmless invention: the source has one pirate band, and
-// splitting it into opportunists, professionals and an organised gang is our
-// selection policy, not a recovered rule. What is NOT ours is how tough each
-// hull is, and the tiers used to be three hand-written lists that said so
-// again in their own words. So the lists are gone and the tier is read off
-// three NAMED source fields instead — a hull moves tier when the pack says it
-// is tougher, and never because someone retyped a table.
+// Threat tiers are a Harmless invention. The source has one pirate band. The
+// split into opportunists, professionals and an organised gang is our selection
+// policy rather than a recovered rule.
+//
+// What is NOT ours is how tough each hull is. The tiers used to be three
+// hand-written lists that said so again in their own words. So the lists are
+// gone, and the tier is read off three NAMED source fields instead. A hull moves
+// tier when the pack says it is tougher, and never because somebody retyped a
+// table.
 
 /** The threat score of an exact released build. Exported for the tests. */
 export function sourceThreatScore(profileId: NpcCombatProfileId): number {
@@ -128,10 +130,10 @@ export function sourceThreatScore(profileId: NpcCombatProfileId): number {
 /**
  * The tier ladder over a bare score — the two thresholds and nothing else.
  *
- * Its own function so the thresholds can be measured rather than transcribed:
- * `test/ship-roles.test.ts` bisects both steps out of it and compares them to
- * `PROFESSIONAL_SCORE` and `GANG_SCORE`, which a check probing at the
- * constants themselves could never fail.
+ * It is its own function so the thresholds can be measured rather than
+ * transcribed. `test/ship-roles.test.ts` bisects both steps out of it, then
+ * compares them to `PROFESSIONAL_SCORE` and `GANG_SCORE`. A check that probed
+ * the constants themselves could never fail.
  */
 export function tierForScore(score: number): 0 | 1 | 2 {
   return score >= GANG_SCORE ? 2 : score >= PROFESSIONAL_SCORE ? 1 : 0;
@@ -140,9 +142,9 @@ export function tierForScore(score: number): 0 | 1 | 2 {
 /**
  * Which tier a hull flies in, from what the pack says it is.
  *
- * `designId` is only consulted for the curated exception
- * (`CURATED_TIER`, constants/threat.ts); everything else comes off the exact
- * build's own combat fields.
+ * `designId` is consulted only for the curated exception (`CURATED_TIER`,
+ * constants/threat.ts). Everything else comes off the exact build's own combat
+ * fields.
  */
 export function hullThreatTier(
   designId: string, profileId: NpcCombatProfileId,
@@ -157,10 +159,10 @@ export interface PirateThreat {
   /**
    * 0 opportunists · 1 professionals · 2 an organised gang.
    *
-   * WHICH hulls land in each is `hullThreatTier` over the pirate roster, not a
-   * list here — it moved when the pirate build did (the Krait was a tier-0
-   * opportunist against the recommended default and is a professional in the
-   * `W:19` build it actually flies).
+   * WHICH hulls land in each is `hullThreatTier` over the pirate roster, and
+   * never a list here. It moved when the pirate build moved. The Krait was a
+   * tier-0 opportunist against the recommended default. It is a professional in
+   * the `W:19` build it flies.
    */
   tier: 0 | 1 | 2;
   /** flies the coordinated pack policy and presses the attack */
@@ -168,27 +170,29 @@ export interface PirateThreat {
   /** 0..1 how attractive you looked — exposed for tuning and tests */
   appeal: number;
   /**
-   * 0..1 how much of this reception came for your REPUTATION rather than your
-   * hold — combat fame and a criminal reputation together, since both are reasons to
-   * come for the pilot instead of the cargo. It is combat fame alone whenever
-   * `disrepute` is 0, which is every lawful commander.
+   * 0..1 how much of this reception came for your REPUTATION rather than for
+   * your hold. It holds combat fame and a criminal reputation together, because
+   * both are reasons to come for the pilot instead of the cargo. It is combat
+   * fame alone wherever `disrepute` is 0, which is every lawful commander.
    */
   fame: number;
   /** true when this lot came looking for you specifically, not for your cargo */
   challenged: boolean;
   /**
-   * True when a reception that would have formed was called off because
-   * somebody recognised the commander (`COURTESY_RATE`). `count` is 0 and the tier
-   * is meaningless; the Game says so on arrival, because an ambush the player
-   * never hears about is a mechanic that does not exist.
+   * True when somebody recognised the commander and called off a reception that
+   * would otherwise form (`COURTESY_RATE`). `count` is then 0, and the tier is
+   * meaningless. The Game says so on arrival, because an ambush the player never
+   * hears about is a mechanic that does not exist.
    */
   passed: boolean;
 }
 
 /**
- * What's waiting for you on the way in. `place` is the old rule (lawlessness
- * plus whatever the living galaxy has seen happen here lately); the mark
- * decides the *quality* of the reception more than the quantity.
+ * What waits for you on the way in.
+ *
+ * `place` is the old rule: the lawlessness, plus whatever the living galaxy saw
+ * happen here lately. The mark decides the *quality* of the reception more than
+ * the quantity.
  */
 export function pirateThreat(
   sys: StarSystem,
@@ -209,9 +213,9 @@ export function pirateThreat(
     + (mark.laser === 'military' ? 0.3 : mark.laser === 'beam' ? 0.12 : 0);
 
   // How visibly KNOWN you are: this region's memory of your last big or dirty
-  // sale, plus the galaxy's memory of your reputation. One channel, because to a
-  // pirate they are one fact — and because a fourth independent term would
-  // stop this being a model of how you are SEEN and start being a list.
+  // sale, plus the galaxy's memory of your reputation. One channel, because to
+  // a pirate they are one fact. A fourth independent term would also stop this
+  // from being a model of how you are SEEN, and start it being a list.
   const infamy = Math.min(1, mark.disrepute / DISREPUTE_FULL);
   const known = Math.min(1, mark.notoriety + DISREPUTE_HEAT * infamy);
 
@@ -221,9 +225,9 @@ export function pirateThreat(
 
   // ...but fame cuts both ways. A reputation scares off thieves looking for
   // easy cargo, and simultaneously draws people who want to be the ones who
-  // killed you. That draw is an *occasional challenge*, not a permanent tax:
-  // folding fame straight into the tier made 99% of receptions gangs once a
-  // commander hit Dangerous, which is monotonous and erases the whole tier
+  // killed you. That draw is an *occasional challenge* rather than a permanent
+  // tax. Fame folded straight into the tier made 99% of receptions gangs once a
+  // commander reached Dangerous. That is monotonous, and it erases the whole
   // ladder. Instead it rolls — at Dangerous, about a third of receptions are
   // someone coming for the reputation rather than the cargo.
   const fame = Math.max(0, Math.min(1, mark.combatScore / FAME_FULL));
@@ -233,17 +237,18 @@ export function pirateThreat(
   const challenged = rng() < CHALLENGE_RATE * renown;
 
   // ...and cuts the other way too. Professional courtesy: occasionally someone
-  // recognises the commander and calls the whole thing off. Rolled only when
-  // there IS a reputation, so an honest commander consumes exactly the draws off the world
-  // stream that they did before this existed and every seeded outcome after it
+  // recognises the commander and calls the whole thing off. It is rolled only
+  // where there IS a reputation. So an honest commander takes exactly the draws
+  // off the world stream that they always took. Every seeded outcome after it
   // stands (invariant 11).
   const passed = infamy > 0 && !challenged && rng() < COURTESY_RATE * infamy;
 
   const draw = challenged ? 1 : appeal;
 
   // Sub-linear: a fat commander draws about one extra attacker, not five.
-  // Reputation adds its own challengers on top — and it is `renown` rather
-  // than `fame`, so a reception summoned by your reputation arrives with bodies in it.
+  // Reputation adds its own challengers on top. It is `renown` rather than
+  // `fame`, so a reception summoned by your reputation arrives with bodies in
+  // it.
   const count = Math.max(0, Math.round(place + appeal * 1.5 + renown * 1.2 + rng() * 2 - 1));
   // Thresholds, not the prize curve, set how often each tier appears — keeping
   // saturation high preserves the gap between a good load and a fat one.

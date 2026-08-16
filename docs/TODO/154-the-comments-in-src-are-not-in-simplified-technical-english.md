@@ -352,10 +352,16 @@ the most breaches per pass.
 | when the checker was written | 1,988 | 20% | 23.4 | 309 |
 | at the head of M3 | 1,842 | 18% | 21.0 | 265 |
 | after the seventh pass | 1,297 | 11% | 16.1 | 184 |
-| **now** | **1,211** | **10%** | **15.3** | **168** |
+| after the eighth pass | 1,211 | 10% | 15.3 | 168 |
+| **now** | **1,139** | **9%** | **14.9** | **153** |
 
-**Twenty-eight files are converted, and each one measured 0% on the day.** They
-held 675 of the tree's long sentences, and every one of the five worst
+**THE TREE IS UNDER 10% FOR THE FIRST TIME.** It was 20% when the checker was
+written. `src/constants/`, the surface docs/TODO/141 swept in one pass, reads at
+6% by the same tool. So the gap that this item's whole argument rests on has
+closed from 4 to 1 down to about 1.5 to 1.
+
+**Thirty-two files are converted, and each one measured 0% on the day.** They
+held 747 of the tree's long sentences, and every one of the five worst
 directories still has files in it. The `-ing` words and every tense breach that
 remain in a converted file are recorded above and below as deliberate.
 
@@ -408,6 +414,42 @@ walk of every number in the prose of all five files, before and after, reports
    the other four together. It is the pack's own arithmetic written out, so the
    numeric walk matters more there than anywhere else this item has swept. All 72
    survive.
+
+### The ninth pass
+
+**It landed on 2026-08-16**, over the next four by count: `game/threat.ts`,
+`game/law.ts`, `hud/hud.ts` and `game/commander.ts`.
+
+| | sentences | over cap | `-ing` | tense |
+| --- | ---: | ---: | ---: | ---: |
+| before | 339 | **72 (21%)** | 90 | **15** |
+| after | 464 | **0** | 61 | **0** |
+
+**The cost is 28 lines**, at 268 insertions against 240 deletions. **Nothing was
+dropped**: the numeric walk reports 95 numbers across the four files and 0 lost.
+
+**Three things came out of the ninth pass that the plan did not have.**
+
+1. **THREE OF THESE FOUR ARE FILES docs/TODO/162 REWROTE, AND IT LEFT THEM AT
+   21% OVER THE CAP.** `threat.ts`, `law.ts` and `commander.ts` all took
+   vocabulary edits a few hours earlier, by an author holding this item's own
+   rule. **A rewrite for one rule is not a conversion.** That is the eighth
+   pass's finding stated from the other side, and it is the sharpest evidence
+   the item has for why a SWEEP is the unit of work.
+2. **THE CHECKER READS A SENTENCE THAT STARTS WITH A PATH AS A CONTINUATION.**
+   A split of the form `…at. npc.ts owns the hulls` is still measured as one
+   sentence, because the full stop inside `npc.ts` defeats the split. It cost
+   two rewrites in `threat.ts` before the cause was clear. **The workaround is
+   to not start a sentence with a path**, which reads better anyway. The checker
+   is not amended: it is a false NEGATIVE risk in the other direction, and the
+   tool's own mask is the part docs/TODO/154 M1 recorded as the delicate one.
+3. **A FULL STE PASS DOES NOT PRODUCE A MODULE HEADER.** The backlog says
+   `hud/hud.ts` has none, and after this pass it still has none: the file opens
+   with ten imports, and the two-line comment below them names the console's
+   parts rather than the file's one responsibility or its neighbours. The
+   checker measures sentences, so a file can read perfectly and still not say
+   what it is. **The backlog entry stands untouched**, and the same is true of
+   `game/npc.ts`, which the first M3 pass converted.
 
 **ONE OF THE TWENTY-THREE NO LONGER MEASURES 0%**, and it is `game/npc.ts` at
 five long sentences. A later milestone put them there, and the seventh pass
