@@ -127,7 +127,7 @@ run — 5 ungoverned launches in 40 episodes before the fix, 0 after), and
 the roster-speed and seed-decade comments were corrected against executed
 values. The src/-side debt the review found (the thrice-copied frame
 sampler, the unnamed 7919 stride) is deliberately deferred to
-[101](../retired/101-one-home-for-the-frame-sampler.md).
+[101](../retired/101-the-frame-sampler-has-several-homes-and-the-seed-stride-has-no-name.md).
 
 **The re-baseline record.** Base 50_000_017, stride 7919, 20s episodes,
 tier-weighted dealing:

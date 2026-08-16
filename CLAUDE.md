@@ -151,6 +151,11 @@ written by an agent. Measured on 2026-08-16, 16 of 162 were in the passive
 voice, and about 31 were a bare noun phrase. A title copied from that archive
 repeats the drift. Read the rule instead.
 
+**`npm run titles:check` holds it**, and `npm run check` calls it. It reads
+every plan heading and every index label, and it fails on the two rules a title
+can break. Rename the file with the heading. A slug is a title that a code
+search reads.
+
 **"One word, one meaning" already holds here, and it cuts both ways.** `brain`,
 `commander`, `face`, `rung`, `gate`, `probe` and `tell` are used precisely.
 Keep each of them.

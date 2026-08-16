@@ -31,8 +31,8 @@ investigation records; do not load this directory wholesale.
 Chris dropped the consolidated plan on 2026-08-09; no work landed. The four
 plans it consolidated stay here as its evidence.
 
-- 107 — [One fight in the live sky and the trainer](107-one-fight-in-the-sky-and-trainer.md)
+- 107 — [One fight runs in the live sky and in the trainer](107-one-fight-runs-in-the-live-sky-and-in-the-trainer.md)
 - 74 — [Armed-freighter accuracy differs](74-the-armed-freighter-shoots-straighter-in-training.md)
 - 78 — [Training rams always hit the fore shield](78-every-ram-in-training-hits-the-fore-shield.md)
-- 89 — [No live NPC-vs-NPC fight test](89-nothing-flies-npc-against-npc.md)
-- 101 — [Frame sampler and seed stride have several homes](101-one-home-for-the-frame-sampler.md)
+- 89 — [Nothing flies an NPC at another NPC in the live world](89-nothing-flies-npc-against-npc.md)
+- 101 — [Frame sampler and seed stride have several homes](101-the-frame-sampler-has-several-homes-and-the-seed-stride-has-no-name.md)

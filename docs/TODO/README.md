@@ -130,7 +130,7 @@ each one stands. **#33** closed on
 with [157](completed/157-the-console-line-runs-off-both-edges.md) and
 [156](completed/156-the-escape-capsule-nobody-chose-to-shoot.md). **#27** closed
 on 2026-08-13 with
-[144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
+[144](completed/144-a-standing-order-has-nowhere-to-live.md). **#26** closed on
 2026-08-13 with
 [143](completed/143-the-counter-never-says-which-tonnes-a-contract-claims.md).
 **#25** closed the same day with

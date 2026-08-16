@@ -1,4 +1,4 @@
-# 101 — One home for the frame sampler, and a name for the seed stride
+# 101 — The frame sampler has several homes, and the seed stride has no name
 
 **Kind:** architecture/test infrastructure · **Severity:** medium · **Size:** small
 **Found by** the code-review pass on 98 (2026-08-09). Deliberately deferred

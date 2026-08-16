@@ -1,4 +1,4 @@
-# 144 — A standing order with nowhere to live
+# 144 — A standing order has nowhere to live
 
 **Kind:** defect · **Severity:** medium · **Size:** medium · **Depends on:**
 nothing · **Blocks:** nothing · **GitHub:** #27 — *"I think we actually need a

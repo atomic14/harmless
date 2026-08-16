@@ -62,8 +62,13 @@ Two things belong to the plan doc rather than to the commit message alone:
 
 **The gates always run**, and they are `npm run check`. That one command is the
 lint, the suite, the size ceilings, `constants:check`, `palette:check`,
-`claims:check`, `ste:test`, `ste:check` and the three generator drift checks.
-`npm run prebuild` runs it, so a build cannot skip it.
+`claims:check`, `plans:check`, `titles:check`, `ste:test`, `ste:check` and the
+three generator drift checks. It also runs `map:report`, which reports and never
+fails. `npm run prebuild` runs it, so a build cannot skip it.
+
+`titles:check` holds the title rules in `CLAUDE.md` over every plan heading and
+every index label. A word list decides what a verb is, so the gate fails on a
+word it does not know. The remedy is to rewrite the title, or to add the verb.
 
 `ste:check` holds the house prose style over `src/`, and it holds two of its
 rules: the sentence caps, and the tense (docs/TODO/154 M4). It reads every

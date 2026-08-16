@@ -1,4 +1,4 @@
-# 107 — One fight in the live sky and the trainer
+# 107 — One fight runs in the live sky and in the trainer
 
 **Kind:** combat fidelity / test architecture · **Severity:** high · **Size:** large
 **Consolidates:** 74, 78, 89 and 101
@@ -20,7 +20,7 @@ The original measurements and call-chain evidence remain in
 [74](74-the-armed-freighter-shoots-straighter-in-training.md),
 [78](78-every-ram-in-training-hits-the-fore-shield.md),
 [89](89-nothing-flies-npc-against-npc.md) and
-[101](101-one-home-for-the-frame-sampler.md).
+[101](101-the-frame-sampler-has-several-homes-and-the-seed-stride-has-no-name.md).
 
 ## Milestone 1 — a live fight that can fail
 

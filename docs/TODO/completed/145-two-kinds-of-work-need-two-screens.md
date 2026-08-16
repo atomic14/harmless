@@ -1,4 +1,4 @@
-# 145 — Two kinds of work, two screens
+# 145 — Two kinds of work need two screens
 
 **Kind:** design · **Severity:** low · **Size:** small · **Depends on:** 144 ·
 **Blocks:** nothing · **Source:** Chris, 2026-08-13, on reading 144: *"I think we

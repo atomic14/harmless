@@ -25,7 +25,7 @@
     "ste": "node tools/ste.mjs",
     "ste:test": "node tools/ste.test.mjs",
     "ste:check": "node tools/ste.mjs --gate",
-    "check": "npm run lint && npm test && npm run sizes && npm run constants:check && npm run palette:check && npm run claims:check && npm run plans:check && npm run map:report && npm run ste:test && npm run ste:check && npm run generate:elite-a -- --check && npm run generate:danube -- --check && npm run generate:descriptions -- --check",
+    "check": "npm run lint && npm test && npm run sizes && npm run constants:check && npm run palette:check && npm run claims:check && npm run plans:check && npm run map:report && npm run titles:check && npm run ste:test && npm run ste:check && npm run generate:elite-a -- --check && npm run generate:danube -- --check && npm run generate:descriptions -- --check",
     "prebuild": "npm run check",
     "build": "vite build",
     "preview": "vite preview",
@@ -45,7 +45,8 @@
     "roster-probe": "node --experimental-strip-types --no-warnings train/roster-probe.ts",
     "portability": "node tools/portability.test.mjs && node tools/portability.mjs",
     "sizes": "node tools/sizes.mjs",
-    "coverage": "node tools/coverage.mjs"
+    "coverage": "node tools/coverage.mjs",
+    "titles:check": "node tools/titles.mjs"
   },
   "dependencies": {
     "three": "^0.185.1"
