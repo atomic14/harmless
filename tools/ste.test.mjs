@@ -130,6 +130,20 @@ assert.ok(words(prose(`${long(30).slice(0, -1)} and he said "a b c d e f g h i j
 assert.deepEqual(sentences(prose('It is not a question. "Has it moved" is.')),
   ['It is not a question.', 'QUOTE is.']);
 
+// A QUOTATION OF A WHOLE SENTENCE KEEPS ITS FULL STOP. The terminator sits
+// inside the quotation marks, so a mask that dropped it joined the sentence
+// after the quotation to the frame around it (docs/TODO/168).
+assert.deepEqual(sentences(prose('He said *"it flies well."* The gate agrees.')),
+  ['He said QUOTE.', 'The gate agrees.']);
+
+// A quotation of a phrase does not end a sentence, and gains no full stop.
+assert.deepEqual(sentences(prose('He said "it flies well" to me.')),
+  ['He said QUOTE to me.']);
+
+// A HASH OPENS A SENTENCE. The index writes an issue number as `#34`.
+assert.deepEqual(sentences('It closed. #34 is the report. It landed.'),
+  ['It closed.', '#34 is the report.', 'It landed.']);
+
 // A doc tag opens a new claim about a new thing, so it is a new paragraph.
 assert.deepEqual(said('/**\n * It is short.\n * @returns the buffer, or null.\n */'),
   ['It is short.', 'the buffer, or null.']);

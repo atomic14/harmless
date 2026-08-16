@@ -105,11 +105,19 @@ English. STE is a controlled language for one reader: somebody who must act on a
 written instruction, and who cannot ask the author what it meant. This is a
 house style.
 
-**A gate checks part of it, over `src/` only.** `npm run ste:check` reads every
-comment in `src/` and fails on two of the rules below: the sentence caps, and
-the tense. `npm run check` calls it. It never fails on an `-ing` word, and it
-never reads `docs/`. It was report-only until 2026-08-16, and it gates because
-a swept file drifted back in one day with nothing to say so (docs/TODO/154).
+**A gate checks part of it, over two surfaces.** `npm run ste:check` fails on two
+of the rules below: the sentence caps, and the tense. `npm run check` calls it.
+It never fails on an `-ing` word. It was report-only until 2026-08-16, and it
+gates because a swept file drifted back in one day with nothing to say so
+(docs/TODO/154). The two surfaces are:
+
+1. every comment in `src/`;
+2. the ten documents this section lists, plus every active TODO item
+   (docs/TODO/168).
+
+It reads a document as prose. A code block, a table row and the target of a link
+are dropped. A heading takes the title rules above rather than the caps, so this
+gate leaves one to `npm run titles:check`.
 
 The rules are countable:
 
@@ -179,8 +187,11 @@ It never touches:
 - **Anything quoted from a person.** To rewrite a quotation is falsification,
   not simplification.
 - **A record of what somebody decided or measured.** The plan archive under
-  `docs/TODO/`, `docs/DEVLOG.md` and `docs/TRAINING-LOG.md` report what
-  happened. They instruct nobody.
+  `docs/TODO/completed/`, `research/` and `retired/` reports what happened. So do
+  `docs/DEVLOG.md` and `docs/TRAINING-LOG.md`. They instruct nobody. **The index
+  at `docs/TODO/README.md` is the one exception, on Chris's call of 2026-08-16.**
+  It holds the queue and the dated sections in one file. He chose to hold the
+  whole file rather than to split its scope in two.
 - **`README.md`'s opening.** It is Chris's own writing, in the first person.
 - **The player-facing pages.** The manual, `index.html`, the in-game briefing
   and the novella (Chris, 2026-08-12).

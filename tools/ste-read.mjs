@@ -198,13 +198,20 @@ export function paragraphs(run) {
  * outright leaves a fragment that starts in the middle, so the full stop before
  * it stops looking like the end of a sentence, and two sentences are then
  * measured as one long one.
+ *
+ * THE PLACEHOLDER KEEPS THE QUOTATION'S OWN FULL STOP, and docs/TODO/168 found
+ * that by measuring. A quotation of a whole sentence carries its full stop
+ * INSIDE the quotation marks, so the mask took the terminator away and joined
+ * the sentence after it to the frame around the quotation. `docs/PROCESS.md`
+ * quotes Chris four times, and each one ends a sentence that way.
  */
 export function prose(text) {
+  const quote = (_, inner) => (/[.!?]$/.test(inner.trim()) ? ' QUOTE. ' : ' QUOTE ');
   return text
     .replace(/`[^`]*`/g, ' CODE ')
-    .replace(/\*"[^"]*"\*/g, ' QUOTE ')
-    .replace(/"[^"]*"/g, ' QUOTE ')
-    .replace(/“[^”]*”/g, ' QUOTE ')
+    .replace(/\*"([^"]*)"\*/g, quote)
+    .replace(/"([^"]*)"/g, quote)
+    .replace(/“([^”]*)”/g, quote)
     .replace(/https?:\/\/\S+/g, ' URL ')
     .replace(/@[A-Za-z]\w*/g, ' ')
     // A path must end on a letter or a digit. The greedy form of this swallows
@@ -224,6 +231,11 @@ const ABBREVIATION = /\b(?:e\.g|i\.e|etc|vs|cf|approx|fig|ref|Dr|Mr|Ms|St|No)\.$
  * A full stop ends a sentence when whitespace follows it, and when the next
  * word starts with a capital. That second test keeps a version number and a
  * file name whole where the masking above did not reach them.
+ *
+ * A HASH OPENS A SENTENCE TOO, and docs/TODO/168 found that by measuring. The
+ * index writes an issue number as `#34`, and one paragraph of it opens sixteen
+ * sentences that way. Read without the hash, that paragraph was one sentence of
+ * 112 words, and the report of a 112-word breach was false.
  */
 export function sentences(text) {
   const out = [];
@@ -236,7 +248,7 @@ export function sentences(text) {
     if (!/^(\s|$)/.test(after)) continue;
     const piece = text.slice(start, cut).trim();
     if (ABBREVIATION.test(piece)) continue;
-    if (!/^\s*(?:$|["'(*]*[A-Z0-9])/.test(after)) continue;
+    if (!/^\s*(?:$|["'(*]*#?[A-Z0-9])/.test(after)) continue;
     if (piece) out.push(piece);
     start = cut;
   }

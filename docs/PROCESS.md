@@ -70,11 +70,13 @@ fails. `npm run prebuild` runs it, so a build cannot skip it.
 every index label. A word list decides what a verb is, so the gate fails on a
 word it does not know. The remedy is to rewrite the title, or to add the verb.
 
-`ste:check` holds the house prose style over `src/`, and it holds two of its
+`ste:check` holds the house prose style, and it holds two of its
 rules: the sentence caps, and the tense (docs/TODO/154 M4). It reads every
-comment in the tree, so a file converted last month cannot drift back. It never
-fails on an `-ing` word. **The remedy for a failure is to split the sentence.**
-Never drop a fact, a condition or a scope qualifier to meet a cap.
+comment in `src/`, so a file converted last month cannot drift back. It also
+reads the ten documents `CLAUDE.md` names, plus every active TODO item
+(docs/TODO/168). It never fails on an `-ing` word. **The remedy for a failure is
+to split the sentence.** Never drop a fact, a condition or a scope qualifier to
+meet a cap.
 
 `claims:check` holds one comment form. A doc comment may say
 `@internal — driven by <path>`, and the gate fails when the named file does not

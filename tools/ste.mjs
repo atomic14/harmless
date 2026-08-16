@@ -1,4 +1,4 @@
-// Are the comments in this tree in Simplified Technical English?
+// Is the prose of this repository in Simplified Technical English?
 //
 // `CLAUDE.md` sets the house style. It had no measurement until docs/TODO/154,
 // and a rule with no measurement is a preference. The numbers said so.
@@ -16,17 +16,30 @@
 // A diff-scoped gate would cost the same and let more through: docs/TODO/141
 // recorded an export that sat undocumented until somebody edited its file.
 //
+// IT READS TWO SURFACES (docs/TODO/168). The first is every comment in `src/`.
+// The second is the ten documents `CLAUDE.md` names, plus every active TODO
+// item. A markdown file holds no comment, so `tools/ste-read-md.mjs` reads that
+// surface. The gate counts the two apart, because a gate that reads one of them
+// and reports one number cannot say which one it missed.
+//
+// A TITLE IS NOT READ HERE, and `tools/titles.mjs` holds it. A 20-word cap
+// never fires on a title, so the caps would report a clean surface that is not
+// clean. That tool reads a plan title and an index label, which is where the
+// drift was (Chris, 2026-08-16).
+//
 // THE `-ing` COUNT NEVER GATES. It is 788, and a technical noun is the honest
 // answer for most of them. The allowlist decides what the number means, so the
 // number is a report and `--nouns` is its review surface (docs/TODO/154 M4).
 //
-// This file is the parent of two children. `tools/ste-read.mjs` decides what is
-// measured, and that is the harder half. The style never touches code, an exact
-// command, an API name, an error string, or anything quoted from a person.
-// `tools/ste-rules.mjs` holds the three countable rules and their word lists.
-// `tools/ste.test.mjs` proves that each rule and each exclusion works.
+// This file is the parent of three children. `tools/ste-read.mjs` decides what
+// is measured in a source file, and that is the harder half. The style never
+// touches code, an exact command, an API name, an error string, or anything
+// quoted from a person. `tools/ste-read-md.mjs` does the same job for a
+// document. `tools/ste-rules.mjs` holds the three countable rules and their
+// word lists. `tools/ste.test.mjs` proves that each rule, each exclusion and
+// the markdown reader work.
 //
-// Run: node tools/ste.mjs                 the whole of src/, worst files first
+// Run: node tools/ste.mjs                 src/ and the documents, worst first
 //      node tools/ste.mjs <path>...       one file or one directory, in detail
 //      node tools/ste.mjs --all           every file, not the worst 20
 //      node tools/ste.mjs --work          worst by the COUNT of breaches
@@ -37,15 +50,54 @@
 //
 // (also `npm run ste`, which needs `--` before a flag, and `npm run ste:check`)
 
-import { readdirSync, readFileSync, statSync } from 'node:fs';
+import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join } from 'node:path';
 import { proseOf, words } from './ste-read.mjs';
+import { proseOfMarkdown } from './ste-read-md.mjs';
 import {
   DESCRIPTIVE_CAP, capFor, isInstruction, ingWords, tenseBreaches, TECHNICAL_NOUN,
 } from './ste-rules.mjs';
 
 /** The tree that is measured when the caller names no path. */
 const ROOT = 'src';
+
+/**
+ * The documents the house style covers, beyond the comments in `src/`.
+ *
+ * `CLAUDE.md` names them: itself, the three rule documents and the six
+ * reference documents. The list is written out rather than walked, because
+ * `docs/` also holds two records. `docs/DEVLOG.md` and `docs/TRAINING-LOG.md`
+ * report what happened, and the style never touches a record.
+ */
+const DOCUMENTS = [
+  'CLAUDE.md',
+  'docs/INVARIANTS.md',
+  'docs/PROCESS.md',
+  'docs/ARCHITECTURE.md',
+  'docs/AI-TRAINING.md',
+  'docs/BROWSER-TRIALS.md',
+  'docs/COMBAT-SIM.md',
+  'docs/DAMAGE-PATHS.md',
+  'docs/ELITE-A.md',
+  'docs/JAMESON-TRIALS.md',
+];
+
+/**
+ * The active TODO items, which `CLAUDE.md` also covers.
+ *
+ * The top level of `docs/TODO/` holds the index and the plans that are not
+ * finished. The archive under it — `completed/`, `research/` and `retired/` —
+ * is a record of what somebody decided, so this walk stops at the top level.
+ *
+ * THE INDEX IS READ WHOLE, ON CHRIS'S CALL OF 2026-08-16. Its dated sections
+ * report what landed, and 144 of its 150 breaches were in them. He chose to
+ * hold the file rather than to split its scope in two.
+ */
+const TODO = 'docs/TODO';
+const todoItems = () => readdirSync(TODO)
+  .filter((name) => name.endsWith('.md'))
+  .map((name) => join(TODO, name))
+  .sort();
 
 /**
  * A generated file, which is skipped rather than measured.
@@ -58,13 +110,16 @@ const ROOT = 'src';
  */
 const GENERATED = /\.generated\.ts$|music-danube\.ts$/;
 
+/** The reader this file answers to. A document has no comment in it. */
+const readerFor = (path) => (path.endsWith('.md') ? proseOfMarkdown : proseOf);
+
 /** Every breach of the three rules in one file, with the counts. */
 function measure(path) {
   const found = {
     path, sentences: 0, long: 0, long25: 0, ing: 0, tense: 0,
     breaches: [], flagged: [], allowed: [],
   };
-  for (const { line, sentence } of proseOf(readFileSync(path, 'utf8'))) {
+  for (const { line, sentence } of readerFor(path)(readFileSync(path, 'utf8'))) {
     found.sentences += 1;
     const n = words(sentence).length;
     if (n > capFor(sentence)) {
@@ -96,12 +151,23 @@ const argv = process.argv.slice(2);
 const flags = new Set(argv.filter((a) => a.startsWith('--')));
 const targets = argv.filter((a) => !a.startsWith('--'));
 
+// A DOCUMENT THAT MOVED MUST STOP THE RUN. The list above is written out, so a
+// renamed file would otherwise leave the tool reporting a clean surface it
+// never opened. That is docs/TODO/165's defect: a name that resolves to nothing
+// is invisible to whoever wrote it.
+const missing = DOCUMENTS.filter((p) => !existsSync(p));
+if (missing.length) {
+  console.error(`ste: ${missing.join(', ')} — named in DOCUMENTS and not found.`);
+  process.exit(1);
+}
+
 const named = targets.filter((t) => !statSync(t).isDirectory());
 const walked = (targets.length ? targets : [ROOT])
   .filter((t) => statSync(t).isDirectory()).flatMap(walk);
+const documents = targets.length ? [] : [...DOCUMENTS, ...todoItems()];
 
 const skipped = walked.filter((p) => GENERATED.test(p));
-const files = [...named, ...walked.filter((p) => !GENERATED.test(p))]
+const files = [...named, ...documents, ...walked.filter((p) => !GENERATED.test(p))]
   .map(measure)
   .filter((f) => f.sentences > 0);
 
@@ -155,7 +221,13 @@ if (flags.has('--gate')) {
     console.log('Split the sentence. Never drop a fact to meet a cap (CLAUDE.md).');
     process.exit(1);
   }
-  console.log(`ste: ${total.sentences} sentences in ${files.length} files`
+  // THE GATE SAYS WHAT IT READ, and it counts the two surfaces apart. A gate
+  // that reads one of them and reports one number cannot say which one it
+  // missed (docs/TODO/171).
+  const docs = files.filter((f) => f.path.endsWith('.md'));
+  const inDocs = docs.reduce((n, f) => n + f.sentences, 0);
+  console.log(`ste: ${total.sentences - inDocs} sentences in ${files.length - docs.length} files`
+    + ` and ${inDocs} in ${docs.length} documents`
     + ` — 0 over cap, 0 in a compound tense`
     + ` · ${total.ing} -ing reported, not gated`);
 } else if (flags.has('--words')) {
