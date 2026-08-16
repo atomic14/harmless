@@ -1,4 +1,4 @@
-# 166 — The map was not repaired with the headers
+# 166 — The map still claims that game.ts owns the entities
 
 **Kind:** defect · **Severity:** high · **Size:** medium · **Depends on:**
 nothing · **Blocks:** nothing · **GitHub:** none — found by the sweep of

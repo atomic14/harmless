@@ -1,4 +1,4 @@
-# 56 — A commander, not a career
+# 56 — A player plays a commander rather than a career
 
 > Completed plan. Archived from the active queue.
 

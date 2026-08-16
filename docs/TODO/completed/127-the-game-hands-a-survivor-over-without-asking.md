@@ -1,4 +1,4 @@
-# 127 — The survivor is handed over without asking
+# 127 — The game hands a survivor over without asking
 
 **Kind:** feature · **Severity:** medium · **Size:** medium (three milestones) ·
 **Depends on:** none (reads docs/TODO/96's Character ladder) · **GitHub:** #22

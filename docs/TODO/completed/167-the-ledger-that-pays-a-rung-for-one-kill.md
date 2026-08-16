@@ -192,7 +192,7 @@ the plan named two of them. The sweep found the rest:
 
 1. `src/game/snapshot.ts` — the migration comment, which is M1's subject;
 2. `docs/TODO/README.md` — the 161 entry;
-3. `docs/TODO/completed/161-a-save-that-is-refused-rather-than-raised.md` — the
+3. `docs/TODO/completed/161-the-game-refuses-an-old-save-rather-than-raising-it.md` — the
    triage paragraph the other five descend from;
 4. `docs/TODO/completed/README.md` — the 161 index entry;
 5. `test/snapshot-migrate.test.ts` — the comment over the last block;

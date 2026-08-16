@@ -1,4 +1,4 @@
-# 90 — the cleanup list
+# 90 — The cleanup list tracks every constant still out of its home
 
 > Completed plan. Archived from the active queue.
 

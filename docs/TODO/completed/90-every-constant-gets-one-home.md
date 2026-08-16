@@ -1,4 +1,4 @@
-# 90 — One home for every constant
+# 90 — Every constant gets one home
 
 > Completed plan. Archived from the active queue.
 
@@ -45,7 +45,7 @@ in terms of another; three survey partitions independently proved that wrong.
 The census grep below only matched a right-hand side beginning with an
 UPPER_CASE identifier, so it missed every derivation wrapped in `Math.round`, a
 parenthesis, a digit or a function call. There are at least twenty, listed in
-docs/TODO/completed/90-constants-survey.md.
+docs/TODO/completed/90-the-survey-counts-every-constant-outside-the-constants-directory.md.
 
 So the pattern is established and good. What is missing is its consistent
 application, and the survey's R-findings are the list of places where a stated
@@ -224,8 +224,8 @@ run slice six from here without asking anything.
 
 ### 1. Read, in this order
 
-`CLAUDE.md` · this file, especially Progress · `90-constants-cleanup.md` ·
-the relevant partition of `90-constants-survey.md` · then `src/constants/*.ts`
+`CLAUDE.md` · this file, especially Progress · `90-the-cleanup-list-tracks-every-constant-still-out-of-its-home.md` ·
+the relevant partition of `90-the-survey-counts-every-constant-outside-the-constants-directory.md` · then `src/constants/*.ts`
 and `test/constants.test.ts` in full. Five slices set the precedent; match it
 rather than inventing a sixth shape.
 

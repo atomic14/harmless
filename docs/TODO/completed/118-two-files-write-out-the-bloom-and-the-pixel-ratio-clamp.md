@@ -1,4 +1,4 @@
-# 118 — The bloom and the pixel-ratio clamp are written out twice
+# 118 — Two files write out the bloom and the pixel-ratio clamp
 
 **Kind:** cleanup · **Severity:** low · **Size:** small (one milestone) ·
 **Depends on:** nothing · **GitHub:** none — the last entry on docs/TODO/93's

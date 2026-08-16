@@ -161,7 +161,7 @@ const OUTSIDE: readonly Group[] = [
       + ' is indexed. docs/TODO/90 rules the tables out by name. The exception is'
       + ' `WORLD_SPEED_PER_SOURCE_SPEED`, a real derivation that is blocked: its other'
       + ' half is a released hull, which means the Elite-A catalogue and six generated'
-      + ' tables, and this directory may not import. See docs/TODO/completed/90-constants-cleanup.md',
+      + ' tables, and this directory may not import. See docs/TODO/completed/90-the-cleanup-list-tracks-every-constant-still-out-of-its-home.md',
     files: {
       'game/ship-specs.ts': [
         'SOURCE_DESIGN', 'ASTEROID_IDENTITY', 'WORLD_SPEED_PER_SOURCE_SPEED', 'SPECS',
@@ -208,7 +208,7 @@ const OUTSIDE: readonly Group[] = [
       + ' constants/sun.ts and what a breach costs is constants/hull-breach.ts. The'
       + ' recharge ANCHOR cannot follow — it is a released hull\'s rating, read through'
       + ' ship-identity.ts and the Elite-A catalogue, and this directory may not import.'
-      + ' Same shape as `WORLD_SPEED_PER_SOURCE_SPEED`; see docs/TODO/completed/90-constants-cleanup.md',
+      + ' Same shape as `WORLD_SPEED_PER_SOURCE_SPEED`; see docs/TODO/completed/90-the-cleanup-list-tracks-every-constant-still-out-of-its-home.md',
     files: {
       'game/systems.ts': ['ANCHOR_RECHARGE_RATING'],
     },
@@ -294,7 +294,7 @@ const OUTSIDE: readonly Group[] = [
       + ' shop.ts and trumbles.ts declare nothing at all now. `COMMODITY_COUNT` is'
       + ' `COMMODITIES.length` — a derivation off the 1984 table, which is DATA the'
       + ' home may not import: the `ANCHOR_RECHARGE_RATING` shape exactly. See'
-      + ' docs/TODO/completed/90-constants-cleanup.md, Blocked',
+      + ' docs/TODO/completed/90-the-cleanup-list-tracks-every-constant-still-out-of-its-home.md, Blocked',
     files: {
       'galaxy/living.ts': ['COMMODITY_COUNT'],
     },
@@ -412,7 +412,7 @@ const OUTSIDE: readonly Group[] = [
       + ' a format version welded to its record; `CADENCE_EPSILON` is float slack, not'
       + ' a rule; `UNKNOWN`/`SOURCES` are a bucket label and its closed list;'
       + ' `ARENA_RADII` is the decided same-number-different-rule exception'
-      + ' (docs/TODO/completed/90-constants-cleanup.md); `AHEAD`/`OPENINGS`/`CUSTOM_OPENING`/'
+      + ' (docs/TODO/completed/90-the-cleanup-list-tracks-every-constant-still-out-of-its-home.md); `AHEAD`/`OPENINGS`/`CUSTOM_OPENING`/'
       + '`NO_OPENING` are tables keyed on `ScenarioId` and `DEG` is a unit conversion;'
       + ' the scenario file\'s remainder is typed tables (`SCENARIOS`, `WAVE_STEPS`,'
       + ' `MODES`, `OPPOSITION_ROLES`, `SIM_BRAINS`), brain-name reads, a derivation'

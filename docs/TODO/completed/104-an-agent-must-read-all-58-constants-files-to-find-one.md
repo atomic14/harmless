@@ -1,4 +1,4 @@
-# 104 — The constants catalogue, and a mechanical duplicate check
+# 104 — An agent must read all 58 constants files to find one
 
 > Completed plan. Archived from the active queue.
 

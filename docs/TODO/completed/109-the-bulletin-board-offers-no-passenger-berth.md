@@ -1,4 +1,4 @@
-# 109 — Passenger berths on the board
+# 109 — The bulletin board offers no passenger berth
 
 **Kind:** feature / economy · **Severity:** medium · **Size:** medium
 **Depends on:** none (lands before 110 by Chris's ordering — both re-cut the

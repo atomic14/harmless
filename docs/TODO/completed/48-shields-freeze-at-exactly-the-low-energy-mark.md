@@ -1,4 +1,4 @@
-# 48 — The energy dead band, and dying at full shields
+# 48 — Shields freeze at exactly the low-energy mark
 
 > Completed plan. Archived from the active queue.
 

@@ -1,4 +1,4 @@
-# 83 — The one-warhead-in-the-air cap can be deleted and nothing notices
+# 83 — No test covers the one-warhead-in-the-air cap
 
 > Completed plan. Archived from the active queue.
 

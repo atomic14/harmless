@@ -1,4 +1,4 @@
-# 58 — Extended system descriptions, generated offline
+# 58 — A generator writes a longer description for every world
 
 > Completed plan. Archived from the active queue.
 

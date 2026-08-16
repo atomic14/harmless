@@ -1,4 +1,4 @@
-# 90 — the constants survey, phase 1
+# 90 — The survey counts every constant outside the constants directory
 
 > Completed plan. Archived from the active queue.
 

@@ -1,4 +1,4 @@
-# 94 — Parse a save at the door, and refuse it whole
+# 94 — One door parses a save, or refuses the whole of it
 
 > Completed plan. Archived from the active queue.
 

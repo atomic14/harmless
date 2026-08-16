@@ -172,13 +172,13 @@ different shape, and it came from a check the plan did not ask for.
 
 **The extra check is the exact path.** Where a citation carries a whole file
 name rather than a bare number, the file itself is checked.
-`completed/90-one-home-for-every-constant.md` cited
-`90-constants-survey.md` under `docs/TODO/`. The number resolves and the path does not:
+`completed/90-every-constant-gets-one-home.md` cited
+`90-the-survey-counts-every-constant-outside-the-constants-directory.md` under `docs/TODO/`. The number resolves and the path does not:
 that document moved into `completed/` and the citation beside it did not follow.
 
 **That check has one false positive, and it is worth knowing.** It cannot tell a
 citation from a sentence about where a file USED to be. This plan's own
-paragraph about 68 named `68-a-vocabulary-of-tactics.md` under `docs/TODO/`, and meant the
+paragraph about 68 named `68-every-hostile-in-the-game-flies-one-pattern.md` under `docs/TODO/`, and meant the
 active directory, before the deletion. The remedy is the item's own decision:
 name the number, and put the location in words.
 
@@ -188,7 +188,7 @@ repaired. The gate then went red on eight of them, across this document,
 `docs/TODO/README.md` and the completed index. A prose file is read exactly like
 a comment. **The remedy is the item's own decision, written down again**: name
 the NUMBER when you mean a plan, and split the prefix off a file name when you
-mean a path. `90-constants-survey.md` under `docs/TODO/` says the same thing and
+mean a path. `90-the-survey-counts-every-constant-outside-the-constants-directory.md` under `docs/TODO/` says the same thing and
 cites nothing.
 
 **THE GATE ALSO FAILED ON ITS OWN PLAN DOCUMENT.** Verification step 1 said to

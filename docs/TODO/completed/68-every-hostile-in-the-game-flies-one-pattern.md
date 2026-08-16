@@ -1,4 +1,4 @@
-# 68 — A vocabulary of tactics, not one behaviour
+# 68 — Every hostile in the game flies one pattern
 
 **Kind:** combat feel / design · **Severity:** medium · **Size:** large
 **Depends on:** 66, 67 (the one tactic we have should be right first)

@@ -1,4 +1,4 @@
-# 155 — The docked half and the flight half
+# 155 — One file holds what a commander does docked and in flight
 
 **Kind:** refactor · **Severity:** low · **Size:** large · **Depends on:** 150 ·
 **Blocks:** nothing · **Source:** Chris, 2026-08-14, on reading 150 M6: *"It

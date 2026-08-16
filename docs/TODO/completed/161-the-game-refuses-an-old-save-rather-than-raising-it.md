@@ -1,4 +1,4 @@
-# 161 — A save that is refused rather than raised
+# 161 — The game refuses an old save rather than raising it
 
 **Kind:** defect · **Severity:** high · **Size:** small · **Depends on:**
 nothing · **Blocks:** nothing · **GitHub:** none — Chris, 2026-08-16: *"We

@@ -51,7 +51,7 @@ import { SOURCE_UNITS_PER_WORLD_UNIT } from './elite-a-hulls.ts';
  * It cannot live in src/constants/, because its meaning IS this product over
  * the ships' own anchor, and that directory may not import the anchor. It is
  * the `WORLD_SPEED_PER_SOURCE_SPEED` shape
- * (docs/TODO/completed/90-constants-cleanup.md).
+ * (docs/TODO/completed/90-the-cleanup-list-tracks-every-constant-still-out-of-its-home.md).
  */
 export const STATION_PRESENTATION_SCALE = SOURCE_UNITS_PER_WORLD_UNIT;
 

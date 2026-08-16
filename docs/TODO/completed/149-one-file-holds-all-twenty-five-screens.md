@@ -1,4 +1,4 @@
-# 149 — One file per screen
+# 149 — One file holds all twenty-five screens
 
 **Kind:** refactor · **Severity:** low · **Size:** large · **Depends on:** 148 ·
 **Blocks:** nothing · **Source:** Chris, 2026-08-14, after the exemption audit:

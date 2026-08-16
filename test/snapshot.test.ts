@@ -299,7 +299,7 @@ console.log('\nsnapshot round trip');
   // The other half of this block was the pre-TODO-26 migration, which read `hp`
   // on a normalized per-hull scale and spent the fraction against the profile's
   // real bank. Deleted 2026-08-04 with the scale itself: no save on it exists
-  // (docs/TODO/completed/90-constants-cleanup.md).
+  // (docs/TODO/completed/90-the-cleanup-list-tracks-every-constant-still-out-of-its-home.md).
   {
     seedWorld(20_260_726);
     const wounded = new NpcShip('pirate', at(0, 0, 0), 5);
@@ -338,7 +338,7 @@ console.log('\nsnapshot round trip');
   // `CanisterSnapshot.energy` is REQUIRED as of 2026-08-04. It was optional, and
   // absence meant "whole" — a second reading of a missing field, kept for worlds
   // written before canisters had a bank, which do not exist
-  // (docs/TODO/completed/90-constants-cleanup.md). The field it was standing in front of is
+  // (docs/TODO/completed/90-the-cleanup-list-tracks-every-constant-still-out-of-its-home.md). The field it was standing in front of is
   // real state and NOTHING TESTED IT, which is how a tolerance survives: the
   // fallback is indistinguishable from the truth until something is wounded.
   {

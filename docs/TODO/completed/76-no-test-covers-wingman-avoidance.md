@@ -1,4 +1,4 @@
-# 76 — Wingman avoidance can be deleted and nothing notices
+# 76 — No test covers wingman avoidance
 
 > Completed plan. Archived from the active queue.
 

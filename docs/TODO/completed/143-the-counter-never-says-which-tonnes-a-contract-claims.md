@@ -1,4 +1,4 @@
-# 143 — The counter never says which tonnes are spoken for
+# 143 — The counter never says which tonnes a contract claims
 
 **Kind:** defect · **Severity:** low · **Size:** small · **Depends on:** nothing
 · **Blocks:** nothing · **GitHub:** #26 — *"I think the contract cargo can be

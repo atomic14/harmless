@@ -1,4 +1,4 @@
-# 120 — The port marker says LINED UP when you are rolled wrong
+# 120 — The port marker says LINED UP before the roll matches
 
 **Kind:** bug / UI · **Severity:** medium · **Size:** small
 **Depends on:** none · **GitHub:** #19

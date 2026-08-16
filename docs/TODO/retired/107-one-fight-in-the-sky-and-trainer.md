@@ -17,10 +17,10 @@ live sky. Four open plans describe one missing guarantee:
   seed stride `7919` is copied sixteen times.
 
 The original measurements and call-chain evidence remain in
-[74](retired/74-the-armed-freighter-shoots-straighter-in-training.md),
-[78](retired/78-every-ram-in-training-hits-the-fore-shield.md),
-[89](retired/89-nothing-flies-npc-against-npc.md) and
-[101](retired/101-one-home-for-the-frame-sampler.md).
+[74](74-the-armed-freighter-shoots-straighter-in-training.md),
+[78](78-every-ram-in-training-hits-the-fore-shield.md),
+[89](89-nothing-flies-npc-against-npc.md) and
+[101](101-one-home-for-the-frame-sampler.md).
 
 ## Milestone 1 — a live fight that can fail
 

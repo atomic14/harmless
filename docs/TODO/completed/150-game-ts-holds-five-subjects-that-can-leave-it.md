@@ -1,4 +1,4 @@
-# 150 — The orchestrator and its children
+# 150 — game.ts holds five subjects that can leave it
 
 **Kind:** refactor · **Severity:** low · **Size:** large · **Depends on:** 149 ·
 **Blocks:** nothing · **Source:** the backlog's head, promoted 2026-08-14.

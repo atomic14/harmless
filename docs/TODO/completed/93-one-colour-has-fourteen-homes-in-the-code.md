@@ -1,4 +1,4 @@
-# 93 — One home for the phosphor
+# 93 — One colour has fourteen homes in the code
 
 **Kind:** architecture / UI · **Severity:** medium · **Size:** medium
 **Depends on:** none, but do it AFTER docs/TODO/90 — that item settles the shape

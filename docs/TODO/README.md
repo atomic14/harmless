@@ -35,7 +35,7 @@ order below is by value over cost, and not by severity.
    · gap · medium. `ste:check` reads comments in source. The style also governs
    ten markdown documents and every plan title, and the tool finds no sentence
    in any of them. **It now gates a title too**, on Chris's call of 2026-08-16.
-5. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
+5. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
@@ -132,7 +132,7 @@ with [157](completed/157-the-console-line-runs-off-both-edges.md) and
 on 2026-08-13 with
 [144](completed/144-a-standing-order-with-nowhere-to-live.md). **#26** closed on
 2026-08-13 with
-[143](completed/143-the-counter-never-says-which-tonnes-are-spoken-for.md).
+[143](completed/143-the-counter-never-says-which-tonnes-a-contract-claims.md).
 **#25** closed the same day with
 [142](completed/142-every-explosion-is-in-the-cockpit.md), after Chris flew it on
 headphones. **#24** closed on 2026-08-12 with
@@ -195,8 +195,8 @@ rather than the slug, because a plan document is renamed by its own milestones.
 
 **THE GATE FOUND MORE THAN THE PLAN DID, AND THAT IS WHY IT WAS WRITTEN FIRST.**
 An extra check reads a citation that carries a whole file name, and checks that
-file. `completed/90-one-home-for-every-constant.md` cited
-`90-constants-survey.md` under `docs/TODO/`: the number resolves, and the path does not.
+file. `completed/90-every-constant-gets-one-home.md` cited
+`90-the-survey-counts-every-constant-outside-the-constants-directory.md` under `docs/TODO/`: the number resolves, and the path does not.
 That document moved into `completed/` and the citation beside it did not follow.
 
 **The gate also failed on its own plan document.** Verification step 1 said to
@@ -1328,7 +1328,7 @@ area is reached BY as well as what it reaches, and read the result before
 trusting the ratio.
 
 **`src/game/npc.ts` came off this list on 2026-08-16**, and it is
-[169](169-behaviour-and-flight-in-one-file.md) in the queue above. The sweep
+[169](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md) in the queue above. The sweep
 that promoted it measured the file, and the measurement corrected this entry
 twice. The file is 1,632 lines over 99 commits, not 1,568 over 95. The split is
 not the two halves this list named: the flight half is 244 lines of the class

@@ -1,4 +1,4 @@
-# 97 — Site housekeeping: build hash, issues link, CI warnings
+# 97 — Nobody can tell which build the live site runs
 
 > Completed plan. Archived from the active queue.
 

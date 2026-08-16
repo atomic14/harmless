@@ -1,4 +1,4 @@
-# 113 — What you cannot hand back, you are billed for
+# 113 — The contract bills you for what you cannot hand back
 
 **Kind:** feature / economy · **Severity:** medium · **Size:** small–medium
 **Depends on:** docs/TODO/112 — the reclaim branch this bills against does not

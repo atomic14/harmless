@@ -1,4 +1,4 @@
-# 169 — Behaviour and flight in one file
+# 169 — npc.ts holds behaviour and brain flight in one file
 
 **Kind:** design · **Severity:** medium · **Size:** large · **Depends on:**
 nothing · **Blocks:** nothing · **GitHub:** none — promoted from the backlog by

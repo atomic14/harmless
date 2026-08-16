@@ -1,4 +1,4 @@
-# 65 — The defender is selected for not fighting
+# 65 — The selection rule rewards a defender for not fighting
 
 > Completed plan. Archived from the active queue.
 

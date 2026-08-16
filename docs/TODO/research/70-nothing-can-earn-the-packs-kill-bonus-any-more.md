@@ -1,4 +1,4 @@
-# 70 — The pack's kill bonus can no longer be earned
+# 70 — Nothing can earn the pack’s kill bonus any more
 
 **Kind:** training methodology · **Severity:** high · **Size:** medium
 **Depends on:** none, but read 63 first (it caused this) and 62 before deciding

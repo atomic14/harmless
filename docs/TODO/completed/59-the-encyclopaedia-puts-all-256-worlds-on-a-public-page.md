@@ -1,4 +1,4 @@
-# 59 — The galaxy encyclopaedia
+# 59 — The encyclopaedia puts all 256 worlds on a public page
 
 > Completed plan. Archived from the active queue.
 

@@ -1,4 +1,4 @@
-# 67 — Short attack runs are not flyable, so the rhythm is fixed at ~9s
+# 67 — A short attack run does not fly, so the rhythm settles near nine seconds
 
 > Completed plan. Archived from the active queue.
 

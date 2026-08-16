@@ -1,4 +1,4 @@
-# Elite-A damage and ship-catalogue alignment plan
+# This plan aligns the Elite-A damage model with the ship catalogue
 
 > Completed plan. Archived from the active queue.
 
