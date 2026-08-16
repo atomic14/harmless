@@ -18,10 +18,10 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | attack-run | <code>MIN_CRUISE_FRACTION</code> | <code>0.43</code> | A hostile cannot throttle below this fraction of its top speed. |  | [attack-run.ts:48](./attack-run.ts#L48) |
 | audio | <code>AUDIBLE_RANGE</code> | <code>SCANNER_RANGE</code> | How far a bang carries, in world units. | <code>audio.audibleRange</code> | [audio.ts:35](./audio.ts#L35) |
 | audio | <code>STEREO_WIDTH</code> | <code>0.7</code> | How far across the stereo field a sound may sit: 0 is mono, 1 is one ear only. | <code>audio.stereoWidth</code> | [audio.ts:58](./audio.ts#L58) |
-| blueprint-set | <code>UNSETTLED_GOVERNMENT</code> | <code>2</code> | The highest government the blueprint rule counts as unsettled. | <code>blueprintset.unsettledGovernment</code> | [blueprint-set.ts:29](./blueprint-set.ts#L29) |
-| blueprint-set | <code>CONSTRICTOR_BLUEPRINT_SET</code> | <code>'G'</code> | The set the Constrictor's system always flies, in mission 1. |  | [blueprint-set.ts:38](./blueprint-set.ts#L38) |
-| blueprint-set | <code>THARGOID_BLUEPRINT_SET_LOW_TECH</code> | <code>'C'</code> | What a system flies while the commander carries the plans, and what witch-space flies. |  | [blueprint-set.ts:47](./blueprint-set.ts#L47) |
-| blueprint-set | <code>THARGOID_BLUEPRINT_SET_HIGH_TECH</code> | <code>'D'</code> | The high-tech half of the pair above. |  | [blueprint-set.ts:50](./blueprint-set.ts#L50) |
+| blueprint-set | <code>UNSETTLED_GOVERNMENT</code> | <code>2</code> | The highest government the blueprint rule counts as unsettled. | <code>blueprintset.unsettledGovernment</code> | [blueprint-set.ts:31](./blueprint-set.ts#L31) |
+| blueprint-set | <code>CONSTRICTOR_BLUEPRINT_SET</code> | <code>'G'</code> | The set the Constrictor's system always flies, in mission 1. |  | [blueprint-set.ts:40](./blueprint-set.ts#L40) |
+| blueprint-set | <code>THARGOID_BLUEPRINT_SET_LOW_TECH</code> | <code>'C'</code> | What a system flies while the commander carries the plans, and what witch-space flies. |  | [blueprint-set.ts:49](./blueprint-set.ts#L49) |
+| blueprint-set | <code>THARGOID_BLUEPRINT_SET_HIGH_TECH</code> | <code>'D'</code> | The high-tech half of the pair above. |  | [blueprint-set.ts:52](./blueprint-set.ts#L52) |
 | brain-flight | <code>BRAIN_RATE_RAMP</code> | <code>4.1396</code> | How a brain-flown ship's pitch and roll rates ramp up, and bleed off. | <code>flight.brain.rateRamp</code> | [brain-flight.ts:20](./brain-flight.ts#L20) |
 | brain-flight | <code>BRAIN_RATE_DECAY</code> | <code>5.2207</code> |  |  | [brain-flight.ts:21](./brain-flight.ts#L21) |
 | brain-flight | <code>DECISION_INTERVAL</code> | <code>0.1</code> | How long a brain holds a decision before it takes another: 10 Hz. | <code>flight.brain.decisionInterval</code> | [brain-flight.ts:34](./brain-flight.ts#L34) |
@@ -283,8 +283,8 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | recharge | <code>SHIELD_REGEN_FRACTION</code> | <code>0.012</code> | The shield's half of the pair above, and the one docs/TODO/139 moved. |  | [recharge.ts:42](./recharge.ts#L42) |
 | recharge | <code>SHIELD_REGEN</code> | <code>MAX_SHIELD * SHIELD_REGEN_FRACTION</code> | Shield points a second, per face. |  | [recharge.ts:54](./recharge.ts#L54) |
 | recharge | <code>ENERGY_UNIT_MULTIPLIER</code> | <code>2</code> | An energy unit doubles the bank's recharge. |  | [recharge.ts:60](./recharge.ts#L60) |
-| render | <code>BLOOM</code> | <code>{ strength: 0.55, radius: 0.5, threshold: 0.15, } as const</code> | The bloom pass, after its resolution vector: `strength`, `radius` and `threshold`, as `UnrealBloomPass` takes them. |  | [render.ts:31](./render.ts#L31) |
-| render | <code>MAX_PIXEL_RATIO</code> | <code>2</code> | The most device pixels per CSS pixel that any canvas in the project will render. | <code>render.maxPixelRatio</code> | [render.ts:54](./render.ts#L54) |
+| render | <code>BLOOM</code> | <code>{ strength: 0.55, radius: 0.5, threshold: 0.15, } as const</code> | The bloom pass, after its resolution vector: `strength`, `radius` and `threshold`, as `UnrealBloomPass` takes them. |  | [render.ts:32](./render.ts#L32) |
+| render | <code>MAX_PIXEL_RATIO</code> | <code>2</code> | The most device pixels per CSS pixel that any canvas in the project will render. | <code>render.maxPixelRatio</code> | [render.ts:57](./render.ts#L57) |
 | saves | <code>AUTOSAVE_INTERVAL</code> | <code>20</code> | Seconds between mid-flight world saves — see Game.autoSave(). |  | [saves.ts:11](./saves.ts#L11) |
 | saves | <code>FLIGHT_RING</code> | <code>3</code> | How many in-flight autosaves are kept, PER CAREER. |  | [saves.ts:24](./saves.ts#L24) |
 | saves | <code>MAX_NAMED_SAVES</code> | <code>20</code> | How many NAMED saves a player may keep. |  | [saves.ts:51](./saves.ts#L51) |

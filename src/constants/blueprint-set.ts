@@ -1,11 +1,13 @@
 // Which of the 23 released blueprint sets a system flies — the numbers in that
 // rule, and nothing else.
 //
-// The rule itself is `game/blueprint-set.ts`, and docs/TODO/138 records where it
-// was recovered from: bbcelite's disc-version dive for the base number, and its
-// Elite-A dive for the galaxy addition and the two overrides. The vendored pack
-// carries the sets and their slots; it carries no selection metadata at all, so
-// this is a fourth source and is cited as one.
+// The rule itself is `game/blueprint-set.ts`. docs/TODO/138 records where it
+// was recovered from. Two dives by bbcelite supply it: the disc-version dive
+// for the base number, and the Elite-A dive for the galaxy addition and the
+// two overrides.
+//
+// The vendored pack carries the sets and their slots. It carries no selection
+// metadata at all. So this is a fourth source, and it is cited as one.
 //
 // Bit 0 of that number is NOT here. It is the tech-level test that also picks
 // the Dodo station over the Coriolis, it already had a home, and `galaxy/tech.ts`
@@ -31,9 +33,9 @@ export const UNSETTLED_GOVERNMENT = 2;
 /**
  * The set the Constrictor's system always flies, in mission 1.
  *
- * Corroborated by the pack rather than taken on trust: slot 31 is the
+ * Corroborated by the pack, rather than taken on trust. Slot 31 is the
  * Constrictor's own slot, and the slot table fills it in set G and in no other
- * set. The rule and the data agree without being made to.
+ * set. The rule and the data agree, and nothing made them.
  */
 export const CONSTRICTOR_BLUEPRINT_SET = 'G';
 
@@ -41,8 +43,8 @@ export const CONSTRICTOR_BLUEPRINT_SET = 'G';
  * What a system flies while the commander carries the plans, and what
  * witch-space flies. Low tech takes the first, high tech the second.
  *
- * These are the sets that hold Thargoids: slots 29 and 30 are filled in select
- * sets only, which is the same corroboration the Constrictor's override has.
+ * These are the sets that hold Thargoids. Slots 29 and 30 are filled in select
+ * sets only. That is the same corroboration the Constrictor's override has.
  */
 export const THARGOID_BLUEPRINT_SET_LOW_TECH = 'C';
 

@@ -1,14 +1,20 @@
 // The screens about the COMMANDER rather than about the flight.
 //
-// Split out of `ui/screens.ts` by docs/TODO/149. Naming one, filing one, putting
-// one down, giving up a flight, throwing the development levers, and being
-// destroyed — the whole life of a career outside the cockpit.
+// Split out of `ui/screens.ts` by docs/TODO/149. Six moments make up the whole
+// life of a career outside the cockpit:
+//
+//   1. a commander named;
+//   2. a save filed;
+//   3. a commander put down;
+//   4. a flight given up;
+//   5. the development levers thrown;
+//   6. a ship destroyed.
 //
 // They belong together because they are the screens that ask before they act.
-// Four of the six confirm something irreversible, and they are worded to say
-// what is about to be lost rather than to be dismissed: `renderNewGameConfirm`
-// points at the export key first, and `renderQuit` names the checkpoint it is
-// about to send you back to.
+// Four of the six confirm something irreversible. Each is worded to say what is
+// about to be lost, rather than to be dismissed. `renderNewGameConfirm` points
+// at the export key first. `renderQuit` names the checkpoint it is about to
+// send you back to.
 //
 // The rules are elsewhere. `game/storage.ts` owns the store, `game/save-file.ts`
 // owns what a save IS, and `game/screens/*.ts` own the keys.
@@ -21,7 +27,7 @@ import { type TestModePanel } from '../game/screens/test-mode.ts';
 import { show } from './screen-shell.ts';
 import { reservedNotes } from './reserved-note.ts';
 
-/** What the commander file is being asked, if anything. */
+/** What the commander file asks the pilot, if anything. */
 export interface SavesPending {
   /** a delete waiting on Y */
   deleting: SaveSummary | null;
@@ -35,7 +41,7 @@ function whoLine(live: LiveRun): string {
 }
 /**
  * The commander file: the saves you named, the saves the game made, and the run
- * you are in — which is a LINE and not a row, because it is not a save.
+ * you are in. That last one is a LINE and not a row, because it is not a save.
  *
  * Every column answers one question a player asks (docs/TODO/55). COMMANDER is
  * the filing name, the one thing a rename does not move — so the line above the
@@ -49,9 +55,9 @@ export function renderSaves(
   live: LiveRun,
   pending: SavesPending,
 ): void {
-  // A confirmation is MODAL: it names one row, so while it is up the rows stop
-  // offering themselves to a click and the one key that acts on a different
-  // noun — R, the pilot's name — stops being offered at all.
+  // A confirmation is MODAL, and it names one row. So while it is up, the rows
+  // take no click. The one key that acts on a different noun is R, the pilot's
+  // name, and it is not offered at all.
   const asking = Boolean(pending.deleting || pending.loading);
   const body = rows.map((r, i) => `
       <tr class="${i === selected ? 'sel' : ''} ${asking ? '' : 'pick'}"

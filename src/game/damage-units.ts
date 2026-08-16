@@ -8,26 +8,27 @@
 //   PlayerPoolPoints  points off the commander's 255-point facing shield and
 //                     255-point energy bank (game/systems.ts).
 //
-// They ARE both source-scale bytes, which is exactly why nothing stopped one
-// being spent as the other: `takeDamage(115)` and `applyPlayerDamage(44)` both
-// type-checked and both meant something wrong. Before TODO 28 there was a third
-// scale as well — a normalized "fraction of a Cobra" that a ram, a canister, a
-// warhead and an NPC's own gun all still spoke, crossed by two conversion
-// functions that could turn ANY float into either unit. That is gone: every
-// live damage number is now stated in the unit it is spent in.
+// They ARE both source-scale bytes, and that is exactly why nothing stopped one
+// from a spend as the other. `takeDamage(115)` and `applyPlayerDamage(44)` both
+// type-checked, and both meant something wrong.
 //
-// So the units are BRANDED. A bare `number` is not assignable to either, one is
-// not assignable to the other, and the two constructors below refuse anything
-// that is not a whole non-negative count — which makes an old fractional
-// literal a compile error AND a runtime error rather than a quiet 0.45 points.
-// Both brands erase completely, so this costs nothing at runtime beyond the
-// integer check.
+// Before TODO 28 a third scale existed too: a normalized "fraction of a Cobra".
+// A ram, a canister, a warhead and an NPC's own gun all still spoke it, and two
+// conversion functions crossed between them. Either could turn ANY float into
+// either unit. That is gone. Every live damage number is now stated in the unit
+// it is spent in.
+//
+// So the units are BRANDED. A bare `number` is not assignable to either. One is
+// not assignable to the other. The two constructors below refuse anything that
+// is not a whole non-negative count. So an old fractional literal is a compile
+// error AND a runtime error, rather than a quiet 0.45 points. Both brands erase
+// completely, so this costs nothing at run time beyond the integer check.
 //
 // WHO MAY MINT is the other half of the rule, and the type system cannot say
-// it: `test/damage-paths.test.ts` holds the list of files allowed to call these
-// constructors, and every one of them is a module that owns a damage rule
-// (gunnery.ts, npc-energy.ts, impact-damage.ts). A call site that mints its own
-// points has invented a damage rule wherever it happens to stand.
+// it. `test/damage-paths.test.ts` holds the list of files allowed to call these
+// constructors. Every one of them is a module that owns a damage rule:
+// gunnery.ts, npc-energy.ts and impact-damage.ts. A call site that mints its own
+// points invented a damage rule wherever it happens to stand.
 
 /** Points off a ship's released energy bank. See `game/npc-energy.ts`. */
 export type NpcEnergyPoints = number & { readonly __unit: 'elite-a npc energy points' };

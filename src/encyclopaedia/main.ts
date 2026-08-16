@@ -2,9 +2,9 @@
 //
 // The document already holds all 256 entries when this runs — the Vite plugin
 // in vite.config.ts wrote them at build time from `entryHtml()`. This file is
-// the enhancement over a page that is already complete: with no JavaScript the
-// reader still gets every world, correctly marked up, which is the whole
-// reason the page is built in that order.
+// the enhancement over a page that is already complete. With no JavaScript, the
+// reader still gets every world, correctly marked up. That is the whole reason
+// the page is built in that order.
 //
 // Nothing here re-renders an entry. The detail panel shows the document's own
 // markup, so this module never imports the descriptions and the page never
@@ -33,9 +33,9 @@ const entries: Entry[] = generateGalaxy(GALAXY).map((s) => factsFor(s, GALAXY));
 const bySlug = new Map(entries.map((e) => [e.slug, e]));
 const filter: Filter = emptyFilter();
 
-// The static articles the build wrote. Held by slug so filtering is a class
-// toggle rather than a re-render — re-rendering 256 entries on every keystroke
-// is the obvious way to write this and it janks badly.
+// The static articles the build wrote. They are held by slug, so a filter is a
+// class toggle rather than a re-render. A re-render of 256 entries on every
+// keystroke is the obvious way to write this, and it janks badly.
 const articles = new Map<string, HTMLElement>();
 for (const node of document.querySelectorAll<HTMLElement>('#index .entry')) {
   const slug = node.dataset.slug;
@@ -52,11 +52,13 @@ let chart: Chart;
  * Show one world, and put it in the URL so the view can be shared.
  *
  * The panel is filled from the DOCUMENT'S OWN entry — the markup the build
- * wrote — rather than by rendering a second copy. Two reasons, and the second
- * is the important one: the page would otherwise ship all 256 descriptions
- * twice, as markup and again as a 261 kB script chunk; and reading the same
- * markup both paths read is what makes "it works without JavaScript" true by
- * construction rather than by remembering to keep two renderings in step.
+ * wrote — rather than from a second copy. There are two reasons, and the second
+ * is the important one.
+ *
+ * The page would otherwise ship all 256 descriptions twice: as markup, and
+ * again as a 261 kB script chunk. And one set of markup, read by both paths, is
+ * what makes "it works without JavaScript" true by construction. The
+ * alternative is to remember to keep two renderings in step.
  *
  * `replaceState` rather than `pushState`: clicking twenty stars while reading
  * should not bury the page the reader arrived on under twenty back-button
@@ -191,8 +193,8 @@ chart = new Chart(el<HTMLCanvasElement>('chart'), entries, (slug) => select(slug
 buildRail();
 applyFilter();
 
-// Clicking a heading in the static index selects it on the chart too, so the
-// two halves of the page are one thing rather than a map and a list that
+// A click on a heading in the static index selects it on the chart too. So the
+// two halves of the page are one thing, rather than a map and a list that
 // happen to sit together.
 for (const [slug, node] of articles) {
   node.querySelector('.entry-name')?.addEventListener('click', () => {

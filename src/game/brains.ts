@@ -3,13 +3,13 @@
 //
 // THE FILE STAYS, EMPTY, AS THE SOCKET. A future candidate re-enters the game
 // by being imported here, named in brain-names.ts, and profiled in BRAINS —
-// one row, both pickers. `npm test` holds the weights directory to exactly
-// what this file imports (nothing, today), so an experiment cannot drift into
-// the bundle and a shipped brain cannot go missing unnoticed.
+// one row, both pickers. `npm test` holds the weights directory to exactly what
+// this file imports, which today is nothing. So an experiment cannot drift into
+// the bundle, and a shipped brain cannot disappear unnoticed.
 //
-// Loading stays defensive when there is something to load: a brain whose
-// shape does not match the policy code must become null and a fallback, never
-// a crash.
+// The load stays defensive wherever there is something to load. A brain whose
+// shape does not match the policy code must become null and a fallback. It must
+// never be a crash.
 
 import {
   act, makeScratch, brainFromFile, type Brain,
@@ -44,10 +44,11 @@ export function brainByName(name: BrainName): Brain | null {
 export function policyKit(): Record<string, unknown> {
   return {
     act, observe, observePack, makeScratch, brainFromFile,
-    // `observeFor` is what a harness should actually call: it picks the encoder
-    // off the brain\'s own input count, so a console script cannot feed the
-    // wrong width to a policy — which is silent, and reads as "the defender has
-    // no ship left" (docs/TODO/71). `poolsLeft` and `energyLeft` are here for
+    // `observeFor` is what a harness should really call. It picks the encoder
+    // off the brain\'s own input count. So a console script cannot feed the
+    // wrong width to a policy. That failure is silent, and it reads as "the
+    // defender has no ship left" (docs/TODO/71). `poolsLeft` and `energyLeft`
+    // are here for
     // the same reason: those slots must be filled from systems.ts\'s
     // expressions, not a harness\'s arithmetic.
     observeDefend, observeFor, poolsLeft, energyLeft,
@@ -58,10 +59,12 @@ export function policyKit(): Record<string, unknown> {
 
 /**
  * The trained defence policy an armed trader or the combat computer would fly —
- * null, since no trained line ships. The SOCKET stays because npc.ts\'s defence
- * path and game.ts\'s combat computer still ask, and a future candidate answers
- * by being imported above; which CODE pilot replaces a null answer is the
- * caller\'s question, asked of `defenceBrainNameFor`.
+ * null, because no trained line ships.
+ *
+ * The SOCKET stays, because npc.ts\'s defence path and game.ts\'s combat computer
+ * still ask. A future candidate answers once an import above names it. Which
+ * CODE pilot replaces a null answer is the caller\'s question, asked of
+ * `defenceBrainNameFor`.
  */
 export function defenceBrain(sel: BrainSelection = SHIPPED_BRAINS): Brain | null {
   void sel;

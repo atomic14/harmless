@@ -4,9 +4,10 @@
 // Three entry points draw this game's ships: the cockpit
 // (`engine/render-stack.ts`), the ship viewer and the gallery
 // (`viewer/stage.ts`), and the encyclopaedia's 2D chart
-// (`encyclopaedia/chart.ts`). The first two are supposed to look the same,
-// because the whole point of the viewer is to look at a hull the way the cockpit
-// will. They agreed by coincidence until docs/TODO/118: the bloom's three
+// (`encyclopaedia/chart.ts`). The first two are meant to look the same. The
+// whole point of the viewer is a hull seen the way the cockpit will show it.
+//
+// They agreed by coincidence until docs/TODO/118. The bloom's three
 // arguments and the pixel clamp were written out in both, byte-identical and free
 // to drift.
 //
@@ -21,9 +22,9 @@
  * `threshold`, as `UnrealBloomPass` takes them.
  *
  * It is ONE constant rather than three. That is the shape `PLAYER_FLIGHT` uses,
- * and for its reason: the code reads them together, somebody tunes them together
- * by eye, and a caller that wanted one of them alone would do something the
- * others should know about.
+ * and for its reason. The code reads them together. Somebody tunes them
+ * together by eye. A caller that wanted one of them alone would do something
+ * the others should know about.
  *
  * The values are the shipped look, and the move did not change them. They are the
  * glow that makes a wireframe read as a phosphor tube rather than as three lines.
@@ -38,11 +39,13 @@ export const BLOOM = {
  * The most device pixels per CSS pixel that any canvas in the project will
  * render.
  *
- * It is a cost ceiling, not a look. A 3× phone display would otherwise ask a
- * WebGL context for nine times the fragments to draw the same picture, and the
- * wireframe gains nothing past 2. Every canvas obeys it — the cockpit, the two
- * dev pages and the encyclopaedia's chart — so a device that is expensive to draw
- * on is expensive in one place.
+ * It is a cost ceiling, not a look. Without it, a 3× phone display would ask a
+ * WebGL context for nine times the fragments to draw the same picture. The
+ * wireframe gains nothing past 2.
+ *
+ * Every canvas obeys it: the cockpit, the two dev pages, and the
+ * encyclopaedia's chart. So a device that is expensive to draw on is expensive
+ * in one place.
  *
  * It has its own rule id, and this is the collision worth a name. `2` is a dozen
  * other constants in the catalogue, and every one of them is a count, a

@@ -1,13 +1,14 @@
 // The 256-world map: a canvas, a pan, a zoom and a hit test.
 //
 // Deliberately NOT the game's chart (game/screens/chart.ts). That one is a
-// Screen — it owns a cursor, a fuel radius, the jump target and the route, and
-// it answers to a ChartContext that only a running Game can supply. Reusing it
-// here would mean either dragging the Game in or hollowing it out; this needs
-// none of what makes it useful in flight.
+// Screen. It owns a cursor, a fuel radius, the jump target and the route, and
+// it answers to a ChartContext only a live Game can supply.
 //
-// What is shared is the only thing that matters: the coordinates come from
-// `generateGalaxy`, so the shape of the sky is the same shape the game flies.
+// Reuse here would mean the Game dragged in, or that Screen hollowed out. This
+// page needs none of what makes it useful in flight.
+//
+// What the two share is the only thing that matters. The coordinates come from
+// `generateGalaxy`, so the shape of the sky is the shape the game flies.
 
 import { CHART_SPAN_X, CHART_SPAN_Y } from '../constants/chart-metric.ts';
 import { MAX_PIXEL_RATIO } from '../constants/render.ts';
@@ -77,9 +78,9 @@ export class Chart {
   }
 
   resize(): void {
-    // The clamp is the shared rule (constants/render.ts); the `|| 1` is this
-    // surface's own defensiveness — a 2D canvas on a page anything may open,
-    // where a missing ratio would collapse it to nothing.
+    // The clamp is the shared rule (constants/render.ts). The `|| 1` is this
+    // surface's own guard. It is a 2D canvas on a page anything may open, and
+    // an absent ratio would collapse it to nothing.
     const dpr = Math.min(window.devicePixelRatio || 1, MAX_PIXEL_RATIO);
     const w = this.canvas.clientWidth;
     const h = this.canvas.clientHeight;
@@ -104,9 +105,9 @@ export class Chart {
   /**
    * Nearest world within a generous radius, or null.
    *
-   * Generous on purpose: at full zoom-out the galaxy is 256 units across in a
-   * few hundred pixels, so stars sit a couple of pixels apart and an exact hit
-   * test would be unusable with a mouse and impossible with a finger.
+   * Generous on purpose. At full zoom-out the galaxy is 256 units across in a
+   * few hundred pixels, so stars sit a couple of pixels apart. An exact hit
+   * test would be unusable with a mouse, and impossible with a finger.
    */
   private pick(px: number, py: number): Entry | null {
     let best: Entry | null = null;

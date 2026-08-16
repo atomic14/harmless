@@ -1,18 +1,18 @@
 // Explosions and tracer bolts: the things that are only ever seen.
 //
-// They have no effect on anything. Nothing reads them, nothing collides with
-// them, and they are deliberately absent from the snapshot — reloading into a
-// world without the last half-second of sparks costs nothing.
+// They have no effect on anything. Nothing reads them, and nothing collides
+// with them. They are deliberately absent from the snapshot. A world reloaded
+// without the last half-second of sparks costs nothing.
 //
-// They were four fragments of game.ts: two add methods a thousand lines apart,
-// and two filter loops in the flight step wedged between the missiles and the
-// laser. Small, but this is exactly the kind of thing that should be findable
-// by its name rather than by remembering where it happened to be written.
+// They were four fragments of game.ts. Two were add methods, a thousand lines
+// apart. Two were filter loops in the flight step, wedged between the missiles
+// and the laser. It is small. It is also exactly the kind of thing a reader should find
+// by its name, rather than by memory of where somebody wrote it.
 //
-// The classes themselves lived in npc.ts until now, which made the point
-// twice over: this file was NAMED for them and had to import them from a ship
-// behaviour module 1200 lines long. They have nothing to do with NPCs — the
-// player explodes too, and so do canisters.
+// The classes themselves lived in npc.ts until now, and that made the point
+// twice over. This file was NAMED for them, and it had to import them from a
+// ship behaviour module 1200 lines long. They have nothing to do with an NPC:
+// the player explodes too, and so does a canister.
 
 import * as THREE from 'three';
 import { random, randomDirection } from './rng.ts';
@@ -49,7 +49,7 @@ export class Effects {
     this.scene.add(t.object);
   }
 
-  /** Age everything, and dispose whatever has finished. */
+  /** Age everything, and dispose of whatever finished. */
   update(dt: number): void {
     this.explosions = this.explosions.filter((e) => {
       if (e.update(dt)) return true;
