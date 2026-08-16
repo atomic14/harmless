@@ -1,12 +1,12 @@
-// The market and the outfitters: buying, selling, and fitting equipment.
+// The market and the outfitters: what a commander buys, sells and fits.
 //
-// Second block out of game.ts, and it pairs with contracts.ts — between them
+// Second block out of game.ts, and it pairs with contracts.ts. Between them
 // they hold every rule about where a commander's money goes. Nothing here
-// knows the ship is flying: no NPCs, no physics, no scene.
+// knows the ship is in the air: no NPCs, no physics, no scene.
 //
 // `jettisonCargo` deliberately did NOT come with it. It touches cargo, but its
-// job is talking pirates out of a fight — it spawns canisters into the world
-// and marks attackers satisfied, so it belongs with flight.
+// job is to talk pirates out of a fight. It spawns canisters into the world and
+// marks the attackers satisfied, so it belongs with flight.
 //
 // Same discipline as saves-screen.ts and NpcShip: this module decides nothing
 // about game state. It returns an OUTCOME and the Game applies it.
@@ -62,18 +62,23 @@ export class MarketScreen implements Screen {
   selected = 0;
 
   /**
-   * The row whose consignment the pilot has already been warned about, or null.
+   * The row whose consignment the pilot already saw a warning about, or null.
    *
-   * The sale of a consignment is legal and stays legal (docs/TODO/143), so this
-   * is a warning rather than a refusal: the first sell key on a marked row
-   * spends itself on the message, and the second one sells. One row is armed at
-   * a time, and anything that changes what the sell key would sell takes the
-   * arming down — a moved cursor, a click on another row, a purchase, and
-   * leaving the screen.
+   * The sale of a consignment is legal and stays legal (docs/TODO/143). So this
+   * is a warning rather than a refusal. The first sell key on a marked row
+   * spends itself on the message, and the second one sells.
+   *
+   * One row is armed at a time. Anything that changes what the sell key would
+   * sell disarms it:
+   *
+   *   - a moved cursor;
+   *   - a click on another row;
+   *   - a purchase;
+   *   - a step out of the screen.
    *
    * The screen owns it rather than `sell`, and that is deliberate. `sell` is
-   * the plain action a scripted caller needs, and a rule that lived in there
-   * would make a scripted sale need a keystroke it cannot send.
+   * the plain action a scripted caller needs. A rule that lived in there would
+   * make a scripted sale need a keystroke it cannot send.
    */
   private armed: number | null = null;
 
@@ -91,11 +96,13 @@ export class MarketScreen implements Screen {
 
   render(): void {
     const ctx = this.ctx();
-    // The fuel price belongs on the price list: it is the one thing a trader
-    // costs a run against that the market screen could not tell them, and the
-    // answer lived a screen away in the outfitters. A hermit gets no quote —
-    // the tank is filled by buyEquipment(), which is only reachable from the
-    // station menu, so quoting a price there would be an offer we cannot honour.
+    // The fuel price belongs on the price list. A trader costs a run against
+    // it, and the market screen could not tell them. The answer lived a screen
+    // away in the outfitters.
+    //
+    // A hermit gets no quote. buyEquipment() fills the tank, and only the
+    // station menu reaches that. A price quoted at a hermit would be an offer
+    // we cannot honour.
     renderMarket(
       ctx.atHermit ? { ...ctx.system, name: 'Rock Hermit' } : ctx.system,
       ctx.market, ctx.commander, this.selected,
@@ -140,9 +147,10 @@ export class MarketScreen implements Screen {
    * Sell, or warn once and sell on the next press.
    *
    * The one thing between a sell key and `sell`, so both sell keys and both
-   * buttons take the same door. A row with nothing aboard is not armed: the
-   * sale would refuse anyway, and a warning about tonnes that are already gone
-   * reads as a bug.
+   * buttons take the same door.
+   *
+   * A row with nothing aboard is not armed. The sale would refuse anyway, and
+   * a warning about tonnes already gone reads as a defect.
    */
   private askThenSell(want: number): void {
     const ctx = this.ctx();
@@ -197,9 +205,9 @@ export class MarketScreen implements Screen {
       ctx.commander.credits += revenue;
       sfx.tradeSold();
       ctx.message(`SOLD ${sold}${m.unit} FOR ${formatCredits(revenue)}`, 2);
-      // What the sale costs you in reputation — the region's heat and the mark
-      // on your name — is `saleFallout`'s rule, shared with the campaign
-      // harness (game/market.ts). This screen only applies it.
+      // What the sale costs your reputation is `saleFallout`'s rule, shared
+      // with the campaign harness (game/market.ts). That cost is two things:
+      // the region's heat, and the mark on your name. This screen applies it.
       const fallout = saleFallout(idx, sold, revenue);
       ctx.addNotoriety(fallout.notoriety);
       const wasDisrepute = ctx.commander.disrepute ?? 0;
@@ -268,15 +276,15 @@ export class EquipScreen implements Screen {
 }
 
 /**
- * Fit a piece of equipment. A free function because the docked menu and the
- * test harness both buy things without the outfitters being open.
+ * Fit a piece of equipment. It is a free function, because the docked menu and
+ * the test harness both buy things with the outfitters shut.
  */
 export function buyEquipment(id: string, ctx: TradeContext): void {
   const c = ctx.commander;
   const cheat = ctx.cheat;
-  // `.find(...)!` used to be a non-null assertion, so an unknown id threw a
-  // TypeError instead of failing politely — reachable from the test harness
-  // and from any stale data-key in the DOM.
+  // `.find(...)!` used to be a non-null assertion. So an unknown id threw a
+  // TypeError rather than failed politely. Two paths reach it: the test
+  // harness, and any stale data-key in the DOM.
   const row = equipRows(ctx.system, c, cheat).find((r) => r.id === id);
   if (!row) {
     sfx.refused();
@@ -291,8 +299,8 @@ export function buyEquipment(id: string, ctx: TradeContext): void {
     sfx.refused();
     return;
   }
-  // Cheat purchases are free rather than deducted-from-nothing: letting
-  // credits go negative would break the save, the status screen and the
+  // A cheat purchase is free, rather than a deduction from nothing. Credits
+  // below zero would break three things: the save, the status screen, and the
   // campaign simulator's "credits never go negative" assertion.
   if (!cheat) c.credits -= row.price;
   switch (id) {

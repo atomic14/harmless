@@ -7,16 +7,20 @@
 // finished `CombatSimReport`s. Records exported yesterday compare exactly as two
 // flown a minute ago.
 //
-// The load-bearing part is the REFUSAL. Two fights on different seeds, scenarios,
-// modes, waves, hulls or fit-outs are not an A/B, and a difference column over
-// them looks like a finding and is not one. So a confound is NAMED, with both
-// values, and the difference column is not painted. Different BRAINS is the
-// point; different anything else is a confound.
+// The load-bearing part is the REFUSAL. Two fights are not an A/B where any of
+// six things differ: the seed, the scenario, the mode, the wave, the hull or
+// the fit-out. A difference column over them looks like a result, and is not
+// one.
 //
-// There is deliberately NO verdict, no score and no "which brain won": the
-// report presents, the pilot judges. Even the difference is left unsigned in
-// meaning — more damage taken is worse for a pilot and exactly what a playtester
-// hunts for, and a renderer that coloured it would be deciding which you are.
+// So a confound is NAMED, with both values, and the difference column stays
+// unpainted. Different BRAINS is the point. Different anything else is a
+// confound.
+//
+// There is deliberately NO verdict, no score and no "which brain won". The
+// report presents, and the pilot judges. Even the difference carries no sign of
+// good or bad. More damage taken is worse for a pilot, and it is exactly what a
+// playtester hunts for. A renderer that coloured it would decide which of the
+// two you are.
 
 import { COMBAT_SIM_SCHEMA, type CombatSimReport } from './combat-sim-report.ts';
 
@@ -28,7 +32,7 @@ export interface Confound {
   field: string;
   /** THIS record's value — the one the compare view was opened from */
   a: string;
-  /** THAT record's value — the one being walked with left and right */
+  /** THAT record's value — the one left and right walk */
   b: string;
 }
 
@@ -45,10 +49,12 @@ export interface BrainChange {
  * One line of the comparison, already formatted.
  *
  * Strings rather than numbers, because the unit and the precision are the ROW's
- * knowledge — seconds to one place, a share as a percentage, a range as a whole
- * number — and a renderer that formatted them would be the second place that
- * knew. The JSON export carries both whole records beside these lines, so
- * nothing that reads it is left with only the rounding.
+ * knowledge. Seconds go to one place, a share reads as a percentage, and a
+ * range reads as a whole number. A renderer that formatted them would be the
+ * second place that knew.
+ *
+ * The JSON export carries both whole records beside these lines. So nothing
+ * that reads it is left with the rounding alone.
  */
 export interface CompareRow {
   label: string;
@@ -78,10 +84,12 @@ export interface SimComparison {
   confounds: Confound[];
   brains: BrainChange[];
   /**
-   * The brains matched too — so this is a REPEAT of one fight rather than an
-   * A/B of two. Not a refusal: flying the same setup twice is how you find out
-   * how much of a difference is just the fight going differently. It is said
-   * out loud so it is not mistaken for a result.
+   * The brains matched too. So this is a REPEAT of one fight, rather than an
+   * A/B of two.
+   *
+   * It is not a refusal. One setup flown twice is how you find out how much of
+   * a difference is merely the fight itself. It is said out loud, so that
+   * nobody mistakes it for a result.
    */
   sameBrains: boolean;
   groups: CompareGroup[];
@@ -99,9 +107,9 @@ export interface SimComparePanel {
 // --- what may not differ ----------------------------------------------------
 //
 // The fight's IDENTITY: everything that decides which fight this was, rather
-// than how it went. If any of it differs the two records are of two different
-// fights, and their difference is a fact about the setup and not about the
-// brains.
+// than how it went. Where any of it differs, the two records cover two
+// different fights. Their difference is then a fact about the setup, and not
+// about the brains.
 
 const yesNo = (b: boolean | undefined): string => (b ? 'YES' : 'NO');
 
@@ -117,8 +125,9 @@ const IDENTITY: readonly IdentityField[] = [
   { field: 'SEED', of: (r) => String(r.seed) },
   { field: 'FIGHT', of: (r) => r.scenario.toUpperCase() },
   { field: 'MODE', of: (r) => r.mode.toUpperCase() },
-  // A wave IS the fight in the waves mode — wave 1 against wave 5 is a
-  // different opposition, arriving at a different point in a long session.
+  // A wave IS the fight in the waves mode. Wave 1 against wave 5 is a
+  // different opposition, and it arrives at a different point in a long
+  // session.
   { field: 'WAVE', of: (r) => (r.wave === undefined ? 'N/A' : String(r.wave)) },
   { field: 'YOUR HULL', of: (r) => r.player.shipId },
   {
@@ -130,15 +139,15 @@ const IDENTITY: readonly IdentityField[] = [
   { field: 'YOUR ENERGY UNIT', of: (r) => yesNo(r.player.energyUnit) },
   { field: 'YOUR ENERGY BOMB', of: (r) => yesNo(r.player.energyBomb) },
   { field: 'YOUR OTHER FIT', of: (r) => JSON.stringify(r.player.extra ?? {}) },
-  // How MANY, before which ones: three pirates against four is a different
-  // fight whatever they are flying.
+  // How MANY, before which ones. Three pirates against four is a different
+  // fight, whatever hull each one is in.
   { field: 'OPPONENTS', of: (r) => String(r.opponents.length) },
 ];
 
 /** Per opponent, once the counts agree — the hull, the exact build, and the tier. */
 const PER_OPPONENT: readonly { field: string; of: (o: CombatSimReport['opponents'][number]) => string }[] = [
-  // The NAME is for reading and the id is the truth: two records can both say
-  // "Moray" and be two different released builds (ship-identity.ts).
+  // The NAME is what a reader sees, and the id is the truth. Two records can
+  // both say "Moray" and be two different released builds (ship-identity.ts).
   { field: 'HULL', of: (o) => `${o.hull.toUpperCase()} (${o.designId})` },
   { field: 'BUILD', of: (o) => o.profileId },
   { field: 'TIER', of: (o) => (o.tier === undefined ? '-' : String(o.tier)) },
@@ -165,13 +174,18 @@ function confoundsOf(a: CombatSimReport, b: CombatSimReport): Confound[] {
   return out;
 }
 
-// --- what is worth showing --------------------------------------------------
+// --- what earns a line -------------------------------------------------------
 //
-// A curated list, not every field on the record. A difference column across
-// forty statistics is forty numbers to read and no finding; these are the ones
-// that answer the two questions the trainer exists for — did it threaten me,
-// and did it fly like a fighter or hang there like a turret — plus what YOU did,
-// because the same pilot flies both halves of an A/B and is part of the result.
+// A curated list, and not every field on the record. A difference column across
+// forty statistics is forty numbers to read, and no finding at all.
+//
+// These are the rows that answer the two questions the trainer exists for:
+//
+//   1. did it threaten me?
+//   2. did it fly like a fighter, or hang there like a turret?
+//
+// What YOU did is on the list too. The same pilot flies both halves of an A/B,
+// and is part of the result.
 
 interface RowSpec {
   label: string;
@@ -225,9 +239,9 @@ const GROUPS: readonly { heading: string; rows: readonly RowSpec[] }[] = [
     rows: [
       { label: 'THEIR SPEED (MEDIAN)', value: (r) => r.opposition.speed?.median ?? null },
       { label: 'THEIR SPEED (P90)', value: (r) => r.opposition.speed?.p90 ?? null },
-      // The spread is the measurement and not the median — an attack run sweeps
-      // the band, a turret collapses it — so all three, and the reader compares
-      // the SHAPE rather than one number.
+      // The spread is the measurement, and not the median. An attack run sweeps
+      // the band, and a turret collapses it. So all three rows go in, and the
+      // reader compares the SHAPE rather than one number.
       { label: 'RANGE HELD (P10)', value: (r) => r.opposition.range?.p10 ?? null },
       { label: 'RANGE HELD (MEDIAN)', value: (r) => r.opposition.range?.median ?? null },
       { label: 'RANGE HELD (P90)', value: (r) => r.opposition.range?.p90 ?? null },
@@ -250,9 +264,10 @@ const roundTo = (x: number, dp: number): number => {
 };
 
 /**
- * `b - a`, in the row's own unit — and `SAME` when the two records say the same
- * number, which is the whole point of showing a difference at all: the eye goes
- * to the rows that are not SAME, and those are where the two fights diverged.
+ * `b - a`, in the row's own unit. It reads `SAME` where the two records give
+ * the same number, and that is the whole point of a difference column. The eye
+ * goes to the rows that are not SAME, and those are where the two fights
+ * diverged.
  *
  * A percentage row differences in percentage POINTS, because the difference of
  * two percentages is not a percentage of anything.
@@ -315,11 +330,11 @@ export function compareReports(a: CombatSimReport, b: CombatSimReport): SimCompa
 }
 
 /**
- * The PAIR as JSON, because the pair is the finding.
+ * The PAIR as JSON, because the pair is the result.
  *
- * Both whole records go in it beside the reading, so a training run gets every
- * number at full precision AND the comparison this screen actually made —
- * including, when the two were not an A/B, the list of reasons it refused.
+ * Both whole records go in it, beside the rows. So a training run gets every
+ * number at full precision, AND the comparison this screen really made. Where
+ * the two were not an A/B, that includes the list of reasons it refused.
  */
 export function comparisonJson(c: SimComparison): string {
   return JSON.stringify({

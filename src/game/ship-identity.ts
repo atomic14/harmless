@@ -7,27 +7,27 @@
 //   ShipDesignId         which hull is on screen — geometry hangs off this
 //   NpcCombatProfileId   which exact S.A-S.W build of that design this one is
 //
-// They are STRINGS, and namespaced, for two reasons. A save reading
-// `"elite-a:variant:B:10"` says what it means years later, where a bare `10`
-// does not; and the two Harmless inventions carry `harmless:` ids that can
-// never be mistaken for a recovered Elite-A design. That separation is a
-// requirement: the generation ship is ours and must not be presented as source
-// data.
+// They are STRINGS, and namespaced, for two reasons. A save that carries
+// `"elite-a:variant:B:10"` says what it means years later, and a bare `10` does
+// not. The two Harmless inventions carry `harmless:` ids, which nobody can
+// mistake for a recovered Elite-A design. That separation is a requirement: the
+// generation ship is ours, and must not be presented as source data.
 //
-// WHAT GOES IN A SAVE IS AN ID. Never an expanded record, geometry object, or
-// copied stat block. An id resolves to exactly one immutable record here; a
-// record copied into a save is a second home for a rule the catalogue owns, and
-// goes stale the day the pack is re-imported.
+// WHAT GOES IN A SAVE IS AN ID. It is never an expanded record, a geometry
+// object, or a copied stat block. An id resolves to exactly one immutable
+// record here. A record copied into a save is a second home for a rule the
+// catalogue owns. It goes stale the day the pack is re-imported.
 //
-// And identity is never INFERRED. Comparing `spec.def === COBRA_MK3` or reading
-// a mesh's name to work out what a ship is makes the geometry table the
-// identity table, so a shared or replaced hull silently changes what a ship IS.
-// The roster states its ids (ship-specs.ts) and everything else asks here.
+// Identity is never INFERRED. A comparison of `spec.def === COBRA_MK3`, or a
+// read of a mesh's name, makes the geometry table the identity table. Then a
+// shared or replaced hull silently changes what a ship IS. The roster states
+// its ids (ship-specs.ts), and everything else asks here.
 //
-// This file is data lookup and validation. No combat arithmetic (that is
-// `elite-a/combat-math.ts`) and no selection policy: which variant a system
-// offers is a future blueprint loader's business, and the only choice made here
-// is the deterministic recommended one the current roster flies.
+// This file is data lookup and validation. It holds no combat arithmetic, which
+// is `elite-a/combat-math.ts`. It holds no selection policy either: which
+// variant a system offers is a future blueprint loader's business. The only
+// choice made here is the deterministic recommended one the current roster
+// flies.
 
 import {
   eliteADesign, eliteADesignIds, eliteAPlayerHull, eliteAPlayerHullIds,
@@ -59,8 +59,8 @@ const VARIANT_PREFIX = 'elite-a:variant:';
 /**
  * A Harmless invention with no source record behind it.
  *
- * Two of them, and there must not quietly be a third: `why` is here so that
- * adding one means writing down the reason it is not a recovered design.
+ * Two of them, and a third must not appear quietly. `why` is here so that a
+ * new one carries the reason it is not a recovered design.
  */
 export interface HarmlessOverlay extends ShipIdentity {
   readonly name: string;
@@ -77,11 +77,12 @@ const overlay = (slug: string, name: string, why: string): HarmlessOverlay => ({
 /**
  * The generation ship and the rock hermit: ours, and labelled as ours.
  *
- * The derelict colony vessel is a Harmless encounter with no Elite-A design,
- * and the hermit is a hollowed asteroid the player can dock with rather than
- * one of the two source stations. Giving them source ids would put invented
- * numbers into the catalogue's namespace, which is exactly the mislabelling the
- * combat plan forbids.
+ * The derelict colony vessel is a Harmless encounter, and no Elite-A design
+ * covers it. The hermit is a hollowed asteroid the player can dock with, rather
+ * than one of the two source stations.
+ *
+ * Source ids on those two would put invented numbers into the catalogue's
+ * namespace. That is exactly the false label the combat plan forbids.
  */
 export const HARMLESS_OVERLAYS = {
   generationShip: overlay('generation-ship', 'Generation ship',
@@ -182,8 +183,8 @@ export function playerHull(id: PlayerHullId): EliteAPlayerHull {
 }
 
 /**
- * A design, resolved. Source-backed or ours — the caller is made to notice,
- * because "no source record" is a fact about the ship, not a missing value.
+ * A design, resolved. It is source-backed or ours, and the caller has to
+ * notice. "No source record" is a fact about the ship, not an absent value.
  */
 export type ShipDesignRecord =
   | { readonly source: 'elite-a'; readonly designId: ShipDesignId; readonly design: EliteADesign }
@@ -221,11 +222,12 @@ export function npcCombatProfileById(id: NpcCombatProfileId): NpcCombatProfileRe
 /**
  * The identity a source design flies with today.
  *
- * The profile is the pack's recommended default, which the importer already
- * resolved to an ACTUAL exact variant with that combat tuple (catalogue.ts) —
- * so a roster hull is a real released build rather than an average of them.
- * Selection policy stays outside: a later blueprint loader that picks a variant
- * by system hands in a different `profileId` and nothing else changes.
+ * The profile is the pack's recommended default. The importer already resolved
+ * that to an ACTUAL exact variant with the same combat tuple (catalogue.ts). So
+ * a roster hull is a real released build, rather than an average of several.
+ *
+ * Selection policy stays outside. A later blueprint loader that picks a variant
+ * by system hands in a different `profileId`, and nothing else changes.
  */
 export function eliteAShipIdentity(sourceDesignId: number): ShipIdentity {
   const designId = shipDesignIdOf(sourceDesignId);
@@ -235,9 +237,10 @@ export function eliteAShipIdentity(sourceDesignId: number): ShipIdentity {
 /**
  * The deterministic profile for a design: the pack's own recommended build.
  *
- * What a design flies when nothing has chosen otherwise — a trader, a rock,
- * either Harmless overlay, or a combat design the source filed in no band its
- * role draws from (`role-variants.ts` names the Constrictor).
+ * It is what a design flies where nothing chose otherwise. Four cases reach it:
+ * a trader, a rock, either Harmless overlay, and a combat design the source
+ * filed in no band its role draws from. `role-variants.ts` names the
+ * Constrictor as that last case.
  */
 export function recommendedProfileIdFor(designId: ShipDesignId): NpcCombatProfileId {
   const record = shipDesign(designId);
@@ -252,10 +255,13 @@ export function recommendedProfileIdFor(designId: ShipDesignId): NpcCombatProfil
  * The identity a saved ship comes back with. Both ids, or the save is refused.
  *
  * A ship that does not say what it is is corruption like any other, so this
- * throws for it. Throwing is the whole handling: the save system already
- * refuses what it cannot read (`Persistence.resume` catches and boots the
- * commander normally; `readSave` returns null for a record that will not
- * parse), so nothing here reaches a player as an error.
+ * throws for it. The throw is the whole treatment, because the save system
+ * already refuses what it cannot read:
+ *
+ *   - `Persistence.resume` catches and boots the commander normally;
+ *   - `readSave` returns null for a record that will not parse.
+ *
+ * So nothing here reaches a player as an error.
  */
 export function savedShipIdentity(
   saved: { designId?: unknown; profileId?: unknown },

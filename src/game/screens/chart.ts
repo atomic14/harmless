@@ -1,19 +1,25 @@
 // The galactic chart and the short-range chart.
 //
-// One class, two instances. They differ only in scale, in which render/draw
-// pair they call, and in how a click maps to chart coordinates — everything
-// else (the cursor, targeting, type-to-find, the market estimate) is identical,
-// and was already written once and branched on `mode === 'local'` throughout.
+// One class, two instances. They differ in three things only:
 //
-// The most involved screen in the game, and the two contract additions it
-// needed are both genuine: `tick(dt)` because the cursor moves while an arrow
-// is HELD, where every other screen acts on discrete taps, and `clickAt`
-// because a canvas has to turn pixels into its own coordinate space.
+//   1. the scale;
+//   2. which render/draw pair they call;
+//   3. how a click maps to chart coordinates.
+//
+// Everything else is identical: the cursor, the target, type-to-find, and the
+// market estimate. All of it was already written once, and branched on
+// `mode === 'local'` throughout.
+//
+// It is the most involved screen in the game, and the two contract additions
+// it needed are both genuine. `tick(dt)` is needed because the cursor moves
+// while an arrow is HELD, and every other screen acts on discrete taps.
+// `clickAt` is needed because a canvas has to turn pixels into its own
+// coordinate space.
 //
 // Two sub-modes live here rather than on the stack. Type-to-find and the
-// market estimate are not places you navigate to — they are states of the
-// chart itself, they swallow the keyboard while active, and Escape leaves the
-// sub-mode rather than the screen. Pushing them would make Escape ambiguous.
+// market estimate are not places you navigate to. They are states of the chart
+// itself. They swallow the keyboard while active, and Escape leaves the
+// sub-mode rather than the screen. On the stack, Escape would be ambiguous.
 
 import type { ChartState } from '../chart-state.ts';
 import {
@@ -47,12 +53,14 @@ export interface ChartContext {
   readonly chart: ChartState;
   /** remember which system the data screen should read about */
   viewData(sys: StarSystem): void;
-  /** the living galaxy's ±25% price pressure THERE, for the market estimate */
+  /** the galaxy's own ±25% price pressure THERE, for the market estimate */
   priceMultiplier(systemIndex: number, commodity: number): number;
   /**
-   * That system's pirate reputation, 0..1, for the danger overlay. The
-   * READ-ONLY accessor: `LivingGalaxy.state()` would insert an entry for every
-   * system a redraw looks at, which is a draw path mutating the world.
+   * That system's pirate reputation, 0..1, for the danger overlay.
+   *
+   * It is the READ-ONLY accessor. `LivingGalaxy.state()` would insert an entry
+   * for every system a redraw looks at. That is a draw path that mutates the
+   * world.
    */
   danger(systemIndex: number): number;
   /** convoys in flight, for the routes overlay — a read of a public array */
@@ -60,11 +68,14 @@ export interface ChartContext {
   /** the galaxy's day, which turns a convoy's `etaDay` into "in 2 days" */
   readonly day: number;
   /**
-   * Which trade overlay is up, and the key that cycles it. Held by the Game
-   * rather than by either screen, exactly as `viewData` holds the data
-   * screen's subject: both charts then show the same thing, so `G` and `N`
-   * cannot disagree. Not saved — `SNAPSHOT_VERSION` is checked strictly, and a
-   * view mode is not worth invalidating every existing save.
+   * Which trade overlay is up, and the key that cycles it.
+   *
+   * The Game holds it rather than either screen, exactly as `viewData` holds
+   * the data screen's subject. So both charts show the same thing, and `G` and
+   * `N` cannot disagree.
+   *
+   * It is not saved. `SNAPSHOT_VERSION` is checked strictly, and a view mode is
+   * not worth the loss of every save on the shelf.
    */
   readonly overlay: ChartOverlay;
   cycleOverlay(): void;
@@ -77,10 +88,12 @@ export class ChartScreen implements Screen {
   /** typed prefix while type-to-find is active, or null when it is not */
   private find: string | null = null;
   /**
-   * Where the mouse last was, in chart coordinates, or null when it has not
-   * been over this canvas. Kept beside the cursor rather than moved INTO it:
-   * the cursor also chooses the hyperspace target, and a pointer crossing the
-   * chart on its way somewhere else must not retarget the ship.
+   * Where the mouse last was, in chart coordinates. It is null until the mouse
+   * first crosses this canvas.
+   *
+   * It sits beside the cursor rather than inside it. The cursor also chooses
+   * the hyperspace target. A pointer on its way somewhere else must not
+   * retarget the ship.
    */
   private pointer: { x: number; y: number } | null = null;
   /** the lane the last repaint described, so a move that changes nothing costs nothing */
@@ -98,7 +111,7 @@ export class ChartScreen implements Screen {
     const { chart, system } = this.ctx();
     this.find = null;
     this.estimate = false;
-    // the mouse has not been over THIS canvas yet, whatever it did on the other
+    // the mouse never crossed THIS canvas yet, whatever it did on the other
     this.pointer = null;
     this.described = null;
     chart.cursorX = system.x;
@@ -139,13 +152,16 @@ export class ChartScreen implements Screen {
   }
 
   /**
-   * The lane being pointed at: under the mouse if it has moved over the chart,
-   * otherwise under the cursor the arrow keys drive.
+   * The lane under the pointer. It is the lane under the mouse once the mouse
+   * crossed the chart. Otherwise it is the lane under the cursor the arrow keys
+   * drive.
    *
-   * BOTH, because nothing else on these charts is mouse-only — a click and the
-   * arrows move the same cursor — and the detail should not be the first thing
-   * a keyboard cannot reach. The mouse wins while it is over the canvas,
-   * because a pointer is a deliberate act and the cursor may be parked.
+   * BOTH, because nothing else on these charts is mouse-only. A click and the
+   * arrows move the same cursor. The detail should not be the first thing a
+   * keyboard cannot reach.
+   *
+   * The mouse wins while it is over the canvas. A pointer is a deliberate act,
+   * and the cursor may be parked.
    */
   private laneAtPointer(lanes: readonly TradeLane[]): TradeLane | null {
     if (!lanes.length) return null;
@@ -155,10 +171,12 @@ export class ChartScreen implements Screen {
   }
 
   /**
-   * How near counts as pointing at a lane, in chart units — `LANE_PICK_PX`
-   * pixels on whichever chart this is. The same conversion `clickAt` makes for
-   * its snap radius, and for the same reason: a pixel is ~13x more chart on
-   * the galactic chart than on the short-range one.
+   * How near the pointer must be to pick a lane, in chart units. It is
+   * `LANE_PICK_PX` pixels on whichever chart this is.
+   *
+   * It is the same conversion `clickAt` makes for its snap radius, and for the
+   * same reason. A pixel is ~13x more chart on the galactic chart than on the
+   * short-range one.
    */
   private pickRadius(): number {
     return this.local
@@ -166,7 +184,7 @@ export class ChartScreen implements Screen {
       : LANE_PICK_PX / (CHART_CANVAS_W / CHART_SPAN_X);
   }
 
-  /** Repaint the canvas only, keeping the surrounding chrome. */
+  /** Repaint the canvas only. The chrome around it stays. */
   private redraw(): void {
     const { systems, commander, chart } = this.ctx();
     const overlays = this.overlays();
@@ -228,8 +246,8 @@ export class ChartScreen implements Screen {
       return 'stay';
     }
     if (i.pressed('KeyT')) {
-      // The Game owns the mode, so the other chart is already showing this
-      // when you open it. A full render: the keyline names the overlay.
+      // The Game owns the mode, so the other chart already draws this when you
+      // open it. A full render: the keyline names the overlay.
       this.ctx().cycleOverlay();
       this.render();
       return 'stay';
@@ -249,8 +267,8 @@ export class ChartScreen implements Screen {
   /**
    * The pointer moved. Report only — nothing here selects, targets or spends.
    *
-   * Repaints only when the described lane CHANGES: `mousemove` fires on every
-   * pixel of travel, where this chart has never repainted more than once per
+   * It repaints only when the lane it describes CHANGES. `mousemove` fires on
+   * every pixel of travel, and this chart never repainted more than once per
    * cursor step.
    */
   hoverAt(target: HTMLElement, e: MouseEvent): void {
@@ -258,13 +276,13 @@ export class ChartScreen implements Screen {
     const was = this.described;
     this.pointer = target instanceof HTMLCanvasElement
       ? this.chartCoords(target, e)
-      // off the canvas — fall back to the cursor, so the line does not go
-      // stale describing a lane the pointer left
+      // off the canvas: fall back to the cursor, so that the line does not go
+      // stale on a lane the pointer left
       : null;
     const now = this.laneAtPointer(this.routeLanes());
-    // BY ITS SYSTEMS, not by identity: `busyLanes` folds fresh objects out of
-    // the convoy list on every call, so two reads of the same lane are never
-    // the same object and an identity test would repaint on every pixel.
+    // BY ITS SYSTEMS, not by identity. `busyLanes` folds fresh objects out of
+    // the convoy list on every call. So two reads of the same lane are never
+    // the same object, and an identity test would repaint on every pixel.
     const same = was === now
       || (!!was && !!now && was.a === now.a && was.b === now.b);
     if (!same) this.redraw();
@@ -294,8 +312,8 @@ export class ChartScreen implements Screen {
     chart.cursorX = Math.max(0, Math.min(255, coords.x));
     chart.cursorY = Math.max(0, Math.min(255, coords.y));
 
-    // snap radius of ~28 screen px on either chart, so clicking a star targets
-    // it while clicking empty sky just moves the cursor
+    // snap radius of ~28 screen px on either chart. So a click on a star
+    // targets it, and a click on empty sky merely moves the cursor.
     const pxPerUnit = this.local ? LOCAL_SCALE : target.width / CHART_SPAN_X;
     const near = nearestSystem(systems, chart.cursorX, chart.cursorY, 28 / pxPerUnit);
     if (near) {
