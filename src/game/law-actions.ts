@@ -1,20 +1,20 @@
 // What the law does to a commander, and what she can do about it.
 //
 // The ORCHESTRATION half of the law, split out of `game.ts` by docs/TODO/150.
-// `law.ts` next door owns the RULES — what a bribe costs, what a patrol is
-// worth, what a fine leaves you with — and this holds what the Game does with
-// them: offering money to a patrol, throwing the evidence overboard, raising a
-// record, scrambling the station's fleet, and clearing a legal status.
+// `law.ts` next door owns the RULES: what a bribe costs, what a patrol is
+// worth, and what a fine leaves you with. This file holds what the Game does
+// with them. It offers money to a patrol, throws the evidence overboard, raises
+// a record, scrambles the station's fleet, and clears a legal status.
 //
-// It is the same shape as `station.ts`: the state, plus a narrow host for the
-// few things it has to reach back for. It decides and it spends; the Game owns
+// It is the same shape as `station.ts`. The state, plus a narrow host for the
+// few things it must reach back for. It decides and it spends. The Game owns
 // the console, the sounds and what mode the ship is in.
 //
-// ONE ASYMMETRY IS THE WHOLE FEATURE, and it lives in `bribePolice`: a bribe
+// ONE ASYMMETRY IS THE WHOLE FEATURE, and it lives in `bribePolice`. A bribe
 // never clears a record and never buys one back. The inspection latches the
-// scan without raising anything, and the fight buys one ship out of one fight
-// and leaves you exactly as Fugitive as you were. Your REPUTATION pays for both,
-// refusals included.
+// scan and raises nothing. The fight buys one ship out of one fight, and leaves
+// you exactly as Fugitive as you were. Your REPUTATION pays for both, and a
+// refusal costs it too.
 
 import * as THREE from 'three';
 import { formatCredits } from './commander.ts';
@@ -34,12 +34,15 @@ import type { GameState } from './state.ts';
 /**
  * The few things the law has to reach back to the Game for.
  *
- * WIDER THAN THE PLAN ESTIMATED, and the two extras are worth naming. The mode
- * is read twice and they are different questions — `mode()` includes an open
- * screen, so a bribe is refused while a chart is up, and `baseMode()` does not,
- * because the defence fleet cares where the SHIP is rather than what is on
- * screen. And two sounds are the Game's because `audio.ts` is platform: a child
- * that imported it would stop being portable.
+ * WIDER THAN THE PLAN ESTIMATED, and the two extras are worth naming.
+ *
+ * The mode is read twice, and the two reads ask different questions. `mode()`
+ * includes an open screen, so a bribe is refused while a chart is up.
+ * `baseMode()` does not, because the defence fleet cares where the SHIP is
+ * rather than what is on screen.
+ *
+ * Two sounds are the Game's, because `audio.ts` is platform. A child that
+ * imported it would stop being portable.
  */
 export interface LawHost {
   showMessage(text: string, seconds: number): void;
@@ -67,23 +70,25 @@ export class LawActions {
   }
 
   /**
-   * The record moves — and the console says where it left you, once the deed
-   * that moved it has been read (docs/TODO/130).
+   * The record moves. The console then says where it left you, after the player
+   * reads the deed that moved it (docs/TODO/130).
    *
    * THE ONE HOME of what a moved record says. It used to say `LEGAL STATUS: X`
-   * on the spot, and `callStationDefence` three lines below erased it before a
-   * frame was drawn, so becoming a Fugitive was never on the console at all;
-   * the scan and the survivor sale had each already written out their own
-   * `recordVerdict` because this line was no use to them. One rule now, said in
-   * the console's running order: **what you did, what the sky did about it,
-   * where you now stand.** Nothing here takes the console from its own cause.
+   * on the spot. `callStationDefence`, three lines below, erased that line
+   * before a frame was drawn. So a commander who became a Fugitive was never
+   * told. The scan and the survivor sale each wrote out their own
+   * `recordVerdict`, because this line was no use to them.
    *
-   * `recordVerdict` (law.ts) rather than the status alone, because the half a
-   * player needs is who is coming — and it is assembled from the rule that
-   * decides that, so it cannot promise a fight the sky will not deliver.
+   * One rule now, said in the console's running order: **what you did, what the
+   * sky did about it, where you now stand.** Nothing here takes the console from
+   * its own cause.
+   *
+   * It says `recordVerdict` (law.ts) rather than the status alone. The half a
+   * player needs is who is coming. That half is assembled from the rule which
+   * decides it, so the line cannot promise a fight the sky will not deliver.
    *
    * **Only a MOVE speaks.** Every laser hit that lands on a trader reaches here
-   * (combat.ts); a line per hit would shout the same record down the length of
+   * (combat.ts). A line per hit would shout the same record down the length of
    * a fight. A record that did not move is nothing happening, and nothing
    * happening is worth no line.
    *
@@ -109,15 +114,15 @@ export class LawActions {
   /**
    * ...and the way a record comes back DOWN without a station: police work.
    *
-   * `recordWorkedOff` (law.ts) owns the rule and this applies it. The role test
-   * is the rule's, not this file's — a caller hands over whatever it destroyed,
-   * and a kill that pays down nothing is a no-op.
+   * `recordWorkedOff` (law.ts) owns the rule, and this applies it. The role test
+   * belongs to the rule rather than to this file. A caller hands over whatever
+   * it destroyed, and a kill that pays down nothing is a no-op.
    *
-   * **Only a MOVE speaks**, which is the rule `raiseLegal` above already
-   * states: a line for each of the five kills would shout the ledger down the
-   * length of a fight. The line itself is `recordVerdict`, the one home of what
-   * a moved record says, and it reads both directions — a commander who falls
-   * to Offender is told that bounty hunters still engage.
+   * **Only a MOVE speaks**, which is the rule `raiseLegal` above already states.
+   * A line for each of the five kills would shout the ledger down the length of
+   * a fight. The line itself is `recordVerdict`, the one home of what a moved
+   * record says. It reads both directions, so a commander who falls to Offender
+   * is told that bounty hunters still attack.
    *
    * @internal — driven by src/game/flight-weapons.ts. A destroyed pirate is a
    * `CombatEvent`, and this half pays it (invariant 15).
@@ -155,49 +160,49 @@ export class LawActions {
 
   /**
    * Stations keep "a small fleet of ships for their own defence, which they
-   * may risk to assist a trader if they see him attacked" — misbehave in
-   * sight of the station and Vipers launch from the slot.
+   * may risk to assist a trader if they see him attacked". Misbehave in sight
+   * of the station, and Vipers launch from the slot.
    */
   private callStationDefence(): void {
     // ...MISBEHAVE, which means in the sky. `raiseLegal` is reachable from the
-    // station now — selling a survivor is an offence filed over a counter
-    // (docs/TODO/127 M3) — and a docked ship is parked INSIDE the range test
-    // below, so without this the sale would scramble Vipers into a world the
-    // player is not in and cannot see. The record still moves; the fleet is
-    // what waits until there is a ship to launch at.
+    // station now: to sell a survivor is an offence filed over a counter
+    // (docs/TODO/127 M3). A docked ship is parked INSIDE the range test below.
+    // So without this guard, the sale would scramble Vipers into a world the
+    // player is not in and cannot see. The record still moves. The fleet is the
+    // half that waits until there is a ship to launch at.
     if (this.host.baseMode() !== 'flight') return;
     if (this.state.session.witchspace || this.state.session.defenceLaunched) return;
     if (this.state.player.position.distanceTo(this.state.world.station.position) > DEFENCE_RANGE) return;
     this.state.session.defenceLaunched = true;
     launchStationDefence(this.state.world, this.scratch);
-    // Queued, because this used to erase the line that explained it —
-    // ESCAPE CAPSULE DESTROYED and STATION HULL HIT both reach here through
-    // `raiseLegal` (docs/TODO/130). It is not a delay where it matters: with a
-    // quiet console `tickMessage` promotes it on the next step, so it waits
-    // only when something is already speaking, which is when it should.
+    // Queued, because this line used to erase the line that explained it. Both
+    // ESCAPE CAPSULE DESTROYED and STATION HULL HIT reach here through
+    // `raiseLegal` (docs/TODO/130). It is not a delay where a delay matters. On
+    // a quiet console `tickMessage` promotes it at the next step, so it waits
+    // only while something else speaks, which is when it should.
     this.host.queueMessage('STATION DEFENCE LAUNCHED', 4);
-    // ...but the SOUND is immediate, so the speaker and the sky agree on the
-    // frame the Vipers actually leave the slot.
+    // ...but the SOUND is immediate. So the speaker and the sky agree on the
+    // frame the Vipers leave the slot.
     this.host.defenceLaunched();
   }
 
   /**
    * Offer the law money.
    *
-   * Two situations and no mode: the Viper shooting at you, and the patrol
-   * closing on a dirty hold. The key reads which one is in front of you, and
-   * when there is neither it says so and spends nothing, the way an empty hold
-   * answers HOLD EMPTY.
+   * Two situations and no mode. There is the Viper that shoots at you, and the
+   * patrol that closes on a dirty hold. The key reads which one is in front of
+   * you. Where there is neither, it says so and spends nothing, the way an
+   * empty hold answers HOLD EMPTY.
    *
-   * `law.ts` decides what each costs and what it leaves; this spends the
+   * `law.ts` decides what each costs and what it leaves. This spends the
    * credits, writes the latch and writes `satisfied` (invariant 10).
    *
    * **Neither half touches the record.** The inspection latches `policeScanned`
-   * with no `raiseLegal`, so the scan does not happen and the Government's
-   * paperwork stays spotless; the fight buys one ship out of one fight and
+   * and calls no `raiseLegal`, so the scan does not happen and the Government's
+   * paperwork stays spotless. The fight buys one ship out of one fight, and
    * leaves you exactly as Fugitive as you were. Your reputation pays for both
-   * (`bribeOffered`), refusals included. That asymmetry is the whole feature: a
-   * bribe never clears a record and never buys one back.
+   * (`bribeOffered`), and a refusal costs it too. That asymmetry is the whole
+   * feature: a bribe never clears a record and never buys one back.
    *
    * @internal — driven by src/game/game.ts. The orchestrator owns the key and
    * delegates the offer to here.
@@ -207,9 +212,9 @@ export class LawActions {
     const c = this.state.commander;
     const session = this.state.session;
 
-    // The fight comes first: a Viper already shooting is the more urgent
-    // purchase, and buying an inspection off a man who is trying to kill you
-    // would be money for nothing. One press buys ONE ship, and `PATROL_PRICE`
+    // The fight comes first. A Viper that already shoots is the more urgent
+    // purchase. An inspection bought off a man who wants to kill you is money
+    // for nothing. One press buys ONE ship. `PATROL_PRICE`
     // (constants/law.ts) says why the price is per ship.
     const hunter = nearestEngaging(this.state.world.npcs, this.state.player.position,
       c.legalStatus, 'police',
@@ -226,9 +231,9 @@ export class LawActions {
       return;
     }
 
-    // The inspection: contraband aboard, nobody has read it yet, and a patrol
-    // close enough to. `patrolReach` is the same window the console warned you
-    // about, rather than a second opinion about the same two ranges.
+    // The inspection needs three things: contraband aboard, no read of it yet,
+    // and a patrol close enough to make one. `patrolReach` is the same window
+    // the console warned you about. It is not a second opinion on two ranges.
     const cop = nearestNpc(this.state.world.npcs, this.state.player.position,
       (npc) => npc.role === 'police');
     if (!session.policeScanned && !session.witchspace && carryingContraband(c.cargo)
@@ -250,17 +255,17 @@ export class LawActions {
    * nothing.
    *
    * Both halves of the key go through here, so neither can acquire an answer
-   * the other does not have — the shortfall, the refusal and the reputation are one
-   * rule about offering money to a policeman, and only the CONSEQUENCE of a
+   * the other does not have. The shortfall, the refusal and the reputation are
+   * one rule about money offered to a policeman. Only the CONSEQUENCE of a
    * taken offer differs between them.
    *
-   * The roll comes off the world's seeded stream (invariant 11), and only when
-   * an offer is actually made: a commander who cannot cover the price has not
-   * said anything out loud, so nothing is spent and no draw is consumed.
+   * The roll comes off the world's seeded stream (invariant 11), and only where
+   * an offer is made. A commander who cannot cover the price says nothing out
+   * loud, so nothing is spent and no draw is consumed.
    *
-   * A refusal is an offence in front of a witness. `provokedByPlayer` — not
-   * `provoked`, which is damage from any source — so he engages under the rule
-   * that already exists, and the reputation is charged for the asking.
+   * A refusal is an offence in front of a witness. It sets `provokedByPlayer`
+   * rather than `provoked`, which is damage from any source. So he engages under
+   * the rule that already exists, and the reputation is charged for the asking.
    */
   private offerTo(target: NpcShip, price: number): number | null {
     const c = this.state.commander;
@@ -272,10 +277,10 @@ export class LawActions {
       this.host.refused();
       return null;
     }
-    // The reputation is charged here, so the line that says so is queued here
-    // behind whichever of the four answers below the caller puts on the
-    // console. A REFUSAL costs it as well, which is the one case that reads
-    // like a bug until you have read docs/TODO/123: the deed is the asking.
+    // The reputation is charged here, so the line that says so is queued here.
+    // It waits behind whichever of the four answers below the caller puts on
+    // the console. A REFUSAL costs it as well. That is the one case that reads
+    // like a bug before you read docs/TODO/123: the deed is the asking.
     this.host.markCharacter(c.disrepute ?? 0, offer.disrepute);
     c.disrepute = offer.disrepute;
     if (offer.outcome === 'refused') {
@@ -292,9 +297,9 @@ export class LawActions {
    * The road out of the ship, shared by both dumps: clear of your own scoop,
    * counted toward the toll, and offered to the pirates.
    *
-   * `choose` is the only difference between them — WHICH tonnes go — and it is
-   * passed rather than branched on so neither ordering can quietly acquire the
-   * other's rule.
+   * `choose` is the only difference between them, and it says WHICH tonnes go.
+   * It is passed rather than branched on, so neither order can quietly acquire
+   * the other's rule.
    */
   throwOverboard(
     choose: (cargo: number[]) => Dumped,

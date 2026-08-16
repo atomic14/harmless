@@ -7,9 +7,10 @@
 //
 // The one home for the character reputation, the way `rating.ts` owns the combat
 // ladder and `law.ts` owns your legal standing. The numbers are `constants/
-// character.ts`; this is the arithmetic that reads and moves them. It touches no
-// world state — a caller applies the result to the commander — so the trainer's
-// clone and a headless campaign can ask the same questions the game does.
+// character.ts`, and this is the arithmetic that reads and moves them. It
+// touches no world state, because a caller applies the result to the commander.
+// So the trainer's clone and a headless campaign ask the same questions the game
+// does.
 
 import {
   CHARACTER, DISREPUTE_DECAY, DISREPUTE_MAX,
@@ -46,17 +47,19 @@ export function rungCrossed(before: number, after: number): string | null {
  * ...in the console line, or null when nothing happened worth saying.
  *
  * The ONE phrasing of it, for the seven deeds and the decay that all owe the
- * player the same sentence. Only crossings speak: the score itself stays out
- * of the cockpit (test mode shows the number), because the ladder is the
- * interface and a running commentary on a hidden number is not.
+ * player the same sentence.
+ *
+ * Only a crossing speaks. The score itself stays out of the cockpit, and test
+ * mode shows the number. The ladder is the interface, and a running commentary
+ * on a hidden number is not.
  *
  * **It says which WAY it moved** (docs/TODO/162). A rung name alone is a word
- * the player has never met. `DUBIOUS` does not say whether it is good news, and
- * the decay crosses rungs downward. So the line carries a short clause that a
- * first-time pilot can read without a manual.
+ * the player never met. `DUBIOUS` does not say whether it is good news, and the
+ * decay crosses rungs downward. So the line carries a short clause that a
+ * first-time pilot reads without a manual.
  *
  * The clause is deliberately about talk rather than about a rule. What a rung
- * COSTS differs by rung — a hermit refuses at Dodgy and not at Dubious — so a
+ * COSTS differs by rung: a hermit refuses at Dodgy and not at Dubious. So a
  * clause that named a consequence would be false at some of the six.
  */
 export function characterVerdict(before: number, after: number): string | null {
@@ -67,8 +70,8 @@ export function characterVerdict(before: number, after: number): string | null {
 }
 
 /**
- * A disrepute score after a deed of `delta` — never below Honest, never past
- * the ceiling, so neither a good week nor a bad career can run the bar away.
+ * A disrepute score after a deed of `delta`. It is never below Honest and never
+ * past the ceiling. So neither a good week nor a bad career runs the bar away.
  */
 export function afterDeed(disrepute: number, delta: number): number {
   return Math.max(0, Math.min(DISREPUTE_MAX, disrepute + delta));

@@ -1,32 +1,32 @@
-// Flying a ship into the station slot — the one piece of piloting that needs
-// roll control, and therefore the one thing neither the scripted NPC steering
-// nor the player's docking computer could previously do.
+// A ship goes into the station slot. It is the one manoeuvre that needs roll
+// control. Neither the scripted NPC steering nor the player's docking computer
+// could do it before this file.
 //
-// Shared deliberately. Traders putting in at the station and the player's
-// docking computer are the same problem: get onto the slot axis, match the
-// slot's rotation, and run in. Solving it twice would mean two things to get
-// wrong, and the hard part — roll — is identical for both.
+// Shared deliberately. A trader that puts in at the station and the player's
+// docking computer solve the same problem. Get onto the slot axis. Match the
+// slot's rotation. Run in. Two solutions would be two things to get wrong, and
+// the hard part is roll, which is identical for both.
 //
-// Why roll is the crux: `NpcShip.steerToward` builds orientation from
-// `lookAt(dir, WORLD_UP)`, so roll is whatever falls out of pointing at a
-// target. The station's slot is a letterbox on a hull spinning at
-// `STATION_SPIN`, so a ship that cannot choose its roll cannot fit through it.
-// The fix is to take the up-hint from the STATION rather than the world, which
+// Roll is the crux for one reason. `NpcShip.steerToward` builds an orientation
+// from `lookAt(dir, WORLD_UP)`, so roll is whatever falls out of an aim at a
+// target. The station's slot is a letterbox on a hull that spins at
+// `STATION_SPIN`. So a ship that cannot choose its roll cannot fit through it.
+// The fix takes the up-hint from the STATION rather than from the world. That
 // matches the slot's rotation for free as it turns.
 //
-// The letterbox itself — which way up it stands, how wide the channel is, and
-// the roll tolerance — is constants/docking.ts, with the released slot
-// measurements beside the values. `test/world.test.ts` and
+// The letterbox itself is constants/docking.ts. That file holds which way up it
+// stands, how wide the channel is, and the roll tolerance. The released slot
+// measurements sit beside the values. `test/world.test.ts` and
 // `test/docking.test.ts` pin the geometry.
 //
-// WHERE the ship is sent is `dock-path.ts` and is a curve; what is here is the
-// plan read off it — the heading, the speed, the roll handover and who counts as
-// docked. That split is docs/TODO/136: the approach used to be two rival aims
-// with a threshold between them, and the threshold is what reversed.
+// WHERE the ship is sent is `dock-path.ts`, and it is a curve. What is here is
+// the plan read off that curve: the heading, the speed, the roll handover and
+// who counts as docked. The split is docs/TODO/136. The approach used to be two
+// rival aims with a threshold between them, and the threshold is what reversed.
 //
 // WHAT THE PLAYER'S AUTOPILOT DOES WITH THE STICK is `docking-sticks.ts`, along
-// the seam the constants and the tests already had. NPC traders read the plan
-// and steer with `lookAt`; only the commander's ship is flown by a hand.
+// the seam the constants and the tests already had. An NPC trader reads the plan
+// and steers with `lookAt`. Only the commander's ship is flown by a hand.
 
 import * as THREE from 'three';
 
@@ -38,13 +38,13 @@ import { slotNormal } from '../world/slot.ts';
 import { dockPath, makeDockPath } from './dock-path.ts';
 
 export type DockPhase =
-  /** still coming round — the path is doing the flying */
+  /** still on the turn — the path decides where the ship goes */
   | 'gate'
   /** on the last leg: down the axis, rolled with the slot */
   | 'run';
 
 export interface DockPlan {
-  /** unit vector the ship should be pointing along */
+  /** unit vector the ship should point along */
   heading: THREE.Vector3;
   /** up-hint for the orientation — the station's own up, so roll matches the slot */
   up: THREE.Vector3;
@@ -56,9 +56,9 @@ export interface DockPlan {
   /** distance off the slot axis, for HUD and tests */
   lateral: number;
   /**
-   * The plane this ship is coming round in, held across frames — see
-   * `dock-path.ts`, which reads and writes it. Saved state like the phase: a
-   * ship reloaded mid-approach carries on the way round it was already going.
+   * The plane this ship turns in, held across frames. `dock-path.ts` reads and
+   * writes it. It is saved state, like the phase: a ship restored mid-approach
+   * carries on the way round it already took.
    */
   swing: THREE.Vector3;
 }
@@ -84,84 +84,91 @@ export function planDocking(
   maxSpeed: number,
   out: DockPlan,
 ): DockPlan {
-  // the slot faces along the station's local -Z, pointing outwards
+  // the slot faces along the station's local -Z, which is outwards
   slotNormal(station, _slotN);
   _rel.copy(pos).sub(station.position);
   const along = _rel.dot(_slotN);
   // perpendicular distance from the axis
   const lateral = _rel.addScaledVector(_slotN, -along).length();
   out.lateral = lateral;
-  // The station's local X, not its Y: `lookAt(heading, up)` puts the ship's
-  // RIGHT perpendicular to the up-hint, and the wings have to lie along the
-  // slot's LONG axis, which is the station's local Y (see the header). Handing
-  // it the Y put every trader through the letterbox side-on.
+  // The station's local X, and not its Y. `lookAt(heading, up)` puts the ship's
+  // RIGHT perpendicular to the up-hint. The wings must lie along the slot's
+  // LONG axis, which is the station's local Y (see the header). The Y put every
+  // trader through the letterbox side-on.
   out.up.set(1, 0, 0).applyQuaternion(station.quaternion);
 
   const gateDist = dockZ * GATE_HALF_WIDTHS;
 
-  // WHERE THE APPROACH GOES is `dock-path.ts`, and the whole of the answer here
-  // is a point one lookahead along it. There is no branch left: the stand-off,
-  // the way round the hull and the run in are one curve, and the aim moves along
-  // it continuously however sharply it turns. What used to be here — two rival
-  // aims and a threshold with no hysteresis between them — reversed the
-  // commanded heading through a half turn on 223 of 504 approaches, every one of
-  // them from behind the station (docs/TODO/136).
+  // WHERE THE APPROACH GOES is `dock-path.ts`. The whole of the answer here is a
+  // point one lookahead along it. No branch is left. The stand-off, the way
+  // round the hull and the run in are one curve, so the aim moves along it
+  // smoothly however sharply it turns. What used to be here was two rival aims
+  // and a threshold with no hysteresis between them. It reversed the commanded
+  // heading through a half turn on 223 of 504 approaches, and every one of them
+  // came from behind the station (docs/TODO/136).
   const path = dockPath(pos, station, dockZ, out.swing, _path);
-  // A zero-length heading is not reachable — the aim runs no deeper than the
-  // station's centre and `arrived` has fired by the slot mouth — but a plan that
-  // yields NaN steers every axis at once, so the last heading stands instead.
+  // A zero-length heading is not reachable. The aim runs no deeper than the
+  // station's centre, and `arrived` fires by the slot mouth. A plan that yields
+  // NaN steers every axis at once, so the last heading stands instead.
   if (path.aim.distanceToSquared(pos) > 1e-6) {
     out.heading.copy(path.aim).sub(pos).normalize();
   }
 
-  // Speed is part of the manoeuvre and not a detail: three of the four rewrites
-  // in docs/TODO/136 hurt because the ship arrived somewhere too fast to turn.
-  // It is eased over the gate distance BEFORE the mouth rather than switched at
-  // it, so the roll has the length of the corridor to settle in, and the run's
-  // own speed is unchanged.
+  // Speed is part of the manoeuvre and not a detail. Three of the four rewrites
+  // in docs/TODO/136 hurt, because the ship arrived somewhere too fast to turn.
+  // The speed is eased over the gate distance BEFORE the mouth, rather than
+  // switched at it. So the roll has the length of the corridor to settle in, and
+  // the run's own speed is unchanged.
   //
-  // A SECOND RULE WAS TRIED HERE AND MEASURED AWAY: capping the speed by how
-  // sharply the path bends, so that the nose's lag behind a turning demand stays
-  // inside `DC_TURN_FADE_ANGLE` and the roll is never handed a nearly-degenerate
-  // axis to hunt around. It reads well and it costs more than it buys — the ring
-  // it was aimed at is roughly one reversal a second whatever the speed, so
-  // slowing down simply buys more seconds of it: over the 504-approach sweep the
-  // median approach took 15.6s and 16 roll reversals unlimited, 18.0s and 17 at
-  // 0.20 rad/s, 23.9s and 20 at 0.12, and 34.3s and 25 at 0.08. What actually
-  // fixed the scraping that motivated it was the LOOKAHEAD — see
+  // A SECOND RULE WAS TRIED HERE AND MEASURED AWAY. It capped the speed by how
+  // sharply the path bends. The nose's lag behind a turned demand would then
+  // stay inside `DC_TURN_FADE_ANGLE`, and the roll would never get a nearly
+  // degenerate axis to hunt around. It reads well and it costs more than it
+  // buys. The ring it was aimed at is roughly one reversal a second whatever the
+  // speed, so a slower ship simply buys more seconds of it. The 504-approach
+  // sweep gives the median approach at four caps:
+  //
+  //   - unlimited: 15.6s and 16 roll reversals;
+  //   - 0.20 rad/s: 18.0s and 17;
+  //   - 0.12 rad/s: 23.9s and 20;
+  //   - 0.08 rad/s: 34.3s and 25.
+  //
+  // What fixed the scrape that motivated it was the LOOKAHEAD. See
   // `DC_PATH_LOOKAHEAD`, where the same sweep put the cliff.
   const settled = Math.min(110, maxSpeed * 0.7);
   const cruise = Math.max(settled, maxSpeed * 0.55);
   const eased = Math.max(0, Math.min(1, (path.toGo - gateDist) / gateDist));
   out.speed = Math.max(25, settled + (cruise - settled) * eased);
 
-  // The phase no longer decides anything about WHERE the ship is going: the
-  // path does, from end to end, and that is the point of it. What is left is the
-  // question `dockingSticks` asks — is this ship on the last leg, and has the
-  // slot's own roll started to matter — plus the flag NPC traders carry.
+  // The phase no longer decides anything about WHERE the ship goes. The path
+  // does that from end to end, and that is the point of it. What is left is the
+  // question `dockingSticks` asks: is this ship on the last leg, and does the
+  // slot's own roll matter yet? The flag an NPC trader carries is the other
+  // half.
   //
-  // Commit only when actually on the axis. Skipping the lateral test is the
-  // obvious mistake: a ship that reaches the gate 150 units off-axis and then
-  // flies straight carries that error into the hull instead of the slot. And it
-  // LATCHES: as the ship runs in, `along` shrinks past any outside-the-hull
-  // guard, so re-testing every frame would drop the roll handover just as the
-  // letterbox needs it.
+  // Commit only when the ship is on the axis. To skip the lateral test is the
+  // obvious mistake. A ship that reaches the gate 150 units off-axis, and then
+  // flies straight, carries that error into the hull instead of the slot.
+  //
+  // It also LATCHES. As the ship runs in, `along` shrinks past any
+  // outside-the-hull guard. A test on every frame would drop the roll handover
+  // exactly where the letterbox needs it.
   const committed = out.phase === 'run' && along > 0 && lateral < LINED_UP_LATERAL * 2;
   const linedUp = committed || path.toGo <= gateDist ||
     (lateral < LINED_UP_LATERAL && along > dockZ && along < gateDist * 1.5);
   out.phase = linedUp ? 'run' : 'gate';
 
-  // Inside the slot mouth and still on the axis — and IN FRONT of the station,
-  // which was missing. `along` is signed, so a ship behind the hull satisfied
-  // `along < dockZ` trivially; a trader that drifted within `LINED_UP_LATERAL`
-  // of the axis LINE on the far side counted itself docked and despawned
-  // through the back of the station (game/npc.ts reads this). Found by the
-  // wrong-side sweep in docs/TODO/136.
+  // Inside the slot mouth, still on the axis, and IN FRONT of the station. The
+  // third of those three was absent. `along` is signed, so a ship behind the
+  // hull satisfied `along < dockZ` trivially. So a trader that drifted within
+  // `LINED_UP_LATERAL` of the axis LINE, on the far side, counted itself docked.
+  // It then despawned through the back of the station (game/npc.ts reads this).
+  // The wrong-side sweep in docs/TODO/136 found it.
   out.arrived = along > 0 && along < dockZ && lateral < LINED_UP_LATERAL;
   return out;
 }
 
-/** A fresh plan object to hand to planDocking each frame. */
+/** A fresh plan object to hand to `planDocking` each frame. */
 export function makeDockPlan(): DockPlan {
   return {
     heading: new THREE.Vector3(0, 0, -1),
@@ -177,9 +184,9 @@ export function makeDockPlan(): DockPlan {
 
 // --- who is actually docked ------------------------------------------------
 //
-// This lived twice: `arrived` above, which NPC traders dock on and which has
-// NO roll test at all, and a re-implementation in game.ts checkStation() with
-// a bounding box, a slot channel and a roll test. So an NPC could thread a
+// This lived twice. `arrived` above is what an NPC trader docks on, and it has
+// NO roll test at all. A second version sat in game.ts `checkStation()`, with a
+// bounding box, a slot channel and a roll test. So an NPC could thread a
 // letterbox the player could not, and only the NPC's half was testable.
 //
 // One rule, one home. The consequence — bounce, damage, message, or actually
@@ -188,10 +195,10 @@ export function makeDockPlan(): DockPlan {
 /**
  * Is a point in the slot channel? `x` and `y` are station-LOCAL.
  *
- * Exported because the HUD's alignment aid asks the same question and used to
- * answer it with its own copy of the numbers (`hud/hud-model.ts`), which is the
- * rule-with-two-homes this project is organised against — and which would have
- * silently kept the old horizontal channel through this change.
+ * It is exported because the HUD's alignment aid asks the same question. That
+ * aid answered it with its own copy of the numbers (`hud/hud-model.ts`), which
+ * is the rule with two homes this project is organised against. That copy also
+ * kept the old horizontal channel through this change, and said nothing.
  */
 export function inSlotChannel(localX: number, localY: number): boolean {
   return Math.abs(localX) < SLOT_HALF_ACROSS && Math.abs(localY) < SLOT_HALF_ALONG;

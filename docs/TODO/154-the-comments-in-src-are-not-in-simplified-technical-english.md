@@ -343,7 +343,7 @@ measured figure, a defect that a comment stops somebody from re-creating.
 ### Where the full sweep stands
 
 **M3 is a full sweep of `src/`, and it is more than one sitting.** The table
-below is the state after the seventh pass on 2026-08-16. **`npm run ste -- --work`
+below is the state after the eighth pass on 2026-08-16. **`npm run ste -- --work`
 is the resume point** — it names the file to take next, in the order that clears
 the most breaches per pass.
 
@@ -351,12 +351,63 @@ the most breaches per pass.
 | --- | ---: | ---: | ---: | ---: |
 | when the checker was written | 1,988 | 20% | 23.4 | 309 |
 | at the head of M3 | 1,842 | 18% | 21.0 | 265 |
-| **now** | **1,297** | **11%** | **16.1** | **184** |
+| after the seventh pass | 1,297 | 11% | 16.1 | 184 |
+| **now** | **1,211** | **10%** | **15.3** | **168** |
 
-**Twenty-three files are converted, and each one measured 0% on the day.** They
-held 592 of the tree's long sentences, and every one of the five worst
+**Twenty-eight files are converted, and each one measured 0% on the day.** They
+held 675 of the tree's long sentences, and every one of the five worst
 directories still has files in it. The `-ing` words and every tense breach that
 remain in a converted file are recorded above and below as deliberate.
+
+### The eighth pass
+
+**It landed on 2026-08-16**, over the four files at the head of `--work` plus one
+repair.
+
+| | sentences | over cap | `-ing` | tense |
+| --- | ---: | ---: | ---: | ---: |
+| before | 435 | **83 (19%)** | 110 | **16** |
+| after | 610 | **0** | 58 | **0** |
+
+The four are `game/combat-sim.ts`, `game/law-actions.ts`, `game/docking.ts` and
+`game/elite-a/combat-math.ts`. The fifth is `game/character.ts`, and it is a
+repair rather than a pass.
+
+**The cost is 41 lines**, at 364 insertions against 323 deletions. The sentence
+count rose by 1.40 times, which is below M2's 1.92. **Nothing was dropped**: a
+walk of every number in the prose of all five files, before and after, reports
+126 numbers and 0 lost.
+
+**Four things came out of the eighth pass that the plan did not have.**
+
+1. **docs/TODO/162 DID NOT REGRESS THE FILES IT TOUCHED**, and that is the
+   opposite of the seventh pass's finding. 162 rewrote prose in fourteen files
+   for a vocabulary rule, and it was measured against the commit before it:
+   `law.ts` went 20 long sentences to 18, `constants/character.ts` 5 to 3, and
+   every other file it edited was unchanged. **The tree went 1,297 to 1,294.**
+   - **One file did regress, by one sentence.** `game/character.ts` went 3 to 4,
+     because 162 added two paragraphs to `characterVerdict`. This pass repairs
+     it, which is why the five files above are four plus one.
+   - **So the seventh pass's claim needs its scope stated.** An intention does
+     not HOLD a converted file. It does not follow that every milestone makes one
+     worse. What 158 did to `npc.ts` was five new sentences in new prose; what
+     162 did was rewrite existing sentences, and a rewrite tends toward the cap
+     rather than away from it.
+2. **THE FOUR FILES SPLIT INTO TWO SHAPES, and the ranking cannot see it.**
+   `combat-sim.ts` reads at 11% over 184 sentences. The other three read at 22%
+   to 28% over 67 to 85. The `--work` order put all four within two breaches of
+   each other, and it was right to: the JOB is the same size. What differs is how
+   the file reads, and only `--work` finds the big quiet file.
+3. **A VERTICAL LIST IS THE ANSWER MORE OFTEN THAN A SPLIT IS.** Four of this
+   pass's worst sentences were a list written as prose: the six refused
+   `StepHost` members and what each one reaches, five things the oracle does not
+   decide, four measured speed caps, and fourteen frame rates. `CLAUDE.md` asks
+   for a list at three or more items, and each of these was over five. A list
+   also survives the next edit, where a split sentence can be rejoined.
+4. **`elite-a/combat-math.ts` holds 72 numbers in its prose**, which is more than
+   the other four together. It is the pack's own arithmetic written out, so the
+   numeric walk matters more there than anywhere else this item has swept. All 72
+   survive.
 
 **ONE OF THE TWENTY-THREE NO LONGER MEASURES 0%**, and it is `game/npc.ts` at
 five long sentences. A later milestone put them there, and the seventh pass

@@ -1,39 +1,45 @@
 // The Elite-A combat oracle: what a registered hit is worth, and nothing else.
 //
-// One home for the released game's damage arithmetic. It is pure — no imports at
-// all, so no ship, no world, no RNG, no renderer and no clock can reach it — and
-// every rule below is reproduced against the pack's own matrices by
-// `test/elite-a-oracle.test.ts`: 15,600 player-to-NPC rows, 3,900 NPC-to-player
-// rows and 570 derived min/max ranges.
+// One home for the released game's damage arithmetic. It is pure, and it has no
+// imports at all, so no ship, no world, no RNG, no renderer and no clock can
+// reach it. `test/elite-a-oracle.test.ts` reproduces every rule below against
+// the pack's own matrices: 15,600 player-to-NPC rows, 3,900 NPC-to-player rows
+// and 570 derived min/max ranges.
 //
-// It answers questions; it does not fire anything. Whether a shot hits at all,
-// how often it may be fired, heat, the aim cone and who is even shooting stay
-// with the game's own combat code. What arrives here is "a hit registered — how
-// much is it worth", which is exactly what the pack tabulates.
+// It answers questions. It fires nothing. Five things stay with the game's own
+// combat code:
+//
+//   - whether a shot hits at all;
+//   - how often a gun may fire;
+//   - the heat;
+//   - the aim cone;
+//   - who shoots at whom.
+//
+// What arrives here is one question: a hit registered, so how much is it worth?
+// That is exactly what the pack tabulates.
 //
 // Two number kinds, deliberately:
 //
 //   * Registered-hit arithmetic is INTEGER. Laser bytes, defence, armour and
-//     energy are 6502 bytes; a fractional hit is not a thing the source can
-//     express. The one fractional step is the Constrictor's halving, and it is
-//     floored back to an integer before defence subtracts.
-//   * Regeneration is TIME, and time is a float. It is accumulated as an exact
-//     integer count of sub-ticks rather than a running float sum, because a
-//     float sum of `dt` does not give the same total at 15, 60 and 144 Hz — see
+//     energy are 6502 bytes, and the source cannot express a fractional hit.
+//     The one fractional step is the Constrictor's halving. It is floored back
+//     to an integer before defence subtracts.
+//   * Regeneration is TIME, and time is a float. It accumulates as an exact
+//     integer count of sub-ticks rather than as a running float sum. A float
+//     sum of `dt` does not give the same total at 15, 60 and 144 Hz. See
 //     ELITE_A_REGEN_TICKS_PER_SECOND.
 //
-// The catalogue (`catalogue.ts`) supplies the numbers; this file supplies the
+// The catalogue (`catalogue.ts`) supplies the numbers. This file supplies the
 // rules. Neither does the other's job: there is no arithmetic there and no data
-// table here, and the structural inputs below are satisfied by an
-// `EliteACombatProfile` and an `EliteAPlayerHull` without either file importing
-// the other.
+// table here. An `EliteACombatProfile` and an `EliteAPlayerHull` satisfy the
+// structural inputs below, and neither file imports the other.
 
 /**
  * What a player laser needs to know about its target.
  *
  * Structural on purpose: an `EliteACombatProfile` is one of these. Defence is
- * NOT a field — it is `maxEnergy & 7`, and deriving it here is what stops the
- * rule having a second home in a stored column that could drift.
+ * NOT a field. It is `maxEnergy & 7`, and the derivation here is what stops the
+ * rule from taking a second home in a stored column that could drift.
  */
 export interface EliteALaserTarget {
   readonly maxEnergy: number;
@@ -46,11 +52,11 @@ export interface EliteALaserTarget {
 /**
  * Which NPC-laser encoding to use.
  *
- * `clean` is the rule gameplay uses. `original` is the released game's
- * `weaponByte >> 1`, which reads the whole packed byte and so lets the missile
- * bits add up to 3 points of laser damage. It stays reproducible because the
- * pack tabulates it and a parity gate should be able to check it — it must
- * never be wired into live combat.
+ * `clean` is the rule the game plays by. `original` is the released game's
+ * `weaponByte >> 1`. That reads the whole packed byte, so the missile bits add
+ * up to 3 points of laser damage. It stays reproducible for one reason: the
+ * pack tabulates it, and a parity gate must be able to check it. It must never
+ * reach live combat.
  */
 export type EliteANpcLaserRule = 'clean' | 'original';
 
@@ -91,11 +97,11 @@ export function eliteANpcDefence(maxEnergy: number): number {
 }
 
 /**
- * Hit strength once the target's own multiplier has been applied.
+ * Hit strength after the target's own multiplier applies.
  *
- * Floored, and floored HERE — before defence — because the Constrictor's
- * halving is integer arithmetic in the source. A 7-point hit becomes 3, not
- * 3.5, so its 3 points of defence leave nothing.
+ * Floored, and floored HERE, before defence. The Constrictor's halving is
+ * integer arithmetic in the source. A 7-point hit becomes 3 and not 3.5, so its
+ * 3 points of defence leave nothing.
  */
 export function eliteAScaledPlayerHit(baseHit: number, target: EliteALaserTarget): number {
   if (target.laserImmune) return 0;
@@ -105,8 +111,8 @@ export function eliteAScaledPlayerHit(baseHit: number, target: EliteALaserTarget
 /**
  * Energy a registered player hit of this strength removes. Never negative.
  *
- * Immunity needs no case of its own: a station's scaled hit is 0 and defence is
- * never negative, so the floor at zero already answers it.
+ * Immunity needs no case of its own. A station's scaled hit is 0, and defence
+ * is never negative, so the floor at zero already answers it.
  */
 export function eliteADamageToNpc(baseHit: number, target: EliteALaserTarget): number {
   return Math.max(0,
@@ -140,14 +146,17 @@ export function eliteAHitsToDestroy(
 /**
  * Laser power: the top five bits of the packed weapon byte, `weaponByte >> 3`.
  *
- * NOT `& 7`. The byte is missile count in bits 0-2 and laser power in bits 3-7,
- * so the power field is five bits wide (0-31), not three. Masking it to three
- * bits capped power at 7 and silently zeroed the four ships whose power needs
- * bit 6 — the Anaconda and Asp Mk II (power 9), the Constrictor and Dragon
- * (power 8) — turning the heaviest guns in the game into the lightest. Elite-A's
- * own TACTICS routine reads the field as `AND #%11111000` (bits 3-7), and the
- * released per-hit damage is the whole byte shifted once (`>> 1`), which only
- * adds up if bit 6 is part of laser power.
+ * NOT `& 7`. The byte holds the missile count in bits 0-2 and the laser power
+ * in bits 3-7. So the power field is five bits wide (0-31) and not three.
+ *
+ * A mask to three bits capped power at 7. It also zeroed the four ships whose
+ * power needs bit 6, and said nothing. Those four are the Anaconda and the Asp
+ * Mk II at power 9, and the Constrictor and the Dragon at power 8. The heaviest
+ * guns in the game became the lightest.
+ *
+ * Elite-A's own TACTICS routine reads the field as `AND #%11111000`, which is
+ * bits 3-7. The released per-hit damage is the whole byte shifted once
+ * (`>> 1`), and that only adds up if bit 6 is part of laser power.
  */
 export function eliteANpcLaserPower(weaponByte: number): number {
   return weaponByte >> 3;
@@ -166,9 +175,9 @@ export function eliteANpcCanFireLaser(weaponByte: number): boolean {
 /**
  * An NPC laser's hit strength before the player's armour.
  *
- * Both encodings check the laser bits first, which is why a Coriolis station
- * carrying six missiles (`weaponByte` 6) scores 0 under either rule rather than
- * 3 under the original one.
+ * Both encodings check the laser bits first. That is why a Coriolis station
+ * with six missiles (`weaponByte` 6) scores 0 under either rule, rather than 3
+ * under the original one.
  */
 export function eliteANpcLaserStrength(
   weaponByte: number, rule: EliteANpcLaserRule = 'clean',
@@ -195,8 +204,8 @@ export function eliteADamageToPlayer(
 /**
  * Destroyed at zero.
  *
- * The released game let a ship survive on exactly zero; the fidelity contract
- * deliberately drops that quirk, so `0` is dead here and the pack's own
+ * The released game let a ship survive on exactly zero. The fidelity contract
+ * drops that quirk deliberately. So `0` is dead here, and the pack's own
  * hits-to-destroy table is computed the same way.
  */
 export function eliteAIsDestroyed(energy: number): boolean {
@@ -211,31 +220,34 @@ export function eliteAEnergyAfterDamage(energy: number, damage: number): number 
 /**
  * Sub-ticks per second for regeneration timing.
  *
- * WHY AN INTEGER TICK AND NOT A FLOAT SUM. Regeneration has to give the same
- * total for the same elapsed time whatever the step size, or a 144 Hz machine
- * fights a different game from a 60 Hz one and a replay stops reproducing.
- * `acc += dt` cannot do that: 150 additions of 1/15 come to 9.999999999999984,
- * 600 of 1/60 to 10.000000000000076 and 1440 of 1/144 to 10.000000000000220 —
- * three different answers to "ten seconds", and each straddles the point where
- * a whole energy point is awarded.
+ * WHY AN INTEGER TICK AND NOT A FLOAT SUM. Regeneration must give the same
+ * total for the same elapsed time whatever the step size. Otherwise a 144 Hz
+ * machine fights a different game from a 60 Hz one, and a replay stops
+ * reproducing.
+ *
+ * `acc += dt` cannot do that. 150 additions of 1/15 come to 9.999999999999984.
+ * 600 of 1/60 come to 10.000000000000076. 1440 of 1/144 come to
+ * 10.000000000000220. Those are three different answers to "ten seconds", and
+ * each one straddles the point where a whole energy point is awarded.
  *
  * So the remainder is carried as an exact integer instead. Each step converts
- * its `dt` to a whole number of ticks and integer arithmetic does the rest;
- * energy only ever moves by whole points, so equal elapsed time gives a
- * bit-identical result rather than a nearly-identical one.
+ * its `dt` to a whole number of ticks, and integer arithmetic does the rest.
+ * Energy only ever moves by whole points, so equal elapsed time gives a
+ * bit-identical result rather than a nearly identical one.
  *
- * 3600 is chosen because every frame rate that matters divides it exactly —
- * 15, 24, 25, 30, 50, 60, 72, 75, 90, 100, 120, 144, 240 and 360 — so the
- * conversion is lossless at all of them, not merely at ours.
+ * 3600 is the choice because every frame rate that matters divides it exactly.
+ * Those are 15, 24, 25, 30, 50, 60, 72, 75, 90, 100, 120, 144, 240 and 360. So
+ * the conversion is lossless at all of them, and not merely at ours.
  */
 export const ELITE_A_REGEN_TICKS_PER_SECOND = 3600;
 
 /**
  * The contract's starting rate for an ordinary AI ship: one point per second.
  *
- * WHICH ships regenerate is a roster question, not an arithmetic one — stations,
- * missiles, cargo and rocks do not — so it is settled where NPCs are built, by
- * passing a rate of 0. This constant is only the number the contract names.
+ * WHICH ships regenerate is a roster question rather than an arithmetic one. A
+ * station, a missile, a cargo canister and a rock do not. So the question is
+ * settled where NPCs are built, by a rate of 0. This constant is only the
+ * number the contract names.
  */
 export const ELITE_A_DEFAULT_REGEN_PER_SECOND = 1;
 
@@ -255,10 +267,10 @@ export function eliteARegenTicks(dt: number): number {
  *
  * Exported because the player's own banks recharge on the same clock (see
  * `game/systems.ts`) and must not carry a second opinion about what a rate
- * MEANS. They cannot share `eliteARegenerate` itself: that refuses to recover a
- * pool at zero, which is right for a destroyed ship and wrong for a flattened
- * shield. The tick arithmetic is the part that has to agree, so the tick
- * arithmetic is what is shared.
+ * MEANS. They cannot share `eliteARegenerate` itself. That function refuses to
+ * recover a pool at zero, which is right for a destroyed ship and wrong for a
+ * flattened shield. The tick arithmetic is the part that must agree, so the
+ * tick arithmetic is the part that is shared.
  */
 export function eliteATicksPerPoint(ratePerSecond: number): number {
   if (!(ratePerSecond > 0)) return 0;
@@ -268,9 +280,10 @@ export function eliteATicksPerPoint(ratePerSecond: number): number {
 /**
  * Advance an NPC's energy by one step of elapsed time.
  *
- * Returns a new state; nothing is mutated. A destroyed ship does not recover, a
- * full one banks nothing (the carry resets, so damage taken later does not come
- * straight back), and energy never passes `maxEnergy`.
+ * It returns a new state and mutates nothing. Three rules hold. A destroyed
+ * ship does not recover. A full one banks nothing, because the carry resets, so
+ * damage taken later does not come straight back. And energy never passes
+ * `maxEnergy`.
  */
 export function eliteARegenerate(
   state: EliteARegenState, maxEnergy: number, ratePerSecond: number, dt: number,

@@ -1,20 +1,22 @@
 // The exercise: a real fight that costs nothing.
 //
-// Runs the combat trainer (docs/COMBAT-SIM.md): the commander swap, the entry
-// snapshot, its own `StepHost`, and the round loop. combat-sim-scenarios.ts says
-// WHO you fight, combat-sim-opening.ts says WHERE, combat-sim-report.ts counts
-// what happened, spawning.ts puts the ships in the sky.
+// It runs the combat trainer (docs/COMBAT-SIM.md). It owns the commander swap,
+// the entry snapshot, its own `StepHost`, and the round loop. Four neighbours
+// own the rest: combat-sim-scenarios.ts says WHO you fight,
+// combat-sim-opening.ts says WHERE, combat-sim-report.ts counts what happened,
+// and spawning.ts puts the ships in the sky.
 //
-// Ordinary flight with a different step behind it: same `WorldStep`, same
-// brains, same guns, same seeded stream — `updateFlight` chooses which to run,
-// and does not step at all while an overlay is open.
+// It is ordinary flight with a different step behind it. The same `WorldStep`,
+// the same brains, the same guns and the same seeded stream. `updateFlight`
+// chooses which one to run, and it does not step at all under an open
+// overlay.
 //
 // ## The one rule, and why it takes three layers
 //
-// Nothing that happens in here leaves it — above all it must not advance you
+// Nothing that happens in here leaves it. Above all, it must not advance you
 // toward E L I T E, which `rating()` reads from `commander.kills` and
-// `commander.combatScore`. Three layers; the first two PREVENT, the third
-// REPAIRS:
+// `commander.combatScore`. Three layers do that. The first two PREVENT, and the
+// third REPAIRS:
 //
 //  1. The commander swap (`exerciseCommander`). A laser kill calls
 //     `this.destroy(commander, …)` inside `Combat.fire()` and never passes
@@ -27,19 +29,20 @@
 //  3. The entry snapshot, captured on entry and restored on exit — which also
 //     puts the rng stream back, because `Persistence.restore` does that last.
 //
-// The one exception: a waves run leaves `commander.furthestWave` behind, so a
-// run has a result worth coming back to. Not a rating, kill or credit; no career
-// rule reads it (commander.ts says so at the field). Written AFTER the restore —
-// before it, the restore would undo it — and reported to the orchestrator.
+// One exception exists. A waves run leaves `commander.furthestWave` behind, so
+// a run has a result worth coming back to. It is not a rating, a kill or a
+// credit, and no career rule reads it (commander.ts says so at the field). It is
+// written AFTER the restore, because the restore would undo it. It is then
+// reported to the orchestrator.
 //
 // `die()` is redirected and unreachable: `Game.die` drops the career's in-flight
 // autosaves, so a simulated death reaching it would delete real ones.
 //
-// Session state is a module instance owned by the Game, not a `GameState` field:
-// a `GameState` field must appear in `capture()`/`restore()` (a test enforces
-// it), so the save would carry an in-progress exercise. An exercise is the one
-// thing that does NOT survive a reload — close the tab mid-exercise and you wake
-// at the station with your career untouched.
+// Session state is a module instance owned by the Game, rather than a
+// `GameState` field. A `GameState` field must appear in `capture()`/`restore()`,
+// and a test enforces that, so the save would carry an in-progress exercise. An
+// exercise is the one thing that does NOT survive a reload. Close the tab
+// mid-exercise, and you wake at the station with your career untouched.
 //
 // Teardown is DEFERRED: `applyPlayerDamage` runs inside `stepNpcs`/`applyOrdnance`,
 // so restoring the world there would rebuild the scene mid-step. `finish()` flips
@@ -124,23 +127,24 @@ export interface SimHost {
   /** point the cockpit beams at what the shot found, or straight ahead */
   aimBeams(at: THREE.Vector3 | null): void;
   /**
-   * A waves run reached this far — the ONE number an exercise may leave behind.
+   * A waves run reached this far. It is the ONE number an exercise may leave
+   * behind.
    *
-   * Reported rather than written, because the career keeps it and this module
+   * It is reported rather than written. The career keeps it, and this module
    * does not touch the career: the orchestrator applies it through
-   * `commander.ts`'s `recordFurthestWave` and saves. Called after the entry
-   * snapshot is restored — before it, the restore would undo it — and only when
-   * a run actually reached a wave.
+   * `commander.ts`'s `recordFurthestWave`, then saves. It is called after the
+   * entry snapshot is restored, because the restore would undo it, and only
+   * where a run reached a wave.
    */
   recordFurthestWave(wave: number): void;
   /** the exercise is over and the records are ready to read */
   finished(reports: readonly CombatSimReport[]): void;
 }
 
-/** Idle, flying an exercise, or waiting for the frame to unwind so it can restore. */
+/** Idle, in an exercise, or held until the frame unwinds and the restore runs. */
 type Phase = 'idle' | 'fighting' | 'ending';
 
-/** One opponent, and whether it has left the sky. */
+/** One opponent, and whether it left the sky. */
 interface Opponent {
   /** index into the round's `ExerciseSetup.opponents`, which the report quotes */
   index: number;
@@ -261,8 +265,9 @@ export class CombatSim {
     if (this.phase !== 'idle') return false;
     const s = this.state;
 
-    // LAYER 3 FIRST, before anything has moved: the snapshot is what the career
-    // is put back from, including the rng state it was about to draw on.
+    // LAYER 3 FIRST, before anything moves. The snapshot is what the career is
+    // put back from, and it includes the rng state the career was about to draw
+    // on.
     this.career = s.commander;
     this.entry = this.persistence.capture();
     this.entryCommander = JSON.stringify(this.entry.commander);
@@ -312,10 +317,10 @@ export class CombatSim {
     const events = this.step.step(dt, elapsed, pilot);
     this.roundElapsed += dt;
 
-    // Only the step knows a shot was fired: it rolls the hit and the host hears
-    // about hits alone. Shots are every accuracy denominator in the report;
-    // `playerDealt` is the same in the other direction — the host is told a ship
-    // DIED, never what it cost to kill it.
+    // Only the step knows that a shot was fired. It rolls the hit, and the host
+    // hears about hits alone. Shots are every accuracy denominator in the
+    // report. `playerDealt` is the same rule the other way: the host is told
+    // that a ship DIED, and never what it cost to kill it.
     for (const e of events) {
       if (e.kind === 'npcFired') this.npcFired(e.npc, e.weapon, e.atPlayer);
       else if (e.kind === 'playerDealt') this.playerDealt(e);
@@ -323,8 +328,8 @@ export class CombatSim {
     this.reap();
     this.recorder?.tick(dt, () => this.sample());
 
-    // The phase may already have flipped — a death inside the step calls
-    // finish() — in which case the rules have nothing left to decide.
+    // The phase may already be flipped, because a death inside the step calls
+    // finish(). The rules then have nothing left to decide.
     if (this.phase === 'fighting') {
       const where = roundOutcome(this.session());
       if (where === 'roundOver') this.nextRound();
@@ -334,10 +339,10 @@ export class CombatSim {
   }
 
   /**
-   * Put the career back, if the exercise has finished.
+   * Put the career back, once the exercise ends.
    *
-   * Called by `updateFlight` AFTER the step has returned — see the header on
-   * deferred teardown. A no-op at any other time, so it is safe to call every
+   * `updateFlight` calls it AFTER the step returns. See the header on deferred
+   * teardown. It is a no-op at any other time, so it is safe to call every
    * frame.
    */
   settle(): CombatSimReport[] | null {
@@ -347,9 +352,9 @@ export class CombatSim {
   /**
    * The pilot ended it.
    *
-   * Safe to call straight from input handling, and it tears down THERE: a screen
-   * opened over the top would stop the world stepping, and an exercise that can
-   * only end from inside a step it is no longer running would never end.
+   * It is safe to call straight from input handling, and it tears down THERE. A
+   * screen opened over the top stops the world step. An exercise that could only
+   * end from inside a step it no longer runs would never end.
    */
   quit(): CombatSimReport[] | null {
     if (this.phase === 'idle') return null;
@@ -373,12 +378,13 @@ export class CombatSim {
    * Damage the commander did to a ship, for the record.
    *
    * The step's own hits arrive through `tick`. This is the public door for the
-   * one that does not go through the step — the ENERGY BOMB, which the Game
-   * applies from `runCommand` and hands here beside the kill that follows it.
+   * one hit that does not go through the step: the ENERGY BOMB. The Game applies
+   * that one from `runCommand`, and hands it here beside the kill that follows.
    *
-   * Safe when nothing is running and for a ship that is not an opponent: either
-   * way there is no line to credit it to. Attribution is by IDENTITY — the event
-   * carries the ship itself — so nothing is inferred from position or magnitude.
+   * It is safe while nothing runs, and for a ship that is not an opponent.
+   * Either way there is no line to credit it to. Attribution is by IDENTITY,
+   * because the event carries the ship itself. Nothing is inferred from a
+   * position or from a magnitude.
    */
   playerDealt(hit: DealtEvent): void {
     if (hit.damage <= 0) return;    // a hit that took nothing off is not damage
@@ -392,22 +398,26 @@ export class CombatSim {
    * What the exercise's world step may ask of it — the second layer. Every
    * member of `StepHost` here with a decision against it:
    *
-   *   PASS-THROUGH (1) — `wreckNpc`. A ship out of the sky with credit to nobody
-   *     is the same act in an exercise as in the galaxy, and it takes no
+   *   PASS-THROUGH (1) — `wreckNpc`. A ship taken out of the sky, with credit to
+   *     nobody, is the same act in an exercise as in the galaxy. It takes no
    *     commander, so there is nothing to leak.
    *
-   *   REDIRECTED (5) — `inFlight` (the exercise's own liveness, and the flag
-   *     that unwinds the frame), `applyPlayerDamage` (real damage, and death
-   *     ends the exercise), `destroyNpc` and `fireLaser` (real kills and shots,
-   *     credited to the clone and counted), and `die` — which has to DO
-   *     something: "death ends the exercise, not the career", so refusing it
-   *     would leave you flying a dead ship in a fight that could never end.
+   *   REDIRECTED (5) — `inFlight` holds the exercise's own liveness and the flag
+   *     that unwinds the frame. `applyPlayerDamage` is real damage, and a death
+   *     ends the exercise. `destroyNpc` and `fireLaser` are real kills and real
+   *     shots, credited to the clone and counted. `die` is the fifth, and it has
+   *     to DO something: "death ends the exercise, not the career". A refusal
+   *     would leave you in a dead ship, in a fight that could never end.
    *
    *   REFUSED (6) — `raiseLegal`, `dock`, `completeHyperspace`, `completeRescue`,
-   *     `openHermitTrade`, `autoSave`. Each reaches the career: legal status and
-   *     the station's Vipers; the fine, save and cleared world blob; fuel, days
-   *     and system index; your hold as salvage; a market screen that stops the
-   *     world mid-fight; and the save itself.
+   *     `openHermitTrade` and `autoSave`. Each one reaches the career:
+   *
+   *       - `raiseLegal` — the legal status, and the station's Vipers;
+   *       - `dock` — the fine, the save and the cleared world blob;
+   *       - `completeHyperspace` — the fuel, the days and the system index;
+   *       - `completeRescue` — your hold as salvage;
+   *       - `openHermitTrade` — a market screen that stops the world mid-fight;
+   *       - `autoSave` — the save itself.
    */
   private stepHost(): StepHost {
     // The table itself is in combat-sim-safety.ts, so the three layers of
@@ -443,9 +453,9 @@ export class CombatSim {
   /**
    * What the live galaxy knows about you when it decides who to send.
    *
-   * The CAREER commander, not the clone: asking a clone with an empty hold and a
-   * clean record what it is worth robbing would send Sidewinders at a Dangerous
-   * commander in a full Python (combat-sim-scenarios.ts).
+   * The CAREER commander, and not the clone. A clone has an empty hold and a
+   * clean record. To ask what THAT is worth robbing would send Sidewinders at a
+   * Dangerous commander in a full Python (combat-sim-scenarios.ts).
    */
   private threatContext(career: CommanderData): ThreatContext {
     const s = this.state;
@@ -473,7 +483,7 @@ export class CombatSim {
     this.recorder.event(describeOpposition(list));
     // At t=0: whether the fight started where it meant to.
     this.recorder.event(`opening: ${describeOpening(opening)}`);
-    // ...and, in the waves mode, what the ramp has turned on by this one. The
+    // ...and, in the waves mode, what the ramp turned on by this one. The
     // record carries the escalation as a field; this is the same fact in the
     // event log, beside the fight it explains.
     const step = this.recorder.setup.escalation;
@@ -483,8 +493,10 @@ export class CombatSim {
   }
 
   /**
-   * Put the round in the sky, pointed at the commander — and where the scenario
-   * says, which for six of the seven is in front of you (combat-sim-opening.ts).
+   * Put the round in the sky, aimed at the commander.
+   *
+   * It goes where the scenario says. For six of the seven that is in front of
+   * you (combat-sim-opening.ts).
    */
   private spawn(ships: readonly SimShip[]): { opponents: Opponent[]; opening: OpeningGeometry } {
     const units: OppositionUnit[] = ships.map((sh) => ({
@@ -557,9 +569,10 @@ export class CombatSim {
    * Which policy this ship will ACTUALLY fly.
    *
    * Asked of the SELECTION, not the opposition table, because the selection is
-   * what `NpcShip.update` reads. `begin()` has already applied any A/B override
-   * to `state.brains`, so this answers correctly whether the override took, the
-   * game cannot fly it, or there is none. One rule, one home: brain-names.ts.
+   * what `NpcShip.update` reads. `begin()` applies any A/B override to
+   * `state.brains` first. So this answers correctly in all three cases: the
+   * override took, the game cannot fly it, or there is none. One rule, one home:
+   * brain-names.ts.
    */
   private flownBrain(sh: SimShip): BrainId {
     return liveBrainFor(sh.role, sh.organised, sh.tier, this.state.brains);
@@ -636,17 +649,17 @@ export class CombatSim {
   private teardown(): CombatSimReport[] {
     this.close(this.outcome);
 
-    // 1. The world, commander, brain selection and rng stream, out of the entry
-    //    snapshot — with saving SUSPENDED, because the restore path ends at
-    //    `Station.dock`, which writes the career's checkpoint. If `restore()`
-    //    were ever subtly wrong, that write would persist the corruption OVER a
-    //    good save. Fail safe first.
+    // 1. The world, the commander, the brain selection and the rng stream, out
+    //    of the entry snapshot. Saving is SUSPENDED, because the restore path
+    //    ends at `Station.dock`, which writes the career's checkpoint. If
+    //    `restore()` were ever subtly wrong, that write would persist the
+    //    corruption OVER a good save. Fail safe first.
     const snap = this.entry!;
     this.refused = this.persistence.restoreWithoutSaving(snap);
 
-    // 2. Verify. The career that came back has to match the one that went in, to
-    //    the byte; if not, take the snapshot's copy and say so out loud, because
-    //    a silent repair is how a corruption ships.
+    // 2. Verify. The career that came back must match the one that went in, to
+    //    the byte. Where it does not, take the snapshot's copy and say so out
+    //    loud. A silent repair is how a corruption ships.
     if (JSON.stringify(this.state.commander) !== this.entryCommander) {
       this.state.commander = JSON.parse(this.entryCommander) as CommanderData;
       const complaint = 'the exercise restored a commander that did not match the '
@@ -664,10 +677,10 @@ export class CombatSim {
     this.opponents = [];
     this.phase = 'idle';
 
-    // 3. And the one thing that goes the other way. The single number a run is
-    //    allowed to leave behind, here AFTER the restore and the byte check
-    //    precisely because the restore would otherwise put it back. Not a
-    //    rating, kill or credit, and no career rule reads it (commander.ts).
+    // 3. And the one thing that goes the other way. It is the single number a
+    //    run may leave behind. It sits AFTER the restore and the byte check,
+    //    because the restore would otherwise put it back. It is not a rating, a
+    //    kill or a credit, and no career rule reads it (commander.ts).
     const reached = furthestWave(done);
     if (reached > 0) this.host.recordFurthestWave(reached);
 
@@ -713,8 +726,8 @@ export class CombatSim {
   /**
    * The commander takes a hit — the real damage model, on the real systems.
    *
-   * `from` is how the hit is attributed: world-step.ts passes the attacker's own
-   * `object.position`, which IS the ship's state vector, so identity is exact
+   * `from` is how the hit is attributed. world-step.ts passes the attacker's own
+   * `object.position`, which IS the ship's state vector. So identity is exact,
    * where a magnitude table was only ever a guess (see `DamageSource`).
    */
   private takeHit(
@@ -789,7 +802,7 @@ export class CombatSim {
     this.finish('destroyed');
   }
 
-  /** An opponent has left the sky, by whatever means. */
+  /** An opponent left the sky, by whatever means. */
   private down(npc: NpcShip, credited: boolean): void {
     const o = this.opponents.find((x) => x.ship === npc);
     if (!o || o.down) return;
@@ -822,9 +835,9 @@ export class CombatSim {
       contacts.push({
         opponent: o.index,
         dist: at.distanceTo(player.position),
-        // Its OWN speed, which a turret cannot hide — and the ship's state
-        // vector, not a difference between frames, so it is the number the
-        // brain chose.
+        // Its OWN speed, which a turret cannot hide. It is the ship's state
+        // vector rather than a difference between frames, so it is the number
+        // the brain chose.
         speed: o.ship.state.speed,
         theirAim: aimAngle(at, o.ship.object.quaternion, player.position),
         doing: describeFlight(
