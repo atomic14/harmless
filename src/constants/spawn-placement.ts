@@ -41,9 +41,16 @@ export const POLICE_SCATTER = 1200;
 export const POLICE_PATROL_RANGE = 18_000;
 
 /**
- * How far the rocks scatter. It is the widest of the three things a peaceful
- * system holds. It shares its value with `MASS_LOCK_STATION` (torus.ts), and it
- * is NOT that rule. Rocks land 2,500-7,500 out, so the field straddles the lock.
+ * How far the rocks scatter round the station. It is the LAUNCH anchor alone.
+ * On a launch the commander starts at the slot. There is no lane to string a
+ * field along. So the rocks stay where the game always put them. An arrival
+ * strings them down the corridor instead (`ASTEROID_LANE_SCATTER`,
+ * docs/TODO/170).
+ *
+ * It is the widest of the three things a peaceful system parks at the port. It
+ * shares its value with `MASS_LOCK_STATION` (torus.ts), and it is NOT that rule.
+ * Rocks land 2,500-7,500 out, so a launched commander leaves through a field
+ * that straddles the lock.
  */
 export const ASTEROID_SCATTER = 5000;
 
