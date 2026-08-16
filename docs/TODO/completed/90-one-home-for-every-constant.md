@@ -45,7 +45,7 @@ in terms of another; three survey partitions independently proved that wrong.
 The census grep below only matched a right-hand side beginning with an
 UPPER_CASE identifier, so it missed every derivation wrapped in `Math.round`, a
 parenthesis, a digit or a function call. There are at least twenty, listed in
-docs/TODO/90-constants-survey.md.
+docs/TODO/completed/90-constants-survey.md.
 
 So the pattern is established and good. What is missing is its consistent
 application, and the survey's R-findings are the list of places where a stated

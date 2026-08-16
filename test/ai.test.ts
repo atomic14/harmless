@@ -7,7 +7,7 @@
 
 import { readFileSync, readdirSync } from 'node:fs';
 
-import { LIVE_BRAIN_IDS, isNamedBrain } from '../src/game/brain-names.ts';
+import { BRAINS as BRAIN_ROWS, isNamedBrain } from '../src/game/brain-names.ts';
 import { handle, installPolicyKit } from '../src/game/console.ts';
 import { Episode } from '../src/ai-training/scenario.ts';
 import { randomBrain, type BrainFile } from '../src/ai-training/policy.ts';
@@ -132,14 +132,15 @@ const ON_DISK = readdirSync(BRAINS).filter((f) => f.endsWith('.json'))
 // So the claim is "no weights in the bundle that nothing can select", which
 // is what the guard was always protecting: a file no selection reaches still
 // fails, and the viewer's two mislabelled pack policies would still be caught.
-// `LIVE_BRAIN_IDS` is the picker's own list, so this cannot drift from what the
-// panel offers.
+// `BRAINS` is brain-names.ts's own table, so this cannot drift from what the
+// game offers. It was `LIVE_BRAIN_IDS` until docs/TODO/81 deleted the
+// career-wide picker that list served; the table is what that list came off.
 const FLOWN = [...new Set(
   // the CODE pilots fly with no weights file behind them: `scripted` (the
   // opposition A/B, and 'no co-pilot' on a defence row), `attack-run` (the
   // defence slots: the trader's attack run, the co-pilot's pure pursuit) and
   // `pursuit` (the combat computer's pilot, selectable on the pirates)
-  LIVE_BRAIN_IDS.filter(isNamedBrain)
+  Object.keys(BRAIN_ROWS).filter(isNamedBrain)
     .filter((n) => n !== 'scripted' && n !== 'attack-run' && n !== 'pursuit'),
 )].sort();
 

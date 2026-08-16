@@ -4,7 +4,7 @@
 //
 //   - `NpcShip.update` needs the pilot;
 //   - the combat trainer's report needs the NAME;
-//   - both pickers need the LIST.
+//   - the exercise picker needs the LIST.
 //
 // The names, the flags and the table between them live here. brains.ts turns a
 // name into a loaded policy. This module imports no weights. So the trainer's
@@ -239,37 +239,19 @@ export function selectionForBrain(brain: string): BrainSelection | undefined {
   return sel ? { ...sel } : undefined;
 }
 
-/** What the live picker offers: the shipped set, or one named policy for everybody. */
-export type LiveBrainId = BrainName | typeof AS_SHIPPED;
-
-/**
- * The live picker's list, in display order: no override first, then every
- * policy a selection can name. It comes off the table, so one entry wires a
- * brain in.
- */
-export const LIVE_BRAIN_IDS: readonly LiveBrainId[] = [
-  AS_SHIPPED, ...(Object.keys(SELECTIONS) as BrainName[]),
-];
-
-/** The selection a live-picker choice means. It is a fresh object, because
- *  `state.brains` is mutable. */
-export function liveBrainSelection(id: LiveBrainId): BrainSelection {
-  return id === AS_SHIPPED ? { ...SHIPPED_BRAINS } : (selectionForBrain(id) ?? { ...SHIPPED_BRAINS });
-}
-
-/**
- * Which live-picker choice a selection IS, or null when it is not one of them.
- * A null covers two cases: a combination the console made, and one a save
- * carries from a deleted flag.
- *
- * The panel says so, rather than prints a name the game does not fly. One
- * press of an arrow on that row takes it back.
- */
-export function liveBrainId(sel: BrainSelection): LiveBrainId | null {
-  const wire = JSON.stringify(sel);
-  if (wire === JSON.stringify(SHIPPED_BRAINS)) return AS_SHIPPED;
-  for (const id of Object.keys(SELECTIONS) as BrainName[]) {
-    if (JSON.stringify(SELECTIONS[id]) === wire) return id;
-  }
-  return null;
-}
+// THE CAREER-WIDE PICKER'S MODEL WAS HERE, AND IT IS GONE (docs/TODO/81).
+//
+// `LiveBrainId`, `LIVE_BRAIN_IDS`, `liveBrainSelection` and `liveBrainId` served
+// one row of the combat trainer. That row was taken out of the UI, and the four
+// members stayed. Nothing in `src/` called any of them, and only tests kept them
+// alive.
+//
+// The model was also false. It offered `attack-run`, whose selection is the same
+// empty object `AS_SHIPPED` means, so a pilot who picked that row read it back
+// as "as shipped". The round trip was where the collision showed.
+//
+// TWO SENTINELS AND THEIR TABLE ARE THE SAME DEFECT, AND THEY ARE REPORTED
+// RATHER THAN DELETED. `AS_SHIPPED`, `AS_THE_GAME_FLIES` and `SENTINEL_NAMES`
+// are read by `brainName`'s fallback alone. Every live caller hands it a
+// `BrainId`, which is a `BrainName`, so that fallback answers nobody. The
+// exercise picker is a second surface, and this item did not measure it.

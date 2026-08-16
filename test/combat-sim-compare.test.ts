@@ -22,7 +22,6 @@ import {
 } from '../src/game/combat-sim-report.ts';
 import { NO_OPENING } from '../src/game/combat-sim-opening.ts';
 import { CombatSimScreen } from '../src/game/screens/combat-sim.ts';
-import { AS_SHIPPED } from '../src/game/brain-names.ts';
 import { newCommander } from '../src/game/commander.ts';
 import { Input } from '../src/engine/input.ts';
 import { check, eq } from './harness.ts';
@@ -266,8 +265,6 @@ console.log('\ncombat simulator — the compare panel, driven');
     reports,
     begin: () => true,
     message: (text: string) => said.push(text),
-    liveBrain: AS_SHIPPED,
-    selectLiveBrain: () => {},
   }));
   const press = (code: string): void => {
     const i = new Input();
@@ -323,8 +320,6 @@ console.log('\ncombat simulator — the compare panel, driven');
     reports: [reports[0]],
     begin: () => true,
     message: (text: string) => said.push(text),
-    liveBrain: AS_SHIPPED,
-    selectLiveBrain: () => {},
   }));
   alone.showReport();
   alone.open();

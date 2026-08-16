@@ -11,15 +11,32 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import { defenceBrain, brainByName } from '../src/game/brains.ts';
 import {
-  AS_SHIPPED, BRAINS, LIVE_BRAIN_IDS, SHIPPED_BRAINS,
+  BRAINS, SHIPPED_BRAINS,
   brainCharacter, brainName,
-  defenceBrainNameFor, liveBrainId, liveBrainSelection, pirateBrainNameFor, selectionForBrain,
+  defenceBrainNameFor, pirateBrainNameFor, selectionForBrain,
   type BrainName, type BrainSelection,
 } from '../src/game/brain-names.ts';
 import { liveBrainFor } from '../src/game/combat-sim-scenarios.ts';
 import { PIRATE_CHOICES } from '../src/game/screens/combat-sim-setup.ts';
 import { brainNote } from '../src/game/screens/combat-sim-notes.ts';
 import { check } from './harness.ts';
+
+/**
+ * Every selection the game can be put in: no override, then one per name.
+ *
+ * It is built from the RULE rather than from a picker. It was `LIVE_BRAIN_IDS`
+ * until docs/TODO/81 deleted the career-wide row that list served. Two blocks
+ * below walk it, and they ask different questions of the same set, so the set
+ * has one home.
+ *
+ * `selectionForBrain` answers every name. The round-trip check in the first
+ * block is what asserts that, so an empty selection here cannot pass silently.
+ */
+const EVERY_SELECTION: readonly [string, BrainSelection][] = [
+  ['as shipped', { ...SHIPPED_BRAINS }],
+  ...(Object.keys(BRAINS) as BrainName[])
+    .map((n): [string, BrainSelection] => [n, selectionForBrain(n) ?? {}]),
+];
 
 // --- one rule, one home: the name, the weights and the report ----------------
 //
@@ -42,8 +59,7 @@ console.log('\nwhich brain flies, by name');
   // THE pairing. For every selection the game can be put in, the policy
   // `NpcShip.update` would fly IS the policy the report names.
   const disagreed: string[] = [];
-  for (const id of LIVE_BRAIN_IDS) {
-    const sel = liveBrainSelection(id);
+  for (const [id, sel] of EVERY_SELECTION) {
     for (const tier of [0, 1, 2]) {
       for (const organised of [false, true]) {
         // Pirates fly pursuit, EXCEPT the scripted selection, which reverts them
@@ -59,7 +75,7 @@ console.log('\nwhich brain flies, by name');
       if (defenceBrain(sel) !== wantDefence) disagreed.push(`${id}/defence`);
     }
   }
-  check(`the named brain is the flown brain, for every selection (${LIVE_BRAIN_IDS.length})`,
+  check(`the named brain is the flown brain, for every selection (${EVERY_SELECTION.length})`,
     disagreed.length === 0, disagreed.join(', '));
 
   // ...and the table that turns a name back into a selection round-trips,
@@ -93,36 +109,30 @@ console.log('\nwhich brain flies, by name');
     pirateBrainNameFor(1, false, { scripted: true }) === 'scripted'
     && defenceBrainNameFor({ scripted: true }) === 'scripted');
 
-  // the picker's row, both ways
-  check('the live picker offers "as shipped" first, and it means no override',
-    LIVE_BRAIN_IDS[0] === AS_SHIPPED
-    && Object.keys(liveBrainSelection(AS_SHIPPED)).length === 0);
-  // ...a picked name reads back as itself, and the one id that cannot is named
-  // rather than waved through. The escape hatch here used to exempt
-  // `pirate-attack-g3` as well, which round-trips perfectly well — so of five
-  // ids only three were being tested and a regression in g3 had a place to hide
-  // (docs/TODO/87). Asserted as the exact SET of failures, because `every(...)
-  // || exempt` widens silently and a list of exact failures does not.
+  // THE CAREER PICKER'S OWN ROW WAS ASSERTED HERE, AND IT IS GONE
+  // (docs/TODO/81). Six checks drove `LIVE_BRAIN_IDS`, `liveBrainSelection` and
+  // `liveBrainId`. That row left the UI, the four members stayed exported, and
+  // these checks were the only thing that called them.
   //
-  // The real exception is the SHIPPED defence (`attack-run` today): its
-  // selection is `{}`, the same empty object AS_SHIPPED means, so the picker
-  // reads it back as "as shipped". The collision is the defect and it is
-  // docs/TODO/81's; the round trip is only where it shows.
-  const noTrip = LIVE_BRAIN_IDS.filter((id) => liveBrainId(liveBrainSelection(id)) !== id);
-  check(`a picked name reads back as itself, for every id but one (${noTrip.join(', ') || 'none'})`,
-    noTrip.length === 1 && noTrip[0] === 'attack-run');
-  check('...and that one only because its selection IS the empty as-shipped one',
-    Object.keys(liveBrainSelection('attack-run')).length === 0
-    && liveBrainId(liveBrainSelection('attack-run')) === AS_SHIPPED);
-  // ...and a selection the picker cannot name says so rather than guessing. A
-  // save made before TODO 57 deleted the six A/B flags is exactly this case: it
-  // is not migrated, it must not throw, and the row offers to take it back.
-  check('...and a flag no picker can name reads back as null, rather than throwing',
-    liveBrainId({ sharp: 'pro' } as unknown as BrainSelection) === null
-    && liveBrainId({ t29: true, packT29: true } as unknown as BrainSelection) === null);
-  check('the picked selection is a COPY — state.brains is mutable',
-    liveBrainSelection('scripted') !== liveBrainSelection('scripted')
-    && !Object.isFrozen(liveBrainSelection(AS_SHIPPED)));
+  // One of the six PINNED the defect rather than caught it: `attack-run`'s
+  // selection is `{}`, the same empty object `AS_SHIPPED` meant, so a picked
+  // name read back as "as shipped". The check asserted that exactly one id
+  // failed to round-trip. A test that holds a defect steady is what a deleted
+  // feature leaves behind.
+  //
+  // WHAT SURVIVES IT is the check above: every selection the game can be put in
+  // flies the policy the report names. That was the live rule the six sat on
+  // top of, and it now builds its list from `selectionForBrain` instead.
+
+  // A selection is a COPY. `state.brains` is mutable, so a caller that mutated
+  // the answer would edit the table itself.
+  check('the selection a name gives back is a fresh object',
+    selectionForBrain('scripted') !== selectionForBrain('scripted'));
+  // ...and a name the game cannot fly says so, rather than guessing. A save made
+  // before TODO 57 deleted the six A/B flags carries names of exactly this kind.
+  check('...and a name no selection reaches is undefined, rather than a throw',
+    selectionForBrain('sharp') === undefined
+    && selectionForBrain('pirate-attack-t29') === undefined);
 }
 
 // --- and every name it offers is a NAME, and says what it DOES ---------------
@@ -175,8 +185,7 @@ console.log('\nthe trainer names what the game flies');
   // entirely — so a career with `state.brains.sharp = 'pro'` was told it fought
   // g3 while npc.ts flew g2.
   const wrong: string[] = [];
-  for (const id of LIVE_BRAIN_IDS) {
-    const sel = liveBrainSelection(id);
+  for (const [id, sel] of EVERY_SELECTION) {
     for (const tier of [0, 1, 2]) {
       for (const organised of [false, true]) {
         const named = liveBrainFor('pirate', organised, tier, sel) as BrainName;
@@ -190,7 +199,7 @@ console.log('\nthe trainer names what the game flies');
     if (defenceBrain(sel) !== wantTrader) wrong.push(`${id}/trader`);
     if (liveBrainFor('police', false, 1, sel) !== 'scripted') wrong.push(`${id}/police`);
   }
-  check(`the brain the report names is the brain the game flies (${LIVE_BRAIN_IDS.length}`
+  check(`the brain the report names is the brain the game flies (${EVERY_SELECTION.length}`
     + ' selections)', wrong.length === 0, wrong.join(', '));
   check('...including with the brains switched off entirely',
     liveBrainFor('pirate', false, 1, { scripted: true }) === 'scripted'
@@ -275,8 +284,6 @@ console.log('\nbrain selection');
         pirateBrainNameFor(1, false, sel) === pirateBrainNameFor(1, false)
         && pirateBrainNameFor(2, true, sel) === pirateBrainNameFor(2, true)
         && defenceBrain(sel) === defenceBrain());
-      check('...and the picker says it cannot name the selection, rather than throwing',
-        liveBrainId(sel) === null);
     }
   }
   {

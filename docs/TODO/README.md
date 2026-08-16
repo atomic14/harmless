@@ -13,31 +13,29 @@ active context:
 
 ## Execution queue
 
-**Four items, and they came out of one sweep on 2026-08-16.** Chris asked for
+**Three items, and they came out of one sweep on 2026-08-16.** Chris asked for
 an architectural and bug sweep against a tree where `npm run check` passed. The
 order below is by value over cost, and not by severity.
 
-1. [165 — a citation that names nothing](165-a-citation-that-names-nothing.md)
-   · defect · small. Three cited plan numbers resolve to no file. One is cited
-   from `src/`. 147 was never committed, and 162 rests a decision on it.
-2. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
+1. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
    · defect · medium. `docs/ARCHITECTURE.md` makes three false claims and names
    none of the fourteen modules the decomposition programme created.
-3. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
+2. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
    · gap · medium. `ste:check` reads comments in source. The style's stated
    scope also holds ten markdown documents, and the tool finds no sentence in
    one.
-4. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
+3. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**Nothing in the queue changes a game rule.** Three are defects in a document.
-The fourth is a decomposition, and its evidence is five probes that must come
-back byte-identical.
+**Nothing in the queue changes a game rule.** Two are defects in a document. The
+third is a decomposition, and its evidence is five probes that must come back
+byte-identical.
 
-**164, 163 and 167 landed on 2026-08-16 and are below.** They were the first
-three items of the sweep's queue. Each of the three was one thing written down
-once and never checked again: a path, a lookup, and a paragraph.
+**164, 163, 167 and 165 landed on 2026-08-16 and are below.** They were the
+first four items of the sweep's queue. Each of the four was one thing written
+down once and never checked again: a path, a lookup, a paragraph, and a number.
+**165 also landed docs/TODO/81**, which it found deleted rather than archived.
 
 **154 landed on 2026-08-16 and is below.** It was the last item in the queue,
 and the largest of the four that came out of the 2026-08-14 review. Its own
@@ -122,6 +120,73 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**165 — a citation that names nothing.** The tree cites a plan document more
+often than it cites an invariant. Three of those numbers resolved to nothing,
+and one of the three was cited from `src/`.
+
+**The index and the archive agreed with each other**, which is why nobody saw
+it. A number that reached neither one is invisible to both.
+
+**`npm run plans:check` is the gate, and it is in `npm run check`.** It reports
+1,177 citations naming 106 plans of 151, and 0 unresolved. It matches the NUMBER
+rather than the slug, because a plan document is renamed by its own milestones.
+
+**THE GATE FOUND MORE THAN THE PLAN DID, AND THAT IS WHY IT WAS WRITTEN FIRST.**
+An extra check reads a citation that carries a whole file name, and checks that
+file. `completed/90-one-home-for-every-constant.md` cited
+`90-constants-survey.md` under `docs/TODO/`: the number resolves, and the path does not.
+That document moved into `completed/` and the citation beside it did not follow.
+
+**The gate also failed on its own plan document.** Verification step 1 said to
+cite a number that no file carries, and watch the gate go red. The gate reads `docs/`, so that
+sentence WAS a broken citation. A gate over prose is read by itself.
+
+**68 landed, and went to `completed/`.** `tactic-choice.ts` rolls a tactic per
+ship, and the readout reads two words.
+
+**81 carried TWO plans, and the plan did not know that.** One is superseded and
+is in `retired/`: its subject was a roster row that no longer exists. The other
+was never actioned, and **Chris chose to fix it inside this item**. It is
+`completed/81-live-picker-cannot-name-attack-run.md` now.
+
+**147 is allowlisted in the gate, on Chris's call.** The plan recommended a
+reconstructed record. He chose to name the number in the tool instead. So
+nothing is written from memory, and 162's two citations stay as they were.
+
+**The allowlist guards itself in both directions**, because an exception is the
+same defect this item is about. A number that gains a document fails. A number
+that nothing cites fails too.
+
+**Proved able to fail four ways, and the third is the one that matters.** A
+citation split across two lines of one comment is still found. That is the
+failure docs/TODO/151 records, where a line-at-a-time reader dropped six paths
+of 28 in silence.
+
+**81 — the live-brain picker is dead code.** Written on 2026-08-09, deleted
+rather than archived, and landed inside 165 seven days later.
+
+**Everything it reported was still true.** `LIVE_BRAIN_IDS`,
+`liveBrainSelection` and `liveBrainId` had no caller in `src/` at all. Only
+tests kept them alive. The four members are gone.
+
+**ONE TEST PINNED THE DEFECT RATHER THAN CAUGHT IT.** It asserted that exactly
+one id failed to round-trip, and named `attack-run` as that one. So the
+collision the plan is about had a check holding it steady. That is what a
+deleted feature leaves behind.
+
+**`selectionForBrain` stays, and the plan is wrong to list it.**
+`combat-sim.ts:923` calls it.
+
+**The live rule that survives the six deleted checks** is *every selection the
+game can be put in flies the policy the report names*. It builds its list from
+`selectionForBrain` now, in one place two blocks share.
+
+**Two sentinels and their table are the same defect, and they are REPORTED
+rather than deleted.** `AS_SHIPPED`, `AS_THE_GAME_FLIES` and `SENTINEL_NAMES`
+are read by `brainName`'s fallback alone, which every live caller misses. That
+is `internal-claims.mjs`'s own rule: report a member with no caller, and do not
+delete it in the same pass.
 
 **167 — the ledger that pays a rung for one kill.** The comment that justifies
 docs/TODO/161's version 2 migration stated the opposite of what the code does.

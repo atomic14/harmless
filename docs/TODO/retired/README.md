@@ -11,6 +11,16 @@ investigation records; do not load this directory wholesale.
 - 86 — [The retired co-pilot parks the ship](86-the-co-pilot-you-buy-parks-your-ship.md)
 - 91 — [Delete the target-speed input and retrain](91-delete-the-target-speed-input.md)
 
+## Superseded by a roster that no longer holds the row
+
+- 81 — [Two rows in the brain picker both say they are what ships](81-two-rows-both-say-they-are-what-ships.md)
+  — the plan's subject was `pirate-attack-g3`, whose row said *"THE FIGHT THE
+  GAME SHIPS"* after that stopped being true. Neither the row nor that sentence
+  is in `game/brain-names.ts` today, so the defect went with the roster.
+  **Restored on 2026-08-16 by docs/TODO/165**, which found that it was deleted
+  rather than archived. One number carried two plans, and the other one is
+  `81-live-picker-cannot-name-attack-run.md`.
+
 ## Rejected product direction
 
 - 95 — [Save only at stations](95-save-only-at-stations.md) — conflicts with the

@@ -261,11 +261,12 @@ const OUTSIDE: readonly Group[] = [
       + ' five tables are keyed on `BrainName` — a type declared beside them that the'
       + ' home may not import — the two `AS_*` strings are picker sentinels, and'
       + ' `SHIPPED_BRAINS` is the frozen no-override default npm test asserts is empty.'
-      + ' Moving any of it would split the one file the rule lives in across two homes',
+      + ' Moving any of it would split the one file the rule lives in across two homes.'
+      + ' `LIVE_BRAIN_IDS` left this list with the career-wide picker (docs/TODO/81)',
     files: {
       'game/brain-names.ts': [
         'AS_SHIPPED', 'AS_THE_GAME_FLIES', 'BRAINS', 'SENTINEL_NAMES',
-        'SHIPPED_DEFENCE', 'SHIPPED_BRAINS', 'SELECTIONS', 'LIVE_BRAIN_IDS',
+        'SHIPPED_DEFENCE', 'SHIPPED_BRAINS', 'SELECTIONS',
       ],
     },
   },

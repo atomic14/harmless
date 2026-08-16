@@ -14,7 +14,7 @@ import { ScriptedCoPilot } from '../src/game/scripted-co-pilot.ts';
 import { hitCone } from '../src/game/gunnery.ts';
 import { LASER_RANGE } from '../src/constants/player-gun.ts';
 import {
-  defenceBrainNameFor, LIVE_BRAIN_IDS, brainName, brainCharacter,
+  defenceBrainNameFor, selectionForBrain, brainName, brainCharacter,
 } from '../src/game/brain-names.ts';
 import { defenceBrain } from '../src/game/brains.ts';
 import { freshState } from '../src/game/state.ts';
@@ -32,7 +32,7 @@ console.log('\nscripted combat computer');
     defenceBrainNameFor({ scripted: true }), 'scripted');
   check('it loads no weights — the pilot is code',
     defenceBrain({}) === null);
-  check('the live picker offers it', LIVE_BRAIN_IDS.includes('attack-run'));
+  check('a selection can name it', selectionForBrain('attack-run') !== undefined);
   // The name covers TWO flights (the trader's attack run, this file's pursuit
   // co-pilot — docs/TODO/100), so the display name must not claim either
   // flight's shape and the character line must own up to both.
