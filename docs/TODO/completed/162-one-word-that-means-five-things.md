@@ -112,11 +112,22 @@ Four tests pin the phrase and each one updates with the rule it pins:
 `NAME_COST` becomes `REPUTATION_COST`. Its doc comment states the rule that the
 constant reads off `DISREPUTE_BRIBE`, and that rule does not change.
 
+**M1 landed twice on 2026-08-16.** The first cut said `CHARACTER` and was wrong
+for the reason above. The second says `REPUTATION`.
+
 ### M2 — the ladder is REPUTATION on every screen
 
 The COMMANDER screen row and the console verdict are the two places that print
-the ladder itself. Both say `Reputation` now. `characterName` still computes the
+the ladder itself. Both say `Reputation` now. `characterRung` still computes the
 rung, because the module keeps the code's word.
+
+**M2 landed on 2026-08-16, over four surfaces**: the COMMANDER screen row, the
+console verdict, the test-mode lever and the five strings.
+
+**A third surface turned up that the plan did not name.** `⇧T`'s test-mode panel
+labels the same ladder, and it said `CHARACTER`. It is a developer screen, and
+that is exactly why it was easy to miss: nothing about it is player-facing
+except the words on it.
 
 ### M3 — every consequence line reads for a first-time pilot
 
@@ -130,6 +141,39 @@ it.
 many lines as it has orders, on Chris's call: *"we don't need to keep it one
 line"*. docs/TODO/157 fixed the console's own width. So length is no longer the
 constraint that shortened these lines.
+
+**M3 landed on 2026-08-16, over seven lines.** Chris capped the length while it
+ran: *"2-3 lines maximum on the console. More text as needed in the main UI"*,
+and then *"this does not mean we write essays - just think - if this was the
+first time I saw this string - would I know what it meant."*
+
+| before | after |
+| --- | --- |
+| `CHARACTER: DODGY` | `REPUTATION: DODGY — WORD IS GETTING ROUND` |
+| `CHARACTER: DUBIOUS` | `REPUTATION: DUBIOUS — WORD IS DYING DOWN` |
+| `RECORD: FUGITIVE — POLICE … WILL ENGAGE` | `LEGAL STATUS: FUGITIVE — POLICE … WILL ATTACK YOU` |
+| `RECORD CLEAN — NO FINE DUE` | `LEGAL STATUS CLEAN — YOU HAVE NO FINE TO PAY` |
+| `FINE PAID: 100.0 Cr — RECORD CLEAR` | `FINE PAID: 100.0 Cr — YOUR LEGAL STATUS IS CLEAN AGAIN` |
+| `THE OFFER IS REFUSED — AND REPORTED` | `HE WILL NOT TAKE IT — AND NOW HE IS COMING FOR YOU` |
+| `ROCK HERMIT: "…" — NO TRADE` | `ROCK HERMIT: "…" — YOUR REPUTATION IS TOO BAD TO TRADE HERE` |
+
+**Four things came out of M3 that the plan did not have.**
+
+1. **THE VERDICT HAD TO SAY WHICH WAY IT MOVED, and only the decay shows why.**
+   `REPUTATION: DUBIOUS` does not say whether that is good news, and
+   `characterVerdict` reads both directions — a quiet fortnight crosses rungs
+   downward. A rung name alone is a word with no sign on it.
+2. **The clause is about TALK rather than about a rule, and that is forced.**
+   What a rung COSTS differs by rung: a hermit refuses at Dodgy and not at
+   Dubious. A clause that named a consequence would be false at some of the six.
+3. **The console's width is no longer the constraint, but the KEYLINE's is.**
+   `#screen .hints span` is still `white-space: nowrap`, so the survivors
+   keyline stays one line. That is docs/TODO/157's defect in a second element,
+   and it is recorded rather than fixed: no hint is near the width today.
+4. **`LEGAL STATUS` is a RETURN to the words docs/TODO/130 replaced**, and that
+   is not a reversal of it. 130's fix was that the line is QUEUED rather than
+   erased in the same frame. The word changed as a side effect, and the queue is
+   untouched here.
 
 ### M4 — the prose in `src/`
 
@@ -155,14 +199,53 @@ converts.
 `src/constants/` carry this prose, and a doc comment there is the `Purpose`
 column of `CATALOG.md` (docs/PROCESS.md).
 
+**M4 landed on 2026-08-16.** CATALOG.md moved 19 lines, all of them the
+`Purpose` column and shifted line numbers. **387 exports and 76 rule ids, both
+unchanged**, which is what says the pass changed prose and not rules.
+
+**Two things came out of M4 that the plan did not have.**
+
+1. **THE M2/M3 COMMIT DOES NOT PASS `constants:check`.** Three constants files
+   were converted before Chris re-cut the item, and `git add -A` swept them into
+   that commit with no regenerate. This is the exact case docs/PROCESS.md's tier
+   table warns about — a prose-only edit in `src/constants/` still leaves the
+   catalogue stale — met by the person who wrote the warning into this plan.
+   M4 is where it comes right.
+2. **`test/` carried the same defect and is included.** The plan scoped M4 to
+   `src/`. Eight test files used `name` for the reputation, and the header of
+   `test/character-line.test.ts` opened with it. Left alone they would have
+   re-seeded the word into the next file that copied one.
+
 ### M5 — the identifiers
 
 `markName` is a host method on two interfaces. It means *"the Character score
 moved"*. It becomes `markCharacter`. `wasNamed` is a local in four files and
-holds the disrepute before a deed. It becomes `wasCharacter`.
+holds the disrepute before a deed.
 
 **Use `findReferences` before each rename.** 31 lines hold these three names,
 across nine files.
+
+**M5 landed on 2026-08-16, and it is five renames rather than three:**
+
+| from | to | why |
+| --- | --- | --- |
+| `markName` | `markCharacter` | a host method on three interfaces, not two |
+| `characterName` | `characterRung` | it returns a rung, and `rung` is already a precise word here |
+| `wasNamed` | `wasDisrepute` | it holds the score before a deed, so name the score |
+| `const named` | `const verdict` | it holds a `characterVerdict` result |
+| `([, name]) =>` | `([, rung]) =>` | the ladder tuple in `hermit-market.ts` |
+
+**Three things came out of M5 that the plan did not have.**
+
+1. **`characterName` was the sharpest case in the whole item**, and the plan did
+   not name it at all. `ui/screens.ts` printed `COMMANDER ${c.name}` and
+   `characterName(c.disrepute)` six lines apart on ONE screen. The fifth meaning
+   of `name` and the second one sat in the same template.
+2. **`wasCharacter` was the plan's answer and it is worse than the fault.** The
+   variable holds a disrepute SCORE, not a rung and not a ladder. `wasDisrepute`
+   names what is in it.
+3. **`characterRung`'s own body held `let name`**, and `rungCrossed` held
+   `const name`. Both are the rung they return. The rename is not skin-deep.
 
 **Code is outside the prose style**, so this milestone rests on `CLAUDE.md`'s
 own vocabulary rule rather than on ASD-STE100. The rule is the reason the prose
@@ -180,6 +263,37 @@ five strings and that M1 empties it.
 
 **Prove that the gate can fail.** Put `AND YOUR NAME` back into one prompt.
 Confirm the failure. Remove it.
+
+**M6 landed on 2026-08-16.** `test/ladder-words.test.ts`, 17 assertions, in
+`npm run check`. It is wider than the plan asked, because the item grew: it
+holds the whole rule rather than the one phrase.
+
+**It is three parts, because no one scan sees all three surfaces.**
+
+1. **A scan of every shouted string** in `src/game/` and `src/ui/` — 815 of them
+   — for `YOUR NAME`, `CHARACTER`, `DISREPUTE` and `RECORD`. It is
+   `key-prose.test.ts`'s literal reader, for that file's reasons.
+2. **`characterVerdict` and `recordVerdict` directly.** Each is the one home of
+   its ladder's line, so an assertion there covers every caller.
+3. **`renderStatus` through `test/screen-capture.ts`.** The screens are mixed
+   case, so the scan cannot see them. It is also the one screen that prints all
+   three ladders at once, six lines apart, which is why the three words must
+   differ.
+
+**`NAME` is deliberately NOT banned, and that is the item's own finding read
+back.** A commander and a save each have one, and three screens ask for it. That
+is the word's one correct meaning, and it is the reason the other four were
+wrong. The banned form is the possessive.
+
+**All four protected rules were proved able to fail, one at a time.** Putting
+` AND YOUR NAME` back into `prompts.ts` fails the scan by file and reason.
+Dropping the direction clause fails both verdict assertions. Putting
+`Character:` back on the screen fails two. Putting `RECORD:` back into
+`recordVerdict` fails the scan AND two others.
+
+**The predicate is tested against itself before it is trusted**, including
+against this item's own first cut: `V AND L BOTH DAMAGE YOUR CHARACTER` is
+caught, and the three real naming screens are not.
 
 ## Decisions already made
 
@@ -255,3 +369,30 @@ One row does apply: prose in `src/constants/` needs
 
 **A refactor's gate is that nothing needed a new test**, beyond the one that
 holds the new rule.
+
+## What landed
+
+**All six milestones landed on 2026-08-16**, the day the issue was filed.
+`npm run check` passes at **4,708 assertions**, up 17 — every one of them M6's
+gate. **No rule moved**, and `constants:check` reports 387 exports and 76 rule
+ids, unchanged.
+
+**The item was re-cut once, mid-flight, and that is the record's main point.**
+M1 landed saying `CHARACTER`, which swapped one internal word for another. Chris
+read it and set the direction the rest of the item ran on: a player has no
+context, so a line must say what happened rather than name it. The plan above
+answers a narrower question than the item ended up asking.
+
+**Three things are recorded and not scheduled.**
+
+1. **The briefing says a new commander has *"no reputation at all"***, and means
+   the combat rating. Under this item's vocabulary that reads as Honest, which
+   is the BEST rung of the other ladder. It is Chris's own writing on a page the
+   style excludes, so nothing here touches it.
+2. **`#screen .hints span` is still `white-space: nowrap`.** That is GitHub #29's
+   defect in a second element. No hint is near the width today, so the survivors
+   keyline simply stays one line.
+3. **The wider point Chris made is bigger than this item.** *"We've been trying
+   to keep text overly short in the UI."* This item swept the consequence lines,
+   which is the scope he set. Every other player-facing string in `src/` is
+   unmeasured against the same question.

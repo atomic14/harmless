@@ -13,15 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [162 — one word that means five things](162-one-word-that-means-five-things.md)
-   · bug · medium · GitHub #33.
-2. [154 — The comments in src/ are not in Simplified Technical
+1. [154 — The comments in src/ are not in Simplified Technical
    English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
    · refactor · large.
 
-**162 came out of the triage of GitHub #33 on 2026-08-16.** Chris reported one
-line: *"'Cost you name' doesn't mean anything."* The triage found five meanings
-for the word `name`, and the three ladders that already have three better words.
+**162 landed on 2026-08-16 and is below.** It came out of the triage of GitHub
+#33 the same day, and Chris re-cut it twice while it ran.
 
 **161 landed on 2026-08-16 and is below.** It came out of 160, on Chris's call:
 *"We should migrate snapshot v2 to v3."*
@@ -68,8 +65,9 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds one open issue, **#33**, and it is 162 at the head of the
-queue. **#32**, **#31** and **#30** closed on
+The GitHub inbox holds no open work. **#33** closed on 2026-08-16 with
+[162](completed/162-one-word-that-means-five-things.md). **#32**, **#31** and
+**#30** closed on
 2026-08-15 with [160](completed/160-a-record-you-cannot-work-off.md),
 [159](completed/159-the-lane-that-only-exists-at-the-station.md) and
 [158](completed/158-the-safe-zone-that-only-the-spawner-obeys.md). **#29** and
@@ -97,6 +95,61 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**162 — one word that means five things (GitHub #33).** Chris read one line and
+said what was wrong with it: *"'Cost you name' doesn't mean anything. We use it
+in a lot of places and 'name' is a bit confusing - what are we saying."*
+
+**The report was exact, and the cause was wider than the line.** `name` carried
+five meanings: what a thing is CALLED, the disrepute ladder, the legal record,
+the combat rating, and a value's own label. **The first is the one the game
+teaches.** Three screens ask for a name and each means the word the player
+types, so `COST YOUR NAME` read against that lesson.
+
+**The worst case was one paragraph in `src/game/law.ts`**, which held two of the
+meanings four lines apart — in a paragraph whose whole point was that the two
+ladders are separate. The same sentence carried a second defect: it claimed
+`recordCleared` was the only thing that clears a record, which docs/TODO/160 had
+made false.
+
+**THE ITEM WAS RE-CUT MID-FLIGHT, AND THAT IS THE RECORD'S MAIN POINT.** M1
+landed saying `CHARACTER`, which swapped one internal word for another. Chris
+set the direction the rest of it ran on, in three messages: *"a user does not
+have the context we have and they don't understand all our internal ways of
+naming things"*, then *"2-3 lines maximum on the console. More text as needed in
+the main UI"*, then *"this does not mean we write essays - just think - if this
+was the first time I saw this string - would I know what it meant."*
+
+**So the player's word is REPUTATION**, and the scope became every consequence
+line rather than the five strings the screenshot found. Each line says what
+happened rather than naming it: `REPUTATION: DODGY — WORD IS GETTING ROUND`,
+`LEGAL STATUS: FUGITIVE — POLICE AND BOUNTY HUNTERS WILL ATTACK YOU`,
+`FINE PAID: 100.0 Cr — YOUR LEGAL STATUS IS CLEAN AGAIN`.
+
+**The verdict says which WAY the ladder moved**, because a rung name carries no
+sign and the decay crosses rungs downward. **The clause is about talk rather
+than about a rule**, and that is forced: what a rung COSTS differs by rung, so a
+named consequence would be false at some of the six.
+
+**Five identifiers followed the prose**, because a comment written beside
+`markName` reaches for the word in the identifier. `characterName` was the
+sharpest case in the item and the plan never named it: `ui/screens.ts` printed
+`COMMANDER ${c.name}` and `characterName(c.disrepute)` six lines apart on ONE
+screen.
+
+**`test/ladder-words.test.ts` is 17 assertions in three parts** — a scan of 815
+shouted strings, the two verdict functions, and the COMMANDER screen through
+`screen-capture.ts`. No one scan sees all three surfaces. **All four protected
+rules were proved able to fail.** **`NAME` is deliberately not banned**: it is
+the word's one correct meaning, and the reason the other four were wrong.
+
+**Three things are recorded and not scheduled.** The briefing tells a new
+commander she has *"no reputation at all"* and means the RATING, which now reads
+as the best rung of the other ladder — it is Chris's writing on an excluded
+page. `#screen .hints span` is still `nowrap`, which is GitHub #29's defect in a
+second element. And Chris's wider point — *"we've been trying to keep text
+overly short in the UI"* — is bigger than this item, which swept only the
+consequence lines he scoped.
 
 **161 — a save that is refused rather than raised.** Chris's call: *"We should
 migrate snapshot v2 to v3."*
