@@ -2,17 +2,19 @@
 //
 // A STANDING ORDER is an obligation that outlives the moment it is announced.
 // The game has two kinds: a signed contract, and the Navy mission. Until
-// docs/TODO/144 they shared one line under the station header, and the contract
-// won it — so a commander who took any job before the Navy briefed her was
-// never told where the Constrictor was (GitHub #27).
+// docs/TODO/144 they shared one line under the station header, and the
+// contract won it. So a commander who took any job before the Navy briefed her
+// was never told where the Constrictor was (GitHub #27).
 //
 // The two kinds were never comparable before, because nothing had ever asked
 // them the same question. This is that question, asked once, so that the menu
 // line, the MISSIONS screen and the charts cannot hold three answers.
 //
-// This module is where docs/INVARIANTS.md invariant 16 lives: a standing order
-// has a screen, a console line never holds the only copy of one, and a surface
-// that carries orders never drops one kind for another.
+// This module is where docs/INVARIANTS.md invariant 16 lives:
+//
+//   - a standing order has a screen;
+//   - a console line never holds the only copy of one;
+//   - a surface that carries orders never drops one kind for another.
 //
 // IT RESTATES NO RULE. A contract's words come from `describeContract`
 // (contract-offers.ts) and the mission's from `missionOrderLine`
@@ -51,10 +53,10 @@ export interface ContractOrder {
   /**
    * The job this describes.
    *
-   * A screen needs two facts no summary does: whether the run is illicit, and
-   * how far along a bounty is. Carrying the contract beats inventing a field
-   * for each — this order IS a view of that job, and the alternative is a
-   * second place that decides what "illicit" means.
+   * A screen needs two facts that no summary needs: whether the run is
+   * illicit, and how far along a bounty is. The contract itself beats a field
+   * for each. This order IS a view of that job. The alternative is a second
+   * place that decides what "illicit" means.
    */
   readonly job: Contract;
 }
@@ -62,21 +64,21 @@ export interface ContractOrder {
 /**
  * One obligation, ready for a row or for a summary.
  *
- * A UNION rather than one shape with nullable fields, and that is load-bearing:
- * a contract always has a deadline and the Navy mission never has one. Written
- * as `daysLeft: number | null` the summary below would need a branch for a case
- * that cannot happen, which is the defensive dead code docs/TODO/142 found and
- * deleted elsewhere.
+ * A UNION rather than one shape with nullable fields, and that is
+ * load-bearing. A contract always has a deadline, and the Navy mission never
+ * has one. Written as `daysLeft: number | null`, the summary below would need
+ * a branch for a case that cannot happen. That is the defensive dead code
+ * docs/TODO/142 found and deleted elsewhere.
  */
 export type StandingOrder = NavyOrder | ContractOrder;
 
 /**
  * Every standing order this commander holds, most urgent kind first.
  *
- * The Navy mission sorts above the contracts, and the reason is not taste: a
- * board re-offers work every day, and the Navy briefs a commander one time.
- * The contracts then sort by deadline, so the row that decides when she must
- * leave is the row at the top of them.
+ * The Navy mission sorts above the contracts, and the reason is not taste. A
+ * board re-offers work every day. The Navy briefs a commander one time. The
+ * contracts then sort by deadline, so the row that decides when she must leave
+ * is the row at the top of them.
  */
 export function standingOrders(
   c: CommanderData, systems: StarSystem[],
@@ -103,13 +105,13 @@ export function standingOrders(
 /**
  * Every system a standing order sends this commander to.
  *
- * The charts draw a diamond on each one (docs/TODO/140 M4 built the marker for
- * the contracts). The Navy target had been missing from it, which is the half
- * of GitHub #27 that bites in FLIGHT: the chart is where a pilot picks a
+ * The charts draw a diamond on each one. docs/TODO/140 M4 built that marker
+ * for the contracts, and the set left the Navy target out. That absence is the
+ * half of GitHub #27 that bites in FLIGHT. The chart is where a pilot picks a
  * destination, and the Constrictor's system looked like any other world.
  *
- * A SET, because two jobs to one world are one diamond, and the Navy can send
- * her to a world she already owes a delivery to.
+ * A SET, because two jobs to one world are one diamond. The Navy can send her
+ * to a world she already owes a delivery to.
  */
 export function orderDestinations(c: CommanderData): ReadonlySet<number> {
   const marks = new Set(contractDestinations(c));
@@ -123,12 +125,15 @@ export function orderDestinations(c: CommanderData): ReadonlySet<number> {
  * sends her there.
  *
  * A CONTRACT ANSWERS FIRST where one system carries both, and that is not
- * arbitrary: a contract has a deadline and the Navy mission does not, so the
+ * arbitrary. A contract has a deadline and the Navy mission does not. So the
  * contract is the line that tells her when she must leave.
  *
- * `daysAway` is the journey the painter measured, with the same three meanings
- * `contractVerdict` gives it — a number of days, `0` for standing on it, and
- * `null` for no chain of full-tank jumps that reaches it.
+ * `daysAway` is the journey the painter measured. It has the same three
+ * meanings that `contractVerdict` gives it:
+ *
+ *   - a number of days;
+ *   - `0`, for a commander who stands on the world;
+ *   - `null`, for no chain of full-tank jumps that reaches it.
  */
 export function orderVerdict(
   c: CommanderData, systemIndex: number, daysAway: number | null,
@@ -150,12 +155,12 @@ export function orderVerdict(
  * ONE ENTRY PER KIND, and every kind it holds is named. That is the whole
  * defect #27 reported: the line used to print the first contract and stop, so
  * two jobs hid the Navy mission completely. A count covers the contracts it
- * does not print; nothing covers a kind, because a kind that is merely counted
- * is a kind the commander cannot act on.
+ * does not print. Nothing covers a kind. A kind that is only counted is a kind
+ * the commander cannot act on.
  *
  * It carries orders and never warnings. The gun warning is long enough to push
- * the order off the screen on its own, and the MISSIONS screen is one keystroke
- * away — which is what invariant 16 asks of an announcement.
+ * the order off the screen on its own. The MISSIONS screen is one keystroke
+ * away, which is what invariant 16 asks of an announcement.
  *
  * ONE LINE PER ENTRY, and the menu draws each on its own row. It was one joined
  * string until Chris read it and said the width is not scarce: *"we don't need
@@ -171,10 +176,10 @@ export function ordersSummary(orders: readonly StandingOrder[]): string[] {
   if (navy) {
     lines.push(navy.line);
     // THE WARNING IS BACK, and the one-line budget is why it ever left.
-    // docs/TODO/144 M1 cut it because it is long enough to push the order off
-    // the row on its own — a length argument, and length stopped being the
-    // constraint. It is the one thing on this menu that a commander must not
-    // learn forty light years from here (`constrictorWarning`).
+    // docs/TODO/144 M1 cut it, because it is long enough to push the order off
+    // the row on its own. That was a length argument, and length is no longer
+    // the constraint. It is the one thing on this menu that a commander must
+    // not learn forty light years from here (`constrictorWarning`).
     if (navy.warning) lines.push(navy.warning);
   }
 

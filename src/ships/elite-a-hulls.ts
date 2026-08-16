@@ -1,31 +1,32 @@
 // The 38 released hulls, at the one scale, ready to render.
 //
-// This is where source data becomes something the renderer can take: the flat
-// generated arrays in game/elite-a/geometry.generated.ts come in, a `ShipDef`
-// with closed face loops goes out, and `sourceGeometryToWorld` is the single
+// This is where source data becomes something the renderer can take. The flat
+// generated arrays in game/elite-a/geometry.generated.ts come in. A `ShipDef`
+// with closed face loops goes out. `sourceGeometryToWorld` is the single
 // conversion between the two coordinate systems. Nothing else in the project
 // may scale a hull.
 //
-// THE ANCHOR. Source design 10 is the Cobra Mk III, and its vertex table is the
+// THE ANCHOR. Source design 10 is the Cobra Mk III. Its vertex table is the
 // table `ships/geometry.ts` shipped by hand — (32,0,76), (-32,0,76), (0,26,24),
 // (-120,-3,-8) and so on, byte for byte — carried with `scale: 0.25`. So the
-// Cobra keeps the size it has always had if and only if one world unit is four
-// source units, and that is the whole derivation:
+// Cobra keeps the size it always had if, and only if, one world unit is four
+// source units. That is the whole derivation:
 //
 //     world = source / 4          SOURCE_UNITS_PER_WORLD_UNIT = 4
 //
-// It is applied to every one of the 38 designs and to their target radii, and
-// there is deliberately no per-ship factor to reach for: a hull that looks wrong
-// at this scale is wrong in the source or wrong in the scene, and both of those
-// are somewhere else's problem.
+// Every one of the 38 designs takes it, and so does every target radius. There
+// is deliberately no per-ship factor to reach for. A hull that looks wrong at
+// this scale is wrong in the source or wrong in the scene. Both of those are
+// somewhere else's problem.
 //
-// A CONSEQUENCE WORTH KNOWING. The released Coriolis is 160 source units — 40
-// world units, against the 160 the Harmless scene places it at and the docking
-// rules in game/docking.ts are written against. In the source a station is only
-// 1.7 Cobras across; in Harmless it is 4.7. That gap is a scene decision, not a
-// geometry one, so the two station designs are built here and shown in the
-// viewer, and world/system-scene.ts still flies the Harmless station — see
-// ships/harmless-hulls.ts.
+// A CONSEQUENCE WORTH THE RECORD. The released Coriolis is 160 source units,
+// which is 40 world units. The Harmless scene places it at 160 world units,
+// and the docking rules in game/docking.ts are written against that. In the
+// source a station is only 1.7 Cobras across. In Harmless it is 4.7.
+//
+// That gap is a scene decision, not a geometry one. So this file builds the
+// two station designs and the viewer shows them. world/system-scene.ts still
+// flies the Harmless station — see ships/harmless-hulls.ts.
 
 import {
   eliteADesign, eliteADesignIds, eliteAGeometry, eliteATargetRadius,
@@ -44,10 +45,13 @@ export function sourceGeometryToWorld(sourceUnits: number): number {
 /**
  * One released design, converted.
  *
- * `def` is what the renderer builds; everything beside it is the source header
- * a caller might legitimately want — the target radius the guns use, the gun
- * vertex a muzzle flash would leave from, the distance the original stopped
- * drawing it at, and the report of how the face loops came out.
+ * `def` is what the renderer builds. Everything beside it is the part of the
+ * source header that a caller may legitimately want:
+ *
+ *   - the target radius the guns use;
+ *   - the gun vertex a muzzle flash leaves from;
+ *   - the range beyond which the original no longer drew it;
+ *   - the report of how the face loops came out.
  */
 export interface EliteAHull {
   readonly designId: number;
@@ -55,15 +59,16 @@ export interface EliteAHull {
   readonly def: ShipDef;
   /** Target radius in WORLD units: the catalogue's, through the one scale. */
   readonly targetRadius: number;
-  /** The same radius in source units, for comparing against the pack. */
+  /** The same radius in source units, for a comparison against the pack. */
   readonly targetRadiusSourceUnits: number;
   /**
    * Where the guns sit, in world units and already nose-forward.
    *
-   * `gunVertexIndex` is a real index and 0 is a real answer — the pack's byte
-   * is 0 for thirty of the designs, which points at vertex 0, usually the nose.
-   * Only five ships (Transporter, Cobra Mk III, Anaconda, Cobra Mk I, Asp Mk II,
-   * Thargoid) name a later vertex, so there is nothing here to treat as absent.
+   * `gunVertexIndex` is a real index, and 0 is a real answer. The pack's byte
+   * is 0 for thirty-two of the 38 designs. It points at vertex 0, which is
+   * usually the nose. Six ships name a later vertex: the Transporter, the
+   * Cobra Mk III, the Anaconda, the Cobra Mk I, the Asp Mk II and the
+   * Thargoid. So there is nothing here to treat as absent.
    */
   readonly gunVertex: readonly [number, number, number];
   /** Source range at which the original stopped drawing it, in world units. */
@@ -77,14 +82,18 @@ export interface EliteAHull {
 /**
  * The nose points along -Z in world space, and `buildShip` turns it there.
  *
- * Defs are stated +Z-nose, as the source states them (docs/INVARIANTS.md invariant 7).
- * The builder used to mirror Z alone, which is a REFLECTION: identical to a half
- * turn for a left/right symmetric hull, and a mirror image for anything else.
- * Thirty of the thirty-eight released designs are symmetric and never noticed;
- * the Transporter, Thargoid, Thargon, escape pod, alloy plate, boulder,
- * asteroid and splinter are not, so the builder turns hulls now instead of
- * flipping them. This helper says where a source point ends up, for anything
- * that needs to agree with the mesh — the gun vertex below, and the tests.
+ * A def is stated +Z-nose, as the source states it (docs/INVARIANTS.md
+ * invariant 7). The builder used to mirror Z alone, which is a REFLECTION. For
+ * a left/right symmetric hull that is identical to a half turn. For anything
+ * else it is a mirror image.
+ *
+ * Thirty of the thirty-eight released designs are symmetric, and nobody
+ * noticed. Eight are not: the Transporter, the Thargoid, the Thargon, the
+ * escape pod, the alloy plate, the boulder, the asteroid and the splinter. So
+ * the builder now turns a hull rather than flips it.
+ *
+ * This helper says where a source point ends up. Two readers need to agree
+ * with the mesh: the gun vertex below, and the tests.
  */
 export function sourcePointToWorld(
   x: number, y: number, z: number,
@@ -120,9 +129,10 @@ function buildHull(designId: number): EliteAHull {
 /**
  * Every released hull, converted once at load.
  *
- * Eager and immutable, so it is a constant rather than a cache: 38 hulls of a
- * few dozen edges each is microseconds, and a lazy memo would be module-level
- * mutable state for no gain (CLAUDE.md's rule on globals applies to caches too).
+ * Eager and immutable, so it is a constant rather than a cache. 38 hulls of a
+ * few dozen edges each take microseconds. A lazy memo would be module-level
+ * mutable state for no gain. CLAUDE.md's rule on a global applies to a cache
+ * too.
  */
 export const ELITE_A_HULLS: readonly EliteAHull[] = eliteADesignIds().map(buildHull);
 
