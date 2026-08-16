@@ -13,19 +13,11 @@ active context:
 
 ## Execution queue
 
-1. [154 — The comments in src/ are not in Simplified Technical
-   English](154-the-comments-in-src-are-not-in-simplified-technical-english.md)
-   · refactor · large.
+**The queue is empty.**
 
-**154's twelfth M3 pass landed on 2026-08-16.** It took `game/systems.ts`,
-`game/snapshot.ts`, `game/combat-computer.ts` and `game/combat.ts` from 20% over
-the cap to 0%, and the tree is at 952 long sentences. **The size gate fired on
-the way**, because the conversion pushed `combat.ts` from 391 lines to 406. The
-value test paid 2 lines and the gate needed 7, so the answer was the gate's own:
-`game/combat-events.ts` is the vocabulary a combat report is written in, at 59
-lines against 368 left behind. Six modules READ a combat event and one BUILDS
-one, so a module that merely applies an event no longer imports the module that
-resolves a hit.
+**154 landed on 2026-08-16 and is below.** It was the last item in the queue,
+and the largest of the four that came out of the 2026-08-14 review. Its own
+M3 sweep ran to twenty-nine passes.
 
 **162 landed on 2026-08-16 and is below.** It came out of the triage of GitHub
 #33 the same day, and Chris re-cut it twice while it ran.
@@ -33,10 +25,10 @@ resolves a hit.
 **161 landed on 2026-08-16 and is below.** It came out of 160, on Chris's call:
 *"We should migrate snapshot v2 to v3."*
 
-**154 waits again, and the precedent is Chris's.** It was parked on 2026-08-15,
-and five items went in front of it (Chris): *"I want to park that for a while
-and pick up the GitHub issues."* All five landed the same day and are below. 154
-is a sweep, and a sweep waits.
+**154 waited twice, and the precedent was Chris's.** It was parked on
+2026-08-15, and five items went in front of it (Chris): *"I want to park that
+for a while and pick up the GitHub issues."* All five landed the same day and
+are below. A sweep waits. 154 then ran to the end on 2026-08-16.
 
 **158, 159 and 160 came out of the triage of GitHub #30, #31 and #32 on
 2026-08-15.** Two of the three share one root, and the triage found it rather
@@ -61,12 +53,13 @@ the nine rule paragraphs it examined were duplicates of what the rules module
 already said, and each became a pointer. So 154 rewrites prose that is now in
 its final home.
 
-**154 is the largest, and the incremental rule is what makes it necessary.**
-`CLAUDE.md` asks each edit to convert the comment it touches. Measured, that does
-not happen: `src/constants/`, which 141 swept in one pass, has 3% of its
-sentences over the cap, while the rest of `src/` has 13% — and the three files
-150 wrote this month reach 14%. A sweep converts a surface; an intention does
-not.
+**154 was the largest, and the incremental rule is what made it necessary.**
+`CLAUDE.md` asked each edit to convert the comment it touches. Measured, that
+did not happen: `src/constants/`, which 141 swept in one pass, had 3% of its
+sentences over the cap, while the rest of `src/` had 13% — and the three files
+150 wrote that month reached 14%. A sweep converts a surface; an intention does
+not. **`npm run ste:check` now holds it**, so the rule has a measurement and a
+gate rather than an intention.
 
 **The decomposition programme is finished, and `src/game/game.ts` states one
 responsibility:** *the orchestrator — which mode the game is in, and who gets
@@ -105,6 +98,51 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**154 — the comments in src/ are not in Simplified Technical English.** Chris
+asked one question on 2026-08-14: *"Are they in ASD-STE100?"* They were not.
+`CLAUDE.md` set the style and stated that no gate checked it, and a rule with no
+measurement is a preference.
+
+**The measurement is the whole item.** `tools/ste.mjs` counts three rules that a
+machine can count: the sentence caps, the `-ing` words and the tense. It found
+1,988 long sentences, at 20% of every sentence in `src/`. It also found the
+proof that the incremental rule fails: `src/constants/`, swept in one pass by
+141, read at 7%, and the rest of the tree, left to convert as each file was
+edited, read at 24%.
+
+**The harder half of the checker is `tools/ste-read.mjs`, which decides what is
+measured.** The style never touches code, an exact command, an API name, an
+error string, or anything quoted from a person. **A quotation rewritten is
+falsified**, so a checker that cannot see a quotation mark asks for exactly
+that. It walks characters rather than lines, because a line-at-a-time reader
+cannot tell a comment from a string that holds `//`.
+
+**M3 was the sweep, and it took twenty-nine passes** over about 130 files. The
+tree went 1,988 → 0 long sentences of 14,582, and 309 → 0 compound tenses.
+**The tail reads worse than the head, by share** — a file low in `--work` order
+starts at about 30% over cap, exactly like a file at the top, and merely clears
+in fewer edits. **A last breach is nearly always a header that states three or
+four things in one sentence**, and the remedy is the style's own vertical list.
+
+**A converted file drifted back while the sweep was still running**, and that is
+the evidence the gate rests on. `game/npc.ts` reached 0% on 2026-08-14.
+docs/TODO/158 put five long sentences into it on 2026-08-15, and nothing said
+so. The twenty-fifth pass repaired it.
+
+**One real defect came out of the sweep.** `ships/elite-a-hulls.ts` claimed the
+pack's gun-vertex byte is 0 for "thirty of the designs" and that "only five
+ships" name a later vertex, then listed six names. It is thirty-two of 38, and
+six ships. A rewrite that has to re-read a sentence is a rewrite that checks it.
+
+**M4 is the gate: `npm run ste:check`, whole-tree, inside `npm run check`.** The
+plan expected diff-scoped. Whole-tree costs the same on a tree at zero, lets
+less through, and needs no diff base. **It holds two rules of the three.** The
+`-ing` count never gates: it is 788, a technical noun is the honest answer for
+most of them, and the allowlist rather than the prose decides what the number
+means. **Proved able to fail** by a 30-word sentence and by a compound tense,
+both removed, and lastingly by four assertions that run the real command line
+against a fixture. 4,708 assertions, 387 exports and 76 rule ids unchanged.
 
 **162 — one word that means five things (GitHub #33).** Chris read one line and
 said what was wrong with it: *"'Cost you name' doesn't mean anything. We use it
