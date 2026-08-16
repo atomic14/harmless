@@ -13,22 +13,16 @@ active context:
 
 ## Execution queue
 
-**Two items, both out of one sweep on 2026-08-16.** Chris asked for an
+**One item, out of the sweep of 2026-08-16.** Chris asked for an
 architectural and bug sweep against a tree where `npm run check` passed. The
 order below is by value over cost, and not by severity.
 
-1. [168 — the style checker never reads the documents](168-the-style-checker-never-reads-the-documents.md)
-   · gap · medium. `ste:check` reads comments in source. The style also governs
-   ten markdown documents and every plan title, and the tool finds no sentence
-   in any of them. **It now gates a title too**, on Chris's call of 2026-08-16.
-2. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
+1. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**168 leads now.** It is a defect in a document, and 169 is a decomposition.
-
-**172, 170 and 171 led this queue and all three landed the same day.** They are
-below.
+**172, 170, 171 and 168 led this queue and all four landed the same day.** They
+are below.
 
 **171 and 168 were adjacent and were not the same item.** 171 was the player's
 vocabulary on the player's pages. 168 is the house prose style over `docs/`.
@@ -146,6 +140,50 @@ would go if it is ever wanted. The curve takes a plane as a parameter, so a path
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**168 — the style checker never reads the documents.** `npm run ste:check` read
+every comment in `src/` and no document at all. The house style also covers ten
+markdown documents and each TODO item, and a markdown file holds no comment.
+
+**The number came after the reader, and the plan was right to insist.** The
+trial reader's figure is not in this record, because it counted a whole list as
+one 43-word breach. **The real measurement is 174 sentences over the cap and 35
+in a compound tense, of 2,559. It is 0 and 0 now, of 2,905.**
+
+**The ten documents held 48 of those breaches, and the index held 150.** 144 of
+the index's 150 were in the dated sections, which report what landed.
+
+**CHRIS ANSWERED TWO SCOPE QUESTIONS, AND THE MEASUREMENT IS WHAT ASKED THEM.**
+A section heading keeps the caps and loses the title rules. 73 of the 88
+headings in the ten documents carry no verb, and `docs/PROCESS.md` mandates a
+plan shape whose own section names are noun phrases. And the gate reads the
+whole index, so 144 record sentences were rewritten.
+
+**`tools/titles.mjs` landed before this item ran**, and it is what the plan's
+title count and title rules asked for. It reads 315 plan titles and index
+labels. So M3 added no second home for that rule.
+
+**A BLOCK QUOTATION IS READ, AND THE PLAN SAID TO DROP IT.** Its reason was that
+this repository quotes a person in a block. Measured, that is false:
+`docs/PROCESS.md` holds no block quotation at all, and its four quotations of
+Chris are inline. The 95 block lines are house prose, and a dropped block would
+take all of them out of the gate's reach.
+
+**Two reader defects came out of the measurement.** A hash opens a sentence, so
+one paragraph of this index read as one sentence of 112 words rather than
+sixteen. And a quotation of a whole sentence carries its full stop INSIDE the
+quotation marks. So the mask took the terminator away, and joined the sentence
+after it.
+
+**One false claim came out of the sweep**, which is 154's finding again.
+`docs/COMBAT-SIM.md` said the machinery for a live career selection exists in
+`brain-names.ts`, and it named `liveBrainSelection` and `liveBrainId`.
+docs/TODO/81 deleted all four members the same day.
+
+**Proved able to fail five ways, and each one alone.** A long instruction and a
+compound tense each redden the gate. The same long sentence stays GREEN inside a
+fenced code block, and green in a table row. A document named in `DOCUMENTS`
+that is not there reports the name and exits 1.
 
 **171 — the briefing says reputation when it means rating.** GitHub #36 reported
 a string that docs/TODO/162 fixed a day earlier, and a commit permalink is why it

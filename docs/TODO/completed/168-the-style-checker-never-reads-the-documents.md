@@ -189,6 +189,64 @@ Remove all three afterwards.
 **Report the counts before and after M2**, so the outcome states what the sweep
 moved.
 
+## What landed, on 2026-08-16
+
+**All three milestones landed in a day, in the order M1, M2, M3.**
+
+**The number came after the reader, and the plan was right to insist.** The
+trial reader's figure is not in this record, because it counted a whole list as
+one 43-word breach. The real measurement, over the ten documents plus the index
+and the two active plans: **174 sentences over the cap and 35 in a compound
+tense, of 2,559.** It is **0 and 0 now, of 2,905**.
+
+**The ten documents held 48 of those breaches. The index held 150.** 144 of the
+index's 150 were in the dated sections, which report what landed.
+
+**CHRIS ANSWERED TWO SCOPE QUESTIONS, AND THE MEASUREMENT IS WHAT ASKED THEM.**
+
+1. **A section heading keeps the caps and loses the title rules.** `CLAUDE.md`
+   said that a plan title, A HEADING and a commit subject each take the title
+   rules. Measured, 73 of the 88 headings in the ten documents carry no verb, and
+   `docs/PROCESS.md` mandates a plan shape whose own section names are noun
+   phrases. So the sentence names the index label instead.
+2. **The gate reads the whole index.** He chose to hold the file rather than to
+   split its scope in two, so 144 record sentences were rewritten.
+
+**`tools/titles.mjs` LANDED BEFORE THIS ITEM RAN, and it is what M2's title
+count and M3's title rules asked for.** It reads 315 plan titles and index
+labels, and it holds the two rules a title can break. So the title half of this
+plan is already in `npm run check`, and M3 added no second home for that rule.
+
+**A BLOCK QUOTATION IS READ, AND M1 SAID TO DROP IT.** The plan gave one reason:
+this repository quotes a person in a block, and a quotation rewritten is
+falsified. Measured, that is false. `docs/PROCESS.md` holds no block quotation at
+all, and its four quotations of Chris are inline. The 95 block lines in the ten
+documents are house prose: an AS BUILT note, a dated note and one rule statement.
+A dropped block would take all of them out of the gate's reach.
+
+**Two reader defects came out of the measurement**, and both were in the half
+`tools/ste-read.mjs` already owned. A hash opens a sentence, so one paragraph of
+the index read as one sentence of 112 words rather than sixteen short ones. And
+a quotation of a whole sentence carries its full stop INSIDE the quotation
+marks, so the mask took the terminator away.
+
+**One false claim came out of the sweep**, which is docs/TODO/154's finding
+again. `docs/COMBAT-SIM.md` said the machinery for a live career selection
+exists in `brain-names.ts`, and it named `liveBrainSelection` and `liveBrainId`.
+docs/TODO/81 deleted all four members on 2026-08-16.
+
+**Proved able to fail five ways, and each one alone.** The plan asked for three:
+a long instruction in `docs/PROCESS.md`, a compound tense in
+`docs/INVARIANTS.md`, and the same long sentence inside a fenced code block,
+which must stay GREEN. Two more are the reader and the list: the same sentence
+in a table row stays green, and a document named in `DOCUMENTS` that is not
+there reports the name and exits 1.
+
+**`npm run check` passes at 4,739 assertions.** The gate reads 14,620 sentences
+in 252 files and 2,905 in 13 documents.
+
+**`README.md` stays out**, and the open question below is unchanged.
+
 ## Decisions already made
 
 - **The reader comes before the number.** See "What the sweep found".
@@ -198,7 +256,10 @@ moved.
 - **A title takes the title rules, and not the sentence caps.** A 20-word cap
   never fires on a title.
 - **The archive's titles are counted and never gated.** A landed plan is a
-  record.
+  record. **`tools/titles.mjs` gates them instead**, and that landed before this
+  item ran.
+- **A section heading is a label** (Chris, 2026-08-16). See "What landed".
+- **The gate reads the whole index** (Chris, 2026-08-16). See "What landed".
 
 ## Open questions
 
