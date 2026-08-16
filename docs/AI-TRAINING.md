@@ -25,9 +25,9 @@ simulation. The design is below.
 > traders and the combat computer you buy; it is the hand-written three-phase
 > run, pointed the other way. `scripted` is the A/B control, and it reverts the
 > whole game to the three-phase attack run. `src/game/brain-names.ts` states that
-> pairing: `SHIPPED_BRAINS` is `{}`, `pirateBrainNameFor` returns `pursuit`
-> (`scripted` when the A/B asks for it), and `defenceBrainNameFor` returns
-> `attack-run` (again `scripted` under the A/B). `npm test` reads those files
+> pairing. `SHIPPED_BRAINS` is `{}`. `pirateBrainNameFor` returns `pursuit`, and
+> `scripted` when the A/B asks for it. `defenceBrainNameFor` returns
+> `attack-run`, and `scripted` again under the A/B. `npm test` reads those files
 > rather than a list. `train/evolve.ts` can breed a candidate for research. The
 > game loads nothing it produces until `brains.ts` imports it and this file
 > names it.
@@ -48,8 +48,9 @@ simulation. The design is below.
   when the mothership dies.
 
 This is decent 1984-plus AI. Reinforcement learning (RL) is the path to a
-dogfight that feels *alive*: lead pursuit, energy management, break turns, and
-pack flanking that emerges rather than a scripted equivalent.
+dogfight that feels *alive*. That dogfight has four parts: lead pursuit, energy
+management, break turns, and pack flanking that emerges rather than a scripted
+equivalent.
 
 ## Why RL fits here unusually well
 
@@ -97,9 +98,15 @@ Actions (discrete, and they match the keyboard model — 3×3×3×2 = 54 combos)
 > nearest living packmate (`PACK_OBS_SIZE = 17`). `observePackWide` adds enough
 > about that mate to fly a complementary line, rather than merely to avoid it
 > (`PACK_WIDE_OBS_SIZE = 25`). `observeDefend` (`DEFEND_OBS_SIZE = 29`) is the
-> defender's own encoder: it observes the ship's own pools (hull and energy
-> bank), the shield split (fore and aft faces), an inbound warhead, the velocity
-> of the threat it fights, and a second threat. The pack encoders still see no
+> defender's own encoder. It observes five things:
+>
+> 1. the ship's own pools (hull and energy bank);
+> 2. the shield split (fore and aft faces);
+> 3. an inbound warhead;
+> 4. the velocity of the threat it fights;
+> 5. a second threat.
+>
+> The pack encoders still see no
 > shields, no missiles, no hull-class one-hot and no protectee channel. Those
 > numbers mean nothing to a pirate, so the phase that needs them pays for them.
 > `observeFor()` picks the encoder that a given brain wants: the defence encoder
@@ -125,16 +132,20 @@ TypeScript, with no runtime dependency.
 
 > **AS BUILT — a quarter of the size.** `HIDDEN = 32`, so the solo network is
 > 13 → 32 → 32 → 11. `genomeSize()` in `policy.ts` is the one place that works
-> the parameter count out: 1,867 for a solo brain, 1,995 for the pack width
-> (still just under 2k), and 2,251 for pack-wide. Only pack-wide is over 2k. The
-> defender is bigger on purpose. `DEFEND_HIDDEN = 64`, so its net is
+> the parameter count out. It gives 1,867 for a solo brain, 1,995 for the pack
+> width (still just under 2k), and 2,251 for pack-wide. Only pack-wide is over
+> 2k. The defender is bigger on purpose. `DEFEND_HIDDEN = 64`, so its net is
 > 29 → 64 → 64 → 13, at about 6,925 parameters. A world that holds a second
 > threat and a warhead asks more of the network than the lone-hunter phases did.
 > Do not restate these numbers here. Call `genomeSize(obsSize, hidden, outSize)`
-> if you need one. Everything else in this section held: two `tanh` layers, the
-> weights as a `Float32Array` in a JSON file, inference in `act()` with no
-> runtime dependency, and the 10 Hz tick. `brainFly` in `npc.ts` re-decides every
-> 0.1 s and ramps between decisions.
+> if you need one. Everything else in this section held:
+>
+> - two `tanh` layers;
+> - the weights as a `Float32Array` in a JSON file;
+> - inference in `act()` with no runtime dependency;
+> - the 10 Hz tick.
+>
+> `brainFly` in `npc.ts` re-decides every 0.1 s and ramps between decisions.
 
 ### 4. Training method — two phases
 
@@ -198,9 +209,14 @@ the hunters.
 Use two simulation levels, so the cost stays bounded.
 
 **Level 1 — abstract galaxy layer.** Each system gets a lightweight economy
-state: a traffic rate λ derived from productivity and government (we already
-compute both), a pirate-risk score, and a commodity price drift from the recent
-simulated trade volume. A ship between systems is only a record:
+state, and it holds three numbers:
+
+1. a traffic rate λ derived from productivity and government (we already compute
+   both);
+2. a pirate-risk score;
+3. a commodity price drift from the recent simulated trade volume.
+
+A ship between systems is only a record:
 `{shipClass, cargo, from, to, etaTimestamp}`. A few hundred of these cost
 nothing. They advance whenever the player does anything, or on a timer. This is
 how the universe "keeps happening" while you are docked.

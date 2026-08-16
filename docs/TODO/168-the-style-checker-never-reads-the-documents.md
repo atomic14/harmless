@@ -88,8 +88,8 @@ It drops:
 
 **A HEADING IS READ, AND THAT REVERSES THIS ITEM'S FIRST DRAFT.** The draft
 dropped a heading, and said *"a heading is a label rather than a sentence"*.
-Chris rejected that on 2026-08-16, and the evidence is in M2 below: the plan
-titles are the worst-drifted prose in the repository, and dropping a heading
+Chris rejected that on 2026-08-16, and the evidence is in M2 below. The plan
+titles are the worst-drifted prose in the repository, and a dropped heading
 would exempt them for good.
 
 A heading takes the title rules in `CLAUDE.md` rather than the sentence caps. A
@@ -125,8 +125,8 @@ the rule this item already states for the markdown reader.
 **Chris named the cause on 2026-08-16, and it is the reason this item grew a
 title rule:** *"this is not the house convention — this is something that you
 have been doing and we've been trying to correct by mandating ASD-STE100."*
-Every plan title was written by an agent, so an agent that reads the archive for
-the convention finds its own habit and calls it a rule. That is docs/TODO/165's
+Every plan title was written by an agent. So an agent that reads the archive for
+the convention finds its own habit, and calls it a rule. That is docs/TODO/165's
 finding again: **the index and the archive agreed with each other, and neither
 one checked.**
 
@@ -140,8 +140,8 @@ this milestone converts prose that 166 replaces.
 
 Extend `npm run ste:check` to the ten documents, whole-file, as docs/TODO/154 M4
 did for `src/`. Whole-file rather than diff-scoped, for the same three reasons
-154 recorded: it costs the same on a surface at zero, it lets less through, and
-it needs no diff base.
+154 recorded. It costs the same on a surface at zero. It lets less through. It
+needs no diff base.
 
 **It holds the same two rules over prose**: the sentence caps and the tense. The
 `-ing` count reports and never gates.

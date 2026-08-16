@@ -123,7 +123,7 @@ Four facts are worth knowing before you touch any of it:
 - **The source stores no polygons.** A face is a normal, and an edge says which
   two faces it lies between. `elite-a-faces.ts` therefore reconstructs the closed
   loops for the black fill, and it REPORTS what it could not resolve. Tests pin
-  those reports. Three faces cannot be wound by their stored normal: the alloy
+  those reports. Three faces cannot be wound by their stored normal. The alloy
   plate's normal is `(0,0,0)`, and two of the Splinter's sit more than 60 degrees
   off its own geometry. 177 edges bound no face, and the code draws them anyway.
   Every hull except the alloy plate is closed.
@@ -236,9 +236,16 @@ another combat rewrite.
 2. **The Adder start.** Elite-A starts a fresh commander in an Adder. Harmless
    starts in the Cobra Mk III. That is what every existing save flies, and what
    the whole balance is measured against.
-3. **Per-hull flight profiles.** The pack gives each flyable hull a speed, a
-   pitch and roll range, a cargo capacity, a fuel range, a missile rack and a
-   count of laser mounts. Live play applies none of it. The player's flight model
+3. **Per-hull flight profiles.** The pack gives each flyable hull six things:
+
+   - a speed;
+   - a pitch and roll range;
+   - a cargo capacity;
+   - a fuel range;
+   - a missile rack;
+   - a count of laser mounts.
+
+   Live play applies none of it. The player's flight model
    is four constants in `player.ts`, and every trained brain was fitted against
    them. To apply the table is therefore a retrain as well as a feature.
 4. **Per-mount laser equipment.** The pack gives every hull a mining-laser byte,
@@ -305,7 +312,7 @@ it.
 of it.** The six generated modules are 253 kB of source. Minified, they are a
 212 kB contiguous region of the built chunk, which is 22.7% of it. Gzip is kind
 to them, because they are repetitive object literals with identical keys 260
-times over: they are 23.5 kB of the 26 kB gzip growth.
+times over. They are 23.5 kB of the 26 kB gzip growth.
 
 That is the price of the whole thing. It is paid on the shared chunk, because the
 viewer draws all 38 designs too. Two ways can bring it down if it ever matters.
@@ -316,8 +323,8 @@ importer changes, not model changes.
 
 **The load is cheap.** As plain JS, the six modules cost **3.0 ms** to parse and
 evaluate, one time, at module load. Under node with
-`--experimental-strip-types`, the same import measures 26 ms. Most of that is the
-type-strip of 253 kB of TypeScript, which the browser never does. A
+`--experimental-strip-types`, the same import measures 26 ms. Most of that cost
+is the type-strip of 253 kB of TypeScript. The browser never does that work. A
 `recommendedNpcProfile()` lookup is about 60 ns, and nothing in the step calls
 one per frame. An `NpcShip` resolves its policy at construction.
 
@@ -328,9 +335,9 @@ npm run elite-a     # under a second
 ```
 
 It runs the hash-and-drift check first. It then runs the suites that own each
-claim: the catalogue, the oracle, both live laser directions, the damage-path
-audit, the banks, the identities, the roster, the selection policy and the
-geometry. `test/elite-a.ts` maps each bullet of TODO 30's list to the file that
+claim. Those are the catalogue, the oracle, both live laser directions, the
+damage-path audit, the banks, the identities, the roster, the selection policy
+and the geometry. `test/elite-a.ts` maps each bullet of TODO 30's list to the file that
 asserts it. It is in CI as its own named step. It is deliberately NOT in
 `npm run check`, which already runs every one of those assertions inside
 `npm test`.

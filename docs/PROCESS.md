@@ -18,7 +18,7 @@ Record one disposition on the issue:
   started.
 
 An issue is evidence. It is not a specification. One issue can become several
-milestones. Several issues can have one root. Some issues must produce no TODO
+milestones. Several issues can share one root. Some issues must produce no TODO
 item at all. Do not copy the GitHub inbox into a local list.
 
 Pick the next accepted outcome. Explore read-only, and explore frugally: use
@@ -82,15 +82,15 @@ call that member (docs/TODO/151). Twenty-one such claims were false when it was
 written.
 
 **A gate has no warning level.** It passes or it fails. `constants:check` used to
-print warnings and exit 0, which made "zero warnings" a standard nobody held: the
-count was visible only to whoever had run the tool before their own change
+print warnings and exit 0, which made "zero warnings" a standard nobody held.
+Only a person who ran the tool before their own change saw the count
 (Chris, 2026-08-13: *"warnings should be errors - we should not allow warnings to
 build up"*). Both of its warnings are errors now, and the level is gone from the
 type so a new check cannot quietly reintroduce one.
 
-A fatal check must be answerable in the source. Both of those are: `@rule` gives
-two equal values separate identities, and `@domain` records that a person argued
-a constant's owner against the token heuristic that guessed otherwise.
+A fatal check must be answerable in the source. Both of those are. `@rule` gives
+two equal values separate identities. `@domain` records that a person argued a
+constant's owner against the token heuristic that guessed otherwise.
 
 **The tiers are what runs BEYOND the gates**, and the plan names them before the
 code exists:
@@ -104,9 +104,9 @@ code exists:
 | the economy, or a career-long balance | `npm run campaign`, at two sizes |
 
 The second row catches the case that looks like the first one. A doc comment in
-`src/constants/` is the `Purpose` column of `CATALOG.md`, so an edit to the prose
-alone still leaves the catalogue stale, and `constants:check` fails. Regenerate
-before the gates, not after them.
+`src/constants/` is the `Purpose` column of `CATALOG.md`. So an edit to the
+prose alone still leaves the catalogue stale, and `constants:check` fails.
+Regenerate before the gates, not after them.
 
 `npm run elite-a` is a fast named subset, and it is deliberately NOT part of
 `npm run check`, because `npm test` already runs every assertion inside it
@@ -114,17 +114,17 @@ before the gates, not after them.
 `survivability`, `flight-probe`, `aim-probe`, `ram-probe`, `gap-probe`,
 `defence-probe`, `dock-probe` and `dock-traffic`.
 
-`CLAUDE.md`'s Validation rules apply here and are not restated: a new gate must
-be proved able to fail, and a sampled number must be checked at two sample
-sizes. Step 1's Verification section is where you promise both.
+`CLAUDE.md`'s Validation rules apply here, and this file does not restate them.
+A new gate must be proved able to fail. A sampled number must be checked at two
+sample sizes. Step 1's Verification section is where you promise both.
 
 ## 4. Land
 
 Five pieces of bookkeeping. The first four keep the active context small. The
 fifth keeps the public inbox true.
 
-1. Record the outcome in the plan doc: what landed, what the measurements say,
-   and what the work found that the plan did not have.
+1. Record the outcome in the plan doc. Say what landed, what the measurements
+   say, and what the work found that the plan did not have.
 2. Remove the number from `docs/TODO/QUEUE.json`.
 3. Remove the entry from the queue in `docs/TODO/README.md`. Add what landed to
    the dated section below it.
@@ -141,9 +141,9 @@ moment the item lands.
 
 Nothing took those labels down until 2026-08-13. Thirteen closed issues carried
 one, as far back as #7, and two of them still said `in progress`. That is not
-untidiness. `in progress` on a closed issue is false, and a `planned` that never
-comes off cannot answer "what is planned?", which is the only question the label
-exists for.
+untidiness. `in progress` on a closed issue is false. A `planned` that never
+comes off cannot answer "what is planned?", and that is the only question the
+label exists for.
 
 `bug` and `enhancement` are different, and they stay. They say what the issue
 WAS, and that does not stop being true.
@@ -158,7 +158,7 @@ things on my playtest, use sensible default values"*). Chris flies the live game
 when he likes. What he finds becomes a GitHub issue, and an issue enters triage
 at step 1. It does not enter the queue directly.
 
-His verdict is still the only answer to the questions no probe reaches — whether
-a fight is FUN, and whether a consequence reads as a mechanic rather than as a
-bug. When his judgement and a bot-flown number disagree, the number is the thing
-that is wrong. To fix the measurement is then a feature like any other.
+His verdict is still the only answer to the questions no probe reaches. There
+are two of them: whether a fight is FUN, and whether a consequence reads as a
+mechanic rather than as a bug. When his judgement and a bot-flown number
+disagree, the number is the thing that is wrong. To fix the measurement is then a feature like any other.

@@ -36,7 +36,7 @@ touch either of:
 Those are two separate fields for a reason. `killValue()` weights a kill by
 threat tier, so the rating counts difficulty rather than bodies. A simulator that
 credited either field would hollow out the only long-term progression that the
-game has. It is the one thing here that would be unforgivable to get wrong: a
+game has. It is the one thing here that would be unforgivable to get wrong. A
 player could grind the ladder in a training room, for free, at a station, with no
 risk.
 
@@ -101,8 +101,8 @@ Each scenario is selectable and named. Each one is a data entry, not a code path
 | As they come | asks `pirateThreat()` (`game/threat.ts`) what the galaxy would send at your real mark right now, and sends that |
 
 "As they come" matters most for balance. It is the only way to sample the fight
-that the live game would generate for a commander in your exact state, without a
-flight until one happens.
+that the live game would generate for a commander in your exact state. The other
+way is a flight, and you wait until one happens.
 
 ### Where the fight opens
 
@@ -122,18 +122,25 @@ approach. It is inside `PLAYER_INTEREST_RANGE` (9,000), where an NPC starts to
 care about you at all, so it is an approach and not a stare. And it is far
 outside `PASS_FAR` (600), which matters because the attack-run count starts a
 fight "outside". A ship that STARTS inside `PASS_CLOSE` would score a completed
-run the first time it left. A ship that starts in the dead band between the two
-thresholds would have its first approach half-measured. The ambush is
+run the first time it left. The two thresholds leave a dead band. A ship that
+starts in that band gets its first approach half-measured. The ambush is
 deliberately inside their gun, which is what an ambush is, and it still clears
 `PASS_FAR` four times over.
 
 The cone is 8 degrees because the scatter spreads a ship between 0.55 and 1.45 of
-it off the axis. That is 4.4 to 11.6 degrees: comfortably inside a 60-degree
-field of view, and off-centre enough that a gang is a spread rather than a stack.
+it off the axis. That is 4.4 to 11.6 degrees. It is comfortably inside a
+60-degree field of view. It is also off-centre enough that a gang is a spread
+rather than a stack.
 
-The record carries `opening`. That covers the arc, the range and cone asked for,
-the nearest and furthest ship as they actually landed, the widest bearing off
-your nose, and whether every one of them was in view. That is what makes a fight
+The record carries `opening`. That covers five things:
+
+1. the arc;
+2. the range and cone asked for;
+3. the nearest and furthest ship as they actually landed;
+4. the widest bearing off your nose;
+5. whether every one of them was in view.
+
+That is what makes a fight
 reproducible from its seed. It is also how the one scenario that opens behind you
 reads as deliberate (`ASTERN … NOT IN VIEW`). Career spawning is untouched. To be
 jumped on the corridor to the station is the game at work, and `spawning.ts`'s
@@ -148,11 +155,12 @@ YOU FIGHT** (the one brain row), and **YOUR SHIP** (the fit-out).
 
 **A brain row is named, not filed.** Its value is how the policy FLIES — `GETS ON
 YOUR SIX`, `MAKES ATTACK RUNS`. That is behaviour, never a version or a file
-stem. The one such row is **PIRATES FLY**, under **WHO YOU FIGHT**. It offers the
-two CODE pilots that a commander can meet: the pursuit dogfighter that the
-pirates fly by default, which is the combat computer's own pilot turned on them,
-and the hand-written attack run (`PIRATE_CHOICES` in
-`screens/combat-sim-setup.ts`). No weights file sits behind these. Both are code.
+stem. The one such row is **PIRATES FLY**, under **WHO YOU FIGHT**. It offers
+the two code pilots that a commander can meet. The first is the pursuit
+dogfighter that the pirates fly by default, which is the combat computer's own
+pilot turned on them. The second is the hand-written attack run
+(`PIRATE_CHOICES` in `screens/combat-sim-setup.ts`). No weights file sits behind
+these. Both are code.
 The names live in `game/brain-names.ts`, beside the one-line CHARACTER that they
 were compressed from. That is what the panel prints under the selected row:
 behaviour, with the measured number that shows it. The file stem sits in that
@@ -167,9 +175,9 @@ pursuit dogfighter that the pirates already fly out there, so it goes in as NO
 override. Only `MAKES ATTACK RUNS`, the scripted run, goes in as a real change.
 The choice belongs to the fight alone: `combat-sim.ts` applies it to
 `state.brains` for the exercise, and restores it when you undock. There is no
-career-persisting brain row. The machinery for a live career selection exists in
-`brain-names.ts` (`liveBrainSelection` and `liveBrainId`), but no UI drives it,
-and everything on the panel dies with the exercise.
+career-persisting brain row. Everything on the panel dies with the exercise.
+`brain-names.ts` held the machinery for a live career selection, and no UI ever
+drove it. docs/TODO/81 deleted those four members on 2026-08-16.
 
 Your own ship: **fit-out override only, not hull.** The player's hull is four
 hard-coded constants in `player.ts` (`MAX_SPEED`, `ACCEL`, `MAX_PITCH`,
@@ -180,8 +188,8 @@ because `scenario.ts` reads `PLAYER_FLIGHT` as its target. So v1 overrides your
 front and rear lasers, the E.C.M., the energy unit, the energy bomb, the missiles
 and the combat computer. It is `state.cheat` made legitimate and scoped, and the
 hull is not selectable. The combat computer is a YES/NO fit like the rest. It is
-the one pilot that the game flies on your behalf rather than at you, so a fit
-lets you watch it: launch, then press K.
+the one pilot that the game flies on your behalf rather than at you. So a fit
+lets you watch it. Launch, then press K.
 
 To pick the opponent's *brain* is what turns this into an A/B rig. Fly the same
 scenario against the pursuit dogfighter, then against the scripted attack run.
@@ -213,8 +221,9 @@ Per exercise: the seed, the scenario, both loadouts, and then —
 
 - and how the OPPOSITION flew. That is their speed, the SPREAD of the ranges they
   held (p10, median and p90), and their completed attack runs. The spread is
-  three numbers because a brain that commits sweeps through the band, and a
-  turret collapses it onto one number that the median alone cannot tell apart. A
+  three numbers because a brain that commits sweeps through the band. A turret
+  collapses that band onto one number, and the median alone cannot tell the two
+  apart. A
   completed run is a closure inside `PASS_CLOSE`, then a break back out past
   `PASS_FAR`. Those two thresholds live in `src/constants/combat-record.ts`
   beside `SIX_CONE`, with the same justification. Both `combat-sim-report.ts` and
@@ -294,18 +303,23 @@ It is deterministic from a seed. It ends by itself. It emits a structured report
 2. **Every station.** No tech-level gate, and no government gate.
 3. **`T` — COMBAT TRAINING** on the docked menu. `T` is free there, because
    docked uses B C D E G H I L M N Q S X Z. `T` also arms a missile in FLIGHT,
-   which is fine and is the established convention: `C` is contracts docked and
-   the docking computer in flight, and `M` is the market docked and
-   launch-missile in flight. The tables are per-mode.
+   which is fine and is the established convention. `C` is contracts docked and
+   the docking computer in flight. `M` is the market docked and launch-missile
+   in flight. The tables are per-mode.
 
    **The key-bindings invariant applies.** Cite it by name, not by number,
-   because the numbering has moved once already. A command key has ONE home —
+   because the numbering moved once already. A command key has ONE home —
    `BINDINGS` plus `command-help.ts` — and the `?` panel, the manual and the
    docked menu are painted from it. A key that belongs to a SCREEN rather than to
-   `BINDINGS` is still written down by hand in every place that lists it, and
-   those places must change together: `src/engine/keymap.ts`, the binding table
-   in `src/game/controls.ts`, the `?` help panel in `play.html`, and the README
-   table. An audit found 13 existing disagreements. One is `B` for the distress
+   `BINDINGS` is still written down by hand in every place that lists it. Those
+   four places must change together:
+
+   - `src/engine/keymap.ts`;
+   - the binding table in `src/game/controls.ts`;
+   - the `?` help panel in `play.html`;
+   - the README table.
+
+   An audit found 13 existing disagreements. One is `B` for the distress
    beacon, which costs you cargo and is in no help panel. Add `T` to all four
    places. Add its screen's own keys to the panel too.
 4. **Three modes**, not one:
@@ -349,5 +363,5 @@ It is deterministic from a seed. It ends by itself. It emits a structured report
 
 This is not in the original, and this section is where we record that. The
 original had no way to practise. A game whose opponents are trained wants one,
-for two reasons: so a player can learn the ships, and so a human can judge the AI
-instead of only other AI.
+for two reasons. A player can learn the ships. A human can also judge the AI,
+rather than only other AI.

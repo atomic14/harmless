@@ -54,7 +54,7 @@ The LSP server reports type errors after each edit. Fix an error at once.
 - `constants:check` has no warning level. Every finding fails the build. Two of
   them are answered in the doc comment rather than by changing the number. Give
   each of two equal values its own `@rule` ID. Write `@domain <file>` when the
-  owner check names the wrong home, and you have argued the right one.
+  owner check names the wrong home. Argue the right one first.
 - Put a constant's rationale beside it. Record the alternatives that matter where
   the next maintainer will look.
 
@@ -95,8 +95,8 @@ it.
 
 ## Communication
 
-Use ASD-STE100 Simplified Technical English in all output to the user. Do not assume
-the user is familiar with all the documents you have read.
+Use ASD-STE100 Simplified Technical English in all output to the user. The user
+did not read the documents you read. Do not assume that the user knows them.
 
 ## Prose
 
@@ -130,11 +130,17 @@ The rules are countable:
 long answer in short sentences is the correct outcome. Never drop a fact, a
 condition or a scope qualifier to meet a limit. Split the sentence instead.
 
-**A title is a sentence, and the same rules hold.** A plan title, a heading and
-a commit subject each name a thing to somebody who has not read the document.
-So a title states a subject and a verb, in the active voice and a simple tense.
-It never carries a term that the document defines, because a reader cannot look
-a term up from a title.
+**A title is a sentence, and the same rules hold.** A plan title, an index label
+and a commit subject each name a thing to a reader of the title alone. So a
+title states a subject and a verb, in the active voice and a simple tense. It
+never carries a term that the document defines, because a reader cannot look a
+term up from a title.
+
+**A SECTION HEADING IS A LABEL, AND THE RULE STOPS SHORT OF IT** (Chris,
+2026-08-16). This sentence said "a heading" until docs/TODO/168 measured the
+cost. 73 of the 88 headings in the ten documents below carry no verb.
+`docs/PROCESS.md` also mandates a plan shape whose own section names are noun
+phrases. A reader of a section heading is already inside the document.
 
 | | title |
 | --- | --- |

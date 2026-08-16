@@ -155,9 +155,9 @@ Two quirks are deliberate:
   itself. The orchestrators apply the destination's regional heat from the
   `paid` event, one time each (invariant 15). Those orchestrators are
   `Game.applyContracts` and the campaign's settle site.
-- `src/game/contract-eta.ts` owns what the CHARTS say about a job you hold: the
-  worlds to mark, the words of the verdict, and whether the deadline still
-  holds. It is pure, and it paints nothing. It takes the commander, not a day
+- `src/game/contract-eta.ts` owns what the CHARTS say about a job you hold.
+  That is three things: the worlds to mark, the words of the verdict, and
+  whether the deadline still holds. It is pure, and it paints nothing. It takes the commander, not a day
   number, so a caller cannot measure a deadline from the living galaxy's day by
   mistake.
 - `src/game/orders.ts` lists everything a commander is under orders to do. The
@@ -167,13 +167,14 @@ Two quirks are deliberate:
   restates no words: a contract reads through `contract-offers.ts`, and the
   mission through `missions.ts`.
 - `src/game/character.ts` owns the disrepute ladder. It owns what a score is
-  CALLED, how a deed and a quiet week move it, and whether a move crossed a rung
-  that the pilot must hear about. Every deed in the game asks it the same
+  CALLED, and how a deed and a quiet week move it. It also owns whether a move
+  crossed a rung that the pilot must hear about. Every deed in the game asks it
+  the same
   question, so no site is free to disagree about what a crossing is.
 - `src/game/survivors.ts` owns what becomes of a person that you scoop out of a
   capsule. `screens/survivors.ts` forces that choice when you dock. The module
-  is pure, like the two modules above: it clears the crew spaces and reports,
-  and the orchestrator applies the heat and the record that a sale earns. It
+  is pure, like the two modules above. It clears the crew spaces and reports.
+  The orchestrator applies the heat and the record that a sale earns. It
   never touches `cargo`, because a rescued pilot is not stock.
 
 ## Conventions

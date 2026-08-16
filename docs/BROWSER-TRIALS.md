@@ -65,7 +65,7 @@ fight felt threatening rather than merely longer.
 ### 2. Flight behaviour: attack runs, not a turret
 
 **What changed.** Nothing yet, unless somebody promotes a brain. The candidates
-exist, and they are one line away. Watch for the known failure: a well-optimised
+exist, and they are one line away. Watch for the known failure. A well-optimised
 pirate is a turret that hangs in space and snipes, and evolution will find it.
 
 **Fly:** the same scenario twice, on the same seed. Swap the opposition in the
@@ -127,7 +127,7 @@ silhouette is a geometry bug, not a balance bug.
 your hit before its own defence subtracts, so a **beam laser does exactly zero**.
 Only the military laser kills it in a reasonable time. What is new is that the
 Navy now tells you. It tells you in the docking transmission and on the mission
-line, and it names the gun you have fitted:
+line, and it names the gun on your ship:
 
 > NAVY: TARGET ARMOUR HALVES LASER FIRE — YOUR BEAM LASER SCORES 0 A HIT, A
 > MILITARY LASER 3
@@ -138,8 +138,8 @@ It says nothing at all once you carry the military laser.
 the message. Then fit a military laser (6,000 Cr, TL10+; 79% of galaxy 1 is
 within one jump of a system that sells it). Check that the line goes away.
 
-**Report:** whether the warning arrives in time to act on, and whether it is
-legible in the message queue at the moment you dock.
+**Report:** whether the warning arrives in time to act on. Report also whether
+it is legible in the message queue at the moment you dock.
 
 ---
 

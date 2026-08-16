@@ -88,7 +88,7 @@ computers. *Validated: the compounding loop works — when you survive.*
 ## Verdict
 
 Yes. Jameson builds up cash on the proper route, at about +30–40 Cr per outbound
-leg, with computers on the way home when his capital allows it. The constraint is
+leg. He buys computers on the way home when his capital allows it. The constraint is
 *survival*, not economics: the pirates on the low-government side are the tax.
 That is, give or take, the 1984 experience working as intended.
 

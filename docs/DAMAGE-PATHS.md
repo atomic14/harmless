@@ -1,8 +1,11 @@
 # The damage-path inventory
 
-This file lists every way that anything in HARMLESS can be hurt. For each way it
-gives the unit that the damage is spent in, the owner of the number, and whether
-the number belongs to the released game or to us.
+This file lists every way that anything in HARMLESS can be hurt. It gives three
+things for each way:
+
+1. the unit that the damage is spent in;
+2. the owner of the number;
+3. whether the number belongs to the released game or to us.
 
 [ELITE-A.md](ELITE-A.md) says where the released numbers come from, and what the
 ids and the save schema look like. This file is the inventory.
@@ -92,8 +95,8 @@ both from the catalogue, so a re-import cannot leave them stale:
   defence. A Thargoid's crossfire and a Worm's are therefore not identical
   (row 3).
 - **A warhead against a ship** is 250 points. The five heaviest released builds
-  survive one at full energy, by a sliver: the two Anacondas (252), the two
-  Thargoid motherships (253) and the `W:29` Dragon (255). Only an actual kill
+  survive one at full energy, by a sliver. They are the two Anacondas (252), the
+  two Thargoid motherships (253) and the `W:29` Dragon (255). Only an actual kill
   pays a bounty (row 4). The roster's own Dragon is `D:29` at 247, and it dies to
   one.
 - **A warhead against the commander** is 250 pool points (row 5).
