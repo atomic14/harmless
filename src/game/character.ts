@@ -39,17 +39,27 @@ export function rungCrossed(before: number, after: number): string | null {
 }
 
 /**
- * ...in the one line the console has, or null when nothing happened worth
- * saying.
+ * ...in the console line, or null when nothing happened worth saying.
  *
  * The ONE phrasing of it, for the seven deeds and the decay that all owe the
  * player the same sentence. Only crossings speak: the score itself stays out
  * of the cockpit (test mode shows the number), because the ladder is the
  * interface and a running commentary on a hidden number is not.
+ *
+ * **It says which WAY it moved** (docs/TODO/162). A rung name alone is a word
+ * the player has never met. `DUBIOUS` does not say whether it is good news, and
+ * the decay crosses rungs downward. So the line carries a short clause that a
+ * first-time pilot can read without a manual.
+ *
+ * The clause is deliberately about talk rather than about a rule. What a rung
+ * COSTS differs by rung — a hermit refuses at Dodgy and not at Dubious — so a
+ * clause that named a consequence would be false at some of the six.
  */
 export function characterVerdict(before: number, after: number): string | null {
   const rung = rungCrossed(before, after);
-  return rung === null ? null : `CHARACTER: ${rung.toUpperCase()}`;
+  if (rung === null) return null;
+  const worse = after > before;
+  return `REPUTATION: ${rung.toUpperCase()} — WORD IS ${worse ? 'GETTING ROUND' : 'DYING DOWN'}`;
 }
 
 /**

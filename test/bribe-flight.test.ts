@@ -80,7 +80,7 @@ function smuggling(seed: number, tonnes: number, d: number): {
 }
 
 const SCAN = 'POLICE SCAN: CONTRABAND DETECTED';
-const REFUSED = 'THE OFFER IS REFUSED — AND REPORTED';
+const REFUSED = 'HE WILL NOT TAKE IT — AND NOW HE IS COMING FOR YOU';
 
 /**
  * Set the world's stream so the NEXT draw off it decides the offer this way.
@@ -267,8 +267,8 @@ console.log('\n...and the cockpit says so while the window is open');
     && offered[1].startsWith('O '));
   // ...and the money is only half of what it will cost him \u2014 see
   // test/prompts.test.ts, which holds that claim against DISREPUTE_BRIBE.
-  check('...and the offer names the character it will spend',
-    offered[0].endsWith('AND YOUR CHARACTER'));
+  check('...and the offer names the reputation it will spend',
+    offered[0].endsWith('AND YOUR REPUTATION'));
 
   nextOffer('taken');
   g.bribePolice();

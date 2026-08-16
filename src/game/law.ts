@@ -264,11 +264,11 @@ export function truceHolds(role: string, playerToStation: number): boolean {
  * beyond the status, because nobody is coming.
  */
 export function recordVerdict(legalStatus: number): string {
-  const status = `RECORD: ${(LEGAL_NAMES[legalStatus] ?? '?').toUpperCase()}`;
+  const status = `LEGAL STATUS: ${(LEGAL_NAMES[legalStatus] ?? '?').toUpperCase()}`;
   const hunting = LAW_ROLE_NAMES
     .filter(([role]) => lawTakesInterest(role, legalStatus))
     .map(([, called]) => called);
-  return hunting.length ? `${status} — ${hunting.join(' AND ')} WILL ENGAGE` : status;
+  return hunting.length ? `${status} — ${hunting.join(' AND ')} WILL ATTACK YOU` : status;
 }
 
 /**

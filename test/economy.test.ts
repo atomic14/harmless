@@ -319,7 +319,8 @@ console.log('\nwhat a sale is noticed as');
     commander.cargo[DIRTY] = 1;
     screen.sell(1);
     eq(`the crossing is queued behind the sale (${queued.join(' / ')})`,
-      queued.join(' / '), `CHARACTER: ${nextRung[1].toUpperCase()}`);
+      queued.join(' / '),
+      `REPUTATION: ${nextRung[1].toUpperCase()} — WORD IS GETTING ROUND`);
   }
 }
 

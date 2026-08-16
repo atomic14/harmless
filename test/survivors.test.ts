@@ -321,7 +321,7 @@ console.log('...and the sale is priced off the market that station rolled');
   // rung it crossed is waiting rather than shouting over it.
   const queued = g.state.session.queued.map((q) => q.text);
   check(`the crossing is queued behind it (${queued.join(' / ')})`,
-    queued.includes('CHARACTER: DODGY'));
+    queued.includes('REPUTATION: DODGY — WORD IS GETTING ROUND'));
   eq('...and the prompt is gone', g.screens.topId, null);
 
   // --- and the law, through the real Game (M3) -------------------------------
@@ -337,7 +337,7 @@ console.log('...and the sale is priced off the market that station rolled');
   check(`...and the console says what the record means (${queued.join(' / ')})`,
     queued.includes(recordVerdict(OFFENDER)) && recordVerdict(OFFENDER).includes('HUNTER'));
   eq('...exactly once, from one home',
-    queued.filter((t) => t.startsWith('RECORD:')).length, 1);
+    queued.filter((t) => t.startsWith('LEGAL STATUS:')).length, 1);
   // The station does not scramble Vipers at a docked ship: the record moved,
   // the fleet waits until there is something to launch at.
   check('...and no defence launched at a ship on the pad',

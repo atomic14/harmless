@@ -88,7 +88,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     // right shelf for a development door.
     keyline: 'TEST MODE',
   },
-  payFine: { what: 'pay your fine — clear an Offender or Fugitive record', menu: 'PAY FINE' },
+  payFine: { what: 'pay your fine — clears an Offender or Fugitive legal status', menu: 'PAY FINE' },
   exportSave: { what: 'export a save file', keyline: 'EXPORT' },
   importSave: { what: 'import a save file', keyline: 'IMPORT' },
   toggleLayout: { what: 'switch keyboard layout: classic / modern', keyline: 'KEYBOARD LAYOUT' },
@@ -168,7 +168,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     section: 'flight',
   },
   bribePolice: {
-    what: 'offer the police ship in front of you money — he may refuse and report you; it never clears your record, and it always costs your character',
+    what: 'offer the police ship in front of you money — he may refuse and report you; it never clears your legal status, and it always costs your reputation',
     section: 'flight',
   },
   quitFlight: {

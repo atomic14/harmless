@@ -1,12 +1,17 @@
-// Your CHARACTER: the reputation for dirty dealing that clings to a name after
-// the fine is paid. It is distinct from `rating.ts`, which is how DANGEROUS you
-// are, and from `law.ts`, which is your standing with the Government right now,
-// and which money clears. It is a score that shady deeds raise and time erodes: a
-// dirty sale, a shorted consignment, a bribe pressed on a policeman.
-// `game/character.ts` reads it off the ladder below.
+// Your CHARACTER: what a commander is known for, after the fine is paid.
+//
+// It is one of the game's three ladders, and it is distinct from both of the
+// others. `rating.ts` says how DANGEROUS you are. `law.ts` says where you stand
+// with the Government right now, and money clears that one. This ladder is a
+// score that a shady deed raises and time erodes: a dirty sale, a shorted
+// consignment, a bribe pressed on a policeman. `game/character.ts` reads it off
+// the ladder below.
+//
+// The word `name` never means this ladder (docs/TODO/162). A commander has a
+// name, and it is the word the player types.
 
 /**
- * The character ladder: the disrepute score, lowest first, and the name that it
+ * The character ladder: the disrepute score, lowest first, and the rung that it
  * earns. Honest is the top rung, and the default. `characterName` reads it the
  * way `rating()` reads `RATINGS`. `test/economy.test.ts` bisects the rungs back
  * out.
@@ -44,8 +49,8 @@ export const DISREPUTE_CAUGHT = 10;
  *
  * The owner is confirmed as character.ts, rather than the survivors file that the
  * catalogue prefers. constants/survivors.ts prices the TRANSACTION. Every mark on
- * the name lives here, beside the ladder that reads it and the decay that erodes
- * it. docs/TODO/127 says so in as many words.
+ * the character lives here, beside the ladder that reads it and the decay that
+ * erodes it. docs/TODO/127 says so in as many words.
  *
  * @rule character.disreputeSlaveSale
  */
@@ -77,10 +82,10 @@ export const DISREPUTE_SURVIVOR_RELEASED = 10;
  *
  * It is more than to be CAUGHT, which is the only comparison that matters. A scan
  * costs you the record, the fine, and everybody the record brings after you. A
- * bribe leaves the Government's paperwork spotless, so the name is the ONLY thing
- * it costs, and it has to bite for the deed to have a price at all. Two of them
- * take an Honest commander past Dubious, and five take one past Dodgy. A habit
- * makes a reputation; one bad afternoon does not.
+ * bribe leaves the Government's paperwork spotless. So your character is the ONLY
+ * thing it costs, and it has to bite for the deed to have a price at all. Two of
+ * them take an Honest commander past Dubious, and five take one past Dodgy. A
+ * habit makes a character; one bad afternoon does not.
  *
  * **MEASURED AGAINST THE DECAY, which is what settles it** (docs/TODO/132).
  * docs/TODO/129 M2 left this open for a flight. The flight was not the missing
@@ -118,7 +123,7 @@ export const DISREPUTE_CONTRABAND_SALE = 5;
 /**
  * An arrival at the far end without the consignment you were entrusted with
  * (docs/TODO/113). The credits half of that is the shipper's invoice, billed in
- * `game/contracts.ts`. This is the half that sticks to the name.
+ * `game/contracts.ts`. This is the half that sticks to your character.
  *
  * It is the same 5 as a dirty market sale, and for the same reason. One shorted
  * job is a bad week: you were robbed, or you were greedy once. Only a habit of
@@ -132,8 +137,8 @@ export const DISREPUTE_CONTRABAND_SALE = 5;
  * with a smuggler. This one prices a promise broken to a shipper.
  *
  * The owner is confirmed as character.ts rather than the board. This is what the
- * deed does to the NAME, and it decays with every other deed here. The board owns
- * what the job itself is worth. That is the mirror of the note on
+ * deed does to your CHARACTER, and it decays with every other deed here. The
+ * board owns what the job itself is worth. That is the mirror of the note on
  * `SMUGGLE_DELIVERY_NOTORIETY` (constants/contracts.ts).
  *
  * @rule character.disreputeShortedConsignment
@@ -141,7 +146,7 @@ export const DISREPUTE_CONTRABAND_SALE = 5;
 export const DISREPUTE_SHORTED_CONSIGNMENT = 5;
 
 /**
- * How long the line that says your name has changed holds the console
+ * How long the line that reports a new character rung holds the console
  * (docs/TODO/129).
  *
  * It is ONE duration for all eight occasions that can say it: seven deeds and the

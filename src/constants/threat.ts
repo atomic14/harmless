@@ -29,11 +29,11 @@ export const FAME_FULL = RATINGS.find(([, name]) => name === 'Dangerous')![0];
 export const CHALLENGE_RATE = 0.35;
 
 /**
- * The disrepute at which your NAME is as bad as it needs to get for a pirate. It
- * is the character ladder's Notorious rung, so a move to the rung moves this with
- * it. It is an expression rather than a typed number: the same trick, and the
- * same reason, as `FAME_FULL` above. The one home for the ladder stays
- * constants/character.ts.
+ * The disrepute at which your CHARACTER is as bad as it needs to get for a
+ * pirate. It is the character ladder's Notorious rung, so a move to the rung
+ * moves this with it. It is an expression rather than a typed number: the same
+ * trick, and the same reason, as `FAME_FULL` above. The one home for the ladder
+ * stays constants/character.ts.
  *
  * It is Notorious rather than the ceiling (`DISREPUTE_MAX`, a little past
  * Cutthroat). A pirate does not grade you finely at the top end. One hermit kill
@@ -85,7 +85,7 @@ export const DISREPUTE_DRAW = 0.5;
 
 /**
  * Professional courtesy: the share of receptions that never form at all, because
- * somebody recognised a name they would rather not cross. It is the carrot half
+ * somebody recognised a commander they would rather not cross. It is the carrot half
  * of a criminal reputation. It is also the reason infamy is NOT also folded into
  * `deter`: a term in appeal and a term in deterrence would partly cancel into one
  * coefficient, which is the same rule written twice. This is a distinct event

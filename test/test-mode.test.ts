@@ -200,17 +200,17 @@ console.log('\nthe commander levers, with the door open');
   eq('...and round to Clean again', c.legalStatus, CLEAN);
 
   eq('a fresh career is Honest', characterName(c.disrepute), CHARACTER[0][1]);
-  pull('CHARACTER');
+  pull('REPUTATION');
   eq('CHARACTER steps onto the next rung of the ladder', c.disrepute, CHARACTER[1][0]);
   eq('...and the status screen would call it that',
     characterName(c.disrepute), CHARACTER[1][1]);
-  pull('CHARACTER', 'ArrowLeft');
+  pull('REPUTATION', 'ArrowLeft');
   eq('...and ← walks back down it', c.disrepute, CHARACTER[0][0]);
 
   // A score mid-decay sits BETWEEN rungs. → must land on the rung above the one
   // it has cleared rather than skipping it.
   c.disrepute = CHARACTER[1][0] + 1;
-  pull('CHARACTER');
+  pull('REPUTATION');
   eq('a score between rungs steps to the next one up', c.disrepute, CHARACTER[2][0]);
 
   eq('every pull was written to the shelf', saves(), 11);

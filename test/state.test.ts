@@ -74,7 +74,7 @@ console.log('\nbehaviour-driving values are state');
     // console lines waiting their turn), which `serialiseState` recurses into
     // exactly as it already does for `NpcState.dockPlan`. Asserted with a line
     // ACTUALLY QUEUED, so an empty array cannot pass the check vacuously.
-    queueMessage(st.session, 'CHARACTER: DUBIOUS', 4);
+    queueMessage(st.session, 'REPUTATION: DUBIOUS', 4);
     const plain = (v: unknown): boolean => typeof v !== 'object' || v === null
       || (Array.isArray(v) && v.every((row) => plainRecord(row)));
     check('...and the session is plain data, so serialiseState can walk it',

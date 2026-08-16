@@ -831,7 +831,7 @@ console.log('\nheadless world step');
           r.log.legal === 1 && r.state.commander.legalStatus === OFFENDER);
         check('...and the step says nothing further about the record itself',
           holding(r, SCAN_RANGE * 0.5, 600)
-            .filter((t) => t.startsWith('RECORD:')).length === 0);
+            .filter((t) => t.startsWith('LEGAL STATUS:')).length === 0);
       }
 
       // ...and it cannot promise a fight the rules will not deliver: the roles

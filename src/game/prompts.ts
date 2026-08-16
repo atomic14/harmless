@@ -87,7 +87,7 @@ export interface PromptWorld {
  * Read off the constant rather than written as a fixed phrase: retune the deed
  * to nothing and the prompt stops claiming a price the law no longer charges.
  */
-const CHARACTER_COST = DISREPUTE_BRIBE > 0 ? ' AND YOUR CHARACTER' : '';
+const REPUTATION_COST = DISREPUTE_BRIBE > 0 ? ' AND YOUR REPUTATION' : '';
 
 /**
  * What the cockpit should offer, most urgent first, capped at `PROMPT_LIMIT`.
@@ -117,7 +117,7 @@ export function flightPrompts(w: PromptWorld): Prompt[] {
   if (hunter) {
     out.push({
       command: 'bribePolice',
-      what: `PAY ${formatCredits(patrolPrice(c.legalStatus))}${CHARACTER_COST} TO BREAK OFF`,
+      what: `PAY ${formatCredits(patrolPrice(c.legalStatus))}${REPUTATION_COST} TO BREAK OFF`,
     });
   }
 
@@ -143,7 +143,7 @@ export function flightPrompts(w: PromptWorld): Prompt[] {
     && inPatrolBand(w)) {
     out.push({
       command: 'bribePolice',
-      what: `PAY ${formatCredits(inspectionPrice(c.cargo))}${CHARACTER_COST}`,
+      what: `PAY ${formatCredits(inspectionPrice(c.cargo))}${REPUTATION_COST}`,
     });
     out.push({ command: 'jettisonContraband', what: 'DUMP THE EVIDENCE' });
   }

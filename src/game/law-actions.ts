@@ -144,12 +144,13 @@ export class LawActions {
     const c = this.state.commander;
     const cleared = recordCleared(c.legalStatus, c.credits);
     if (!cleared) {
-      this.host.showMessage('RECORD CLEAN — NO FINE DUE', 3);
+      this.host.showMessage('LEGAL STATUS CLEAN — YOU HAVE NO FINE TO PAY', 3);
       return;
     }
     c.credits = cleared.creditsLeft;
     c.legalStatus = CLEAN;
-    this.host.showMessage(`FINE PAID: ${formatCredits(cleared.paid)} — RECORD CLEAR`, 4);
+    this.host.showMessage(
+      `FINE PAID: ${formatCredits(cleared.paid)} — YOUR LEGAL STATUS IS CLEAN AGAIN`, 4);
   }
 
   /**
@@ -221,7 +222,7 @@ export class LawActions {
       // touched: you are still a Fugitive, the next patrol is a fresh problem,
       // and the station still wants its money.
       hunter.npc.state.satisfied = true;
-      this.host.showMessage(`PATROL BREAKS OFF — ${formatCredits(paid)} AND YOUR CHARACTER`, 4);
+      this.host.showMessage(`PATROL BREAKS OFF — ${formatCredits(paid)} AND YOUR REPUTATION`, 4);
       return;
     }
 
@@ -236,7 +237,7 @@ export class LawActions {
       if (paid === null) return;
       session.policeScanned = true;
       this.host.showMessage(
-        `PATROL LOOKS THE OTHER WAY — ${formatCredits(paid)} AND YOUR CHARACTER`, 4);
+        `PATROL LOOKS THE OTHER WAY — ${formatCredits(paid)} AND YOUR REPUTATION`, 4);
       return;
     }
 
@@ -279,7 +280,7 @@ export class LawActions {
     c.disrepute = offer.disrepute;
     if (offer.outcome === 'refused') {
       target.state.provokedByPlayer = true;
-      this.host.showMessage('THE OFFER IS REFUSED — AND REPORTED', 4);
+      this.host.showMessage('HE WILL NOT TAKE IT — AND NOW HE IS COMING FOR YOU', 4);
       this.host.refused();
       return null;
     }

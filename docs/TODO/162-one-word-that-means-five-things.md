@@ -68,22 +68,70 @@ Five strings say `NAME` for the Character ladder:
 **No player-facing string uses `YOUR NAME` for anything else.** That is measured
 over `src/`, and it is what makes a gate possible in M4.
 
+## Chris changed the item on the day it was planned
+
+The plan above answered the wrong question, and the first milestone landed
+before he said so (2026-08-16):
+
+> *"I think we've been trying to keep text overly short in the UI. We need to
+> remember that a user does not have the context we have and they don't
+> understand all our internal ways of naming things."*
+
+**`CHARACTER` is an internal word too.** M1 swapped one word a player has never
+met for another word a player has never met. The COMMANDER screen prints
+`Character: Dodgy`, and nothing on any screen says what that row measures. The
+fault the issue reports is not that `name` is the wrong word. It is that the
+game names a thing instead of saying it.
+
+**So the item grew, and Chris set both answers.**
+
+1. **The word is `REPUTATION`**, on every surface a player reads. It needs no
+   manual. `Character` stays as the word the CODE uses, which is what the
+   directory, the module and the constants are called.
+2. **The scope is every consequence line**, and no longer the five strings the
+   screenshot found. A line that reports a consequence to a pilot is in scope,
+   whichever ladder it reports.
+
+**One collision comes with the word, and it is recorded rather than fixed.**
+The briefing tells a new commander that she has *"no reputation at all"*, and it
+means the combat rating. Under the new vocabulary that sentence says she is
+Honest, which is the BEST rung. The briefing is Chris's own writing on a page
+the style excludes, so this item reports it and changes nothing.
+
 ## What to do
 
-### M1 — the five strings
+### M1 — the five strings *(landed, then re-cut)*
 
-Say `CHARACTER`. The console verdict already says `CHARACTER: DODGY`
-(`game/character.ts`), and the COMMANDER screen already says `Character:`. So
-the prompt, the outcome and the screen agree for the first time.
+The first cut said `CHARACTER`. The second says `REPUTATION`, at the length the
+sentence needs.
 
-Four tests pin the old phrase and each one updates with the rule it pins:
+Four tests pin the phrase and each one updates with the rule it pins:
 `test/prompts.test.ts:142`, `test/bribe-flight.test.ts:271`,
 `test/bribe.test.ts:56` and `test/constants.test.ts:614`.
 
-`NAME_COST` becomes `CHARACTER_COST`. Its doc comment states the rule that the
+`NAME_COST` becomes `REPUTATION_COST`. Its doc comment states the rule that the
 constant reads off `DISREPUTE_BRIBE`, and that rule does not change.
 
-### M2 — the prose in `src/`
+### M2 — the ladder is REPUTATION on every screen
+
+The COMMANDER screen row and the console verdict are the two places that print
+the ladder itself. Both say `Reputation` now. `characterName` still computes the
+rung, because the module keeps the code's word.
+
+### M3 — every consequence line reads for a first-time pilot
+
+Chris's scope. Take each line that reports a consequence — the police scan, the
+record, the fine, the reputation verdict and the deeds that move either ladder.
+Ask one question of each: **does a pilot who has read no documentation know what
+just happened?** Where the answer is no, say the consequence rather than name
+it.
+
+**The console has room.** docs/TODO/147 settled that a station header takes as
+many lines as it has orders, on Chris's call: *"we don't need to keep it one
+line"*. docs/TODO/157 fixed the console's own width. So length is no longer the
+constraint that shortened these lines.
+
+### M4 — the prose in `src/`
 
 Every comment that uses `name` for a ladder names the ladder instead. Three
 rules decide the word:
@@ -107,7 +155,7 @@ converts.
 `src/constants/` carry this prose, and a doc comment there is the `Purpose`
 column of `CATALOG.md` (docs/PROCESS.md).
 
-### M3 — the identifiers
+### M5 — the identifiers
 
 `markName` is a host method on two interfaces. It means *"the Character score
 moved"*. It becomes `markCharacter`. `wasNamed` is a local in four files and
@@ -121,7 +169,7 @@ own vocabulary rule rather than on ASD-STE100. The rule is the reason the prose
 keeps drifting back: a comment beside `markName` reaches for the word in the
 identifier.
 
-### M4 — the gate
+### M6 — the gate
 
 `test/key-prose.test.ts` is the shape to copy. It fails on any message in
 `src/game/` that spells a bound key.
@@ -137,8 +185,12 @@ Confirm the failure. Remove it.
 
 - **`name` means what a thing is CALLED, and nothing else.** A commander, a
   save, a system, a ship and a sound each have one. A ladder does not.
-- **The three ladders keep the words their screens print:** `Legal status` or
-  `RECORD`, `Character`, `Rating`. No new word enters the game.
+- **The player's word for the disrepute ladder is `REPUTATION`** (Chris,
+  2026-08-16). `Character` is the code's word, and it stays in the directory,
+  the module and the constants. The two never appear on one screen.
+- **A UI line is as long as it needs to be** (Chris, 2026-08-16). Nothing is
+  shortened to fit a row. docs/TODO/147 and docs/TODO/157 already removed the
+  width argument.
 - **The survivors keyline is in scope.** `CLAUDE.md` excludes four
   player-facing pages from the prose style — the manual, `index.html`, the
   briefing and the novella. A game screen is not one of them. This item changes
@@ -156,12 +208,10 @@ Confirm the failure. Remove it.
 the breadth: *"We use it in a lot of places"*. One line fixed leaves four
 strings that say the same wrong thing, and the prose that keeps re-seeding them.
 
-**2. Should the COMMANDER screen say `Record` rather than `Legal status`?** No,
-and the item records the finding instead. The console says `RECORD: FUGITIVE`
-and the screen says `Legal status: Fugitive`, so one ladder has two labels. That
-is a milder fault than the one reported: both labels mean the law, and neither
-means four other things. **It is Chris's call, and this item will not take it
-silently.**
+**2. Should the COMMANDER screen say `Record` rather than `Legal status`?** Yes.
+Chris widened the item to every consequence line, and one ladder with two labels
+is the same fault at a smaller size. The console says `RECORD: FUGITIVE` and the
+screen said `Legal status: Fugitive`. M2 makes both say the same word.
 
 **3. Does this touch the save and commander naming screens?** No. They use
 `name` in its one correct meaning, and M4's gate is written so that they pass.

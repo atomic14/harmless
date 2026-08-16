@@ -779,7 +779,9 @@ export class WorldStep {
           // leave and come back to hear it again.
           if (hermitRefuses(this.state.commander.disrepute ?? 0)) {
             session.hermitCooldown = true;
-            out.push(say('ROCK HERMIT: "WE KNOW WHAT YOU DID" — NO TRADE', 4));
+            out.push(say(
+              'ROCK HERMIT: "WE KNOW WHAT YOU DID" — YOUR REPUTATION IS TOO BAD TO TRADE HERE',
+              4));
           } else {
             this.host.openHermitTrade();
           }

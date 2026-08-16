@@ -109,9 +109,9 @@ console.log('\nfive pirates take a rung off a record');
   // Only a MOVE speaks. Four kills of paperwork on the console would shout the
   // ledger down the length of a fight.
   check('the kills before the last one say nothing about the record',
-    said.slice(0, -1).every((lines) => !lines.some((t) => t.startsWith('RECORD:'))),
+    said.slice(0, -1).every((lines) => !lines.some((t) => t.startsWith('LEGAL STATUS:'))),
     said.slice(0, -1).map((l) => l.join('/')).join(' | '));
-  const verdict = said[said.length - 1].find((t) => t.startsWith('RECORD:'));
+  const verdict = said[said.length - 1].find((t) => t.startsWith('LEGAL STATUS:'));
   eq('...and the one that moves it says where it left you',
     verdict, recordVerdict(OFFENDER));
 

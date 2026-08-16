@@ -55,7 +55,7 @@ const SETTLE = Math.ceil((CHARACTER_LINE_SECONDS + 6) * 60);
 
 /** The first CHARACTER line in a run of console lines, and where it fell. */
 const named = (said: string[]): { line: string | undefined; at: number } => {
-  const at = said.findIndex((t) => t.startsWith('CHARACTER:'));
+  const at = said.findIndex((t) => t.startsWith('REPUTATION:'));
   return { line: said[at], at };
 };
 
@@ -99,10 +99,10 @@ console.log('\nthe console says when a bribe changes your name');
   const bribe = said.findIndex((t) => t.startsWith('PATROL BREAKS OFF'));
   const { line, at } = named(said);
   check(`the bribe is on the console (${said[bribe] ?? 'nothing'})`, bribe >= 0);
-  eq(`...and the name it cost follows it (${said.join(' / ')})`, line, 'CHARACTER: DUBIOUS');
+  eq(`...and the name it cost follows it (${said.join(' / ')})`, line, 'REPUTATION: DUBIOUS — WORD IS GETTING ROUND');
   check('...AFTER it, not instead of it', at > bribe);
   check('...and it is said once, not on a timer that re-arms',
-    fly(SETTLE * 2).filter((t) => t.startsWith('CHARACTER:')).length === 0);
+    fly(SETTLE * 2).filter((t) => t.startsWith('REPUTATION:')).length === 0);
 }
 
 console.log('...and when a REFUSED one does');
@@ -120,10 +120,10 @@ console.log('...and when a REFUSED one does');
   eq('not a tenth was spent', c.credits, 100_000);
   eq('...but the name was', c.disrepute ?? 0, DISREPUTE_BRIBE);
 
-  const refused = said.indexOf('THE OFFER IS REFUSED — AND REPORTED');
+  const refused = said.indexOf('HE WILL NOT TAKE IT — AND NOW HE IS COMING FOR YOU');
   const { line, at } = named(said);
   check(`the refusal is on the console (${said.join(' / ')})`, refused >= 0);
-  eq('...and the name it cost follows it', line, 'CHARACTER: DUBIOUS');
+  eq('...and the name it cost follows it', line, 'REPUTATION: DUBIOUS — WORD IS GETTING ROUND');
   check('...AFTER it', at > refused);
 }
 
@@ -145,7 +145,7 @@ console.log('...and a deed that crosses nothing says nothing');
     (c.disrepute ?? 0) === DISREPUTE_BRIBE * 2);
   eq('...and it is still the same rung', characterName(c.disrepute ?? 0), 'Dubious');
   check(`...so the console said nothing about it (${said.join(' / ')})`,
-    said.every((t) => !t.startsWith('CHARACTER:')));
+    said.every((t) => !t.startsWith('REPUTATION:')));
 }
 
 console.log('\na kill names the rung it landed on, not each one it passed');
@@ -162,9 +162,9 @@ console.log('\na kill names the rung it landed on, not each one it passed');
   check(`murder is worth two rungs at once (${DISREPUTE_MURDER} → ${rung})`, rung === 'Dodgy');
 
   const { line } = named(said);
-  eq(`the console names where you ARE (${said.join(' / ')})`, line, 'CHARACTER: DODGY');
+  eq(`the console names where you ARE (${said.join(' / ')})`, line, 'REPUTATION: DODGY — WORD IS GETTING ROUND');
   check('...and never names the rung it passed through',
-    !said.includes('CHARACTER: DUBIOUS'));
+    !said.includes('REPUTATION: DUBIOUS — WORD IS GETTING ROUND'));
   // ...and it did not take the console away from the kill's own lines. Which of
   // those a player reads was NOT this plan's business and is docs/TODO/130's:
   // `raiseLegal`'s line was itself overwritten by STATION DEFENCE LAUNCHED in
@@ -207,8 +207,10 @@ console.log('\nand the good news half: a name fading says so too');
   check(`the jump took ${days} days off a name worth ${DODGY + 0.5}`,
     (c.disrepute ?? 0) < DODGY);
   const { line, at } = named(said);
-  eq(`the console says the name it fell back to (${said.join(' / ')})`,
-    line, 'CHARACTER: DUBIOUS');
+  // The decay is the one direction that is GOOD news, so the clause is the
+  // other one: a quiet fortnight is word dying down (docs/TODO/162).
+  eq(`the console says the rung it fell back to (${said.join(' / ')})`,
+    line, 'REPUTATION: DUBIOUS — WORD IS DYING DOWN');
   check('...behind the arrival that caused it',
     at > said.findIndex((t) => t.startsWith('ARRIVED:')));
 }

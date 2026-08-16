@@ -28,7 +28,7 @@ export const HERMIT_ORE_GLUT = 20;
 export const HERMIT_SUPPLY_PRICE = 1.3;
 
 /**
- * The name that a hermit will not deal with: the character ladder's Dodgy rung.
+ * The character a hermit will not deal with: the ladder's Dodgy rung.
  * It is an expression over `CHARACTER` rather than a typed number, so a move to
  * the rung moves the door with it. That is the same trick as `FAME_FULL`
  * (constants/threat.ts).
@@ -44,8 +44,8 @@ export const HERMIT_SUPPLY_PRICE = 1.3;
 export const HERMIT_REFUSES_AT = CHARACTER.find(([, name]) => name === 'Dodgy')![0];
 
 /**
- * Mates' rates, at the widest. It is what a name worth exactly as much as the
- * hermit will tolerate takes off the ore, and adds to the supplies. Both
+ * Mates' rates, at the widest. It is what a character worth exactly as much as
+ * the hermit will tolerate takes off the ore, and adds to the supplies. Both
  * directions favour the pilot, because you BUY the ore and SELL them the food.
  *
  * It is a fifth. That is enough to be worth a detour, and enough to notice on the

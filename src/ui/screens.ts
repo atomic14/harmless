@@ -85,7 +85,7 @@ export function renderSurvivors(
     </div>
     <div class="keyline hints">
       <span>M MEDICAL &mdash; NO PAYMENT, NO QUESTIONS</span>
-      <span style="color:var(--hud-amber)">V AND L BOTH COST YOUR CHARACTER</span>
+      <span style="color:var(--hud-amber)">V AND L BOTH DAMAGE YOUR REPUTATION</span>
     </div>
   `);
 }
@@ -119,7 +119,7 @@ export function renderStatus(
       Present system: ${sys.name}<br/>
       Hyperspace target: ${targetIndex === null ? 'None' : systems[targetIndex].name}<br/>
       Legal status: ${legalName}<br/>
-      Character: ${characterName(c.disrepute ?? 0)}<br/>
+      Reputation: ${characterName(c.disrepute ?? 0)}<br/>
       Fuel: ${(c.fuel / 10).toFixed(1)} / ${(MAX_FUEL / 10).toFixed(1)} light years<br/>
       Elapsed: ${c.day} days<br/>
       Cash: ${formatCredits(c.credits)}<br/>

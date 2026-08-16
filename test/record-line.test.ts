@@ -77,7 +77,7 @@ function trader(g: Game, d = 1200) {
 
 /** Where a `RECORD:` line fell in a run of console lines, and what it said. */
 const record = (said: string[]): { line: string | undefined; at: number } => {
-  const at = said.findIndex((t) => t.startsWith('RECORD:'));
+  const at = said.findIndex((t) => t.startsWith('LEGAL STATUS:'));
   return { line: said[at], at };
 };
 
@@ -102,9 +102,9 @@ console.log('\nthe console says when a murder moves your record');
   eq('...and the record follows it', line, recordVerdict(c.legalStatus));
   check('...AFTER it, not instead of it', at > launched);
   check('...and it names who is now coming, assembled and not written out',
-    line?.includes('FUGITIVE') === true && line?.includes('WILL ENGAGE') === true);
+    line?.includes('FUGITIVE') === true && line?.includes('WILL ATTACK YOU') === true);
   check('...and it is said once, not on a timer that re-arms',
-    fly(SETTLE * 2).filter((t) => t.startsWith('RECORD:')).length === 0);
+    fly(SETTLE * 2).filter((t) => t.startsWith('LEGAL STATUS:')).length === 0);
 }
 
 console.log('...and says it where nobody is watching, too');
@@ -182,9 +182,9 @@ console.log('...once, however many call sites want to say it');
   eq(`the scan speaks first (${opened.join(' / ')})`,
     opened[0], 'POLICE SCAN: CONTRABAND DETECTED');
   eq(`...with exactly one verdict waiting behind it (${waiting.join(' / ')})`,
-    waiting.filter((t) => t.startsWith('RECORD:')).length, 1);
+    waiting.filter((t) => t.startsWith('LEGAL STATUS:')).length, 1);
   eq('...which is the record the scan actually left',
-    fly(SETTLE).find((t) => t.startsWith('RECORD:')), recordVerdict(OFFENDER));
+    fly(SETTLE).find((t) => t.startsWith('LEGAL STATUS:')), recordVerdict(OFFENDER));
 }
 
 console.log('...and says nothing at all when the record does not move');
@@ -205,7 +205,7 @@ console.log('...and says nothing at all when the record does not move');
   const first = fly(SETTLE);
   eq('the first hit files an offence', c.legalStatus, OFFENDER);
   eq(`...and says so once (${first.join(' / ')})`,
-    first.filter((t) => t.startsWith('RECORD:')).length, 1);
+    first.filter((t) => t.startsWith('LEGAL STATUS:')).length, 1);
 
   // Held in front of the nose and kept in the fight — a dead trader would be a
   // SECOND move, to Fugitive, and this block is about the offence that does not
@@ -224,7 +224,7 @@ console.log('...and says nothing at all when the record does not move');
   check(`the fight went on (${hits} landed hits, the target`
     + ` ${target.state.alive ? 'alive' : 'dead'})`, hits === 12 && target.state.alive);
   eq('...and the record, which did not move, said nothing further',
-    after.filter((t) => t.startsWith('RECORD:')).length, 0);
+    after.filter((t) => t.startsWith('LEGAL STATUS:')).length, 0);
   eq('...and the status is where the first hit left it', c.legalStatus, OFFENDER);
   // AND THE CONSOLE FELL QUIET, which is the half that has teeth. A line
   // queued per CALL rather than per move would say the same words twelve times

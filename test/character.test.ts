@@ -126,8 +126,14 @@ console.log('\nthe rung a deed puts you on');
     if (threshold > 0) {
       eq(`arriving at ${threshold} is a crossing onto ${name}`,
         rungCrossed(threshold - 1, threshold), name);
+      // The rung, and which WAY it went (docs/TODO/162). A rung name alone is a
+      // word the player has never met, and the decay crosses rungs downward.
       eq(`...and the line names it (${characterVerdict(threshold - 1, threshold)})`,
-        characterVerdict(threshold - 1, threshold), `CHARACTER: ${name.toUpperCase()}`);
+        characterVerdict(threshold - 1, threshold),
+        `REPUTATION: ${name.toUpperCase()} — WORD IS GETTING ROUND`);
+      eq('...and the way back says the news is good',
+        characterVerdict(threshold, threshold - 1),
+        `REPUTATION: ${characterName(threshold - 1).toUpperCase()} — WORD IS DYING DOWN`);
       // ...and downward, which is the decay's half: the rung you LAND on, not
       // the one you left.
       eq(`...falling back off ${threshold} names the rung below`,
@@ -161,5 +167,6 @@ console.log('\nthe rung a deed puts you on');
   check('every line the ladder can produce names a rung the ladder has',
     CHARACTER.every(([threshold, name]) =>
       characterVerdict(threshold - 1, threshold) === null
-      || characterVerdict(threshold - 1, threshold) === `CHARACTER: ${name.toUpperCase()}`));
+      || characterVerdict(threshold - 1, threshold)
+        === `REPUTATION: ${name.toUpperCase()} — WORD IS GETTING ROUND`));
 }

@@ -268,7 +268,7 @@ export class TestModeScreen implements Screen {
         // It sets the rung's own threshold. So the name on the status screen
         // and the number the rules read agree by construction, and
         // `characterName` reads the same table back.
-        label: 'CHARACTER',
+        label: 'REPUTATION',
         value: `${characterName(c.disrepute ?? 0).toUpperCase()} (${Math.round(c.disrepute ?? 0)})`,
         act: (d) => { c.disrepute = CHARACTER[cycle(rungOf(c.disrepute ?? 0), CHARACTER.length, d)][0]; },
       }),
