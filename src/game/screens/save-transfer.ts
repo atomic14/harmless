@@ -37,7 +37,7 @@ import type { SavesContext } from './saves.ts';
  * The current career, as the bytes of a file and the name to offer them under.
  *
  * A whole SAVE RECORD, name included, rather than a bare commander. An export
- * that lost its name comes back untitled. One that lost its world puts you
+ * that lost the save name comes back untitled. One that lost its world puts you
  * somewhere you never went.
  */
 export function exportedSaveFile(ctx: SavesContext): { fileName: string; json: string } {
@@ -96,7 +96,7 @@ interface SaveFileContents {
 function readSaveFile(parsed: unknown): SaveFileContents | { why: string } {
   const rec = parsed as Partial<SaveRecord>;
   if (!rec || typeof rec !== 'object') return { why: NOT_A_SAVE };
-  // The record shape: a name, and a commander somewhere inside it.
+  // The record shape: a save name, and a commander somewhere inside it.
   if (typeof rec.name === 'string' && (rec.world || rec.commander)) {
     if (rec.v !== SAVE_RECORD_VERSION) return { why: WRONG_VERSION };
     const whole = rec as SaveRecord;

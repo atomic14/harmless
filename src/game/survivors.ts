@@ -110,7 +110,7 @@ export function resolveSurvivors(
   // same row, at the price this one fetched.
   //
   // Its `disrepute` term is deliberately NOT added on top. That term is what a
-  // tonne of narcotics costs a name. `DISREPUTE_SLAVE_SALE` is what a PERSON
+  // tonne of narcotics costs a reputation. `DISREPUTE_SLAVE_SALE` is what a PERSON
   // costs one. Both together would price the same deed twice under two names.
   //
   // OFFENDER, not Fugitive. A lawful ship destroyed is what makes a Fugitive

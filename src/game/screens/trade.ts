@@ -207,7 +207,7 @@ export class MarketScreen implements Screen {
       ctx.message(`SOLD ${sold}${m.unit} FOR ${formatCredits(revenue)}`, 2);
       // What the sale costs your reputation is `saleFallout`'s rule, shared
       // with the campaign harness (game/market.ts). That cost is two things:
-      // the region's heat, and the mark on your name. This screen applies it.
+      // the region's heat, and the mark on your reputation. This screen applies it.
       const fallout = saleFallout(idx, sold, revenue);
       ctx.addNotoriety(fallout.notoriety);
       const wasDisrepute = ctx.commander.disrepute ?? 0;

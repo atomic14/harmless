@@ -171,7 +171,7 @@ export interface ContactSample {
    * `extending` beside it is the reason.
    *
    * A string rather than an enum on purpose. `AttackPhase` is break-off.ts's and
-   * will grow tactics beside it; a name a record does not recognise is a name a
+   * will grow tactics beside it; a phase name a record does not recognise is one a
    * human can still read.
    */
   doing: string;
@@ -198,7 +198,7 @@ export interface OpponentSetup {
    *
    * The display name is for a human; these are for a record read by something
    * else. `elite-a:variant:A:25` is the exact released build the fight was
-   * against, and stays true where a name may be re-spelt or re-hulled.
+   * against, and stays true where a display name may be re-spelt or re-hulled.
    */
   designId: ShipDesignId;
   profileId: NpcCombatProfileId;

@@ -115,7 +115,7 @@ export interface CommanderData {
   missiles: number;
   kills: number;
   /**
-   * Combat reputation. Ships destroyed weighted by how hard they were:
+   * Combat fame. Ships destroyed weighted by how hard they were:
    * a gang's Fer-de-Lance is worth five Sidewinders, because it is.
    * `kills` stays the literal body count for the status screen; this is what
    * the rating ladder reads.

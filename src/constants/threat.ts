@@ -50,7 +50,7 @@ export const CHALLENGE_RATE = 0.35;
 export const DISREPUTE_FULL = CHARACTER.find(([, name]) => name === 'Notorious')![0];
 
 /**
- * What a fully notorious name is worth as HEAT. It is the same channel that a
+ * What a fully notorious reputation is worth as HEAT. It is the same channel that a
  * region's memory of your last big sale feeds (`Mark.notoriety`). To a pirate
  * the two are the same fact: how visibly known you are.
  *
@@ -78,7 +78,7 @@ export const DISREPUTE_FULL = CHARACTER.find(([, name]) => name === 'Notorious')
 export const DISREPUTE_HEAT = SALE_NOTORIETY_MAX;
 
 /**
- * How much a criminal name draws challengers, against combat fame's 1. It is
+ * How much a criminal reputation draws challengers, against combat fame's 1. It is
  * half. People come for a Dangerous commander because a kill is worth something,
  * and for a Cutthroat because a robbery is safe. The second is a real draw, and
  * the weaker one.
@@ -103,7 +103,7 @@ export const DISREPUTE_DRAW = 0.5;
  * This is a distinct event with a distinct texture. More of them want you, and
  * occasionally one calls it off.
  *
- * It is rolled only when there is a name to recognise. An honest commander
+ * It is rolled only when there is a reputation to recognise. An honest commander
  * therefore draws exactly the numbers off the world stream that they drew before
  * this existed (invariant 11).
  */

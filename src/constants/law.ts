@@ -226,7 +226,7 @@ export const PATROL_BRIBE_FINES = 4;
  * `game/law.ts`.
  *
  * A Notorious pilot knows who to ask. An honest one asks the wrong man. This is
- * `disrepute` as a CREDENTIAL, and it is not a third idea about what a bad name
+ * `disrepute` as a CREDENTIAL, and it is not a third idea about what a bad reputation
  * is for. docs/TODO/96 built the same shape for the rock hermit: a credential
  * up to a point.
  *

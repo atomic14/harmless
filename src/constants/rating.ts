@@ -16,7 +16,7 @@
  * Score thresholds and the name that each one earns, lowest first.
  *
  * The Dangerous rung doubles as the threat model's fame saturation.
- * `threat.ts`'s `FAME_FULL` is an expression over this table. "Your name fully
+ * `threat.ts`'s `FAME_FULL` is an expression over this table. "Your fame fully
  * precedes you" and "the ladder calls you Dangerous" therefore cannot drift
  * apart. `test/economy.test.ts` still bisects both out of the real functions.
  */

@@ -361,7 +361,7 @@ export class Docked {
     }
     this.host.showMessage(survivorMessage(e), 4);
     // ...then the record, waiting behind the receipt that caused it
-    // (docs/TODO/122), and then what it did to your name (docs/TODO/129).
+    // (docs/TODO/122), and then what it did to your reputation (docs/TODO/129).
     this.host.markCharacter(before, c.disrepute ?? 0);
   }
 

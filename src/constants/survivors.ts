@@ -25,7 +25,7 @@
  * waste the one thing `survivorOffers` was built on. A Feudal system pays more
  * for one than a Democracy does. At the dearest market it is 64 Cr, which is
  * a real temptation to a commander who started with 100. At the cheapest it is
- * 8 Cr, which is correctly not worth a name. **Where you are docked decides**,
+ * 8 Cr, which is correctly not worth the reputation it costs. **Where you are docked decides**,
  * and a carry to a better market is now a thing to be tempted by.
  *
  * It is a multiple of the quote rather than a price of its own, because the quote

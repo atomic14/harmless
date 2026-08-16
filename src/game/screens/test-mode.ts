@@ -265,7 +265,7 @@ export class TestModeScreen implements Screen {
         // as unflown STARTING VALUES and closed on the campaign rather than on a
         // cockpit. This row is what lets somebody fly them.
         //
-        // It sets the rung's own threshold. So the name on the status screen
+        // It sets the rung's own threshold. So the rung name on the status screen
         // and the number the rules read agree by construction, and
         // `characterRung` reads the same table back.
         label: 'REPUTATION',

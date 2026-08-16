@@ -1,7 +1,7 @@
 // The shelf: how often the game saves on its own, how much it keeps, and how long
 // a name may be.
 //
-// What a save IS — the record shape, the id grammar, the name rules — is
+// What a save IS — the record shape, the id grammar, the save name rules — is
 // `game/save-file.ts`. WHERE one lives is `game/storage.ts`, the only file that
 // may touch localStorage. The format versions and the id prefix stay beside the
 // shapes they version. The storage namespaces stay module-private in storage.ts,

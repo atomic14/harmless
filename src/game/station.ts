@@ -204,7 +204,7 @@ export class Station {
     // rides along for a career.
 
     // The record is NOT cleared on a dock any more. The station is a neutral
-    // trading port. A fugitive may dock and trade, and a cleared name is a
+    // trading port. A fugitive may dock and trade, and a cleared record is a
     // choice: the `payFine` docked command (game.ts), not a toll on the door.
     s.session.policeScanned = false;
     s.session.defenceLaunched = false;

@@ -190,7 +190,7 @@ export function bribeOffered(
  * bank of credit earned before a crime is not atonement. So the answer is
  * `null`, and the ledger stays where it is.
  *
- * **The record moves and the NAME does not.** Disrepute is no business of this
+ * **The record moves and the REPUTATION does not.** Disrepute is no business of this
  * function, and no caller should make it one. Otherwise a commander could
  * murder a trader, shoot five pirates, and end Clean and Honest at a profit.
  * docs/TODO/156 drew the same line from the other side.

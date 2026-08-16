@@ -558,7 +558,7 @@ export class Game {
   }
 
   /**
-   * Your name changed hands on the ladder. Say so, once the console read the
+   * Your reputation moved to a new rung. Say so, once the console read the
    * deed that moved it (docs/TODO/129).
    *
    * Called with the score either side of a deed or a quiet week.
