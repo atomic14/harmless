@@ -1,3 +1,47 @@
+// An NPC ship: what it decides each frame, and how it flies while it decides.
+//
+// ONE RESPONSIBILITY, and `NpcShip` holds it. A ship reads the world through
+// `WorldView`. It picks a behaviour for its role. It steers, and it reports a
+// shot as a `FireEvent`. It applies no consequence at all (invariant 15).
+// `world-step.ts` calls `update` once a frame. `game.ts` resolves what comes
+// back.
+//
+// The roles and what each one does are listed above the class, beside the code
+// that flies them. This header does not repeat that list.
+//
+// TWO FLIGHT MODELS SHARE ONE SHIP. `brainFly` flies a trained policy.
+// `attack`, `pursue` and `updateTrader` fly the scripted rules. Both models end
+// at `steerToward` and `advance`, so one ship moves one way. `state.flownBy`
+// records which model moved it.
+//
+// THE TRAINER DRIVES THIS FILE DIRECTLY (invariant 5).
+// `src/ai-training/scenario.ts` builds an `NpcShip`. It calls `brainFly` and
+// `tickClocks` per frame. So the flight model the trainer optimises is the
+// shipped one, and no second copy exists.
+//
+// THE STEP ALLOCATES NOTHING. The class holds nine scratch vectors and two
+// static buffers for that reason alone. A fresh vector inside `update` costs an
+// allocation per ship per frame.
+//
+// FOUR THINGS HERE BELONG TO SOME OTHER FILE, and docs/TODO/169 measured all
+// four. This header names them, so the next reader sees the whole shape:
+//
+//  1. THE FLEET QUERIES, at 101 lines. `isHostileToPlayer`, `engaging`,
+//     `hostilesNear`, `nearestEngaging` and `nearestNpc` are pure functions
+//     over a fleet. `isHostileToPlayer` is a law rule that six surfaces read
+//     (docs/TODO/158), and it sits inside a class file.
+//  2. THE FLIGHT HALF, at 244 lines of the class. `brainFly`, `pursuitFly`,
+//     `steerToward`, `faceToward`, `advance`, `nosePosition`, `facing`,
+//     `bindTransform` and `matePositions` say HOW a ship moves. The behaviour
+//     half says WHERE it goes.
+//  3. `NpcState`, at 184 lines. It is the saved shape of a ship rather than a
+//     behaviour, and a snapshot walks it generically.
+//  4. `steerQuatToward` and `velocityOf`, at 29 lines. Both are shared flight
+//     maths. The HUD's lead marker reads `velocityOf`, and the HUD flies
+//     nothing.
+//
+// Each of the four is a candidate rather than a decision. docs/TODO/169 M4
+// measures again, and it says what leaves.
 import * as THREE from 'three';
 import { buildShip, buildAsteroid, buildHermitBeacon,
   HERMIT_BEACON_ON, HERMIT_BEACON_PERIOD } from '../ships/geometry.ts';

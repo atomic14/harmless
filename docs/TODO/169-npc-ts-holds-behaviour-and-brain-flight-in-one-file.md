@@ -4,6 +4,47 @@
 nothing · **Blocks:** nothing · **GitHub:** none — promoted from the backlog by
 the sweep of 2026-08-16
 
+## What M1 landed, 2026-08-16
+
+**The file says what it does, and the debt row says what the measurement
+found.** `npm run check` passes at 4,739 assertions. The header is 45 lines, so
+`npc.ts` is 1,676 lines now.
+
+**M1 changes comments and one tool string. It changes no code at all.** The five
+probes ran as the baseline M2 will be read against. Each one exits 0.
+
+### `approach` is exported, and nothing outside the file reads it
+
+**The plan's table names `approach` and never asks who calls it.** Measured, it
+has eight callers, and all eight are inside `npc.ts`. No file in `src/`, `test/`,
+`train/` or `tools/` imports it.
+
+**Three other files hold a private function of the same name.** They are
+`src/player.ts`, `train/dock-probe.ts` and `train/dock-traffic.ts`. None of them
+imports this one.
+
+**It is REPORTED rather than changed.** That is `tools/internal-claims.mjs`'s own
+rule: name a member with no caller, and do not delete it in the same pass. M1
+lands alone, and an `export` keyword taken off is a code change.
+
+### The file was not silent, and the header does not repeat what it said
+
+**A comment above the class lists the five roles and what each one does.** It
+sits at line 235 of the file as the plan measured it. So `npc.ts` carried no
+module header, and it still described its own subject part of the way down.
+
+**The header points at that list rather than copying it.** A rule gets one home
+(`CLAUDE.md`). A second copy of the role list would rot against the first.
+
+### The debt row was wrong about the split, and now it says so
+
+**It named the flight half, and the flight half is the smallest candidate.** The
+row carries the old sentence in quotation marks, so a reader can see what
+changed. It names all four candidates, and it names the cheapest cut first.
+
+**The number moved with the header.** The flight half taken alone leaves about
+1,399 lines, and not the 1,355 the table below states.
+
 ## Where we are
 
 **`src/game/npc.ts` is the head of the decomposition programme.** The backlog
