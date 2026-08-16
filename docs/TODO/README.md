@@ -13,13 +13,12 @@ active context:
 
 ## Execution queue
 
-**One item, out of the sweep of 2026-08-16.** Chris asked for an
-architectural and bug sweep against a tree where `npm run check` passed. The
-order below is by value over cost, and not by severity.
+**THE QUEUE IS EMPTY.** The sweep of 2026-08-16 put five items in it. Chris
+asked for an architectural and bug sweep against a tree where `npm run check`
+passed. The order was by value over cost, and not by severity. All five landed.
 
-1. [169 — npc.ts holds behaviour and brain flight in one file](169-npc-ts-holds-behaviour-and-brain-flight-in-one-file.md)
-   · design · large. The backlog head, promoted. Measured, the file holds four
-   separable things, and the flight half the debt row names is the smallest.
+**169 was the last of them, and it closed on 2026-08-17.** It is below. The
+next item comes from a triage, from the GitHub inbox, or from Chris.
 
 **172, 170, 171 and 168 led this queue and all four landed the same day.** They
 are below.
@@ -138,6 +137,70 @@ docs/TODO/135 argues against building avoidance for that, with the design bias
 recorded (wait, do not swerve) if the answer is yes anyway. 136 M4 is where it
 would go if it is ever wanted. The curve takes a plane as a parameter, so a path
 pushed off the traffic is still a path of the same shape.
+
+## What landed on 2026-08-17
+
+**169 — npc.ts holds behaviour and brain flight in one file.** The head of the
+decomposition programme, and the backlog's own number 1. The file was 1,632
+lines over 99 commits. It was also the one file of 259 in `src/` with no module
+header at all.
+
+**THE DEBT ROW WAS WRONG ABOUT THE SPLIT, AND SO WAS THE PLAN.**
+`tools/sizes.mjs` named the flight half for months. The plan measured four
+candidates and predicted that the row was wrong. It was right about that, and
+wrong about its own favourite twice over.
+
+**M1 wrote the header first and landed it alone.** The backlog's argument is
+that the act of stating the one responsibility is what exposes the second. A
+header written after a split is a header written to fit a decision already made.
+
+**M2 took the fleet queries, which the debt row never named.**
+`isHostileToPlayer`, `hostilesNear`, `nearestEngaging` and `nearestNpc` are
+`game/hostility.ts` now, at 169 lines. The rule that six surfaces read
+(docs/TODO/158) sat inside a class file until this item.
+
+**They take a narrow interface rather than the class.** `FleetShip` is a
+position and `alive`. `HostileShip` adds a role and three flags. A generic type
+parameter is what the plan did not have. The two sweeps return the caller's own
+type, so no call site needed a cast.
+
+**`test/hostility.test.ts` is 13 assertions in two parts.** A source scan holds
+that the file names no ship class. A control proves the scan can see one. Then a
+fixture of one object literal drives all four functions, because a scan cannot
+say whether a type is honestly narrow.
+
+**M3 REFUSED THE SPLIT THE ROW NAMED, ON A MEASUREMENT.** The flight half is 158
+lines of body, and `brainFly` is 101 of them. `brainFly`, `attack` and `pursue`
+each steer, throttle, advance and pull a trigger. Each returns a `FireEvent`. So
+they are decision loops rather than steering primitives, and the plan files two
+of the three under behaviour.
+
+**The true primitives are 21 lines, and the seam would be 69 calls wide.** The
+behaviour half reaches the transform, the flight stats and the nine scratch
+vectors 69 times. Both of the plan's shapes fail on that one fact, so M2's
+interface answer decided nothing here.
+
+**What did leave is the shared maths.** `steerQuatToward` and `velocityOf` are
+`game/flight-maths.ts`. Five files outside the ships read them, and three of
+those imported a class file of 1,566 lines to reach a helper of four.
+
+**`test/constants.test.ts` caught that move in both directions**, and
+docs/TODO/90's recorded rule chose the fix. A `THREE.Vector3` is mutable, so
+each file keeps its own `ZERO`. The first draft shared one.
+
+**M4 measured again and stopped**, on docs/TODO/150 M6's precedent. `NpcState`
+is the one candidate left, and the recommendation is to leave it. Most of its
+184 lines are the doc comment beside each field.
+
+**The two biggest members left are on no candidate list.** `update` is 154 lines
+of body and `updateTrader` is 73. Each needs a measurement before it gets a plan.
+
+**Two stale claims came out of the work.** `law.ts` named `npc.ts` twice for a
+rule that moved. And `approach` is exported with no reader outside its own file,
+which is reported rather than changed.
+
+**All five probes are byte-identical to the M1 baseline, at every milestone.**
+The item had no licence to move a rule, and it moved none. 4,752 assertions.
 
 ## What landed on 2026-08-16
 

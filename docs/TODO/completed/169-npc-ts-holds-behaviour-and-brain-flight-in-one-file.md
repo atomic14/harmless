@@ -4,6 +4,55 @@
 nothing · **Blocks:** nothing · **GitHub:** none — promoted from the backlog by
 the sweep of 2026-08-16
 
+## What landed, 2026-08-17
+
+**Four milestones, and two files came out of `src/game/npc.ts`.** The file went
+1,632 lines to 1,536. `game/hostility.ts` holds the rule that says who attacks
+the commander. `game/flight-maths.ts` holds the nose-and-thrust rule. Neither
+one names a ship class.
+
+**THE DEBT ROW WAS WRONG ABOUT THE SPLIT, AND SO WAS THE PLAN.** The row named
+the flight half for months. M2 measured, and the cheapest cut was the fleet
+queries. M3 measured, and the flight half does not separate at all. That is
+docs/TODO/150's lesson twice in one item, and the plan predicted it.
+
+**Nothing moved that a probe can see.** All five probes are byte-identical to
+the M1 baseline, at every milestone. `npm run check` passes at 4,752 assertions.
+
+**Two things are recorded and not scheduled.** `NpcState` is a candidate that
+M4 recommends leaving. `updateTrader` and the constructor are the two biggest
+members left, and neither is on any candidate list.
+
+## What M4 found, 2026-08-17
+
+**M4 measures again and stops, which is what the plan asked for.** Two of the
+four candidates left the file. Two remain, and neither one is scheduled.
+
+| what is left | lines | what it costs to move |
+| --- | ---: | --- |
+| the flight half | 158 of body | a 69-call seam around 21 lines of primitive. Refused in M3, with the measurement above. |
+| `NpcState` | 184 | low, and the gain is unclear. Most of the length is the doc comment beside each field. |
+
+**`NpcState` is not recommended, and the plan's open question is answered.** It
+is 184 lines because each field carries the reason it exists. `CLAUDE.md` asks
+for that comment beside the field it describes. A move would carry the prose to
+another file and leave the class reading its own saved shape from a distance.
+The gain is 184 lines off a 1,536-line file, and the cost is one more hop for
+every reader of a field. **Recommendation: leave it.** Revisit it only if
+`snapshot.ts` ever needs the shape without the class.
+
+**The biggest members left are not on the candidate list at all.** `update` is
+154 lines of body, the constructor is 101, `attack` is 83 and `updateTrader` is
+73. `updateTrader` is the trader's whole phase machine, and it is the one that
+most reads as a subject of its own. The constructor builds a ship from a roster
+row, which is a factory. **Neither is proposed here.** Each is a new argument
+rather than this item's, and the queue should get a measurement before it gets a
+plan.
+
+**So the item ends at 1,536 lines**, from 1,632. Two files came out of it, and
+each holds a rule that named no ship class. The file states one responsibility,
+and its header names what is still in the wrong place.
+
 ## What M3 landed, 2026-08-17
 
 **THE SPLIT THE DEBT ROW NAMED FOR MONTHS DOES NOT CLEAR THE BAR.** M3 measured
@@ -80,36 +129,6 @@ than a fix. `game/game.ts`, `game/combat-sim.ts` and `player.ts` each keep their
 own pair for that reason. So `flight-maths.ts` keeps a private pair, and
 `npc.ts` keeps its own `ZERO` for the `lookAt` in `updateTrader`. The first
 draft exported one and shared it, which argued with a decision already recorded.
-
-## What M4 found, 2026-08-17
-
-**M4 measures again and stops, which is what the plan asked for.** Two of the
-four candidates left the file. Two remain, and neither one is scheduled.
-
-| what is left | lines | what it costs to move |
-| --- | ---: | --- |
-| the flight half | 158 of body | a 69-call seam around 21 lines of primitive. Refused in M3, with the measurement above. |
-| `NpcState` | 184 | low, and the gain is unclear. Most of the length is the doc comment beside each field. |
-
-**`NpcState` is not recommended, and the plan's open question is answered.** It
-is 184 lines because each field carries the reason it exists. `CLAUDE.md` asks
-for that comment beside the field it describes. A move would carry the prose to
-another file and leave the class reading its own saved shape from a distance.
-The gain is 184 lines off a 1,536-line file, and the cost is one more hop for
-every reader of a field. **Recommendation: leave it.** Revisit it only if
-`snapshot.ts` ever needs the shape without the class.
-
-**The biggest members left are not on the candidate list at all.** `update` is
-154 lines of body, the constructor is 101, `attack` is 83 and `updateTrader` is
-73. `updateTrader` is the trader's whole phase machine, and it is the one that
-most reads as a subject of its own. The constructor builds a ship from a roster
-row, which is a factory. **Neither is proposed here.** Each is a new argument
-rather than this item's, and the queue should get a measurement before it gets a
-plan.
-
-**So the item ends at 1,536 lines**, from 1,632. Two files came out of it, and
-each holds a rule that named no ship class. The file states one responsibility,
-and its header names what is still in the wrong place.
 
 ## What M2 landed, 2026-08-17
 
