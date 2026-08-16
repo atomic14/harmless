@@ -1,10 +1,10 @@
 // "Goat soup" — the original's procedural planet descriptions.
 //
-// Elite generated a sentence per planet from a recursive token grammar
-// driven by a 4-byte RNG seeded from the system's own seed words. Tokens
-// 0x81-0xA4 each pick one of five options (which may themselves contain
-// tokens); 0xB0/0xB1/0xB2 expand to the planet name, its "-ian" adjective,
-// and a random Elite-style name. The whole thing hangs off one root string:
+// Elite made a sentence per planet from a recursive token grammar. A 4-byte
+// RNG drove it, seeded from the system's own seed words. Tokens 0x81-0xA4 each
+// pick one of five options, and an option may itself hold tokens. 0xB0, 0xB1
+// and 0xB2 expand to the planet name, its "-ian" adjective, and a random
+// Elite-style name. The whole thing hangs off one root string:
 //
 //     "<planet phrase> is <description>."
 //
@@ -54,10 +54,10 @@ const DESC_LIST: string[][] = [
   /* A4 */ ['hockey', 'cricket', 'karate', 'polo', 'tennis'],
 ];
 
-// Digraph table for the random-name token. The original used a separate
-// (and, in the C reference, out-of-bounds-indexed) table here, so the
-// nonsense names differ slightly from any given port — everything else in
-// the grammar reproduces exactly, including Lave's canonical description.
+// Digraph table for the random-name token. The original used a separate table
+// here. The C reference indexes that table out of bounds. So the nonsense names
+// differ a little from any given port. Everything else in the grammar
+// reproduces exactly, and that includes Lave's canonical description.
 const PAIRS = '..LEXEGEZACEBISOUSESARMAINDIREA.ERATENBERALAVETIEDORQUANTEISRION';
 
 /** The original's 4-byte description RNG. */

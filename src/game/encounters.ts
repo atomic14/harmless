@@ -6,11 +6,13 @@
 // collision resolution and shield regeneration.
 //
 // The split is the one used throughout: this decides WHETHER something should
-// appear and what it should be, the Game makes it exist. Nothing here can
-// reach the scene, so the rules are testable — and these particular rules had
-// none, despite deciding how dangerous every system in the galaxy feels.
+// appear and what it should be. The Game makes it exist.
 //
-// The clocks and the thresholds are constants/encounters.ts; the cap on traders
+// Nothing here can reach the scene, so a test can drive the rules. These
+// particular rules had no test at all, and they decide how dangerous every
+// system in the galaxy feels.
+//
+// The clocks and the thresholds are constants/encounters.ts. The cap on traders
 // is constants/population.ts, because it is a property of what a system holds
 // rather than of the clock that adds to it.
 

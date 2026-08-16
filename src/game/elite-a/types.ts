@@ -1,10 +1,10 @@
 // The shape of the released-Elite-A reference catalogue.
 //
 // Hand-written, and the only file here that is. Everything beside it ending
-// `.generated.ts` is written by `npm run generate:elite-a` from the vendored
-// pack in `reference/elite-a/source`, so these interfaces are the contract the
-// importer emits against — `tools/elite-a/build.mjs` asserts the pack still
-// splits into exactly these fields and stops if it does not.
+// `.generated.ts` is written by `npm run generate:elite-a`, from the vendored
+// pack in `reference/elite-a/source`. So these interfaces are the contract the
+// importer emits against. `tools/elite-a/build.mjs` asserts the pack still
+// splits into exactly these fields. It stops if it does not.
 //
 // Three identities, because three future features move independently:
 //
@@ -13,7 +13,7 @@
 //   NpcVariantId       which exact S.A-S.W build of that design this one is
 //
 // The split is the point. A design's geometry, size, speed and cargo never vary
-// between its variants, so they are stored ONCE on the design; energy, defence,
+// between its variants, so they are stored ONCE on the design. Energy, defence,
 // weapon byte and bounty do vary, so they are what a variant record holds. A
 // variant is therefore ten numbers, not thirty-two, and there is exactly one
 // copy of each hull.

@@ -1,9 +1,9 @@
 // What a rule module asks to be HEARD — without knowing how a sound is made.
 //
 // The world step and the autopilots both reach moments that should make a
-// noise, and neither may call `audio.ts` to do it: that import is a browser
-// import, and it was the only thing left standing between the deepest module in
-// the project and running under node. It survived at all because `audio.ts`
+// noise. Neither may call `audio.ts` to do it. That import is a browser import,
+// and it was the last thing between the deepest module in the project and a run
+// under node. It survived at all because `audio.ts`
 // swallows a constructor failure, which is a load-bearing accident rather than
 // a seam.
 //
@@ -73,9 +73,11 @@ export type SoundEvent =
    *
    * WHAT IT DOES WITH THE PLACE IS NOT DECIDED HERE. This says where; audio.ts
    * decides how loud and which ear, the same bargain `countdown` struck when the
-   * pitch arithmetic left the world step. `enemyLaser` is why that split earns
-   * its keep: it is placed and never attenuated, because the bolt it names is
-   * only ever fired AT you and always ends on the hull.
+   * pitch arithmetic left the world step.
+   *
+   * `enemyLaser` is why that split earns its keep. It is placed and never
+   * attenuated, because the bolt it names is only ever fired AT you, and it
+   * always ends on the hull.
    *
    * The vector must be one nothing else will move. `Combat.wreck` despawns the
    * ship two lines after it reports, so it clones.

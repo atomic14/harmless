@@ -326,8 +326,8 @@ export type FireEvent =
  *
  * @param playerToStation how far the commander is from the station, for the
  * truce below. It is REQUIRED rather than defaulted. A reader that forgot it
- * would treat a ship that attacks nobody as a threat: a red blip, or the
- * commander's own combat computer aimed at it (docs/TODO/158).
+ * would treat a ship that attacks nobody as a threat. That is a red blip, or
+ * the commander's own combat computer aimed at it (docs/TODO/158).
  */
 export function isHostileToPlayer(
   npc: NpcShip, legalStatus: number, playerToStation: number,

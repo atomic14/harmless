@@ -63,8 +63,8 @@ export function browserShell(canvas: HTMLCanvasElement, scene: THREE.Scene): She
     },
 
     // was the `#crosshair` lookup in Game.updateSight — the last DOM reference
-    // in game.ts, and presentation rather than a rule: the Game decides whether
-    // the shot would land, the shell decides what that looks like.
+    // in game.ts. It is presentation rather than a rule. The Game decides
+    // whether the shot would land. The shell decides what that looks like.
     setSightLit: (on) => { elementById('crosshair').classList.toggle('locked', on); },
 
     // was the `toggleHelp` case in runCommand

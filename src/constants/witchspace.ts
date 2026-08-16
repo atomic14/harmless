@@ -9,9 +9,9 @@
 
 /**
  * Where the planet, the station and the sun go while you are in witch-space. It
- * is a SENTINEL, not a distance. The code uses it as a per-axis coordinate, so
+ * is a SENTINEL, not a distance. The code uses it as a per-axis coordinate. So
  * the furniture ends up about 1.4e8 units out, and every distance check reads
- * "not here" without a witch-space branch. It is big enough to leave no doubt,
+ * "not here" with no witch-space branch. It is big enough to leave no doubt,
  * and small enough to stay exact in a double.
  */
 export const BANISHED = 1e8;
@@ -51,9 +51,9 @@ export const THARGOID_AMBUSH_RANGE = 3500;
  */
 export const THARGOID_AMBUSH_RANGE_SPAN = 2500;
 
-// What used to end this file — STRANDED_HINT_FIRST and STRANDED_HINT_REPEAT, the
-// cadence of a console message that told you to press B — went with the message
-// (docs/TODO/128). To be stranded is a situation, not an event. The cockpit's
-// prompt line now carries the offer for as long as it is true, so there is no
-// repeat to time and no letter to hard-code. The condition itself
+// Two constants used to end this file: STRANDED_HINT_FIRST and
+// STRANDED_HINT_REPEAT. They were the cadence of a console message that told
+// you to press B, and they went with that message (docs/TODO/128). To be stranded is a situation, not an event. The cockpit's
+// prompt line now carries the offer for as long as it is true. So there is no
+// repeat to time, and no letter to hard-code. The condition itself
 // (`WITCHSPACE_ESCAPE_COST` in the tank) is `game/prompts.ts`.

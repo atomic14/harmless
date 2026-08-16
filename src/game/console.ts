@@ -7,12 +7,14 @@
 // The distinction it draws is the useful one. There are two kinds of global and
 // only one of them is a design fault:
 //
-//   a FLAG is READ by game code to change what the game does. There were five
-//   — `__scriptedPirates`, `__legacyPirates`, `__packBrain`, `__sharpPirates`
-//   and `__cheat` — and they are all gone, because a rule read from ambient
-//   state is a rule with no home: not in the snapshot, so a reload changed the
-//   game; not an argument, so a test could only set it and hope to clear up.
-//   They are fields of GameState now (see BrainSelection, GameState.cheat).
+//   a FLAG is READ by game code to change what the game does. There were five:
+//   `__scriptedPirates`, `__legacyPirates`, `__packBrain`, `__sharpPirates` and
+//   `__cheat`. They are all gone.
+//
+//   A rule read from ambient state is a rule with no home. It is not in the
+//   snapshot, so a reload changed the game. It is not an argument either, so a
+//   test could only set it and hope to clear up. They are fields of GameState
+//   now (see BrainSelection, GameState.cheat).
 //
 //   a HANDLE is WRITTEN by the game so a human or an agent can reach in from a
 //   console. Nothing reads it, nothing branches on it, and removing it removes
@@ -31,10 +33,10 @@ import { SIM_LOG_LIMIT } from '../constants/combat-record.ts';
 /**
  * Publish a debug handle for a console session or an automated agent.
  *
- * `globalThis`, not `window`: these are called from module bodies and from the
- * Game's constructor, and reaching for `window` made every one of them throw
- * the moment the engine was asked to run under node — which is what kept the
- * headless tests reduced to grepping source text for years.
+ * `globalThis`, not `window`. These are called from module bodies and from the
+ * Game's constructor. A reach for `window` made every one of them throw the
+ * moment somebody asked the engine to run under node. That is what kept the
+ * headless tests down to a grep over source text, for years.
  */
 export function publish(name: string, value: unknown): void {
   (globalThis as unknown as Record<string, unknown>)[name] = value;

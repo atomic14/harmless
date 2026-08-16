@@ -60,10 +60,10 @@ export const DANGER_VISIBLE = 0.4;
  * by N days. The trade network is FULLY FORMED by about 30 days: 38 busy lanes
  * drawn, 3.6 systems over `DANGER_VISIBLE`, and prices about 9% off baseline. It
  * does not grow after that. 120 days and a year both draw the same 38 lanes. What
- * keeps growing is the accumulated danger, which buys the player nothing they can
- * use, and costs the one thing that matters. At 60 days, one seed in eight puts
- * LAVE itself at 0.37 against the 0.4 ring threshold, and a starting world
- * flagged as pirate-infested on a fresh save is a bad first impression. At 30
+ * keeps growing is the accumulated danger. It buys the player nothing they can
+ * use, and it costs the one thing that matters. At 60 days, one seed in eight
+ * puts LAVE itself at 0.37, against the 0.4 ring threshold. A fresh save that
+ * flags the home world as pirate-infested is a bad first impression. At 30
  * days the worst Lave across those seeds is 0.11.
  *
  * It is not free. A warmed galaxy is deltas that have to be written down. What
@@ -83,11 +83,12 @@ export const PREWARM_DAYS = 30;
  * is "more than one load on it right now": counted rather than ranked.
  *
  * There are about 240 convoys in flight across about 175 distinct lanes at any
- * moment, measured on galaxy 1 at seeds 999 and 4242, over 23, 120 and 365 days.
+ * moment. That was measured on galaxy 1, at seeds 999 and 4242, over 23, 120
+ * and 365 days.
  * To draw all of them is a hairball on a 780x400 canvas. This lands on about
  * 40-47 lanes at every one of those samples, which is a trade NETWORK rather than
- * a scribble. A top-N cut would draw the same number of lines, but nobody could
- * state it in words, and it would keep drawing a dead route on a quiet day.
+ * a scribble. A top-N cut would draw the same number of lines. But nobody could
+ * state it in words, and it would keep a dead route drawn on a quiet day.
  *
  * It is read with `>=`, unlike the two thresholds either side of it, which are
  * strict. This is a count of things, not a level that something exceeds.
@@ -97,8 +98,8 @@ export const PREWARM_DAYS = 30;
 export const BUSY_LANE_CONVOYS = 2;
 
 /**
- * How far a price must have drifted from the 1984 baseline before the charts mark
- * the system: 15%, against the +-25% clamp that `priceMultiplier` applies.
+ * How far a price must drift from the 1984 baseline before the charts mark the
+ * system: 15%, against the +-25% clamp that `priceMultiplier` applies.
  *
  * Nearly every system has SOME drift — 243 to 251 of 256 at the samples above. So
  * the useful question is not "has it moved", but "has it moved enough to be worth

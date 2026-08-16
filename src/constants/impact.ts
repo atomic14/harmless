@@ -8,11 +8,11 @@
 // THE RULE: an impact costs a FIXED WHOLE NUMBER OF SOURCE POINTS. The rule
 // states that number separately for a ship's energy bank and for the commander's
 // pools. The impact spends it on whatever it hits, and it never asks what that
-// is. There are two columns because the banks are not comparable: a ship carries
-// 2-255 energy, and the commander carries a 255-point shield face over a
-// 255-point bank. The rule uses fixed points rather than a share of the target,
-// so a hull's size is worth something — a 44-point scrape is a third of a
-// Sidewinder's bank and a sixth of an Anaconda's.
+// is. There are two columns because the banks are not comparable. A ship
+// carries 2-255 energy. The commander carries a 255-point shield face over a
+// 255-point bank. The rule uses fixed points rather than a share of the target.
+// So a hull's size is worth something. A 44-point scrape is a third of a
+// Sidewinder's bank, and a sixth of an Anaconda's.
 //
 // The numbers are calibrated off the Cobra Mk III: 98 points of released energy,
 // and one 255-point shield face. `test/damage-paths.test.ts` re-derives them from

@@ -20,8 +20,8 @@
 //
 // SOME DESTINATIONS HAVE NO ROUTE, and shipped galaxies hold them. No system in
 // galaxy 8 is within a full tank of Oresrati. Galaxy 7 splits into a mainland
-// of 229 systems and an island of 27, and galaxies 3, 4 and 6 each strand a
-// small group as well. `null` is therefore an answer about the map, not a guard
+// of 229 systems and an island of 27. Galaxies 3, 4 and 6 each strand a small
+// group as well. `null` is therefore an answer about the map, not a guard
 // against bad input.
 
 import type { StarSystem } from './galaxy.ts';
@@ -50,8 +50,8 @@ export interface RouteEstimate {
  * Dijkstra, with a linear scan for the next system instead of a heap. The map
  * holds 256 systems with about 7 neighbours each, and the scan settles a target
  * in well under a millisecond. A heap would win at a size this map cannot have.
- * The neighbours are measured on demand rather than built into a table first:
- * one search reads fewer pairs than a full table holds, and a table would need
+ * The neighbours are measured on demand rather than built into a table first.
+ * One search reads fewer pairs than a full table holds. A table would also need
  * an owner and a moment to become stale in.
  */
 export function routeEstimate(

@@ -61,9 +61,9 @@ export class ContractsScreen implements Screen {
       this.selected = Math.min(offers.length - 1, this.selected + 1);
       redraw = true;
     }
-    // REFUSED rather than hidden in flight. The button is not drawn there, but
-    // the key still arrives, and a live key behind a missing control is the
-    // "dead control that looks alive" failure the other way round.
+    // REFUSED rather than hidden in flight. Nothing draws the button there.
+    // The key still arrives. A live key behind an absent control is the "dead
+    // control that looks alive" failure, the other way round.
     if ((i.pressed('KeyA') || i.pressed('Enter')) && this.ctx().atStation) {
       this.ctx().accept(this.selected);
       // accepting removes the offer, so the selection may now be past the end

@@ -1,6 +1,9 @@
-// The station as a place in the sky: which hull a system gets, how it spins, and
-// where it puts your ship when you leave, when you fluff the slot, or when you
-// sit in the docked menu.
+// The station as a place in the sky. Four things live here:
+//
+//   1. which hull a system gets;
+//   2. how it spins;
+//   3. where it puts your ship on a launch, and after a fluffed slot;
+//   4. where it parks you in the docked menu.
 //
 // The scene that spends the spin is `world/system-scene.ts`. The launch is
 // `Station.launch` (game/station.ts). The bounce is `checkStation`
@@ -21,19 +24,21 @@ export const STATION_SPIN = 0.26;
  * every reader adds one (see ./tech-level.ts). Roughly the top third rate the
  * Dodo.
  *
- * TWO READERS, ONE BIT. `galaxy/tech.ts` owns the comparison, because the
- * released game asked this question once and spent the answer twice: it picked
- * the station hull AND bit 0 of the blueprint-set number, which is which ships a
- * system flies (docs/TODO/138). Nothing may restate the test.
+ * TWO READERS, ONE BIT. `galaxy/tech.ts` owns the comparison. The released game
+ * asked this question once and spent the answer twice. It picked the station
+ * hull. It also picked bit 0 of the blueprint-set number, which is which ships
+ * a system flies (docs/TODO/138). Nothing may restate the test.
  */
 export const DODO_TECH_LEVEL = 10;
 
 // THE NEXT THREE ARE ONE PHRASE — "just outside the slot" — WITH THREE ANSWERS.
 // They are kept adjacent, so the disagreement stays visible. Three events, three
 // distances. A fluffed docking bounces you to 420. The bay spits you out at 450.
-// The docked menu parks you 900 out, for the backdrop. The bounce leaves you
-// NEARER the hull than the bay does: a failed docking is meant to dump you close
-// to the thing you just hit, with your shields dented and your nose out of line.
+// The docked menu parks you 900 out, for the backdrop.
+//
+// The bounce leaves you NEARER the hull than the bay does. A failed docking is
+// meant to dump you close to the thing you hit, with your shields dented and
+// your nose out of line.
 
 /**
  * Where a fluffed docking bounces you to. It is a distance from the station's

@@ -1,6 +1,10 @@
-// How a trained policy becomes flight: the rate ramp that every shipped brain was
-// fitted at, how often one re-decides, and the speed scale that normalizes the
-// observations. The ramp rule is `player.ts`'s `rampToward` — one copy, shared.
+// How a trained policy becomes flight. Three numbers:
+//
+//   1. the rate ramp that every shipped brain was fitted at;
+//   2. how often one re-decides;
+//   3. the speed scale that normalizes the observations.
+//
+// The ramp rule is `player.ts`'s `rampToward` — one copy, shared.
 //
 // Nothing here is a feel setting. A move to one puts every shipped genome out of
 // the distribution it was fitted in, and no test can see that.

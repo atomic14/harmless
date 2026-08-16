@@ -40,7 +40,7 @@ export const AMBUSH_RANGE = 2400;
 /**
  * No opening may be closer than this. It is twice `PASS_FAR`, which after the
  * spawner's -15% scatter still leaves the nearest ship well outside it. It is
- * stated as a rule because the coupling is invisible: a range picked for how a
+ * stated as a rule because the coupling is invisible. A range picked for how a
  * fight FEELS would silently change what the attack-run count MEANS. `npm test`
  * holds every plan to it.
  */

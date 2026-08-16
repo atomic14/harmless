@@ -1,5 +1,6 @@
-// The Harmless motion overlay on the pack's hulls: how one turn rate becomes a
-// pitch cap and a roll cap, and how hard a hull accelerates.
+// The Harmless motion overlay on the pack's hulls. It says how one turn rate
+// becomes a pitch cap and a roll cap. It also says how hard a hull
+// accelerates.
 //
 // The pack gives every design a top speed and nothing else. Both values below are
 // therefore browser-game constants, chosen for feel, and no re-import can supply

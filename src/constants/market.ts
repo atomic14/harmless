@@ -51,9 +51,9 @@ export const SALE_NOTORIETY_CONTRABAND = 0.04;
  * Heat is meant to accumulate over a run of sales, and to decay between them
  * (`HEAT_DECAY`). It is not meant to be bought outright at one counter.
  *
- * It has its own rule id. It shares the value 0.5 with four unrelated constants —
- * a roll fade, a hit chance, a cone half-angle and a lead time — and it must stay
- * free to move without them. docs/TODO/118 owns the wider policy question about
+ * It has its own rule id. It shares the value 0.5 with four unrelated
+ * constants: a roll fade, a hit chance, a cone half-angle and a lead time. It
+ * must stay free to move without them. docs/TODO/118 owns the wider question about
  * popular values. This one is genuinely a heat fraction and nothing else.
  *
  * @rule market.saleNotorietyMax

@@ -1,6 +1,9 @@
-// How to choose a tactic: how wide a pass has to be aimed to clear, how hurt a
-// ship has to be before it rethinks, how likely each choice is, and how long it
-// holds one before it may change again.
+// How to choose a tactic. Four things:
+//
+//   1. how wide a pass has to be aimed to clear;
+//   2. how hurt a ship has to be before it rethinks;
+//   3. how likely each choice is;
+//   4. how long it holds one before it may change again.
 //
 // `tactics.ts` is the vocabulary. The gates, the roll and the trigger that spend
 // these are `game/tactic-choice.ts`. `RAM_MIN_SPEED` is a fraction of the

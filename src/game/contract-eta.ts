@@ -12,7 +12,7 @@
 //
 // IT TAKES THE COMMANDER, NOT A DAY. `ChartOverlays.day` is the LIVING galaxy's
 // day, and both painters hold one. The galaxy catches up by at most 60 days a
-// load, so a deadline measured from it is right for months of play and then
+// load. So a deadline measured from it is right for months of play. Then it is
 // silently wrong on an old save. A commander parameter makes that mistake
 // impossible to write.
 //

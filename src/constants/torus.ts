@@ -18,9 +18,9 @@ export const TORUS_MULTIPLIER = 8;
 
 /**
  * How near the station holds the drive down. It is the largest of the three
- * radii, and it is measured to the station's CENTRE, so you cannot torus past
- * the slot you are threading. `test/arena.test.ts` holds the combat arena clear
- * of it, in all 256 systems of two galaxies.
+ * radii. It is measured to the station's CENTRE, so you cannot torus past the
+ * slot you thread. `test/arena.test.ts` holds the combat arena clear of it, in
+ * all 256 systems of two galaxies.
  *
  * The three radii are ONE rule with three answers, because `massLocked()` is true
  * if any one of them holds. They are separate because the three things are
@@ -31,8 +31,8 @@ export const MASS_LOCK_STATION = 5000;
 /**
  * ...and how near the planet, as an ALTITUDE above the surface. It is not a
  * centre distance, because a planet's radius varies with the seed. It is far
- * above `PLANET_CRASH_ALTITUDE`, so the drive lets go long before the ground is a
- * danger, and the last of an approach is a flown descent.
+ * above `PLANET_CRASH_ALTITUDE`. So the drive lets go long before the ground is
+ * a danger, and the last of an approach is a flown descent.
  */
 export const MASS_LOCK_PLANET_ALTITUDE = 4000;
 

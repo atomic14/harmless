@@ -1,9 +1,10 @@
 // Trumbles: they breed, they eat the hold, and heat drives them out.
 //
-// Elite's joke about buying something adorable at a station. They double every
-// twenty seconds and eat a share of whatever you are carrying, and the only
-// cure is a sun-skim — the same manoeuvre that refuels you, which is the neat
-// bit: the fix costs you the trip you were on.
+// Elite's joke about something adorable bought at a station. They double every
+// twenty seconds, and eat a share of whatever the hold holds.
+//
+// The only cure is a sun-skim, which is the same manoeuvre that refuels you.
+// That is the neat bit: the fix costs you the trip you were on.
 //
 // Pure over the commander plus the cabin temperature. It returns what
 // happened; the Game says it out loud.

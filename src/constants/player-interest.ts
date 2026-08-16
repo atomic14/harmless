@@ -1,8 +1,13 @@
 // How close you have to be before you are anybody's business.
 //
-// One distance with four readers. It decides whether a hostile engages you,
-// whether the condition light goes red, whether a bought combat computer takes
-// the controls, and whether a pirate stays on you. `test/npc.test.ts` fails if
+// One distance with four readers. It decides four things:
+//
+//   1. whether a hostile engages you;
+//   2. whether the condition light goes red;
+//   3. whether a bought combat computer takes the controls;
+//   4. whether a pirate stays on you.
+//
+// `test/npc.test.ts` fails if
 // the literal reappears in a consumer. It is not `DEFENCE_RANGE`
 // (constants/law.ts), which is also 9,000. That one is measured from the STATION,
 // and it decides whether the Vipers launch.

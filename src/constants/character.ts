@@ -40,8 +40,8 @@ export const DISREPUTE_CAUGHT = 10;
  * It is the deed the ladder was built for, and it is priced with the other
  * career-marker. One takes an Honest commander clear to Dodgy, which is what a
  * rescue turned into a transaction ought to be worth. That it equals
- * `DISREPUTE_HERMIT_KILL` is the statement: to crack a hermit for his ore, and to
- * sell a rescued pilot, are the same order of thing.
+ * `DISREPUTE_HERMIT_KILL` is the statement. To crack a hermit for his ore, and
+ * to sell a rescued pilot, are the same order of thing.
  *
  * It has its own rule id. It shares the value 40 with `DISREPUTE_HERMIT_KILL` and
  * `DISREPUTE_MURDER` above, and the three must stay free to move apart. This one
@@ -65,9 +65,9 @@ export const DISREPUTE_SLAVE_SALE = 40;
  * only adds up over a habit of them. That is the shape of every deed on this
  * ladder that is not career-marking.
  *
- * It has its own rule id. It shares the value 10 with `DISREPUTE_CAUGHT` above,
- * which prices a read by a police scan, and with the ladder's own Dubious
- * threshold, which is not a deed at all.
+ * It has its own rule id. It shares the value 10 with two other numbers.
+ * `DISREPUTE_CAUGHT` above prices a read by a police scan. The ladder's own
+ * Dubious threshold is not a deed at all.
  *
  * The owner is confirmed as character.ts, for `DISREPUTE_SLAVE_SALE`'s reason
  * above.
@@ -156,9 +156,9 @@ export const DISREPUTE_SHORTED_CONSIGNMENT = 5;
  * at the moment a fight may start, and short enough not to sit over the next
  * thing that matters.
  *
- * It has its own rule id. It shares the value 4 with `SCAN_LINE_SECONDS`
- * (constants/law.ts), which is how long a POLICE SCAN line holds the console, and
- * with `PATROL_BRIBE_FINES`, which is a multiplier. Neither should move because
+ * It has its own rule id. It shares the value 4 with two other numbers.
+ * `SCAN_LINE_SECONDS` (constants/law.ts) is how long a POLICE SCAN line holds
+ * the console. `PATROL_BRIBE_FINES` is a multiplier. Neither should move because
  * this one did.
  *
  * The owner is confirmed as character.ts rather than contracts. The catalogue's

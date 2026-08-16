@@ -1,6 +1,6 @@
-// How the chart overlays are DRAWN and READ. These are the two numbers that
-// decide how faint a quiet trade lane gets, and how much of a lane's cargo the
-// detail line spells out.
+// How the chart overlays are DRAWN and READ. Two numbers live here. One decides
+// how faint a quiet trade lane gets. The other decides how much of a lane's
+// cargo the detail line spells out.
 //
 // The thresholds that decide WHICH lanes and systems are flagged at all are rules
 // of the living galaxy, and they live in ./living-galaxy.ts. These two are
@@ -11,8 +11,9 @@
  * The alpha that the quietest drawn trade lane keeps, with the busiest at 1.
  *
  * It is a floor rather than a plain ratio. Without one, the tail of the network
- * fades to nothing, and the fade has silently become a second, invisible
- * threshold on top of `BUSY_LANE_CONVOYS`. At 0.35, a one-load lane is clearly
+ * fades to nothing. The fade then becomes a second, invisible threshold on top
+ * of `BUSY_LANE_CONVOYS`, and it says nothing. At 0.35, a one-load lane is
+ * clearly
  * there, and clearly quieter than an artery that carries five times as much.
  *
  * It has its own rule id. It shares the value 0.35 with two steering angles, a
@@ -28,8 +29,7 @@ export const LANE_FADE_FLOOR = 0.35;
  * rest ("+2").
  *
  * Three fit beside the systems, the convoy count, the tonnage and the arrival, on
- * one keyline, at the width that both charts are drawn at. The list is ordered
- * heaviest-first, so what drops off is the shipment nobody would have asked
- * about.
+ * one keyline, at the width both charts are drawn at. The list runs
+ * heaviest-first, so what drops off is the shipment nobody asks about.
  */
 export const LANE_CARGO_NAMED = 3;

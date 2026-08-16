@@ -1,12 +1,16 @@
-// The attack run, as ranges: how close a hostile gets before it turns away, how
-// far it runs out, and how slowly it flies in order to turn. The phase machine
-// that spends these is `game/break-off.ts`.
+// The attack run, as ranges:
+//
+//   1. how close a hostile gets before it turns away;
+//   2. how far it runs out;
+//   3. how slowly it flies in order to turn.
+//
+// The phase machine that spends these is `game/break-off.ts`.
 //
 // There is no brain-handover range here any more. `BRAIN_HANDOVER_RANGE` (150)
 // was the distance at which a trained pirate stopped to fly its policy, and gave
 // the ship to the scripted run. Its only reader was `pirateBrainFor`, which went
-// with the trained pirate policies on 2026-08-05. No shipped pilot has handed
-// over since. It named a rule that nothing executed, so docs/TODO/119 deleted it.
+// with the trained pirate policies on 2026-08-05. No shipped pilot hands over
+// now. It named a rule that nothing executed, so docs/TODO/119 deleted it.
 // The alternative was a catalogue that asserts a handover the game never makes.
 
 /**

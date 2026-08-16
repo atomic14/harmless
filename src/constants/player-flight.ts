@@ -1,5 +1,10 @@
-// The commander's flight envelope: how fast the ship you fly goes, how hard it
-// accelerates, how sharply it turns, and how a turn ramps up and bleeds off.
+// The commander's flight envelope. Four things:
+//
+//   1. how fast the ship you fly goes;
+//   2. how hard it accelerates;
+//   3. how sharply it turns;
+//   4. how a turn ramps up, then bleeds off.
+//
 //
 // It is one object, and the only spelling. A harness that flies the player's ship
 // reads it rather than a hand-copy of the numbers. The RULE that these are

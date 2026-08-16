@@ -19,9 +19,9 @@ export const STARTING_CREDITS = 1000;
  *
  * It is here beside the grubstake for two reasons. It is the same kind of number,
  * money the commander is GIVEN rather than money that something costs. And the
- * shop's shelf is a list of prices, which this is not. A fixed sum rather than a
- * typed one is a decision of docs/TODO/121: a number-entry screen is a second
- * typed input flow for one development lever, and the row repeats, so the way to
+ * shop's shelf is a list of prices, which this is not. A fixed sum rather than
+ * a typed one is a decision of docs/TODO/121. A number-entry screen is a second
+ * typed input flow, for one development lever. The row repeats, so the way to
  * get more is to press it again.
  *
  * The size is chosen to be one press for anything a test needs, and still small

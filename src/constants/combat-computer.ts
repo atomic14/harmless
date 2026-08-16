@@ -70,8 +70,8 @@ export const STEER_PITCH_SATURATION = 0.08;
  * `pitch-roll-steer.ts`.
  *
  * The roll is a bank-to-turn: it rolls the target onto the vertical plane. That
- * bearing is large even for a target a few degrees off the nose, so an ungated
- * roll asks full authority for a tiny error, and overshoots. A fade of the roll
+ * bearing is large even for a target a few degrees off the nose. So an ungated
+ * roll asks full authority for a tiny error, and it overshoots. A fade of the roll
  * by the off-nose angle scales the effort to the actual error. The floor keeps
  * enough authority to still arrive within a gun cone, rather than dead centre.
  *
@@ -179,8 +179,8 @@ export const PURSUIT_HOLD_CONE = 1.85;
 export const ENGAGED_CONE = 0.6;
 
 /**
- * How many world units of range weigh as much as one radian of off-nose turn,
- * when the co-pilot ranks targets by how easy they are to lock
+ * How many world units of range weigh as much as one radian of off-nose turn.
+ * The co-pilot ranks targets by how easy they are to lock
  * (`game/scripted-co-pilot.ts`). It fights the easiest target to get guns on, so
  * it favours the least turn, with distance in the balance. At 800, alignment wins
  * among comparable ranges. But it will NOT chase a far dead-ahead ship over a
@@ -189,8 +189,8 @@ export const ENGAGED_CONE = 0.6;
  *
  * It has its own rule id. It shares the value 800 with `AMBLE_NEAR`
  * (constants/amble.ts), which is a distance from a station. This one is an
- * exchange rate between world units and radians, and it must stay free to be
- * re-fitted on the wave harness without moving where a Viper loiters.
+ * exchange rate between world units and radians. It must stay free for a re-fit
+ * on the wave harness, without a move to where a Viper loiters.
  *
  * @rule copilot.targetDistWeight
  */

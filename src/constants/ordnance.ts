@@ -42,8 +42,8 @@ export const MISSILE_MAX_RANGE = 3200;
  * The hull fraction below which a ship stops saving its missiles for later. A
  * missile it never launches is worth nothing.
  *
- * It has its own rule id. It shares 0.4 with unrelated fractions elsewhere — a
- * refuel price, a collision's retained speed, a danger threshold — and it answers
+ * It has its own rule id. It shares 0.4 with unrelated fractions elsewhere: a
+ * refuel price, a collision's retained speed, a danger threshold. It answers
  * only to how desperate a damaged ship should get.
  *
  * @rule ordnance.missileLastStandHull
@@ -78,7 +78,7 @@ export const ECM_RANGE = 2800;
 export const ECM_RATE = 0.45;
 /**
  * A shot of the E.C.M. costs one bank of energy. It is read off the pools rather
- * than restated, so the gauge, the ENERGY LOW warning, the shield cut-off and
+ * than restated. So the gauge, the ENERGY LOW warning, the shield cut-off and
  * this cost all move together with `ENERGY_BANKS`.
  */
 export const ECM_ENERGY_COST = ENERGY_BANK_POINTS;

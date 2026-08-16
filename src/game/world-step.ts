@@ -368,8 +368,8 @@ export class WorldStep {
     const { world, player, session } = s;
 
     // ONE measurement, two readers. The truce (game/law.ts) asks whether a
-    // pirate or a bounty hunter may engage at all, and the spawner asks whether
-    // a wave is worth warping in. Measured twice, the two could disagree about
+    // pirate or a bounty hunter may engage at all. The spawner asks whether a
+    // wave is worth a warp-in. Measured twice, the two could disagree about
     // the same frame.
     const playerToStation = player.position.distanceTo(world.station.position);
 

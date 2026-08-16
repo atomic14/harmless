@@ -1,11 +1,13 @@
 // The classic station tunnel: concentric rings rushing past on launch and
 // docking, drawn on a full-screen overlay canvas.
 //
-// The rings alone used to simply stop — the overlay was hidden and the
-// universe appeared in a single frame. On the way OUT the tube now finishes:
-// an aperture opens through the black and the real scene shows through the bay
-// mouth as it sweeps past. On the way IN there is no aperture (see below); the
-// tube simply dims down into the dark of the bay.
+// The rings alone used to simply stop. The overlay was hidden, and the universe
+// appeared in a single frame.
+//
+// On the way OUT the tube now finishes. An aperture opens through the black,
+// and the real scene shows through the bay mouth as it sweeps past. On the way
+// IN there is no aperture (see below). The tube merely dims down into the dark
+// of the bay.
 
 import { elementById, viewport } from '../engine/inert-dom.ts';
 import { HUD, alpha } from '../palette.ts';
@@ -52,17 +54,18 @@ export class TunnelEffect {
   }
 
   /**
-   * How much of the view is open to space, in screen radii. 0 is fully
-   * blacked out; >1 means the mouth has passed the edge of the screen and
-   * nothing of the tube is left.
+   * How much of the view is open to space, in screen radii. 0 is fully blacked
+   * out. Above 1, the mouth is past the edge of the screen, and nothing of the
+   * tube is left.
    */
   private aperture(p: number): number {
-    // Docking gets NO aperture. A closing iris seems obvious — the bay shutting
-    // around you — but it reads backwards: the only rings you can see are the
-    // ones outside the hole, so as it shrinks the visible ring edge sweeps
-    // INWARD, against the rings themselves. Each ring is still expanding (you
-    // are flying forward, so they must), but the reveal boundary is what the
-    // eye follows, and the effect looks like it is running in reverse.
+    // A dock gets NO aperture. An iris that closes seems obvious, as the bay
+    // shuts around you. It reads backwards. The only rings you can see are the
+    // ones outside the hole. So as the hole shrinks, the visible ring edge
+    // sweeps INWARD, against the rings themselves.
+    //
+    // Each ring still grows, because you fly forward and they must. The eye
+    // follows the reveal boundary instead, and the effect looks reversed.
     //
     // Forward motion looks the same going either way through a tube, which is
     // why one effect served both originally. Only the *ending* differs: out

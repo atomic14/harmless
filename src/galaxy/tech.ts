@@ -1,9 +1,11 @@
 // Is this system high tech? — one bit, and two things read it.
 //
-// The released game asked this question once and spent the answer twice. It
-// picked the dodecahedral "Dodo" station over the Coriolis, and it set bit 0 of
-// the blueprint-set number, which is which ships the system flies (docs/TODO/138
-// and `game/blueprint-set.ts`). Harmless had the first reader from long before
+// The released game asked this question once, and spent the answer twice. It
+// picked the dodecahedral "Dodo" station over the Coriolis. It also set bit 0
+// of the blueprint-set number, which is which ships the system flies
+// (docs/TODO/138 and `game/blueprint-set.ts`).
+//
+// Harmless had the first reader from long before
 // the released catalogue arrived. This is where the rule stopped being written
 // out at the reader.
 //

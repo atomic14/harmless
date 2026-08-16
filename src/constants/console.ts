@@ -1,6 +1,9 @@
-// The cockpit console's game-facing rules: what the scanner and the compass can
-// see, what the aim aid assumes, where the sight sits, and when a gauge turns
-// red.
+// The cockpit console's game-facing rules. Four of them:
+//
+//   1. what the scanner and the compass can see;
+//   2. what the aim aid assumes;
+//   3. where the sight sits;
+//   4. when a gauge turns red.
 //
 // Every number here is both a simulation range and a display rule. Pure drawing —
 // the bracket radii, the arrow polygons, the phosphor colours — stays in

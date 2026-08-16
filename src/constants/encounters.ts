@@ -25,12 +25,13 @@ export const TRADER_GAP_JITTER = 60;
 /**
  * The most that a busy economy can discount off `TRADER_GAP`.
  *
- * It is a GUARD rather than a live rung. Over all 2,048 systems the discount runs
- * 0.6s to 46.9s, and no system reaches this cap. What it stops is a change
- * elsewhere — a re-scaled productivity, a smaller `PRODUCTIVITY_PER_SECOND` —
- * that turns one rich system into a continuous trader stream, held back only by
- * `MAX_TRADERS`. Live, a median system runs its lane at about 90s plus jitter,
- * and the richest at about 53s plus jitter.
+ * It is a GUARD rather than a live rung. Over all 2,048 systems the discount
+ * runs 0.6s to 46.9s, and no system reaches this cap. What it stops is a change
+ * elsewhere: a re-scaled productivity, or a smaller
+ * `PRODUCTIVITY_PER_SECOND`. Such a change turns one rich system into a
+ * continuous trader stream, held back only by `MAX_TRADERS`. Live, a median
+ * system runs its lane at about 90s plus jitter. The richest runs at about 53s
+ * plus jitter.
  */
 export const TRADER_GAP_BUSY_MAX = 50;
 
@@ -117,8 +118,8 @@ export const MAX_THARGONS = 4;
  * makes a kill of the mother the objective. At 5 seconds it replaces a drone
  * faster than most commanders kill one.
  *
- * It has its own rule id, and one of the constants it shares 5 with is about
- * this very number: `KILLS_PER_RUNG` (law.ts) counts pirates only BECAUSE a
+ * It has its own rule id. One of the constants it shares 5 with is about this
+ * very number. `KILLS_PER_RUNG` (law.ts) counts pirates only BECAUSE a
  * mothership replaces a drone this fast. The two must stay free to move apart.
  *
  * @rule encounters.thargonRedeploy

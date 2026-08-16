@@ -19,25 +19,25 @@
 export const OPPOSITION_RANGE = 3200;
 
 /**
- * A ceiling on the ring radius, so it cannot put a ship in the planet box or the
- * station box, however the numbers are passed in. `test/arena.test.ts` measures
- * the arena centre's worst-case clearance across 512 systems, as the guarantee.
+ * A ceiling on the ring radius. It cannot put a ship in the planet box or the
+ * station box, whatever numbers the caller passes in. `test/arena.test.ts`
+ * measures the arena centre's worst-case clearance across 512 systems.
  */
 export const OPPOSITION_RANGE_MAX = 20_000;
 
 /**
  * Half-angle of the cone, in radians, when a facing is known and the caller says
  * no more. It is A FALLBACK THAT NOTHING SHIPPING USES: every scenario states its
- * own cone in degrees. Widened by `OPPOSITION_CONE_FAR`, this reaches 41 degrees
- * off the nose. That is right for a caller that has not thought about the canopy,
- * and wrong for a trainer, so it stays a default.
+ * own cone in degrees. `OPPOSITION_CONE_FAR` widens it, so it reaches 41 degrees
+ * off the nose. That is right for a caller that ignores the canopy. It is wrong
+ * for a trainer, so it stays a default.
  */
 export const OPPOSITION_CONE = 0.5;
 
 /**
  * The nearest a ship lands, as a fraction of the ring radius. The ring is
- * scattered rather than exact, so four ships read as four ships near each other,
- * rather than as a formation that the game placed.
+ * scattered rather than exact. So four ships read as four ships near each
+ * other, rather than as a formation that the game placed.
  */
 export const OPPOSITION_RING_NEAR = 0.85;
 
@@ -63,9 +63,8 @@ export const OPPOSITION_CONE_SPAN = 0.9;
 
 /**
  * ...so the widest is this. THIS is the number that a caller has to fit inside
- * the canopy: a cone of 8 degrees puts its widest ship 11.6 degrees off the nose.
- * It is derived rather than written as 1.45, because `0.55 + 0.9` is
- * 1.4500000000000002 in floating point. A rounded bound would be off by the wrong
- * sign.
+ * the canopy. A cone of 8 degrees puts its widest ship 11.6 degrees off the nose.
+ * It is derived rather than written as 1.45. `0.55 + 0.9` is 1.4500000000000002
+ * in floating point. A rounded bound would be off by the wrong sign.
  */
 export const OPPOSITION_CONE_FAR = OPPOSITION_CONE_NEAR + OPPOSITION_CONE_SPAN;

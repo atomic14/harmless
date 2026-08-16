@@ -21,11 +21,12 @@ export const NPC_LASER_RANGE = LASER_RANGE;
  * limits an NPC's damage: the ship waits to be aimed, not on the cooldown.
  *
  * MEASURED since docs/TODO/139 M1 (`npm run aim-probe`), where it used to say
- * "about 5% of a fight" from memory. This cadence allows 46.2 shots a minute. The
- * shipped pursuit pilot gets 7.5 away one-on-one against a commander who
- * knife-fights, 15 with four in the sky, and 26 in a chase after one who runs. So
- * the clock is not the binding term in any fight the probe can stage, and the
- * handicap that this pair states is not the one that decides a fight.
+ * "about 5% of a fight" from memory. This cadence allows 46.2 shots a minute.
+ * The shipped pursuit pilot gets 7.5 away one-on-one, against a commander who
+ * knife-fights. It gets 15 away with four in the sky, and 26 in a chase after
+ * one who runs. So the clock is not the binding term in any fight the probe can
+ * stage. The handicap that this pair states is not the one that decides a
+ * fight.
  */
 export const NPC_COOLDOWN_LO = 0.9;
 export const NPC_COOLDOWN_SPREAD = 0.8;

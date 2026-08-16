@@ -30,16 +30,16 @@ export const ESCAPE_CHANCE = { trader: 0.45, other: 0.2 } as const;
  * the commander never chose it. This is the grace that makes it a choice.
  *
  * The number comes from the two rules it sits between. A capsule drifts at 40 to
- * 70 units a second (`CargoField.spawnCapsule`), and it leaves the graze cone
- * once it is more than `POD_GRAZE` — 16 units — off the line of fire. The worst
+ * 70 units a second (`CargoField.spawnCapsule`). It leaves the graze cone once
+ * it is more than `POD_GRAZE` — 16 units — off the line of fire. The worst
  * lateral case is therefore 16/40, which is 0.4 seconds. The rest is the
  * commander: a beam laser fires 10 times a second, and a held trigger outlives
  * the kill by about a second. 1.5 covers both, and it is short enough that a
  * commander who WANTS the capsule gone still gets it.
  *
  * It has its own rule id. It shares the value 1.5 with `DISREPUTE_DECAY`
- * (constants/character.ts), which is a score a day rather than a span of
- * seconds, and the two must stay free to move apart.
+ * (constants/character.ts). That one is a score a day rather than a span of
+ * seconds. The two must stay free to move apart.
  *
  * @rule wreck.podLaunchGrace
  */

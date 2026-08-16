@@ -2,8 +2,8 @@
 //
 // Everything the released catalogue supplies is generated and exact
 // (`ships/elite-a-hulls.ts`). What is in here is not, and the separation is a
-// requirement rather than a courtesy: the generation ship is a Harmless
-// encounter and must never be presented as a recovered Elite-A design. Their
+// requirement rather than a courtesy. The generation ship is a Harmless
+// encounter, and must never be presented as a recovered Elite-A design. Their
 // ids live in `game/ship-identity.ts` under `harmless:`, which is the same
 // bargain from the other end.
 //

@@ -239,8 +239,8 @@ export class TestModeScreen implements Screen {
       }),
       this.lever({
         // Both directions. The interesting half of a credit lever is often
-        // the refusal it buys back. → grants the fixed sum. ← takes the same
-        // sum away, floored at broke. Neither is typed in.
+        // the refusal it buys back. Right grants the fixed sum. Left takes the
+        // same sum away, floored at broke. Neither is typed in.
         label: 'GRANT CREDITS',
         value: formatCredits(c.credits),
         act: (d) => {

@@ -1,6 +1,13 @@
-// The jump, as numbers: the warning before the drive engages, what a jump costs
-// in days, what it costs to climb back out of a mis-jump, and how often one
-// happens. game/hyperspace.ts spends these. A jump's FARE is the chart distance
+// The jump, as numbers. Four of them:
+//
+//   1. the warning before the drive engages;
+//   2. what a jump costs in days;
+//   3. what an escape from a mis-jump costs;
+//   4. how often one happens.
+//
+// game/hyperspace.ts spends these.
+//
+// A jump's FARE is the chart distance
 // in tenths of a light year (`chart-metric.ts`), which is also what the fuel
 // gauge holds. There is therefore no fuel-per-light-year constant, and there must
 // not be one.
@@ -41,10 +48,11 @@ export const TENTHS_PER_JUMP_DAY = 20;
  * Flat fuel cost of an escape from a mis-jump, in tenths of a LY.
  *
  * It is flat because witch-space is nowhere. There is no chart distance from it,
- * so the fare cannot be the metric's. It is ALSO what "enough fuel to jump clear"
- * means in the two places that decide whether you are stranded: the distress
- * beacon is offered below it, and a rescue tops the tank up TO it. All three
- * therefore move together.
+ * so the fare cannot be the metric's.
+ *
+ * It is ALSO what "enough fuel to jump clear" means, in the two places that
+ * decide whether you are stranded. The distress beacon is offered below it, and
+ * a rescue tops the tank up TO it. So all three move together.
  */
 export const WITCHSPACE_ESCAPE_COST = 10;
 

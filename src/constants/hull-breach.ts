@@ -1,6 +1,10 @@
-// What a hit that gets past the shields costs you, beyond the points: how often
-// it wrecks something, whether that something is cargo or a fitting, and which
-// fittings can go. `breachLoss` in game/systems.ts spends these. It is the
+// What a hit that gets past the shields costs you, beyond the points:
+//
+//   1. how often it wrecks something;
+//   2. whether that something is cargo or a fitting;
+//   3. which fittings can go.
+//
+// `breachLoss` in game/systems.ts spends these. It is the
 // second, separate consequence of a hit, and `applyDamage` handles that hit's
 // bank cost.
 

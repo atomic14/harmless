@@ -30,18 +30,18 @@ export const FLIGHT_RING = 3;
  * THE ARITHMETIC MOVED (docs/TODO/117). This used to argue from "a snapshot is
  * about 10 kB against megabytes of localStorage". A snapshot now measures about
  * **145 kB**. A galaxy warmed up before the first launch
- * (constants/living-galaxy.ts) carries about 72 kB of price pressure and convoys
- * from the first minute of a career, and a record holds that twice: once as the
- * world's live `galaxyState`, and once inside the commander it clones. Both
- * figures are measured on a fresh docked career, galaxy 1.
+ * (constants/living-galaxy.ts) carries about 72 kB of price pressure and
+ * convoys, from the first minute of a career. A record holds that twice: once
+ * as the world's live `galaxyState`, and once inside the commander it clones.
+ * Both figures are measured on a fresh docked career, galaxy 1.
  *
- * So 20 named saves is about 2.9 MB, plus about 0.6 MB for each career's own
- * checkpoint and `FLIGHT_RING`, against a typical 5 MB origin budget. 20 STAYS.
- * It is still the number that a player can reach only deliberately, and a lower
- * cap would take slots away to pay for a cost the shelf did not choose. But it is
- * no longer only a guard rail against a stuck finger. Several careers with a full
- * shelf is now within sight of the budget. A full store fails the write and keeps
- * what was there (`writeItem`), rather than corrupt it.
+ * So 20 named saves is about 2.9 MB. Each career's own checkpoint and
+ * `FLIGHT_RING` add about 0.6 MB. A typical origin budget is 5 MB. 20 STAYS.
+ * It is still the number that a player can reach only deliberately. A lower cap
+ * would take slots away to pay for a cost the shelf did not choose. But it is
+ * no longer only a guard rail against a stuck finger. Several careers with a
+ * full shelf is now within sight of the budget. A full store fails the write.
+ * It keeps what was there (`writeItem`), rather than corrupt it.
  *
  * If it ever binds, the first lever to pull is that DUPLICATED galaxy state. It
  * is not this cap, and it is not a round-off of the pressures.

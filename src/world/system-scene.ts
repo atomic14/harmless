@@ -63,8 +63,9 @@ export function buildSystemScene(sys: StarSystem): SystemScene {
   const station: THREE.Object3D = built.object;
   const stationDockZ = built.dockZ;
   station.position.copy(stationDir).multiplyScalar(planetRadius * 2.4);
-  // The builder turns the def half a turn (slot on local -Z); lookAt leaves that
-  // pointing away from the planet, so flip: the slot must face the planet.
+  // The builder turns the def half a turn, so the slot sits on local -Z. lookAt
+  // leaves that away from the planet. So flip it: the slot must face the
+  // planet.
   station.lookAt(0, 0, 0);
   station.rotateY(Math.PI);
   root.add(station);

@@ -1,8 +1,9 @@
-// The clock the world advances on: the size of one slice, and the two limits that
-// stop a stalled tab from a catch-up on all of them at once. The slice is the
-// game's. The two limits are the browser frame loop's. It is the same clock from
-// two ends: the sim asks "how long is one step", and the loop asks "how many may
-// one animation frame run".
+// The clock the world advances on. It is the size of one slice, plus the two
+// limits that stop a stalled tab from a catch-up on all of them at once.
+//
+// The slice is the game's. The two limits are the browser frame loop's. It is
+// the same clock from two ends. The sim asks "how long is one step". The loop
+// asks "how many may one animation frame run".
 //
 // The loop is `Game.loop` in game/game.ts. The step is `WorldStep.step` in
 // game/world-step.ts.
@@ -26,8 +27,8 @@ export const MAX_FRAME_TIME = 0.25;
  * catch-up costs more real time than it buys, the backlog grows every frame. At
  * the cap, the loop drops the backlog entirely (`accumulator = 0`).
  *
- * It has its own rule id. It is a count of STEPS in one frame of real time, and
- * it is the only constant at 5 that is about the loop rather than the game.
+ * It has its own rule id. It is a count of STEPS in one frame of real time. It
+ * is the only constant at 5 that is about the loop rather than the game.
  *
  * @rule clock.maxStepsPerFrame
  */
