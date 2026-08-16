@@ -12,6 +12,9 @@ Thumbs.db
 # local scratch (training logs in train/logs/ ARE committed —
 # they're the recorded evidence for docs/TRAINING-LOG.md)
 *.local
+# a root scratch file is on no include list, so no gate ever reads it.
+# tmp-jump.ts sat here from 2026-08-11 and stopped compiling (docs/TODO/164).
+tmp-*.ts
 
 # unposterised model output — kept locally so the posterise can be re-tuned
 # without regenerating (tools/posterise.py), too heavy to commit

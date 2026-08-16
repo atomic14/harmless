@@ -171,3 +171,59 @@ whether the root stays on the include list.
 - **The 12 untouched files are not all gaps.** `game/sounds.ts` exports types
   only, so it can never execute. `game/elite-a/types.ts` is the same. Say so in
   the outcome, or the next reader files them as work.
+
+## What landed
+
+**Both milestones landed on 2026-08-16**, the day the sweep found the item.
+`npm run check` passes at **4,708 assertions**, unchanged. No source file
+moved. The item touched one tool, one tracked scratch file and `.gitignore`.
+
+**M1 is proved by its own output, and the plan predicted all three numbers.**
+`npm run coverage` now reads:
+
+```
+overall 98.3% of executed bytes, 247 of 259 files touched
+
+NEVER EXECUTED (12) — the list that matters:
+```
+
+The "least covered" rows name real files. The list of twelve is the one the
+plan measured.
+
+**The self-check is the gate, and it was proved able to fail.** A copy of the
+tool with `/elite-web/` back in it exits 1 and says why. It reports `only 0 of
+259 files matched a coverage record`, which is one better than the old
+`1 of 260`: the `continue` drops the record that used to become the `undefined`
+row, so the count of files found is honest as well as the failure.
+
+**The gate is a half rather than a threshold on a name.** The suite drives most
+of `src/`, so a touched count under half of the files found means the tool read
+the records wrongly. A wrong root does that. A run from a subdirectory does it
+too, and that is the case the "Watch out for" section named.
+
+**M2's hole was proved before the file went.** `tmp-jump.ts` was added to
+`tsconfig.json`'s `include` for one step, and `npm run lint` then reported:
+
+```
+tmp-jump.ts(13,64): error TS2554: Expected 5 arguments, but got 6.
+```
+
+The file went in with commit 46828fb on 2026-08-11, which is docs/TODO/136. It
+rotted for five days, and no gate could say so. The root came back off the
+include list, as the open question decided. `tmp-*.ts` is in `.gitignore` now.
+
+**Two of the twelve untouched files can never execute**, so do not file them as
+gaps. `game/sounds.ts` and `game/elite-a/types.ts` export types only, and
+neither holds a value export at all. The other ten need a browser. The smallest
+of those ten is `src/main.ts`, at 14 lines, which is the one place a canvas
+becomes a game.
+
+**One number is worth carrying forward, and the plan's table does not hold it.**
+`src/engine/render-stack.ts` is the least covered file in the tree at 66.2%. The
+plan's table listed the five least covered files that are NOT browser-bound, and
+render-stack is browser-bound. `src/game/screens/chart.ts` at 89.3% is
+docs/TODO/163, which is the next item in the queue.
+
+**The tool stays outside `npm run check`**, as the open question decided. It
+runs the whole suite a second time under `NODE_V8_COVERAGE`, at about 20
+seconds, and the self-check answers the same worry for nothing.

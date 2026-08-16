@@ -13,39 +13,37 @@ active context:
 
 ## Execution queue
 
-**Seven items, and they came out of one sweep on 2026-08-16.** Chris asked for
+**Six items, and they came out of one sweep on 2026-08-16.** Chris asked for
 an architectural and bug sweep against a tree where `npm run check` passed. The
 order below is by value over cost, and not by severity.
 
-1. [164 — the tool that reports every file as untested](164-the-tool-that-reports-every-file-as-untested.md)
-   · defect · small. `tools/coverage.mjs:34` splits a path on `/elite-web/`, and
-   the checkout is `harmless`. So the tool names all 259 files as never
-   executed. The real number is 12. It also deletes `tmp-jump.ts`, which git
-   tracks, which no gate reads, and which no longer compiles.
-2. [163 — the chart key that needs a browser](163-the-chart-key-that-needs-a-browser.md)
+1. [163 — the chart key that needs a browser](163-the-chart-key-that-needs-a-browser.md)
    · defect · small. `screens/chart.ts:194` reaches for `document` rather than
    the seam beside it, so type-to-find throws under node. No headless test can
    drive that path at all.
-3. [167 — the ledger that pays a rung for one kill](167-the-ledger-that-pays-a-rung-for-one-kill.md)
+2. [167 — the ledger that pays a rung for one kill](167-the-ledger-that-pays-a-rung-for-one-kill.md)
    · defect · small. The comment that justifies the version 2 migration states
    the opposite of what `recordWorkedOff` does.
-4. [165 — a citation that names nothing](165-a-citation-that-names-nothing.md)
+3. [165 — a citation that names nothing](165-a-citation-that-names-nothing.md)
    · defect · small. Three cited plan numbers resolve to no file. One is cited
    from `src/`. 147 was never committed, and 162 rests a decision on it.
-5. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
+4. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
    · defect · medium. `docs/ARCHITECTURE.md` makes three false claims and names
    none of the fourteen modules the decomposition programme created.
-6. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
+5. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
    · gap · medium. `ste:check` reads comments in source. The style's stated
    scope also holds ten markdown documents, and the tool finds no sentence in
    one.
-7. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
+6. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**Nothing in the queue changes a game rule.** Six are defects in a tool, a seam
-or a document. The seventh is a decomposition, and its evidence is five probes
+**Nothing in the queue changes a game rule.** Five are defects in a tool, a seam
+or a document. The sixth is a decomposition, and its evidence is five probes
 that must come back byte-identical.
+
+**164 landed on 2026-08-16 and is below.** It was the head of the sweep's queue,
+and it took two milestones.
 
 **154 landed on 2026-08-16 and is below.** It was the last item in the queue,
 and the largest of the four that came out of the 2026-08-14 review. Its own
@@ -130,6 +128,50 @@ would go if it is ever wanted — the curve takes a plane as a parameter, so a p
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-16
+
+**164 — the tool that reports every file as untested.** `npm run coverage`
+printed a false report, and it printed it with confidence. It said that 259 of
+260 files never ran. The list held `constants/law.ts` and `world-step.ts`, which
+the suite drives thousands of times.
+
+**One line caused all of it.** The tool split every script URL on
+`/elite-web/`, and the checkout is `harmless`. So the split missed, every path
+became `undefined`, and the map collapsed to one key. **The tool's own header
+says which half matters:** the list at the bottom, of files no test touches at
+all. That list was 100% false.
+
+**The fix asks the process rather than a name.** `process.cwd()` is the root
+now. A script from outside the checkout is dropped, rather than collected under
+one `undefined` key. The real picture is **247 of 259 files touched, and 12
+never executed**. Two of the twelve export types only, so do not file them as
+gaps.
+
+**The self-check is the gate, and it is why the item is not just a one-line
+fix.** The tool exits 1 when the touched count is under half of the files
+found. A wrong root does that. So does a run from a subdirectory, which is the
+other way `process.cwd()` can be wrong. Proved able to fail by putting
+`/elite-web/` back.
+
+**Nothing was renamed.** `elite-web-` is the live save namespace, and
+`elite-web-harness-` is the harness one. A rename orphans every save on every
+player's shelf. Chris pinned that on 2026-07-28.
+
+**The second half shares one root with the first.** `tmp-jump.ts` sat in the
+repository root and git tracked it, from commit 46828fb on 2026-08-11.
+`tsconfig.json` includes `src`, `train`, `test` and `tools`, so `npm run lint`
+never read it. It had stopped compiling: `Expected 5 arguments, but got 6`. It
+was added to the include list for one step, to prove the hole was real, and then
+deleted. `tmp-*.ts` is in `.gitignore` now, and the root stayed off the include
+list.
+
+**The tool stays outside `npm run check`.** It runs the whole suite a second
+time under `NODE_V8_COVERAGE`, at about 20 seconds. The self-check answers the
+same worry for nothing.
+
+**The least covered file in the tree is `src/engine/render-stack.ts`, at 66.2%**,
+and it needs a browser. The least covered file that does not is
+`src/engine/keymap.ts`, at 80.5%. `src/game/screens/chart.ts` at 89.3% is
+docs/TODO/163, which is now the head of the queue.
 
 **154 — the comments in src/ are not in Simplified Technical English.** Chris
 asked one question on 2026-08-14: *"Are they in ASD-STE100?"* They were not.

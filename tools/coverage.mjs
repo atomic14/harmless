@@ -16,6 +16,13 @@ import { readFileSync, readdirSync, rmSync, mkdtempSync } from 'node:fs';
 import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 
+// V8 reports an absolute URL for each script. The checkout directory decides
+// how much of that URL to cut, so the tool asks the process rather than a name.
+// A hard-coded `/elite-web/` was here until 2026-08-16. The repository was
+// renamed, the split then missed on every path, and the tool called all 259
+// files untested for weeks (docs/TODO/164).
+const ROOT = process.cwd();
+
 const dir = mkdtempSync(join(tmpdir(), 'cov-'));
 try {
   execFileSync(process.execPath, ['--experimental-strip-types', 'test/run.ts'], {
@@ -31,7 +38,8 @@ const files = new Map();
 for (const f of readdirSync(dir).filter((n) => n.endsWith('.json'))) {
   for (const s of JSON.parse(readFileSync(join(dir, f), 'utf8')).result ?? []) {
     if (!s.url.includes('/src/') || s.url.includes('node_modules')) continue;
-    const rel = s.url.split('/elite-web/')[1];
+    const rel = s.url.split(ROOT + '/')[1];
+    if (!rel) continue; // a script from outside the checkout
     let [cov, tot] = files.get(rel) ?? [0, 0];
     for (const fn of s.functions ?? []) {
       for (const r of fn.ranges) {
@@ -69,3 +77,15 @@ for (const p of never) {
 }
 console.log('\nSome of these need a browser (game.ts, render-stack, screens).');
 console.log('Others do not, and those are the gaps.');
+
+// The tool must fail rather than report a tidy lie. The suite drives most of
+// `src/`, so a touched count under half of the files found means the tool read
+// the coverage records wrongly. A wrong root does exactly that. So does a run
+// from a subdirectory, which leaves every relative path empty.
+const half = (files.size + never.length) / 2;
+if (files.size < half) {
+  console.error(`\nthis report is wrong: only ${files.size} of `
+    + `${files.size + never.length} files matched a coverage record.`);
+  console.error(`run the tool from the repository root; it read ${ROOT}`);
+  process.exit(1);
+}
