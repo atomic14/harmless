@@ -11,6 +11,11 @@
 //
 // Nothing in this file knows a rule. It answers one question: what sentences
 // does a reader of this file actually read?
+//
+// `tools/ste-read-md.mjs` answers the same question for a markdown document. It
+// decides what a heading, a code block and a table are, and it then hands the
+// paragraph to `paragraphs()`, `prose()` and `sentences()` below. So a sentence
+// is split one way for both readers.
 
 /**
  * Every comment in one source file, with the line each one starts on.

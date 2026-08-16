@@ -1,11 +1,16 @@
 // Does the Simplified Technical English checker find what it claims to find?
 //
-// Two halves, and the second one matters more. The first proves that each of
+// Three parts, and the second one matters most. The first proves that each of
 // the three rules fires. The second proves the EXCLUSIONS. A quotation, a name
 // in backticks, a path and a string that holds `//` are all things the checker
 // must leave alone. A checker that reports a false breach asks somebody to
 // rewrite correct prose, and where the prose is a quotation, that is a
 // falsification (docs/TODO/154).
+//
+// The third part proves the markdown reader against one fixture (docs/TODO/168
+// M1). The fixture holds a heading, a code block, a table, a block quotation, a
+// link and a bulleted list. A trial reader joined a whole list into one
+// sentence, so the count that fixture asserts is the point of it.
 //
 // Run: node tools/ste.test.mjs   (also `npm run ste:test`)
 
@@ -15,6 +20,7 @@ import { join } from 'node:path';
 import { tmpdir } from 'node:os';
 import { spawnSync } from 'node:child_process';
 import { comments, proseOf, prose, sentences, words } from './ste-read.mjs';
+import { proseOfMarkdown, titlesOfMarkdown } from './ste-read-md.mjs';
 import { capFor, isInstruction, ingWords, tenseBreaches } from './ste-rules.mjs';
 
 /** A sentence of exactly `n` words, so no assertion below counts by hand. */
@@ -190,6 +196,82 @@ assert.ok(words(only[0].sentence).length > capFor(only[0].sentence));
 assert.deepEqual(ingWords(only[0].sentence).flagged, ['flying']);
 assert.deepEqual(tenseBreaches(only[0].sentence), ['has been']);
 assert.equal(only[0].line, 2);
+
+// --- the markdown reader ----------------------------------------------------
+
+// THE FIXTURE IS THE ASSERTION THAT MATTERS (docs/TODO/168 M1). It holds one of
+// each thing the reader must drop, and one bulleted list. A trial reader joined
+// a whole list into one 43-word sentence, and reported the join as a breach of
+// the cap. The count below is what stops that coming back.
+const DOC = `# The reader reads a document
+
+The ship docks at the
+station.
+
+## The exclusions
+
+\`\`\`
+const x = 1; // a line of code that is far too long to pass the descriptive cap
+\`\`\`
+
+| leg | share |
+| --- | --- |
+| one | half |
+
+> The note holds.
+
+Three things:
+
+- the hull
+- the shield that is fitted to
+  the ship
+- the gun
+
+See [the catalogue](ELITE-A.md) for the rest.
+`;
+
+const read = proseOfMarkdown(DOC).map((p) => p.sentence);
+
+// Seven sentences, and the fixture names each one. A code block, a table and a
+// heading are not among them.
+assert.deepEqual(read, [
+  'The ship docks at the station.',
+  'The note holds.',
+  'Three things:',
+  '- the hull',
+  '- the shield that is fitted to the ship',
+  '- the gun',
+  'See the catalogue for the rest.',
+]);
+
+// A heading is a title rather than a sentence, so it comes back on its own
+// list. `CLAUDE.md` gives a title its own rules, and a 20-word cap never fires
+// on one.
+assert.deepEqual(titlesOfMarkdown(DOC), [
+  { line: 1, title: 'The reader reads a document' },
+  { line: 6, title: 'The exclusions' },
+]);
+
+// A link keeps its text and loses its target. The target reaches the word count
+// as a word without this, because a name with no slash in it is not a path.
+assert.equal(proseOfMarkdown('See [the catalogue](ELITE-A.md) now.')[0].sentence,
+  'See the catalogue now.');
+
+// A fenced block is dropped whole, and the paragraphs on each side of it stay
+// apart. A block deleted outright would join them into one long sentence.
+assert.deepEqual(proseOfMarkdown('The ship docks.\n\n```\ncode\n```\n\nThe slot opens.')
+  .map((p) => p.sentence), ['The ship docks.', 'The slot opens.']);
+
+// A block quotation is READ, and docs/TODO/168 M1 said to drop it. Measured
+// over the ten documents, every quotation of a person is inline, and the
+// `*"..."*` mask already answers it. A dropped block would exempt 95 lines of
+// house prose.
+assert.deepEqual(proseOfMarkdown('> Chris said *"it flies well"* to me.')
+  .map((p) => p.sentence), ['Chris said QUOTE to me.']);
+
+// The line number is the line the paragraph starts on, as it is in source.
+assert.deepEqual(proseOfMarkdown('# A title\n\nThe ship docks at the\nstation.'),
+  [{ line: 3, sentence: 'The ship docks at the station.' }]);
 
 // --- the gate, and the proof that it can fail -------------------------------
 
