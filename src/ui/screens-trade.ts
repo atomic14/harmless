@@ -4,10 +4,10 @@
 // (`game/screens/trade.ts`), and one subject — what a station will sell you and
 // what it will pay.
 //
-// `equipRows` is exported beside the painter it feeds, and that is deliberate:
-// what is on the shelf, what it costs and whether she can afford it is one
-// question, and `test/trade.test.ts` and `test/economy.test.ts` both ask it
-// without painting anything.
+// `equipRows` is exported beside the painter it feeds, and that is deliberate.
+// What is on the shelf, what it costs, and whether she can afford it are one
+// question. `test/trade.test.ts` and `test/economy.test.ts` both ask it, and
+// neither paints anything.
 
 import { type StarSystem, type MarketEntry, COMMODITIES } from '../galaxy/galaxy.ts';
 import { type CommanderData, cargoTonnes, consignedTonnes, formatCredits, cargoCapacity } from '../game/commander.ts';
@@ -17,9 +17,9 @@ import { EQUIPMENT_CATALOGUE } from '../constants/shop.ts';
 import { show } from './screen-shell.ts';
 
 /**
- * @param fuel what the station charges for fuel, or null where none is sold —
- *   a rock hermit trades cargo but cannot fill your tank, and a price for
- *   something unbuyable is worse than no price. The caller decides which.
+ * @param fuel what the station charges for fuel, or null where none is sold.
+ *   A rock hermit trades cargo, and cannot fill your tank. A price on something
+ *   nobody will sell is worse than no price. The caller decides which.
  */
 export function renderMarket(
   sys: StarSystem,
@@ -29,8 +29,8 @@ export function renderMarket(
   fuel: FuelQuote | null = null,
 ): void {
   // Which tonnes are spoken for (docs/TODO/143). The sale of a consignment is
-  // legal and stays legal, and the measurement says it never pays — but the
-  // hold kept the answer to itself, and the one market with no bulletin board
+  // legal and stays legal, and the measurement says it never pays. The hold
+  // kept that answer to itself, and the one market with no bulletin board
   // beside it is a rock hermit. So the row carries it. `--hud-amber` is the
   // colour renderContracts already spends on a flagged job below, for the same
   // reason: flagged, not disguised.

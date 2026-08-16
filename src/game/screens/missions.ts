@@ -1,13 +1,14 @@
 // The Navy's orders: what it wants doing, where, and what her gun is worth.
 //
-// The screen GitHub #27 asked for. A briefing that is said one time, for five
-// seconds, and is then unreachable is the same as no briefing at all — so the
-// mission has a home here, and the one amber line under the station menu went
-// back to being a summary rather than the only copy of it.
+// The screen GitHub #27 asked for. A briefing said one time, for five seconds,
+// and then unreachable, is the same as no briefing at all.
 //
-// THE NAVY'S ORDERS ONLY, since docs/TODO/145. Board work has its own screen: a
-// contract and a mission are two kinds of thing, and one screen holding both
-// left the bulletin board saying the same thing twice (Chris, 2026-08-13).
+// So the mission has a home here. The one amber line under the station menu
+// went back to a summary, rather than the only copy of it.
+//
+// THE NAVY'S ORDERS ONLY, since docs/TODO/145. Board work has its own screen. A
+// contract and a mission are two kinds of thing. One screen that held both left
+// the bulletin board saying the same thing twice (Chris, 2026-08-13).
 //
 // It reads, and it changes nothing. `game/missions.ts` owns what the leg is.
 

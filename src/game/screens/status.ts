@@ -1,7 +1,7 @@
 // Commander status: what you are flying, carrying and wanted for.
 //
-// The simplest screen in the game, and a good one to read first if you are
-// about to write another: it is the whole Screen contract and nothing else.
+// The simplest screen in the game, and a good one to read first before you
+// write another. It is the whole Screen contract, and nothing else.
 
 import type { CommanderData } from '../commander.ts';
 import { renderStatus } from '../../ui/screens.ts';

@@ -1,15 +1,17 @@
 // The human's hands, turned into a FlightDemand.
 //
-// This is the other half of the seam player.ts opens: a PURE function from
-// "what is held down" to "what the pilot wants", so the same ship flies for a
-// person, a policy and a replay. It reads no globals, mutates nothing, and
-// runs under node — which is why the ramp it applies can finally be asserted
-// against the model rather than described in a comment.
+// This is the other half of the seam player.ts opens. It is a PURE function
+// from "what is held down" to "what the pilot wants". So the same ship flies
+// for a person, a policy and a replay.
 //
-// The ramp lives HERE rather than in the ship because the ramp belongs to the
-// pilot: this one is the classic keyboard-analogue feel (RATE_RAMP up,
-// RATE_DECAY down, capped at MAX_ROLL/MAX_PITCH), and the combat computer's
-// is deliberately a different one. See FlightDemand.
+// It reads no globals. It mutates nothing. It runs under node. That is why a
+// test can finally assert the ramp it applies against the model, rather than
+// read it in a comment.
+//
+// The ramp lives HERE rather than in the ship, because the ramp belongs to the
+// pilot. This one is the classic keyboard-analogue feel: RATE_RAMP up,
+// RATE_DECAY down, capped at MAX_ROLL/MAX_PITCH. The combat computer's is
+// deliberately a different one. See FlightDemand.
 //
 // Mouse DECAY is not done here: `decayMouse` mutates the Input, and a pure
 // producer must not. The caller does it, immediately after reading — see

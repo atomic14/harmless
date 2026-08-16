@@ -1,14 +1,17 @@
 // Which of the commander's two shields a hit lands on.
 //
 // One line of geometry, and it had two homes. `Combat.hitPlayer` turned the
-// attacker's position into the ship's own frame and read the sign of z; a
-// training episode dotted the nose against the direction to the shooter. They
-// are the same rule written twice — `forward · v > 0` IS `v_local.z < 0`, for
-// exactly the reason `forward` is `(0,0,-1)` rotated by the same quaternion —
-// and "the same rule written twice, agreeing" is what this project is organised
-// against rather than what it settles for. Neither copy could be changed without
-// someone remembering the other: which face a shot lands on decides which pool
-// it spends, and the commander has two of them (docs/TODO/64).
+// attacker's position into the ship's own frame, and read the sign of z. A
+// training episode dotted the nose against the direction to the shooter.
+//
+// They are the same rule written twice. `forward · v > 0` IS `v_local.z < 0`,
+// for exactly the reason `forward` is `(0,0,-1)` rotated by the same
+// quaternion. "The same rule written twice, agreeing" is what this project is
+// organised against, rather than what it settles for.
+//
+// Neither copy could move without somebody who remembered the other. Which face
+// a shot lands on decides which pool it spends, and the commander has two of
+// them (docs/TODO/64).
 //
 // HERS, and only hers. A ship carries one bank and has no facing at all
 // (npc.ts `takeDamage`), so there is nothing here for an NPC to ask.

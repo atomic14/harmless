@@ -1,10 +1,10 @@
 // The question the station asks before it will do anything else: there is
 // somebody in your crew spaces — what happens to them?
 //
-// It opens on docking with a survivor aboard and IT CANNOT BE ESCAPED. Docking
-// used to file them with station medical in the same breath as resetting your
-// shields (station.ts), so the one genuinely moral act in the game cost nothing
-// and meant nothing (docs/TODO/127). A prompt that Escape dismissed would put
+// It opens on a dock with a survivor aboard, and IT CANNOT BE ESCAPED. A dock
+// used to file them with station medical in the same breath as a shield reset
+// (station.ts). So the one genuinely moral act in the game cost nothing and
+// meant nothing (docs/TODO/127). A prompt that Escape dismissed would put
 // that back: "do nothing" would resolve it in the decent direction for free.
 //
 // The screen decides nothing itself. `game/survivors.ts` owns what each answer
@@ -63,9 +63,9 @@ export class SurvivorsScreen implements Screen {
       ctx.release();
       return 'back';
     }
-    // Everything else, Escape included, is refused and re-asked. The station
-    // is not going to forget about the person in your ship, and the noise is
-    // how a player learns that this one is not a screen they can leave.
+    // Everything else, Escape included, is refused and asked again. The
+    // station will not forget the person in your ship. The noise is how a
+    // player learns that this is not a screen she can leave.
     if (i.pressed('Escape')) {
       sfx.refused();
       this.render();

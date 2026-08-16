@@ -1,10 +1,12 @@
 // The shop: what a purchase costs right now, and what you already own.
 //
 // The price list itself is constants/shop.ts. This is the arithmetic over it:
-// nothing here reads or writes a save — it takes a commander and answers a
-// question about money. (The rules lived in commander.ts once, so "what does
-// fuel cost?" was answered by the file about who the player is; a price list
-// is not something that persists between sessions.)
+// nothing here reads or writes a save. It takes a commander, and answers a
+// question about money.
+//
+// (The rules lived in commander.ts once. So the file about who the player is
+// answered "what does fuel cost?". A price list does not persist between
+// sessions.)
 
 import type { CommanderData } from './commander.ts';
 import { MAX_FUEL, MAX_MISSILES } from '../constants/commander.ts';
@@ -36,12 +38,13 @@ export interface FuelQuote {
 /**
  * The refuelling quote, for any screen that wants to show it.
  *
- * Exists because the price is now quoted in two places — the outfitters and the
- * market — and the per-LIGHT-YEAR figure a shopper reads is a unit conversion
- * of `FUEL_PRICE` (which is per tenth of a LY). That conversion is a pricing
- * rule, so it lives here rather than being spelled `* 10` in the renderer: this
- * is the same file whose comment above records what happened the last time a
- * fuel sum was written in the render layer.
+ * It exists because two places now quote the price: the outfitters and the
+ * market. The per-LIGHT-YEAR figure a shopper reads is a unit conversion of
+ * `FUEL_PRICE`, which is per tenth of a LY.
+ *
+ * That conversion is a pricing rule, so it lives here rather than as a `* 10`
+ * in the renderer. The comment above records what happened the last time a fuel
+ * sum went into the render layer.
  */
 export function fuelQuote(c: { fuel: number }): FuelQuote {
   const needed = fuelNeeded(c);

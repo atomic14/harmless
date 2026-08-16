@@ -1,8 +1,14 @@
-// Keyboard layouts. CLASSIC is the 1984 BBC original and the default:
-//   < > (comma/period) roll · S dive / X climb · SPACE/slash speed · A fire
-// MODERN is the WASD scheme for contemporary muscle memory.
-// Arrow keys fly in both (flight-style: down pulls up). Command keys
-// (T/M/U/E/J/C/K/H/N/G/I/P/TAB/1-4) are identical in both layouts.
+// Keyboard layouts. CLASSIC is the 1984 BBC original, and the default:
+//
+//   - `<` and `>` (comma and period) roll;
+//   - S dives and X climbs;
+//   - SPACE and slash set the speed;
+//   - A fires.
+//
+// MODERN is the WASD scheme, for a modern player's muscle memory.
+//
+// The arrow keys fly in both, flight-style: down pulls up. The command keys are
+// identical in both layouts: T, M, U, E, J, C, K, H, N, G, I, P, TAB and 1-4.
 
 export type LayoutName = 'classic' | 'modern';
 
@@ -58,9 +64,9 @@ export function keymap(): Keymap {
  * Both layouts, for the manual page.
  *
  * CLAUDE.md's key-bindings invariant asks for one home per binding. The
- * manual would have been another. It renders from this instead, so it cannot
- * drift — a binding changed here is changed there, and the same is true of the
- * command keys, which render from `BINDINGS` via `ui/key-help.ts`.
+ * manual was another home. It renders from this instead, so it cannot drift. A
+ * binding changed here is changed there. The same holds for the command keys,
+ * which render from `BINDINGS` via `ui/key-help.ts`.
  */
 export function allLayouts(): Record<LayoutName, Keymap> {
   return LAYOUTS;

@@ -1,10 +1,11 @@
 // Which way the station's docking slot faces.
 //
 // Three lines, and they had two homes: `station.ts` exported this while
-// `world/system-scene.ts` recomputed it inline to place the launch marker. That
-// is the failure this project is organised against, in miniature — and it only
-// surfaced because importing the station's version into `spawning.ts` created
-// an import cycle that ran spawning -> station -> screens -> combat-sim.
+// `world/system-scene.ts` recomputed it inline, to place the launch marker.
+// That is the failure this project is organised against, in miniature.
+//
+// It surfaced only because the station's version imported into `spawning.ts`
+// created an import cycle: spawning -> station -> screens -> combat-sim.
 //
 // It lives in `world/` because `world/` never imports `game/`: this is geometry
 // about an object in the sky, not a rule about docking with it.

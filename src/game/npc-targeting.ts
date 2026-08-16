@@ -1,8 +1,8 @@
 // Who is hunting whom, among the NPCs.
 //
-// Part of the world step: it decides the fights the player is not in. Pirates
-// prey on traders, the law hunts pirates, and bounty hunters join in only when
-// the player is clean — a hunter with a fugitive in the system has better
+// Part of the world step. It decides the fights the player is not in. Pirates
+// prey on traders. The law hunts pirates. Bounty hunters join in only while the
+// player is clean, because a hunter with a fugitive in the system has better
 // things to do.
 //
 // Pure logic over the fleet, so it is unit-testable: no scene, no renderer,
@@ -39,10 +39,11 @@ function nearest(
 /**
  * Give every idle NPC something to hunt.
  *
- * Ships keep a target while it is alive, so this only fills in the gaps. It
- * also prunes stale attacker links first: a trader tracks who is shooting at
- * it (that is what makes it flee and call for help), and those entries go
- * stale when the attacker dies or picks someone else. The list belongs to the
+ * A ship keeps a target while it is alive, so this only fills in the gaps.
+ *
+ * It prunes stale attacker links first. A trader tracks who shoots at it, and
+ * that is what makes it flee and call for help. Those entries go stale once the
+ * attacker dies or picks somebody else. The list belongs to the
  * ship — this asks for it to be pruned rather than splicing it from outside.
  */
 export function assignNpcTargets(

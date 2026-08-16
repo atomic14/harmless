@@ -28,10 +28,10 @@ export const emptyFilter = (): Filter => ({
 });
 
 /**
- * An empty set means "no constraint", which is the opposite of what a set
- * usually means and is worth being explicit about: a rail with nothing ticked
- * shows everything, because that is what a person expects of a filter they
- * have not touched yet. Ticking one economy narrows to it.
+ * An empty set means "no constraint". That is the opposite of what a set
+ * usually means, so it is worth a sentence. A rail with nothing ticked shows
+ * everything, because that is what a person expects of a filter nobody touched
+ * yet. One economy ticked narrows to it.
  */
 export function matches(e: Entry, f: Filter): boolean {
   if (f.economies.size && !f.economies.has(e.economy)) return false;
@@ -68,9 +68,9 @@ export function facetsOf(entries: Entry[]): Facets {
   const spe = tally((e) => e.species);
 
   return {
-    // Economy and government keep their 1984 order, because that order is the
-    // one the game shows everywhere else and a reader moving between the two
-    // should not have to re-find their place.
+    // Economy and government keep their 1984 order. The game shows that order
+    // everywhere else. A reader who moves between the two never has to find
+    // her place again.
     economies: [...eco.entries()].sort((a, b) => a[0] - b[0])
       .map(([value, count]) => ({ value, label: ECONOMY_NAMES[value], count })),
     governments: [...gov.entries()].sort((a, b) => a[0] - b[0])

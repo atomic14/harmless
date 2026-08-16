@@ -31,8 +31,8 @@ import * as THREE from 'three';
 /**
  * What the host needs from the running exercise: seven verbs, no Game.
  *
- * As an interface rather than a closure over `this`, the exercise's entire
- * influence over the world step is a list you can read in one screen.
+ * It is an interface rather than a closure over `this`. So the exercise's whole
+ * influence over the world step is a list you read in one screen.
  */
 export interface ExerciseVerbs {
   fighting(): boolean;
@@ -73,15 +73,17 @@ export function exerciseStepHost(x: ExerciseVerbs): StepHost {
  * Layer 1. The commander the exercise flies: a clone, with no cargo and no
  * reputation.
  *
- * What is DROPPED matters as much as what is kept. No cargo, so a breach cannot
- * cost a tonne carried for a contract and a scan cannot read contraband; no
- * contracts, so a simulated pirate cannot tick a bounty job along; no legal
- * status, so an exercise cannot make you a Fugitive.
+ * What is DROPPED matters as much as what is kept:
  *
- * `kills` and `combatScore` are COPIED rather than zeroed: they are the two
- * fields the rule is about, and copying them means the exercise credits this
- * clone exactly as the game credits you — so the difference between the two
- * objects afterwards is the proof, rather than an absence of evidence.
+ *   - no cargo, so a breach cannot cost a tonne held for a contract, and a scan
+ *     cannot read contraband;
+ *   - no contracts, so a simulated pirate cannot tick a bounty job along;
+ *   - no legal status, so an exercise cannot make you a Fugitive.
+ *
+ * `kills` and `combatScore` are COPIED rather than zeroed. They are the two
+ * fields the rule is about. Copied, the exercise credits this clone exactly as
+ * the game credits you. So the difference between the two objects afterwards is
+ * the proof, rather than an absence of evidence.
  */
 export function exerciseCommander(career: CommanderData, fit: ExerciseFit = {}): CommanderData {
   const c = structuredClone(career);

@@ -2,19 +2,22 @@
 // whole-point number one of the two damage models will accept.
 //
 // The numbers themselves are `constants/impact.ts` — Harmless policy, with the
-// anchors and the argument beside the values. What this file owns is the UNIT
-// DISCIPLINE: an impact row is plain data, and the only way it becomes
-// spendable is through one of the two functions below, each minting the brand
-// (`damage-units.ts`) for exactly one of the two incomparable banks.
+// anchors and the argument beside the values.
 //
-// The functions take NO TARGET. That is the structural reason a ram cannot be
-// halved by the Constrictor's flag or shrugged off by a station's immunity:
-// there is nothing to consult. Both of those ride on the player's LASER only
+// What this file owns is the UNIT DISCIPLINE. An impact row is plain data. It
+// becomes spendable only through one of the two functions below. Each one mints
+// the brand (`damage-units.ts`) for exactly one of the two incomparable
+// banks.
+//
+// The functions take NO TARGET. That is the structural reason the Constrictor's
+// flag cannot halve a ram, and a station's immunity cannot shrug one off. There
+// is nothing to consult. Both of those ride on the player's LASER only
 // (`npc-energy.ts`), and `test/damage-paths.test.ts` holds the separation.
 //
-// A row with `null` in a column is "there is no such path", not "we did not
-// decide": the type system refuses it at the call site, because `null` is not
-// a `number`, and the mint refuses it at runtime for anything that gets past.
+// A row with `null` in a column means "there is no such path". It does not mean
+// "we did not decide". The type system refuses it at the call site, because
+// `null` is not a `number`. The mint refuses it at run time for anything that
+// gets past.
 
 import {
   npcEnergyPoints, playerPoolPoints,

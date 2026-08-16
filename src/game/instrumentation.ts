@@ -2,10 +2,11 @@
 //
 // The human-flight combat recorder used to replace Game methods at runtime:
 // applyPlayerDamage, fireLaser and update, plus NpcShip.update on its prototype.
-// That recorder has since been absorbed by the typed CombatSimRecorder.  This
-// small seam keeps the one fact only production can publish — what damaged the
-// player — available to future console recorders without making a Game method's
-// name, visibility or argument order into an instrumentation API.
+// The typed CombatSimRecorder has since absorbed that recorder.
+//
+// This small seam keeps one fact available to a future console recorder: what
+// damaged the player. Only production can publish it. No Game method's name,
+// visibility or argument order becomes an instrumentation API.
 
 import * as THREE from 'three';
 
@@ -25,9 +26,9 @@ export interface CombatObserver {
 }
 
 /**
- * The optional observer slot, separate from Game so its no-observer behaviour
- * and the lifetime of a registration can be tested without constructing the
- * renderer, HUD or a world.
+ * The optional observer slot. It is separate from Game, so that a test drives
+ * it with no renderer, no HUD and no world. Two things then get a test: what it
+ * does with no observer at all, and how long a registration lives.
  */
 export class CombatInstrumentation {
   private observer: CombatObserver | null = null;

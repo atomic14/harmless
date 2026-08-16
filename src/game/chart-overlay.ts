@@ -1,10 +1,11 @@
 // What the charts are drawing over the stars, and what `T` cycles through.
 //
-// A neutral module on purpose. `game.ts` owns the current mode, the chart
-// screen cycles it and `ui/screens.ts` paints the result, and if the type lived
-// in any of those three the other two would have to import it from there —
-// which is how `ui/screens.ts` ended up in four of the project's five import
-// cycles before `chart-state.ts` was split out. This is the same fix.
+// A neutral module on purpose. `game.ts` owns the current mode. The chart
+// screen cycles it. `ui/screens.ts` paints the result.
+//
+// The type in any of those three would force the other two to import it from
+// there. That is how `ui/screens.ts` ended up in four of the project's five
+// import cycles, before `chart-state.ts` was split out. This is the same fix.
 //
 // The MODEL for each overlay lives beside its rule in `galaxy/`
 // (`danger-overlay.ts`, `trade-lanes.ts`, `price-divergence.ts`). This file
@@ -16,9 +17,9 @@ import type { PriceDrift } from '../galaxy/price-divergence.ts';
 /**
  * Off, the trade lanes, or the price tells — one at a time.
  *
- * One at a time is the legibility rule 111 established: the galactic chart is
- * 780x400 with 256 systems on it, and two overlays plus the danger rings is
- * three pictures at once.
+ * One at a time is the legibility rule 111 established. The galactic chart is
+ * 780x400, with 256 systems on it. Two overlays plus the danger rings is three
+ * pictures at once.
  */
 export type ChartOverlay = 'none' | 'routes' | 'prices';
 

@@ -3,10 +3,12 @@
 //
 // Reachable from the docked menu, the galactic chart and the short-range
 // chart, and Escape has to go back to whichever one you came from. That used
-// to need a `dataReturn: 'docked' | 'chart' | 'local'` field on the Game, set
-// on the way in and consulted on the way out — a one-deep return stack for a
-// single screen. Pushing it on the real stack deletes the problem: `back`
-// returns to whatever is underneath, whatever that happens to be.
+// to need a `dataReturn: 'docked' | 'chart' | 'local'` field on the Game. It
+// was set on the way in and consulted on the way out: a one-deep return stack
+// for a single screen.
+//
+// The real stack deletes the problem. `back` returns to whatever is underneath,
+// whatever that happens to be.
 
 import { renderSystemData } from '../../ui/screens.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';

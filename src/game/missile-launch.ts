@@ -10,12 +10,12 @@ import {
 /**
  * Is this ship in enough trouble to spend a missile?
  *
- * Two ways in, each a REASON rather than a roll — a missile is something a
- * ship EARNS by engaging, not a die rolled from a stand-off distance band:
+ * Two ways in, and each is a REASON rather than a roll. A ship EARNS a missile
+ * in the fight. It is not a die rolled off a stand-off distance band:
  *
  *   - `hull <= MISSILE_LAST_STAND_HULL` — about to die, spend it or lose it.
- *   - `passes >= MISSILE_COMMIT_PASSES` — it has flown at the target twice and
- *     the target is still flying ("tougher than you thought").
+ *   - `passes >= MISSILE_COMMIT_PASSES` — it flew at the target twice, and the
+ *     target is still in the air ("tougher than you thought").
  *
  * The range and bearing gates apply on top: `dist` inside the seeker's
  * envelope, and a bearing the ship could plausibly launch on.

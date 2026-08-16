@@ -3,14 +3,14 @@
 // It is the 1984 ladder, with Below Average in the place the original had it.
 // That makes ten rungs, not nine. The functions that read it (`rating`,
 // `ratingLadder`) are in game/rating.ts. The manual renders the chart from the
-// same table. That is the fix for the day when the manual listed the nine ranks
-// it could remember: a commander could read their own rating off the status
-// screen, and then fail to find it on the chart.
+// same table. That is the fix for the day the manual listed the nine ranks it
+// could remember. A commander could read her own rating off the status screen,
+// and then fail to find it on the chart.
 //
 // The score that climbs the ladder is `combatScore`: kills weighted by threat
-// tier (`killValue` in game/commander.ts). It is a deliberate deviation from the
-// original's flat body count, so the fastest route to E L I T E is not a farm of
-// the weakest thing you can find.
+// tier (`killValue` in game/commander.ts). It is a deliberate deviation from
+// the original's flat body count. So the fastest route to E L I T E is not a
+// farm of the weakest thing you can find.
 
 /**
  * Score thresholds and the name that each one earns, lowest first.

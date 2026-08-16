@@ -8,7 +8,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | Domain | Symbol | Literal / expression | Purpose | Rule ID | Source |
 | --- | --- | --- | --- | --- | --- |
 | amble | <code>AMBLE_NEAR</code> | <code>800</code> | The nearest a waypoint sits to the station, for a role the truce does not cover. | <code>amble.near</code> | [amble.ts:28](./amble.ts#L28) |
-| amble | <code>AMBLE_SPAN</code> | <code>2500</code> | ...and how much further out a waypoint may be drawn, flat. | <code>amble.span</code> | [amble.ts:47](./amble.ts#L47) |
+| amble | <code>AMBLE_SPAN</code> | <code>2500</code> | ...and how much further out a waypoint may be drawn, flat. | <code>amble.span</code> | [amble.ts:48](./amble.ts#L48) |
 | attack-run | <code>BREAK_OFF_RANGE</code> | <code>220</code> | A ship this close to what it fights stops the closure and turns away. |  | [attack-run.ts:16](./attack-run.ts#L16) |
 | attack-run | <code>EXTEND_RANGE_MIN</code> | <code>500</code> | The band that a ship's own turn-back range is rolled from, each time it extends. |  | [attack-run.ts:23](./attack-run.ts#L23) |
 | attack-run | <code>EXTEND_RANGE_MAX</code> | <code>850</code> |  |  | [attack-run.ts:24](./attack-run.ts#L24) |

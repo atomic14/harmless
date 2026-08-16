@@ -2,11 +2,12 @@
 // the cockpit beams drawn in camera space.
 //
 // Pulled out of Game's constructor because it is the one thing keeping the
-// game from being constructed without a browser. Every rule the world step
-// needs now lives in a module that imports nothing but maths — three.js itself
-// runs happily under node, with no canvas and no WebGL, and the tests prove it
-// by building hulls and firing rays at them. What does NOT run headless is
-// WebGLRenderer, and this is where it is confined.
+// game from a construction without a browser. Every rule the world step needs
+// now lives in a module that imports nothing but maths.
+//
+// three.js itself runs happily under node, with no canvas and no WebGL. The
+// tests prove it: they build hulls and fire rays at them. What does NOT run
+// headless is WebGLRenderer, and this is where it is confined.
 //
 // Keeping the beams here is deliberate: they are children of the camera, so
 // they belong to whatever owns the camera.
@@ -71,13 +72,17 @@ export function createRenderStack(canvas: HTMLCanvasElement, scene: THREE.Scene)
     renderer.setSize(width, height);
     composer.setSize(width, height);
     camera.aspect = width / height;
-    // Lift the gun axis to SIGHT_Y BEFORE building the projection: the eye's
-    // centre is above the canvas centre. setViewOffset shifts the frustum (a
-    // lens shift) rather than the sight, which keeps the crosshair, the beams
-    // and the shot on one axis — moving the *crosshair* up instead is what put
-    // the sight 4.6 degrees above the shot for so long.
+    // Lift the gun axis to SIGHT_Y BEFORE the projection is built. The eye's
+    // centre is above the canvas centre.
+    //
+    // setViewOffset shifts the frustum, which is a lens shift, rather than the
+    // sight. That keeps the crosshair, the beams and the shot on one axis. The
+    // *crosshair* moved up instead is what put the sight 4.6 degrees above the
+    // shot for so long.
+    //
     // +lift: the view window starts BELOW the virtual image top, which pushes
-    // the frustum centre up the screen. (Negative moves it down — measured.)
+    // the frustum centre up the screen. A negative value moves it down, and
+    // that is measured.
     camera.setViewOffset(width, height, 0, (0.5 - SIGHT_Y) * height, width, height);
     camera.updateProjectionMatrix();
     return (height / 2) / Math.tan((camera.fov * Math.PI) / 360);

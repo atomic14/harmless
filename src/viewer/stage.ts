@@ -1,9 +1,9 @@
 // The canvas, the camera and the bloom — the part both dev pages share.
 //
 // There are two of them now (TODO 57): `/viewer` is the combat viewer and
-// `/gallery` is the 38 released hulls. They used to be one page with a `G` key
-// between them, which meant `/viewer` opened on the gallery with a combat
-// dropdown underneath it and the combat viewer read as deleted.
+// `/gallery` is the 38 released hulls. They used to be one page, with a `G` key
+// between them. So `/viewer` opened on the gallery, with a combat dropdown
+// underneath it, and the combat viewer read as deleted.
 //
 // What they genuinely share is the scaffolding: a WebGL context, a bloom pass at
 // one strength, a starfield and a resize handler. That is here so there is one
@@ -33,10 +33,10 @@ export function createStage(): Stage {
   renderer.setPixelRatio(Math.min(window.devicePixelRatio, MAX_PIXEL_RATIO));
   const scene = new THREE.Scene();
   // 55 degrees, NOT the game's CAMERA_FOV of 60, and 200,000 rather than
-  // CAMERA_FAR. Nowhere records whether the difference is deliberate, so they
-  // stay literals: reaching for the game's constants here would reframe both
-  // dev pages, and that is a decision to MAKE having looked at the two rather
-  // than a side effect of tidying. The bloom and the pixel-ratio clamp DID
+  // CAMERA_FAR. Nothing records whether the difference is deliberate, so they
+  // stay literals. A reach for the game's constants here would reframe both
+  // dev pages. That is a decision to MAKE, after a look at the two, rather than
+  // a side effect of a tidy-up. The bloom and the pixel-ratio clamp DID
   // belong with engine/render-stack.ts, and went there: they are
   // `constants/render.ts` now, read by both (docs/TODO/118).
   const camera = new THREE.PerspectiveCamera(55, 1, 1, 200000);
