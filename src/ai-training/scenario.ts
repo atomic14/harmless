@@ -40,9 +40,8 @@ import * as THREE from 'three';
 
 import { PlayerShip, rampToward, type FlightDemand } from '../player.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
-import {
-  NpcShip, steerQuatToward, type FireEvent, type PlayerRef,
-} from '../game/npc.ts';
+import { NpcShip, type FireEvent, type PlayerRef } from '../game/npc.ts';
+import { steerQuatToward } from '../game/flight-maths.ts';
 import {
   BRAIN_RATE_DECAY, BRAIN_RATE_RAMP, DECISION_INTERVAL,
 } from '../constants/brain-flight.ts';

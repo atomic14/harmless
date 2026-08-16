@@ -18,7 +18,8 @@
 import * as THREE from 'three';
 import type { World } from './world.ts';
 import type { PopulationPlan } from './population.ts';
-import { steerQuatToward, type NpcShip } from './npc.ts';
+import type { NpcShip } from './npc.ts';
+import { steerQuatToward } from './flight-maths.ts';
 import { pirateSpecForTier, CONSTRICTOR_SPEC } from './ship-specs.ts';
 import { memberTier } from './threat.ts';
 import { slotNormal } from '../world/slot.ts';

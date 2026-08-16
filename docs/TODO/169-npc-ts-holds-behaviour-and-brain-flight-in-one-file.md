@@ -4,6 +4,113 @@
 nothing · **Blocks:** nothing · **GitHub:** none — promoted from the backlog by
 the sweep of 2026-08-16
 
+## What M3 landed, 2026-08-17
+
+**THE SPLIT THE DEBT ROW NAMED FOR MONTHS DOES NOT CLEAR THE BAR.** M3 measured
+the flight half first, as the plan told it to. The measurement refuses the
+split. What left instead is the shared maths, at `src/game/flight-maths.ts`.
+`npc.ts` is 1,536 lines. `npm run check` passes at 4,752 assertions.
+
+**This is docs/TODO/150's lesson for the second time in one item.** The plan
+predicted it in as many words: each time a plan names a favourite, the
+measurement names something else. M2 was the first time. M3 is the second.
+
+### The measurement that refuses the split
+
+**The flight half is 158 lines of body, and `brainFly` is 101 of them.** The
+plan's figure of 244 counts the doc comments, and the true count with them is
+230. Neither number is the interesting one.
+
+**`brainFly`, `attack` and `pursue` are decision loops rather than steering
+primitives.** Each one steers, throttles, advances and then pulls a trigger.
+Each one returns a `FireEvent`. `pursue`'s own doc comment says so, and it says
+the three share one shape. The plan calls two of the three behaviour and one of
+them flight. The code draws no such line.
+
+**`pursuitFly` is 11 lines, and it chooses between `attack` and `pursue`.** It
+is a chooser, and the plan files it under flight.
+
+**`matePositions` is an obstacle list, and the plan files it under flight too.**
+It answers which hulls a ship must not fly into.
+
+**The true primitives are `advance`, `steerToward`, `faceToward` and `facing`,
+at 21 lines of body.** That is the whole of what a collaborator could hold.
+
+**The behaviour half reaches across the seam 69 times.** Five members were
+measured. They are `update`, `updateTrader`, `attack`, `pursue` and
+`slashesRatherThanHoldSix`. Between them they make 19 reads of the scratch
+vectors, 30 of the transform and the flight stats, and 20 calls to the
+primitives. A collaborator holding the transform, the rates and the nine
+scratch vectors would answer 69 calls from its own sibling. That is a wide seam
+around a 21-line subject, and it is the plan's own scratch-vector warning made
+into a number.
+
+**Both shapes fail for the same reason, so M2's answer did not decide this
+one.** A collaborator needs the fields the behaviour half writes. Pure functions
+over state need the same fields as parameters. The plan expected the interface
+decision to settle the shape. It settles nothing, because the problem is the
+line, and not the shape.
+
+### What did leave, and why it clears the bar
+
+**`steerQuatToward` and `velocityOf` are `game/flight-maths.ts` now, at 71
+lines.** They are the nose-and-thrust rule: turn toward a heading at a capped
+rate, then thrust along the nose. They hold no state, and they name no class.
+
+**Five files outside the ships read them.** They are `ai-training/scenario.ts`,
+`game/spawning.ts`, `game/spawning-arena.ts`, `hud/hud-model.ts` and
+`test/human-shape.test.ts`. Three of the five wanted no ship class at all, and
+each imported a class file of 1,566 lines to reach a helper of four. Those three
+take a type-only import of `npc.ts` now, and `hud-model.ts` still reads the
+class for its own signatures.
+
+**It is the same argument M2 made, at a smaller size.** A pure function that a
+class file happens to host is a rule in the wrong home.
+
+### The constants gate caught the move, and the plan did not predict it
+
+**`ZERO` and `UP` are named in `test/constants.test.ts`'s own list**, under the
+file that declares them. The move made that entry false, and the gate failed on
+it. It also failed the other way, because `game/npc.ts` was then on the list
+with nothing to account for. Both halves of that check earned their place.
+
+**docs/TODO/90's recorded rule then decided the shape of the fix.** The list's
+reason says a `THREE.Vector3` is mutable, so one shared home is a bug rather
+than a fix. `game/game.ts`, `game/combat-sim.ts` and `player.ts` each keep their
+own pair for that reason. So `flight-maths.ts` keeps a private pair, and
+`npc.ts` keeps its own `ZERO` for the `lookAt` in `updateTrader`. The first
+draft exported one and shared it, which argued with a decision already recorded.
+
+## What M4 found, 2026-08-17
+
+**M4 measures again and stops, which is what the plan asked for.** Two of the
+four candidates left the file. Two remain, and neither one is scheduled.
+
+| what is left | lines | what it costs to move |
+| --- | ---: | --- |
+| the flight half | 158 of body | a 69-call seam around 21 lines of primitive. Refused in M3, with the measurement above. |
+| `NpcState` | 184 | low, and the gain is unclear. Most of the length is the doc comment beside each field. |
+
+**`NpcState` is not recommended, and the plan's open question is answered.** It
+is 184 lines because each field carries the reason it exists. `CLAUDE.md` asks
+for that comment beside the field it describes. A move would carry the prose to
+another file and leave the class reading its own saved shape from a distance.
+The gain is 184 lines off a 1,536-line file, and the cost is one more hop for
+every reader of a field. **Recommendation: leave it.** Revisit it only if
+`snapshot.ts` ever needs the shape without the class.
+
+**The biggest members left are not on the candidate list at all.** `update` is
+154 lines of body, the constructor is 101, `attack` is 83 and `updateTrader` is
+73. `updateTrader` is the trader's whole phase machine, and it is the one that
+most reads as a subject of its own. The constructor builds a ship from a roster
+row, which is a factory. **Neither is proposed here.** Each is a new argument
+rather than this item's, and the queue should get a measurement before it gets a
+plan.
+
+**So the item ends at 1,536 lines**, from 1,632. Two files came out of it, and
+each holds a rule that named no ship class. The file states one responsibility,
+and its header names what is still in the wrong place.
+
 ## What M2 landed, 2026-08-17
 
 **The fleet queries are `src/game/hostility.ts` now, at 169 lines.** `npc.ts`

@@ -17,7 +17,7 @@
 import * as THREE from 'three';
 import type { HudState, ScannerContact, ScreenTarget } from './hud.ts';
 import type { NpcShip } from '../game/npc.ts';
-import { velocityOf } from '../game/npc.ts';
+import { velocityOf } from '../game/flight-maths.ts';
 import { isHostileToPlayer } from '../game/hostility.ts';
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
 import {

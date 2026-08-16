@@ -45,9 +45,8 @@
 
 import * as THREE from 'three';
 import { seedWorld } from '../src/game/rng.ts';
-import {
-  NpcShip, steerQuatToward, type PlayerRef, type WorldView,
-} from '../src/game/npc.ts';
+import { NpcShip, type PlayerRef, type WorldView } from '../src/game/npc.ts';
+import { steerQuatToward } from '../src/game/flight-maths.ts';
 import { pirateSpecForTier } from '../src/game/ship-specs.ts';
 import { SHIPPED_BRAINS } from '../src/game/brain-names.ts';
 import { describeFlight } from '../src/game/break-off.ts';

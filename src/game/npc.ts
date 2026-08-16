@@ -28,21 +28,24 @@
 // `nearestNpc`. This file asks the first of them, like the other seven readers
 // do. It is a rule over a fleet rather than a thing a ship does.
 //
-// THREE THINGS HERE STILL BELONG TO SOME OTHER FILE, and docs/TODO/169 measured
-// all three. This header names them, so the next reader sees the whole shape:
+// THE SHARED MATHS LEFT IN M3, to `game/flight-maths.ts`. `steerQuatToward`
+// and `velocityOf` are the nose-and-thrust rule, and five files outside the
+// ships read them.
 //
-//  1. THE FLIGHT HALF, at 244 lines of the class. `brainFly`, `pursuitFly`,
-//     `steerToward`, `faceToward`, `advance`, `nosePosition`, `facing`,
-//     `bindTransform` and `matePositions` say HOW a ship moves. The behaviour
-//     half says WHERE it goes.
-//  2. `NpcState`, at 184 lines. It is the saved shape of a ship rather than a
-//     behaviour, and a snapshot walks it generically.
-//  3. `steerQuatToward` and `velocityOf`, at 29 lines. Both are shared flight
-//     maths. The HUD's lead marker reads `velocityOf`, and the HUD flies
-//     nothing.
+// THE FLIGHT HALF STAYS, and docs/TODO/169 M3 measured why. It is 158 lines of
+// body, and `brainFly` is 101 of them. `brainFly`, `attack` and `pursue` each
+// steer, throttle, advance and then pull a trigger, so each one returns a
+// `FireEvent`. They are decision loops rather than steering primitives.
 //
-// Each of the three is a candidate rather than a decision. docs/TODO/169 M4
-// measures again, and it says what leaves.
+// The true primitives are `advance`, `steerToward`, `faceToward` and `facing`,
+// at 21 lines. The behaviour half reaches the transform, the turn rate and the
+// nine scratch vectors 69 times. A collaborator that held them would answer 69
+// calls, which is a wide seam around a small subject.
+//
+// ONE THING HERE STILL BELONGS TO SOME OTHER FILE. `NpcState` is 184 lines. It
+// is the saved shape of a ship rather than a behaviour, and a snapshot walks it
+// generically. Most of its length is the doc comment beside each field, which
+// is where `CLAUDE.md` asks for it. It is a candidate rather than a decision.
 import * as THREE from 'three';
 import { buildShip, buildAsteroid, buildHermitBeacon,
   HERMIT_BEACON_ON, HERMIT_BEACON_PERIOD } from '../ships/geometry.ts';
@@ -80,6 +83,7 @@ import { chooseTactic, tacticSwitchReason, type TacticHull } from './tactic-choi
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
 import { truceHolds } from './law.ts';
 import { isHostileToPlayer } from './hostility.ts';
+import { steerQuatToward, velocityOf } from './flight-maths.ts';
 import { STATION_TRUCE } from '../constants/law.ts';
 import { AMBLE_NEAR, AMBLE_SPAN } from '../constants/amble.ts';
 import { separationFrom } from './separation.ts';
@@ -290,8 +294,6 @@ export interface NpcState {
 // Every one of them steers by a turn toward a heading at a capped rate, and a
 // thrust along its nose. That is the player's rule too.
 
-const ZERO = new THREE.Vector3();
-const UP = new THREE.Vector3(0, 1, 0);
 
 export interface PlayerRef {
   position: THREE.Vector3;
@@ -366,41 +368,9 @@ export type FireEvent =
 
 export type TraderPhase = 'arriving' | 'trading' | 'departing' | 'docking';
 
-/**
- * Rotate `quat` so its −Z points along `dir`, by at most `maxStep` radians.
- *
- * The scripted steering rule, as a free function. The training scenarios steer
- * the TARGET with it too, and it is not the target's own rule. It is this one.
- * It mutates `quat` in place, and allocates nothing.
- */
-export function steerQuatToward(
-  quat: THREE.Quaternion, dir: THREE.Vector3, maxStep: number,
-): void {
-  if (dir.lengthSq() < 1) return;
-  steerMat.lookAt(ZERO, dir, UP); // -Z ends up along dir
-  steerQuat.setFromRotationMatrix(steerMat);
-  quat.rotateTowards(steerQuat, maxStep);
-}
-
-const steerMat = new THREE.Matrix4();
-const steerQuat = new THREE.Quaternion();
-
-/**
- * How something with this attitude and this speed is travelling.
- *
- * Nose and thrust are the same direction for everything that flies in this
- * game. `advance()` is the same two lines, and the commander's `update()` is a
- * third. So nobody has to store a target's velocity.
- *
- * The ships derive it here to lead their shots. The HUD's lead marker
- * (hud-model.ts) reads the SAME rule, so the aid and the AI agree about where a
- * target is going. It writes into `out`, and allocates nothing.
- */
-export function velocityOf(
-  quat: THREE.Quaternion, speed: number, out: THREE.Vector3,
-): THREE.Vector3 {
-  return out.set(0, 0, -1).applyQuaternion(quat).multiplyScalar(speed);
-}
+// The origin, for the `lookAt` in `updateTrader`. Per-module by docs/TODO/90's
+// rule: a THREE.Vector3 is mutable, so one shared home would be a bug.
+const ZERO = new THREE.Vector3();
 
 export class NpcShip {
   readonly object: THREE.Object3D;

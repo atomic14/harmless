@@ -21,7 +21,8 @@
 
 import * as THREE from 'three';
 import type { World } from './world.ts';
-import { steerQuatToward, type NpcShip } from './npc.ts';
+import type { NpcShip } from './npc.ts';
+import { steerQuatToward } from './flight-maths.ts';
 import { pirateSpecForTier, SPECS, type NpcSpec } from './ship-specs.ts';
 import type { NpcRole } from './ship-roles.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
