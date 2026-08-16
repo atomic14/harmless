@@ -13,21 +13,33 @@ active context:
 
 ## Execution queue
 
-**Two items, and they came out of one sweep on 2026-08-16.** Chris asked for
-an architectural and bug sweep against a tree where `npm run check` passed. The
-order below is by value over cost, and not by severity.
+**Three items. Two came out of one sweep on 2026-08-16, and one out of the
+triage of GitHub #34 the same day.** Chris asked for an architectural and bug
+sweep against a tree where `npm run check` passed. The order below is by value
+over cost, and not by severity.
 
-1. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
+1. [170 — the rocks are all at the station](170-the-rocks-are-all-at-the-station.md)
+   · defect · small · GitHub #34. Every asteroid is placed at the station, on an
+   arrival and on a launch. The file already holds the corridor helper that
+   three other roles use.
+2. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
    · gap · medium. `ste:check` reads comments in source. The style's stated
    scope also holds ten markdown documents, and the tool finds no sentence in
    one.
-2. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
+3. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.
 
-**Neither item changes a game rule.** One is a defect in a document. The other
-is a decomposition, and its evidence is five probes that must come back
+**170 is the only one that a player can see.** 168 is a defect in a document.
+169 is a decomposition, and its evidence is five probes that must come back
 byte-identical.
+
+**The GitHub inbox holds two items the queue does not.** **#35** is
+`needs investigation`: a police ship turned hostile after a pirate kill, and the
+triage of 2026-08-16 found two candidate routes and measured neither. **#36**
+closed the same day as already fixed. docs/TODO/162 removed
+`V AND L BOTH COST YOUR NAME` on 2026-08-16, and the live bundle was measured:
+zero uses of the old words, and four of `REPUTATION`.
 
 **164, 163, 167 and 165 landed on 2026-08-16 and are below.** They were the
 first four items of the sweep's queue. Each of the four was one thing written
@@ -87,7 +99,9 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds no open work. **#33** closed on 2026-08-16 with
+The GitHub inbox holds two open items, and the queue section above says where
+each one stands. **#36** closed on 2026-08-16 as already fixed. **#33** closed on
+2026-08-16 with
 [162](completed/162-one-word-that-means-five-things.md). **#32**, **#31** and
 **#30** closed on
 2026-08-15 with [160](completed/160-a-record-you-cannot-work-off.md),
