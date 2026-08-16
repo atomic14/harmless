@@ -27,10 +27,10 @@ order below is by value over cost, and not by severity.
    arrival and on a launch. The file already holds the corridor helper that
    three other roles use.
 3. [171 — the briefing says reputation when it means rating](171-the-briefing-says-reputation-when-it-means-rating.md)
-   · gap · medium · GitHub #36. The word `reputation` reaches a player four
-   times, and three of the four mean a different score. The banned-word check
-   that docs/TODO/162 wrote reads shouted console lines only, so it sees none of
-   them.
+   · gap · medium. The banned-word check that docs/TODO/162 wrote strips every
+   comment and reads no mixed-case page. Six comments still use `name` for the
+   disrepute ladder, and two of the six reach `CATALOG.md`. The briefing and the
+   manual say `reputation` and mean the combat rating.
 4. [168 — the style checker never reads the documents](168-the-style-checker-never-reads-the-documents.md)
    · gap · medium. `ste:check` reads comments in source. The style also governs
    ten markdown documents and every plan title, and the tool finds no sentence
@@ -52,13 +52,19 @@ Neither one answers the other.
 `needs investigation`: a police ship turned hostile after a pirate kill, and the
 triage of 2026-08-16 found two candidate routes and measured neither.
 
-**#36 was closed as already fixed, and then reopened the same day.** The close
-was wrong. docs/TODO/162 took the retired words out of `src/`, and the live
-bundle carries zero of them. **The words are still on `main` eight times**: one
-is the fixture that proves `test/ladder-words.test.ts` can fail, and seven are
-records that quote what was replaced. A code search reads all eight. The triage
-answered the shipped game rather than the report, and closed on that reading
-instead of asking which one Chris meant.
+**#36 closed on 2026-08-16, and A STALE PERMALINK IS THE WHOLE STORY.** Chris
+read `const NAME_COST = ... ' AND YOUR NAME'` at `src/game/prompts.ts:90`. That
+link pins commit `bff0018` of 2026-08-15, and docs/TODO/162 M1 landed the next
+day. On `main` the line is `REPUTATION_COST`. A permalink names a commit, so it
+never moves.
+
+**The first close of #36 was wrong for a different reason, and the record keeps
+it.** The triage answered the shipped game rather than the report, and closed on
+that reading instead of asking which one Chris meant.
+
+**The stale link still found a real gap**, and it is docs/TODO/171. Looking for
+the reported line is what showed that `test/ladder-words.test.ts` strips every
+comment before it reads.
 
 **164, 163, 167 and 165 landed on 2026-08-16 and are below.** They were the
 first four items of the sweep's queue. Each of the four was one thing written

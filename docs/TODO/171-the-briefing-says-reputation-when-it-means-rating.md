@@ -1,40 +1,25 @@
 # 171 — The briefing says reputation when it means rating
 
 **Kind:** gap · **Severity:** medium · **Size:** medium · **Depends on:**
-nothing · **Blocks:** nothing · **GitHub:** #36
+nothing · **Blocks:** nothing · **GitHub:** none — GitHub #36 closed on
+2026-08-16, and this is what its triage found
 
 ## Where we are
 
-Chris reported one line: *"We still have some text that says 'BOTH COST YOUR
-NAME'. 'NAME' doesn't mean anything to the player."*
+**GitHub #36 reported a string that was already fixed, and a stale link is
+why.** Chris read `const NAME_COST = DISREPUTE_BRIBE > 0 ? ' AND YOUR NAME' :
+'';` at `src/game/prompts.ts:90`. That is a GitHub permalink, and it pins commit
+`bff0018` of 2026-08-15. docs/TODO/162 M1 landed the next day, in `5f63ff8`. On
+`main` the line is `REPUTATION_COST`, and it reads `' AND YOUR REPUTATION'`.
 
-**The triage of 2026-08-16 answered the wrong half, and closed the issue on it.**
-That was wrong, and the issue is open again. This item is what the triage should
-have produced.
+**A permalink names a commit, so it never moves.** A search result that carries
+one shows the tree as it was. That answers the report and it settles the issue.
 
-### Half one: the string he searched for
+**THE TRIAGE THEN MEASURED THE TREE, AND FOUND SOMETHING ELSE.** Two surfaces
+carry the retired meaning on `main` today. Neither one is what the report named,
+and no gate reads either. That is this item.
 
-`V AND L BOTH COST YOUR NAME` is on `main` **eight times**, and none of them is
-in a shipped string:
-
-| where | count | what it is |
-| --- | ---: | --- |
-| `test/ladder-words.test.ts:72` | 1 | the fixture that proves the ban can fail |
-| `docs/TODO/completed/162-*.md` | 4 | the plan doc for GitHub #33 |
-| `docs/TODO/completed/README.md` | 1 | the landed-work entry |
-| `docs/TODO/README.md` | 2 | the same entry, and the 2026-08-16 triage note |
-
-**The live bundle was measured** at `harmless.atomic14.com`: zero uses of the
-retired words, four of `REPUTATION`, three of `LEGAL STATUS`. `ui/screens.ts:88`
-reads `V AND L BOTH DAMAGE YOUR REPUTATION`.
-
-**So a code search cannot tell a live string from a record of a dead one.** That
-is the whole of half one, and it is a real complaint even though no player is
-affected.
-
-### Half two: the ban reads a third of what a player reads
-
-**This is the larger half, and the report did not name it.**
+### The ban reads a third of what a player reads
 `test/ladder-words.test.ts` is docs/TODO/162's gate. Two lines decide its whole
 scope:
 
@@ -68,10 +53,45 @@ as the best rung of the disrepute ladder.
 pages are Chris's own writing. This item schedules the measurement and the gate,
 and it leaves the words to him.
 
+### The ban strips a comment before it reads
+
+**The second surface is comments in `src/`, and the ban drops them on line 86:**
+
+```ts
+const stripped = (url) => readFileSync(url, 'utf8').replace(/^\s*(\/\/|\*|\/\*).*$/gm, '');
+```
+
+That is deliberate. 162's gate is about the console's voice, and the file's own
+comments discuss the banned words. So a comment can say anything, and six of
+them still use `name` for the disrepute ladder:
+
+| site | the words |
+| --- | --- |
+| `constants/law.ts:229` | *"a third idea about what a bad name"* |
+| `constants/threat.ts:53` | *"What a fully notorious name is worth as HEAT"* |
+| `constants/threat.ts:106` | *"rolled only when there is a name to recognise"* |
+| `game/game.ts:561` | *"Your name changed hands on the ladder"* |
+| `game/law.ts:193` | *"The record moves and the NAME does not"* |
+| `game/survivors.ts:113` | *"a tonne of narcotics costs a name"* |
+
+**Two of the six are PUBLISHED.** A doc comment in `src/constants/` is the
+`Purpose` column of `CATALOG.md`, which the generator writes. So
+`DISREPUTE_HEAT` reads *"What a fully notorious name is worth as HEAT"* and
+`DISREPUTE_DRAW` reads *"How much a criminal name draws challengers"*.
+
+**THE RULE IS ALREADY WRITTEN DOWN, ONE FILE AWAY.** `constants/character.ts:10`
+says: *"The word `name` never means this ladder (docs/TODO/162). A commander has
+a name, and it is the word the player types."* Five files break a rule that one
+file states.
+
+**Five other hits are correct and must not move.** *"a rung name"*, *"the ladder
+it names"* and *"the name on the status screen"* each mean what a thing is
+CALLED. That is the word's one right meaning, and 162 refused to ban it.
+
 ## What to do
 
 Three milestones. M1 is the gate, because it finds the full list. M2 is the
-prose. M3 is the code search.
+player's prose. M3 is the tree's comments.
 
 ### M1 — the ban reads every surface a player reads
 
@@ -86,6 +106,13 @@ each can fail on its own.
 shouted rule is `NAME` as a whole word; a sentence needs `reputation` in the
 prose sense. **Write the two predicates apart.** One list that served both would
 ban `Your legal status follows you`, which is the one correct row of the four.
+
+**Axis three: the comments.** Read a comment rather than stripping it, under a
+third predicate. `name` beside a ladder word is the fault, and `name` alone is
+not. **This axis needs an exemption for the two files that discuss the rule**,
+which are `constants/character.ts` and `game/character.ts`. Their own headers
+state what the word may not mean, so a blanket ban would fail on the rule
+itself.
 
 **The rule the ban holds is already written down** in the file's own header:
 
@@ -112,20 +139,22 @@ his instruction of 2026-08-12. That exclusion is about STYLE. A word that names
 the wrong ladder is a fact rather than a style. **Propose the smallest wording
 and ask.** Do not rewrite a paragraph.
 
-### M3 — a search can tell a record from a live string
+### M3 — the comments say which ladder they mean
 
-**The eight hits are one fixture and seven records**, and the house rule is that
-a record is corrected rather than rewritten. So the answer is not to delete the
-quotations. It is to make each one say that it is retired.
+Repair the six comments in the table above. Each one is a word, and each becomes
+the ladder's own word.
 
-The cheapest form is one word beside the quotation, and the records mostly carry
-it already. Read all eight, and add the marker only where a reader cannot tell.
+**`src/constants/` comes with a step of its own.** Two of the six are constant
+doc comments, so `CATALOG.md` carries them. Run `npm run generate:constants`
+BEFORE the gates, then `npm run constants:check`. That is `docs/PROCESS.md`
+step 3, row two of the tier table.
 
-**The fixture keeps its phrase.** It is the proof that the ban can fail, and
-`CLAUDE.md` requires that proof.
+**`game/law.ts:193` needs a reading rather than a substitution.** The sentence is
+*"The record moves and the NAME does not"*, and it draws the line between the
+two ladders. docs/TODO/160's record uses the same words. Say REPUTATION, and
+check that the paragraph still says which ladder stays still.
 
-**If Chris would rather the search came back clean**, that is option 2 in the
-issue and it is a different M3. Do not choose it without him.
+**Do not touch the five correct hits.** They mean what a thing is CALLED.
 
 ## Verification
 
@@ -133,35 +162,39 @@ The gates always run: `npm run check`. The tier table puts this at "prose,
 comments or a plan doc → nothing more". M1 adds assertions, so `npm test` is the
 measurement.
 
-**M1 is proved by breaking each rule separately.** Four proofs, because the gate
-has four ways to be vacuous:
+**M1 is proved by breaking each rule separately.** Six proofs, because the gate
+has six ways to be vacuous:
 
 1. Put `no reputation at all` back into `briefing.ts`. The prose rule goes red.
 2. Put `COST YOUR NAME` back into a shouted string. The shouted rule goes red,
    which is 162's existing proof and must still hold.
-3. Point the HTML walk at a directory with no pages. The control must go red.
+3. Put *"costs a name"* back into a comment. The comment rule goes red.
+4. Point the HTML walk at a directory with no pages. The control must go red.
    **A scan that read nothing would otherwise report success**, which is the
    failure 162's own `shouted > 100` control exists to catch.
-4. Assert that `Your legal status follows you` (manual.html:284) still passes.
+5. Assert that `Your legal status follows you` (manual.html:284) still passes.
    That is the row that proves the prose rule is not a blanket ban.
+6. Assert that *"a rung name"* (`game/character.ts:56`) still passes. That is
+   the row that proves the comment rule reads the ladder word beside it.
 
 **Report the count of what was read**, in the shape 162 used: the number of
-shouted strings, and now the number of prose sentences. A gate that says how
-much it read is a gate that cannot silently stop reading.
+shouted strings, and now the number of prose sentences and comment lines. A gate
+that says how much it read is a gate that cannot silently stop reading.
 
-**M2 is proved by the gate M1 wrote.** It goes from red to green, and the four
-rows above are the list.
+**M2 and M3 are proved by the gate M1 wrote.** It goes from red to green, and
+the two tables above are the list.
 
-**M3 is proved by the search.** Run `grep -rn "COST YOUR NAME"` over the tree
-before and after. The count must not fall, and every remaining hit must say what
-it is.
+**M3 runs `npm run generate:constants` first**, then `npm run constants:check`.
+`CATALOG.md` must lose both of its `name` rows.
 
 ## Decisions already made
 
-- **The fixture keeps the phrase.** It proves the ban can fail.
-- **A record is corrected, not rewritten.** The seven records keep their words.
-- **The prose rule and the shouted rule stay apart.** One list would ban the one
-  correct row.
+- **The prose rule, the shouted rule and the comment rule stay apart.** One list
+  that served all three would ban a correct row of each.
+- **`NAME` is not banned.** It is the word's one correct meaning.
+- **GitHub #36 is closed rather than carried here.** Its report named a string
+  that docs/TODO/162 had already fixed, and a commit permalink is why it looked
+  live.
 
 ## Open questions
 
@@ -173,8 +206,6 @@ it is.
   lawless routes"* is about the living galaxy's danger, which is a fourth
   meaning. **Recommendation: say `danger`**, which is the word
   `danger-overlay.ts` already uses.
-- **Should the search come back clean?** See M3. It is Chris's call, and the
-  issue holds the three options.
 
 ## Watch out for
 
