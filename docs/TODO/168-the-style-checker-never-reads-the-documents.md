@@ -1,4 +1,4 @@
-# 168 — The style has a scope no gate can read
+# 168 — The style checker never reads the documents
 
 **Kind:** gap · **Severity:** medium · **Size:** medium · **Depends on:**
 nothing · **Blocks:** nothing · **GitHub:** none — found by the sweep of
@@ -84,8 +84,17 @@ It drops:
 3. **a table row** — `docs/DAMAGE-PATHS.md`'s 25-row inventory is read by
    `test/damage-paths.test.ts`, and docs/TODO/141 left it untouched for that
    reason;
-4. **a block quotation** — a quotation rewritten is falsified;
-5. **a heading** — a heading is a label rather than a sentence.
+4. **a block quotation** — a quotation rewritten is falsified.
+
+**A HEADING IS READ, AND THAT REVERSES THIS ITEM'S FIRST DRAFT.** The draft
+dropped a heading, and said *"a heading is a label rather than a sentence"*.
+Chris rejected that on 2026-08-16, and the evidence is in M2 below: the plan
+titles are the worst-drifted prose in the repository, and dropping a heading
+would exempt them for good.
+
+A heading takes the title rules in `CLAUDE.md` rather than the sentence caps. A
+cap over 20 words never fires on a title, so the caps would report a clean
+surface that is not clean.
 
 **A list item is its own sentence.** That is the rule the trial reader got
 wrong, and it is the one that decides whether the number means anything. A
@@ -98,6 +107,28 @@ not.
 
 Run the reader over the ten documents. Report the same three counts
 `tools/ste.mjs` reports: sentences over cap, compound tenses, and `-ing` words.
+
+**Count the titles separately, because they are the worst surface and the caps
+miss them.** The measurement of 2026-08-16 walked 162 plan titles:
+
+| rule | count | detector |
+| --- | ---: | --- |
+| passive voice | 16 | precise |
+| a bare noun phrase, with no verb | about 31 | rough |
+
+**The rough count is rough on purpose, and the plan says so rather than quoting
+a clean number.** An imperative title is correct STE, so a detector that only
+looks for a finite verb reports `Add stable ship and combat-profile identities`
+as a fault. It is not one. Build the detector, then quote a number, which is
+the rule this item already states for the markdown reader.
+
+**Chris named the cause on 2026-08-16, and it is the reason this item grew a
+title rule:** *"this is not the house convention — this is something that you
+have been doing and we've been trying to correct by mandating ASD-STE100."*
+Every plan title was written by an agent, so an agent that reads the archive for
+the convention finds its own habit and calls it a rule. That is docs/TODO/165's
+finding again: **the index and the archive agreed with each other, and neither
+one checked.**
 
 **Then convert what it finds.** Split a long sentence. Never drop a fact, a
 condition or a scope qualifier to meet a cap.
@@ -112,14 +143,28 @@ did for `src/`. Whole-file rather than diff-scoped, for the same three reasons
 154 recorded: it costs the same on a surface at zero, it lets less through, and
 it needs no diff base.
 
-**It holds the same two rules**: the sentence caps and the tense. The `-ing`
-count reports and never gates.
+**It holds the same two rules over prose**: the sentence caps and the tense. The
+`-ing` count reports and never gates.
+
+**It holds two more over a title**, and they are the rules `CLAUDE.md` states:
+the active voice, and a subject with a verb. A title that hides a term the
+document defines is a third fault, and it is not countable. Leave it to a
+reader.
 
 **An active TODO item is in scope. The archive is not.** `CLAUDE.md` puts each
 TODO item in scope. It also excludes *"a record of what somebody decided or
 measured"*. That exclusion is the plan archive under `docs/TODO/completed/`,
 `research/` and `retired/`. So the gate reads `docs/TODO/*.md` at the top level
 and stops there.
+
+**The archive's titles are REPORTED and never gated**, in the shape `ste.mjs`
+uses for its `-ing` count. A landed plan is a record, so its title is not
+rewritten. A number a person can read is what stops the drift going unmeasured
+again.
+
+**A RENAME IS SAFE, AND THAT IS WHY THE ACTIVE TITLES CAN BE GATED.**
+`tools/plan-claims.mjs` matches the plan NUMBER rather than the slug, because a
+plan document is renamed by its own milestones (docs/TODO/165).
 
 ## Verification
 
@@ -149,6 +194,11 @@ moved.
 - **The reader comes before the number.** See "What the sweep found".
 - **The gate holds two rules of the three.** The `-ing` count reports only, as it
   does over `src/` (docs/TODO/154 M4).
+- **A heading is read rather than dropped** (Chris, 2026-08-16). See M1.
+- **A title takes the title rules, and not the sentence caps.** A 20-word cap
+  never fires on a title.
+- **The archive's titles are counted and never gated.** A landed plan is a
+  record.
 
 ## Open questions
 

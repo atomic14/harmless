@@ -31,10 +31,10 @@ order below is by value over cost, and not by severity.
    times, and three of the four mean a different score. The banned-word check
    that docs/TODO/162 wrote reads shouted console lines only, so it sees none of
    them.
-4. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
-   · gap · medium. `ste:check` reads comments in source. The style's stated
-   scope also holds ten markdown documents, and the tool finds no sentence in
-   one.
+4. [168 — the style checker never reads the documents](168-the-style-checker-never-reads-the-documents.md)
+   · gap · medium. `ste:check` reads comments in source. The style also governs
+   ten markdown documents and every plan title, and the tool finds no sentence
+   in any of them. **It now gates a title too**, on Chris's call of 2026-08-16.
 5. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
    · design · large. The backlog head, promoted. Measured, the file holds four
    separable things, and the flight half the debt row names is the smallest.

@@ -130,6 +130,27 @@ The rules are countable:
 long answer in short sentences is the correct outcome. Never drop a fact, a
 condition or a scope qualifier to meet a limit. Split the sentence instead.
 
+**A title is a sentence, and the same rules hold.** A plan title, a heading and
+a commit subject each name a thing to somebody who has not read the document.
+So a title states a subject and a verb, in the active voice and a simple tense.
+It never carries a term that the document defines, because a reader cannot look
+a term up from a title.
+
+| | title |
+| --- | --- |
+| write this | The briefing says reputation when it means rating |
+| not this | The ban cannot read the pages a player reads |
+| not this | The map was not repaired with the headers |
+| not this | Behaviour and flight in one file |
+
+The second one hides `the ban`, which only docs/TODO/162 defines. The third is
+in the passive voice. The fourth carries no verb at all.
+
+**THE PLAN ARCHIVE IS NOT THE CONVENTION.** Every title under `docs/TODO/` was
+written by an agent. Measured on 2026-08-16, 16 of 162 were in the passive
+voice, and about 31 were a bare noun phrase. A title copied from that archive
+repeats the drift. Read the rule instead.
+
 **"One word, one meaning" already holds here, and it cuts both ways.** `brain`,
 `commander`, `face`, `rung`, `gate`, `probe` and `tell` are used precisely.
 Keep each of them.
