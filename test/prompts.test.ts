@@ -139,12 +139,12 @@ console.log('\n...and every bribe names the OTHER thing it spends');
   const fight = situation(3, SCAN_WARN_RANGE * 0.9);
   fight.npcs[0].state.provokedByPlayer = true;
 
-  const named = (s: string): boolean => s.includes('AND YOUR NAME');
+  const marked = (s: string): boolean => s.includes('AND YOUR CHARACTER');
   check(`the inspection offer says so before it is taken (${window})`,
-    named(window) === (DISREPUTE_BRIBE > 0));
+    marked(window) === (DISREPUTE_BRIBE > 0));
   check(`...and so does the one that buys a Viper off (${words(fight)})`,
-    named(words(fight)) === (DISREPUTE_BRIBE > 0));
-  check('...and the deed really does cost a name', DISREPUTE_BRIBE > 0);
+    marked(words(fight)) === (DISREPUTE_BRIBE > 0));
+  check('...and the deed really does cost character', DISREPUTE_BRIBE > 0);
 }
 
 console.log('\na warhead in the air outranks every other trouble');

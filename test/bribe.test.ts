@@ -53,7 +53,7 @@ console.log('\nL offers the law money — and never in the simulator');
   eqc('L at the station is still LAUNCH', cmds('docked', ['KeyL']), ['launch']);
   check('the guide says what it never buys',
     COMMAND_HELP.bribePolice.what.includes('never clears your record')
-    && COMMAND_HELP.bribePolice.what.includes('costs your name'));
+    && COMMAND_HELP.bribePolice.what.includes('costs your character'));
 }
 
 // --- the price ---------------------------------------------------------------

@@ -85,7 +85,7 @@ export function renderSurvivors(
     </div>
     <div class="keyline hints">
       <span>M MEDICAL &mdash; NO PAYMENT, NO QUESTIONS</span>
-      <span style="color:var(--hud-amber)">V AND L BOTH COST YOUR NAME</span>
+      <span style="color:var(--hud-amber)">V AND L BOTH COST YOUR CHARACTER</span>
     </div>
   `);
 }

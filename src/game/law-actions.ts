@@ -221,7 +221,7 @@ export class LawActions {
       // touched: you are still a Fugitive, the next patrol is a fresh problem,
       // and the station still wants its money.
       hunter.npc.state.satisfied = true;
-      this.host.showMessage(`PATROL BREAKS OFF — ${formatCredits(paid)} AND YOUR NAME`, 4);
+      this.host.showMessage(`PATROL BREAKS OFF — ${formatCredits(paid)} AND YOUR CHARACTER`, 4);
       return;
     }
 
@@ -236,7 +236,7 @@ export class LawActions {
       if (paid === null) return;
       session.policeScanned = true;
       this.host.showMessage(
-        `PATROL LOOKS THE OTHER WAY — ${formatCredits(paid)} AND YOUR NAME`, 4);
+        `PATROL LOOKS THE OTHER WAY — ${formatCredits(paid)} AND YOUR CHARACTER`, 4);
       return;
     }
 

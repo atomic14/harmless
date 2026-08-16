@@ -267,8 +267,8 @@ console.log('\n...and the cockpit says so while the window is open');
     && offered[1].startsWith('O '));
   // ...and the money is only half of what it will cost him \u2014 see
   // test/prompts.test.ts, which holds that claim against DISREPUTE_BRIBE.
-  check('...and the offer names the name it will spend',
-    offered[0].endsWith('AND YOUR NAME'));
+  check('...and the offer names the character it will spend',
+    offered[0].endsWith('AND YOUR CHARACTER'));
 
   nextOffer('taken');
   g.bribePolice();
