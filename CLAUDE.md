@@ -89,7 +89,8 @@ it.
 - Maintain a module header that states each file's purpose. A header names its
   neighbours, so a move invalidates one. **The milestone that takes a
   responsibility out of a file repairs that file's header in the same commit**
-  (docs/TODO/152).
+  (docs/TODO/152). It repairs `docs/ARCHITECTURE.md` in the same commit when the
+  map names the file (docs/TODO/166).
 - Commit by milestone. Explain what changed, and explain why.
 
 ## Communication
