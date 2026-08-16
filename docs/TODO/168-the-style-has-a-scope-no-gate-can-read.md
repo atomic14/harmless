@@ -1,0 +1,173 @@
+# 168 — The style has a scope no gate can read
+
+**Kind:** gap · **Severity:** medium · **Size:** medium · **Depends on:**
+nothing · **Blocks:** nothing · **GitHub:** none — found by the sweep of
+2026-08-16
+
+## Where we are
+
+**`CLAUDE.md` states the scope of the house prose style, and it names ten
+markdown documents.** They are `CLAUDE.md` itself, the three rule documents in
+`docs/`, and the six reference documents beside them:
+
+| in scope | file |
+| --- | --- |
+| rule | `CLAUDE.md` |
+| rule | `docs/INVARIANTS.md` |
+| rule | `docs/PROCESS.md` |
+| rule | `docs/ARCHITECTURE.md` |
+| reference | `docs/AI-TRAINING.md` |
+| reference | `docs/BROWSER-TRIALS.md` |
+| reference | `docs/COMBAT-SIM.md` |
+| reference | `docs/DAMAGE-PATHS.md` |
+| reference | `docs/ELITE-A.md` |
+| reference | `docs/JAMESON-TRIALS.md` |
+
+It also names each TODO item, and every new or changed comment in `src/`.
+
+**`npm run ste:check` reads the last of those and none of the rest.**
+`tools/ste-read.mjs` walks characters and extracts COMMENTS from source. A
+markdown file holds no comment, so the tool finds nothing in one. Pointed at the
+four rule documents it reports:
+
+```
+0 files · 0 sentences · 0 over cap (—) · 0 over 25 (—) · 0 -ing (—/100) · 0 tense
+```
+
+**`CLAUDE.md` states the limit honestly**: *"A gate checks part of it, over
+`src/` only."* So this is a gap rather than a false claim.
+
+**docs/TODO/154 already proved what an ungated surface does.** Two measurements
+are in its record:
+
+1. `src/constants/`, which docs/TODO/141 swept in one pass, read at 7% of
+   sentences over cap. The rest of `src/`, left to convert as each file was
+   edited, read at 24%.
+2. `game/npc.ts` reached 0% on 2026-08-14. docs/TODO/158 put five long sentences
+   into it on 2026-08-15, and nothing said so.
+
+154's own conclusion is the argument for this item: **a sweep converts a
+surface; an intention does not.**
+
+**docs/TODO/141 swept the ten documents above in one pass**, on 2026-08-12.
+Nothing measured them since. They are in exactly the position `src/` was in
+between 141 and 154.
+
+## What the sweep found that it could not measure
+
+**A trial reader over markdown produced a number, and that number is not
+trustworthy.** It joined the items of a bulleted list into one sentence, so it
+counted a whole list as a single 43-word breach. The real drift is lower than it
+reported, and by an unknown amount.
+
+**That is the finding rather than a footnote.** docs/TODO/154 recorded the same
+shape: *"the harder half of the checker is `tools/ste-read.mjs`, which decides
+what is measured."* For markdown the reader is harder still, and it must be
+built before any number is quoted. **Do not open this item with a drift figure.
+Build the reader, then measure.**
+
+## What to do
+
+Three milestones, in this order. The reader comes first, and a number comes
+after it.
+
+### M1 — a reader for markdown
+
+`tools/ste-read-md.mjs`, beside the reader that exists. It turns a markdown file
+into prose, and it must leave out everything the style never touches.
+
+It drops:
+
+1. **a fenced code block** — code is out of scope;
+2. **inline code** — an API name, a command and a config key each carry their
+   exact wording;
+3. **a table row** — `docs/DAMAGE-PATHS.md`'s 25-row inventory is read by
+   `test/damage-paths.test.ts`, and docs/TODO/141 left it untouched for that
+   reason;
+4. **a block quotation** — a quotation rewritten is falsified;
+5. **a heading** — a heading is a label rather than a sentence.
+
+**A list item is its own sentence.** That is the rule the trial reader got
+wrong, and it is the one that decides whether the number means anything. A
+bullet ends at its own line break, whether or not it carries a full stop.
+
+**A link keeps its text and loses its target.** The words are prose. The URL is
+not.
+
+### M2 — the measurement, and the sweep it asks for
+
+Run the reader over the ten documents. Report the same three counts
+`tools/ste.mjs` reports: sentences over cap, compound tenses, and `-ing` words.
+
+**Then convert what it finds.** Split a long sentence. Never drop a fact, a
+condition or a scope qualifier to meet a cap.
+
+**`docs/ARCHITECTURE.md` is rewritten by docs/TODO/166.** Run that item first, or
+this milestone converts prose that 166 replaces.
+
+### M3 — the gate
+
+Extend `npm run ste:check` to the ten documents, whole-file, as docs/TODO/154 M4
+did for `src/`. Whole-file rather than diff-scoped, for the same three reasons
+154 recorded: it costs the same on a surface at zero, it lets less through, and
+it needs no diff base.
+
+**It holds the same two rules**: the sentence caps and the tense. The `-ing`
+count reports and never gates.
+
+**An active TODO item is in scope. The archive is not.** `CLAUDE.md` puts each
+TODO item in scope. It also excludes *"a record of what somebody decided or
+measured"*. That exclusion is the plan archive under `docs/TODO/completed/`,
+`research/` and `retired/`. So the gate reads `docs/TODO/*.md` at the top level
+and stops there.
+
+## Verification
+
+The gates always run: `npm run check`. The tier table puts prose at "nothing
+more".
+
+**M1 needs fixtures, as `tools/ste.test.mjs` has them.** Write a markdown
+fixture that holds one of each thing the reader must drop, plus one bulleted
+list. Assert the sentence count the reader gets from it. That fixture is what
+stops the trial reader's mistake from coming back.
+
+**M3 must be proved able to fail**, in both rules and on the new surface:
+
+1. Put a 30-word instruction into `docs/PROCESS.md`, and watch the gate go red.
+2. Put a compound tense into `docs/INVARIANTS.md`, and watch it go red.
+3. Put a long sentence inside a fenced code block, and confirm that the gate
+   stays green. That is the reader working, and it is the assertion that matters
+   most.
+
+Remove all three afterwards.
+
+**Report the counts before and after M2**, so the outcome states what the sweep
+moved.
+
+## Decisions already made
+
+- **The reader comes before the number.** See "What the sweep found".
+- **The gate holds two rules of the three.** The `-ing` count reports only, as it
+  does over `src/` (docs/TODO/154 M4).
+
+## Open questions
+
+- **Does `README.md` join the list?** `CLAUDE.md` excludes its opening, which is
+  Chris's own writing in the first person. The rest of the file is 28,000
+  characters of prose. **Recommendation: leave it out of M3.** Decide it as its
+  own item, with a rule for where the opening ends.
+- **Do the player-facing pages ever join?** No. `CLAUDE.md` excludes the manual,
+  `index.html`, the briefing and the novella, on Chris's call of 2026-08-12.
+  This item does not re-open that.
+
+## Watch out for
+
+- **`docs/DEVLOG.md` and `docs/TRAINING-LOG.md` are records.** They are out of
+  scope, and they must stay out. docs/TODO/141 recorded that both name
+  `CLAUDE.md` six more times and are deliberately untouched.
+- **A quotation inside a rule document is common.** `docs/PROCESS.md` quotes
+  Chris four times, and `CLAUDE.md` quotes him twice. The reader must drop a
+  block quotation, or the gate asks for a falsification.
+- **`docs/DAMAGE-PATHS.md`'s table is load-bearing.** `test/damage-paths.test.ts`
+  reads it. A reader that treats a table row as prose invites an edit that
+  breaks a test.

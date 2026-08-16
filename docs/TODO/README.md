@@ -13,7 +13,39 @@ active context:
 
 ## Execution queue
 
-**The queue is empty.**
+**Seven items, and they came out of one sweep on 2026-08-16.** Chris asked for
+an architectural and bug sweep against a tree where `npm run check` passed. The
+order below is by value over cost, and not by severity.
+
+1. [164 — the tool that reports every file as untested](164-the-tool-that-reports-every-file-as-untested.md)
+   · defect · small. `tools/coverage.mjs:34` splits a path on `/elite-web/`, and
+   the checkout is `harmless`. So the tool names all 259 files as never
+   executed. The real number is 12. It also deletes `tmp-jump.ts`, which git
+   tracks, which no gate reads, and which no longer compiles.
+2. [163 — the chart key that needs a browser](163-the-chart-key-that-needs-a-browser.md)
+   · defect · small. `screens/chart.ts:194` reaches for `document` rather than
+   the seam beside it, so type-to-find throws under node. No headless test can
+   drive that path at all.
+3. [167 — the ledger that pays a rung for one kill](167-the-ledger-that-pays-a-rung-for-one-kill.md)
+   · defect · small. The comment that justifies the version 2 migration states
+   the opposite of what `recordWorkedOff` does.
+4. [165 — a citation that names nothing](165-a-citation-that-names-nothing.md)
+   · defect · small. Three cited plan numbers resolve to no file. One is cited
+   from `src/`. 147 was never committed, and 162 rests a decision on it.
+5. [166 — the map was not repaired with the headers](166-the-map-was-not-repaired-with-the-headers.md)
+   · defect · medium. `docs/ARCHITECTURE.md` makes three false claims and names
+   none of the fourteen modules the decomposition programme created.
+6. [168 — the style has a scope no gate can read](168-the-style-has-a-scope-no-gate-can-read.md)
+   · gap · medium. `ste:check` reads comments in source. The style's stated
+   scope also holds ten markdown documents, and the tool finds no sentence in
+   one.
+7. [169 — behaviour and flight in one file](169-behaviour-and-flight-in-one-file.md)
+   · design · large. The backlog head, promoted. Measured, the file holds four
+   separable things, and the flight half the debt row names is the smallest.
+
+**Nothing in the queue changes a game rule.** Six are defects in a tool, a seam
+or a document. The seventh is a decomposition, and its evidence is five probes
+that must come back byte-identical.
 
 **154 landed on 2026-08-16 and is below.** It was the last item in the queue,
 and the largest of the four that came out of the 2026-08-14 review. Its own
@@ -1003,8 +1035,8 @@ is invisible is indistinguishable from nothing happening.
 Not executable yet. In priority order; promoting the head is what makes the
 next execution item, once it has a plan doc.
 
-**Two items now, and they are one programme: decompose the files that hold more
-than one responsibility.** Chris set the rule on 2026-08-14, in two parts.
+**One item now, and it belongs to one programme: decompose the files that hold
+more than one responsibility.** Chris set the rule on 2026-08-14, in two parts.
 
 > *"The rules should be single responsibility - files that have multiple
 > responsibilities are the problem. And then it's all about decomposing large
@@ -1033,32 +1065,37 @@ the ranking and pure size does not.
 and docs/TODO/155 split the orchestrator itself; it is 1,233 lines and states one
 responsibility — *which mode the game is in, and who gets the frame* — over nine
 children. **The programme's method is written down in 150's plan doc** and is
-what the two items below should use: measure lines of body against external
+what the item below should use: measure lines of body against external
 dependencies, set the appliers and the host literals aside first, count what an
 area is reached BY as well as what it reaches, and read the result before
 trusting the ratio.
 
-1. **`src/game/npc.ts` — 1,568 lines, 95 commits, two responsibilities.** Its own
-   entry names them: *"behaviour and brain flight in one file; the flight half
-   wants its own"*. Harder than 1, and the reason is worth knowing before anybody
-   starts: **1,135 of those lines are a single `NpcShip` class**, so the split is
-   a design decision — flight becomes a collaborator, or a set of pure functions
-   over state — rather than a move. **It also has no module header at all**, which
-   `CLAUDE.md` requires. Write that first: the act of stating the one
-   responsibility is what exposes the second one.
+**`src/game/npc.ts` came off this list on 2026-08-16**, and it is
+[169](169-behaviour-and-flight-in-one-file.md) in the queue above. The sweep
+that promoted it measured the file, and the measurement corrected this entry
+twice. The file is 1,632 lines over 99 commits, not 1,568 over 95. The split is
+not the two halves this list named: the flight half is 244 lines of the class
+and the smallest of four candidates, while the fleet queries are 101 lines with
+the widest readership in the file.
 
-2. **The self-declared pairs.** Each names more than one responsibility in its
-   own words, so none needs an investigation to justify:
-   - `src/ai-training/scenario.ts` — 1,524 lines: *"one Episode **plus** its four
-     fitness functions"*. Running a fight and scoring one.
-   - `src/game/combat-sim-report.ts` — 1,158 lines, and its own module header
-     says *"it covers **two things** a console harness used to"*.
-   - `test/campaign.ts` — 1,027 lines and the thinnest reason in the list at 48
-     characters. About four: simulate a career, choose trades, resolve
+1. **The self-declared pairs.** Each names more than one responsibility in its
+   own words, so none needs an investigation to justify. **The line counts below
+   were re-measured on 2026-08-16**, and all three had drifted:
+   - `src/ai-training/scenario.ts` — 1,574 lines, 35 commits: *"one Episode
+     **plus** its four fitness functions"*. Running a fight and scoring one.
+   - `src/game/combat-sim-report.ts` — 1,167 lines, 23 commits, and its own
+     module header says *"it covers **two things** a console harness used to"*.
+   - `test/campaign.ts` — 1,026 lines, 32 commits, and the thinnest reason in the
+     list at 48 characters. About four: simulate a career, choose trades, resolve
      encounters, report.
 
-**`src/hud/hud.ts` is a third, smaller prerequisite.** 623 lines, 30 commits,
-and no module header either. It cannot be judged until it says what it does.
+**`src/hud/hud.ts` is a second, smaller candidate.** It is 633 lines over 31
+commits. **This entry claimed that it had no module header, and that was
+wrong.** The sweep of 2026-08-16 found one at lines 12 and 13: *"The classic
+console: elliptical 3D scanner (dot + vertical stick per contact), station
+compass, gauge bars, and the message line."* That header names four things and
+no neighbour, so it states a subject rather than one responsibility. Judge it on
+the four things, and not on an absence.
 
 ## What is NOT in this programme, and why
 
@@ -1068,9 +1105,9 @@ cannot import, and `elite-a/slots.generated.ts` and `music-danube.ts` are
 generated tables where splitting loses the diff.
 
 **The other 27 argue cohesion**, which no longer clears the bar. That does not
-make 27 files urgent. It makes 27 REASONS untrue as written, and the three items
-above are where the cost actually is. The rest can be re-argued or decomposed as
-each is next touched.
+make 27 files urgent. It makes 27 REASONS untrue as written, and the items above
+are where the cost actually is. The rest can be re-argued or decomposed as each
+is next touched.
 
 `docs/TODO/149` is the worked example of the whole programme: `ui/screens.ts`
 went from 1,954 lines to eight files, none over 340, and its exemption came off
