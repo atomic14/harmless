@@ -13,9 +13,12 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY, AND ONE ITEM OF A PROGRAMME IS LEFT.** docs/TODO/182 built
-the seam and 183 made the flight models pilots. **The fighting roles are the
-last cut**, and they are free now, because the pilots they call are objects.
+1. [184](184-the-roles-that-fight-get-their-own-behaviour.md) — the roles that
+   fight get their own behaviour.
+
+**184 IS THE LAST CUT OF THE PROGRAMME.** docs/TODO/182 built the seam and 183
+made the flight models pilots. The fighting roles are free now, because the
+pilots they call are objects.
 
 **A PROGRAMME IS PART WAY THROUGH.** docs/TODO/182 landed its seam, and 183 is
 the gate on what follows. Three of `update`'s branches call a flight model, so
