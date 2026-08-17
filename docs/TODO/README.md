@@ -13,12 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [179](179-a-move-repairs-one-file-and-leaves-its-neighbours-stale.md) — a
-   move repairs one file and leaves its neighbours stale.
+**THE QUEUE IS EMPTY.**
 
 **179 came from Chris on 2026-08-17**, when he asked for the next job. It is
 docs/TODO/176 M2's own debt. That move repaired the file it emptied. It repaired
-none of the five files that point at the code it moved.
+none of the five files that point at the code it moved. It landed the same day,
+and it is below.
 
 **178 came from Chris on 2026-08-17**, when he asked for the next fix. It came
 out of a reading of `test/campaign.ts`. docs/TODO/176 M3 named that file on a
@@ -186,6 +186,30 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**179 — a move repairs one file and leaves its neighbours stale.** It is
+docs/TODO/176 M2's own debt. That move repaired the file it emptied and the map,
+which is what `CLAUDE.md` asks for.
+
+**It repaired none of the files that point at the code it moved.** Five comments
+still named `game/npc.ts`, and one of them named `updateTrader`, which the move
+deleted.
+
+**`npm run claims:check` cannot see any of it.** It reads one comment form, and
+every site is prose.
+
+**A departure distance also had two homes.** `DEEP_TRADER_RUN` is 30,000, and
+`game/trader-flight.ts` wrote the same rule as a bare literal. Both feed the same
+phase and the same despawn.
+
+**THE MEASUREMENT IS THE OTHER RESULT, AND IT SAYS DO NOT BUILD THE GATE.** 92
+of 132 distinct constant values appear as a bare literal somewhere in `src/`,
+almost all by coincidence. A checker at that precision reports 92 findings and
+gets switched off.
+
+**The signal was one hit in the noise**, found by reading each candidate's
+meaning rather than its value. Nothing moved: 4,845 assertions, and the campaign
+is byte-identical.
 
 **178 — the campaign simulator keeps its own copy of a purchase.** An equipment
 purchase had two homes. `screens/trade.ts` applied one in eighteen cases, and
