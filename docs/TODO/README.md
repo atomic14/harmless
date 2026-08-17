@@ -13,8 +13,17 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY, AND SO IS THE DEBT LIST.** `npm run sizes` reads 0 known
-debts. No earlier run of it read zero.
+1. [182](182-a-ship-holds-the-behaviour-its-role-flies.md) — a ship holds the
+   behaviour its role flies.
+
+**182 IS THE HEAD OF A PROGRAMME, AND CHRIS NAMED ITS CAUSE.** He read `npc.ts`
+on 2026-08-17 and said: *"we have not used a good OO approach in this project."*
+Every cut before it fought a wide seam, because each one asked what narrow
+interface a free FUNCTION would need. Behaviour about a whole ship has no narrow
+interface, and a collaborator that HAS the ship needs one handle.
+
+**THE DEBT LIST IS EMPTY.** `npm run sizes` reads 0 known debts. No earlier run
+of it read zero.
 
 **181 came from Chris on 2026-08-17.** He asked to work on `src/game/npc.ts`,
 the tree's one recorded debt. Four candidates were measured, and not one of them
