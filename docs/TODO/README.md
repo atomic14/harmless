@@ -13,12 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [177](177-a-test-compares-the-players-gun-against-a-copy-of-itself.md) — a
-   test compares the player's gun against a copy of itself.
+**THE QUEUE IS EMPTY.**
 
 **177 came from Chris on 2026-08-17**, when he asked for the next smell.
-docs/TODO/176's own conclusion rested on a bad count, and he found it. It is
-a reading of one test file rather than a sweep, and he declined the sweep.
+docs/TODO/176's own conclusion rested on a bad count, and he found it. It was a
+reading of one test file rather than a sweep, and he declined the sweep. It
+landed the same day, and it is below.
 
 **All three items before it came from Chris on 2026-08-17**, after 173 landed and left the
 queue empty. The order was by value over cost, and not by severity. **174, 176
@@ -176,6 +176,37 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**177 — a test compares the player's gun against a copy of itself.**
+`test/world-step.test.ts` held 116 lines that never stepped the world. Six of
+its seven sections did.
+
+**Four assertions compared `game/combat-player.ts` against a line-for-line
+transcription of it**, written in the test file.
+
+**The second party no longer existed.** Measured, the only caller of
+`Combat.fire` and `Combat.hitPlayer` in `src/` is `combat-player.ts` itself. So
+the check could never report that anything was wrong. It could only demand that
+two copies agree.
+
+**A neighbour already stated the critique.** `test/fire-resolution.test.ts`'s
+header says a test that drove the shared function twice would agree with itself.
+That file holds no overlapping claim.
+
+**Chris chose to delete the four copies and keep the four behaviour claims.**
+`test/combat-player.test.ts` is 5 assertions in two blocks.
+
+**THE COUNT FELL BY THREE RATHER THAN FOUR, AND THE PLAN DID NOT HAVE THE
+REASON.** The fifth assertion is a control the plan never listed. Without it a
+resolver that always picked the aft face would pass the astern claim.
+
+**The plan predicted two reds for one break and got one.** The no-mount refusal
+reads the view argument rather than the direction.
+
+**A SECOND STALE CLAIM CAME OUT OF IT, AND IT WAS docs/TODO/176 M3's.** That
+milestone named the save block as the one section that could leave. It read the
+section headings and inferred, which is the method that broke M4's reader count
+at the same site. 4,842 assertions.
 
 **175 — the law reads your record and never reads the grudge.** Two ships attack
 a commander for two different reasons, and the game only ever explained one of
