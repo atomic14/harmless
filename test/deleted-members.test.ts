@@ -1,0 +1,83 @@
+// A member deleted for having no reader stays deleted.
+//
+// docs/TODO/174 M2 took out four things that nothing called. Each one had
+// already been REPORTED by an earlier item, which declined to delete it in the
+// same pass. That is `tools/internal-claims.mjs`'s own rule.
+//
+// A deletion needs a gate for one reason: nothing else fails when the member
+// comes back. An unread export compiles, lints and passes every other test in
+// this suite. So the tree would re-grow it in silence.
+//
+// TWO SCANS, AND EACH ONE FAILS ALONE:
+//
+//  1. `approach` in `game/npc.ts` is not exported. Eight lines in that file
+//     spend it, and no line outside it ever did.
+//  2. `AS_SHIPPED`, `AS_THE_GAME_FLIES` and `SENTINEL_NAMES` are gone from
+//     `game/brain-names.ts`. docs/TODO/81 reported them, and docs/TODO/174
+//     measured the claim behind them.
+//
+// EACH SCAN CARRIES A CONTROL, and the control is the point. A scan can go
+// green because the regular expression matches nothing, or because it read the
+// wrong file. So each scan also reads something it MUST find.
+//
+// WHAT IS NOT HERE. Whether `approach` gives the right answer is asserted
+// wherever a speed is. This file holds one claim about each member: nobody
+// outside can reach it.
+
+import { readFileSync } from 'node:fs';
+import { check } from './harness.ts';
+
+const source = (path: string): string =>
+  readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8');
+
+// The comments go first. A comment may name a deleted member, and this file's
+// own subject is what the CODE holds.
+const code = (path: string): string =>
+  source(path).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+// --- approach is private to npc.ts -------------------------------------------
+
+console.log('\na member with no reader outside its file is not exported');
+{
+  const npc = code('game/npc.ts');
+
+  check('game/npc.ts declares approach',
+    /\bfunction approach\s*\(/.test(npc));
+  check('...and it does not export it',
+    !/\bexport\s+function approach\s*\(/.test(npc));
+
+  // The control. Without it, a renamed function would leave both checks above
+  // green, and the second one would be green for saying nothing.
+  check('...and the scan is not vacuous — the file exports other things',
+    /\bexport\s+(function|class|const|interface|type)\b/.test(npc));
+
+  // The eight callers are why it stays in the file rather than leaving it. The
+  // declaration matches the same pattern, so it comes off the count.
+  const mentions = (npc.match(/\bapproach\(/g) ?? []).length;
+  const declares = (npc.match(/\bfunction approach\(/g) ?? []).length;
+  const spends = mentions - declares;
+  check(`...and the file still spends it (${spends} call sites)`,
+    spends >= 8, `found ${spends}`);
+}
+
+// --- the deleted picker's last three members ---------------------------------
+
+console.log('\nthe career picker\'s sentinels are gone');
+{
+  const brains = code('game/brain-names.ts');
+  const gone = ['AS_SHIPPED', 'AS_THE_GAME_FLIES', 'SENTINEL_NAMES'];
+
+  for (const name of gone) {
+    check(`game/brain-names.ts no longer writes ${name}`,
+      !new RegExp(`\\b${name}\\b`).test(brains));
+  }
+
+  // `brainName` is one lookup now. The fallback is what read the table, so a
+  // rebuilt table would show up here first.
+  check('...and brainName reads BRAINS alone',
+    /return BRAINS\[brain as BrainName\]\?\.name;/.test(brains));
+
+  // The control, in the same shape as the one above.
+  check('...and the scan is not vacuous — the file still writes BRAINS',
+    /\bBRAINS\b/.test(brains) && /\bSHIPPED_BRAINS\b/.test(brains));
+}

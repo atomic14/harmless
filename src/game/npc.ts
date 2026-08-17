@@ -1530,7 +1530,14 @@ export class NpcShip {
   }
 }
 
-export function approach(current: number, target: number, step: number): number {
+/**
+ * Walk one number toward another by a fixed step, and never overshoot it.
+ *
+ * Eight speed lines in this file spend it. It is NOT exported: nothing outside
+ * read it, and docs/TODO/174 M2 took the keyword off. `player.ts` holds its own
+ * `approach`, which takes a rate and a `dt` rather than a step.
+ */
+function approach(current: number, target: number, step: number): number {
   if (current < target) return Math.min(target, current + step);
   return Math.max(target, current - step);
 }

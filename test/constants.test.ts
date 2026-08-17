@@ -257,17 +257,18 @@ const OUTSIDE: readonly Group[] = [
   {
     why: 'STAYS, all of it, per docs/TODO/90\'s own precedent: brain-names.ts is the'
       + ' import-nothing leaf the home is MODELLED on, and CLAUDE.md names it as where'
-      + ' the scripted/trained rule lives. Nothing in it is a tunable game rule: the'
-      + ' five `BrainName` constants are that rule\'s decisions stated as names, the'
-      + ' five tables are keyed on `BrainName` — a type declared beside them that the'
-      + ' home may not import — the two `AS_*` strings are picker sentinels, and'
-      + ' `SHIPPED_BRAINS` is the frozen no-override default npm test asserts is empty.'
+      + ' the scripted/trained rule lives. Nothing in it is a tunable game rule:'
+      + ' `SHIPPED_DEFENCE` is that rule\'s decision stated as a name, `BRAINS` and'
+      + ' `SELECTIONS` are keyed on `BrainName` — a type declared beside them that the'
+      + ' home may not import — and `SHIPPED_BRAINS` is the frozen no-override default'
+      + ' npm test asserts is empty.'
       + ' Moving any of it would split the one file the rule lives in across two homes.'
-      + ' `LIVE_BRAIN_IDS` left this list with the career-wide picker (docs/TODO/81)',
+      + ' `LIVE_BRAIN_IDS` left this list with the career-wide picker (docs/TODO/81).'
+      + ' `AS_SHIPPED`, `AS_THE_GAME_FLIES` and `SENTINEL_NAMES` left it with that'
+      + ' picker\'s last reader (docs/TODO/174)',
     files: {
       'game/brain-names.ts': [
-        'AS_SHIPPED', 'AS_THE_GAME_FLIES', 'BRAINS', 'SENTINEL_NAMES',
-        'SHIPPED_DEFENCE', 'SHIPPED_BRAINS', 'SELECTIONS',
+        'BRAINS', 'SHIPPED_DEFENCE', 'SHIPPED_BRAINS', 'SELECTIONS',
       ],
     },
   },

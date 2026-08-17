@@ -115,8 +115,8 @@ console.log('\nwhich brain flies, by name');
   // these checks were the only thing that called them.
   //
   // One of the six PINNED the defect rather than caught it: `attack-run`'s
-  // selection is `{}`, the same empty object `AS_SHIPPED` meant, so a picked
-  // name read back as "as shipped". The check asserted that exactly one id
+  // selection is `{}`, the same empty object the "as shipped" sentinel meant, so
+  // a picked name read back as "as shipped". The check asserted that exactly one id
   // failed to round-trip. A test that holds a defect steady is what a deleted
   // feature leaves behind.
   //

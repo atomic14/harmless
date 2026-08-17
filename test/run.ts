@@ -121,6 +121,7 @@ import './blueprint-override.test.ts';
 import './ai.test.ts';
 import './defence-answer.test.ts';
 import './brain-names.test.ts';
+import './deleted-members.test.ts';
 import './combat-model.test.ts';
 import './selection.test.ts';
 import './arena.test.ts';

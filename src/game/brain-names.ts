@@ -30,18 +30,6 @@ export type BrainName =
   | 'pursuit'
   | 'scripted';
 
-/**
- * The two picker values that are not pilots.
- *
- * "As shipped" is how the career picker says no override. "As the game flies"
- * is the exercise picker's: leave every ship on what it would fly.
- *
- * They are listed beside the names, so that "every value on this row has a
- * name" has an answer for them too.
- */
-export const AS_SHIPPED = 'as-shipped';
-export const AS_THE_GAME_FLIES = 'live';
-
 /** What a pilot is called on a row, and what it is like to fight. */
 export interface BrainProfile {
   /** two or three words for how it FLIES — the row's value, never a version or file stem */
@@ -59,8 +47,9 @@ export interface BrainProfile {
  * held-out episodes; damage shares are the 60-episode `npm run evaluate`
  * tournament (docs/TRAINING-LOG.md, run 19).
  *
- * The two pickers offer one sentinel each (SAME AS OUTSIDE, THE ORIGINAL) which
- * are not pilots; their lines live in `screens/combat-sim-notes.ts`.
+ * Every value the one picker offers is a pilot on this table. `PIRATE_CHOICES`
+ * (screens/combat-sim-setup.ts) is that picker, and `npm test` holds each of its
+ * values to a name and a character line here.
  */
 export const BRAINS: Readonly<Record<BrainName, BrainProfile>> = Object.freeze({
   // The DEFENCE slots' name — one name, two flights, and the comment on
@@ -96,19 +85,15 @@ export const BRAINS: Readonly<Record<BrainName, BrainProfile>> = Object.freeze({
   },
 });
 
-/** What the two sentinels read as. What they MEAN is the panel's own prose. */
-const SENTINEL_NAMES: Readonly<Record<string, string>> = Object.freeze({
-  [AS_THE_GAME_FLIES]: 'SAME AS OUTSIDE',
-  [AS_SHIPPED]: 'THE ORIGINAL',
-});
-
 /**
- * What a picker VALUE reads as: the pilot's two or three words, or a sentinel's
- * own words. Undefined for a value no picker offers. Plain string because the
- * two pickers speak different unions.
+ * What a picker VALUE reads as: the pilot's two or three words. Undefined for a
+ * value that names no pilot.
+ *
+ * It takes a plain string rather than a `BrainName`, because a report carries
+ * the flown brain as a string (`ExerciseSetup.coPilot`, combat-sim-report.ts).
  */
 export function brainName(brain: string): string | undefined {
-  return BRAINS[brain as BrainName]?.name ?? SENTINEL_NAMES[brain];
+  return BRAINS[brain as BrainName]?.name;
 }
 
 /** What a named pilot is like in a fight, or undefined for a name no picker offers. */
@@ -247,11 +232,18 @@ export function selectionForBrain(brain: string): BrainSelection | undefined {
 // alive.
 //
 // The model was also false. It offered `attack-run`, whose selection is the same
-// empty object `AS_SHIPPED` means, so a pilot who picked that row read it back
-// as "as shipped". The round trip was where the collision showed.
+// empty object the "as shipped" sentinel meant. So a pilot who picked that row
+// read it back as "as shipped". The round trip was where the collision showed.
 //
-// TWO SENTINELS AND THEIR TABLE ARE THE SAME DEFECT, AND THEY ARE REPORTED
-// RATHER THAN DELETED. `AS_SHIPPED`, `AS_THE_GAME_FLIES` and `SENTINEL_NAMES`
-// are read by `brainName`'s fallback alone. Every live caller hands it a
-// `BrainId`, which is a `BrainName`, so that fallback answers nobody. The
-// exercise picker is a second surface, and this item did not measure it.
+// THE TWO SENTINELS AND THEIR TABLE WENT WITH IT (docs/TODO/174 M2).
+// `AS_SHIPPED`, `AS_THE_GAME_FLIES` and `SENTINEL_NAMES` were read by
+// `brainName`'s fallback alone. docs/TODO/81 reported them and did not measure
+// the claim. docs/TODO/174 measured it, over both live callers:
+//
+//   - `screens-trainer.ts` prints `ExerciseSetup.coPilot`, which combat-sim.ts
+//     sets from `defenceBrainNameFor`. That returns a `BrainName`.
+//   - `combat-sim-setup.ts` prints the PIRATES FLY row, whose value walks
+//     `PIRATE_CHOICES`. Both of its members are a `BrainName`, and the draft
+//     that holds the value is never saved.
+//
+// So the fallback answered nobody, and `brainName` is one lookup now.
