@@ -124,7 +124,7 @@ const OUTSIDE: readonly Group[] = [
       + ' rules them out by name: a THREE.Vector3 is MUTABLE, so a shared home would'
       + ' be a bug rather than a fix',
     files: {
-      'game/npc.ts': ['ZERO'],
+      'game/trader-flight.ts': ['ZERO'],
       'game/flight-maths.ts': ['ZERO', 'UP'],
       'player.ts': ['AXIS_X', 'AXIS_Z'],
       'game/game.ts': ['ZERO', 'UP'],

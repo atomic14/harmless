@@ -10,16 +10,18 @@
 // that flies them. This header does not repeat that list.
 //
 // TWO FLIGHT MODELS SHARE ONE SHIP. `brainFly` flies a trained policy.
-// `attack`, `pursue` and `updateTrader` fly the scripted rules. Both models end
-// at `steerToward` and `advance`, so one ship moves one way. `state.flownBy`
-// records which model moved it.
+// `attack` and `pursue` fly the scripted rules. Both models end at
+// `steerToward` and `advance`, so one ship moves one way. `state.flownBy`
+// records which model moved it. A trader is a third case, and
+// `game/trader-flight.ts` steers it. `update` still calls `advance` for it
+// here, so that ship moves one way too.
 //
 // THE TRAINER DRIVES THIS FILE DIRECTLY (invariant 5).
 // `src/ai-training/scenario.ts` builds an `NpcShip`. It calls `brainFly` and
 // `tickClocks` per frame. So the flight model the trainer optimises is the
 // shipped one, and no second copy exists.
 //
-// THE STEP ALLOCATES NOTHING. The class holds nine scratch vectors and two
+// THE STEP ALLOCATES NOTHING. The class holds seven scratch vectors and two
 // static buffers for that reason alone. A fresh vector inside `update` costs an
 // allocation per ship per frame.
 //
@@ -38,9 +40,15 @@
 // `FireEvent`. They are decision loops rather than steering primitives.
 //
 // The true primitives are `advance`, `steerToward`, `faceToward` and `facing`,
-// at 21 lines. The behaviour half reaches the transform, the turn rate and the
-// nine scratch vectors 69 times. A collaborator that held them would answer 69
-// calls, which is a wide seam around a small subject.
+// at 21 lines. In 169 M3 the behaviour half reached the transform, the turn
+// rate and the scratch vectors 69 times. A collaborator that held them would
+// answer 69 calls, which is a wide seam around a small subject.
+//
+// THE TRADER'S WORKING LIFE LEFT IN docs/TODO/176 M2, to
+// `game/trader-flight.ts`. It arrives, it works the lane, then it docks or it
+// leaves. `stepTrader` takes a narrow interface rather than this class, and
+// `NpcShip` satisfies it with no cast. Two of the nine scratch objects served
+// that one member, so they went with it.
 //
 // ONE THING HERE STILL BELONGS TO SOME OTHER FILE. `NpcState` is 184 lines. It
 // is the saved shape of a ship rather than a behaviour, and a snapshot walks it
@@ -83,7 +91,7 @@ import { chooseTactic, tacticSwitchReason, type TacticHull } from './tactic-choi
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
 import { truceHolds } from './law.ts';
 import { isHostileToPlayer } from './hostility.ts';
-import { steerQuatToward, velocityOf } from './flight-maths.ts';
+import { approach, steerQuatToward, velocityOf } from './flight-maths.ts';
 import { STATION_TRUCE } from '../constants/law.ts';
 import { AMBLE_NEAR, AMBLE_SPAN } from '../constants/amble.ts';
 import { separationFrom } from './separation.ts';
@@ -100,7 +108,8 @@ import {
 import type { NpcEnergyPoints } from './damage-units.ts';
 import { rampToward } from '../player.ts';
 import { random, randomDirection, randomQuaternion } from './rng.ts';
-import { planDocking, makeDockPlan, type DockPlan } from './docking.ts';
+import { makeDockPlan, type DockPlan } from './docking.ts';
+import { stepTrader, type TraderPhase } from './trader-flight.ts';
 import { ThreatLock } from './threat-lock.ts';
 
 /**
@@ -335,7 +344,7 @@ export interface WorldView {
    * Where the system's sun is, so a trader on its way out can run for it and
    * jump. It is optional. A test that flies no departure need not supply it,
    * and a trader with no sun in view falls back to a random heading
-   * (updateTrader).
+   * (`game/trader-flight.ts`).
    */
   sunPos?: THREE.Vector3;
   /**
@@ -365,12 +374,6 @@ export interface WorldView {
 export type FireEvent =
   | { at: 'player'; weapon: 'laser' | 'missile' }
   | { at: NpcShip; weapon: 'laser' };
-
-export type TraderPhase = 'arriving' | 'trading' | 'departing' | 'docking';
-
-// The origin, for the `lookAt` in `updateTrader`. Per-module by docs/TODO/90's
-// rule: a THREE.Vector3 is mutable, so one shared home would be a bug.
-const ZERO = new THREE.Vector3();
 
 export class NpcShip {
   readonly object: THREE.Object3D;
@@ -443,8 +446,15 @@ export class NpcShip {
     return this.pursuitBrk.breaking;
   }
 
-  private readonly maxSpeed: number;
-  private readonly turnRate: number;
+  /**
+   * Top speed and turn rate for this hull, from the roster (ship-specs.ts).
+   *
+   * Public because `game/trader-flight.ts` takes a narrow interface rather than
+   * this class, and its two hull numbers are these (docs/TODO/176 M2). They are
+   * facts about a hull, like `accel` and `radius` beside them.
+   */
+  readonly maxSpeed: number;
+  readonly turnRate: number;
   /** Thrust, units/s — per hull, from the roster (ship-specs.ts shipAccel). */
   readonly accel: number;
   private readonly tmpDir = new THREE.Vector3();
@@ -454,8 +464,6 @@ export class NpcShip {
   private readonly tmpAim = new THREE.Vector3();
   private readonly tmpFwd = new THREE.Vector3();
   private readonly mateSlots: THREE.Vector3[] = [];
-  private readonly tmpMat = new THREE.Matrix4();
-  private readonly tmpQ = new THREE.Quaternion();
 
   // sized for the WIDEST encoder; narrower brains read their own prefix
   private static readonly obsBuf = makeObs();
@@ -785,7 +793,10 @@ export class NpcShip {
     }
 
     if (this.role === 'trader') {
-      this.updateTrader(dt, view);
+      // The trader's working life is `game/trader-flight.ts` (docs/TODO/176
+      // M2). It steers and it sets a target speed. This line then moves the
+      // ship, so one ship still moves one way.
+      stepTrader(this, dt, view);
       this.advance(dt);
       return null;
     }
@@ -809,81 +820,6 @@ export class NpcShip {
     this.state.speed = approach(this.state.speed, arrived ? 0 : this.maxSpeed * 0.4, 80 * dt);
     this.advance(dt);
     return null;
-  }
-
-  /** Traders arrive from deep space, potter about the station, then leave. */
-  private updateTrader(dt: number, view: WorldView): void {
-    const { station } = view;
-    const home = station.position;
-    switch (this.state.traderPhase) {
-      case 'arriving': {
-        this.steerToward(home, dt);
-        this.state.speed = approach(this.state.speed, this.maxSpeed * 0.85, 90 * dt);
-        if (this.object.position.distanceTo(home) < 900) {
-          this.state.traderPhase = 'trading';
-        }
-        break;
-      }
-      case 'trading': {
-        this.state.tradeTimer -= dt;
-        this.state.waypointTimer -= dt;
-        if (this.state.waypointTimer <= 0) {
-          this.state.waypointTimer = 10 + random() * 12;
-          // Work the lane between station and planet. The planet sits at the
-          // world origin, so a scale of `home` walks that line. The station
-          // orbits at 2.4 planet radii (world/system-scene.ts), which puts the
-          // planet surface at 1/2.4 = 0.42 of the way out. The 0.62 floor keeps
-          // the waypoint clear of the planet, even where the offset points
-          // straight down.
-          this.state.waypoint
-            .copy(station.position)
-            .multiplyScalar(0.62 + random() * 0.38)
-            .add(randomDirection(new THREE.Vector3()).multiplyScalar(600 + random() * 1200));
-        }
-        this.steerToward(this.state.waypoint, dt);
-        this.state.speed = approach(this.state.speed, this.maxSpeed * 0.35, 60 * dt);
-        if (this.state.tradeTimer <= 0) {
-          // about half put in at the station; the rest jump out from here
-          if (this.state.docksHere) {
-            this.state.traderPhase = 'docking';
-          } else {
-            this.state.traderPhase = 'departing';
-            // Run for the sun to jump out, where the view knows where it is.
-            // Otherwise any heading out of the system will do.
-            const heading = view.sunPos
-              ? new THREE.Vector3().subVectors(view.sunPos, station.position).normalize()
-              : randomDirection(new THREE.Vector3());
-            this.state.waypoint.copy(station.position).addScaledVector(heading, 30000);
-          }
-        }
-        break;
-      }
-      case 'docking': {
-        // Shared with the player's docking computer — see game/docking.ts.
-        const plan = planDocking(
-          this.object.position, station, view.dockZ, this.maxSpeed, this.state.dockPlan);
-        this.state.docking = plan.phase === 'run';
-        this.state.speed = approach(this.state.speed, plan.speed, 90 * dt);
-        // orientation from the plan's heading AND the station's up, so the
-        // wings roll into line with the slot as it spins
-        this.tmpMat.lookAt(ZERO, plan.heading, plan.up);
-        this.tmpQ.setFromRotationMatrix(this.tmpMat);
-        this.object.quaternion.rotateTowards(this.tmpQ, this.turnRate * 2.2 * dt);
-        if (plan.arrived) {
-          this.state.docked = true;
-          this.state.wantsDespawn = true; // the Game plays the flash
-        }
-        break;
-      }
-      case 'departing': {
-        this.steerToward(this.state.waypoint, dt);
-        this.state.speed = approach(this.state.speed, this.maxSpeed, 90 * dt);
-        if (this.object.position.distanceTo(this.state.waypoint) < 2500) {
-          this.state.wantsDespawn = true; // jumps out — game plays the flash
-        }
-        break;
-      }
-    }
   }
 
   /**
@@ -1528,16 +1464,4 @@ export class NpcShip {
     this.state.energy = next.energy;
     this.state.regenCarry = next.carryTicks;
   }
-}
-
-/**
- * Walk one number toward another by a fixed step, and never overshoot it.
- *
- * Eight speed lines in this file spend it. It is NOT exported: nothing outside
- * read it, and docs/TODO/174 M2 took the keyword off. `player.ts` holds its own
- * `approach`, which takes a rate and a `dt` rather than a step.
- */
-function approach(current: number, target: number, step: number): number {
-  if (current < target) return Math.min(target, current + step);
-  return Math.max(target, current - step);
 }

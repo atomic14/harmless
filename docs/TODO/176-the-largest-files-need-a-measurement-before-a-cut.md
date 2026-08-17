@@ -235,3 +235,50 @@ around a 73-line subject, at 0.60.
 `approach` is a four-line local helper with eight call sites, and four of the
 eight are in `updateTrader`. `random` and `randomDirection` come from
 `game/rng.ts`. `ZERO` is a module constant that only the docking phase reads.
+
+### M2 — the trader's working life left
+
+`game/trader-flight.ts` is 176 lines. `npc.ts` went 1,544 to 1,468, and it holds
+seven scratch objects rather than nine.
+
+**`stepTrader` takes two narrow interfaces rather than the class.** `TraderShip`
+is a transform, two hull numbers and ten state fields. `TraderWorld` is the
+station, the slot depth and the sun. `NpcShip` and `WorldView` each satisfy one
+of them, and the one call site needs no cast. That is docs/TODO/169 M2's
+pattern.
+
+**TWO PRIVATE FIELDS BECAME PUBLIC, AND THE PLAN DID NOT HAVE THAT.** A
+TypeScript class with a `private` member cannot satisfy a structural interface
+that names it. So `maxSpeed` and `turnRate` are `readonly` now, beside `accel`
+and `radius`, which were already public. They are facts about a hull.
+
+**`approach` moved to `game/flight-maths.ts`.** Four of its eight call sites went
+with the trader, so a second file needed the helper. The alternative was an
+export from `npc.ts`, and that makes a cycle between the two files.
+
+**docs/TODO/174 M2 TOOK THAT EXPORT OFF, AND THIS PUTS ONE BACK.** It is not a
+reversal. 174's rule was that a member with no reader outside its file is not
+exported. A reader exists now, so the rule points the other way.
+`test/deleted-members.test.ts` holds the new claim: the helper has one
+declaration, and neither `npc.ts` nor `trader-flight.ts` keeps a copy.
+
+**A SECOND STALE CLAIM CAME OUT OF IT, AND THE PLAN DID NOT HAVE IT.**
+`flight-maths.ts`'s comment named the five files that keep their own `ZERO`, and
+`player.ts` was one of them. `player.ts` holds no `ZERO`. It is the item's own
+subject at another site: a sentence written once and never checked again.
+
+**`test/trader-flight.test.ts` is 16 assertions in two parts.** A source scan
+holds that the file names no ship class and imports nothing from `npc.ts`. A
+control proves the scan can see the class. Then a fixture of one object literal
+drives all four phases, because a scan cannot say whether a type is honestly
+narrow.
+
+**Proved able to fail four ways, in two pairs.** An `NpcShip` import reddens the
+two scan claims alone. An arrival threshold of 100 rather than 900, and a
+departure of 12,000 rather than 30,000, redden the two behaviour claims alone.
+
+**All seven probes are byte-identical to the M1 commit.** The five that
+docs/TODO/169 held are `survivability`, `flight-probe`, `aim-probe`, `ram-probe`
+and `gap-probe`. **None of the five flies a trader**, so `dock-traffic` and
+`dock-probe` were measured against an M1 worktree as well. They report 80 of 80
+docked with 0 rams, and 504 of 504 docked. The suite is 4,818 assertions.

@@ -10,19 +10,26 @@
 //
 // TWO SCANS, AND EACH ONE FAILS ALONE:
 //
-//  1. `approach` in `game/npc.ts` is not exported. Eight lines in that file
-//     spend it, and no line outside it ever did.
+//  1. `approach` has ONE home, and `game/npc.ts` is no longer it.
 //  2. `AS_SHIPPED`, `AS_THE_GAME_FLIES` and `SENTINEL_NAMES` are gone from
 //     `game/brain-names.ts`. docs/TODO/81 reported them, and docs/TODO/174
 //     measured the claim behind them.
+//
+// THE FIRST SCAN CHANGED IN docs/TODO/176 M2, and the rule under it changed
+// first. 174 M2 held that `approach` was NOT exported, because eight lines in
+// `game/npc.ts` spent it and no line outside it did. M2 moved four of the eight
+// to `game/trader-flight.ts`, so a second file needed the helper. It is
+// `game/flight-maths.ts`'s now, and it is exported because a reader exists.
+//
+// The claim this file holds is the same one either way: the helper has exactly
+// one declaration, and nobody keeps a private copy.
 //
 // EACH SCAN CARRIES A CONTROL, and the control is the point. A scan can go
 // green because the regular expression matches nothing, or because it read the
 // wrong file. So each scan also reads something it MUST find.
 //
 // WHAT IS NOT HERE. Whether `approach` gives the right answer is asserted
-// wherever a speed is. This file holds one claim about each member: nobody
-// outside can reach it.
+// wherever a speed is.
 
 import { readFileSync } from 'node:fs';
 import { check } from './harness.ts';
@@ -35,29 +42,34 @@ const source = (path: string): string =>
 const code = (path: string): string =>
   source(path).replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-// --- approach is private to npc.ts -------------------------------------------
+// --- approach has one home ---------------------------------------------------
 
-console.log('\na member with no reader outside its file is not exported');
+console.log('\nthe speed ramp has one home, and two files reach for it');
 {
+  const maths = code('game/flight-maths.ts');
   const npc = code('game/npc.ts');
+  const trader = code('game/trader-flight.ts');
 
-  check('game/npc.ts declares approach',
-    /\bfunction approach\s*\(/.test(npc));
-  check('...and it does not export it',
-    !/\bexport\s+function approach\s*\(/.test(npc));
+  check('game/flight-maths.ts exports approach',
+    /\bexport\s+function approach\s*\(/.test(maths));
+  check('...and game/npc.ts declares no approach of its own',
+    !/\bfunction approach\s*\(/.test(npc));
+  check('...and neither does game/trader-flight.ts',
+    !/\bfunction approach\s*\(/.test(trader));
 
-  // The control. Without it, a renamed function would leave both checks above
-  // green, and the second one would be green for saying nothing.
-  check('...and the scan is not vacuous — the file exports other things',
-    /\bexport\s+(function|class|const|interface|type)\b/.test(npc));
+  // The control. Without it, a renamed function would leave the two bans above
+  // green, and each one would be green for saying nothing.
+  check('...and the scan is not vacuous — src/player.ts declares its own',
+    /\bfunction approach\s*\(/.test(code('player.ts')));
 
-  // The eight callers are why it stays in the file rather than leaving it. The
-  // declaration matches the same pattern, so it comes off the count.
-  const mentions = (npc.match(/\bapproach\(/g) ?? []).length;
-  const declares = (npc.match(/\bfunction approach\(/g) ?? []).length;
-  const spends = mentions - declares;
-  check(`...and the file still spends it (${spends} call sites)`,
-    spends >= 8, `found ${spends}`);
+  // Both readers are why it left `game/npc.ts` rather than staying private. The
+  // import line matches the same word, so it comes off each count.
+  const spends = (src: string) =>
+    (src.match(/\bapproach\(/g) ?? []).length;
+  check(`...and game/npc.ts spends it (${spends(npc)} call sites)`,
+    spends(npc) >= 4, `found ${spends(npc)}`);
+  check(`...and game/trader-flight.ts spends it (${spends(trader)} call sites)`,
+    spends(trader) >= 4, `found ${spends(trader)}`);
 }
 
 // --- the deleted picker's last three members ---------------------------------

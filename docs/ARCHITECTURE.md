@@ -121,9 +121,11 @@ Two quirks are deliberate:
 
 - `src/game/npc.ts` owns the NPC behaviours. `hostility.ts` owns one rule over
   a fleet: it answers whether a ship attacks the commander, and it names no
-  ship class (docs/TODO/169). `flight-maths.ts` owns the nose-and-thrust rule
-  that the ships, the trainer, the two spawners and the HUD's lead marker all
-  share. `brain-names.ts` is the source of truth for a
+  ship class (docs/TODO/169). `trader-flight.ts` owns a trader's working life:
+  it arrives, it works the lane, then it docks or it leaves. It names no ship
+  class either (docs/TODO/176). `flight-maths.ts` owns the nose, the thrust and
+  the throttle rules that the ships, the trainer, the two spawners and the HUD's
+  lead marker all share. `brain-names.ts` is the source of truth for a
   pilot assignment. `brains.ts` imports no trained weights today.
 - `pursuit` flies the shipped opposition. `attack-run` names the defensive
   flight logic: the armed trader's three-phase run, and the player's
