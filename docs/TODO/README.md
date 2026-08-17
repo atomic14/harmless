@@ -13,7 +13,12 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY.**
+1. [179](179-a-move-repairs-one-file-and-leaves-its-neighbours-stale.md) — a
+   move repairs one file and leaves its neighbours stale.
+
+**179 came from Chris on 2026-08-17**, when he asked for the next job. It is
+docs/TODO/176 M2's own debt. That move repaired the file it emptied. It repaired
+none of the five files that point at the code it moved.
 
 **178 came from Chris on 2026-08-17**, when he asked for the next fix. It came
 out of a reading of `test/campaign.ts`. docs/TODO/176 M3 named that file on a
