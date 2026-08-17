@@ -265,3 +265,44 @@ reddens the state claim. An attack run that does not stamp `state.flownBy`
 reddens the fixture claim **and two flight-readout tests with it**.
 
 4,883 assertions became 4,895.
+
+### M3 — the rail stays, and the measurement is the milestone
+
+**`chooseWeapon` does not move, and the plan was wrong to say it would.**
+
+**IT IS THE SHIP ARBITRATING BETWEEN ITS OWN PILOTS.** `npc.ts` states it at the
+call site: *"Either flight goes through the same `chooseWeapon` for what leaves
+the rail."* A pirate flies the pursuit dogfighter or the attack run, and both
+hand their shot to one place. That place is the ship, and a fourth pilot file
+would make it a peer of the two it arbitrates between.
+
+**`ai-training/scenario.ts` says the same thing in its own words**, citing
+docs/TODO/62: *"WHICH WEAPON leaves the rail is the ship's decision, not the
+flight's."* **62's own plan document does not state it**, so the claim lives in
+the code alone. It is consistent at three sites, and this milestone is now a
+fourth.
+
+**The seam is three members and would cost ten call sites.** `chooseWeapon`
+reaches `facing`, `healthFraction` and `state`. It is public on purpose —
+`test/missile-cap.test.ts` says so — and nine test call sites plus the trainer
+treat it as the ship's API. Twenty-four lines is a poor trade for that.
+
+**THE PLAN'S OTHER M3 CLAIM WAS WRONG TOO.** It said `update` would then hold
+the dispatch and nothing else. It holds 146 lines, and 124 of them are the
+fighting-role branches that the NEXT item takes. No M3 produces that.
+
+### What 183 leaves behind
+
+`npc.ts` is 947 lines. 400 of those are member body over 22 members. The other
+547 are the module header, the imports, two types, the field declarations and
+the doc comment beside each.
+
+| lines | member | where it goes |
+| --- | --- | --- |
+| 146 | `update` | 124 are the fighting roles, and they are the next item |
+| 84 | `constructor` | stays — it writes 17 members (docs/TODO/181) |
+| 36 | `breakingOff` | stays — it is prose over a one-line getter |
+| 24 | `chooseWeapon` | stays — M3 measured it |
+
+**The next item is the fighting roles**: pirate, police, hunter and thargoid.
+They are free now, because the pilots they call are objects.
