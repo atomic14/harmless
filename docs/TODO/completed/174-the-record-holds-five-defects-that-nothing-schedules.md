@@ -152,3 +152,112 @@ for holding a stylesheet claim in the suite.
 **The two word fixes need no new test.** `npm run constants:check` already reads
 the doc comment, and the novella has no gate at all. State that plainly in the
 outcome rather than implying cover that does not exist.
+
+## Outcome
+
+All three milestones landed on 2026-08-17. Four of the five defects were real
+and are fixed. The fifth does not exist, and the measurement is written down.
+
+### M1 — the two wrong words
+
+**The novella line moved, and the plan's line number was stale.** It is
+`novella.html:315` rather than 313. The word `name` is `reputation` now.
+
+**The paragraph already used the right word two lines up.** It opens
+*"Commanders of established reputation"*, so the sentence contradicted itself
+across one clause. The page keeps Chris's voice. Nothing else on it moved.
+
+**`HERMIT_SCATTER`'s comment takes the measured multiple.** 14,000 against
+`ASTEROID_SCATTER`'s 5,000 is 2.8, and the sentence said 2.5.
+
+**IT ALSO NAMES THE CONSTANT, AND THE PLAN DID NOT ASK FOR THAT.**
+docs/TODO/170 gave an arrival a second rock anchor, so *"the asteroid field's
+nominal radius"* had two readings. The hermit and `ASTEROID_SCATTER` both anchor
+to the station (`game/spawning.ts`). `ASTEROID_LANE_SCATTER` does not.
+
+`npm run generate:constants` ran first. 390 exports, 87 rule ids.
+
+### M2 — the two members with no reader
+
+**THE FALLBACK IS MEASURED, AND docs/TODO/81'S CLAIM HOLDS.** No live caller of
+`brainName` can pass a sentinel. There are two callers:
+
+1. `ui/screens-trainer.ts` prints `ExerciseSetup.coPilot`. `combat-sim.ts` sets
+   that field from `defenceBrainNameFor`, which returns a `BrainName`.
+2. `game/screens/combat-sim-setup.ts` prints the PIRATES FLY row. Its value
+   walks `PIRATE_CHOICES`, whose two members are each a `BrainName`.
+
+**The draft that holds the second value is never saved.** `SimDraft` lives in
+one private field of the combat trainer screen. `freshDraft` seeds it, and
+`step` and `endOf` keep it inside the array. The only `JSON.parse` in `src/` is
+`save-transfer.ts`, and it reads a save rather than a report.
+
+So `AS_SHIPPED`, `AS_THE_GAME_FLIES` and `SENTINEL_NAMES` are gone. `brainName`
+is one lookup. `approach` lost its `export`, and gained the doc comment it never
+had.
+
+**A THIRD STALE CLAIM CAME OUT OF IT, AND THE PLAN DID NOT HAVE IT.** `BRAINS`'s
+doc comment said the two pickers offer one sentinel each, and that their lines
+live in `screens/combat-sim-notes.ts`. Both halves are false. `brainNote` reads
+`brainCharacter` alone, so a sentinel had no line there at all. One picker is
+left, and every value it offers is a pilot.
+
+**`test/deleted-members.test.ts` is 10 assertions in two scans.** Each scan
+carries a control, because a scan can go green on a pattern that matches
+nothing. **Proved able to fail twice, and each one alone.** The `export` keyword
+put back reddens one check. A sentinel put back reddens its own, and the
+allowlist check beside it.
+
+**The allowlist's own stale check is what demanded the edit**, and the scan went
+233 constants outside the home to 230. That is exactly the number deleted.
+
+4,799 assertions.
+
+### M3 — the hint does not overflow
+
+**THE DEFECT IS NOT THERE, AND THE RULE STAYS.** `#screen .hints span` was
+measured in Chrome at three viewport widths. It never overflows its container.
+
+| viewport | panel | hints container | longest hint | spare |
+| --- | --- | --- | --- | --- |
+| 1289 | 644.5 | 582.5 | 334 | 249 |
+| 760 | 640 | 578 | 319 | 259 |
+| 500 | 640 | 578 | 319 | 259 |
+
+**`#screen` sets `min-width: 640px`, so 578 pixels is a floor rather than a
+reading.** The container cannot get narrower, whatever the window does. The
+longest hint in the tree is the compare screen's `THE OTHER RECORD (n IN THE
+RING)`. It uses 55% of that floor.
+
+**Every hint string in the five call sites was measured**, in the live container
+at the real font. The three longest are that one, and the survivors screen's two
+lines about the capsule.
+
+**#29's geometry is absent here.** `#message` held one whole sentence in one
+`nowrap` element, centred on `left: 50%`, with no width floor. A hint is a short
+item, and `.hints` wraps normally BETWEEN items. The trainer's six hints take two
+lines at the floor.
+
+**AT 500 PIXELS THE PANEL HANGS OFF BOTH EDGES, AND EVERY ROW GOES WITH IT.**
+That is `min-width: 640px`, and it is not this rule. It is reported here and not
+scheduled.
+
+**THE MEASUREMENT FOUND THE OPPOSITE DEFECT, AND THE PLAN DID NOT HAVE IT.** The
+station menu's own key line is a bare `.keyline`. It carries no spans and no
+`nowrap`, and it breaks `S COMMANDER FILE` across two lines. That is the exact
+ugliness this rule prevents. **It is REPORTED rather than fixed**, because it is
+a sixth defect and not one of the five. This item exists because five reports
+went unscheduled, so it does not add a sixth silently.
+
+**The record lives beside the rule in `src/style.css`**, and no gate holds it.
+`tools/ste.mjs` walks `.ts`, `.js` and `.mjs` alone, so it never reads a
+stylesheet comment.
+
+**No new test.** The plan said to fix it only if it overflows. It does not.
+
+### What has no gate
+
+Two of this item's four fixes are unprotected, and that is stated rather than
+implied. The novella has no gate at all. The `style.css` comment has none
+either. `npm run constants:check` does read the `HERMIT_SCATTER` comment, and
+`test/deleted-members.test.ts` holds both deletions.

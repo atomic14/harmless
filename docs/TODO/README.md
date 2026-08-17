@@ -13,19 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [174](174-the-record-holds-five-defects-that-nothing-schedules.md) — the
-   record holds five defects that nothing schedules;
-2. [176](176-the-largest-files-need-a-measurement-before-a-cut.md) — the largest
+1. [176](176-the-largest-files-need-a-measurement-before-a-cut.md) — the largest
    files need a measurement before a cut;
-3. [175](175-the-law-reads-your-record-and-never-reads-the-grudge.md) — the law
+2. [175](175-the-law-reads-your-record-and-never-reads-the-grudge.md) — the law
    reads your record and never reads the grudge.
 
 **All three came from Chris on 2026-08-17**, after 173 landed and left the queue
-empty. The order is by value over cost, and not by severity.
-
-**174 leads because it is the cheapest.** Five landed items each reported a
-defect and each declined to fix it, which was the right call every time. Nothing
-scheduled the second pass until now.
+empty. The order is by value over cost, and not by severity. **174 led it and
+landed the same day.** It is below.
 
 **176 is the programme Chris named**, in his own words: *"we should pick up the
 large files and start breaking them down."*
@@ -169,6 +164,65 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**174 — the record holds five defects that nothing schedules.** Five landed
+items each reported a defect and each declined to fix it. Every one of the five
+was the right call at the time. Nothing scheduled the second pass, so Chris
+asked for all five.
+
+**Four were real. The fifth does not exist, and the measurement is written
+down.**
+
+**The novella line moved, and the plan's number is stale.** It is line 315
+rather than 313. The paragraph opens *"Commanders of established reputation"*
+and then said *"attempts on your name"*, so it contradicted itself across one
+clause. One word changed, and the page keeps Chris's voice.
+
+**`HERMIT_SCATTER`'s comment claimed 2.5x and the measure is 2.8.** It also
+names `ASTEROID_SCATTER` now, which the plan did not ask for. docs/TODO/170 gave
+an arrival a second rock anchor, so *"the asteroid field"* had two readings. The
+hermit and `ASTEROID_SCATTER` both anchor to the station.
+
+**docs/TODO/81's UNMEASURED CLAIM HOLDS, AND THE MEASUREMENT IS THE MILESTONE.**
+No live caller of `brainName` can pass a sentinel. `screens-trainer.ts` prints a
+field that `defenceBrainNameFor` sets. `combat-sim-setup.ts` prints a row that
+walks `PIRATE_CHOICES`. Each of those yields a `BrainName`, and the draft that
+holds the second is never saved.
+
+**So the three members are gone and `brainName` is one lookup.** `approach` lost
+its `export` and gained the doc comment it never had.
+
+**A THIRD STALE CLAIM CAME OUT OF IT, AND THE PLAN DID NOT HAVE IT.** `BRAINS`'s
+doc comment said the two pickers offer one sentinel each, and that their lines
+live in `screens/combat-sim-notes.ts`. Both halves are false. `brainNote` reads
+`brainCharacter` alone, so a sentinel had no line there at all.
+
+**`test/deleted-members.test.ts` is 10 assertions in two scans, and each scan
+carries a control.** Proved able to fail twice, and each one alone. The
+allowlist scan went 233 constants outside the home to 230, which is exactly the
+number deleted.
+
+**THE HINT DOES NOT OVERFLOW, AND THE RULE STAYS.** `#screen .hints span` was
+measured in Chrome at viewports of 1289, 760 and 500 pixels. `#screen` sets
+`min-width: 640px`, so the container is 578 pixels at a floor rather than at a
+reading. The longest hint in the tree is 319 pixels, which is 55% of it.
+
+**#29's geometry is absent.** `#message` held one whole sentence in one `nowrap`
+element, centred on `left: 50%`, with no width floor. A hint is a short item,
+and `.hints` wraps normally between items.
+
+**At 500 pixels the PANEL hangs off both edges, and every row goes with it.**
+That is `min-width: 640px`. It is reported and not scheduled.
+
+**THE MEASUREMENT FOUND THE OPPOSITE DEFECT.** The station menu's own key line
+is a bare `.keyline` with no spans and no `nowrap`. It breaks
+`S COMMANDER FILE` across two lines, which is the ugliness this rule prevents.
+**It is reported rather than fixed**, because a sixth defect inside a milestone
+is how the first five got lost.
+
+**Two of the four fixes have no gate, and the outcome says so.** The novella has
+none. The `style.css` comment has none, because `tools/ste.mjs` walks `.ts`,
+`.js` and `.mjs` alone. 4,799 assertions.
 
 **173 — the burst carries on from the pirate into the police ship.** Chris flew
 it and reported two sentences: *"I was attacked by a pirate and a police ship
