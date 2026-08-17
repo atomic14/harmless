@@ -364,9 +364,11 @@ function berthTonnes(contracts: Contract[]): number {
  * (docs/TODO/143).
  *
  * Only a `cargo` or a `smuggle` job carries goods. A passenger job takes a
- * berth, which is `berthTonnes`. A bounty and a courier run carry nothing, and
- * their `commodity` field is unread. So a bounty on commodity 0 must not mark
- * the Food row.
+ * berth, which is `berthTonnes`. A bounty and a courier run carry nothing.
+ *
+ * THE TAG TEST BELOW IS THE TYPE'S NOW (docs/TODO/185 M1). Every kind carried a
+ * `commodity` until then, and a bounty on commodity 0 could mark the Food row.
+ * Only a consignment declares the field today, so the test also narrows.
  *
  * It reports the JOB, not the hold. A commander who sold two tonnes of a five
  * tonne consignment still owes five, so the answer stays 5 while the hold reads

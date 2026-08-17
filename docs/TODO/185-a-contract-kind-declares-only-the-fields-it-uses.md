@@ -233,3 +233,52 @@ a file of its own, beside `contracts.ts` and `contract-offers.ts`. That is 29
 importers, so it needs its own item.
 
 4,907 assertions became 4,915.
+
+### M2 — the rename is refused, on three measurements
+
+**THE ANSWER IS NO, AND IT IS THE THIRD REFUSAL IN A ROW.** docs/TODO/183 M3
+and 184 both measured a step their own plan named, then declined it. This is
+that shape again.
+
+**1. EVERY SITE ALREADY KNOWS THE KIND.** 18 sites in `src/` read a contract's
+`qty`. Measured on 2026-08-17, and read rather than counted:
+
+| sites | file | what narrows it |
+| --- | --- | --- |
+| 8 | `game/contracts.ts` | a tag test on the branch above each one |
+| 4 | `game/contract-offers.ts` | one line per kind, each behind its own tag |
+| 2 | `game/combat-wreck.ts` | inside the bounty branch |
+| 2 | `game/commander.ts` | `k.kind === 'passenger'`, and the consignment pair |
+| 1 | `game/docked.ts` | inside `e.contract.kind === 'smuggle'` |
+| 1 | `ui/screens.ts` | the same line tests for a bounty |
+
+**Not one site reads `qty` off an unnarrowed `Contract`.** So a reader always
+has the kind in view, and the rename would clarify nothing at any point of use.
+`k.qty * PASSENGER_BERTH_TONNES` inside a passenger branch needs no lookup.
+
+**2. THE MIGRATION LADDER HAS ONLY EVER ADDED A FIELD.** `snapshot.ts` states
+its own bound: a step "fills in what a version did not have. It never repairs a
+field that version was supposed to carry." A rename is neither of those. It
+MOVES a field that every version carried, and it would be the first step of that
+kind.
+
+**3. AN OLD SAVE CANNOT BE READ WITHOUT A VERSION BUMP.** `qty` is written into
+the JSON, and `Persistence.restore` clones the commander straight in. A reader
+of `tonnes` would get `undefined`. That failure is silent. It is the exact one
+docs/TODO/160 recorded for `atonement`. `undefined + 1` is `NaN`, and `NaN < x`
+is false. So a rule takes the wrong branch, and it says nothing.
+
+**THE TRADE IS A CAREER AGAINST A NAME.** Chris's rule of 2026-08-16 stands at
+the top of `MIGRATIONS`: **a save that will not load costs a career.** The
+rename buys no clarity at any of 18 sites. It costs `SNAPSHOT_VERSION` 4, a new
+kind of migration step, and a second pass over ten test files.
+
+**`qty` STAYS.** Its doc comment on `ContractBase` names all three meanings, and
+that comment is the whole remedy the sites need.
+
+### What M2 did land
+
+**A STALE DOC COMMENT, FOUND BY READING FOR THE MEASUREMENT.**
+`consignedTonnes` said a bounty and a courier run carry nothing "and their
+`commodity` field is unread". They have no such field since M1. The comment now
+says that the tag test is the type's.
