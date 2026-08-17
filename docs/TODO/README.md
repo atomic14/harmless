@@ -13,7 +13,12 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY.**
+1. [181](181-the-saved-shape-of-a-ship-leaves-the-ship.md) — the saved shape of a
+   ship leaves the ship.
+
+**181 came from Chris on 2026-08-17.** He asked to work on `src/game/npc.ts`,
+the tree's one recorded debt. Four candidates were measured, and not one of them
+has a reader behind it. He chose to take the size cut anyway.
 
 **180 came from Chris on 2026-08-17.** He read 179's outcome and asked whether
 the magic values should be constants. A measurement answered that for one of
