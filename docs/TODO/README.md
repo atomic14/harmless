@@ -13,14 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [185](185-a-contract-kind-declares-only-the-fields-it-uses.md) — a contract
-   kind declares only the fields it uses.
+The queue is empty.
 
-**185 CAME OUT OF A SURVEY THAT RECOMMENDED AGAINST ITS OWN SUBJECT.** Chris
-asked on 2026-08-17 whether docs/TODO/182's pattern helps elsewhere. The survey
-measured 205 branches on a type tag across 51 files. It then read the
-candidates, and it answered no. `Contract` is what it found on the way, and it
-takes a different fix. Chris chose it the same day.
+**ONE CANDIDATE CAME OUT OF 185, AND IT NEEDS ITS OWN ITEM.** `commander.ts`
+says it describes who you are, what you are carrying, and how you rank. A job on
+a bulletin board is none of those. `Contract` may belong in a file of its own,
+beside `contracts.ts` and `contract-offers.ts`. That is 29 importers.
 
 **THE DECOMPOSITION PROGRAMME IS DONE.** docs/TODO/181, 182, 183 and 184 all
 landed on 2026-08-17. `src/game/npc.ts` went 1,468 lines to 856, into eight
@@ -228,6 +226,21 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**185 — a contract kind declares only the fields it uses.** It came out of a
+survey that recommended against its own subject. Chris asked whether
+docs/TODO/182's pattern helps elsewhere. The answer was no. `Contract` is what
+the survey found on the way, and it took a different fix.
+
+**THE COMPILER FOUND 35 SITES.** `contract-offers.ts` wrote five dead fields. A
+test helper said "a job of any kind" and built three of them wrong. One
+assertion died, because the union makes its claim impossible rather than
+untested.
+
+**M2 REFUSED THE RENAME, ON THREE MEASUREMENTS.** All 18 sites that read `qty`
+already narrow on the kind first. The migration ladder has only ever added a
+field. An old save cannot be read without a version bump, and a save that will
+not load costs a career.
 
 **184 — the roles that fight get their own behaviour.** The last cut of the
 programme. `game/npc-fighter.ts` holds the pirate, the police, the bounty
