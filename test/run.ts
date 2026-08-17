@@ -81,6 +81,7 @@ import './flight.test.ts';
 import './geometry.test.ts';
 import './npc.test.ts';
 import './npc-state.test.ts';
+import './npc-idle.test.ts';
 import './break-off.test.ts';
 import './flight-readout.test.ts';
 import './ship-clocks.test.ts';

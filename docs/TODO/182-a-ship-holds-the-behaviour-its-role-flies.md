@@ -176,3 +176,60 @@ Take the baseline before M1.
    scan cannot say whether the context is honestly narrow.
 
 **Prove each able to fail, and each one alone.**
+
+## Outcome
+
+### M1 — the seam, and the ships that never fight
+
+`game/npc-behaviour.ts` is 79 lines and `game/npc-idle.ts` is 108. `npc.ts` is
+1,292: it took the 23 idle lines out and added the dispatch, the behaviour
+field and the header that explains the shape.
+
+**THE FILE DID NOT SHRINK, AND THAT IS THE RIGHT RESULT FOR M1.** This milestone
+buys the architecture rather than the lines. The three items after it are the
+ones that move 286 and 124 lines, and neither could start until the seam existed.
+
+**Nothing moved.** `survivability`, `aim-probe`, `gap-probe`, `ram-probe` and
+`roster-probe` are byte-identical, and `npm run campaign` is byte-identical at
+both sizes.
+
+**The context is five members, not the ten the plan estimated.** `object`,
+`role`, `maxSpeed`, `state` and `advance`. The idle roles ask for less than the
+union did, and a later item widens it and says what it added.
+
+**`advance` went public**, for the reason `maxSpeed` and `turnRate` did in
+docs/TODO/176 M2: a collaborator needs the primitive.
+
+**A HERMIT'S BEACON CLOCK IS THE FIRST THING A BEHAVIOUR KEPT FOR ITSELF.** It
+was a private field on `NpcShip`, off the save on purpose. It never belonged to
+the ship, and a behaviour that is per ship can simply hold it.
+
+**THE CONSTANTS GATE FIRED, AND IT WAS RIGHT TO.** The four tumble rates were
+bare literals inside `update` and invisible to every scan. Naming them made them
+visible, and `test/constants.test.ts` demanded a home. They are on its OUTSIDE
+list under a STAYS heading. No rule reads a roll rate, and docs/TODO/180
+measured that whole class and left it alone.
+
+**A bare literal in a class body is worse than a named one a list can see.**
+That is the trade this milestone took, and the list records it.
+
+**`test/npc-idle.test.ts` is 15 assertions in two parts.** A source scan over
+both new files with a control, then four behaviours flown off one object
+literal that constructs no ship at all.
+
+**The inert claim is an ORDERING rather than a number.** A drone rolls slower
+than a rock. A change to how a derelict looks is not a failure, and a change to
+which of them looks calmer is.
+
+**Proved able to fail three ways, and each one alone.** An `NpcShip` import
+reddens the two scan claims. A derelict that sets its speed and never advances
+reddens one fixture claim. **A shared beacon clock reddens two**, and that break
+is the argument for a hermit being an object rather than a rate.
+
+4,858 assertions became 4,873.
+
+### What the next item has to answer
+
+**The pilots.** `attack`, `pursue` and `brainFly` are 286 lines and three of
+`update`'s branches call them. The seam this milestone built is what they become
+objects against, and the 69-call measurement is what they have to beat.

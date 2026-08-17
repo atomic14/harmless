@@ -58,13 +58,22 @@
 // `PlayerRef` went too. `FireEvent` and `WorldView` did NOT: each one names
 // `NpcShip`, so moving it would make the child import its parent.
 //
-// WHAT IS LEFT IS ONE SHIP, and four measurements say so. `update` IS this
-// file's responsibility. `brainFly`, `attack` and `pursue` are decision loops
-// behind a 69-call seam. The constructor writes 17 members, and twelve of them
-// cross a seam in any split. `tools/sizes.mjs` holds the numbers.
+// A SHIP HOLDS THE BEHAVIOUR ITS ROLE FLIES (docs/TODO/182). `update` clears
+// `state.flownBy`, then asks that behaviour. The roles that never fight are
+// `game/npc-idle.ts` already: a rock and a hermit tumble, and a derelict
+// drifts. Everything that fights still runs in `update` below, and each kind
+// leaves in its own item.
+//
+// THE SEAM IS AN OBJECT RATHER THAN A NARROW INTERFACE, and that is the whole
+// reason the earlier cuts fought. A free FUNCTION over the flight models would
+// need about eighteen handles, which docs/TODO/169 M3 measured as a 69-call
+// seam and refused. A collaborator that HAS the ship needs one.
+//
+// THE PILOTS ARE THE GATE ON THE REST. `attack`, `pursue` and `brainFly` are
+// how a ship is flown while it fights, and three of `update`'s branches call
+// them. Nothing else can leave until they are objects too.
 import * as THREE from 'three';
-import { buildShip, buildAsteroid, buildHermitBeacon,
-  HERMIT_BEACON_ON, HERMIT_BEACON_PERIOD } from '../ships/geometry.ts';
+import { buildShip, buildAsteroid, buildHermitBeacon } from '../ships/geometry.ts';
 import { registeredHull } from '../ships/registry.ts';
 import {
   ASTEROID_IDENTITY, rosterSpec, shipAccel, type NpcSpec,
@@ -117,6 +126,10 @@ import type { NpcEnergyPoints } from './damage-units.ts';
 import { rampToward } from '../player.ts';
 import { random, randomDirection, randomQuaternion } from './rng.ts';
 import { stepTrader } from './trader-flight.ts';
+import type { NpcBehaviour } from './npc-behaviour.ts';
+import {
+  derelictIdle, hermitIdle, inertTumble, rockIdle,
+} from './npc-idle.ts';
 import { freshNpcState, type NpcState, type PlayerRef } from './npc-state.ts';
 import { ThreatLock } from './threat-lock.ts';
 
@@ -253,12 +266,24 @@ export class NpcShip {
   private pursuitSlashing = false;
 
   /**
-   * A rock hermit's blinking beacon and the clock that pulses it. Cosmetic and
-   * off the save: the blink phase drives nothing, so a reload restarting it
-   * mid-pulse is not an observable divergence.
+   * What this kind of ship does with one frame.
+   *
+   * Built once from `role`, in the constructor, and held for the ship's life.
+   * `role` is saved, so a restored ship rebuilds the same one and nothing new
+   * enters `NpcState` (docs/TODO/182 M1).
+   *
+   * `update` below clears `state.flownBy` and then asks this. A behaviour that
+   * flies the ship stamps it, and one that leaves the ship alone does not.
    */
-  private beacon: THREE.Mesh | null = null;
-  private beaconClock = 0;
+  private readonly behaviour: NpcBehaviour | null;
+
+  /**
+   * The drone behaviour, for a Thargon whose mothership died.
+   *
+   * NOT the one above, because `inert` is a state a ship enters part-way
+   * through its life rather than a role it spawns as.
+   */
+  private readonly inert: NpcBehaviour = inertTumble();
 
   /**
    * Whether the pursuit pilot is veering off to avoid a ram this frame, for the
@@ -337,8 +362,6 @@ export class NpcShip {
   readonly state: NpcState;
 
   /** Private aliases keep the flight code readable without duplicating the public API. */
-  private get tumbleAxis(): THREE.Vector3 { return this.state.tumbleAxis; }
-
   private get brainControl(): { pitch: number; roll: number; throttle: number; fire: boolean } | null {
     return this.state.brainControl;
   }
@@ -382,8 +405,9 @@ export class NpcShip {
       // mesh is generated at the registry's radius for it.
       const hermitRadius = registeredHull(this.designId).targetRadius;
       this.object = buildAsteroid(hermitRadius, variantSeed * 977 + 3, 0xb9b9a5);
-      this.beacon = buildHermitBeacon(hermitRadius);
-      this.object.add(this.beacon);
+      const beacon = buildHermitBeacon(hermitRadius);
+      this.object.add(beacon);
+      this.behaviour = hermitIdle(beacon);
       this.radius = hermitRadius;
       this.bounty = 0;
       this.cargoDrop = 0;
@@ -397,6 +421,7 @@ export class NpcShip {
       return;
     }
     if (role === 'asteroid') {
+      this.behaviour = rockIdle();
       const radius = 25 + (variantSeed % 45);
       this.object = buildAsteroid(radius, variantSeed * 131 + 7, 0x9a9a8a);
       this.radius = radius;
@@ -409,6 +434,7 @@ export class NpcShip {
       this.state.hasEcm = false;
       this.armed = false;
     } else {
+      this.behaviour = role === 'generation' ? derelictIdle() : null;
       const spec = rostered!;
       // The hull and its size come from the DESIGN, and not from the roster
       // row. `ships/registry.ts` is the only way to either. So two roster rows
@@ -486,25 +512,14 @@ export class NpcShip {
 
     const { station, fleet, playerLegal, brains } = view;
 
-    if (this.role === 'asteroid' || this.role === 'hermit') {
-      this.object.rotateOnAxis(this.tumbleAxis, dt * (this.role === 'hermit' ? 0.06 : 0.4));
-      if (this.beacon) {
-        this.beaconClock += dt;
-        this.beacon.visible = this.beaconClock % HERMIT_BEACON_PERIOD < HERMIT_BEACON_ON;
-      }
-      return null;
-    }
-    if (this.role === 'generation') {
-      // ancient, blind, and utterly indifferent to you
-      this.object.rotateOnAxis(this.tumbleAxis, dt * 0.02);
-      this.state.speed = this.maxSpeed;
-      this.advance(dt);
-      return null;
-    }
-    if (this.state.inert) {
-      this.object.rotateOnAxis(this.tumbleAxis, dt * 0.2);
-      return null;
-    }
+    // THE DISPATCH (docs/TODO/182 M1). A role that never fights holds a
+    // behaviour, and it answers here. The order is the order these three
+    // branches ran in before. A rock that somehow went inert keeps a rock's
+    // roll, because its own behaviour is asked first.
+    if (this.behaviour) return this.behaviour.fly(this, dt);
+    // ...and a drone whose mothership died. It is a STATE rather than a role,
+    // so it is asked after the role and not built in the constructor.
+    if (this.state.inert) return this.inert.fly(this, dt);
 
     const toPlayer = this.tmpDir.copy(player.position).sub(this.object.position);
     const distPlayer = toPlayer.length();
@@ -1098,7 +1113,14 @@ export class NpcShip {
     return shot;
   }
 
-  private advance(dt: number): void {
+  /**
+   * Move along the nose at the current speed.
+   *
+   * Public because `game/npc-behaviour.ts`'s `BehaviourShip` names it, and a
+   * derelict spends it (docs/TODO/182 M1). It is the same reason `maxSpeed`
+   * and `turnRate` are public: a collaborator needs the primitive.
+   */
+  advance(dt: number): void {
     this.tmpDir.set(0, 0, -1).applyQuaternion(this.object.quaternion);
     this.object.position.addScaledVector(this.tmpDir, this.state.speed * dt);
   }

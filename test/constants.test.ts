@@ -119,6 +119,20 @@ const OUTSIDE: readonly Group[] = [
   },
 
   {
+    why: 'STAYS: how a derelict LOOKS. Four roll rates, in radians per second: a rock'
+      + ' that was thrown, a hollowed rock with an engine, a generation ship under way,'
+      + ' and a drone whose mothership died. No rule reads any of them, and nothing'
+      + ' downstream branches on one. docs/TODO/180 measured this whole class and left it'
+      + ' alone: a cosmetic number named in src/constants/ reads as a rule a shipyard'
+      + ' could argue with. They are named at all because docs/TODO/182 M1 moved them'
+      + ' into a behaviour object, and a bare literal in a class body is worse than a'
+      + ' named one this list can see',
+    files: {
+      'game/npc-idle.ts': ['ROCK_TUMBLE', 'HERMIT_TUMBLE', 'GENERATION_TUMBLE', 'INERT_TUMBLE'],
+    },
+  },
+
+  {
     why: 'per-module three.js vectors — scratch buffers and the fixed axes a rotation is'
       + ' taken about — hoisted so a per-frame path allocates nothing. docs/TODO/90'
       + ' rules them out by name: a THREE.Vector3 is MUTABLE, so a shared home would'
