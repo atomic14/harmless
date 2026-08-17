@@ -176,3 +176,71 @@ trained weights and cannot fly the shipped defence. `survivability` and
 
 **Prove each gate able to fail, and each one alone.** For M2, delete the line.
 For M3, remove the exit and watch only the exit's own claims redden.
+
+## Outcome
+
+### M1 — what a grudge actually costs
+
+Flown through the real `Game` under node, on 2026-08-17. The probe was a
+throwaway, and it landed no code.
+
+**Q1 — THE FLAG NEVER ENDS, AND SHE OUTRUNS IT ANYWAY.** `provokedByPlayer`
+still holds after 300 seconds of flight. The ship is alive, and it is still in
+the fleet. Nothing despawns it. With the legal record forced back to Clean by
+hand, `isHostileToPlayer` still answers true.
+
+**At full throttle the range opens from 767 units to 112,065 over those 300
+seconds.** So the grudge is permanent in the flag, and it belongs to a ship that
+cannot catch her.
+
+**Q2 — THE TRUCE DOES NOT COVER A PROVOKED SHIP, AND THAT IS 158's DECISION AT
+WORK.** The measurement uses HUNTERS, because `truceHolds` covers pirates and
+hunters alone. A police Viper would show nothing about this line.
+
+| units off the port | unprovoked hunter | provoked hunter |
+| --- | --- | --- |
+| 0 | not hostile | hostile |
+| 1,000 | not hostile | hostile |
+| 3,000 | not hostile | hostile |
+| 6,999 | not hostile | hostile |
+| 7,001 | hostile | hostile |
+| 12,000 | hostile | hostile |
+
+**The control flips at exactly `STATION_TRUCE`**, which is 7,000. So the rule
+under test is isolated, and the bypass is the one line that reads the flag. **A
+provoked police Viper is hostile at the port for a second reason as well**, and
+the police were never inside the truce.
+
+**Q3 — A DOCK CLEARS IT, AND THIS PLAN'S "SHARP EDGE" IS FALSE.**
+`Station.dock` calls `world.clearNpcs()` with no condition on it. Measured: one
+ship in the sky before the dock and none after. The launch built nine fresh
+ships, and not one of them carried a grudge.
+
+**The fine works, and it was measured in the same flight.** It said
+`FINE PAID: 25.0 Cr — YOUR LEGAL STATUS IS CLEAN AGAIN`. **So no Viper can
+survive a dock**, and the case this plan built around `payFine` does not exist.
+The plan contradicted itself: it listed the dock as an exit four paragraphs
+earlier.
+
+**THE SHARP EDGE IS REAL, AND IT HAS A DIFFERENT SHAPE.** A record also comes
+down in flight, at five pirate kills (docs/TODO/160). That commander never
+docked, so the sky is the sky she provoked. Q1 measured her case: the record
+reads Clean and the ship still shoots.
+
+**Q4 — ONE STRAY SHOT BUYS TWO TO THREE ENEMIES.** Measured over 40 seeds, with
+the commander 4,000 units off the station and one laser hit on a policeman:
+
+- the station launch adds 1 or 2 Vipers, at a mean of 1.48;
+- 2 or 3 ships carry the grudge afterwards, at a mean of 2.48;
+- every one of those ships is hostile.
+
+Twenty-one seeds gave 2 and nineteen gave 3.
+
+**SO THE SEVERITY IS LOWER THAN THIS PLAN ASSUMED, AND THE THIRD ANSWER IS
+LIVE.** The Open questions offer "leave it" as a third answer. Two measured
+facts support it, and the plan had neither. She outruns the ship. Any dock
+clears the sky.
+
+**What is left is narrow, and it is one case.** A commander who works her record
+off in flight, and who does not dock, keeps every grudge she earned. The console
+never tells her why.
