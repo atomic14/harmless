@@ -13,9 +13,11 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY, AND A PROGRAMME IS PART WAY THROUGH.** docs/TODO/182 landed
-its seam, and three items follow it. **The pilots come next**, because three of
-`update`'s branches call them and nothing else can move first.
+1. [183](183-a-pilot-flies-a-ship.md) — a pilot flies a ship.
+
+**A PROGRAMME IS PART WAY THROUGH.** docs/TODO/182 landed its seam, and 183 is
+the gate on what follows. Three of `update`'s branches call a flight model, so
+nothing else can move until the flight models are objects.
 
 **182 IS THE HEAD OF THAT PROGRAMME, AND CHRIS NAMED ITS CAUSE.** He read `npc.ts`
 on 2026-08-17 and said: *"we have not used a good OO approach in this project."*
