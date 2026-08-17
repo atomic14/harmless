@@ -86,17 +86,14 @@ export function generateContractOffers(
         // the fee and 110's share change stay legible apart in the ledger.
         reward: Math.round(qty * (54 + dist * 3.9) + 90),
         deadlineDay: day + 4 + Math.ceil(dist / 12),
-        progress: 0,
       });
     } else if (roll < 0.6) {
       offers.push({
         kind: 'courier',
         destination: dest.index,
-        commodity: 0,
         qty: 0,
         reward: Math.round(240 + dist * 6.0),
         deadlineDay: day + 3 + Math.ceil(dist / 16),
-        progress: 0,
       });
     } else if (roll < 0.75) {
       // passengers: a berth apiece out of the same hold that freight wants.
@@ -106,11 +103,9 @@ export function generateContractOffers(
       offers.push({
         kind: 'passenger',
         destination: dest.index,
-        commodity: 0,
         qty,
         reward: Math.round(qty * (90 + dist * 3) + 120),
         deadlineDay: day + 3 + Math.ceil(dist / 16),
-        progress: 0,
       });
     } else if (roll < 0.85) {
       // Illicit freight (docs/TODO/110). It is a cargo run in every mechanical
@@ -142,14 +137,12 @@ export function generateContractOffers(
         // with it.
         reward: Math.round(qty * (195 + dist * 4.9) + 200),
         deadlineDay: day + 4 + Math.ceil(dist / 12),
-        progress: 0,
       });
     } else {
       const qty = 2 + Math.floor(rng() * 3);
       offers.push({
         kind: 'bounty',
         destination: dest.index,
-        commodity: 0,
         qty,
         reward: Math.round(qty * 170 + dist * 4),
         deadlineDay: day + 6 + Math.ceil(dist / 10),

@@ -21,7 +21,9 @@ import { generateGalaxy, generateMarket } from '../src/galaxy/galaxy.ts';
 import { distanceTenths } from '../src/galaxy/navigation.ts';
 import { generateContractOffers, describeContract } from '../src/game/contract-offers.ts';
 import { settleContracts } from '../src/game/contracts.ts';
-import { newCommander, type CommanderData, type Contract } from '../src/game/commander.ts';
+import {
+  newCommander, type CommanderData, type ConsignmentContract, type Contract,
+} from '../src/game/commander.ts';
 import { CONTRACT_RANGE } from '../src/constants/contracts.ts';
 import { ORDINARY_GOODS } from '../src/constants/commodities.ts';
 import { CONTRABAND } from '../src/constants/law.ts';
@@ -57,7 +59,7 @@ console.log('\nthe bulletin board\'s reach');
    * Positive means arriving short pays, which is the thing docs/TODO/113 is
    * measured against.
    */
-  const theftMarginFor = (k: Contract, fluctuation: number): number => {
+  const theftMarginFor = (k: ConsignmentContract, fluctuation: number): number => {
     const c: CommanderData = {
       ...newCommander(), systemIndex: k.destination, day: 0,
       credits: 1e9, contracts: [k],
@@ -80,7 +82,6 @@ console.log('\nthe bulletin board\'s reach');
     let strayCommodity = 0;
     let passengers = 0;
     let strayQty = 0;
-    let strayGoods = 0;
     let smuggles = 0;
     let strayLegal = 0;
     let strayLoad = 0;
@@ -109,7 +110,6 @@ console.log('\nthe bulletin board\'s reach');
           if (k.kind === 'passenger') {
             passengers += 1;
             if (k.qty < 1 || k.qty > 3) strayQty += 1;
-            if (k.commodity !== 0) strayGoods += 1;
           }
           if (k.kind === 'smuggle') {
             smuggles += 1;
@@ -120,7 +120,7 @@ console.log('\nthe bulletin board\'s reach');
       }
     }
     return {
-      maxD, offers, strayCommodity, passengers, strayQty, strayGoods,
+      maxD, offers, strayCommodity, passengers, strayQty,
       smuggles, strayLegal, strayLoad,
       cargoFee, cargoTonnes, smuggleFee, smuggleTonnes,
       freight, theftWins, theftMargin,
@@ -147,14 +147,18 @@ console.log('\nthe bulletin board\'s reach');
     + `${(100 * share(large)).toFixed(1)}% of ${large.offers} offers)`,
   [small, large].every((s) => share(s) > 0.1 && share(s) < 0.2));
   // qty is HEADS, and each head is a berth: the hold arithmetic downstream is
-  // only bounded because this is. A passenger job carries no goods, so it must
-  // never enter the ordinary-goods check above.
-  check(`a passenger job books 1-3 heads and no cargo `
+  // only bounded because this is.
+  //
+  // **"AND NO CARGO" LEFT THIS CHECK IN docs/TODO/185 M1.** It counted a
+  // passenger job that carried a `commodity`. The union has no `commodity` on a
+  // passenger job at all, so the count could only ever be 0. A test that cannot
+  // fail asserts the implementation against itself (CLAUDE.md). The claim is
+  // stronger for being the compiler's: it is impossible now rather than
+  // untested.
+  check(`a passenger job books 1-3 heads `
     + `(${small.passengers + large.passengers} jobs, `
-    + `${small.strayQty + large.strayQty} out of range, `
-    + `${small.strayGoods + large.strayGoods} carrying goods)`,
-  small.strayQty === 0 && large.strayQty === 0
-  && small.strayGoods === 0 && large.strayGoods === 0);
+    + `${small.strayQty + large.strayQty} out of range)`,
+  small.strayQty === 0 && large.strayQty === 0);
 
   // --- and the smuggling slice (docs/TODO/110) --------------------------------
   //
@@ -233,16 +237,19 @@ console.log('\nthe bulletin board\'s reach');
   // `describeContract` ends on the BOUNTY line as a fallback, not a default: a
   // kind with no line of its own is silently described as a pirate hunt.
   {
-    const job = (over: Partial<Contract>): Contract => ({
+    // TWO BUILDERS SINCE docs/TODO/185 M1. There was one, and it made a
+    // passenger job by overriding a cargo run's `kind`. The result carried a
+    // `commodity`, which no passenger job has.
+    const heads = (qty: number): Contract =>
+      ({ kind: 'passenger', destination: 7, qty, reward: 500, deadlineDay: 10 });
+    const job = (over: Partial<ConsignmentContract>): Contract => ({
       kind: 'cargo', destination: 7, commodity: 0, qty: 5,
-      reward: 500, deadlineDay: 10, progress: 0, ...over,
+      reward: 500, deadlineDay: 10, ...over,
     });
     check('a passenger job is described as passengers, not as a pirate hunt',
-      describeContract(job({ kind: 'passenger', qty: 2 }), systems)
-        === 'Carry 2 passengers to LAVE');
+      describeContract(heads(2), systems) === 'Carry 2 passengers to LAVE');
     check('...and one passenger is not two',
-      describeContract(job({ kind: 'passenger', qty: 1 }), systems)
-        === 'Carry 1 passenger to LAVE');
+      describeContract(heads(1), systems) === 'Carry 1 passenger to LAVE');
     // The board says what the job is. A smuggling run described as a pirate
     // hunt — the fallback's failure mode — would have the player accept a
     // police scan without being told there was one to accept.

@@ -7,7 +7,11 @@
 
 import * as THREE from 'three';
 import { World } from '../src/game/world.ts';
-import { newCommander, cargoTonnes } from '../src/game/commander.ts';
+import { newCommander, cargoTonnes, type Contract } from '../src/game/commander.ts';
+
+/** A bounty job taken at `destination`, with no kills on it yet. */
+const bounty = (destination: number): Extract<Contract, { kind: 'bounty' }> =>
+  ({ kind: 'bounty', destination, qty: 2, reward: 500, deadlineDay: 999, progress: 0 });
 import {
   dumpCargo, dumpContraband, offerBribe, appetiteOf,
 } from '../src/game/jettison.ts';
@@ -119,21 +123,23 @@ console.log('\ncombat');
   }
   {
     const { world, combat, c } = setup();
-    c.contracts = [
-      { kind: 'bounty', destination: 7, progress: 0, qty: 2 },
-      { kind: 'bounty', destination: 99, progress: 0, qty: 2 },
-    ] as never;
+    // HELD IN TYPED LOCALS SINCE docs/TODO/185 M1. The two were literals cast
+    // `as never`, and every assertion below read `.progress` off a `Contract`.
+    // Only a bounty job has one.
+    const here = bounty(7);
+    const elsewhere = bounty(99);
+    c.contracts = [here, elsewhere];
     combat.destroy(c, world.spawn('pirate', at(-500), 1));
     check('a bounty contract ticks up where it was taken',
-      c.contracts[0].progress === 1);
+      here.progress === 1);
     check('...and not for a contract from somewhere else',
-      c.contracts[1].progress === 0);
+      elsewhere.progress === 0);
     const evs = combat.destroy(c, world.spawn('pirate', at(-500), 2));
     check('...and says so when it completes',
-      c.contracts[0].progress === 2
+      here.progress === 2
       && msgs(evs).some((m) => m!.includes('BOUNTY CONTRACT COMPLETE')));
     const after = combat.destroy(c, world.spawn('pirate', at(-500), 3));
-    check('...only once', c.contracts[0].progress === 2
+    check('...only once', here.progress === 2
       && !msgs(after).some((m) => m!.includes('CONTRACT COMPLETE')));
   }
   {

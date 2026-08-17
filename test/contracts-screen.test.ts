@@ -25,14 +25,23 @@ console.log('\nthe contracts screen, docked and in flight');
   const systems = generateGalaxy(1);
   const here = systems[7];
 
-  const job = (over: Partial<Contract> = {}): Contract => ({
-    kind: 'courier', destination: 42, commodity: 0, qty: 1,
-    reward: 5000, deadlineDay: 106, progress: 0, ...over,
+  // A COURIER RUN, and the union says so (docs/TODO/185 M1). It said
+  // `Partial<Contract>` and carried a `progress` that only a bounty has. The
+  // one cargo run the screen needs is written out below, because a builder that
+  // takes a `kind` over a union spreads to a type that is no member of it.
+  type Courier = Extract<Contract, { kind: 'courier' }>;
+  const job = (over: Partial<Omit<Courier, 'kind'>> = {}): Contract => ({
+    kind: 'courier', destination: 42, qty: 1,
+    reward: 5000, deadlineDay: 106, ...over,
   });
+  const cargoRun: Contract = {
+    kind: 'cargo', destination: 11, commodity: 3, qty: 5,
+    reward: 5000, deadlineDay: 106,
+  };
 
   const c: CommanderData = {
     ...newCommander(), systemIndex: 7, day: 100,
-    contracts: [job(), job({ kind: 'cargo', destination: 11, commodity: 3, qty: 5 })],
+    contracts: [job(), cargoRun],
   };
   const offers = [job({ destination: 55, reward: 7000 })];
 
@@ -95,8 +104,8 @@ console.log('\nthe accept key is refused in flight, not merely hidden');
 {
   const systems = generateGalaxy(1);
   const offers: Contract[] = [{
-    kind: 'courier', destination: 55, commodity: 0, qty: 1,
-    reward: 7000, deadlineDay: 140, progress: 0,
+    kind: 'courier', destination: 55, qty: 1,
+    reward: 7000, deadlineDay: 140,
   }];
 
   /** A one-shot keyboard, as test/quit.test.ts builds one. */
@@ -137,8 +146,8 @@ console.log('\nthe ACCEPTED rows and the docked summary count the same days');
   const c: CommanderData = {
     ...newCommander(), systemIndex: 7, day: 100,
     contracts: [
-      { kind: 'courier', destination: 42, commodity: 0, qty: 1, reward: 5000, deadlineDay: 106, progress: 0 },
-      { kind: 'bounty', destination: 11, commodity: 0, qty: 5, reward: 9000, deadlineDay: 130, progress: 2 },
+      { kind: 'courier', destination: 42, qty: 1, reward: 5000, deadlineDay: 106},
+      { kind: 'bounty', destination: 11, qty: 5, reward: 9000, deadlineDay: 130, progress: 2 },
     ],
   };
   const html = captureById(() => {

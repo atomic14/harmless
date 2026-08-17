@@ -173,4 +173,63 @@ courier carries `commodity`, and check that the run works.
 
 ## Outcome
 
-To be written.
+### M1 — the union
+
+`Contract` is a union of four members over a `ContractBase` of four fields. The
+campaign is byte-identical at two sizes, and so are `roster-probe` and
+`dock-traffic`. No saved byte moved.
+
+**THE COMPILER FOUND 35 SITES, AND EVERY ONE WAS A REAL DEFECT OR A REAL
+IMPRECISION.** Eight in `src/`, and 27 in `test/`.
+
+**`contract-offers.ts` WROTE FIVE DEAD FIELDS.** A courier, a passenger job and
+a bounty each carried `commodity: 0`. Four of the five kinds carried
+`progress: 0`. Nothing read any of them.
+
+**`ConsignmentContract` IS WHAT THE PLAN DID NOT HAVE.** Three rules in
+`contracts.ts` read a `commodity`, and each one is reachable only for a cargo or
+a smuggling run. The plan said to narrow at each site. An alias says it one time
+in a signature, and `billShortfall` plus two `ContractEvent` payloads take it.
+
+**`reclaimedClause` GAINED A GUARD, AND THE GUARD IS NOT DEAD.** It read
+`e.contract.commodity` under `reclaimed > 0`. That test is true only for a
+consignment, and the compiler cannot know it. The tag test is what gives the
+line a `commodity` to name.
+
+**A TEST HELPER SAID "A JOB OF ANY KIND" AND BUILT ONE WRONG.**
+`consigned-hold.test.ts` made a courier, a passenger job and a bounty by
+overriding a cargo run's `kind`. Each result then carried a `commodity` that no
+such job has. Two builders replace it.
+
+**FOUR MORE TEST FILES HELD THE SAME PATTERN**, and each is now a builder per
+kind. A builder refuses a `kind` override where the override crossed a member of
+the union.
+
+**ONE ASSERTION DIED, AND IT WAS RIGHT TO.** `contract-offers.test.ts` counted
+passenger jobs that carried goods, and asserted the count was 0. The union has
+no `commodity` on a passenger job, so the count could only ever be 0. A test
+that cannot fail asserts the implementation against itself (CLAUDE.md). The
+claim is stronger for being the compiler's.
+
+**`combat.test.ts` HELD TWO BOUNTY JOBS AS LITERALS CAST `as never`**, and read
+`.progress` off `Contract`. They are typed locals now, and the cast is gone.
+
+**`test/contract-union.test.ts` IS 8 ASSERTIONS IN TWO PARTS.** It holds the one
+claim the compiler cannot see. A save written before this item still loads, and
+it still settles for what it always paid. **Proved able to fail two ways.** A parse
+that rejects an excess field refuses the old save. A parse that drops `reward`
+reddens the second claim alone.
+
+**THE SIZE GATE WENT RED, AND IT FOUND A DUPLICATE RULE.** `commander.ts` grew
+357 lines to 401, and the ceiling is 400. CLAUDE.md forbids a trim to fit. What
+the look found was a real duplicate: the doc comment and
+`test/contract-union.test.ts` both argued why no saved byte moved. The test
+holds the claim, so the test is its home. The file is 397.
+
+**A SPLIT CANDIDATE CAME OUT OF THAT, AND IT IS NOT THIS ITEM'S.**
+`commander.ts` says it describes "who you are, what you are carrying, and how
+you rank". A job on a bulletin board is none of those. `Contract` may belong in
+a file of its own, beside `contracts.ts` and `contract-offers.ts`. That is 29
+importers, so it needs its own item.
+
+4,907 assertions became 4,915.

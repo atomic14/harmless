@@ -22,7 +22,7 @@
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
 import {
   cargoCapacity, cargoTonnes, formatCredits,
-  type CommanderData, type Contract,
+  type CommanderData, type ConsignmentContract, type Contract,
 } from './commander.ts';
 import type { SoundName } from './sounds.ts';
 import { describeContract } from './contract-offers.ts';
@@ -62,7 +62,7 @@ import { afterDeed, characterVerdict } from './character.ts';
 export type ContractEvent =
   | { kind: 'paid'; contract: Contract }
   /** delivered here, on time — but the goods are no longer aboard */
-  | { kind: 'incomplete'; contract: Contract; reclaimed: number }
+  | { kind: 'incomplete'; contract: ConsignmentContract; reclaimed: number }
   /**
    * ...and the shipper charged you for the part you could not hand back
    * (docs/TODO/113). It is a new KIND rather than a field on `incomplete`,
@@ -73,7 +73,10 @@ export type ContractEvent =
    * one whichever of the two lands. `tonnes` is what was missing, `reclaimed`
    * is what was still aboard, and the two add up to the consignment.
    */
-  | { kind: 'billed'; contract: Contract; reclaimed: number; tonnes: number; charged: number }
+  | {
+    kind: 'billed'; contract: ConsignmentContract;
+    reclaimed: number; tonnes: number; charged: number;
+  }
   | { kind: 'expired'; contract: Contract; reclaimed: number }
   | { kind: 'accepted'; contract: Contract }
   | { kind: 'refused'; reason: 'tooMuchWork' | 'noHoldSpace' }
@@ -138,7 +141,9 @@ function reclaim(c: CommanderData, k: Contract): number {
  * impossibility. It is spelled out here rather than imported, because this is
  * the shipper's invoice and not the Government's fine.
  */
-function billShortfall(c: CommanderData, k: Contract, tonnes: number): number {
+function billShortfall(
+  c: CommanderData, k: ConsignmentContract, tonnes: number,
+): number {
   const owed = tonnes * COMMODITIES[k.commodity].basePrice * 4;
   const charged = Math.min(c.credits, owed);
   c.credits -= charged;
@@ -284,8 +289,13 @@ export interface ContractMessage {
  * claim a seizure that did not happen.
  */
 function reclaimedClause(e: { contract: Contract; reclaimed: number }): string {
+  // The type now says what the comment above said (docs/TODO/185 M1). Only a
+  // consignment loads goods, so only a consignment hands any back. This guard
+  // is the one that gives the line a `commodity` to name.
+  const k = e.contract;
+  if (k.kind !== 'cargo' && k.kind !== 'smuggle') return '';
   if (e.reclaimed <= 0) return '';
-  return ` — ${e.reclaimed}T ${COMMODITIES[e.contract.commodity].name.toUpperCase()} RECLAIMED`;
+  return ` — ${e.reclaimed}T ${COMMODITIES[k.commodity].name.toUpperCase()} RECLAIMED`;
 }
 
 export function contractMessage(e: ContractEvent, systems: StarSystem[]): ContractMessage {

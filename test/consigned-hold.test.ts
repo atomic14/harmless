@@ -37,11 +37,25 @@ const FOOD = 0;
 const NARCOTICS = CONTRABAND[1];
 const MACHINERY = 8;
 
-/** A job of any kind, against Food unless the caller says otherwise. */
-const job = (over: Partial<Contract> = {}): Contract => ({
+/**
+ * A consignment, against Food unless the caller says otherwise.
+ *
+ * IT SAID "A JOB OF ANY KIND" UNTIL docs/TODO/185 M1. It built the three that
+ * load nothing by overriding the `kind`, and the result then carried a
+ * `commodity` that no such job has. `emptyJob` below builds those three, and
+ * this one keeps the `kind` override between the two that DO load.
+ */
+type Consignment = Extract<Contract, { kind: 'cargo' | 'smuggle' }>;
+const job = (over: Partial<Consignment> = {}): Consignment => ({
   kind: 'cargo', destination: 8, commodity: FOOD, qty: 5,
-  reward: 500, deadlineDay: 10, progress: 0, ...over,
+  reward: 500, deadlineDay: 10, ...over,
 });
+
+/** A job that loads nothing: a courier, a passenger job or a bounty. */
+const emptyJob = (kind: 'passenger' | 'bounty' | 'courier', qty = 3): Contract =>
+  (kind === 'bounty'
+    ? { kind, destination: 8, qty, reward: 500, deadlineDay: 10, progress: 0 }
+    : { kind, destination: 8, qty, reward: 500, deadlineDay: 10 });
 
 /** A commander carrying `contracts`, and whatever the caller puts in the hold. */
 const carrying = (contracts: Contract[], hold: Record<number, number> = {}): CommanderData => {
@@ -70,7 +84,7 @@ console.log('\nwhich tonnes are spoken for');
   // no row at all.
   for (const kind of ['passenger', 'bounty', 'courier'] as const) {
     eq(`a ${kind} job carries no cargo, so it speaks for no tonnes`,
-      consignedTonnes(carrying([job({ kind, qty: 3 })]), FOOD), 0);
+      consignedTonnes(carrying([emptyJob(kind, 3)]), FOOD), 0);
   }
 
   // Goods are fungible and the hold keeps no per-contract provenance, so the
@@ -86,7 +100,7 @@ console.log('\nwhich tonnes are spoken for');
   eq('two consignments of one commodity add up',
     consignedTonnes(carrying([job({ qty: 5 }), job({ qty: 3, destination: 9 })]), FOOD), 8);
   eq('...and a third kind beside them changes nothing',
-    consignedTonnes(carrying([job({ qty: 5 }), job({ kind: 'passenger', qty: 3 })]), FOOD), 5);
+    consignedTonnes(carrying([job({ qty: 5 }), emptyJob('passenger', 3)]), FOOD), 5);
 }
 
 // --- and what the screen says about it ---------------------------------------
@@ -148,7 +162,7 @@ console.log('\nthe market screen marks the consigned tonnes');
   // A passenger job takes a berth rather than a bay, and no row can show it.
   check('a passenger job marks nothing',
     !capture(() => renderMarket(g1[7], market,
-      carrying([job({ kind: 'passenger', qty: 3 })], { [FOOD]: 10 }), 0)).includes('CONSIGNED'));
+      carrying([emptyJob('passenger', 3)], { [FOOD]: 10 }), 0)).includes('CONSIGNED'));
 }
 
 // --- and the sale asks once ---------------------------------------------------

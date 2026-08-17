@@ -40,6 +40,7 @@ import './lawful-hit.test.ts';
 import './grudge-line.test.ts';
 import './ladder-words.test.ts';
 import './contracts.test.ts';
+import './contract-union.test.ts';
 import './contract-offers.test.ts';
 import './contract-acceptance.test.ts';
 import './consigned-hold.test.ts';

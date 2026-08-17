@@ -37,9 +37,11 @@ console.log('\nstanding orders — every kind the commander holds is named');
     mission: { stage: 0, targetIndex: null }, ...over,
   });
 
-  const job = (over: Partial<Contract> = {}): Contract => ({
-    kind: 'courier', destination: 42, commodity: 0, qty: 1,
-    reward: 5000, deadlineDay: 106, progress: 0, ...over,
+  // A courier run, and the union says so (docs/TODO/185 M1).
+  type Courier = Extract<Contract, { kind: 'courier' }>;
+  const job = (over: Partial<Omit<Courier, 'kind'>> = {}): Contract => ({
+    kind: 'courier', destination: 42, qty: 1,
+    reward: 5000, deadlineDay: 106, ...over,
   });
 
   /** The seeded draw the machine takes; a fixed one keeps the target stable. */
@@ -162,7 +164,7 @@ console.log('\nthe MISSIONS screen draws the Navy leg, and nothing else');
     kills: 16, galaxy: 1, systemIndex: 7, day: 100,
     contracts: [{
       kind: 'cargo', destination: 11, commodity: 0, qty: 5,
-      reward: 5000, deadlineDay: 106, progress: 0,
+      reward: 5000, deadlineDay: 106,
     }],
     mission: { stage: 0, targetIndex: null },
   };
@@ -203,8 +205,8 @@ console.log('\nthe station line and the briefing, through a real Game');
   c.kills = 16;
   c.galaxy = 1;
   c.contracts = [
-    { kind: 'courier', destination: 42, commodity: 0, qty: 1, reward: 5000, deadlineDay: c.day + 6, progress: 0 },
-    { kind: 'courier', destination: 11, commodity: 0, qty: 1, reward: 5000, deadlineDay: c.day + 12, progress: 0 },
+    { kind: 'courier', destination: 42, qty: 1, reward: 5000, deadlineDay: c.day + 6},
+    { kind: 'courier', destination: 11, qty: 1, reward: 5000, deadlineDay: c.day + 12},
   ];
   c.equipment.laser = 'beam';
 
@@ -285,8 +287,8 @@ console.log('\nthe summary never drops a kind for another');
     if (navy) stepMissionAtDock(c, systems, () => 0.5);
     for (let n = 0; n < jobs; n++) {
       c.contracts.push({
-        kind: 'courier', destination: 11 + n, commodity: 0, qty: 1,
-        reward: 5000, deadlineDay: c.day + 6 + n, progress: 0,
+        kind: 'courier', destination: 11 + n, qty: 1,
+        reward: 5000, deadlineDay: c.day + 6 + n,
       });
     }
     return c;
@@ -341,8 +343,8 @@ console.log('\nthe summary is one line per entry, not one wrapped run');
   const c: CommanderData = {
     ...newCommander(), kills: 16, galaxy: 1, systemIndex: 7, day: 100,
     contracts: [{
-      kind: 'courier', destination: 42, commodity: 0, qty: 1,
-      reward: 5000, deadlineDay: 106, progress: 0,
+      kind: 'courier', destination: 42, qty: 1,
+      reward: 5000, deadlineDay: 106,
     }],
     mission: { stage: 0, targetIndex: null },
   };

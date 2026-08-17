@@ -35,17 +35,34 @@ import { check } from './harness.ts';
 console.log('\ncontracts');
 {
   const systems = generateGalaxy(1);
-  const cargoRun = (over: Partial<Contract> = {}): Contract => ({
+  // ONE BUILDER PER KIND SINCE docs/TODO/185 M1. There were three, and
+  // `cargoRun({ kind: 'bounty' })` built a bounty job that carried a
+  // `commodity` nothing reads. The union forbids that now, so the test says
+  // which job it means. Each builder refuses a `kind` override for the same
+  // reason: `bountyJob` builds a bounty.
+  type Consignment = Extract<Contract, { kind: 'cargo' | 'smuggle' }>;
+  type Bounty = Extract<Contract, { kind: 'bounty' }>;
+  type Passenger = Extract<Contract, { kind: 'passenger' }>;
+  type Courier = Extract<Contract, { kind: 'courier' }>;
+  const cargoRun = (over: Partial<Omit<Consignment, 'kind'>> = {}): Consignment => ({
     kind: 'cargo', destination: 7, commodity: 0, qty: 5,
-    reward: 500, deadlineDay: 10, progress: 0, ...over,
+    reward: 500, deadlineDay: 10, ...over,
   });
-  const passengerJob = (over: Partial<Contract> = {}): Contract => ({
-    kind: 'passenger', destination: 7, commodity: 0, qty: 3,
-    reward: 500, deadlineDay: 10, progress: 0, ...over,
+  const passengerJob = (over: Partial<Omit<Passenger, 'kind'>> = {}): Passenger => ({
+    kind: 'passenger', destination: 7, qty: 3,
+    reward: 500, deadlineDay: 10, ...over,
   });
-  const smuggleRun = (over: Partial<Contract> = {}): Contract => ({
+  const smuggleRun = (over: Partial<Omit<Consignment, 'kind'>> = {}): Consignment => ({
     kind: 'smuggle', destination: 7, commodity: CONTRABAND[1], qty: 4,
-    reward: 900, deadlineDay: 10, progress: 0, ...over,
+    reward: 900, deadlineDay: 10, ...over,
+  });
+  const bountyJob = (over: Partial<Omit<Bounty, 'kind'>> = {}): Bounty => ({
+    kind: 'bounty', destination: 7, qty: 5,
+    reward: 500, deadlineDay: 10, progress: 0, ...over,
+  });
+  const courierJob = (over: Partial<Omit<Courier, 'kind'>> = {}): Courier => ({
+    kind: 'courier', destination: 7, qty: 0,
+    reward: 500, deadlineDay: 10, ...over,
   });
   const cmdr = (over: Record<string, unknown> = {}): CommanderData => ({
     ...newCommander(), systemIndex: 7, day: 0, credits: 1000, contracts: [], ...over,
@@ -201,10 +218,13 @@ console.log('\ncontracts');
     // function now: an unfinished bounty job at its destination is neither
     // settled nor dropped — you may come back to it until the deadline.
     const c = cmdr();
-    c.contracts = [cargoRun({ kind: 'bounty', qty: 3, progress: 1 })];
+    const job = bountyJob({ qty: 3, progress: 1 });
+    c.contracts = [job];
     check('an unfilled bounty at its destination is kept, not failed',
       settleContracts(c).length === 0 && c.contracts.length === 1);
-    c.contracts[0].progress = 3;
+    // The kill goes on the job the test built. `c.contracts[0]` is a `Contract`
+    // and only a bounty has a `progress` (docs/TODO/185 M1).
+    job.progress = 3;
     check('...and pays once the count is filled',
       settleContracts(c)[0]?.kind === 'paid' && c.credits === 1500);
   }
@@ -213,7 +233,7 @@ console.log('\ncontracts');
     // deliberately full of the commodity the contract names, which is the only
     // way a reclaim that ignored `kind` would show itself.
     const c = cmdr({ day: 11 });
-    c.contracts = [cargoRun({ kind: 'courier', qty: 0 }), cargoRun({ kind: 'bounty', qty: 3 })];
+    c.contracts = [courierJob({ qty: 0 }), bountyJob({ qty: 3 })];
     c.cargo[0] = 9;
     const ev = settleContracts(c);
     check('a failed courier or bounty job hands nothing back and touches no cargo',
@@ -343,7 +363,7 @@ console.log('\ncontracts');
     check('an expired freight run names what the station took back',
       seized.text === 'CONTRACT EXPIRED — 8T MACHINERY RECLAIMED');
     check('...and a courier run, carrying nothing, just expires',
-      contractMessage({ kind: 'expired', contract: cargoRun({ kind: 'courier', qty: 0 }),
+      contractMessage({ kind: 'expired', contract: courierJob({ qty: 0 }),
         reclaimed: 0 }, systems).text === 'CONTRACT EXPIRED');
     check('...as does freight with nothing left aboard to take',
       contractMessage({ kind: 'expired', contract: cargoRun(), reclaimed: 0 }, systems)

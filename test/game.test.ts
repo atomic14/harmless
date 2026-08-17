@@ -231,7 +231,7 @@ console.log('\nthe game, headless');
     c.cargo[CONTRABAND[1]] = 4;                        // 6, Narcotics
     c.contracts = [{
       kind: 'smuggle', destination: dest, commodity: CONTRABAND[1], qty: 4,
-      reward: 900, deadlineDay: c.day + 5, progress: 0,
+      reward: 900, deadlineDay: c.day + 5,
     }];
     const before = g.state.living.notoriety(dest);
     withoutSaving(() => g.enterDocked('arrived'));
@@ -255,7 +255,7 @@ console.log('\nthe game, headless');
     hc.cargo[0] = 4;
     hc.contracts = [{
       kind: 'cargo', destination: there, commodity: 0, qty: 4,
-      reward: 900, deadlineDay: hc.day + 5, progress: 0,
+      reward: 900, deadlineDay: hc.day + 5,
     }];
     const was = honest.state.living.notoriety(there);
     withoutSaving(() => honest.enterDocked('arrived'));

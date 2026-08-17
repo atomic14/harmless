@@ -62,7 +62,7 @@ function standing(index: number, day = 0): CommanderData {
 /** A courier job to `destination`, due on `deadlineDay`. */
 function job(destination: number, deadlineDay: number): Contract {
   return {
-    kind: 'courier', destination, commodity: 0, qty: 1, reward: 500, deadlineDay, progress: 0,
+    kind: 'courier', destination, qty: 1, reward: 500, deadlineDay,
   };
 }
 

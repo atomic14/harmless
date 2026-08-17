@@ -679,8 +679,8 @@ console.log('\npirate economics');
     const berthed = newCommander();
     berthed.cargo[0] = 4;
     berthed.contracts = [{
-      kind: 'passenger', destination: 8, commodity: 0, qty: 3,
-      reward: 500, deadlineDay: 10, progress: 0,
+      kind: 'passenger', destination: 8, qty: 3,
+      reward: 500, deadlineDay: 10,
     }];
     check('a berth is charged to the hold, on top of the stock in it',
       cargoTonnes(berthed) === 4 + 3 * PASSENGER_BERTH_TONNES);

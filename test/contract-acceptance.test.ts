@@ -20,17 +20,21 @@ import { check } from './harness.ts';
 
 console.log('\ntaking contracts on');
 {
-  const cargoRun = (over: Partial<Contract> = {}): Contract => ({
+  // A builder per kind (docs/TODO/185 M1). Each one refuses a `kind` override,
+  // because `smuggleRun` builds a smuggling run.
+  type Consignment = Extract<Contract, { kind: 'cargo' | 'smuggle' }>;
+  type Passenger = Extract<Contract, { kind: 'passenger' }>;
+  const cargoRun = (over: Partial<Omit<Consignment, 'kind'>> = {}): Consignment => ({
     kind: 'cargo', destination: 7, commodity: 0, qty: 5,
-    reward: 500, deadlineDay: 10, progress: 0, ...over,
+    reward: 500, deadlineDay: 10, ...over,
   });
-  const passengerJob = (over: Partial<Contract> = {}): Contract => ({
-    kind: 'passenger', destination: 7, commodity: 0, qty: 3,
-    reward: 500, deadlineDay: 10, progress: 0, ...over,
+  const passengerJob = (over: Partial<Omit<Passenger, 'kind'>> = {}): Passenger => ({
+    kind: 'passenger', destination: 7, qty: 3,
+    reward: 500, deadlineDay: 10, ...over,
   });
-  const smuggleRun = (over: Partial<Contract> = {}): Contract => ({
+  const smuggleRun = (over: Partial<Omit<Consignment, 'kind'>> = {}): Consignment => ({
     kind: 'smuggle', destination: 7, commodity: CONTRABAND[1], qty: 4,
-    reward: 900, deadlineDay: 10, progress: 0, ...over,
+    reward: 900, deadlineDay: 10, ...over,
   });
   const cmdr = (over: Record<string, unknown> = {}): CommanderData => ({
     ...newCommander(), systemIndex: 7, day: 0, credits: 1000, contracts: [], ...over,

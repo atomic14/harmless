@@ -100,10 +100,10 @@ console.log('\ncombat simulator: nothing leaves the exercise');
     trumbles: 2,
     day: 88,
     contracts: [
-      { kind: 'bounty', destination: 7, commodity: 0, qty: 4, reward: 5000,
+      { kind: 'bounty', destination: 7, qty: 4, reward: 5000,
         deadlineDay: 120, progress: 1 },
       { kind: 'cargo', destination: 12, commodity: 3, qty: 5, reward: 2200,
-        deadlineDay: 130, progress: 0 },
+        deadlineDay: 130 },
     ],
   });
 
