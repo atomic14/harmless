@@ -349,3 +349,47 @@ Measured here, the nine rows ran from 68 characters to 1,861.
 characters. One is false, two under-name their file, and the fourth leaves a
 gap. **Every one of the five longest states a reason that holds**, and two of
 the five carry a stale number inside it.
+
+### M4 — the combat trainer is described, and the item stops
+
+`docs/ARCHITECTURE.md` has a section for the trainer now. **`npm run map:report`
+went 28 of 56 modules unnamed to 21 of 56.** All seven trainer modules over 200
+lines are named. The gate still only reports, and docs/TODO/166 M3's rule is
+untouched.
+
+**THE PLAN COUNTED SEVEN MODULES AND THERE ARE TEN.** The three the plan missed
+are each under 200 lines, so `map:report` never asked about them.
+`combat-sim-safety.ts` is 99 lines, `screens/combat-sim-notes.ts` is 114 and
+`combat-sim-strip.ts` is 113. The subject is about 4,600 lines rather than
+4,274.
+
+**The section is shaped the way docs/TODO/166 shaped `game.ts`.** One rule over
+all ten, then two parents with their children, then the four subjects. The rule
+is that nothing which happens in the simulator leaves it.
+
+**Writing it exposed one thing, which is 169 M1's whole argument.**
+`src/ai-training/` and the combat trainer are two different things, and the
+names do not say so. One is a person who flies a fight. The other is a search
+that fits a policy with nobody watching. The section says which is which.
+
+**THE ITEM STOPS HERE, ON docs/TODO/150 M6's AND 169 M4's PRECEDENT.** Three
+candidates are named and none is taken. Each needs a decision that this item has
+no licence to make.
+
+**`combat-sim-report.ts`'s report shape is the strongest candidate in the tree,
+and the measurement is the reader count.** Thirty files import that one file.
+Seventeen reach for a value. **Thirteen reach for a TYPE ALONE, and eight of the
+thirteen are in `src/`.** So eight shipped modules import 1,168 lines to name a
+shape. That is docs/TODO/169 M3's `flight-maths.ts` argument at a bigger file.
+
+**`test/world-step.test.ts`'s save block is the second**, and M3 found it. It is
+the one section that answers a different question from the other five.
+
+**`test/campaign.ts`'s report writer is the third**, at 271 lines of 1,027. The
+seam is one type wide, and the cost is two files to open when a number looks
+wrong.
+
+**`combat-sim.ts` is NOT a candidate, and it was measured.** It is 593 lines of
+member bodies over about twenty members, and the largest is 60 lines. That is a
+lifecycle with many small steps. The safety argument already left, and
+`combat-sim-safety.ts` holds it.

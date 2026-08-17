@@ -186,6 +186,56 @@ Two quirks are deliberate:
   The orchestrator applies the heat and the record that a sale earns. It
   never touches `cargo`, because a rescued pilot is not stock.
 
+## The combat trainer
+
+The trainer is a real fight that costs nothing. `docs/COMBAT-SIM.md` is the long
+form. Ten modules hold it, at about 4,600 lines, and this map named none of them
+until docs/TODO/176.
+
+**One rule governs all ten: nothing that happens in the simulator leaves it.**
+Above all it must not advance a commander toward E L I T E.
+`src/game/combat-sim-safety.ts` is the one home of that argument, in three
+layers: the commander clone, an alternative `StepHost`, and the entry snapshot.
+`test/combat-sim-career.test.ts` proves it.
+
+**Two parents hold the rest.** One runs a fight. The other shows it to a pilot.
+
+- `src/game/combat-sim.ts` runs the exercise. It owns the commander swap, the
+  entry snapshot, its own `StepHost` and the round loop. An exercise is ordinary
+  flight with a different step behind it: the same `WorldStep`, the same brains,
+  the same guns and the same seeded stream.
+- `src/game/screens/combat-sim.ts` is the front of house. One screen id holds
+  three panels, with the fight in between. It has two children:
+  - `screens/combat-sim-setup.ts` — the draft a pilot builds, and the rows that
+    show it. It is pure, and it is the half worth a test.
+  - `screens/combat-sim-notes.ts` — the prose under those rows. Each block also
+    states the tallest it could ever be, so a note that appears cannot shift the
+    row under the cursor.
+
+**Four more modules each hold one subject.** Each is pure, and each decides
+without applying anything:
+
+- `combat-sim-scenarios.ts` — who you fight, and whether the round is over. The
+  scenarios are a table. The wave ramp and the live reception share it.
+- `combat-sim-opening.ts` — where the fight happens, and where it starts. A
+  training fight opens where the pilot can see it. A fight about an ambush is
+  the one exception, and the record says so.
+- `combat-sim-report.ts` — what happened, counted. It is fed samples and events,
+  and it derives. The record carries a schema version, because the trainer's
+  own exports are read outside the game.
+- `combat-sim-compare.ts` — what two records may honestly show. Its load-bearing
+  part is the refusal: six things must match before a difference column is a
+  result. It offers no verdict, because the pilot judges.
+
+`combat-sim-strip.ts` is the third view of a fight, and it is the one a pilot
+reads DURING the exercise. It counts nothing. Every figure comes from the
+round's own recorder, so the strip and the report cannot disagree.
+
+**`src/ai-training/` is a different thing, and the two are often confused.** The
+trainer above is a person flying a fight. `ai-training/` is a search that fits a
+policy over thousands of episodes with nobody watching. Invariant 5 is what ties
+them: the search flies the shipped modules rather than a copy.
+
 ## Conventions
 
 - A generator writes `src/constants/CATALOG.md` from the exported constants and
