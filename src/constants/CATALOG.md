@@ -310,20 +310,20 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | spawn-placement | <code>TRADER_ARRIVAL_RANGE</code> | <code>22_000</code> | How far out a fresh trader warps in. |  | [spawn-placement.ts:135](./spawn-placement.ts#L135) |
 | spawn-placement | <code>DEEP_TRADER_RANGE</code> | <code>12_000</code> | How far AHEAD OF THE COMMANDER a trader warps in, out in deep space. | <code>spawn.deepTraderRange</code> | [spawn-placement.ts:148](./spawn-placement.ts#L148) |
 | spawn-placement | <code>DEEP_TRADER_CONE</code> | <code>Math.asin(MASS_LOCK_SHIP / DEEP_TRADER_RANGE)</code> | The half-angle of the cone it warps into, about the commander's own heading, in RADIANS. 0.5 is about 29 degrees. | <code>spawn.deepTraderCone</code> | [spawn-placement.ts:175](./spawn-placement.ts#L175) |
-| spawn-placement | <code>DEEP_TRADER_RUN</code> | <code>30_000</code> | How far it runs before it jumps out. |  | [spawn-placement.ts:186](./spawn-placement.ts#L186) |
-| spawn-placement | <code>PIRATE_WAVE_RANGE</code> | <code>9000</code> | How far from the commander a pirate wave warps in. |  | [spawn-placement.ts:194](./spawn-placement.ts#L194) |
-| spawn-placement | <code>PIRATE_WAVE_RANGE_SPAN</code> | <code>4000</code> | ...and how much further out than that they may be. |  | [spawn-placement.ts:197](./spawn-placement.ts#L197) |
-| spawn-placement | <code>GENERATION_SHIP_RANGE</code> | <code>14_000</code> | How far from the commander a generation ship crosses. |  | [spawn-placement.ts:203](./spawn-placement.ts#L203) |
-| spawn-placement | <code>GENERATION_SHIP_RANGE_SPAN</code> | <code>8000</code> | ...and the width of that band. |  | [spawn-placement.ts:206](./spawn-placement.ts#L206) |
-| spawn-placement | <code>GENERATION_CARGO_SCATTER</code> | <code>700</code> | How far from a generation ship its shed cargo drifts. |  | [spawn-placement.ts:213](./spawn-placement.ts#L213) |
-| spawn-placement | <code>MISSION_TARGET_RANGE</code> | <code>4000</code> | How far from the commander the Constrictor hides on the mission leg. |  | [spawn-placement.ts:219](./spawn-placement.ts#L219) |
-| spawn-placement | <code>MISSION_TARGET_RANGE_SPAN</code> | <code>4000</code> | ...and the width of that band — the same again, so it can be twice as far. |  | [spawn-placement.ts:222](./spawn-placement.ts#L222) |
-| spawn-placement | <code>THARGON_DEPLOY_RANGE</code> | <code>150</code> | How far from its mother a Thargon drone appears. |  | [spawn-placement.ts:228](./spawn-placement.ts#L228) |
-| spawn-placement | <code>STATION_DEFENCE_MIN</code> | <code>1</code> | The fewest Vipers the station launches after you shoot at something you should not. | <code>spawn.stationDefenceMin</code> | [spawn-placement.ts:241](./spawn-placement.ts#L241) |
-| spawn-placement | <code>STATION_DEFENCE_SPAN</code> | <code>2</code> | ...and the width of that draw: one or two of them. |  | [spawn-placement.ts:247](./spawn-placement.ts#L247) |
-| spawn-placement | <code>STATION_DEFENCE_STANDOFF</code> | <code>500</code> | How far out of the slot the first one launches. |  | [spawn-placement.ts:253](./spawn-placement.ts#L253) |
-| spawn-placement | <code>STATION_DEFENCE_STACK</code> | <code>120</code> | ...and how much further out each one after it starts, so a pair does not arrive inside each other. |  | [spawn-placement.ts:259](./spawn-placement.ts#L259) |
-| spawn-placement | <code>STATION_DEFENCE_JITTER</code> | <code>80</code> | ...and the random nudge on each, so a second launch does not look like the first. |  | [spawn-placement.ts:269](./spawn-placement.ts#L269) |
+| spawn-placement | <code>DEEP_TRADER_RUN</code> | <code>30_000</code> | How far it runs before it jumps out. |  | [spawn-placement.ts:194](./spawn-placement.ts#L194) |
+| spawn-placement | <code>PIRATE_WAVE_RANGE</code> | <code>9000</code> | How far from the commander a pirate wave warps in. |  | [spawn-placement.ts:202](./spawn-placement.ts#L202) |
+| spawn-placement | <code>PIRATE_WAVE_RANGE_SPAN</code> | <code>4000</code> | ...and how much further out than that they may be. |  | [spawn-placement.ts:205](./spawn-placement.ts#L205) |
+| spawn-placement | <code>GENERATION_SHIP_RANGE</code> | <code>14_000</code> | How far from the commander a generation ship crosses. |  | [spawn-placement.ts:211](./spawn-placement.ts#L211) |
+| spawn-placement | <code>GENERATION_SHIP_RANGE_SPAN</code> | <code>8000</code> | ...and the width of that band. |  | [spawn-placement.ts:214](./spawn-placement.ts#L214) |
+| spawn-placement | <code>GENERATION_CARGO_SCATTER</code> | <code>700</code> | How far from a generation ship its shed cargo drifts. |  | [spawn-placement.ts:221](./spawn-placement.ts#L221) |
+| spawn-placement | <code>MISSION_TARGET_RANGE</code> | <code>4000</code> | How far from the commander the Constrictor hides on the mission leg. |  | [spawn-placement.ts:227](./spawn-placement.ts#L227) |
+| spawn-placement | <code>MISSION_TARGET_RANGE_SPAN</code> | <code>4000</code> | ...and the width of that band — the same again, so it can be twice as far. |  | [spawn-placement.ts:230](./spawn-placement.ts#L230) |
+| spawn-placement | <code>THARGON_DEPLOY_RANGE</code> | <code>150</code> | How far from its mother a Thargon drone appears. |  | [spawn-placement.ts:236](./spawn-placement.ts#L236) |
+| spawn-placement | <code>STATION_DEFENCE_MIN</code> | <code>1</code> | The fewest Vipers the station launches after you shoot at something you should not. | <code>spawn.stationDefenceMin</code> | [spawn-placement.ts:249](./spawn-placement.ts#L249) |
+| spawn-placement | <code>STATION_DEFENCE_SPAN</code> | <code>2</code> | ...and the width of that draw: one or two of them. |  | [spawn-placement.ts:255](./spawn-placement.ts#L255) |
+| spawn-placement | <code>STATION_DEFENCE_STANDOFF</code> | <code>500</code> | How far out of the slot the first one launches. |  | [spawn-placement.ts:261](./spawn-placement.ts#L261) |
+| spawn-placement | <code>STATION_DEFENCE_STACK</code> | <code>120</code> | ...and how much further out each one after it starts, so a pair does not arrive inside each other. |  | [spawn-placement.ts:267](./spawn-placement.ts#L267) |
+| spawn-placement | <code>STATION_DEFENCE_JITTER</code> | <code>80</code> | ...and the random nudge on each, so a second launch does not look like the first. |  | [spawn-placement.ts:277](./spawn-placement.ts#L277) |
 | station | <code>STATION_SPIN</code> | <code>0.26</code> | How fast the station spins about its slot axis, in radians a second. |  | [station.ts:19](./station.ts#L19) |
 | station | <code>DODO_TECH_LEVEL</code> | <code>10</code> | The tech level at which a system's station is the dodecahedral Dodo rather than the Coriolis, in SHOWN one-based units. |  | [station.ts:32](./station.ts#L32) |
 | station | <code>BOUNCE_STANDOFF</code> | <code>420</code> | Where a fluffed docking bounces you to. |  | [station.ts:48](./station.ts#L48) |

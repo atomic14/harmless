@@ -27,6 +27,7 @@ import * as THREE from 'three';
 
 import { planDocking, type DockPlan } from './docking.ts';
 import { random, randomDirection } from './rng.ts';
+import { DEEP_TRADER_RUN } from '../constants/spawn-placement.ts';
 import { approach, steerQuatToward } from './flight-maths.ts';
 
 /** Where a trader is in its working life. */
@@ -137,10 +138,15 @@ export function stepTrader(ship: TraderShip, dt: number, world: TraderWorld): vo
           state.traderPhase = 'departing';
           // Run for the sun to jump out, where the view knows where it is.
           // Otherwise any heading out of the system will do.
+          //
+          // The distance is `DEEP_TRADER_RUN`, and `spawning.ts` spends it for a
+          // trader that arrives already departing. Both put a waypoint the
+          // `departing` case below flies at, and both end in the same despawn.
+          // It was a bare 30000 here until docs/TODO/179.
           const heading = world.sunPos
             ? new THREE.Vector3().subVectors(world.sunPos, station.position).normalize()
             : randomDirection(new THREE.Vector3());
-          state.waypoint.copy(station.position).addScaledVector(heading, 30000);
+          state.waypoint.copy(station.position).addScaledVector(heading, DEEP_TRADER_RUN);
         }
       }
       break;

@@ -162,7 +162,8 @@ export function planDocking(
   // third of those three was absent. `along` is signed, so a ship behind the
   // hull satisfied `along < dockZ` trivially. So a trader that drifted within
   // `LINED_UP_LATERAL` of the axis LINE, on the far side, counted itself docked.
-  // It then despawned through the back of the station (game/npc.ts reads this).
+  // It then despawned through the back of the station (game/trader-flight.ts
+  // reads this).
   // The wrong-side sweep in docs/TODO/136 found it.
   out.arrived = along > 0 && along < dockZ && lateral < LINED_UP_LATERAL;
   return out;

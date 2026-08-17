@@ -13,10 +13,10 @@
 // crash into things").
 //
 // The traffic is real and it is in the way by construction: traders run the
-// SAME `planDocking` corridor into the same slot (game/npc.ts), so the lane the
-// player is flown down is the lane they queue in, and station defence launches
-// into it. Nothing here spawns anything by hand — the world populates itself
-// exactly as it does in a session, which is the point.
+// SAME `planDocking` corridor into the same slot (game/trader-flight.ts), so
+// the lane the player is flown down is the lane they queue in, and station
+// defence launches into it. Nothing here spawns anything by hand. The world
+// populates itself exactly as it does in a session, which is the point.
 //
 // WHAT IT SCORES. Rams are the question; a ram is `IMPACT.ram` to both parties
 // and a COLLISION on the console. Laser hits are counted apart from them,

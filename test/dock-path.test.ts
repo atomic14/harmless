@@ -105,8 +105,8 @@ console.log('\nthe approach knows which side of the station it is on');
   // THE BUG: a ship behind the station sits at a NEGATIVE `along`, which passes
   // `along < dockZ` trivially, and on the axis line its `lateral` is 0. Both
   // halves of "arrived" were true from the wrong side, so a trader that drifted
-  // there docked through the back of the station and despawned (game/npc.ts
-  // reads this flag, and it is the only reader).
+  // there docked through the back of the station and despawned
+  // (game/trader-flight.ts reads this flag, and it is the only reader).
   check('a ship in the slot mouth has arrived', plan(0, -100).arrived);
   check('...and the same distance BEHIND the hull has not',
     !plan(0, 100).arrived);

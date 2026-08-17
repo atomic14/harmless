@@ -101,7 +101,7 @@ export function spawnPopulation(
     // Half the traders already trade by the slot. On an arrival the rest are
     // inbound down the corridor. So you meet honest traffic on its way in, and
     // a pirate has somebody to prey on. The `arriving` phase steers them to the
-    // station on its own (npc.ts `updateTrader`).
+    // station on its own (`stepTrader`, game/trader-flight.ts).
     if (arriving && i % 2 === 0) {
       const trader = world.spawn('trader', corridorPos(TRADER_SCATTER), i + sys.index);
       trader.state.traderPhase = 'arriving';

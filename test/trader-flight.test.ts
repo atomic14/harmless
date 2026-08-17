@@ -25,6 +25,7 @@ import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
 import { seedWorld } from '../src/game/rng.ts';
 import { makeDockPlan } from '../src/game/docking.ts';
+import { DEEP_TRADER_RUN } from '../src/constants/spawn-placement.ts';
 import { stepTrader, type TraderShip } from '../src/game/trader-flight.ts';
 import { check } from './harness.ts';
 
@@ -132,10 +133,13 @@ console.log('\nthe four phases of a trader, off an object literal');
     fly(leaver, 1);
     check('a trader with no business here departs when its clock runs out',
       leaver.state.traderPhase === 'departing');
-    // The departure waypoint is 30,000 units along the sun heading. The sun is
-    // straight out along +Z here, so the waypoint is the station plus 30,000.
-    check('...and it runs for the sun to jump out',
-      Math.abs(leaver.state.waypoint.z - (STATION_OUT + 30_000)) < 1);
+    // THE DISTANCE IS `DEEP_TRADER_RUN` AND NOT A NUMBER WRITTEN OUT HERE.
+    // It was a bare 30000 in the rule until docs/TODO/179, beside a constant
+    // that already held the same value for the other way into `departing`.
+    // `test/deep-space-traffic.test.ts` pins that other way. The sun is
+    // straight out along +Z here, so the waypoint is the station plus the run.
+    check('...and it runs for the sun to jump out, exactly the stated run',
+      Math.abs(leaver.state.waypoint.z - (STATION_OUT + DEEP_TRADER_RUN)) < 1);
 
     const caller = trader(station.position.clone(), 'trading',
       { tradeTimer: DT / 2, docksHere: true });

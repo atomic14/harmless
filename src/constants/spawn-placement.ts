@@ -177,11 +177,19 @@ export const DEEP_TRADER_CONE = Math.asin(MASS_LOCK_SHIP / DEEP_TRADER_RANGE);
 /**
  * How far it runs before it jumps out.
  *
- * A trader met in deep space is LEAVING, and `departing` (game/npc.ts) despawns
- * a ship near its waypoint, with the witch-flash. The alternative flies it to
- * the station, which is 200,000 units away on a sun run. That is sixteen
- * minutes, with one of the four `MAX_TRADERS` slots held for all of it. The lane at the
- * station would starve to fill the lane out here.
+ * A trader met in deep space is LEAVING, and `departing`
+ * (game/trader-flight.ts) despawns a ship near its waypoint, with the
+ * witch-flash. The alternative flies it to the station, which is 200,000 units
+ * away on a sun run. That is sixteen minutes, with one of the four
+ * `MAX_TRADERS` slots held for all of it. The lane at the station would starve
+ * to fill the lane out here.
+ *
+ * TWO CALLERS SPEND IT, and the second was a bare literal until docs/TODO/179.
+ * `spawning.ts` sets the waypoint for a trader that ARRIVES already departing,
+ * measured from where it warped in. `trader-flight.ts` sets it for a trader
+ * that finishes its business AT the station, measured from the station. The
+ * anchors differ and the rule does not. This is how far a departing trader
+ * flies before it jumps out.
  */
 export const DEEP_TRADER_RUN = 30_000;
 

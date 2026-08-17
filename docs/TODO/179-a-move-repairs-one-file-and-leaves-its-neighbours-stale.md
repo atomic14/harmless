@@ -133,3 +133,45 @@ out here.
 
 **The five comments have no gate**, and the outcome says so plainly.
 `claims:check` reads one comment form and this is prose.
+
+## Outcome
+
+### M1 — six sites repaired, and the distance has one home
+
+`game/trader-flight.ts` reads `DEEP_TRADER_RUN`. The five comments name
+`game/trader-flight.ts`, and `spawning.ts`'s names `stepTrader` rather than the
+deleted `updateTrader`.
+
+**Nothing moved.** The suite is 4,845 assertions, as before. `npm run campaign`
+is byte-identical to docs/TODO/178's baseline, once the wall-clock line is
+masked.
+
+**`DEEP_TRADER_RUN`'s doc comment now states both situations it governs.** One
+trader arrives already departing, measured from where it warped in. The other
+finishes its business at the station, measured from the station. The anchors
+differ and the rule does not.
+
+**The generator ran first**, which is `PROCESS.md`'s second tier row. A doc
+comment in `src/constants/` is `CATALOG.md`'s `Purpose` column.
+
+**Proved able to fail** by putting the literal back as 30,001. The new claim
+reddens alone.
+
+**The five comments have no gate, and that is stated rather than implied.**
+`npm run claims:check` reads `@internal — driven by <path>` and every one of the
+five is prose. Nothing in the tree gates a prose path.
+
+**THE MEASUREMENT IS THE ITEM'S OTHER RESULT, AND IT SAYS DO NOT BUILD THE
+GATE.** 92 of 132 distinct constant values appear as a bare literal somewhere in
+`src/`. A checker at that precision reports 92 findings and gets switched off.
+
+**The signal was one hit in the noise.** It was found by reading each
+candidate's MEANING, and the other four literals in `trader-flight.ts` were
+checked the same way. 900, 600, 1,200 and 2,500 each match a constant's value
+and none matches its meaning.
+
+**A SECOND CANDIDATE WAS READ AND REJECTED, AND THE PLAN DID NOT NAME IT.**
+`game/npc.ts:730` reads `if (d < 7000)`, and `STATION_TRUCE` is 7,000. They are
+not the same rule. One is how far an NPC chases another NPC. The other is where
+the lawless leave the commander alone. **It is still a game rule with no name**,
+and that belongs to docs/TODO/90's unfinished programme rather than here.
