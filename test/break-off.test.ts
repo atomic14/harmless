@@ -131,8 +131,13 @@ console.log('\nNPC break-off');
     ['constants/attack-run.ts', BREAK_OFF_RANGE, ['game/npc.ts']],
     // `game/hostility.ts` is the fourth reader, out of docs/TODO/169 M2. The
     // fleet queries took the range with them when they left `game/npc.ts`.
+    //
+    // AND `game/npc.ts` IS NOT A READER ANY MORE (docs/TODO/184 M2). The range
+    // decides whether a ship engages the commander. That decision is a
+    // BEHAVIOUR's, so it went to `game/npc-fighter.ts` with the branch that
+    // asked it. `update` is the dispatch now, and it reads no distance at all.
     ['constants/player-interest.ts', PLAYER_INTEREST_RANGE,
-      ['game/npc.ts', 'game/npc-targeting.ts', 'hud/hud-model.ts',
+      ['game/npc-fighter.ts', 'game/npc-targeting.ts', 'hud/hud-model.ts',
         'game/hostility.ts']],
   ] as const;
   for (const [home, value, consumers] of ONE_HOME) {

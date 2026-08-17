@@ -6,15 +6,18 @@
 // `world-step.ts` calls `update` once a frame. `game.ts` resolves what comes
 // back.
 //
-// The roles and what each one does are listed above the class, beside the code
-// that flies them. This header does not repeat that list.
+// The roles and what each one does are listed above the class. This header does
+// not repeat that list.
 //
-// TWO FLIGHT MODELS SHARE ONE SHIP. `brainFly` flies a trained policy.
-// `attack` and `pursue` fly the scripted rules. Both models end at
-// `steerToward` and `advance`, so one ship moves one way. `state.flownBy`
-// records which model moved it. A trader is a third case, and
-// `game/trader-flight.ts` steers it. `update` still calls `advance` for it
-// here, so that ship moves one way too.
+// **`update` IS THE DISPATCH, AND NOTHING ELSE (docs/TODO/184 M2).** It is 37
+// lines. It clears `state.flownBy`, it asks `inert` first, then it asks the
+// role's own behaviour. It sets no speed, it steers nothing, and it reads no
+// distance. Three files hold what it used to decide: `game/npc-idle.ts`,
+// `game/npc-fighter.ts` and `game/npc-trader.ts`.
+//
+// EVERY FLIGHT MODEL ENDS AT `steerToward` AND `advance`, so one ship moves one
+// way. `state.flownBy` records which model moved it. The primitives are this
+// file's, and every caller of them is somebody else's.
 //
 // THE TRAINER DRIVES THIS FILE DIRECTLY (invariant 5).
 // `src/ai-training/scenario.ts` builds an `NpcShip`. It calls `brainFly` and
@@ -34,15 +37,17 @@
 // and `velocityOf` are the nose-and-thrust rule, and five files outside the
 // ships read them.
 //
-// THE FLIGHT HALF STAYS, and docs/TODO/169 M3 measured why. It is 158 lines of
-// body, and `brainFly` is 101 of them. `brainFly`, `attack` and `pursue` each
-// steer, throttle, advance and then pull a trigger, so each one returns a
-// `FireEvent`. They are decision loops rather than steering primitives.
+// THE FLIGHT HALF ONCE STAYED, and docs/TODO/169 M3 measured why. `brainFly`,
+// `attack` and `pursue` each steer, throttle, advance and then pull a trigger.
+// Each one returns a `FireEvent`. They are decision loops rather than steering
+// primitives, so a free function over them needed about eighteen handles.
 //
 // The true primitives are `advance`, `steerToward`, `faceToward` and `facing`,
-// at 21 lines. In 169 M3 the behaviour half reached the transform, the turn
-// rate and the scratch vectors 69 times. A collaborator that held them would
-// answer 69 calls, which is a wide seam around a small subject.
+// at 21 lines. Those four stay. In 169 M3 the behaviour half reached the
+// transform, the turn rate and the scratch vectors 69 times. A collaborator
+// that held them would answer 69 calls, which is a wide seam around a small
+// subject. **An OBJECT that HAS the ship answers one**, and docs/TODO/183 is
+// where the measurement finally gave way to that.
 //
 // THE TRADER'S WORKING LIFE LEFT IN docs/TODO/176 M2, to
 // `game/trader-flight.ts`. It arrives, it works the lane, then it docks or it
@@ -58,24 +63,32 @@
 // `PlayerRef` went too. `FireEvent` and `WorldView` did NOT: each one names
 // `NpcShip`, so moving it would make the child import its parent.
 //
-// A SHIP HOLDS THE BEHAVIOUR ITS ROLE FLIES (docs/TODO/182). `update` clears
-// `state.flownBy`, then asks that behaviour. The roles that never fight are
-// `game/npc-idle.ts` already: a rock and a hermit tumble, and a derelict
-// drifts. Everything that fights still runs in `update` below, and each kind
-// leaves in its own item.
+// A SHIP HOLDS THE BEHAVIOUR ITS ROLE FLIES (docs/TODO/182). It is built once,
+// in the constructor, so the step allocates nothing. Every role holds one:
+//
+//  - `game/npc-idle.ts` — a rock and a hermit tumble, a derelict drifts, and a
+//    drone whose mothership died tumbles slower than a rock;
+//  - `game/npc-fighter.ts` — the pirate, the police, the bounty hunter, the
+//    Thargoid and its drone, which ask three questions in one order;
+//  - `game/npc-trader.ts` — the trader, which turns and fights when it flees,
+//    and otherwise calls `game/trader-flight.ts`.
 //
 // THE SEAM IS AN OBJECT RATHER THAN A NARROW INTERFACE, and that is the whole
 // reason the earlier cuts fought. A free FUNCTION over the flight models would
 // need about eighteen handles, which docs/TODO/169 M3 measured as a 69-call
 // seam and refused. A collaborator that HAS the ship needs one.
 //
-// A PILOT FLIES A SHIP (docs/TODO/183). `brainFly` is `game/npc-brain-pilot.ts`
-// already, and it takes a `PilotShip` rather than this class. `attack` and
-// `pursue` follow in M2, and they move together because the dogfighter falls
-// back to the attack run.
+// A PILOT FLIES A SHIP (docs/TODO/183). A behaviour says WHAT a ship does. A
+// pilot says HOW it flies while it fights. The three are
+// `game/npc-brain-pilot.ts`, `game/npc-attack-run.ts` and
+// `game/npc-pursuit.ts`, and each takes a `PilotShip` rather than this class.
 //
-// TWO FLIGHT MODELS ARE STILL HERE, and `update` still calls them as methods.
-// Every branch that does is named in docs/TODO/183.
+// THIS FILE STILL HOLDS ONE PILOT, and `pursuitFly` is why. `PursuitPilot`
+// carries two fields across frames that `NpcState` does not save. So the ship
+// owns the pilot for its life, and a behaviour asks the ship for it.
+//
+// THE RAIL STAYS TOO (docs/TODO/183 M3). `chooseWeapon` is the ship
+// arbitrating between its own pilots, so a behaviour asks what leaves it.
 import * as THREE from 'three';
 import { buildShip, buildAsteroid, buildHermitBeacon } from '../ships/geometry.ts';
 import { registeredHull } from '../ships/registry.ts';
@@ -86,9 +99,8 @@ import type { NpcRole } from './ship-roles.ts';
 import type {
   NpcCombatProfileId, ShipDesignId, ShipIdentity,
 } from './ship-identity.ts';
-import { defenceBrain } from './brains.ts';
 import { chooseTactic, type TacticHull } from './tactic-choice.ts';
-import { approach, steerQuatToward, velocityOf } from './flight-maths.ts';
+import { steerQuatToward } from './flight-maths.ts';
 import type { BrainSelection } from './brain-names.ts';
 import { MISSILE_RELOAD } from '../constants/ordnance.ts';
 import { npcWeaponByte } from './gunnery.ts';
@@ -99,9 +111,6 @@ import {
 } from './npc-energy.ts';
 import type { NpcEnergyPoints } from './damage-units.ts';
 import { random, randomDirection, randomQuaternion } from './rng.ts';
-import { stepTrader } from './trader-flight.ts';
-import { brainFly } from './npc-brain-pilot.ts';
-import { attack } from './npc-attack-run.ts';
 import { PursuitPilot } from './npc-pursuit.ts';
 import type { PilotShip } from './npc-pilot.ts';
 import { MIN_CRUISE_FRACTION, UNDER_FIRE_SECONDS } from '../constants/attack-run.ts';
@@ -110,8 +119,7 @@ import {
   derelictIdle, hermitIdle, inertTumble, rockIdle,
 } from './npc-idle.ts';
 import { fighterBehaviour } from './npc-fighter.ts';
-import { defenceBrainNameFor } from './brain-names.ts';
-import { TURN_AND_FIGHT_RANGE } from '../constants/player-interest.ts';
+import { traderBehaviour } from './npc-trader.ts';
 import { freshNpcState, type NpcState, type PlayerRef } from './npc-state.ts';
 import { ThreatLock } from './threat-lock.ts';
 
@@ -126,6 +134,10 @@ import { ThreatLock } from './threat-lock.ts';
 //
 // Every one of them steers by a turn toward a heading at a capped rate, and a
 // thrust along its nose. That is the player's rule too.
+//
+// WHAT EACH ROLE DOES IS NOT IN THIS FILE. The list above is the matrix a
+// reader needs to follow the class. The code that flies it is in the three
+// behaviours the header names.
 
 
 
@@ -252,7 +264,7 @@ export class NpcShip {
    * `update` below clears `state.flownBy` and then asks this. A behaviour that
    * flies the ship stamps it, and one that leaves the ship alone does not.
    */
-  private readonly behaviour: NpcBehaviour | null;
+  private readonly behaviour: NpcBehaviour;
 
   /**
    * The drone behaviour, for a Thargon whose mothership died.
@@ -284,7 +296,6 @@ export class NpcShip {
   readonly accel: number;
   private readonly tmpDir = new THREE.Vector3();
   private readonly tmpDir2 = new THREE.Vector3();
-  private readonly tmpVel = new THREE.Vector3();
 
   readonly variantSeed: number;
 
@@ -372,7 +383,7 @@ export class NpcShip {
       // docs/TODO/184 M2's and still runs in `update`, and everything else
       // fights.
       this.behaviour = role === 'generation' ? derelictIdle()
-        : role === 'trader' ? null
+        : role === 'trader' ? traderBehaviour()
           : fighterBehaviour();
       const spec = rostered!;
       // The hull and its size come from the DESIGN, and not from the roster
@@ -462,90 +473,25 @@ export class NpcShip {
     // defect docs/TODO/88 is about.
     this.state.flownBy = 'none';
 
-    const { fleet, brains } = view;
-
-    // THE DISPATCH (docs/TODO/182 M1). A role that never fights holds a
-    // behaviour, and it answers here. The order is the order these three
-    // branches ran in before. A rock that somehow went inert keeps a rock's
-    // roll, because its own behaviour is asked first.
-    if (this.behaviour) return this.behaviour.fly(this, dt, player, view);
-    // ...and a drone whose mothership died. It is a STATE rather than a role,
-    // so it is asked after the role and not built in the constructor.
+    // THE DISPATCH, AND `inert` COMES FIRST (docs/TODO/184 M2). A drone whose
+    // mothership died tumbles. It is a STATE rather than a role, so it is not
+    // built in the constructor.
+    //
+    // **THE ORDER IS A DEFECT docs/TODO/184 M1 SHIPPED, AND M2 CLOSES IT.**
+    // Before M1 a Thargon held no behaviour. It fell past the dispatch to this
+    // check, and it tumbled. M1 gave every fighting role a behaviour, and the
+    // dispatch asked that first. So an inert drone flew the fighter and never
+    // tumbled again. Nine probes stayed byte-identical, because no probe kills
+    // a Thargoid mothership.
+    //
+    // Asking `inert` first is exactly the pre-M1 order. Only
+    // `game/combat-wreck.ts` sets the flag, and only on a Thargon, so no other
+    // role can reach this line with it set.
     if (this.state.inert) return this.inert.fly(this, dt, player, view);
 
-    // The trader is the last branch left here, and docs/TODO/184 M2 takes it.
-    const distPlayer = this.tmpDir.copy(player.position)
-      .sub(this.object.position).length();
-
-    if (this.state.fleeing) {
-      // Armed traders turn and fight. WHICH pilot is brain-names.ts's answer.
-      // The shipped answer is the hand-written three-phase attack run, pointed
-      // back at whoever hunts it. That is the run `scripted` pirates fly, and
-      // live pirates default to `pursuit`. Under the `scripted` A/B the gate below
-      // fails and the trader flees without fighting. The brainFly block below
-      // is the socket a future trained candidate re-enters through (brains.ts),
-      // and flies nothing today.
-      if (this.armed && defenceBrainNameFor(brains) === 'attack-run') {
-        if (this.state.provokedByPlayer && distPlayer < TURN_AND_FIGHT_RANGE) {
-          const shot = attack(this, dt, player.position, distPlayer, true, undefined,
-            fleet, velocityOf(player.quaternion, player.speed, this.tmpVel));
-          return this.chooseWeapon(shot, distPlayer, player.position, view.missileInbound);
-        }
-        const attacker = this.nearestAttacker(dt);
-        if (attacker) {
-          const d = attacker.object.position.distanceTo(this.object.position);
-          return attack(this, dt, attacker.object.position, d, false, attacker, view.fleet,
-            velocityOf(attacker.object.quaternion, attacker.state.speed, this.tmpVel));
-        }
-      }
-      const defence = this.armed ? defenceBrain(brains) : null;
-      if (defence) {
-        const live = this.attackers.filter((a) => a.state.alive);
-        if (this.state.provokedByPlayer && distPlayer < TURN_AND_FIGHT_RANGE) {
-          // fighting the commander; every NPC attacker is 'the rest of the sky'
-          return brainFly(this, defence, dt,
-            player.position, player.quaternion, 300, distPlayer, 'player', null, {
-              others: live.map((a) => ({ pos: a.object.position })),
-              count: live.length + 1,
-              missilePos: null,
-            });
-        }
-        const attacker = this.nearestAttacker(dt);
-        if (attacker) {
-          const d = attacker.object.position.distanceTo(this.object.position);
-          return brainFly(this, defence, dt,
-            attacker.object.position, attacker.object.quaternion, 260, d, attacker, null, {
-              others: live.filter((a) => a !== attacker)
-                .map((a) => ({ pos: a.object.position })),
-              count: live.length,
-              missilePos: null,
-            });
-        }
-      }
-      // The only flight that actually RUNS AWAY, and the only one the readout
-      // may call `fleeing`. Everything above this line in the branch turned and
-      // fought. A report of the branch rather than of the flight is what made
-      // an armed trader mid-duel read as a ship on the run.
-      this.state.flownBy = 'fleeing';
-      this.steerToward(
-        this.tmpDir.copy(this.object.position).multiplyScalar(2).sub(this.state.fleeFrom), dt);
-      this.state.speed = approach(this.state.speed, this.maxSpeed, 150 * dt);
-      this.advance(dt);
-      return null;
-    }
-
-    if (this.role === 'trader') {
-      // The trader's working life is `game/trader-flight.ts` (docs/TODO/176
-      // M2). It steers and it sets a target speed. This line then moves the
-      // ship, so one ship still moves one way.
-      stepTrader(this, dt, view);
-      this.advance(dt);
-      return null;
-    }
-
-    // Nothing left. Every role but the trader holds a behaviour now, and the
-    // trader is docs/TODO/184 M2's.
-    return null;
+    // THE ROLE'S OWN BEHAVIOUR (docs/TODO/182 M1). Every role holds one since
+    // M2, so this line always answers and `update` is the dispatch alone.
+    return this.behaviour.fly(this, dt, player, view);
   }
 
   /**

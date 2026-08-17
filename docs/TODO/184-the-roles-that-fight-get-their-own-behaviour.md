@@ -173,3 +173,52 @@ one claim and nothing else.
 reddens the order claim. A value import of `NpcShip` reddens the scan.
 
 4,895 assertions became 4,906.
+
+### M2 — the trader
+
+`game/npc-trader.ts` is 123 lines. `npc.ts` went 911 lines to 856, and `update`
+went 102 to **37**.
+
+**Nine probes and the campaign are byte-identical**, at both sizes.
+
+**M2 FOUND A DEFECT THAT M1 SHIPPED, AND IT IS THE ONE RESULT OF THIS ITEM THAT
+MATTERS.** Before M1 a Thargon held no behaviour. It fell past the dispatch to
+the `inert` check, and it tumbled. M1 gave every fighting role a behaviour, and
+it left the dispatch ahead of that check. So a drone whose mothership died flew
+the fighter's amble.
+
+**NINE PROBES AND THE CAMPAIGN STAYED BYTE-IDENTICAL THROUGH M1**, because no
+probe kills a Thargoid mothership. The evidence this item planned could not see
+the defect. Only a fixture that drives a real `NpcShip` says so.
+
+Measured on 2026-08-17: under M1's order the drone moved 2.89 units in one
+frame, and it turned nine times as far.
+
+**The fix is to ask `inert` first**, which is exactly the pre-M1 order. Only
+`game/combat-wreck.ts` sets the flag, and only on a Thargon, so no other role
+can reach the line with it set.
+
+**`update` READS NO DISTANCE AND SETS NO SPEED NOW.** It spends `approach` zero
+times, from eight before docs/TODO/183. `test/deleted-members.test.ts` reads
+`game/npc-trader.ts` in `game/npc.ts`'s place.
+
+**A SECOND GATE SHAPE MOVED, AND IT IS THE SAME KIND OF MOVE.**
+`test/break-off.test.ts` held that `game/npc.ts` takes `PLAYER_INTEREST_RANGE`
+from its home. That range decides whether a ship engages the commander, so it
+went to `game/npc-fighter.ts` with the branch that asked it.
+
+**`test/npc-trader.test.ts` is 16 assertions in three parts.** Two are the
+programme's usual shape. The third drives a real ship, and it has to: the defect
+was the ORDER of two lines, and no object literal reaches that.
+
+**Proved able to fail four ways, and each one alone.** M1's order reddens the
+drone. The two trader branches swapped reddens four claims. `stepTrader` dropped
+reddens the scan and the waypoint. A value import of `NpcShip` reddens the
+type-only claim.
+
+**The header and the map are repaired in this commit** (CLAUDE.md,
+docs/TODO/152 and 166). `docs/ARCHITECTURE.md` said `game/npc.ts` owns the NPC
+behaviours. That is false now, and it names the eight files instead.
+
+4,906 assertions became 4,907. The three new ones cost one: `update` no longer
+spends `approach`, so a per-file claim became a ban.

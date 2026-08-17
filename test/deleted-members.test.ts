@@ -62,19 +62,26 @@ console.log('\nthe speed ramp has one home, and two files reach for it');
   check('...and the scan is not vacuous — src/player.ts declares its own',
     /\bfunction approach\s*\(/.test(code('player.ts')));
 
-  // THE READERS ARE WHY IT LEFT `game/npc.ts`, AND THERE ARE FOUR NOW. The count
+  // THE READERS ARE WHY IT LEFT `game/npc.ts`, AND THERE ARE FIVE NOW. The count
   // is over the whole set rather than per file, and docs/TODO/183 M2 is why: two
   // of `npc.ts`'s four call sites went to the pilots when the flight models
   // became objects, and a per-file floor of four turned red for a move that
   // was correct. What the claim is about is that ONE declaration serves every
   // reader, so the number that matters is the total.
+  //
+  // **`game/npc.ts` LEFT THE LIST IN docs/TODO/184 M2, AND THAT IS THE ITEM'S
+  // WHOLE POINT.** It spends the ramp zero times. A speed is a FLIGHT's
+  // business, and every flight is a behaviour or a pilot now. So `update` sets
+  // no speed, and the file that once held eight call sites holds none.
   const spends = (src: string) =>
     (src.match(/\bapproach\(/g) ?? []).length;
-  const readers = ['game/npc.ts', 'game/trader-flight.ts',
-    'game/npc-attack-run.ts', 'game/npc-pursuit.ts', 'game/npc-fighter.ts'];
+  const readers = ['game/trader-flight.ts', 'game/npc-attack-run.ts',
+    'game/npc-pursuit.ts', 'game/npc-fighter.ts', 'game/npc-trader.ts'];
   const total = readers.reduce((n, f) => n + spends(code(f)), 0);
   check(`...and five files spend it (${total} call sites)`,
     readers.every((f) => spends(code(f)) > 0) && total >= 8, `found ${total}`);
+  check('...and game/npc.ts spends it none, which is what M2 was for',
+    spends(npc) === 0);
 }
 
 // --- the deleted picker's last three members ---------------------------------

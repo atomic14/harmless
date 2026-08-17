@@ -119,7 +119,22 @@ Two quirks are deliberate:
 
 ## Combat and pilots
 
-- `src/game/npc.ts` owns the NPC behaviours. `hostility.ts` owns one rule over
+- `src/game/npc.ts` owns the ship. It reads the world, it holds the saved state,
+  it steers, it moves, and it reports a shot. **It decides no flight.**
+  `NpcShip.update` is 37 lines, and it is a dispatch (docs/TODO/184).
+- **A BEHAVIOUR SAYS WHAT A SHIP DOES, AND A PILOT SAYS HOW IT FLIES.** That
+  split is docs/TODO/182's, and Chris named the cause on 2026-08-17: the project
+  never used a good OO approach. A ship holds one behaviour for its role, built
+  in the constructor. There are three behaviours. `npc-idle.ts` flies a rock, a
+  hermit, a derelict and a shut-down drone. `npc-fighter.ts` flies the pirate,
+  the police, the bounty hunter, the Thargoid and its drone. `npc-trader.ts`
+  flies the trader. The three pilots are `npc-brain-pilot.ts`,
+  `npc-attack-run.ts` and `npc-pursuit.ts`.
+- **EACH ONE TAKES A CONTEXT RATHER THAN THE CLASS.** `npc-pilot.ts` declares
+  `PilotShip`, and `npc-behaviour.ts` declares `BehaviourShip` over it. Every
+  import of `npc.ts` in those eight files is `import type`, so no file holds a
+  runtime dependency on the ship. `npc-state.ts` owns the saved shape.
+- `hostility.ts` owns one rule over
   a fleet: it answers whether a ship attacks the commander, and it names no
   ship class (docs/TODO/169). `trader-flight.ts` owns a trader's working life:
   it arrives, it works the lane, then it docks or it leaves. It names no ship
