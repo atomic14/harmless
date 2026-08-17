@@ -3,6 +3,105 @@
 **Kind:** defect · **Severity:** medium · **Size:** medium · **Depends on:**
 nothing · **Blocks:** nothing · **GitHub:** #35
 
+## What landed, 2026-08-17
+
+Both milestones landed the same day. The investigation ran before the plan, so
+every fact in "Where we are" is a measurement. The work then found five things
+the plan did not have, and two of them corrected the plan.
+
+**M1 gave the console the line it never had.** `harmVerdict` (game/law.ts) is
+the rule and `HARM_LINES` (constants/law.ts) is the vocabulary. The set of
+covered roles comes from `offenceFor`, so this file restates none of it. That is
+`recordVerdict`'s own shape, which assembles itself from `lawTakesInterest`.
+
+**The trigger is the latch, and it needed no new state.** `combat.ts` reads
+`provokedByPlayer` before the hit and again after. A false-to-true move is the
+first shot that ship took from the commander. So the line is said once per ship,
+however long the fight runs.
+
+**A hit that DESTROYS the ship says nothing, and the plan did not have that.** A
+dead ship comes for nobody, and `destroyShip` has its own words for it. Without
+the guard the console would promise a fight with a wreck.
+
+**The measured order is now the one docs/TODO/130 asked for**:
+`POLICE SHIP HIT — AND NOW HE IS COMING FOR YOU`, then
+`STATION DEFENCE LAUNCHED`, then
+`LEGAL STATUS: OFFENDER — BOUNTY HUNTERS WILL ATTACK YOU`.
+
+**M2 turns the shot into a MISS before anything reads it.** `inTheFireball` is
+the whole rule. The beam, the flash, the offence and the damage therefore all
+agree that the shot did not get there. A branch further down leaves the cockpit
+beams converging on a ship that took nothing.
+
+**THE NUMBER IS DERIVED, AND THE PLAN'S PREDICTION WAS WRONG.** Over 593 seeded
+kills with the grace off, 12 melees turned a Viper hostile. Eleven of the twelve
+came AFTER the kill, and every one of those landed between 0.25 and 1.00 seconds
+of it. The twelfth came BEFORE the kill, and no grace covers that one.
+
+| melees | strays, grace off | strays, grace on |
+| --- | --- | --- |
+| 40 | 2 | 1 |
+| 200 | 3 | 1 |
+| 593 | 12 | 1 |
+
+**The plan promised 0 of 200, and that was the wrong promise.** A span cannot do
+better than the trigger release it bets on. With a half-second hold after the
+kill, the span leaves only the stray that happened before it. With a full-second
+hold it leaves six, and four of those land in the frame the span lapses. That
+cluster is the probe's own release time rather than a fact about players.
+
+**THE STATION TRUCE WIDENS THE COVER, AND THE PLAN DID NOT HAVE IT.** Inside
+`STATION_TRUCE` an unprovoked pirate is not hostile, so it is a bystander too.
+That follows the truce rather than widening this rule. Out at the witchpoint a
+queue of pirates costs nothing at all. The second of two died 4.38 seconds after
+the first, with the span off and on alike. Near the port the same measurement
+reads 4.38 against 5.13.
+
+**A SHIPPED FIXTURE CAUGHT IT, AND THAT IS THE FIND.**
+`test/snapshot-migrate.test.ts` kills five pirates half a second apart, near the
+station. Two of the five were absorbed. Its fixture paces past the grace now.
+The rule that block pins is that five kills take a rung. It is not the cadence
+they arrive at.
+
+**`ShipSystems` needed no migration, and the shape of the restore is why.**
+`Persistence.restore` assigns a snapshot onto a `freshSystems()`, so a version 3
+save that names no `wreckGrace` keeps the 0. That is docs/TODO/167's NaN trap,
+answered by a structure rather than by a version bump.
+
+**`combat.ts` crossed 400 lines, and an exemption was the dishonest answer.**
+The file CAN be a parent plus children, which is the `ALLOWED` list's own bar.
+`destroy` and `wreck` are `combat-wreck.ts` now, at 155 lines against 343 left
+behind. One file says what a shot found and what the hit costs. The other says
+what a destroyed ship pays and leaves in the sky. Two delegators keep all four
+call sites outside the file unchanged.
+
+**Ten unrelated constants gained `@rule` ids.** That is docs/TODO/160's
+situation again: the value 1 is shared eleven ways and only three carried one. A
+derivation was the other remedy, and it is dishonest here. Nothing this span is
+made of belongs to another constant.
+
+**`test/lawful-hit.test.ts` is 37 assertions through the real Game.** Proved
+able to fail three ways, each alone. The line suppressed reddens exactly the
+five console claims. The span at zero reddens the fireball claims. The role test
+widened to any ship reddens the narrowness control by itself.
+
+**THE BREAK-IT STEP FOUND A VACUOUS CLAIM, AND THAT IS WHY IT IS RUN.** The
+held-burst loop first took its length from `WRECK_BURST_GRACE`. At a span of
+zero it fired no shots at all and passed. The fixture holds half a second by
+hand now. The length of a burst is a fact about a pilot rather than about the
+span under test.
+
+**`survivability` and `aim-probe` are byte-identical.** **`defence-probe` is NOT
+evidence**, and the plan was wrong to name it. It loads no trained weights and
+says so: the shipped defence is hand-written code that the tool cannot fly.
+
+**Two things are reported and not fixed.** `recordVerdict` still names the
+record's pursuer rather than the ship with the grudge, and M1's line is what
+answers a player's question instead. And `provokedByPlayer` still never clears,
+so a fine does not call off a Viper. Both are docs/TODO/158's design.
+
+4,790 assertions.
+
 ## Where we are
 
 Chris flew it and reported two sentences: *"I was attacked by a pirate and a

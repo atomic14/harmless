@@ -13,19 +13,15 @@ active context:
 
 ## Execution queue
 
-1. [173](173-the-burst-carries-on-from-the-pirate-into-the-police-ship.md) —
-   the burst carries on from the pirate into the police ship (GitHub #35).
+**THE QUEUE IS EMPTY.** 173 was the last item in it, and it closed on
+2026-08-17. It is below. The next item comes from a triage, from the GitHub
+inbox, or from Chris.
 
 **173 came out of the GitHub inbox, and the queue was empty when it arrived.**
 The sweep of 2026-08-16 put five items in the queue. Chris asked for an
 architectural and bug sweep against a tree where `npm run check` passed. The
 order was by value over cost, and not by severity. All five landed, and 169 was
 the last of them on 2026-08-17.
-
-**#35 was `needs investigation`, and the investigation ran first.** The triage of
-2026-08-16 named two candidate routes and measured neither. A throwaway probe
-flew the real game under node. It found that route 1 is the live one, and that
-the burst is what walks it.
 
 **172, 170, 171 and 168 led this queue and all four landed the same day.** They
 are below.
@@ -34,8 +30,8 @@ are below.
 vocabulary on the player's pages. 168 is the house prose style over `docs/`.
 Neither one answers the other.
 
-**The GitHub inbox holds no item the queue does not.** **#35** is the queue's
-one item, and it is `in progress` as docs/TODO/173.
+**THE GITHUB INBOX IS EMPTY.** **#35** closed on 2026-08-17 with
+[173](completed/173-the-burst-carries-on-from-the-pirate-into-the-police-ship.md).
 
 **#36 closed on 2026-08-16, and A STALE PERMALINK IS THE WHOLE STORY.** Chris
 read `const NAME_COST = ... ' AND YOUR NAME'` at `src/game/prompts.ts:90`. That
@@ -109,8 +105,8 @@ the frame.* It went 2,528 → 1,233 lines across 150 and 155, into nine children
 target — that was Chris's call on 2026-08-14: *"we should not obsess over the
 300 lines. What we are looking for is a clean architecture."*
 
-The GitHub inbox holds one open item, and the queue section above says where it
-stands. **#34** closed on 2026-08-16 with
+The GitHub inbox holds no open item, and the queue section above says so.
+**#34** closed on 2026-08-16 with
 [170](completed/170-the-rocks-are-all-at-the-station.md). **#37** closed the
 same day with
 [172](completed/172-an-empty-console-line-still-draws-its-box.md). **#33**
@@ -145,6 +141,70 @@ would go if it is ever wanted. The curve takes a plane as a parameter, so a path
 pushed off the traffic is still a path of the same shape.
 
 ## What landed on 2026-08-17
+
+**173 — the burst carries on from the pirate into the police ship.** Chris flew
+it and reported two sentences: *"I was attacked by a pirate and a police ship
+was there. I destroyed the pirate and the police started attacking me."*
+
+**THE INVESTIGATION RAN BEFORE THE PLAN.** GitHub #35 was `needs
+investigation`, and the triage of 2026-08-16 named two candidate routes and
+measured neither. A throwaway probe flew the real game under node.
+
+**Route 1 is the live route, and the burst is what walks it.** A pirate 500
+units off the nose died at frame 525 of a held burst. The beam reached the Viper
+1,400 units directly behind it at frame 540. Fifteen frames is 0.25 seconds,
+which is one pulse-laser cooldown.
+
+**Nothing stands between the beam and what was behind the target.** `traceShot`
+skips a dead ship at once, and `Combat.wreck` despawns the hull in the frame it
+dies. **Route 2 needs no work.** Route 1 moves the record first, and only then does
+the station fleet launch. It also announces itself.
+
+**The console could say NOTHING AT ALL.** `raiseLegal` speaks only when the
+record MOVES, and `callStationDefence` latches after the first launch. So an
+Offender near a station whose fleet was already out read nothing. The one line
+that did appear named the wrong pursuer.
+
+**M1 gave the console the line it never had.** `harmVerdict` is the rule and
+`HARM_LINES` is the vocabulary. The covered role set comes from `offenceFor`,
+which is `recordVerdict`'s own shape. The trigger is the `provokedByPlayer`
+latch, so the line is said once per ship and needed no new state.
+
+**A hit that DESTROYS the ship says nothing, and the plan did not have that.** A
+dead ship comes for nobody.
+
+**M2 gives the fireball the rest of the burst.** For `WRECK_BURST_GRACE` seconds
+after her own kill, the commander's beam registers nothing on a bystander.
+`inTheFireball` turns the hit into a MISS before anything reads it.
+
+**THE NUMBER IS DERIVED, AND THE PLAN'S PREDICTION WAS WRONG.** Over 593 seeded
+kills with the grace off, 12 melees turned a Viper hostile. Eleven came AFTER
+the kill, every one between 0.25 and 1.00 seconds of it. The twelfth came before
+it. The span leaves 1 of 593, 1 of 200 and 1 of 40, and that one is the twelfth.
+The plan promised 0 of 200. **A span cannot do better than the trigger release
+it bets on.**
+
+**THE STATION TRUCE WIDENS THE COVER, AND THE PLAN DID NOT HAVE IT.** Inside
+`STATION_TRUCE` an unprovoked pirate is not hostile, so it is a bystander too.
+Out at the witchpoint a queue of pirates costs nothing at all. The second of two
+died 4.38 seconds after the first, with the span off and on alike.
+
+**A shipped fixture caught it.** `test/snapshot-migrate.test.ts` kills five
+pirates half a second apart, and two were absorbed. Its fixture paces past the
+grace now. The rule that block pins is that five kills take a rung.
+
+**`combat.ts` crossed 400 lines, and an exemption was the dishonest answer.**
+`destroy` and `wreck` are `combat-wreck.ts` now, at 155 lines against 343 left
+behind. Ten unrelated constants also gained `@rule` ids, which is
+docs/TODO/160's situation again.
+
+**THE BREAK-IT STEP FOUND A VACUOUS CLAIM.** The held-burst loop first took its
+length from the span, so at a span of zero it fired no shots and passed. It
+holds half a second by hand now.
+
+**`survivability` and `aim-probe` are byte-identical.** **`defence-probe` is NOT
+evidence, and the plan was wrong to name it.** It loads no trained weights and
+cannot fly the shipped defence. 4,790 assertions.
 
 **169 — npc.ts holds behaviour and brain flight in one file.** The head of the
 decomposition programme, and the backlog's own number 1. The file was 1,632
