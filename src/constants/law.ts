@@ -44,6 +44,16 @@ export const HARM_LINES: readonly (readonly [string, string])[] = [
 ];
 
 export const CLEAN = 0;
+
+/**
+ * The middle rung of the legal ladder, and the one a stray shot reaches.
+ *
+ * It has its own rule id. It is a RUNG of a three-value ladder, and the ten
+ * other constants at 1 are counts, gains, distances and spans of seconds. The
+ * ladder's own two neighbours carry no id, because neither of them collides.
+ *
+ * @rule law.offender
+ */
 export const OFFENDER = 1;
 export const FUGITIVE = 2;
 

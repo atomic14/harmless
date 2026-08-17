@@ -225,6 +225,11 @@ export const THARGON_DEPLOY_RANGE = 150;
  * should not. This and the three below are ONE rule: a short jittered stack
  * along the slot normal, spent by `launchStationDefence`. WHETHER they launch is
  * `DEFENCE_RANGE` (constants/law.ts).
+ *
+ * It has its own rule id. It is the floor of a launched STACK, and it moves
+ * with the three constants beside it rather than with anything else at 1.
+ *
+ * @rule spawn.stationDefenceMin
  */
 export const STATION_DEFENCE_MIN = 1;
 

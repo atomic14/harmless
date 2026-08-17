@@ -21,6 +21,10 @@ import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { harmVerdict, offenceFor } from '../src/game/law.ts';
 import { CLEAN, HARM_LINES } from '../src/constants/law.ts';
+import { WRECK_BURST_GRACE } from '../src/constants/wreck.ts';
+import { LASER_PACING } from '../src/constants/player-gun.ts';
+import { isHostileToPlayer } from '../src/game/hostility.ts';
+import { freshSystems } from '../src/game/systems.ts';
 import { WITCHPOINT_RADII } from '../src/constants/planet.ts';
 import type { NpcRole } from '../src/game/ship-roles.ts';
 import type { NpcShip } from '../src/game/npc.ts';
@@ -156,6 +160,139 @@ console.log('...and nothing for a ship the same shot destroyed');
   check('the trader went down', !trader.state.alive);
   eq(`...and nothing said it was coming for anybody (${said.join(' / ')})`,
     said.filter((t) => t === harmVerdict('trader')).length, 0);
+}
+
+console.log('\nthe fireball takes the rest of the burst');
+{
+  // THE DEFECT, flown. A pirate 500 units off the nose and a Viper 1,400 units
+  // directly behind it. The commander holds the trigger. Before docs/TODO/173
+  // the shot 0.25 seconds after the kill reached the Viper, and it hunted her
+  // for the rest of the flight.
+  //
+  // Out at the witchpoint, so no station fleet launches into the measurement.
+  // The pirate's bank is set to one point, so the FIRST shot kills it. The
+  // length of the fight is not the subject, and a seeded hull that takes eight
+  // seconds to die only makes the block slower to read.
+  const { g, fly } = flying(35_000_106, true);
+  const c = g.state.commander;
+  const pirate = target(g, 'pirate', 500);
+  const cop = target(g, 'police', 1400);
+  pirate.state.energy = 1;
+  const copEnergy = cop.state.energy;
+
+  g.fireLaser();
+  check('the first shot killed the pirate', !pirate.state.alive);
+  eq('...and armed the grace', g.state.sys.wreckGrace, WRECK_BURST_GRACE);
+  fly(1);
+
+  // The trigger stays down for HELD frames, with the Viper pinned on the line
+  // the pirate was on. This is the burst the report is about.
+  //
+  // THE LENGTH IS A FACT ABOUT A PILOT, AND NOT ABOUT THE SPAN. It is half a
+  // second, which is what the 593-kill measurement held the trigger for. A
+  // count derived from `WRECK_BURST_GRACE` would go to zero the moment somebody
+  // set the span to zero, and this block would then pass by firing no shots at
+  // all. That is the failure the break-it step found.
+  const HELD = 30;
+  check(`the span covers a half-second hold (${WRECK_BURST_GRACE}s)`,
+    WRECK_BURST_GRACE >= HELD / 60);
+  for (let f = 0; f < HELD; f++) {
+    cop.object.position.copy(ahead(g, 1400));
+    cop.object.updateMatrixWorld(true);
+    g.fireLaser();
+    fly(1);
+  }
+  eq(`...and a held burst of ${HELD} frames never reached the Viper behind it`,
+    cop.state.energy, copEnergy);
+  check('...so the Viper is not provoked', !cop.state.provokedByPlayer);
+  eq('...and the record did not move', c.legalStatus, CLEAN);
+
+  // THE PROOF THAT THE GEOMETRY WAS THERE ALL ALONG. Nothing above shows that
+  // the beam WOULD have hit the Viper. Run the grace out, and the same shot at
+  // the same pinned ship lands. So the grace is what stopped it, rather than an
+  // alignment the fixture never had.
+  //
+  // The wait is the LASER's clock rather than the grace's. A pulse laser fires
+  // every 0.25 seconds, so a shot taken three frames later is refused by
+  // `canFire` and proves nothing.
+  while (g.state.sys.wreckGrace > 0) fly(1);
+  fly(Math.ceil(LASER_PACING.pulse.cooldown * 60) + 1);
+  cop.object.position.copy(ahead(g, 1400));
+  cop.object.updateMatrixWorld(true);
+  g.fireLaser();
+  fly(1);
+  check('...but the same shot lands once the grace runs out',
+    cop.state.energy < copEnergy && cop.state.provokedByPlayer);
+}
+
+console.log('...and gives it back when the grace runs out');
+{
+  // THE CONTROL that the grace is a SPAN rather than a rule about Vipers. The
+  // same shot, taken after it lapses, lands exactly as it always did.
+  const { g, fly } = flying(35_000_107, true);
+  const c = g.state.commander;
+  const cop = target(g, 'police', 600);
+  g.state.sys.wreckGrace = WRECK_BURST_GRACE;
+  g.fireLaser();
+  fly(1);
+  check('inside the grace the shot registers nothing',
+    !cop.state.provokedByPlayer && c.legalStatus === CLEAN);
+  fly(Math.ceil(WRECK_BURST_GRACE * 60) + 2);
+  eq('...and the clock ran down', g.state.sys.wreckGrace, 0);
+  cop.object.position.copy(ahead(g, 600));
+  cop.object.updateMatrixWorld(true);
+  g.fireLaser();
+  fly(SETTLE);
+  check('...after which the same shot provokes him', cop.state.provokedByPlayer);
+  eq('...and files the offence it always did', c.legalStatus, 1);
+}
+
+console.log('...and never covers a ship already in the fight');
+{
+  // THE CONTROL THAT KEEPS THE RULE NARROW. A pirate out in the lane is hostile
+  // by its role, so a queue of pirates costs the commander nothing. Put the
+  // role test back to "any ship" and this block reddens by itself.
+  const { g, fly } = flying(35_000_108, true);
+  const second = target(g, 'pirate', 600);
+  const energy = second.state.energy;
+  g.state.sys.wreckGrace = WRECK_BURST_GRACE;
+  check('the second pirate is in the fight already',
+    isHostileToPlayer(second, CLEAN, Infinity));
+  g.fireLaser();
+  fly(1);
+  check('...so the grace does not shield it', second.state.energy < energy);
+}
+
+console.log('...and it is armed by the commander\'s own gun, and by nothing else');
+{
+  // A ram, a missile and a collision each kill with no held burst behind them.
+  // `destroy` is reached by several paths, and only the trigger arms this.
+  const { g, fly } = flying(35_000_109, true);
+  eq('a fresh ship carries no grace', g.state.sys.wreckGrace, 0);
+  const doomed = target(g, 'pirate', 600);
+  g.destroyNpc(doomed);
+  fly(1);
+  eq('...and destroying a ship by other means arms none', g.state.sys.wreckGrace, 0);
+
+  const shot = target(g, 'pirate', 600);
+  shot.state.energy = 1;
+  g.fireLaser();
+  check('...but the commander\'s own kill does', g.state.sys.wreckGrace > 0);
+  eq('...for exactly the span the constant states',
+    g.state.sys.wreckGrace, WRECK_BURST_GRACE);
+}
+
+console.log('...and an older save restores without it rather than at NaN');
+{
+  // docs/TODO/167's trap, answered by the shape of the restore rather than by a
+  // migration. `Persistence.restore` assigns onto a `freshSystems()`, so a
+  // version 3 snapshot that names no `wreckGrace` leaves the 0 in place.
+  const sys = freshSystems();
+  const older: Record<string, unknown> = { ...freshSystems() };
+  delete older.wreckGrace;
+  Object.assign(sys, older);
+  eq('a snapshot with no grace field restores as 0', sys.wreckGrace, 0);
+  check('...which is a number, and not NaN', Number.isFinite(sys.wreckGrace));
 }
 
 console.log('...and every role the law protects has words of its own');

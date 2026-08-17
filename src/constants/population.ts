@@ -9,6 +9,11 @@
 /**
  * Never fewer than this many traders, whatever the living galaxy says. A system
  * with nobody in it reads as broken, rather than as quiet.
+ *
+ * It has its own rule id. It is a floor on a COUNT OF SHIPS, and it moves with
+ * how busy a system should feel.
+ *
+ * @rule population.minTraders
  */
 export const MIN_TRADERS = 1;
 

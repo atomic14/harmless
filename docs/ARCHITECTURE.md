@@ -42,7 +42,10 @@ rules. This file is a map.
   order: **what you did → what the sky did about it → where you now stand**.
   `law.ts`'s `recordVerdict` is the one home of what a moved record says. Two
   rules in `law-actions.ts` reach it. One raises a record. The other works one
-  off.
+  off. `law.ts`'s `harmVerdict` is the one home of the FIRST half, for a shot
+  that lands on a ship the law protects. `combat.ts` asks it on the frame the
+  ship turns against the commander, so it speaks once per ship
+  (docs/TODO/173).
 
 ### The orchestrator's children
 

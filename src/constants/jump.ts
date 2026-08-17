@@ -32,6 +32,11 @@ export const COUNTDOWN = 5;
  * The base day is the jump itself. Even the shortest hop puts a day on the
  * calendar, which is what makes a contract deadline bite on a chain of short
  * legs.
+ *
+ * It has its own rule id. It is a count of DAYS on the calendar, and it moves
+ * with what a jump should cost a contract deadline.
+ *
+ * @rule jump.daysBase
  */
 export const JUMP_DAYS_BASE = 1;
 

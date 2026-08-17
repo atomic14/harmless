@@ -22,6 +22,51 @@
 export const ESCAPE_CHANCE = { trader: 0.45, other: 0.2 } as const;
 
 /**
+ * Seconds the commander's beam registers nothing on a bystander, counted from
+ * the moment her own shot destroys a ship (GitHub #35).
+ *
+ * A **bystander** is a ship that `isHostileToPlayer` says is not already in the
+ * fight. Only a ship that was minding its own business is covered, and that is
+ * exactly what the report is about.
+ *
+ * The cause is measured. A pirate died at frame 525 of a held burst, and the
+ * beam reached the Viper 900 units behind it at frame 540. That is 0.25
+ * seconds, which is one pulse-laser cooldown. `traceShot` skips a dead ship at
+ * once, and `Combat.wreck` despawns the hull in the same frame. So nothing
+ * stands between the beam and whatever was behind the target (docs/TODO/173).
+ *
+ * The number is `POD_LAUNCH_GRACE`'s own second argument, which reads: *"a beam
+ * laser fires 10 times a second, and a held trigger outlives the kill by about
+ * a second."* That sentence is about the capsule AT the wreck. It is equally
+ * true of the ship BEHIND the wreck. 1.0 is that second.
+ *
+ * **The distribution says the same thing.** Over 593 seeded kills with the
+ * grace off, 12 melees turned a Viper hostile. Eleven of the twelve came AFTER
+ * the kill, and every one of those landed between 0.25 and 1.00 seconds of it.
+ * The twelfth came before the kill, and no grace covers that one.
+ *
+ * **A SPAN CANNOT DO BETTER THAN THE TRIGGER IT BETS ON.** With a half-second
+ * trigger hold after the kill, this span leaves 1 stray of 593, which is that
+ * twelfth. With a full-second hold it leaves 6, and four of those land in the
+ * frame the span lapses. That is the probe's own release time rather than a
+ * fact about players, so it does not argue for a longer number. A longer one
+ * also blinds a commander who WANTS the bystander gone.
+ *
+ * **The station truce widens the cover, and it is consistent rather than a
+ * fault.** Inside `STATION_TRUCE` an unprovoked pirate is not hostile, so the
+ * grace covers it too. Out at the witchpoint a queue of pirates costs nothing at
+ * all. The second of two died 4.38 seconds after the first, with this span off
+ * and on alike. Near the port the same measurement reads 4.38 against 5.13.
+ *
+ * It has its own rule id. It shares the value 1.0 with `PURSUIT_CLOSE_GAIN` and
+ * four others in the catalogue. None of them is a span of seconds, and none
+ * moves with this.
+ *
+ * @rule wreck.wreckBurstGrace
+ */
+export const WRECK_BURST_GRACE = 1.0;
+
+/**
  * Seconds a fresh capsule cannot be shot, counted from the moment it launches
  * (GitHub #28).
  *
@@ -55,6 +100,12 @@ export const POD_LAUNCH_GRACE = 1.5;
  * work, rather than as bad luck. The span is what makes a field of rocks a gamble
  * worth the flight, rather than a fixed wage. Only a commander with the mining
  * laser fitted gets any of it (`Combat.destroy`).
+ *
+ * It has its own rule id. It is a count of CANISTERS, and `WRECK_BURST_GRACE`
+ * above it is a span of seconds. Two values in one file that must stay free to
+ * move apart is exactly the coincidence somebody tidies into a bug.
+ *
+ * @rule wreck.miningYieldMin
  */
 export const MINING_YIELD_MIN = 1;
 export const MINING_YIELD_SPAN = 3;

@@ -19,6 +19,11 @@
 // gunnery.ts. The vocabulary it reports in is combat-events.ts. This is the
 // consequences.
 //
+// ONE THING HERE DECIDES WHETHER A HIT COUNTS AT ALL. For `WRECK_BURST_GRACE`
+// seconds after the commander's own shot destroys a ship, her beam registers
+// nothing on a bystander. `inTheFireball` is the whole of that rule, and
+// `hostility.ts` says who counts as a bystander (docs/TODO/173).
+//
 // IT TAKES EACH INGREDIENT SEPARATELY and never a GameState. That is what makes
 // the class testable, and what lets `destroy()` be handed a different commander.
 // To assemble the seven arguments the player's own trigger wants is a different
@@ -27,25 +32,22 @@
 import * as THREE from 'three';
 import type { World } from './world.ts';
 import type { NpcShip } from './npc.ts';
+import type { Canister } from './cargo.ts';
 import type { ShipSystems } from './systems.ts';
 import type { PlayerPoolPoints } from './damage-units.ts';
-import { type CommanderData, formatCredits, killValue } from './commander.ts';
+import type { CommanderData } from './commander.ts';
 import { laserForView, canFire, chargeShot } from './gunnery.ts';
-import { traceShot } from './shot.ts';
+import { traceShot, type ShotHit } from './shot.ts';
 import { applyDamage, canAffordLaserShot, spendLaserEnergy } from './systems.ts';
 import { hitFromAhead } from './shield-face.ts';
 import { harmVerdict, offenceFor } from './law.ts';
-import { OFFENDER, FUGITIVE, CONTRABAND } from '../constants/law.ts';
-import { constrictorDestroyed } from './missions.ts';
-import { random, randomInt } from './rng.ts';
+import { isHostileToPlayer } from './hostility.ts';
+import { OFFENDER } from '../constants/law.ts';
 import { heard, later, say, type CombatEvent } from './combat-events.ts';
-import { ESCAPE_CHANCE, HERMIT_CONTRABAND_MIN, HERMIT_CONTRABAND_SPAN,
-  MINING_YIELD_MIN, MINING_YIELD_SPAN } from '../constants/wreck.ts';
-import {
-  CHARACTER_LINE_SECONDS, DISREPUTE_HERMIT_KILL, DISREPUTE_MURDER,
-} from '../constants/character.ts';
+import { destroyShip, wreckShip } from './combat-wreck.ts';
+import { WRECK_BURST_GRACE } from '../constants/wreck.ts';
+import { CHARACTER_LINE_SECONDS, DISREPUTE_MURDER } from '../constants/character.ts';
 import { afterDeed, characterVerdict } from './character.ts';
-import { ORE, ORDINARY_GOODS } from '../constants/commodities.ts';
 
 /** Seconds the cockpit beams stay lit after a shot. */
 export const BEAM_FLASH = 0.12;
@@ -125,9 +127,30 @@ export class Combat {
 
     const sounds: CombatEvent[] = [heard('laser')];
     const out: CombatEvent[] = [{ kind: 'fired' }];
-    const shot = traceShot(
+    const traced = traceShot(
       playerPos, viewDir, this.world.npcs, this.world.cargo.items,
       witchspace ? null : this.world.station, scratch.ray, scratch.a);
+    // THE FIREBALL TAKES THE REST OF THE BURST (docs/TODO/173, GitHub #35).
+    //
+    // `traceShot` skips a dead ship at once and `Combat.wreck` despawns the
+    // hull in the frame it dies. So the shot after a kill reaches whatever was
+    // behind the target, and a commander who held the trigger never chose it.
+    // Measured, that shot is 0.25 seconds later. It turns a Viper flying the
+    // same fight into a hunter for the rest of the flight.
+    //
+    // IT IS TURNED INTO A MISS HERE, before anything reads it. So the beam, the
+    // flash, the offence and the hit all agree that the shot did not get there.
+    // A branch further down would leave the cockpit beams converging on a ship
+    // that took nothing.
+    //
+    // ONLY A BYSTANDER IS COVERED, and `isHostileToPlayer` is the one home of
+    // that question (hostility.ts). A pirate out in the lane is hostile by its
+    // role, so a queue of pirates costs the commander nothing there. A Viper
+    // she already provoked stays shootable, because she is in a fight with it.
+    // Inside the station's truce an unprovoked pirate is a bystander too, and
+    // that follows the truce rather than widening this rule.
+    const shot = this.inTheFireball(sys, traced, commander, playerPos, witchspace)
+      ? { kind: 'miss' as const } : traced;
 
     // Aim assist, the visible half: bend the cockpit beams onto whatever the
     // shot found. Beams that visibly converge on the target read as a gunsight
@@ -201,9 +224,13 @@ export class Combat {
       if (harm) out.push(say(harm, 3));
       out.push({ kind: 'offence', level: offenceFor(shot.ship.role, false) });
       if (destroyed) {
+        // The grace is armed HERE and nowhere else, because this is the one
+        // branch where the commander's own trigger did the killing. A ram, a
+        // missile and a collision each kill without a held burst behind them.
+        sys.wreckGrace = WRECK_BURST_GRACE;
         // destroy() reports its explosion before its semantic consequences;
         // keep all sounds ahead of events the Game applies after this returns.
-        for (const event of this.destroy(commander, shot.ship)) {
+        for (const event of destroyShip(this.world, commander, shot.ship)) {
           if (event.kind === 'sound'
               || event.kind === 'countdown'
               || event.kind === 'dockingMusic') sounds.push(event);
@@ -212,6 +239,30 @@ export class Combat {
       }
     }
     return [...sounds, ...out];
+  }
+
+  /**
+   * Is this shot spent on the fireball of the ship the commander just killed?
+   *
+   * Two conditions, and both must hold. The grace still runs, and the shot
+   * found a bystander. A **bystander** is a ship that
+   * `isHostileToPlayer` says is not in the fight with the commander.
+   *
+   * The station, a canister and a miss are all false. The grace is about a ship
+   * that was minding its own business, and none of those three is one.
+   *
+   * @param witchspace there is no station out there, so the truce cannot hold.
+   * `Infinity` says that, rather than a distance to a station the world left
+   * behind.
+   */
+  private inTheFireball(
+    sys: ShipSystems, shot: ShotHit<NpcShip, Canister>, commander: CommanderData,
+    playerPos: THREE.Vector3, witchspace: boolean,
+  ): boolean {
+    if (sys.wreckGrace <= 0 || shot.kind !== 'ship') return false;
+    const toStation = witchspace ? Infinity
+      : playerPos.distanceTo(this.world.station.position);
+    return !isHostileToPlayer(shot.ship, commander.legalStatus, toStation);
   }
 
   /**
@@ -243,111 +294,20 @@ export class Combat {
   /**
    * Destruction credited to the player: bounty, kills, rating, legal status,
    * contract progress and the Navy mission.
+   *
+   * The rule is `combat-wreck.ts`'s. This is the delegator that keeps the call
+   * site, and there are four of those outside this file.
    */
   destroy(commander: CommanderData, npc: NpcShip): CombatEvent[] {
-    const out = this.wreck(npc);
-    const c = commander;
-
-    if (npc.role !== 'asteroid') {
-      c.kills += 1;
-      // rating counts difficulty, not bodies: see killValue()
-      c.combatScore += killValue(npc.state.threatTier);
-    }
-
-    if (npc.role === 'pirate') {
-      for (const k of c.contracts) {
-        if (k.kind !== 'bounty' || k.destination !== c.systemIndex) continue;
-        if (k.progress >= k.qty) continue;
-        k.progress += 1;
-        if (k.progress >= k.qty) {
-          out.push(say('BOUNTY CONTRACT COMPLETE — RETURN TO A STATION', 5));
-        }
-      }
-    }
-
-    const crime = offenceFor(npc.role, true);
-    out.push({ kind: 'offence', level: crime });
-    // ...and the other direction. A pirate down is police work, and it pays a
-    // record off a rung at a time (docs/TODO/160). It is pushed for every kill
-    // and answered by the rule, which is what keeps the role list in one file.
-    out.push({ kind: 'atonement', role: npc.role });
-
-    // What it does to your REPUTATION, which the fine will not wash off. To
-    // crack a hermit marks a career; so does the destruction of any lawful ship
-    // (the Fugitive-grade offence). Reached only through `destroy`, the
-    // player-credited path.
-    const wasDisrepute = c.disrepute ?? 0;
-    if (npc.role === 'hermit') {
-      c.disrepute = afterDeed(wasDisrepute, DISREPUTE_HERMIT_KILL);
-    } else if (crime === FUGITIVE) {
-      c.disrepute = afterDeed(wasDisrepute, DISREPUTE_MURDER);
-    }
-    // ...and what THAT is called, once the bounty and the record are read
-    // (docs/TODO/129). Either deed is 40, so it can cross two rungs at
-    // once; `characterVerdict` names the one you landed on, not each one you
-    // passed through.
-    const verdict = characterVerdict(wasDisrepute, c.disrepute ?? 0);
-    if (verdict) out.push(later(verdict, CHARACTER_LINE_SECONDS));
-
-    if (npc.bounty > 0) {
-      c.credits += npc.bounty;
-      out.push(say(`BOUNTY: ${formatCredits(npc.bounty)}`, 3));
-    }
-    if (npc.role === 'asteroid' && c.equipment.miningLaser) {
-      this.world.cargo.spawn(npc.object.position,
-        MINING_YIELD_MIN + randomInt(MINING_YIELD_SPAN), ORE);
-    }
-    if (npc.state.isMissionTarget) {
-      const e = constrictorDestroyed(c);
-      if (e) {
-        out.push(say(`CONSTRICTOR DESTROYED — ${formatCredits(e.bounty)} NAVY BOUNTY`, 6));
-      }
-    }
-    return out;
+    return destroyShip(this.world, commander, npc);
   }
 
   /**
-   * Take a ship out of the sky, with no credit to anyone.
-   *
-   * This is the shared path. An NPC killed by another NPC, or by a collision,
-   * goes through here and NOT through destroy(). That is what stops a bounty
-   * for a fight you watched.
+   * Take a ship out of the sky, with no credit to anyone. Same delegation, and
+   * `combat-wreck.ts` says why the two paths are separate.
    */
   wreck(npc: NpcShip): CombatEvent[] {
-    const out: CombatEvent[] = [{ kind: 'wrecked', npc }];
-    // Taken before the despawn below. The sound is placed here now, and the
-    // ship is gone by the time the Game reads the event (docs/TODO/142).
-    const at = npc.object.position.clone();
-    this.world.effects.explosion(at.clone());
-    this.world.despawn(npc);
-
-    // wily traders and many pirates punch out at the last moment
-    if (npc.role === 'trader' || npc.role === 'pirate' || npc.role === 'hunter') {
-      const chance = npc.role === 'trader' ? ESCAPE_CHANCE.trader : ESCAPE_CHANCE.other;
-      // The role goes WITH the capsule. The ship is despawned three lines up,
-      // and nothing else remembers whose ship it was (GitHub #28).
-      if (random() < chance) {
-        this.world.cargo.spawnCapsule(npc.object.position.clone(), npc.role);
-      }
-    }
-    if (npc.cargoDrop > 0) {
-      this.world.cargo.spawn(npc.object.position,
-        Math.floor(random() * (npc.cargoDrop + 1)), ORDINARY_GOODS);
-    }
-    // a cracked hermit spills the contraband it dealt in — the smuggler's payday
-    if (npc.role === 'hermit') {
-      this.world.cargo.spawn(npc.object.position,
-        HERMIT_CONTRABAND_MIN + randomInt(HERMIT_CONTRABAND_SPAN), CONTRABAND);
-    }
-    // the drones go dead when the last mothership does
-    if (npc.role === 'thargoid'
-        && !this.world.npcs.some((n) => n.state.alive && n.role === 'thargoid')) {
-      for (const t of this.world.npcs) {
-        if (t.role === 'thargon') t.state.inert = true;
-      }
-      out.push(say('THARGONS DEACTIVATED', 3));
-    }
-    return [heard('explosion', at), ...out];
+    return wreckShip(this.world, npc);
   }
 
   /**

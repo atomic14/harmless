@@ -9,7 +9,14 @@
  */
 export const CAMERA_FOV = 60;
 
-/** Near plane — 1 unit, about a wingtip. */
+/**
+ * Near plane — 1 unit, about a wingtip.
+ *
+ * It has its own rule id. Ten other constants sit at 1, and each of them is a
+ * count, a threshold or a span of seconds. This is a distance in world units.
+ *
+ * @rule camera.near
+ */
 export const CAMERA_NEAR = 1;
 
 /**

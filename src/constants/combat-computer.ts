@@ -103,6 +103,11 @@ export const PURSUIT_RANGE = 500;
  * How fast the co-pilot wants to fly per unit of range error, in speed units per
  * world unit. At 1.0 it matches the target's own speed near `PURSUIT_RANGE`,
  * which is what holds station on the six.
+ *
+ * It has its own rule id. It is a GAIN — speed units per world unit — and the
+ * other constants at 1.0 are counts, distances and spans of seconds.
+ *
+ * @rule copilot.pursuitCloseGain
  */
 export const PURSUIT_CLOSE_GAIN = 1.0;
 

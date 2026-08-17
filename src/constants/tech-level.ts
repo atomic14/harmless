@@ -5,7 +5,14 @@
 // ceiling is a literal with its derivation written out. It is not a read of the
 // algorithm, because this directory may not import galaxy.ts.
 
-/** The lowest tech level any system shows. */
+/**
+ * The lowest tech level any system shows.
+ *
+ * It has its own rule id. It is the floor of the SHOWN scale, and it moves only
+ * with `TECH_MAX` and the zero-based byte both are derived from.
+ *
+ * @rule tech.levelMin
+ */
 export const TECH_MIN = 1;
 
 /** The highest. The algorithm's own ceiling is 14, and it shows as 15. */

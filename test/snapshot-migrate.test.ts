@@ -25,6 +25,7 @@ import { seedWorld } from '../src/game/rng.ts';
 import { SNAPSHOT_VERSION } from '../src/game/snapshot.ts';
 import { parseSnapshot } from '../src/game/snapshot-parse.ts';
 import { KILLS_PER_RUNG, FUGITIVE, OFFENDER } from '../src/constants/law.ts';
+import { WRECK_BURST_GRACE } from '../src/constants/wreck.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\na stored snapshot climbs to the current version');
@@ -164,7 +165,13 @@ withoutSaving(() => {
     npc.object.updateMatrixWorld(true);
     g.fireLaser();
     check(`pirate ${i + 1} went down`, !npc.state.alive);
-    for (let f = 0; f < 30; f++) g.step(1 / 60, at += 1 / 60);
+    // PAST THE WRECK GRACE, and that is docs/TODO/173 rather than padding. The
+    // commander sits inside `STATION_TRUCE`, where an unprovoked pirate is not
+    // hostile. So it is a bystander, and her beam registers nothing on it for
+    // `WRECK_BURST_GRACE` seconds after her own kill. The rule this block pins
+    // is that five kills take a rung. It is not the cadence they arrive at.
+    const between = Math.ceil(WRECK_BURST_GRACE * 60) + 30;
+    for (let f = 0; f < between; f++) g.step(1 / 60, at += 1 / 60);
   }
   eq(`${KILLS_PER_RUNG} pirates still take a rung off a raised save`,
     c.legalStatus, OFFENDER);

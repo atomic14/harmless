@@ -101,6 +101,11 @@ export const LAWLESS_GOVERNMENT = 3;
  * puts the line between 0 and 1. The two lines are a step apart deliberately. A
  * feudal system has exactly one patrol and pairs of pirates, which makes it the
  * most dangerous place that still has a police force.
+ *
+ * It has its own rule id. It is an index into the 1984 government table, and it
+ * moves with that table alone.
+ *
+ * @rule encounters.anarchyGovernment
  */
 export const ANARCHY_GOVERNMENT = 1;
 

@@ -59,6 +59,19 @@ export interface ShipSystems {
   /** 0..1; the gun cuts out at `LASER_CUTOUT` and cools at `LASER_COOL_RATE` */
   laserTemp: number;
   laserCooldown: number;
+  /**
+   * Seconds of `WRECK_BURST_GRACE` left, after the commander's own shot
+   * destroyed a ship. Above zero, her beam registers nothing on a bystander.
+   *
+   * THE GUN'S THIRD CLOCK, and it is here because the other two are. The heat,
+   * the cadence and this all describe what the trigger just did.
+   * `regenerate` ticks all three in one place (docs/TODO/173).
+   *
+   * A version 3 snapshot carries no such field. `Persistence.restore` uses
+   * `Object.assign` onto a `freshSystems()`, so an older save keeps the 0 here
+   * rather than restoring `undefined`. That is why this needs no migration.
+   */
+  wreckGrace: number;
   /** 0..1; `CABIN_TEMP_FATAL` kills you */
   cabinTemp: number;
 }
@@ -123,6 +136,7 @@ export function freshSystems(): ShipSystems {
     energyCarry: 0,
     laserTemp: 0,
     laserCooldown: 0,
+    wreckGrace: 0,
     cabinTemp: 0,
   };
 }
@@ -303,6 +317,7 @@ function recharge(
 /** One frame of recharge: energy always, shields only once energy is healthy. */
 export function regenerate(sys: ShipSystems, dt: number, opts: RegenOptions): void {
   sys.laserCooldown -= dt;
+  sys.wreckGrace = Math.max(0, sys.wreckGrace - dt);
   sys.laserTemp = Math.max(0, sys.laserTemp - LASER_COOL_RATE * dt);
   const ticks = eliteARegenTicks(dt);
   [sys.energy, sys.energyCarry] = recharge(sys.energy, sys.energyCarry, MAX_ENERGY,

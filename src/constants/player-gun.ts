@@ -67,6 +67,11 @@ export const LASER_COOL_RATE = 0.22;
  * The firing gate keeps one point in reserve after it pays, so you need two to
  * shoot. The last bank is `LOW_ENERGY`, which is a separate rule, and firing is
  * deliberately NOT gated on it.
+ *
+ * It has its own rule id. The released spec fixes it at one point per firing
+ * event. So it is the one value in its group that Harmless does not choose.
+ *
+ * @rule gun.laserEnergyCost
  */
 export const LASER_ENERGY_COST = 1;
 
