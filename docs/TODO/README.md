@@ -13,17 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [176](176-the-largest-files-need-a-measurement-before-a-cut.md) — the largest
-   files need a measurement before a cut;
-2. [175](175-the-law-reads-your-record-and-never-reads-the-grudge.md) — the law
+1. [175](175-the-law-reads-your-record-and-never-reads-the-grudge.md) — the law
    reads your record and never reads the grudge.
 
 **All three came from Chris on 2026-08-17**, after 173 landed and left the queue
-empty. The order is by value over cost, and not by severity. **174 led it and
-landed the same day.** It is below.
-
-**176 is the programme Chris named**, in his own words: *"we should pick up the
-large files and start breaking them down."*
+empty. The order is by value over cost, and not by severity. **174 and 176 led
+it, and both landed the same day.** They are below.
 
 **175 goes last because half of it waits on Chris.** Its M1 and M2 do not, but
 its M3 changes a shipped rule and holds two open questions that only he can
@@ -164,6 +159,63 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**176 — the largest files need a measurement before a cut.** Chris named the
+programme: *"we should pick up the large files and start breaking them down."*
+`npm run sizes` read 30 files over 400 lines. One was a recorded debt, and the
+other nine each argue they are one file.
+
+**M1 measured the two members docs/TODO/169 M4 named, and they answer
+differently.** `update` is 154 lines and reaches `this.*` 81 times over 21
+members. It is also the file's stated responsibility, so a caller needs the
+whole ship. `updateTrader` is 73 lines and 44 reaches over 7 members, and four
+handles answer all of them.
+
+**THE PLAN DID NOT HAVE THE STRONGEST ARGUMENT.** `tmpMat` and `tmpQ` are read
+at three lines of the whole file, and all three are inside that one member. The
+header claims nine scratch vectors for the allocation rule. The seam is 0.60
+reaches per line of subject, against the 3.3 that 169 M3 refused.
+
+**M2 took it, and `game/trader-flight.ts` is 176 lines against 1,468 left
+behind.** `stepTrader` takes two narrow interfaces rather than the class, so
+`NpcShip` and `WorldView` satisfy them with no cast.
+
+**Two private fields became public, and the plan did not have that.** A
+TypeScript class with a `private` member cannot satisfy a structural interface
+that names it. So `maxSpeed` and `turnRate` join `accel` and `radius`.
+
+**`approach` moved to `game/flight-maths.ts`**, because four of its eight call
+sites went with the trader. **docs/TODO/174 M2 took that export off, under a
+rule that now points the other way.** A reader exists now.
+
+**A SECOND STALE CLAIM CAME OUT OF IT.** `flight-maths.ts` named the five files
+that keep their own `ZERO`, and `player.ts` holds none.
+
+**All seven probes are byte-identical to the M1 commit.** `dock-traffic` and
+`dock-probe` joined the set, because none of 169's five flies a trader.
+
+**M3 rechecked the nine stated reasons, and one is false.**
+`test/world-step.test.ts`'s row said it holds the step's five phases in the order
+they run. `world-step.ts` does hold five. The test file holds six sections by
+SUBJECT, and the last of them is the save.
+
+**`game/combat-sim.ts` carried a number beside the sentence that retired it.** It
+claimed 42% safety prose, next to a clause saying the argument moved out.
+Measured, 356 of 934 lines are a comment of any kind, and 9 name safety.
+
+**THE ROW LENGTH PREDICTS THE ROW QUALITY.** The nine ran 68 to 1,861
+characters. Not one of the four shortest is clean. Every one of the five longest
+states a reason that holds.
+
+**M4 gave the combat trainer a section in `docs/ARCHITECTURE.md`**, and
+`npm run map:report` went 28 of 56 modules unnamed to 21 of 56. **The plan
+counted seven modules and there are ten**, because the three it missed are each
+under 200 lines.
+
+**The item stops there, on 150 M6's and 169 M4's precedent.** Three candidates
+are named and none is taken. `combat-sim-report.ts`'s report shape is the
+strongest: 30 files import it, 13 reach for a type alone, and 8 of the 13 are in
+`src/`. 4,818 assertions.
 
 **174 — the record holds five defects that nothing schedules.** Five landed
 items each reported a defect and each declined to fix it. Every one of the five
