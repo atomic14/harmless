@@ -13,10 +13,11 @@ active context:
 
 ## Execution queue
 
-1. [182](182-a-ship-holds-the-behaviour-its-role-flies.md) — a ship holds the
-   behaviour its role flies.
+**THE QUEUE IS EMPTY, AND A PROGRAMME IS PART WAY THROUGH.** docs/TODO/182 landed
+its seam, and three items follow it. **The pilots come next**, because three of
+`update`'s branches call them and nothing else can move first.
 
-**182 IS THE HEAD OF A PROGRAMME, AND CHRIS NAMED ITS CAUSE.** He read `npc.ts`
+**182 IS THE HEAD OF THAT PROGRAMME, AND CHRIS NAMED ITS CAUSE.** He read `npc.ts`
 on 2026-08-17 and said: *"we have not used a good OO approach in this project."*
 Every cut before it fought a wide seam, because each one asked what narrow
 interface a free FUNCTION would need. Behaviour about a whole ship has no narrow
@@ -206,6 +207,32 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**182 — a ship holds the behaviour its role flies.** Chris read `npc.ts`, named
+three responsibilities, and then named the cause: the project never used a good
+OO approach.
+
+**THAT EXPLAINS WHY EVERY EARLIER CUT FOUGHT A WIDE SEAM.** Each one asked what
+narrow interface a free FUNCTION would need. Behaviour about a whole ship has
+none. A collaborator that HAS the ship needs one handle.
+
+**The vocabulary was already in the tree.** `brain-names.ts` opens *"Which named
+pilot flies"*. So the end state is a ship, a behaviour per role, and a pilot per
+flight model.
+
+**124 of `update`'s 157 lines are per-role behaviour**, and 33 are the
+orchestration.
+
+**AN EARLIER ORDERING WAS WRONG AND THE PLAN SAYS SO.** It put the armed
+trader's defence first, and 36 of its 57 lines call a pilot.
+
+**M1 landed the seam and the roles that never fight.** The file did not shrink,
+and that is the right result: this milestone buys the architecture rather than
+the lines.
+
+**THE CONSTANTS GATE FIRED AND IT WAS RIGHT TO.** Four tumble rates were bare
+literals inside `update` and invisible to every scan. Naming them made them
+visible. 4,873 assertions.
 
 **181 — the saved shape of a ship leaves the ship.** Chris asked to work on
 `src/game/npc.ts`, the tree's one recorded debt.
