@@ -137,18 +137,18 @@ milestone moved the two seeded draws**, and that was the whole risk.
 
 **`BehaviourShip` EXTENDS `PilotShip` NOW, AND THE PLAN DID NOT HAVE THAT.** The
 plan said the context grows from five to twelve. Written, a fighting behaviour
-decides that the commander is worth attacking and then hands the ship to a
-PILOT to fly, so it needs both types. Saying it once beats every fighting
-behaviour taking an intersection. It adds five members over `PilotShip`'s
+decides that the commander is worth attacking. It then hands the ship to a PILOT
+to fly, so it needs both types. Saying it once beats every fighting behaviour
+taking an intersection. It adds five members over `PilotShip`'s
 thirteen.
 
 **The roles that never fight pay for the type and not for the work.**
 `game/npc-idle.ts` is four behaviours that touch five members between them.
 
 **ONE MEMBER OF THE CONTEXT NAMES THE CLASS, AND IT IS HONEST TO SAY SO.**
-`npcTarget` and `nearestAttacker` return an `NpcShip`, because a pilot that
-shoots at one reports it in a `FireEvent`, and that event carries the real ship
-to `fire-resolution.ts`. Every import is still `import type`, so no file holds a
+`npcTarget` and `nearestAttacker` return an `NpcShip`. A pilot that shoots at
+one reports it in a `FireEvent`, and that event carries the real ship to
+`fire-resolution.ts`. Every import is still `import type`, so no file holds a
 runtime dependency on `game/npc.ts`.
 
 **SO A GATE'S CLAIM MOVED, AND `test/npc-idle.test.ts` SAYS WHY.** It held that
