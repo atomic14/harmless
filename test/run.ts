@@ -84,6 +84,7 @@ import './npc-state.test.ts';
 import './npc-idle.test.ts';
 import './npc-brain-pilot.test.ts';
 import './npc-scripted-pilots.test.ts';
+import './npc-fighter.test.ts';
 import './break-off.test.ts';
 import './flight-readout.test.ts';
 import './ship-clocks.test.ts';

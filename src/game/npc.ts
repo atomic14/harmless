@@ -87,15 +87,8 @@ import type {
   NpcCombatProfileId, ShipDesignId, ShipIdentity,
 } from './ship-identity.ts';
 import { defenceBrain } from './brains.ts';
-import { defenceBrainNameFor, pirateBrainNameFor } from './brain-names.ts';
 import { chooseTactic, type TacticHull } from './tactic-choice.ts';
-import { PLAYER_INTEREST_RANGE, TURN_AND_FIGHT_RANGE } from '../constants/player-interest.ts';
-import { truceHolds } from './law.ts';
-import { isHostileToPlayer } from './hostility.ts';
 import { approach, steerQuatToward, velocityOf } from './flight-maths.ts';
-import { STATION_TRUCE } from '../constants/law.ts';
-import { AMBLE_ARRIVED, AMBLE_NEAR, AMBLE_SPAN } from '../constants/amble.ts';
-import { HUNT_HOLD_RANGE } from '../constants/hunt-ranges.ts';
 import type { BrainSelection } from './brain-names.ts';
 import { MISSILE_RELOAD } from '../constants/ordnance.ts';
 import { npcWeaponByte } from './gunnery.ts';
@@ -110,11 +103,15 @@ import { stepTrader } from './trader-flight.ts';
 import { brainFly } from './npc-brain-pilot.ts';
 import { attack } from './npc-attack-run.ts';
 import { PursuitPilot } from './npc-pursuit.ts';
+import type { PilotShip } from './npc-pilot.ts';
 import { MIN_CRUISE_FRACTION, UNDER_FIRE_SECONDS } from '../constants/attack-run.ts';
 import type { NpcBehaviour } from './npc-behaviour.ts';
 import {
   derelictIdle, hermitIdle, inertTumble, rockIdle,
 } from './npc-idle.ts';
+import { fighterBehaviour } from './npc-fighter.ts';
+import { defenceBrainNameFor } from './brain-names.ts';
+import { TURN_AND_FIGHT_RANGE } from '../constants/player-interest.ts';
 import { freshNpcState, type NpcState, type PlayerRef } from './npc-state.ts';
 import { ThreatLock } from './threat-lock.ts';
 
@@ -232,7 +229,7 @@ export class NpcShip {
    * Private, and the invariant belongs to the three verbs below, so the list
    * has one home rather than being spliced by hand from other modules.
    */
-  private readonly attackers: NpcShip[] = [];
+  readonly attackers: NpcShip[] = [];
   /** NPC-vs-NPC target, assigned by the game (pirate→trader, police→pirate). */
   npcTarget: NpcShip | null = null;
   /**
@@ -371,7 +368,12 @@ export class NpcShip {
       this.state.hasEcm = false;
       this.armed = false;
     } else {
-      this.behaviour = role === 'generation' ? derelictIdle() : null;
+      // WHICH BEHAVIOUR THIS ROLE FLIES. A derelict drifts, a trader is
+      // docs/TODO/184 M2's and still runs in `update`, and everything else
+      // fights.
+      this.behaviour = role === 'generation' ? derelictIdle()
+        : role === 'trader' ? null
+          : fighterBehaviour();
       const spec = rostered!;
       // The hull and its size come from the DESIGN, and not from the roster
       // row. `ships/registry.ts` is the only way to either. So two roster rows
@@ -437,7 +439,7 @@ export class NpcShip {
    * (invariant 5), and `game/npc-pursuit.ts` is what it reaches.
    */
   pursuitFly(
-    dt: number, target: PlayerRef, dist: number, fleet: readonly NpcShip[] = [],
+    dt: number, target: PlayerRef, dist: number, fleet: readonly PilotShip[] = [],
   ): FireEvent | null {
     return this.pursuit.fly(this, dt, target, dist, fleet);
   }
@@ -460,48 +462,20 @@ export class NpcShip {
     // defect docs/TODO/88 is about.
     this.state.flownBy = 'none';
 
-    const { station, fleet, playerLegal, brains } = view;
+    const { fleet, brains } = view;
 
     // THE DISPATCH (docs/TODO/182 M1). A role that never fights holds a
     // behaviour, and it answers here. The order is the order these three
     // branches ran in before. A rock that somehow went inert keeps a rock's
     // roll, because its own behaviour is asked first.
-    if (this.behaviour) return this.behaviour.fly(this, dt);
+    if (this.behaviour) return this.behaviour.fly(this, dt, player, view);
     // ...and a drone whose mothership died. It is a STATE rather than a role,
     // so it is asked after the role and not built in the constructor.
-    if (this.state.inert) return this.inert.fly(this, dt);
+    if (this.state.inert) return this.inert.fly(this, dt, player, view);
 
-    const toPlayer = this.tmpDir.copy(player.position).sub(this.object.position);
-    const distPlayer = toPlayer.length();
-
-    const aggressiveToPlayer =
-      isHostileToPlayer(this, playerLegal, view.playerToStation ?? Infinity)
-      && distPlayer < PLAYER_INTEREST_RANGE;
-
-    if (aggressiveToPlayer) {
-      // A pirate a player meets flies the `pursuit` dogfighter by default — the
-      // combat computer's own pilot, turned on the pirates. The `scripted` A/B
-      // reverts every pirate to the hand-written three-phase attack run
-      // instead. Either flight goes through the same `chooseWeapon` for what
-      // leaves the rail.
-      const pursuit = pirateBrainNameFor(this.state.threatTier, false, brains) === 'pursuit';
-      const shot = pursuit
-        ? this.pursuitFly(dt, player, distPlayer, fleet)
-        : attack(this, dt, player.position, distPlayer, true, undefined,
-          fleet, velocityOf(player.quaternion, player.speed, this.tmpVel));
-      return this.chooseWeapon(shot, distPlayer, player.position,
-        view.missileInbound);
-    }
-
-    if (this.npcTarget && this.npcTarget.state.alive) {
-      const d = this.npcTarget.object.position.distanceTo(this.object.position);
-      if (d < HUNT_HOLD_RANGE) {
-        return attack(this, 
-          dt, this.npcTarget.object.position, d, false, this.npcTarget, view.fleet,
-          velocityOf(this.npcTarget.object.quaternion, this.npcTarget.state.speed, this.tmpVel));
-      }
-      this.npcTarget = null;
-    }
+    // The trader is the last branch left here, and docs/TODO/184 M2 takes it.
+    const distPlayer = this.tmpDir.copy(player.position)
+      .sub(this.object.position).length();
 
     if (this.state.fleeing) {
       // Armed traders turn and fight. WHICH pilot is brain-names.ts's answer.
@@ -569,24 +543,8 @@ export class NpcShip {
       return null;
     }
 
-    // Amble between waypoints near home. A role the station's truce covers
-    // ambles OUTSIDE the truce, because it can do nothing inside one. A
-    // waypoint in there parks a hostile over the port and calls it traffic
-    // (docs/TODO/158).
-    // `truceHolds` at distance 0 asks "would the truce cover this role at the
-    // station itself?", so the list of covered roles keeps one home.
-    this.state.waypointTimer -= dt;
-    if (this.state.waypointTimer <= 0) {
-      this.state.waypointTimer = 12 + random() * 15;
-      const near = truceHolds(this.role, 0) ? STATION_TRUCE : AMBLE_NEAR;
-      this.state.waypoint
-        .copy(station.position)
-        .add(randomDirection(new THREE.Vector3()).multiplyScalar(near + random() * AMBLE_SPAN));
-    }
-    this.steerToward(this.state.waypoint, dt);
-    const arrived = this.object.position.distanceTo(this.state.waypoint) < AMBLE_ARRIVED;
-    this.state.speed = approach(this.state.speed, arrived ? 0 : this.maxSpeed * 0.4, 80 * dt);
-    this.advance(dt);
+    // Nothing left. Every role but the trader holds a behaviour now, and the
+    // trader is docs/TODO/184 M2's.
     return null;
   }
 
@@ -621,7 +579,13 @@ export class NpcShip {
   /** the attacker being fought — see game/threat-lock.ts for the rule */
   private readonly attackerLock = new ThreatLock<NpcShip>();
 
-  private nearestAttacker(dt: number): NpcShip | null {
+  /**
+   * The nearest ship hunting this one, and it prunes the dead as it looks.
+   *
+   * Public because `game/npc-behaviour.ts`'s `BehaviourShip` names it, and the
+   * trader's armed defence spends it (docs/TODO/184 M1).
+   */
+  nearestAttacker(dt: number): NpcShip | null {
     // Locked, and neither first-registered nor nearest. Which attacker an
     // armed trader fights must not flip with registration order, or teleport
     // with distance (game/threat-lock.ts has the rule and the measurements).

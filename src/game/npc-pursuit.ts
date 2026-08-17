@@ -70,7 +70,7 @@ export class PursuitPilot {
     dt: number,
     target: PlayerRef,
     dist: number,
-    fleet: readonly NpcShip[] = [],
+    fleet: readonly PilotShip[] = [],
   ): FireEvent | null {
     return this.slashes(ship, target)
       ? attack(ship, dt, target.position, dist, true, undefined,
@@ -97,7 +97,7 @@ export class PursuitPilot {
     isPlayer: boolean,
     npcTarget?: NpcShip,
     targetSpeed = 0,
-    fleet: readonly NpcShip[] = [],
+    fleet: readonly PilotShip[] = [],
   ): FireEvent | null {
     ship.state.flownBy = 'pursuit';
     // WHERE TO BE: chase the target, or veer past it when a collision is close

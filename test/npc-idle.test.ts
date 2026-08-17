@@ -28,6 +28,7 @@ import {
   derelictIdle, hermitIdle, inertTumble, rockIdle,
 } from '../src/game/npc-idle.ts';
 import type { BehaviourShip } from '../src/game/npc-behaviour.ts';
+import { freshNpcState } from '../src/game/npc-state.ts';
 import { check, eq } from './harness.ts';
 
 // --- the behaviours name no ship class --------------------------------------
@@ -38,11 +39,24 @@ console.log('\nthe ships that never fight name no ship class');
     readFileSync(new URL(`../src/${path}`, import.meta.url), 'utf8')
       .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
 
-  for (const f of ['game/npc-idle.ts', 'game/npc-behaviour.ts']) {
-    check(`${f} never writes NpcShip`, !/\bNpcShip\b/.test(code(f)));
-  }
-  check('game/npc-idle.ts imports nothing from npc.ts',
+  // THE CLAIM MOVED IN docs/TODO/184 M1, AND THE REASON IS THE SAME ONE
+  // docs/TODO/183 GAVE FOR A PILOT. `game/npc-behaviour.ts` names `NpcShip` at
+  // two members now: the target a pilot shoots at, and the attacker a defence
+  // turns on. Both travel downstream inside a `FireEvent`, which carries the
+  // real ship to `fire-resolution.ts`. So the honest claim is not "it names no
+  // class" — it is that the ship a behaviour FLIES is a `BehaviourShip`, and
+  // that every `npc.ts` import is `import type`.
+  check('game/npc-idle.ts never writes NpcShip', !/\bNpcShip\b/.test(code('game/npc-idle.ts')));
+  check('...and imports nothing at all from npc.ts',
     !code('game/npc-idle.ts').includes('npc.ts'));
+
+  const seam = code('game/npc-behaviour.ts');
+  check('game/npc-behaviour.ts flies a BehaviourShip',
+    /ship: BehaviourShip/.test(seam));
+  const seamImports = [...seam.matchAll(/^import(.*?)from '\.\/npc\.ts';$/gm)]
+    .map((m) => m[1]);
+  check(`...and its npc.ts imports are type-only (${seamImports.length})`,
+    seamImports.length > 0 && seamImports.every((i) => i.trim().startsWith('type')));
 
   // The control. Without it a scan that reads the wrong file, or a regular
   // expression that matches nothing, would report exactly the same green.
@@ -59,17 +73,39 @@ console.log('four derelicts, flown off an object literal');
 {
   const ship = (role: BehaviourShip['role'], maxSpeed = 0) => {
     let advanced = 0;
-    const object = new THREE.Object3D();
+    const state = freshNpcState(128);
+    state.pos = new THREE.Vector3();
+    state.quat = new THREE.Quaternion();
+    state.tumbleAxis.set(0, 1, 0);
     const it: BehaviourShip & { readonly advanced: () => number } = {
-      object,
+      object: new THREE.Object3D(),
       role,
       maxSpeed,
-      state: { speed: 0, tumbleAxis: new THREE.Vector3(0, 1, 0) },
+      armed: false,
+      state,
+      npcTarget: null,
+      attackers: [],
+      // `BehaviourShip` extends `PilotShip` since docs/TODO/184 M1, so an idle
+      // ship carries the flight members too. It touches none of them.
+      turnRate: 0,
+      accel: 0,
+      speedFloor: 0,
+      healthFraction: 1,
+      tacticHull: { radius: 1, maxSpeed: 0, turnRate: 0 },
+      facing: () => 0,
       advance(dt: number) { advanced += dt; },
+      steerToward: () => {},
+      nearestAttacker: () => null,
+      chooseWeapon: (shot) => shot,
+      pursuitFly: () => null,
       advanced: () => advanced,
     };
     return it;
   };
+
+  /** An idle behaviour ignores the commander and the view, so both are stubs. */
+  const NOBODY = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), speed: 0 };
+  const NOWHERE = {} as never;
 
   const DT = 1 / 60;
   const turned = (s: { object: THREE.Object3D }) =>
@@ -79,7 +115,7 @@ console.log('four derelicts, flown off an object literal');
   //    would drift out of the field it was scattered into.
   {
     const rock = ship('asteroid');
-    const event = rockIdle().fly(rock, DT);
+    const event = rockIdle().fly(rock, DT, NOBODY, NOWHERE);
     check('a rock rolls', turned(rock) > 0);
     eq('...and it goes nowhere', rock.advanced(), 0);
     check('...and it reports no shot', event === null);
@@ -88,7 +124,7 @@ console.log('four derelicts, flown off an object literal');
   // 2. A DERELICT ROLLS AND MOVES, and it holds its top speed for ever.
   {
     const hulk = ship('generation', 90);
-    derelictIdle().fly(hulk, DT);
+    derelictIdle().fly(hulk, DT, NOBODY, NOWHERE);
     check('a generation ship rolls', turned(hulk) > 0);
     eq('...and it takes its top speed', hulk.state.speed, 90);
     eq('...and it advances', hulk.advanced(), DT);
@@ -101,14 +137,14 @@ console.log('four derelicts, flown off an object literal');
     const beacon = { visible: false } as unknown as THREE.Mesh;
     const rock = ship('hermit');
     const hermit = hermitIdle(beacon);
-    hermit.fly(rock, DT);
+    hermit.fly(rock, DT, NOBODY, NOWHERE);
     check('a hermit rolls', turned(rock) > 0);
     check('...and its beacon is lit early in the pulse', beacon.visible);
     // Far enough into the period to be dark again. The clock belongs to this
     // object, so a second hermit is not carried along with it.
-    for (let i = 0; i < 240; i++) hermit.fly(rock, DT);
+    for (let i = 0; i < 240; i++) hermit.fly(rock, DT, NOBODY, NOWHERE);
     const other = { visible: false } as unknown as THREE.Mesh;
-    hermitIdle(other).fly(ship('hermit'), DT);
+    hermitIdle(other).fly(ship('hermit'), DT, NOBODY, NOWHERE);
     check('...and a second hermit keeps its own clock', other.visible);
   }
 
@@ -118,8 +154,8 @@ console.log('four derelicts, flown off an object literal');
   {
     const drone = ship('thargon');
     const rock = ship('asteroid');
-    inertTumble().fly(drone, DT);
-    rockIdle().fly(rock, DT);
+    inertTumble().fly(drone, DT, NOBODY, NOWHERE);
+    rockIdle().fly(rock, DT, NOBODY, NOWHERE);
     check('an inert drone rolls slower than a rock', turned(drone) < turned(rock));
     eq('...and it goes nowhere either', drone.advanced(), 0);
   }

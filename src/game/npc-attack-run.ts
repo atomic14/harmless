@@ -87,7 +87,7 @@ export function attack(
    * working, the trainer among them, and simply flies with no wingman to
    * avoid. That is exactly right for a one-on-one episode.
    */
-  fleet: readonly NpcShip[] = [],
+  fleet: readonly PilotShip[] = [],
   /**
    * How the target is MOVING, if the caller knows.
    *

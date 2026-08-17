@@ -34,31 +34,55 @@
 
 import type * as THREE from 'three';
 
-import type { NpcRole } from './ship-roles.ts';
-import type { FireEvent } from './npc.ts';
+import type { PlayerRef } from './npc-state.ts';
+import type { PilotShip } from './npc-pilot.ts';
+import type { FireEvent, NpcShip, WorldView } from './npc.ts';
 
 /**
  * The part of a ship a behaviour may touch.
  *
- * NARROW ON PURPOSE, and it grows only when a behaviour needs it. Today it is
- * what the roles that never fight ask for. The fighting roles come in their own
- * items, and each one states what it added and why.
+ * IT EXTENDS `PilotShip`, AND docs/TODO/184 M1 IS WHY. A fighting behaviour
+ * decides that the commander is worth attacking, and then hands the ship to a
+ * pilot to fly. So every ship a behaviour drives is also a ship a pilot can
+ * fly, and saying that once beats every fighting behaviour taking two types.
+ *
+ * WHAT IT ADDS is what a fight needs beyond flying. That is whether the hull
+ * is armed, who is hunting it, what leaves the rail, and the pursuit entry.
+ * Five members over `PilotShip`'s thirteen.
+ *
+ * The roles that never fight use none of the five. They pay for the type and
+ * not for the work, and `game/npc-idle.ts` is four behaviours that touch five
+ * members between them.
  *
  * `NpcShip` satisfies this structurally, exactly as it satisfies `TraderShip`
  * and `HostileShip`. So no behaviour imports the class.
  */
-export interface BehaviourShip {
-  readonly object: THREE.Object3D;
-  readonly role: NpcRole;
-  /** Top speed for this hull, units per second. */
-  readonly maxSpeed: number;
-  readonly state: {
-    speed: number;
-    /** The axis a derelict tumbles about. Saved, so a reload keeps the spin. */
-    readonly tumbleAxis: THREE.Vector3;
-  };
-  /** Move the ship along its nose at its current speed. */
-  advance(dt: number): void;
+export interface BehaviourShip extends PilotShip {
+  /** Whether this hull carries a gun. Only a trader's roster row sets it. */
+  readonly armed: boolean;
+
+  /** The ships hunting THIS one. Only pirates register (see `addAttacker`). */
+  readonly attackers: readonly BehaviourShip[];
+
+  /** The nearest ship hunting this one, and it prunes the dead as it looks. */
+  nearestAttacker(dt: number): NpcShip | null;
+
+  /**
+   * What leaves the rail, once a pilot decides to shoot.
+   *
+   * ON THE SHIP RATHER THAN IN A PILOT, and docs/TODO/183 M3 measured why.
+   * Either flight hands its shot to one place, so that place is the ship
+   * arbitrating between its own pilots.
+   */
+  chooseWeapon(
+    shot: FireEvent | null, dist: number, targetPos: THREE.Vector3,
+    missileInbound: boolean,
+  ): FireEvent | null;
+
+  /** Fly one frame of the pursuit dogfighter. See `game/npc-pursuit.ts`. */
+  pursuitFly(
+    dt: number, target: PlayerRef, dist: number, fleet: readonly PilotShip[],
+  ): FireEvent | null;
 }
 
 /**
@@ -75,5 +99,7 @@ export interface BehaviourShip {
  * behaviour that does not fly the ship leaves it alone.
  */
 export interface NpcBehaviour {
-  fly(ship: BehaviourShip, dt: number): FireEvent | null;
+  fly(
+    ship: BehaviourShip, dt: number, player: PlayerRef, view: WorldView,
+  ): FireEvent | null;
 }

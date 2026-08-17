@@ -124,3 +124,52 @@ Take the baseline before M1.
 is a source scan with a control, plus a fixture off an object literal.
 
 **Prove each able to fail, and each one alone.**
+
+## Outcome
+
+### M1 — the roles that fight
+
+`game/npc-fighter.ts` is 116 lines. `npc.ts` went 947 lines to 911, and `update`
+went 146 to 102.
+
+**Nine probes and the campaign are byte-identical**, at both sizes. **This
+milestone moved the two seeded draws**, and that was the whole risk.
+
+**`BehaviourShip` EXTENDS `PilotShip` NOW, AND THE PLAN DID NOT HAVE THAT.** The
+plan said the context grows from five to twelve. Written, a fighting behaviour
+decides that the commander is worth attacking and then hands the ship to a
+PILOT to fly, so it needs both types. Saying it once beats every fighting
+behaviour taking an intersection. It adds five members over `PilotShip`'s
+thirteen.
+
+**The roles that never fight pay for the type and not for the work.**
+`game/npc-idle.ts` is four behaviours that touch five members between them.
+
+**ONE MEMBER OF THE CONTEXT NAMES THE CLASS, AND IT IS HONEST TO SAY SO.**
+`npcTarget` and `nearestAttacker` return an `NpcShip`, because a pilot that
+shoots at one reports it in a `FireEvent`, and that event carries the real ship
+to `fire-resolution.ts`. Every import is still `import type`, so no file holds a
+runtime dependency on `game/npc.ts`.
+
+**SO A GATE'S CLAIM MOVED, AND `test/npc-idle.test.ts` SAYS WHY.** It held that
+`game/npc-behaviour.ts` names no ship class. That claim is now false and was
+right to become so. The claim that holds is docs/TODO/183's: the ship a
+behaviour FLIES is a `BehaviourShip`, and every `npc.ts` import is type-only.
+
+**A count moved for the second time in the programme.** The amble's `approach`
+went with the fighter, so `test/deleted-members.test.ts` reads five files rather
+than four.
+
+**`test/npc-fighter.test.ts` is 10 assertions in two parts.** The scan is the
+programme's usual shape. The fixture records WHICH pilot the behaviour reached
+for, because the subject is the ORDER of its three questions and no scan can see
+that.
+
+**THE ORDER IS THE ASSERTION THE FILE EXISTS FOR.** With a reachable commander
+AND a live NPC target, the commander wins. Swapping the two blocks reddens that
+one claim and nothing else.
+
+**Proved able to fail two ways, and each one alone.** The two questions swapped
+reddens the order claim. A value import of `NpcShip` reddens the scan.
+
+4,895 assertions became 4,906.

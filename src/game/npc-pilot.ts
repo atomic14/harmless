@@ -40,6 +40,7 @@ import type * as THREE from 'three';
 import type { NpcRole } from './ship-roles.ts';
 import type { TacticHull } from './tactic-choice.ts';
 import type { NpcState } from './npc-state.ts';
+import type { NpcShip } from './npc.ts';
 
 /**
  * The part of a ship a pilot may touch.
@@ -76,8 +77,13 @@ export interface PilotShip {
    * target it reads is this field. That is NOT the same as the `npcTarget`
    * argument `attack` and `pursue` take. A fleeing armed trader is handed the
    * attacker it turned on while this field is still null.
+   *
+   * IT NAMES THE CLASS, AND IT IS THE ONE MEMBER HERE THAT DOES. A pilot that
+   * shoots at this ship reports it in a `FireEvent`, and that event carries the
+   * real thing downstream to `fire-resolution.ts`. The import is type-only, so
+   * the file still holds no runtime dependency on `game/npc.ts`.
    */
-  readonly npcTarget: PilotShip | null;
+  npcTarget: NpcShip | null;
   readonly state: NpcState;
   /** Angle in radians between this ship's nose and a point. */
   facing(point: THREE.Vector3): number;

@@ -71,9 +71,9 @@ console.log('\nthe speed ramp has one home, and two files reach for it');
   const spends = (src: string) =>
     (src.match(/\bapproach\(/g) ?? []).length;
   const readers = ['game/npc.ts', 'game/trader-flight.ts',
-    'game/npc-attack-run.ts', 'game/npc-pursuit.ts'];
+    'game/npc-attack-run.ts', 'game/npc-pursuit.ts', 'game/npc-fighter.ts'];
   const total = readers.reduce((n, f) => n + spends(code(f)), 0);
-  check(`...and four files spend it (${total} call sites)`,
+  check(`...and five files spend it (${total} call sites)`,
     readers.every((f) => spends(code(f)) > 0) && total >= 8, `found ${total}`);
 }
 
