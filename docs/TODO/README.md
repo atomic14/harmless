@@ -13,7 +13,12 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY.**
+1. [180](180-thirteen-game-rules-have-no-name.md) — thirteen game rules have no
+   name.
+
+**180 came from Chris on 2026-08-17.** He read 179's outcome and asked whether
+the magic values should be constants. A measurement answered that for one of
+three kinds, and he chose the scope: the thirteen rule thresholds, plus a gate.
 
 **179 came from Chris on 2026-08-17**, when he asked for the next job. It is
 docs/TODO/176 M2's own debt. That move repaired the file it emptied. It repaired
