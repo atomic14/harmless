@@ -87,6 +87,7 @@ console.log('a brain flies an object literal');
       speedFloor: 50,
       healthFraction: 1,
       tacticHull: { radius: 30, maxSpeed: 250, turnRate: 1.2 },
+      npcTarget: null,
       state,
       facing: () => 0,
       steerToward: () => {},

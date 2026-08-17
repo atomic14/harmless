@@ -29,6 +29,7 @@
 import * as THREE from 'three';
 import { seedWorld } from '../src/game/rng.ts';
 import { NpcShip } from '../src/game/npc.ts';
+import { attack } from '../src/game/npc-attack-run.ts';
 import { npcVsNpcs } from '../src/game/collisions.ts';
 import { separationFrom } from '../src/game/separation.ts';
 import { SEPARATION_RANGE } from '../src/constants/separation.ts';
@@ -197,7 +198,7 @@ console.log('\nwingman separation in the attack run');
         // two of the tactics deliberately aim a different width, so leaving the
         // roll in would measure the vocabulary and blame separation.ts.
         s.state.tactic = 'run';
-        s.attack(
+        attack(s, 
           FIXED_DT, TARGET, s.object.position.distanceTo(TARGET), true, undefined, fleet);
         legs.add(s.state.attackPhase);
       }

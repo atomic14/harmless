@@ -18,6 +18,7 @@ import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
 import { seedWorld } from '../src/game/rng.ts';
 import { NpcShip } from '../src/game/npc.ts';
+import { attack } from '../src/game/npc-attack-run.ts';
 import { hostilesNear } from '../src/game/hostility.ts';
 import {
   nextAttackPhase, closingThrottle, describeFlight, type AttackPhase,
@@ -108,7 +109,7 @@ console.log('\nNPC break-off');
     npc.faceToward(origin);
     let shots = 0;
     for (let i = 0; i < 30; i++) {
-      if (npc.attack(1 / 60, origin, npc.object.position.distanceTo(origin), true)) shots += 1;
+      if (attack(npc, 1 / 60, origin, npc.object.position.distanceTo(origin), true)) shots += 1;
     }
     check(`a ship inside the break-off commits to the pass (${npc.facing(origin).toFixed(2)} rad)`,
       npc.facing(origin) < 0.5);

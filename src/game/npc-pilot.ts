@@ -68,6 +68,16 @@ export interface PilotShip {
   readonly healthFraction: number;
   /** What `constants/tactics.ts` needs to know about this hull. */
   readonly tacticHull: TacticHull;
+  /**
+   * The ship this one is hunting, if any.
+   *
+   * ADDED BY docs/TODO/183 M2, and the reason is exact. `matePositions` keeps
+   * a ship out of its WINGMEN's way and leaves its target alone, and the
+   * target it reads is this field. That is NOT the same as the `npcTarget`
+   * argument `attack` and `pursue` take. A fleeing armed trader is handed the
+   * attacker it turned on while this field is still null.
+   */
+  readonly npcTarget: PilotShip | null;
   readonly state: NpcState;
   /** Angle in radians between this ship's nose and a point. */
   facing(point: THREE.Vector3): number;
@@ -78,20 +88,30 @@ export interface PilotShip {
 }
 
 /**
- * WHERE THE `Pilot` INTERFACE IS.
+ * WHY THERE IS NO `Pilot` INTERFACE, MEASURED WITH ALL THREE IN VIEW.
  *
- * It is not here yet, and docs/TODO/183 M1 says why rather than inventing one.
- * The three pilots do not share a signature today. `brainFly` takes nine
- * arguments — a brain, a target's position, attitude, speed and distance, what
- * to shoot at, a fleet and a threats view. `attack` takes seven, and a
- * different seven.
+ * docs/TODO/183 M1 deferred this rather than invent a shape from one pilot. M2
+ * brought the other two out, and the answer is that the three do not share one.
  *
- * A common `fly(ship, dt, target)` needs one target OBJECT, and the step
- * allocates nothing per frame (`game/npc.ts`). So the shape has to be a reused
- * scratch. That is a decision worth taking with all three signatures in view,
- * rather than with one.
+ * | pilot | what it takes |
+ * | --- | --- |
+ * | `brainFly` | ship, brain, dt, pos, quat, speed, dist, fireAt, fleet, threats |
+ * | `attack` | ship, dt, pos, dist, isPlayer, npcTarget, fleet, targetVel |
+ * | `PursuitPilot.fly` | ship, dt, a `PlayerRef`, dist, fleet |
  *
- * M2 brings the other two out and declares the interface then. Until it does,
- * `PilotShip` above is the whole contract. It is also the half that matters: a
- * pilot flies a narrow view of a ship rather than the class.
+ * `attack` and `pursue` nearly match, and `brainFly` does not. A common
+ * `fly(ship, dt, target)` needs one target OBJECT. That object holds the union
+ * of a position, an attitude, a speed, a velocity, a distance, a brain and a
+ * threats view. The step allocates nothing per frame, so the object is reused
+ * scratch. Every pilot then reads fields that mean nothing to it.
+ *
+ * **THE CONTEXT IS THE SEAM, AND NOT A COMMON METHOD.** `PilotShip` above is
+ * what Chris's point of 2026-08-17 asked for: a collaborator that HAS the ship
+ * rather than eighteen handles. That is also the house pattern —
+ * `game/hostility.ts` and `game/trader-flight.ts` are free functions over a
+ * narrow context, and neither declares an interface over itself.
+ *
+ * ONE OF THE THREE IS AN OBJECT ANYWAY, and for a reason that has nothing to do
+ * with polymorphism. `PursuitPilot` holds two transient fields that are not in
+ * `NpcState`. The attack run holds none, so it stays free functions.
  */

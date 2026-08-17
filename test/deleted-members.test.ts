@@ -62,14 +62,19 @@ console.log('\nthe speed ramp has one home, and two files reach for it');
   check('...and the scan is not vacuous — src/player.ts declares its own',
     /\bfunction approach\s*\(/.test(code('player.ts')));
 
-  // Both readers are why it left `game/npc.ts` rather than staying private. The
-  // import line matches the same word, so it comes off each count.
+  // THE READERS ARE WHY IT LEFT `game/npc.ts`, AND THERE ARE FOUR NOW. The count
+  // is over the whole set rather than per file, and docs/TODO/183 M2 is why: two
+  // of `npc.ts`'s four call sites went to the pilots when the flight models
+  // became objects, and a per-file floor of four turned red for a move that
+  // was correct. What the claim is about is that ONE declaration serves every
+  // reader, so the number that matters is the total.
   const spends = (src: string) =>
     (src.match(/\bapproach\(/g) ?? []).length;
-  check(`...and game/npc.ts spends it (${spends(npc)} call sites)`,
-    spends(npc) >= 4, `found ${spends(npc)}`);
-  check(`...and game/trader-flight.ts spends it (${spends(trader)} call sites)`,
-    spends(trader) >= 4, `found ${spends(trader)}`);
+  const readers = ['game/npc.ts', 'game/trader-flight.ts',
+    'game/npc-attack-run.ts', 'game/npc-pursuit.ts'];
+  const total = readers.reduce((n, f) => n + spends(code(f)), 0);
+  check(`...and four files spend it (${total} call sites)`,
+    readers.every((f) => spends(code(f)) > 0) && total >= 8, `found ${total}`);
 }
 
 // --- the deleted picker's last three members ---------------------------------

@@ -31,6 +31,7 @@ import * as THREE from 'three';
 import { seedWorld } from '../src/game/rng.ts';
 import { NpcShip, type FireEvent } from '../src/game/npc.ts';
 import { brainFly } from '../src/game/npc-brain-pilot.ts';
+import { attack } from '../src/game/npc-attack-run.ts';
 import { describeFlight } from '../src/game/break-off.ts';
 import { UNDER_FIRE_SECONDS } from '../src/constants/attack-run.ts';
 import { npcImpactDamage } from '../src/game/impact-damage.ts';
@@ -96,7 +97,7 @@ console.log('\nship clocks: under fire is a decay, not a latch');
       npc.tickClocks(FRAME);
       const dist = npc.object.position.distanceTo(origin);
       if (path === 'brain') brainFly(npc, brain!, FRAME, origin, level, 300, dist, 'player');
-      else npc.attack(FRAME, origin, dist, true);
+      else attack(npc, FRAME, origin, dist, true);
     }
     return npc;
   };

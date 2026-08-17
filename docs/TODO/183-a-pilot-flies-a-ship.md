@@ -204,3 +204,64 @@ FLIES is narrow.
 That is docs/TODO/88's defect, caught by three files at once.
 
 4,873 assertions became 4,883.
+
+### M2 — the attack run and the pursuit dogfighter
+
+`game/npc-attack-run.ts` is 159 lines and `game/npc-pursuit.ts` is 129. `npc.ts`
+went 1,121 lines to 945.
+
+**THE `Pilot` INTERFACE IS NOT DECLARED, AND M2 ANSWERS WHY WITH ALL THREE IN
+VIEW.** `attack` and `pursue` nearly share a signature. `brainFly` does not: it
+takes nine arguments to their seven, and four of the nine are its own. A common
+`fly(ship, dt, target)` needs one target OBJECT holding a position, an
+attitude, a speed, a velocity, a distance, a brain and a threats view. The step
+allocates nothing per frame, so that object is reused scratch, and every pilot
+then reads fields that mean nothing to it.
+
+**THE CONTEXT IS THE SEAM, AND NOT A COMMON METHOD.** `PilotShip` is what the
+programme was for. It is also the house pattern: `game/hostility.ts` and
+`game/trader-flight.ts` are free functions over a narrow context, and neither
+declares an interface over itself.
+
+**ONE PILOT IS AN OBJECT ANYWAY, AND NOT FOR POLYMORPHISM.** `PursuitPilot`
+holds `brk` and `slashing`, and neither is in `NpcState`. The attack run holds
+nothing that is not saved, so it stays free functions. That is the beacon clock
+of docs/TODO/182 M1 at a second site.
+
+**The context grew by one member**, and M1 said it would say which. `npcTarget`
+joined it, because `matePositions` keeps a ship out of its WINGMEN's way and
+leaves its target alone. **That target is not the `npcTarget` argument `attack`
+takes.** A fleeing armed trader is handed the attacker it turned on, while the
+field is still null.
+
+**`pursuitFly` stayed on the ship as a thin delegate.** The pilot is per ship
+and private, and the trainer flies that exact entry (invariant 5).
+
+**The seeded stream did not move.** Five probes byte-identical, and
+`npm run campaign` byte-identical at both sizes.
+
+**A COUNT IN A GATE WENT RED, AND THE FIX WAS TO MEASURE THE RIGHT THING.**
+`test/deleted-members.test.ts` held that `game/npc.ts` spends `approach` at
+least four times. Two of those four call sites went to the pilots, which is
+correct, and a per-file floor turned red for it. The claim is about ONE
+declaration serving every reader, so it counts the total over four files now.
+
+**A REGEX ATE A TYPE, AND ONLY THE COMPILER SAW IT.** A multi-line
+`re.sub` written to delete two fields matched from the first doc comment in the
+file and swallowed the tail of `WorldView`. `git checkout` and exact-string
+edits were the remedy. **A non-greedy multi-line pattern over source is not a
+tool worth using**, and the brace-matched spans it was meant to help were right
+all along.
+
+**`test/npc-scripted-pilots.test.ts` is 12 assertions in two parts.**
+
+**THE STATE CLAIM'S FIRST DRAFT WAS VACUOUS, AND THE BREAK-IT STEP CAUGHT IT.**
+It asserted that two fresh pilots both start out of the break, which is true
+whether the field is per pilot or shared. It drives one pilot into a break now,
+and demands the other is untouched.
+
+**Proved able to fail two ways, and each one alone.** A shared break-off phase
+reddens the state claim. An attack run that does not stamp `state.flownBy`
+reddens the fixture claim **and two flight-readout tests with it**.
+
+4,883 assertions became 4,895.

@@ -42,6 +42,7 @@ import { PlayerShip, rampToward, type FlightDemand } from '../player.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { NpcShip, type FireEvent } from '../game/npc.ts';
 import { brainFly } from '../game/npc-brain-pilot.ts';
+import { attack } from '../game/npc-attack-run.ts';
 import type { PlayerRef } from '../game/npc-state.ts';
 import { steerQuatToward } from '../game/flight-maths.ts';
 import {
@@ -912,7 +913,7 @@ export class Episode {
         // WAS rather than where it will be. Either omission is a second
         // physics, which is the same ship flown differently here from in the
         // game. That is the one thing this file is organised against.
-          : p.npc.attack(dt, this.trader.pos, range, true, undefined, this.fleet,
+          : attack(p.npc, dt, this.trader.pos, range, true, undefined, this.fleet,
             this.traderVelocity());
       // WHICH WEAPON leaves the rail is the ship's decision, not the flight's
       // (docs/TODO/62). It keeps no time of its own: `tickClocks` above runs the

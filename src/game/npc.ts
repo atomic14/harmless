@@ -88,16 +88,7 @@ import type {
 } from './ship-identity.ts';
 import { defenceBrain } from './brains.ts';
 import { defenceBrainNameFor, pirateBrainNameFor } from './brain-names.ts';
-import { attackRunSteer, attackRunSpeed } from './attack-run.ts';
-import {
-  pursuitSpeed, pursuitAim, freshPursuitBreak, type PursuitBreak,
-} from './pursuit.ts';
-import { PURSUIT_SLASH_CONE, PURSUIT_HOLD_CONE } from '../constants/combat-computer.ts';
-import {
-  MIN_CRUISE_FRACTION, UNDER_FIRE_SECONDS,
-} from '../constants/attack-run.ts';
-import { TACTICS, type TacticId } from '../constants/tactics.ts';
-import { chooseTactic, tacticSwitchReason, type TacticHull } from './tactic-choice.ts';
+import { chooseTactic, type TacticHull } from './tactic-choice.ts';
 import { PLAYER_INTEREST_RANGE, TURN_AND_FIGHT_RANGE } from '../constants/player-interest.ts';
 import { truceHolds } from './law.ts';
 import { isHostileToPlayer } from './hostility.ts';
@@ -105,12 +96,9 @@ import { approach, steerQuatToward, velocityOf } from './flight-maths.ts';
 import { STATION_TRUCE } from '../constants/law.ts';
 import { AMBLE_ARRIVED, AMBLE_NEAR, AMBLE_SPAN } from '../constants/amble.ts';
 import { HUNT_HOLD_RANGE } from '../constants/hunt-ranges.ts';
-import { separationFrom } from './separation.ts';
-import { SEPARATION_PUSH } from '../constants/separation.ts';
 import type { BrainSelection } from './brain-names.ts';
-import { THARGOID_FIRE_RATE } from '../constants/npc-gun.ts';
 import { MISSILE_RELOAD } from '../constants/ordnance.ts';
-import { npcTriggerPull, npcWeaponByte } from './gunnery.ts';
+import { npcWeaponByte } from './gunnery.ts';
 import { npcMissileEmergency } from './missile-launch.ts';
 import {
   energyAfterDamage, isDestroyed, npcEnergyPolicy, playerLaserDamage,
@@ -120,6 +108,9 @@ import type { NpcEnergyPoints } from './damage-units.ts';
 import { random, randomDirection, randomQuaternion } from './rng.ts';
 import { stepTrader } from './trader-flight.ts';
 import { brainFly } from './npc-brain-pilot.ts';
+import { attack } from './npc-attack-run.ts';
+import { PursuitPilot } from './npc-pursuit.ts';
+import { MIN_CRUISE_FRACTION, UNDER_FIRE_SECONDS } from '../constants/attack-run.ts';
 import type { NpcBehaviour } from './npc-behaviour.ts';
 import {
   derelictIdle, hermitIdle, inertTumble, rockIdle,
@@ -245,19 +236,14 @@ export class NpcShip {
   /** NPC-vs-NPC target, assigned by the game (pirate→trader, police→pirate). */
   npcTarget: NpcShip | null = null;
   /**
-   * The pursuit pilot's break-off phase, for a pirate flying `pursuit` rather
-   * than the attack run. Transient — NOT in `NpcState`, so not saved: a reload
-   * resumes the chase and re-decides the break within a frame off the range.
+   * The pursuit dogfighter this ship flies.
+   *
+   * IT HOLDS THE TWO TRANSIENT FIELDS THIS CLASS USED TO. The break-off phase
+   * and the slash-or-hold hysteresis bit are re-decided every frame, and
+   * neither is in `NpcState`. So neither ever belonged to the ship
+   * (docs/TODO/183 M2).
    */
-  private readonly pursuitBrk: PursuitBreak = freshPursuitBreak();
-
-  /**
-   * Whether a pursuit pirate is currently flying the slashing attack run rather
-   * than holding the six — the hysteresis bit for the mode switch below. Starts
-   * holding the six, re-decided every frame off the commander's arc, so like
-   * `pursuitBrk` it is transient and not in `NpcState`.
-   */
-  private pursuitSlashing = false;
+  private readonly pursuit = new PursuitPilot();
 
   /**
    * What this kind of ship does with one frame.
@@ -285,7 +271,7 @@ export class NpcShip {
    * than mirrored into `NpcState`, so the bit has one home.
    */
   get breakingOff(): boolean {
-    return this.pursuitBrk.breaking;
+    return this.pursuit.breaking;
   }
 
   /**
@@ -301,11 +287,7 @@ export class NpcShip {
   readonly accel: number;
   private readonly tmpDir = new THREE.Vector3();
   private readonly tmpDir2 = new THREE.Vector3();
-  private readonly tmpAway = new THREE.Vector3();
   private readonly tmpVel = new THREE.Vector3();
-  private readonly tmpAim = new THREE.Vector3();
-  private readonly tmpFwd = new THREE.Vector3();
-  private readonly mateSlots: THREE.Vector3[] = [];
 
   readonly variantSeed: number;
 
@@ -447,6 +429,19 @@ export class NpcShip {
     this.state.quat = this.object.quaternion;
   }
 
+  /**
+   * Fly one frame of the pursuit dogfighter.
+   *
+   * A THIN DELEGATE, and it earns its place. The pilot holds two transient
+   * fields, so it is per ship and private. The trainer flies this exact entry
+   * (invariant 5), and `game/npc-pursuit.ts` is what it reaches.
+   */
+  pursuitFly(
+    dt: number, target: PlayerRef, dist: number, fleet: readonly NpcShip[] = [],
+  ): FireEvent | null {
+    return this.pursuit.fly(this, dt, target, dist, fleet);
+  }
+
   /** @returns a fire event if this ship shot at something this frame */
   update(
     dt: number,
@@ -492,7 +487,7 @@ export class NpcShip {
       const pursuit = pirateBrainNameFor(this.state.threatTier, false, brains) === 'pursuit';
       const shot = pursuit
         ? this.pursuitFly(dt, player, distPlayer, fleet)
-        : this.attack(dt, player.position, distPlayer, true, undefined,
+        : attack(this, dt, player.position, distPlayer, true, undefined,
           fleet, velocityOf(player.quaternion, player.speed, this.tmpVel));
       return this.chooseWeapon(shot, distPlayer, player.position,
         view.missileInbound);
@@ -501,7 +496,7 @@ export class NpcShip {
     if (this.npcTarget && this.npcTarget.state.alive) {
       const d = this.npcTarget.object.position.distanceTo(this.object.position);
       if (d < HUNT_HOLD_RANGE) {
-        return this.attack(
+        return attack(this, 
           dt, this.npcTarget.object.position, d, false, this.npcTarget, view.fleet,
           velocityOf(this.npcTarget.object.quaternion, this.npcTarget.state.speed, this.tmpVel));
       }
@@ -518,14 +513,14 @@ export class NpcShip {
       // and flies nothing today.
       if (this.armed && defenceBrainNameFor(brains) === 'attack-run') {
         if (this.state.provokedByPlayer && distPlayer < TURN_AND_FIGHT_RANGE) {
-          const shot = this.attack(dt, player.position, distPlayer, true, undefined,
+          const shot = attack(this, dt, player.position, distPlayer, true, undefined,
             fleet, velocityOf(player.quaternion, player.speed, this.tmpVel));
           return this.chooseWeapon(shot, distPlayer, player.position, view.missileInbound);
         }
         const attacker = this.nearestAttacker(dt);
         if (attacker) {
           const d = attacker.object.position.distanceTo(this.object.position);
-          return this.attack(dt, attacker.object.position, d, false, attacker, view.fleet,
+          return attack(this, dt, attacker.object.position, d, false, attacker, view.fleet,
             velocityOf(attacker.object.quaternion, attacker.state.speed, this.tmpVel));
         }
       }
@@ -675,89 +670,6 @@ export class NpcShip {
    * break off, see break-off.ts — and then ONE gun. Both are taken on every
    * frame, either way.
    */
-  attack(
-    dt: number,
-    targetPos: THREE.Vector3,
-    dist: number,
-    isPlayer: boolean,
-    npcTarget?: NpcShip,
-    /**
-     * The ships around this one, for keeping out of their way.
-     *
-     * Optional, and it defaults to nothing. So every existing caller keeps
-     * working, the trainer among them, and simply flies with no wingman to
-     * avoid. That is exactly right for a one-on-one episode.
-     */
-    fleet: readonly NpcShip[] = [],
-    /**
-     * How the target is MOVING, if the caller knows.
-     *
-     * Optional, for two reasons. Without it the aim below degrades to what it
-     * always did, which is a run laid on where the target is now. A stationary
-     * fixture also has nothing to say.
-     *
-     * Every live caller passes it. The aim point is the thing docs/TODO/66 is
-     * about, and a pass laid on a stale position is mostly spent before the
-     * hulls meet. See `leadTime`.
-     */
-    targetVel?: THREE.Vector3,
-  ): FireEvent | null {
-    // WHERE TO BE and WHETHER TO SHOOT are two decisions, not one. The flight
-    // may break off (see break-off.ts) while the gun below still fires. So a
-    // police ship, bounty hunter, Thargoid or knife-range pirate does not go
-    // silent at the range a human actually fights at.
-    this.state.flownBy = 'scripted';
-    // `underFire` is NOT decayed here. `tickClocks` is its one home. Otherwise
-    // it would decay for a scripted ship, and latch for a brain-flown one.
-    // WHICH WAY IT IS FIGHTING, before anything reads the numbers that follow.
-    // `tacticSwitchReason` is roll-free on purpose. A switch that drew from
-    // the stream to decide whether to switch would burn a number per hostile
-    // per frame. So the dice come out only when the answer is yes.
-    const tactic = TACTICS[this.updateTactic(dt)];
-    // WHERE TO BE is attack-run.ts's decision. It is the same composition the
-    // commander's scripted co-pilot flies, so the two cannot drift. What stays
-    // here is the gang's business: a bend of the chosen line away from wingmen
-    // (separation.ts), which a lone ship has none of.
-    const steer = attackRunSteer(
-      this.state, this.object.position, this.object.quaternion, this.state.speed,
-      targetPos, targetVel ?? null, dist, this.state.underFire > 0,
-      this.state.packOffset, tactic, random);
-    const crowd = separationFrom(this.object.position, this.matePositions(fleet), this.tmpAway);
-    if (steer !== null) {
-      if (crowd > 0) steer.addScaledVector(this.tmpAway, SEPARATION_PUSH * crowd);
-      this.steerToward(steer, dt);
-    } else if (this.state.attackPhase === 'passing' && crowd > 0) {
-      // a pass steers for nothing — except a wingman about to be hit
-      this.steerToward(
-        this.tmpDir.copy(this.object.position)
-          .addScaledVector(this.tmpAway, SEPARATION_PUSH * crowd), dt);
-    }
-    this.state.speed = approach(
-      this.state.speed,
-      attackRunSpeed(this.state.attackPhase, this.facing(targetPos), this.maxSpeed, tactic),
-      this.accel * dt);
-    this.advance(dt);
-    this.state.fireCooldown -= dt;
-    // The SAME gun brainFly uses — literally the same call, so it cannot become
-    // a second one. This is the path every police ship, bounty hunter, Thargoid
-    // and knife-range pirate fires on. Thargoids keep their edge as a
-    // multiplier on the shared cooldown rather than a separate literal.
-    const reload = npcTriggerPull(
-      this.state.fireCooldown, this.facing(targetPos), dist, random,
-      this.role === 'thargoid' ? THARGOID_FIRE_RATE : 1);
-    if (reload !== null) {
-      this.state.fireCooldown = reload;
-      // It got one away, so whatever it does is working. The sleeper's clock
-      // is reset by the TRIGGER rather than by the hit. "Did my plan give me a
-      // shot" is the question. Whether the bolt connected is gunnery.ts's coin,
-      // and not this ship's doing.
-      this.state.dryFor = 0;
-      return isPlayer
-        ? { at: 'player', weapon: 'laser' }
-        : { at: npcTarget!, weapon: 'laser' };
-    }
-    return null;
-  }
 
   /**
    * One frame of the WHOLE `pursuit` pilot, switch included.
@@ -775,17 +687,6 @@ export class NpcShip {
    * cannot drift. The gun is decided inside `pursue` and `attack`, exactly as
    * the other two pilots decide theirs.
    */
-  pursuitFly(
-    dt: number,
-    target: PlayerRef,
-    dist: number,
-    fleet: readonly NpcShip[] = [],
-  ): FireEvent | null {
-    return this.slashesRatherThanHoldSix(target)
-      ? this.attack(dt, target.position, dist, true, undefined,
-        fleet, velocityOf(target.quaternion, target.speed, this.tmpVel))
-      : this.pursue(dt, target.position, dist, true, undefined, target.speed, fleet);
-  }
 
   /**
    * A pursuit pirate's per-frame choice: slash past on the attack run, or hold
@@ -804,16 +705,6 @@ export class NpcShip {
    * commander's frame rather than ours. It is small when the commander points
    * at us, and about pi when we are dead astern.
    */
-  private slashesRatherThanHoldSix(player: PlayerRef): boolean {
-    const fwd = this.tmpFwd.set(0, 0, -1).applyQuaternion(player.quaternion);
-    const toUs = this.tmpDir2.copy(this.object.position).sub(player.position);
-    if (toUs.lengthSq() > 0) {
-      const faced = fwd.angleTo(toUs.normalize());
-      if (faced < PURSUIT_SLASH_CONE) this.pursuitSlashing = true;
-      else if (faced > PURSUIT_HOLD_CONE) this.pursuitSlashing = false;
-    }
-    return this.pursuitSlashing;
-  }
 
   /**
    * Fly the PURSUIT dogfighter. It gets on the target's six, holds there and
@@ -829,42 +720,6 @@ export class NpcShip {
    * `npcTriggerPull`. What differs is only the aim (chase, not a slashing run)
    * and the speed (match the target and hold gun range, not flat out).
    */
-  pursue(
-    dt: number,
-    targetPos: THREE.Vector3,
-    dist: number,
-    isPlayer: boolean,
-    npcTarget?: NpcShip,
-    targetSpeed = 0,
-    fleet: readonly NpcShip[] = [],
-  ): FireEvent | null {
-    this.state.flownBy = 'pursuit';
-    // WHERE TO BE: chase the target, or veer past it when a collision is close
-    // (pursuit.ts's two-phase break-off). Bend the line away from wingmen, as
-    // `attack()` does, so a pursuing gang does not converge into itself.
-    const aim = pursuitAim(this.pursuitBrk, this.object.position, targetPos, dist, this.tmpAim);
-    const crowd = separationFrom(this.object.position, this.matePositions(fleet), this.tmpAway);
-    if (crowd > 0) aim.addScaledVector(this.tmpAway, SEPARATION_PUSH * crowd);
-    this.steerToward(aim, dt);
-    // HOW FAST: hold a gun-range standoff behind the target, and ease off in a
-    // hard turn. On a break-off it stays quick, to clear the hull.
-    const want = this.pursuitBrk.breaking
-      ? this.maxSpeed
-      : pursuitSpeed(targetSpeed, dist, this.facing(targetPos), this.maxSpeed);
-    this.state.speed = approach(this.state.speed, want, this.accel * dt);
-    this.advance(dt);
-    // THE SAME gun as the attack run, through the same shared pull.
-    this.state.fireCooldown -= dt;
-    const reload = npcTriggerPull(
-      this.state.fireCooldown, this.facing(targetPos), dist, random,
-      this.role === 'thargoid' ? THARGOID_FIRE_RATE : 1);
-    if (reload !== null) {
-      this.state.fireCooldown = reload;
-      this.state.dryFor = 0;
-      return isPlayer ? { at: 'player', weapon: 'laser' } : { at: npcTarget!, weapon: 'laser' };
-    }
-    return null;
-  }
 
   /**
    * Advance the tactic clocks and, if something happened that a pilot would act
@@ -875,27 +730,6 @@ export class NpcShip {
    * the answer. A module decides and reports, and the ship applies. That is the
    * same bargain `attack()` has with `break-off.ts` and `gunnery.ts`.
    */
-  private updateTactic(dt: number): TacticId {
-    this.state.tacticClock += dt;
-    this.state.dryFor += dt;
-    const why = tacticSwitchReason({
-      tactic: this.state.tactic,
-      health: this.healthFraction,
-      underFire: this.state.underFire,
-      sinceChosen: this.state.tacticClock,
-      sinceShot: this.state.dryFor,
-    });
-    if (why !== null) {
-      this.state.tactic = chooseTactic(
-        this.tacticHull, this.healthFraction, why, random(), this.state.tactic);
-      this.state.tacticClock = 0;
-      // A new plan starts with a clean sleeper clock. Otherwise a ship that
-      // switched BECAUSE its guns were cold is judged on the old tactic's
-      // silence. It would then switch again at the next chance.
-      this.state.dryFor = 0;
-    }
-    return this.state.tactic;
-  }
 
   /**
    * WHICH weapon leaves the rail — and the one case where something leaves it
@@ -989,15 +823,6 @@ export class NpcShip {
    * The price is a little more contact, on the order constants/tactics.ts
    * already accepted for the commander.
    */
-  private matePositions(fleet: readonly NpcShip[]): readonly THREE.Vector3[] {
-    const out = this.mateSlots;
-    out.length = 0;
-    for (const m of fleet) {
-      if (m === this || m === this.npcTarget || !m.state.alive || m.state.inert) continue;
-      out.push(m.object.position);
-    }
-    return out;
-  }
 
   /**
    * Angle (radians) between our nose and the direction to a point.
