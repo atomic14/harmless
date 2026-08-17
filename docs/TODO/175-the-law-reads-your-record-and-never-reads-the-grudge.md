@@ -123,21 +123,28 @@ the scanner blip and the ship two different opinions.
   decided that, and this item does not reopen it.
 - **The offence for shooting a policeman on purpose stays.** docs/TODO/173
   decided that.
+- **THE GRUDGE STAYS AS IT IS, AND M3 LANDS NOTHING. Chris, 2026-08-17.** He
+  read M1's numbers and took the third answer. M2's console line is the whole
+  fix. Three exits already work: she outruns the ship, she bribes one ship out
+  of one fight, or she docks.
 
 ## Open questions
 
-**Both are Chris's, and M3 waits on them.** M1 and M2 do not.
+**Both are closed. Question 1 was answered by measurement, and question 2 by
+Chris.**
 
-1. **Should a paid fine call off a Viper the commander provoked?** The case for:
-   every other consequence has a way out, and a fine that leaves you hunted
-   reads as a bug. The case against: a bribe already buys one ship out of one
-   fight, at a price. A fine that did the same makes the bribe pointless.
-2. **Should a grudge fade on its own?** The case for: a commander who breaks off
-   and runs paid for the shot with the running. The case against: it makes a stray shot free if
-   you simply fly away, and the sky then forgets faster than the player does.
+1. ~~**Should a paid fine call off a Viper the commander provoked?**~~
+   **ANSWERED BY M1, AND THE EXIT WOULD BE DEAD CODE.** `payFine` is bound in
+   the DOCKED table alone (`game/bindings.ts`). `Station.dock` calls
+   `world.clearNpcs()` with no condition on it. So every grudge is already gone
+   before a commander can press the key.
+2. ~~**Should a grudge fade on its own?**~~ **NO. Chris, 2026-08-17.** He chose
+   "leave it" over a break-off timer and over a plain one.
 
-**A third answer is "leave it".** M1's numbers may show that the grudge already
-ends quickly enough in practice, in which case M2's line is the whole fix.
+**The third answer was the right one, and M1 is why.** The plan offered it, and
+it guessed that the grudge might end quickly in practice. It does not end at
+all. Two other facts carry it instead: she outruns the ship, and any dock clears
+the sky.
 
 ## Watch out for
 
@@ -302,3 +309,27 @@ every record move would pass.
 **Proved able to fail three ways, and each one alone.** The line deleted reddens
 the three console claims. The dropped roles put back reddens the Fugitive claim.
 A widened `recordVerdict` reddens the third block. 4,845 assertions.
+
+### M3 — no exit, on Chris's call
+
+**M3 lands no code**, so the tier table's "a rule that changes how a fight goes"
+never applies. No probe was needed, and no shipped rule moved.
+
+**Chris read M1's numbers and chose "leave it"**, over a break-off timer and
+over a plain timer. The reason the plan offered was that the grudge might end
+quickly in practice. That reason is wrong, and M1 measured it. **Two other facts
+carry the decision instead.** She outruns the ship. Any dock clears the sky.
+
+**Question 1 never reached him, and the reason is a measurement.** A fine-based
+exit would be dead code. `payFine` is bound in the DOCKED table alone, and
+`Station.dock` clears every NPC before the key can be pressed. The plan built a
+case around `payFine` and did not check that the key is reachable.
+
+**`isHostileToPlayer` is untouched**, so the six surfaces docs/TODO/158 names
+still give one answer. `test/bribe-flight.test.ts` and `test/station-truce.test.ts`
+are untouched too, and the plan's Watch-out list is answered by the fact that
+nothing moved.
+
+**`SNAPSHOT_VERSION` did not move.** M3's shape needed a saved timer on
+`NpcState`, and the plan flagged that. No field was added, so no migration is
+owed.
