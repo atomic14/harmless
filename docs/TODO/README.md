@@ -13,9 +13,14 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY.**
+1. [177](177-a-test-compares-the-players-gun-against-a-copy-of-itself.md) — a
+   test compares the player's gun against a copy of itself.
 
-**All three items came from Chris on 2026-08-17**, after 173 landed and left the
+**177 came from Chris on 2026-08-17**, when he asked for the next smell.
+docs/TODO/176's own conclusion rested on a bad count, and he found it. It is
+a reading of one test file rather than a sweep, and he declined the sweep.
+
+**All three items before it came from Chris on 2026-08-17**, after 173 landed and left the
 queue empty. The order was by value over cost, and not by severity. **174, 176
 and 175 all landed the same day**, and each is below.
 

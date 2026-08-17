@@ -70,6 +70,8 @@ const VERBS = new Set([
   // added by the sweep of 2026-08-16, when this gate first read every title
   'name', 'names', 'jumps', 'write', 'get', 'leave', 'advances', 'perform',
   'stop', 'come', 'assert', 'quotes', 'load', 'flies', 'need', 'needs',
+  // docs/TODO/177, whose title is a sentence this list could not read
+  'compares',
 ]);
 
 /**
