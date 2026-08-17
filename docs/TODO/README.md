@@ -13,12 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [180](180-thirteen-game-rules-have-no-name.md) — thirteen game rules have no
-   name.
+**THE QUEUE IS EMPTY.**
 
 **180 came from Chris on 2026-08-17.** He read 179's outcome and asked whether
 the magic values should be constants. A measurement answered that for one of
 three kinds, and he chose the scope: the thirteen rule thresholds, plus a gate.
+It landed the same day, and it is below.
 
 **179 came from Chris on 2026-08-17**, when he asked for the next job. It is
 docs/TODO/176 M2's own debt. That move repaired the file it emptied. It repaired
@@ -191,6 +191,37 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**180 — thirteen game rules have no name.** Chris asked whether the magic values
+should be constants. A measurement answered it for one of three kinds.
+
+**`src/` holds 769 non-trivial bare literals, and almost none should move.**
+About 200 are tuning coefficients inside one fitted curve, where a name lies
+about how independent the number is. About 400 are data tables and cosmetics.
+
+**24 are comparison thresholds, and 13 of those are game rules with no name.**
+Two values meant two things each, so each pair took a distinct `@rule` id.
+
+**The existing programme could not see any of it.** `test/constants.test.ts`
+scans for a declaration, and says so on purpose.
+
+**No value moved.** Three probes are byte-identical, and the campaign is
+byte-identical at both sizes.
+
+**THE CHECKER ASKED FOR SEVENTEEN MORE `@rule` IDS.** Every one of the thirteen
+collided with a value already in the tree. The tree went 87 rule ids to 114.
+
+**A NAME WAS WRONG AND READING THE CODE FIXED IT.** The 4,500 was `MARKER_RANGE`
+in the plan, and its site writes the ship-ID line. It is `SHIP_ID_RANGE`.
+
+**The hermit's line said SLOW TO 20 beside a rule of 40.** It interpolates its
+own rule now, and a player can check neither number, because `hud.ts` paints
+speed as a bar.
+
+**THE GATE'S FIRST DRAFT WENT GREEN BY READING NOTHING, AND THE CONTROL CAUGHT
+IT.** A trailing comment holding one backtick unbalanced a regular expression,
+which swallowed the `i < 256` the gate exists to see. It walks characters now.
+4,849 assertions.
 
 **179 — a move repairs one file and leaves its neighbours stale.** It is
 docs/TODO/176 M2's own debt. That move repaired the file it emptied and the map,
