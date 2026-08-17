@@ -13,7 +13,9 @@ active context:
 
 ## Execution queue
 
-1. [183](183-a-pilot-flies-a-ship.md) — a pilot flies a ship.
+**THE QUEUE IS EMPTY, AND ONE ITEM OF A PROGRAMME IS LEFT.** docs/TODO/182 built
+the seam and 183 made the flight models pilots. **The fighting roles are the
+last cut**, and they are free now, because the pilots they call are objects.
 
 **A PROGRAMME IS PART WAY THROUGH.** docs/TODO/182 landed its seam, and 183 is
 the gate on what follows. Three of `update`'s branches call a flight model, so
@@ -209,6 +211,30 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**183 — a pilot flies a ship.** The gate on the rest of docs/TODO/182's
+programme. Three of `update`'s branches call a flight model, so nothing else
+could leave until the flight models were objects.
+
+**The union of the three pilots is 13 context members.** That is one interface
+for 286 lines, against the eighteen handles a free function per model would
+want.
+
+**`npc.ts` went 1,292 lines to 945** across two milestones.
+
+**THE `Pilot` INTERFACE IS NEVER DECLARED, AND M2 ANSWERS WHY WITH ALL THREE IN
+VIEW.** A common `fly(ship, dt, target)` needs one target object that every
+pilot then reads fields of that mean nothing to it. **The context is the seam,
+and not a common method.**
+
+**One pilot is an object anyway, and not for polymorphism.** `PursuitPilot`
+holds two fields that are not in `NpcState`.
+
+**M3 REFUSED.** `chooseWeapon` is the ship arbitrating between its own pilots,
+and a fourth pilot file would make it a peer of the two it arbitrates between.
+
+**Six probes and the campaign byte-identical at both sizes, at every
+milestone.** 4,895 assertions.
 
 **182 — a ship holds the behaviour its role flies.** Chris read `npc.ts`, named
 three responsibilities, and then named the cause: the project never used a good
