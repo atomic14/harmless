@@ -13,9 +13,26 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY.** 173 was the last item in it, and it closed on
-2026-08-17. It is below. The next item comes from a triage, from the GitHub
-inbox, or from Chris.
+1. [174](174-the-record-holds-five-defects-that-nothing-schedules.md) — the
+   record holds five defects that nothing schedules;
+2. [176](176-the-largest-files-need-a-measurement-before-a-cut.md) — the largest
+   files need a measurement before a cut;
+3. [175](175-the-law-reads-your-record-and-never-reads-the-grudge.md) — the law
+   reads your record and never reads the grudge.
+
+**All three came from Chris on 2026-08-17**, after 173 landed and left the queue
+empty. The order is by value over cost, and not by severity.
+
+**174 leads because it is the cheapest.** Five landed items each reported a
+defect and each declined to fix it, which was the right call every time. Nothing
+scheduled the second pass until now.
+
+**176 is the programme Chris named**, in his own words: *"we should pick up the
+large files and start breaking them down."*
+
+**175 goes last because half of it waits on Chris.** Its M1 and M2 do not, but
+its M3 changes a shipped rule and holds two open questions that only he can
+answer.
 
 **173 came out of the GitHub inbox, and the queue was empty when it arrived.**
 The sweep of 2026-08-16 put five items in the queue. Chris asked for an
@@ -131,14 +148,25 @@ headphones. **#24** closed on 2026-08-12 with
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
-**One question is open and it is Chris's, not the queue's:** whether the docking
-computer should avoid traffic at all. `npm run dock-traffic` answers what it
-costs, and the answer got cheaper. It was one non-fatal collision in eighty
-approaches. Since 136 gave every ship the same path it is **none in eighty**.
-docs/TODO/135 argues against building avoidance for that, with the design bias
-recorded (wait, do not swerve) if the answer is yes anyway. 136 M4 is where it
-would go if it is ever wanted. The curve takes a plane as a parameter, so a path
-pushed off the traffic is still a path of the same shape.
+## Closed decisions — do not reopen these
+
+**This section is the one home of a question that Chris answered and shut.** A
+closed decision is not a queue item, and it is not a record of what landed
+either. Read it before you re-derive one of them.
+
+**The docking computer stays as it is. Chris, 2026-08-17:** *"Docking computer -
+leave it as is - it works."* The open question was whether it should avoid
+traffic at all. `npm run dock-traffic` measured what that costs, and the answer
+got cheaper. It was one non-fatal collision in eighty approaches. Since 136 gave
+every ship the same path it is **none in eighty**. docs/TODO/135 argued against
+building avoidance for that, and this closes it. 136 M4 names the place the work
+belongs. **Do not re-open it on a line count or a tidy-up.**
+
+**A version 1 save stays refused. Chris, 2026-08-17:** *"Version 1 save/load -
+not important."* docs/TODO/161 raised a version 2 snapshot to version 3 and left
+version 1 refused, and it held the argument both ways. The step would be one
+entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
+reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
 
@@ -842,8 +870,11 @@ file.** The door is `snapshot-parse.ts` now, 157 lines against 311 left behind.
 One file says what a snapshot IS: the shape, the version, the table that climbs
 it, and the codec. The other says what makes one trustworthy.
 
-**Version 1 is still refused, and that is a decision waiting on Chris.** The
+**Version 1 is still refused, and that was a decision waiting on Chris.** The
 step is one entry in the same table, and the plan holds the argument both ways.
+
+> **Closed, 2026-08-17.** Chris: *"Version 1 save/load - not important."* The
+> "Closed decisions" section above holds it now.
 
 ## What landed on 2026-08-15
 
