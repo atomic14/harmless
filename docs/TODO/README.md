@@ -13,22 +13,20 @@ active context:
 
 ## Execution queue
 
-1. [184](184-the-roles-that-fight-get-their-own-behaviour.md) — the roles that
-   fight get their own behaviour.
+The queue is empty.
 
-**184 IS THE LAST CUT OF THE PROGRAMME.** docs/TODO/182 built the seam and 183
-made the flight models pilots. The fighting roles are free now, because the
-pilots they call are objects.
+**THE DECOMPOSITION PROGRAMME IS DONE.** docs/TODO/181, 182, 183 and 184 all
+landed on 2026-08-17. `src/game/npc.ts` went 1,468 lines to 856, into eight
+files, and `NpcShip.update` went 157 lines to 37.
 
-**A PROGRAMME IS PART WAY THROUGH.** docs/TODO/182 landed its seam, and 183 is
-the gate on what follows. Three of `update`'s branches call a flight model, so
-nothing else can move until the flight models are objects.
-
-**182 IS THE HEAD OF THAT PROGRAMME, AND CHRIS NAMED ITS CAUSE.** He read `npc.ts`
-on 2026-08-17 and said: *"we have not used a good OO approach in this project."*
+**CHRIS NAMED THE CAUSE, AND THAT IS WHY IT WORKED.** He read `npc.ts` on
+2026-08-17 and said: *"we have not used a good OO approach in this project."*
 Every cut before it fought a wide seam, because each one asked what narrow
 interface a free FUNCTION would need. Behaviour about a whole ship has no narrow
 interface, and a collaborator that HAS the ship needs one handle.
+
+**HE ALSO ASKED WHETHER THE PATTERN HELPS ELSEWHERE**, and that question is open.
+It needs a measurement rather than a count.
 
 **THE DEBT LIST IS EMPTY.** `npm run sizes` reads 0 known debts. No earlier run
 of it read zero.
@@ -214,6 +212,23 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**184 — the roles that fight get their own behaviour.** The last cut of the
+programme. `game/npc-fighter.ts` holds the pirate, the police, the bounty
+hunter, the Thargoid and its drone, which ask three questions in one order.
+`game/npc-trader.ts` holds the trader's two lives.
+
+**`update` IS 37 LINES, AND IT DECIDES NO FLIGHT.** It went 146 to 37. It reads
+no distance, and it spends `approach` zero times, from eight before 183.
+
+**M2 FOUND A DEFECT THAT M1 SHIPPED, AND THAT IS THE ITEM'S REAL RESULT.**
+M1 gave every fighting role a behaviour, and it left the dispatch ahead of the
+`inert` check. A drone whose mothership died then flew the fighter's amble
+rather than tumbling. Measured at 2.89 units of drift in one frame.
+
+**NINE PROBES AND THE CAMPAIGN STAYED BYTE-IDENTICAL THROUGH M1**, because no
+probe kills a Thargoid mothership. The evidence the plan chose could not see it.
+Only a fixture that drives a real ship says so, and one does now.
 
 **183 — a pilot flies a ship.** The gate on the rest of docs/TODO/182's
 programme. Three of `update`'s branches call a flight model, so nothing else
