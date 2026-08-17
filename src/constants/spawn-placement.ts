@@ -81,9 +81,16 @@ export const ASTEROID_LANE_SCATTER = SCANNER_RANGE / 1.5;
 export const HUNTER_SCATTER = 6000;
 
 /**
- * How far out the rock hermit hides. It is 2.5x the asteroid field's nominal
- * radius, so it sits at the far edge, and a player has to go looking. Its trade
+ * How far out the rock hermit hides. It is 2.8x `ASTEROID_SCATTER`'s 5,000, so
+ * it sits well past the rocks at the port. A player has to go looking. Its trade
  * offer opens at 900 units (game/world-step.ts).
+ *
+ * `ASTEROID_SCATTER` is the right comparison because both anchor to the station
+ * (game/spawning.ts). An arrival strings the rocks down the lane instead
+ * (`ASTEROID_LANE_SCATTER`), and the hermit stays at the port.
+ *
+ * The sentence above said 2.5x until docs/TODO/174 measured it. Neither number
+ * moves: docs/TODO/170 decided that.
  */
 export const HERMIT_SCATTER = 14_000;
 
