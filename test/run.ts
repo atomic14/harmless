@@ -36,6 +36,7 @@ import './economy.test.ts';
 import './character.test.ts';
 import './character-line.test.ts';
 import './record-line.test.ts';
+import './lawful-hit.test.ts';
 import './ladder-words.test.ts';
 import './contracts.test.ts';
 import './contract-offers.test.ts';

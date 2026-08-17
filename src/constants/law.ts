@@ -22,6 +22,27 @@ export const LAW_ROLE_NAMES: readonly (readonly [string, string])[] = [
   ['hunter', 'BOUNTY HUNTERS'],
 ];
 
+/**
+ * What the console says when the commander's own laser first lands on a ship
+ * the law protects, one line per role.
+ *
+ * It sits beside `LAW_ROLE_NAMES` for the same reason that one is here. It is
+ * the vocabulary, and never the rule. `game/law.ts`'s `harmVerdict` decides
+ * WHEN a line is said, and it asks `offenceFor` which roles are covered. Read
+ * nothing here as a statement of that set.
+ *
+ * Each line names the ship and then its answer. That is Chris's standard of
+ * 2026-08-16: a player who reads a string once must know what it meant. The two
+ * law roles come for you, and the clause is the one the bribe refusal already
+ * says (game/law-actions.ts). A trader runs instead, so the third line promises
+ * no fight that `isHostileToPlayer` will not deliver.
+ */
+export const HARM_LINES: readonly (readonly [string, string])[] = [
+  ['police', 'POLICE SHIP HIT — AND NOW HE IS COMING FOR YOU'],
+  ['hunter', 'BOUNTY HUNTER HIT — AND NOW HE IS COMING FOR YOU'],
+  ['trader', 'TRADER HIT — AND THAT IS AN OFFENCE'],
+];
+
 export const CLEAN = 0;
 export const OFFENDER = 1;
 export const FUGITIVE = 2;

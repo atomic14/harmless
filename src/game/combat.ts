@@ -34,7 +34,7 @@ import { laserForView, canFire, chargeShot } from './gunnery.ts';
 import { traceShot } from './shot.ts';
 import { applyDamage, canAffordLaserShot, spendLaserEnergy } from './systems.ts';
 import { hitFromAhead } from './shield-face.ts';
-import { offenceFor } from './law.ts';
+import { harmVerdict, offenceFor } from './law.ts';
 import { OFFENDER, FUGITIVE, CONTRABAND } from '../constants/law.ts';
 import { constrictorDestroyed } from './missions.ts';
 import { random, randomInt } from './rng.ts';
@@ -180,12 +180,27 @@ export class Combat {
       // impact flash at the target so hits read clearly
       this.world.effects.explosion(shot.ship.object.position.clone(), 0xd8ffcc,
         { count: 8, speed: 70, duration: 0.35 });
-      out.push({ kind: 'offence', level: offenceFor(shot.ship.role, false) });
+      // Read before the hit, because the hit is what sets it. A false-to-true
+      // move is the first shot this ship took from the commander. So the line
+      // below is said once per ship, however long the fight runs.
+      const wasProvoked = shot.ship.state.provokedByPlayer;
       // The HIT goes across, not the damage. What a hit is worth depends on the
       // target's own defence, immunity and multiplier, and the ship applies its
       // own (npc.ts `takeLaserHit`). A station shrugs it off with no case here,
       // and the Constrictor halves it without a word to the mission.
-      if (shot.ship.takeLaserHit(laser.hit, playerPos, true)) {
+      const destroyed = shot.ship.takeLaserHit(laser.hit, playerPos, true);
+      // WHAT YOU JUST HIT, ahead of the launch and the record. docs/TODO/130
+      // fixed the running order once: what you did, what the sky did about it,
+      // where you now stand. This deed had no first line at all until
+      // docs/TODO/173, so a stray shot on a Viper explained nothing.
+      //
+      // Not for a kill. A destroyed ship comes for nobody, and `destroy` below
+      // has its own words for it.
+      const turned = !wasProvoked && shot.ship.state.provokedByPlayer && !destroyed;
+      const harm = turned ? harmVerdict(shot.ship.role) : null;
+      if (harm) out.push(say(harm, 3));
+      out.push({ kind: 'offence', level: offenceFor(shot.ship.role, false) });
+      if (destroyed) {
         // destroy() reports its explosion before its semantic consequences;
         // keep all sounds ahead of events the Game applies after this returns.
         for (const event of this.destroy(commander, shot.ship)) {

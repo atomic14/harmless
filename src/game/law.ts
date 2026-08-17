@@ -12,7 +12,8 @@
 import { COMMODITIES } from '../galaxy/galaxy.ts';
 import {
   BRIBE_FLOOR, BRIBE_REFUSED, BRIBE_SHARE, CLEAN, CONTRABAND, FUGITIVE,
-  FUGITIVE_FINE, KILLS_PER_RUNG, LAW_ROLE_NAMES, LEGAL_NAMES, OFFENDER, OFFENDER_FINE,
+  FUGITIVE_FINE, HARM_LINES, KILLS_PER_RUNG, LAW_ROLE_NAMES, LEGAL_NAMES,
+  OFFENDER, OFFENDER_FINE,
   PATROL_BRIBE_FINES, SCAN_RANGE, SCAN_WARN_RANGE, STATION_TRUCE,
 } from '../constants/law.ts';
 import { DISREPUTE_BRIBE, DISREPUTE_MAX } from '../constants/character.ts';
@@ -291,4 +292,28 @@ export function recordVerdict(legalStatus: number): string {
 export function offenceFor(role: string, destroyed: boolean): number {
   if (role !== 'police' && role !== 'trader' && role !== 'hunter') return CLEAN;
   return destroyed ? FUGITIVE : OFFENDER;
+}
+
+/**
+ * What the console says about a ship the commander's own laser just turned
+ * against her — or null where the shot was nobody's business.
+ *
+ * The console never had a line for this deed. A commander read `LEGAL STATUS:
+ * OFFENDER` at best, and nothing at all where the record did not move
+ * (docs/TODO/173). So the sky changed who was shooting at her, and no line said
+ * why.
+ *
+ * **The SET is `offenceFor`'s, and this restates none of it.** A role that the
+ * law does not protect is a no-op here, exactly as it is at `raiseLegal`. Only
+ * the WORDS are this function's, and they come from `HARM_LINES`
+ * (constants/law.ts).
+ *
+ * **It answers for one hit, and never for a fight.** `combat.ts` asks it on the
+ * frame `provokedByPlayer` latches, which happens once per ship. That is
+ * `raiseLegal`'s "only a MOVE speaks" rule, read against the ship rather than
+ * against the record.
+ */
+export function harmVerdict(role: string): string | null {
+  if (offenceFor(role, false) === CLEAN) return null;
+  return HARM_LINES.find(([covered]) => covered === role)?.[1] ?? null;
 }
