@@ -24,6 +24,7 @@ import type * as THREE from 'three';
 
 import type { NpcRole } from './ship-roles.ts';
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
+import { LAW_ROLE_NAMES } from '../constants/law.ts';
 import { lawTakesInterest, truceHolds } from './law.ts';
 
 /**
@@ -119,6 +120,44 @@ export function hostilesNear(
   playerToStation: number,
 ): boolean {
   return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation));
+}
+
+/**
+ * Which of the law's roles are in this fight for a reason the RECORD cannot
+ * explain.
+ *
+ * A **grudge** is one ship's private quarrel with the commander.
+ * `NpcShip.takeDamage` sets `provokedByPlayer` for damage from her gun,
+ * whatever the role. The flag never comes down, and the legal record has
+ * nothing to do with it.
+ *
+ * So the console can say `LEGAL STATUS: OFFENDER — BOUNTY HUNTERS WILL ATTACK
+ * YOU` while the ship shooting at her is a police Viper she grazed. That is
+ * docs/TODO/175, and GitHub #35 reported it in the player's own words.
+ *
+ * `recordVerdict` is right to read `lawTakesInterest` alone. It is the one home
+ * of what a moved RECORD says. This is the other half, and `law.ts`'s
+ * `grudgeVerdict` puts the words on it.
+ *
+ * IT READS `isHostileToPlayer` RATHER THAN THE FLAG. So one place answers for a
+ * dead ship, an inert one, a bought-off one and the station's truce. That is
+ * this file's whole point.
+ *
+ * It then drops every role the record already accounts for. So the line it
+ * feeds never repeats the line beside it, and a Fugitive hears nothing at all:
+ * her record explains both roles already.
+ *
+ * The roles come back in `LAW_ROLE_NAMES` order, so one sky gives one sentence.
+ */
+export function grudgeRolesNear(
+  npcs: readonly HostileShip[], playerPos: THREE.Vector3, legalStatus: number,
+  playerToStation: number,
+): readonly string[] {
+  return LAW_ROLE_NAMES
+    .map(([role]) => role)
+    .filter((role) => !lawTakesInterest(role, legalStatus)
+      && npcs.some((npc) => npc.role === role
+        && engaging(npc, playerPos, legalStatus, playerToStation)));
 }
 
 /**

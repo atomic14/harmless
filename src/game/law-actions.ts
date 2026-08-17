@@ -19,10 +19,10 @@
 import * as THREE from 'three';
 import { formatCredits } from './commander.ts';
 import type { NpcShip } from './npc.ts';
-import { nearestEngaging, nearestNpc } from './hostility.ts';
+import { grudgeRolesNear, nearestEngaging, nearestNpc } from './hostility.ts';
 import {
-  bribeOffered, carryingContraband, inspectionPrice, patrolPrice, patrolReach,
-  recordCleared, recordVerdict, recordWorkedOff,
+  bribeOffered, carryingContraband, grudgeVerdict, inspectionPrice, patrolPrice,
+  patrolReach, recordCleared, recordVerdict, recordWorkedOff,
 } from './law.ts';
 import { launchStationDefence } from './spawning.ts';
 import { offerBribe, type Dumped } from './jettison.ts';
@@ -107,9 +107,7 @@ export class LawActions {
     // The sky first: Vipers leaving the slot are happening NOW, and a pilot
     // being shot at wants that ahead of a sentence about paperwork.
     this.callStationDefence();
-    if (moved) {
-      this.host.queueMessage(recordVerdict(this.state.commander.legalStatus), SCAN_LINE_SECONDS);
-    }
+    if (moved) this.sayRecord();
   }
 
   /**
@@ -136,7 +134,45 @@ export class LawActions {
     const moved = worked.legalStatus !== c.legalStatus;
     c.legalStatus = worked.legalStatus;
     c.atonement = worked.atonement;
-    if (moved) this.host.queueMessage(recordVerdict(c.legalStatus), SCAN_LINE_SECONDS);
+    if (moved) this.sayRecord();
+  }
+
+  /**
+   * Where the record stands, and then the ship the record cannot account for.
+   *
+   * ONE HOME FOR BOTH LINES, because both call sites above say the first one
+   * and both need the second. `raiseLegal` is the case docs/TODO/175 is named
+   * for: the verdict says BOUNTY HUNTERS while a police Viper she grazed is the
+   * ship on her. `lowerLegal` is the sharper one. A commander who works her
+   * record off over five pirates reads a status that is clean, and the Viper is
+   * still there.
+   *
+   * THE SECOND LINE IS SILENT MOST OF THE TIME. `grudgeRolesNear` drops every
+   * role the record already explains, so a Fugitive never hears it. A commander
+   * who shot at nobody never hears it either.
+   *
+   * The order is docs/TODO/130's: what you did, what the sky did, where you now
+   * stand. This adds one clause to the last of those, and it is queued behind
+   * the verdict it corrects.
+   */
+  private sayRecord(): void {
+    const s = this.state;
+    this.host.queueMessage(recordVerdict(s.commander.legalStatus), SCAN_LINE_SECONDS);
+    const grudge = grudgeVerdict(grudgeRolesNear(
+      s.world.npcs, s.player.position, s.commander.legalStatus, this.playerToStation));
+    if (grudge) this.host.queueMessage(grudge, SCAN_LINE_SECONDS);
+  }
+
+  /**
+   * How far the commander is from the station, for the station's truce
+   * (`truceHolds`, law.ts).
+   *
+   * ONE home for it in this file, as `autopilot.ts` keeps one for itself.
+   * `world-step.ts` measures it once a frame for the ships. This file is not in
+   * that path, because a record moves on a deed rather than on a frame.
+   */
+  private get playerToStation(): number {
+    return this.state.player.position.distanceTo(this.state.world.station.position);
   }
 
   /**

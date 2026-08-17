@@ -283,6 +283,35 @@ export function recordVerdict(legalStatus: number): string {
 }
 
 /**
+ * What the console says about a ship that is on the commander for a reason her
+ * record cannot explain. It answers null where the sky and the record agree.
+ *
+ * A **grudge** is one ship's private quarrel with her, and
+ * `hostility.ts`'s `grudgeRolesNear` decides which roles hold one. Only the
+ * WORDS are this function's.
+ *
+ * IT IS A SECOND LINE, AND THAT IS THE DESIGN. `recordVerdict` above is
+ * assembled from `lawTakesInterest`, which is what stops it promising a fight
+ * the rules will not deliver. A verdict that also read the sky would hold two
+ * rules in one sentence. It would go stale the moment the sky changed, and
+ * neither half could be tested alone (docs/TODO/175).
+ *
+ * The names are `LAW_ROLE_NAMES`, so the two lines call a ship the same thing.
+ *
+ * THE CLAUSE AFTER THE DASH IS THE POINT OF THE LINE. A commander who pays her
+ * fine still has this ship on her. So does one who works her record off over
+ * five pirates. docs/TODO/175 M1 measured that the flag has no exit at all.
+ */
+export function grudgeVerdict(roles: readonly string[]): string | null {
+  const named = LAW_ROLE_NAMES
+    .filter(([role]) => roles.includes(role))
+    .map(([, called]) => called);
+  if (!named.length) return null;
+  return `${named.join(' AND ')} YOU SHOT AT ARE STILL ON YOU`
+    + ' — YOUR LEGAL STATUS WILL NOT CALL THEM OFF';
+}
+
+/**
  * How far your standing falls for harming a given ship.
  *
  * Shooting at police, traders or bounty hunters is an offence; destroying one

@@ -244,3 +244,61 @@ clears the sky.
 **What is left is narrow, and it is one case.** A commander who works her record
 off in flight, and who does not dock, keeps every grudge she earned. The console
 never tells her why.
+
+### M2 — the console answers for the sky
+
+**A second line, and `recordVerdict` is untouched.** The plan asked for that,
+and `test/grudge-line.test.ts` pins the verdict at all three rungs so M2 cannot
+drift into it.
+
+**The rule is `grudgeRolesNear` in `game/hostility.ts`**, which owns "who is in
+this fight". It sweeps `isHostileToPlayer` rather than the flag. So one place
+answers for a dead ship, an inert one, a bought-off one and the truce. It then
+drops every role the record already explains.
+
+**The words are `grudgeVerdict` in `game/law.ts`**, beside `recordVerdict` and
+`harmVerdict`. The names come from `LAW_ROLE_NAMES`, so the two lines call a
+ship the same thing.
+
+**`LawActions.sayRecord` is the one home that says both**, because `raiseLegal`
+and `lowerLegal` both need them. The second line is queued behind the verdict it
+corrects.
+
+The console reads, in a graze at the witchpoint:
+
+```
+POLICE SHIP HIT — AND NOW HE IS COMING FOR YOU
+LEGAL STATUS: OFFENDER — BOUNTY HUNTERS WILL ATTACK YOU
+POLICE YOU SHOT AT ARE STILL ON YOU — YOUR LEGAL STATUS WILL NOT CALL THEM OFF
+```
+
+**Three lines, which is Chris's standard of 2026-08-16.**
+
+**THE LADDER GATE CHOSE THE WORDS, AND THE PLAN DID NOT HAVE THAT.** The clause
+first read `YOUR RECORD WILL NOT CALL THEM OFF`. `test/ladder-words.test.ts`
+failed it: `record` is the code's word, and the player's word is `LEGAL STATUS`
+(docs/TODO/162). The repaired clause is better, because it names the very line
+it corrects.
+
+**A FUGITIVE HEARS NOTHING, AND THE BREAK-IT SHOWED WHY THAT MATTERS.** The
+plan's reason was that the line would repeat the one beside it. The second break-it
+removed the drop, and two assertions in `test/record-line.test.ts` went red as
+well. A fourth line in one burst pushed the reputation line out of the window a
+pilot reads. So the drop protects the console budget, and not only the wording.
+
+**`test/grudge-line.test.ts` is 27 assertions in three parts.** The rule reads
+off an object literal, as `test/hostility.test.ts` does. The words are then read
+through the real `Game`, because a rule that never reaches the screen is
+docs/TODO/130's defect. `recordVerdict` is pinned last.
+
+**THE TRUCE CANNOT BE ISOLATED HERE, AND THE FIRST DRAFT TRIED.** A grudge needs
+the flag, and the flag is what bypasses the truce. So the two can never
+disagree. The block asserts that property instead, at the port and outside it.
+
+**A control carries the console block.** A trader graze moves the record to
+Offender in the same way, and no law ship is on her. Without it, a line said on
+every record move would pass.
+
+**Proved able to fail three ways, and each one alone.** The line deleted reddens
+the three console claims. The dropped roles put back reddens the Fugitive claim.
+A widened `recordVerdict` reddens the third block. 4,845 assertions.
