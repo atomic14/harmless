@@ -13,16 +13,15 @@ active context:
 
 ## Execution queue
 
-1. [175](175-the-law-reads-your-record-and-never-reads-the-grudge.md) — the law
-   reads your record and never reads the grudge.
+**THE QUEUE IS EMPTY.**
 
-**All three came from Chris on 2026-08-17**, after 173 landed and left the queue
-empty. The order is by value over cost, and not by severity. **174 and 176 led
-it, and both landed the same day.** They are below.
+**All three items came from Chris on 2026-08-17**, after 173 landed and left the
+queue empty. The order was by value over cost, and not by severity. **174, 176
+and 175 all landed the same day**, and each is below.
 
-**175 goes last because half of it waits on Chris.** Its M1 and M2 do not, but
-its M3 changes a shipped rule and holds two open questions that only he can
-answer.
+**175 went last because half of it waited on Chris.** Its M3 held two open
+questions that only he could answer. He answered one and a measurement answered
+the other, so M3 landed no code at all.
 
 **173 came out of the GitHub inbox, and the queue was empty when it arrived.**
 The sweep of 2026-08-16 put five items in the queue. Chris asked for an
@@ -152,6 +151,19 @@ every ship the same path it is **none in eighty**. docs/TODO/135 argued against
 building avoidance for that, and this closes it. 136 M4 names the place the work
 belongs. **Do not re-open it on a line count or a tidy-up.**
 
+**A ship you shot at never forgets. Chris, 2026-08-17.** He read
+docs/TODO/175 M1's numbers and chose to leave the rule as it is, over a
+break-off timer and over a plain one. `provokedByPlayer` is a latch with no way
+down. **Three exits already work**: she outruns the ship, she bribes one ship
+out of one fight, or she docks. **docs/TODO/175 M2 landed the console line that
+says so**, and that line is the whole fix. **Do not re-open it on the grounds
+that a consequence needs a way out.**
+
+**A paid fine will never call a ship off, and the reason is a measurement.**
+`payFine` is bound in the DOCKED table alone. `Station.dock` clears every NPC
+with no condition on it. So the exit would be dead code, and docs/TODO/175 built
+its case around a key it never checked was reachable.
+
 **A version 1 save stays refused. Chris, 2026-08-17:** *"Version 1 save/load -
 not important."* docs/TODO/161 raised a version 2 snapshot to version 3 and left
 version 1 refused, and it held the argument both ways. The step would be one
@@ -159,6 +171,45 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**175 — the law reads your record and never reads the grudge.** Two ships attack
+a commander for two different reasons, and the game only ever explained one of
+them. The record is `lawTakesInterest`. The grudge is `provokedByPlayer`, and it
+is personal to one ship.
+
+**M1 flew the real game under node and measured four things.** The flag never
+ends. It still holds after 300 seconds, and the ship is alive and still in the
+fleet. A record forced back to Clean does not clear it either.
+
+**But she outruns it.** At full throttle the range opens from 767 units to
+112,065 over those same 300 seconds.
+
+**The truce does not cover a provoked ship**, which is docs/TODO/158's decision
+at work. The measurement uses hunters, because `truceHolds` covers pirates and
+hunters alone. The unprovoked control flips at exactly `STATION_TRUCE`.
+
+**THE PLAN'S SHARP EDGE IS FALSE, AND THE PLAN CONTRADICTED ITSELF.** It listed
+the dock as an exit four paragraphs before it built a case around `payFine`.
+`Station.dock` calls `world.clearNpcs()` with no condition on it.
+
+**One stray shot near the station buys two to three enemies.** Over 40 seeds the
+launch adds 1.48 Vipers on average, and 2.48 ships carry the grudge.
+
+**M2 is a second line, and `recordVerdict` is untouched.** `grudgeRolesNear`
+sweeps `isHostileToPlayer` rather than the flag, and it drops every role the
+record already explains.
+
+**THE LADDER GATE CHOSE THE WORDS, AND THE PLAN DID NOT HAVE THAT.** The clause
+first read `YOUR RECORD WILL NOT CALL THEM OFF`. `test/ladder-words.test.ts`
+failed it, because the player's word is `LEGAL STATUS` (docs/TODO/162).
+
+**A Fugitive hears nothing, and the break-it showed why that matters.** With the
+drop removed, two assertions in `test/record-line.test.ts` went red as well. A
+fourth line in one burst pushed the reputation line out of the window.
+
+**M3 landed nothing, on Chris's call.** He took the plan's third answer. The
+first open question never reached him, because a measurement answered it. 4,845
+assertions.
 
 **176 — the largest files need a measurement before a cut.** Chris named the
 programme: *"we should pick up the large files and start breaking them down."*
