@@ -276,16 +276,30 @@ The console reads, in a graze at the witchpoint:
 ```
 POLICE SHIP HIT — AND NOW HE IS COMING FOR YOU
 LEGAL STATUS: OFFENDER — BOUNTY HUNTERS WILL ATTACK YOU
-POLICE YOU SHOT AT ARE STILL ON YOU — YOUR LEGAL STATUS WILL NOT CALL THEM OFF
+POLICE YOU SHOT AT ARE STILL AFTER YOU — THIS IS PERSONAL
 ```
 
 **Three lines, which is Chris's standard of 2026-08-16.**
 
-**THE LADDER GATE CHOSE THE WORDS, AND THE PLAN DID NOT HAVE THAT.** The clause
-first read `YOUR RECORD WILL NOT CALL THEM OFF`. `test/ladder-words.test.ts`
-failed it: `record` is the code's word, and the player's word is `LEGAL STATUS`
-(docs/TODO/162). The repaired clause is better, because it names the very line
-it corrects.
+**THE CLAUSE TOOK THREE TRIES, AND THE PLAN DID NOT HAVE ANY OF IT.** It first
+read `YOUR RECORD WILL NOT CALL THEM OFF`. `test/ladder-words.test.ts` failed
+it, because `record` is the code's word and the player's word is `LEGAL STATUS`
+(docs/TODO/162).
+
+**THE SECOND TRY PASSED EVERY GATE AND STILL FAILED THE READER.** It read `YOUR
+LEGAL STATUS WILL NOT CALL THEM OFF`. Chris, 2026-08-17: *"this is just
+gibberish for a player - they won't understand what you are talking about - what
+are you trying to say?"*
+
+**A GATE CAN HOLD A WORD AND CANNOT HOLD A SENTENCE.** Both failed drafts
+explained the MECHANIC. The shipped clause states the MOTIVE, in two words that
+need no rule: this ship is on her because she shot it.
+
+**IT NAMES NO REMEDY, AND TWO MEASUREMENTS SAY WHY.** The bribe reaches
+`role === 'police'` alone, so an offer would be false whenever a hunter is in
+the set. And a fine cannot be paid without a dock, which M1 measured clears
+every ship in the sky. A clause about the fine would be true and misleading at
+once.
 
 **A FUGITIVE HEARS NOTHING, AND THE BREAK-IT SHOWED WHY THAT MATTERS.** The
 plan's reason was that the line would repeat the one beside it. The second break-it

@@ -98,13 +98,12 @@ console.log('\nthe roles a record cannot account for');
     roles([ship('hunter', 100)], CLEAN, STATION_TRUCE - 1).length, 0);
 
   // The words, off the roles above.
-  eq('the line names the ship and says the record will not help',
+  eq('the line names the ship and says why it is there',
     grudgeVerdict(['police']),
-    'POLICE YOU SHOT AT ARE STILL ON YOU — YOUR LEGAL STATUS WILL NOT CALL THEM OFF');
+    'POLICE YOU SHOT AT ARE STILL AFTER YOU — THIS IS PERSONAL');
   eq('...and it joins two roles the way the record line does',
     grudgeVerdict(['police', 'hunter']),
-    'POLICE AND BOUNTY HUNTERS YOU SHOT AT ARE STILL ON YOU'
-    + ' — YOUR LEGAL STATUS WILL NOT CALL THEM OFF');
+    'POLICE AND BOUNTY HUNTERS YOU SHOT AT ARE STILL AFTER YOU — THIS IS PERSONAL');
   check('...and an empty sky says nothing at all', grudgeVerdict([]) === null);
 }
 
@@ -183,7 +182,7 @@ console.log('\nthe console says who is on her, beside where she stands');
     const said = fly(SETTLE);
     eq('a trader graze moves the record the same way', g.state.commander.legalStatus, OFFENDER);
     check(`...and the sky line is not said (${said.join(' / ')})`,
-      !said.some((t) => t.includes('STILL ON YOU')));
+      !said.some((t) => t.includes('STILL AFTER YOU')));
   }
 }
 

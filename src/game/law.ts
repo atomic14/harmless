@@ -298,17 +298,30 @@ export function recordVerdict(legalStatus: number): string {
  *
  * The names are `LAW_ROLE_NAMES`, so the two lines call a ship the same thing.
  *
- * THE CLAUSE AFTER THE DASH IS THE POINT OF THE LINE. A commander who pays her
- * fine still has this ship on her. So does one who works her record off over
- * five pirates. docs/TODO/175 M1 measured that the flag has no exit at all.
+ * THE CLAUSE AFTER THE DASH IS THE MOTIVE, AND IT TOOK THREE TRIES. It said
+ * `YOUR RECORD WILL NOT CALL THEM OFF`, and `test/ladder-words.test.ts` failed
+ * that: `record` is the code's word (docs/TODO/162). It then said
+ * `YOUR LEGAL STATUS WILL NOT CALL THEM OFF`, which passed every gate and told
+ * a player nothing. Chris, 2026-08-17: *"this is just gibberish for a player -
+ * they won't understand what you are talking about"*.
+ *
+ * SO THE CLAUSE STATES THE MOTIVE RATHER THAN THE MECHANIC. This ship is on her
+ * because she shot it, and that is the whole difference from the line above.
+ * A player needs no rule to read two words.
+ *
+ * IT NAMES NO REMEDY, AND TWO MEASUREMENTS SAY WHY. The bribe reaches
+ * `role === 'police'` alone, so an offer would be false whenever a hunter is in
+ * the set. And a fine cannot be paid without a dock, which clears every ship in
+ * the sky (docs/TODO/175 M1). A clause about the fine would be true and
+ * misleading at once.
  */
 export function grudgeVerdict(roles: readonly string[]): string | null {
   const named = LAW_ROLE_NAMES
     .filter(([role]) => roles.includes(role))
     .map(([, called]) => called);
   if (!named.length) return null;
-  return `${named.join(' AND ')} YOU SHOT AT ARE STILL ON YOU`
-    + ' — YOUR LEGAL STATUS WILL NOT CALL THEM OFF';
+  return `${named.join(' AND ')} YOU SHOT AT ARE STILL AFTER YOU`
+    + ' — THIS IS PERSONAL';
 }
 
 /**

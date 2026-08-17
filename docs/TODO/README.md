@@ -199,9 +199,12 @@ launch adds 1.48 Vipers on average, and 2.48 ships carry the grudge.
 sweeps `isHostileToPlayer` rather than the flag, and it drops every role the
 record already explains.
 
-**THE LADDER GATE CHOSE THE WORDS, AND THE PLAN DID NOT HAVE THAT.** The clause
-first read `YOUR RECORD WILL NOT CALL THEM OFF`. `test/ladder-words.test.ts`
-failed it, because the player's word is `LEGAL STATUS` (docs/TODO/162).
+**THE CLAUSE TOOK THREE TRIES, AND A GATE COULD ONLY CATCH THE FIRST.** It read
+`YOUR RECORD WILL NOT CALL THEM OFF`, and `test/ladder-words.test.ts` failed the
+word `record` (docs/TODO/162). The second try passed every gate and still told a
+player nothing. Chris, 2026-08-17: *"this is just gibberish for a player - they
+won't understand what you are talking about"*. The shipped clause states the
+motive rather than the mechanic: `— THIS IS PERSONAL`.
 
 **A Fugitive hears nothing, and the break-it showed why that matters.** With the
 drop removed, two assertions in `test/record-line.test.ts` went red as well. A
