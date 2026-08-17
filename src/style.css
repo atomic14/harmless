@@ -626,7 +626,30 @@ body.screen-open #exercise { display: none; }
  */
 #screen td.same { opacity: 0.4; }
 
-/* a hint line that breaks BETWEEN items, never inside one */
+/*
+ * A hint line that breaks BETWEEN items, never inside one.
+ *
+ * MEASURED, AND THE REPORTED DEFECT IS NOT THERE (docs/TODO/174 M3).
+ * docs/TODO/162 read this rule as GitHub #29's defect in a second element, and
+ * left it for somebody else. #29 was `#message`: one whole sentence, one line,
+ * `nowrap`, and centred on `left: 50%`. A line wider than the window hung off
+ * both edges of it.
+ *
+ * This element cannot reach that state. `#screen` sets `min-width: 640px`, so
+ * this container never goes below 578 pixels. The longest hint in the tree is
+ * the compare screen's `THE OTHER RECORD (n IN THE RING)`, at 319 pixels. That
+ * is 55% of the floor, and it leaves 259 pixels spare.
+ *
+ * Measured in Chrome at viewports of 1289, 760 and 500 pixels. The container
+ * read 578 pixels at each of the two narrow ones.
+ *
+ * At 500 pixels the PANEL does hang off both edges, and every row goes with it.
+ * That is the `min-width` above, and this rule is not part of it.
+ *
+ * DO NOT DELETE THE `nowrap` ON A RESEMBLANCE TO #29. The station menu's own
+ * key line carries no spans and no `nowrap`. It breaks `S COMMANDER FILE`
+ * across two lines, which is the thing this rule prevents.
+ */
 #screen .hints span { white-space: nowrap; }
 #screen .hints span + span::before { content: "\00b7"; margin-right: 6px; }
 
