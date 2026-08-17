@@ -269,7 +269,15 @@ under 200 lines.
 **The item stops there, on 150 M6's and 169 M4's precedent.** Three candidates
 are named and none is taken. `combat-sim-report.ts`'s report shape is the
 strongest: 30 files import it, 13 reach for a type alone, and 8 of the 13 are in
-`src/`. 4,818 assertions.
+`src/`.
+
+> **Correction, 2026-08-17.** That count is wrong and the candidate is
+> withdrawn. Chris asked why everyone would need something from a training
+> report. **They do not.** There are 23 real importers, because three of the
+> thirty were the file name in a comment. Ten are in `src/`, and **seven of the
+> ten are the trainer itself**. The other three hand the report between the
+> exercise and the screen. **A count of files is not a measurement of
+> coupling**, and M4 never asked what one importer takes. 4,818 assertions.
 
 **174 — the record holds five defects that nothing schedules.** Five landed
 items each reported a defect and each declined to fix it. Every one of the five

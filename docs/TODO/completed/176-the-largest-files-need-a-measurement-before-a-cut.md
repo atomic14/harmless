@@ -382,6 +382,35 @@ Seventeen reach for a value. **Thirteen reach for a TYPE ALONE, and eight of the
 thirteen are in `src/`.** So eight shipped modules import 1,168 lines to name a
 shape. That is docs/TODO/169 M3's `flight-maths.ts` argument at a bigger file.
 
+> **Correction, 2026-08-17.** The paragraph above is wrong in every number, and
+> the candidate it names is withdrawn. Chris read it and asked the question the
+> count never asked: *"why would everyone need something from
+> combat-sim-report.ts?"*
+>
+> **They do not.** There are **23** real importers rather than 30. Three of the
+> thirty were the file NAME in a comment, and `grep -rl` cannot tell those
+> apart. Ten are in `src/`, and **seven of the ten are the trainer itself** —
+> `combat-sim.ts`, `-compare`, `-opening`, `-scenarios`, `-strip`,
+> `screens/combat-sim.ts` and `ui/screens-trainer.ts`. A subsystem that imports
+> its own record type is cohesion rather than coupling.
+>
+> **The three outside the trainer are all legitimate.** `game.ts` and
+> `flight.ts` take a `CombatSimReport` type, and they hand the trainer's result
+> from the exercise to the screen. `console.ts` takes `makeSimLog`, and that
+> ring holds `CombatSimReport`s, so it is the trainer's own.
+>
+> **Five importers in `src/` reach for a type alone, not eight**, and three of
+> those five are the trainer.
+>
+> **What is left is small.** Four probes in `train/` import 1,168 lines to reach
+> `quantile`, `mean` and `countPasses`. Those three are used 15, 2 and 2 times
+> inside the file, so they are the recorder's own tools as well.
+>
+> **M3's 42% shape measurement still stands.** What was wrong is the reader
+> count offered as its motive. **This is the item's own subject at the item's
+> own hand**: a number measured once and never checked. A count of FILES is not
+> a measurement of coupling, and nothing in M4 asked what one importer takes.
+
 **`test/world-step.test.ts`'s save block is the second**, and M3 found it. It is
 the one section that answers a different question from the other five.
 
