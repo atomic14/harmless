@@ -13,12 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [178](178-the-campaign-simulator-keeps-its-own-copy-of-a-purchase.md) — the
-   campaign simulator keeps its own copy of a purchase.
+**THE QUEUE IS EMPTY.**
 
 **178 came from Chris on 2026-08-17**, when he asked for the next fix. It came
 out of a reading of `test/campaign.ts`. docs/TODO/176 M3 named that file on a
-line count, and the line count was not the defect.
+line count, and the line count was not the defect. It landed the same day, and
+it is below.
 
 **177 came from Chris on 2026-08-17**, when he asked for the next smell.
 docs/TODO/176's own conclusion rested on a bad count, and he found it. It was a
@@ -181,6 +181,36 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**178 — the campaign simulator keeps its own copy of a purchase.** An equipment
+purchase had two homes. `screens/trade.ts` applied one in eighteen cases, and
+`test/campaign.ts` applied one in sixteen.
+
+**Invariant 10 forbids exactly that.** An economic rule lives in a module the
+headless campaign shares, and a purchase moves credits.
+
+**The copy hardcoded three constants the real game reads.** The missile cap, and
+both laser refunds. All three agreed on the day, so it was latent rather than
+live.
+
+**NOTHING GUARDED IT.** `test/constants.test.ts` is the gate for a constant with
+a second home, and its scan root is `../src/`.
+
+**`applyPurchase` is `shop.ts`'s now**, beside the `equipmentOwned` that reads
+the same flags back. The campaign prints exactly what it printed before, at both
+sizes.
+
+**THE SCREEN NOW IMPORTS NO ECONOMIC CONSTANT AT ALL, AND THE PLAN DID NOT HAVE
+THAT.** Four went with the rule, and `tsc` found them unused. A screen that held
+a price list was the shape of the defect.
+
+**The gate the plan asked for already existed**, and it could never reach the
+campaign. So the fix's real value is that an existing gate now guards a second
+caller.
+
+**THE PLAN'S SECOND BREAK-IT COULD NOT FAIL, AND THAT IS A FINDING.** The
+literal it asked for is 4,000, and the constant is 4,000. Nothing in the tree
+catches an inline literal that happens to be right today. 4,845 assertions.
 
 **177 — a test compares the player's gun against a copy of itself.**
 `test/world-step.test.ts` held 116 lines that never stepped the world. Six of
