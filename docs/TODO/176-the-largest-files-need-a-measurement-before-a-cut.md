@@ -282,3 +282,70 @@ docs/TODO/169 held are `survivability`, `flight-probe`, `aim-probe`, `ram-probe`
 and `gap-probe`. **None of the five flies a trader**, so `dock-traffic` and
 `dock-probe` were measured against an M1 worktree as well. They report 80 of 80
 docked with 0 rams, and 504 of 504 docked. The suite is 4,818 assertions.
+
+### M3 — the nine stated reasons, rechecked
+
+**Nine rows read against the nine files, on 2026-08-17. Four hold clean, two
+hold with a stale number, two under-name the file, and one is false.** The
+milestone changed no code.
+
+| file | verdict |
+| --- | --- |
+| `ai-training/scenario.ts` | holds; one gap named |
+| `game/game.ts` | holds; two stale numbers |
+| `test/world-step.test.ts` | **false** |
+| `game/combat-sim-report.ts` | under-names; a candidate |
+| `test/campaign.ts` | under-names; a candidate |
+| `game/combat-sim.ts` | holds; one stale number |
+| `test/constants.test.ts` | holds |
+| `test/economy.test.ts` | holds |
+| `game/combat-sim-scenarios.ts` | holds |
+
+**`test/world-step.test.ts`'s REASON IS FALSE, AND IT IS THE ITEM'S BEST FIND.**
+The row said the file holds the step's five phases in the order they run, and
+that it mirrors `world-step.ts`. `world-step.ts` does hold five phases:
+`flyPlayer`, `stepNpcs`, `stepProjectilesAndEffects`, `stepShipSystems` and
+`checkHazards`. The test file holds six sections by SUBJECT, and the last of
+them is the save. A save is not a phase of the step.
+
+**The file's own header states the honest reason**, and the row never took it.
+The whole point is that the file needs no browser. So the row names the new
+subject, and the save block is the one section that can leave.
+
+**`game/combat-sim.ts` CARRIED A NUMBER BESIDE THE SENTENCE THAT RETIRED IT.**
+It claimed 42% of the file is the safety argument in prose. The next clause said
+that the three layers of that argument moved to `combat-sim-safety.ts`. Both
+cannot be true. Measured: 356 of 934 lines are a comment of any kind, which is
+38%, and 9 lines name safety at all.
+
+**Two rows name less than the file holds.** `combat-sim-report.ts` is 42% report
+SHAPE, at 495 lines of eighteen types, and the row named only the recorder and
+its derivations. `test/campaign.ts` is 26% report writer, at 271 lines, and the
+row named only the career simulation. Each is a candidate rather than a
+decision.
+
+**`game/game.ts` holds, and two numbers moved under it.** All nine children are
+imported, and all six screen openers are there. The file is 1,254 rather than
+1,233. The command table is 71 lines of body rather than 81, and 81 with its doc
+comment.
+
+**THE OPENERS ARE SMALLER THAN THE ROW SAID, AND THAT WEAKENS THE CASE.** They
+are 88 lines on the page and 36 lines of BODY. Each one sets `baseMode` and
+opens a screen, in three or four lines. A file of 36 lines is not obviously
+better than a paragraph in the parent.
+
+**One gap and three clean confirmations.** `ai-training/scenario.ts` never named
+`PirateShip` and `TargetShip`, at 183 lines, and they are what the `Episode`
+flies. `test/constants.test.ts`'s list is 547 lines of 933, so most of the file
+IS the list. `test/economy.test.ts`'s pirate block is 407 lines of 896, it calls
+`generateMarket` nowhere, and the split it waits for still exists.
+`game/combat-sim-scenarios.ts` holds every part its row names.
+
+**THE ROW LENGTH PREDICTS THE ROW QUALITY, AND THE LIST SAID SO ITSELF.** Its
+audit of 2026-08-14 found that the reasons get shorter as the files get bigger.
+Measured here, the nine rows ran from 68 characters to 1,861.
+
+**Not one of the four shortest is clean.** They are 68, 125, 143 and 145
+characters. One is false, two under-name their file, and the fourth leaves a
+gap. **Every one of the five longest states a reason that holds**, and two of
+the five carry a stale number inside it.
