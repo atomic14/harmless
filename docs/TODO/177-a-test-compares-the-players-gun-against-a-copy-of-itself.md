@@ -157,3 +157,54 @@ argument. If the kept assertions redden, they cover what the deleted ones
 covered, and the deletion loses nothing.
 
 **Report the assertion count before and after**, and say that it fell.
+
+## Outcome
+
+### M1 — the gun has its own file, and the fossil is gone
+
+`test/combat-player.test.ts` is 5 assertions in two blocks.
+`test/world-step.test.ts` went 1,245 lines to 1,129, and the row reports 1,145
+with its imports.
+
+**Every section left in that file drives the step.** The header says that now,
+and it names the five phases it never mirrored.
+
+**THE COUNT FELL BY THREE RATHER THAN FOUR, AND THE PLAN DID NOT HAVE THE
+REASON.** Eight assertions went and five came back. The fifth is a control the
+plan never listed: *a hit from ahead lands on the fore shield*. Without it, a
+resolver that always picked the aft face would pass the astern claim.
+
+**The break-it step proved that control was worth adding.** A `damagePlayer`
+that reads the hit as always coming from where the ship is reddens the fore
+claim and leaves the astern one green. 4,845 assertions became 4,842.
+
+**THE PLAN PREDICTED TWO REDS FOR ONE BREAK, AND GOT ONE.** It said a nose
+direction in place of the view direction would redden both rear-view claims. It
+reddens one. The refusal with no rear mount reads the view ARGUMENT rather than
+the direction, so a broken direction cannot reach it. A second break sends the
+wrong view argument, and that claim reddens alone.
+
+**Proved able to fail four ways, and each claim alone:**
+
+1. the view direction forced to the nose — the rear-view hit reddens;
+2. the view argument forced to 0 — the no-mount refusal reddens;
+3. the hit source forced to the ship's own position — the fore-shield claim
+   reddens;
+4. the hit source mirrored through the ship — both shield claims redden.
+
+**PROOF 1 IS THE DELETION'S EVIDENCE, AND IT HOLDS.** The four deleted
+assertions existed to catch a wrong argument reaching `Combat.fire`. Proof 1
+sends a wrong argument, and a kept assertion catches it. Nothing was lost.
+
+**A SECOND STALE CLAIM CAME OUT OF IT, AND IT WAS docs/TODO/176 M3's.** That
+milestone named the save block as the one section that could leave. It read the
+section headings and inferred, which is the method that broke M4's reader count
+at the same site. The save block flies the step four times, and its load-bearing
+claim is that a restored world replays its run byte for byte.
+
+**Three imports came off `test/world-step.test.ts`** — `firePlayerLaser`,
+`playerPoolPoints` and the `CombatEvent` type. `viewDirection` stayed, because
+the file still reads it elsewhere.
+
+**No file under `src/` changed**, so the tier table's "nothing more" held and no
+probe was owed.

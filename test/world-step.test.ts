@@ -1,9 +1,25 @@
-// The world step, headless: five phases in the order they must run.
+// The world step, headless: every claim that needs a stepped world.
 //
 // The whole point of this file is that it needs no browser. three.js maths works
 // under node; what did not was module-scope side effects, extensionless imports
 // and JSON without an attribute. All three are fixed, so the step is testable
 // directly instead of by grepping its source.
+//
+// THIS HEADER SAID "five phases in the order they must run" UNTIL
+// docs/TODO/177. `world-step.ts` does hold five phases — `flyPlayer`,
+// `stepNpcs`, `stepProjectilesAndEffects`, `stepShipSystems` and
+// `checkHazards` — and this file never mirrored them. docs/TODO/176 M3
+// measured that, and 177 measured what the sections actually have in common.
+//
+// EVERY SECTION HERE DRIVES THE STEP, and that is the file's real subject.
+// Determinism needs two stepped runs. The damage sources need a hit resolved
+// inside one. The pod, the police scan and the save each need a world that is
+// running: the save's load-bearing claim is that a restored world REPLAYS the
+// run it came from, and only a step can say so.
+//
+// One section did not, and docs/TODO/177 moved it. The player's own trigger and
+// shields are `test/combat-player.test.ts` now, at 116 lines that never stepped
+// anything.
 
 import * as THREE from 'three';
 import { viewDirection } from '../src/game/views.ts';
@@ -17,7 +33,7 @@ import {
 } from '../src/game/world-step.ts';
 import { playerImpactDamage } from '../src/game/impact-damage.ts';
 import { IMPACT } from '../src/constants/impact.ts';
-import { playerPoolPoints, type PlayerPoolPoints } from '../src/game/damage-units.ts';
+import type { PlayerPoolPoints } from '../src/game/damage-units.ts';
 import { npcLaserDamageToPlayer } from '../src/game/gunnery.ts';
 import { freshState } from '../src/game/state.ts';
 import { queueMessage, showMessage, tickMessage } from '../src/game/session.ts';
@@ -28,8 +44,7 @@ import {
 import type { NpcSnapshot, WorldSnapshot } from '../src/game/snapshot.ts';
 import { newCommander, cargoCapacity, cargoTonnes } from '../src/game/commander.ts';
 import { Combat, type DamageSource } from '../src/game/combat.ts';
-import type { CombatEvent } from '../src/game/combat-events.ts';
-import { firePlayerLaser, damagePlayer } from '../src/game/combat-player.ts';
+import { damagePlayer } from '../src/game/combat-player.ts';
 import { seedWorld, rngState, restoreRng } from '../src/game/rng.ts';
 import { pirateSpecForTier } from '../src/game/ship-specs.ts';
 import {
@@ -324,122 +339,6 @@ console.log('\nheadless world step');
     const c = arrival(8_888_888);
     fly(c, 600);
     check('...while a different seed does not', trace(c) !== first);
-  }
-
-  // --- the player's gun and hull, assembled from a state ---------------------
-  //
-  // `Combat.fire` wants seven arguments and `hitPlayer` six, and game.ts built
-  // every one of them out of `this` — so the player's own trigger could only be
-  // pulled by a Game. combat.ts's firePlayerLaser/damagePlayer do the assembly
-  // over a GameState instead, which is what lets another caller fire the real
-  // gun and hand the events somewhere other than the HUD.
-  //
-  // The property that matters is not that the new functions work: it is that
-  // they are the SAME call. So each of these runs the shot twice from an
-  // identical seeded state — once with the arguments spelled out as game.ts
-  // spelled them, once through the extraction — and demands the events, the
-  // target's hp and the ship's systems all come out identical.
-  {
-    /** the same state twice: a pirate parked dead ahead, tough enough to live */
-    const dueller = () => {
-      seedWorld(60_606);
-      const state = freshState(newCommander());
-      state.world.build(state.systems[state.commander.systemIndex]);
-      state.player.position.set(0, 0, 0);
-      state.player.quaternion.identity();          // nose along -Z
-      const npc = state.world.spawn('pirate', new THREE.Vector3(0, 0, -400), 1);
-      npc.state.energy = 90;                             // takes the hit, survives it
-      // a ship spawned this frame has no world matrix yet, and the raycast
-      // reads matrixWorld — without this the shot is tested against the origin
-      npc.object.updateMatrixWorld(true);
-      return {
-        state, npc,
-        combat: new Combat(state.world),
-        scratch: {
-          a: new THREE.Vector3(), b: new THREE.Vector3(),
-          q: new THREE.Quaternion(), ray: new THREE.Raycaster(),
-        },
-      };
-    };
-
-    /** an event list as comparable text: kinds, and the numbers inside them */
-    const digest = (events: readonly CombatEvent[]) => JSON.stringify(events.map((e) =>
-      e.kind === 'message' ? [e.kind, e.text, e.seconds]
-        : e.kind === 'offence' ? [e.kind, e.level]
-          : e.kind === 'wrecked' ? [e.kind, e.npc.role]
-            : e.kind === 'beam' ? [e.kind, e.at ? e.at.toArray() : null]
-              : e.kind === 'died' ? [e.kind, e.reason] : [e.kind]));
-    /** what the shot LEFT behind: the target's energy and the ship's systems */
-    const after = (d: ReturnType<typeof dueller>) =>
-      JSON.stringify([d.npc.state.energy, d.state.sys]);
-
-    const tmp = new THREE.Vector3();
-    const byHand = dueller();
-    const handEvents = digest(byHand.combat.fire(
-      byHand.state.commander, byHand.state.sys, byHand.state.player.position,
-      viewDirection(byHand.state.player.quaternion, byHand.state.session.view, tmp),
-      byHand.state.session.view, byHand.state.session.witchspace, byHand.scratch));
-
-    const extracted = dueller();
-    const outEvents = digest(
-      firePlayerLaser(extracted.state, extracted.combat, extracted.scratch));
-
-    check('the extracted trigger reports what game.ts\'s seven arguments did',
-      handEvents === outEvents);
-    check('...and it was a hit, so the comparison is not of two empty lists',
-      handEvents.includes('"offence"') && byHand.npc.state.energy < 90);
-    check('...leaving the same energy on the target and the same heat in the gun',
-      after(byHand) === after(extracted));
-
-    // The view is read from the state, not assumed to be the nose: a rear-view
-    // shot hits what is BEHIND you, and that is the one argument of the seven
-    // that was easiest to lose in the move.
-    const rear = dueller();
-    rear.npc.object.position.set(0, 0, 400);
-    rear.npc.object.updateMatrixWorld(true);
-    rear.state.session.view = 1;                   // looking aft
-    rear.state.commander.equipment.rearLaser = true;
-    const aft = digest(firePlayerLaser(rear.state, rear.combat, rear.scratch));
-    check('a rear-view shot still hits what is behind you',
-      aft.includes('"offence"') && rear.npc.state.energy < 90);
-    // ...and without the mount there is nothing to fire, which is the other
-    // half of the view reaching the gun
-    const noMount = dueller();
-    noMount.npc.object.position.set(0, 0, 400);
-    noMount.npc.object.updateMatrixWorld(true);
-    noMount.state.session.view = 1;
-    check('...and with no rear mount fitted, nothing happens at all',
-      firePlayerLaser(noMount.state, noMount.combat, noMount.scratch).length === 0
-        && noMount.npc.state.energy === 90);
-
-    // ...and the damage model, the same way. The shield absorbs it, so
-    // applyDamage draws no rng and the two calls are directly comparable.
-    const hitByHand = dueller();
-    const shieldWas = hitByHand.state.sys.foreShield;
-    const hitFrom = new THREE.Vector3(0, 0, -400);
-    const handHit = digest(hitByHand.combat.hitPlayer(
-      hitByHand.state.sys, playerPoolPoints(128), hitFrom,
-      hitByHand.state.player.position, hitByHand.state.player.quaternion,
-      hitByHand.scratch));
-    const hitExtracted = dueller();
-    const outHit = digest(
-      damagePlayer(hitExtracted.state, hitExtracted.combat, playerPoolPoints(128),
-        hitFrom, hitExtracted.scratch));
-    check('the extracted damage path reports the same as the hand-built call',
-      handHit === outHit);
-    check('...and takes it off the same shield, which really did drop',
-      JSON.stringify(hitByHand.state.sys) === JSON.stringify(hitExtracted.state.sys)
-        && hitExtracted.state.sys.foreShield < shieldWas);
-
-    // From behind it is the AFT shield. Which shield takes a hit is the one
-    // thing hitPlayer resolves out of the player's transform, so it is the bit
-    // the extraction could most easily have got wrong.
-    const fromAft = dueller();
-    damagePlayer(fromAft.state, fromAft.combat, playerPoolPoints(128),
-      new THREE.Vector3(0, 0, 400), fromAft.scratch);
-    check('a hit from astern lands on the aft shield',
-      fromAft.state.sys.aftShield < shieldWas
-        && fromAft.state.sys.foreShield === shieldWas);
   }
 
   // --- and every hit says what did it ----------------------------------------

@@ -104,6 +104,7 @@ import './snapshot-migrate.test.ts';
 import './deep-space-traffic.test.ts';
 import './gunnery.test.ts';
 import './fire-resolution.test.ts';
+import './combat-player.test.ts';
 import './missiles.test.ts';
 import './missile-cap.test.ts';
 import './instrumentation.test.ts';
