@@ -136,3 +136,61 @@ is what says so.
    through the real `serialiseState`.
 
 **Prove each able to fail**, and each one alone.
+
+## Outcome
+
+### M1 — `game/npc-state.ts`
+
+262 lines, holding `NpcState`, `PlayerRef` and `freshNpcState`. `npc.ts` went
+1,468 lines to 1,270.
+
+**Every per-field doc comment travelled with its field.** That answers
+docs/TODO/169 M4's reason for refusing this cut: nothing is separated from the
+comment beside it.
+
+**Three importers were repointed**, exactly as the plan named them, and `tsc`
+found all three. Three imports came off `npc.ts` with them: `AttackPhase`,
+`makeDockPlan` and `EXTEND_RANGE_MAX`.
+
+**THE SEEDED STREAM DID NOT MOVE, AND THAT WAS THE RISK.** `survivability`,
+`aim-probe`, `gap-probe` and `ram-probe` are byte-identical, and
+`npm run campaign` is byte-identical at both sizes.
+
+**THE FACTORY DRAWS THREE VALUES, NOT TWO, AND THE GATE MEASURED IT.** The first
+draft of that claim said two, and it failed. `docksHere` takes one.
+`tumbleAxis` looks like one call, and `randomDirection` spends TWO inside it,
+for the height and the bearing of a point on a sphere. A number that has to be
+measured is exactly the kind worth holding still.
+
+**A SECOND CLAIM WAS DROPPED FOR BEING A WEAKER COPY.** The first draft asserted
+that the real serialiser walks the state, over four checks. Breaking the shape
+reddened three assertions in `test/snapshot.test.ts` and none of mine. That file
+already holds the whole walk, and it drives a REAL flown ship through it.
+What is left here is the one thing it cannot say: a state built by the FACTORY
+is walkable too.
+
+**`test/npc-state.test.ts` is 11 assertions in three blocks.** A source scan with
+a control, the factory's opening values and draw count, and one walk.
+
+**Proved able to fail three ways, and each one alone.** An `NpcShip` import
+reddens the two scan claims. A fourth draw in the factory reddens the draw
+count, **and two unrelated seeded tests with it.** That is the argument for
+having the claim. The others go red, and this one says which line did it.
+
+**Two stale mentions were repaired in the same commit**, which is docs/TODO/179's
+lesson applied at the first opportunity. `npc.ts`'s own header said `NpcState` is
+184 lines and still belongs elsewhere. `trader-flight.ts` named `game/npc.ts` as
+its home.
+
+### M2 — the row stops saying DEBT
+
+**`npm run sizes` reads 0 known debts.** No earlier run of it read zero.
+
+The row states the four refusals with their numbers, what each of the four cuts
+took, and how the file is actually read. It also states what would re-open it: a
+new measurement, and never a line count.
+
+**The file still carries a stated reason**, because it is over 400 lines. The
+reason is that it is one ship.
+
+4,849 assertions became 4,858.

@@ -38,7 +38,7 @@ export type TraderPhase = 'arriving' | 'trading' | 'departing' | 'docking';
 /**
  * The trader's slice of a ship's saved state.
  *
- * `NpcState` in `game/npc.ts` holds every field below, beside the fields the
+ * `NpcState` in `game/npc-state.ts` holds every field below, beside those the
  * other roles need. This interface names the ones a trader reads or writes, so
  * this file needs no ship class. Four of the fields are shared with other
  * roles: `speed`, `waypoint`, `waypointTimer` and `wantsDespawn`.

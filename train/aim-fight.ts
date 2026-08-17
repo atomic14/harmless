@@ -72,7 +72,7 @@ import {
 } from '../src/game/combat-sim-report.ts';
 import { NO_OPENING } from '../src/game/combat-sim-opening.ts';
 import { describeFlight } from '../src/game/break-off.ts';
-import type { NpcState } from '../src/game/npc.ts';
+import type { NpcState } from '../src/game/npc-state.ts';
 import { energyLow } from '../src/game/systems.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
 
