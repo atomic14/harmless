@@ -195,3 +195,43 @@ whether a type is honestly narrow.
 
 **M3 and M4 produce prose, and `npm run ste:check` reads all of it.**
 `npm run titles:check` reads any heading M4 adds.
+
+## Outcome
+
+### M1 — the measurement
+
+`npc.ts` is 1,544 lines rather than the 1,537 this plan's table states. docs/TODO/174
+gave `approach` the doc comment it never had, on the same day.
+
+**The class is 785 lines of member bodies, of 1,544.** `NpcState` is 184 more.
+The rest is the module header, the imports and the doc comment beside each
+member.
+
+**`update` cannot leave, and the measurement is one-sided.** It is 154 lines. It
+reaches `this.*` 81 times, over 21 members. Nineteen of the 81 are calls to eight
+of the class's own methods. It reaches the transform 9 times, the scratch vectors
+6 times, and the flight stats 3 times. It is also the file's stated
+responsibility: *what it decides each frame*. A caller needs the whole ship.
+
+**`updateTrader` is a cut, and M2 takes it.** It is 73 lines and 44 reaches, over
+7 members. Only four handles are needed: `state`, `object`, `maxSpeed` and
+`turnRate`. Twenty-eight of the 44 reaches go through the one `state` object, so
+one handle answers 28 of them.
+
+**THE PLAN DID NOT HAVE THE SCRATCH FINDING, AND IT IS THE STRONGEST ARGUMENT.**
+`tmpMat` and `tmpQ` are read at three lines of the whole file, and all three are
+inside `updateTrader`. The module header claims nine scratch vectors for the
+allocation rule. Two of the nine serve one member. They leave with it.
+
+**The member is already half a collaborator.** Its `docking` phase hands the work
+to `planDocking` in `game/docking.ts`, which is a pure planner. So the shape M2
+writes is the shape the hardest phase already has.
+
+**The seam is five times narrower than the one 169 M3 refused.** That refusal was
+69 reaches around a 21-line subject, at 3.3 reaches per line. This is 44 reaches
+around a 73-line subject, at 0.60.
+
+**Three things travel with the cut, and the plan did not have them.**
+`approach` is a four-line local helper with eight call sites, and four of the
+eight are in `updateTrader`. `random` and `randomDirection` come from
+`game/rng.ts`. `ZERO` is a module constant that only the docking phase reads.
