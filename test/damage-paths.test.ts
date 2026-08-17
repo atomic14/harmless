@@ -281,6 +281,12 @@ console.log('\nthe old scale is gone, and cannot come back');
 {
   const files = [
     'game/world-step.ts', 'game/game.ts', 'game/combat.ts', 'game/npc.ts',
+    // ADDED BY docs/TODO/183 M1, AND THE REASON IS A COVERAGE GAP THIS LIST
+    // CANNOT SEE ON ITS OWN. `brainFly` moved out of `game/npc.ts`, and it
+    // carries one line the pattern below matches. The count fell from 14 to 13
+    // and nothing failed, because the vacuity floor is `>= 8`. A hand-written
+    // file list loses reach every time a file splits.
+    'game/npc-brain-pilot.ts',
     'game/systems.ts', 'game/gunnery.ts', 'game/npc-energy.ts',
     'game/impact-damage.ts', 'game/damage-units.ts', 'game/damage-dealt.ts',
     'game/collisions.ts',
@@ -407,6 +413,11 @@ console.log('\nthe old scale is gone, and cannot come back');
     // fourth copy of a damage number, which is what this whole file is about.
     'game/ordnance.ts': 'the E.C.M. spends energy — a cost, not damage',
     'ai-training/scenario.ts': 'the stand-in target\'s hp setter, TODO 29',
+    // NOT A POOL AT ALL, and it is here because the pattern cannot tell.
+    // `me.energy` is the OBSERVATION view a brain reads, and the value written
+    // into it is already a fraction (`healthFraction`). It was inside
+    // `game/npc.ts` until docs/TODO/183 M1, covered by that file's entry.
+    'game/npc-brain-pilot.ts': 'an observation field named energy, not a bank',
   };
   const writers: string[] = [];
   let poolWrites = 0;

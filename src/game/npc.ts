@@ -69,26 +69,23 @@
 // need about eighteen handles, which docs/TODO/169 M3 measured as a 69-call
 // seam and refused. A collaborator that HAS the ship needs one.
 //
-// THE PILOTS ARE THE GATE ON THE REST. `attack`, `pursue` and `brainFly` are
-// how a ship is flown while it fights, and three of `update`'s branches call
-// them. Nothing else can leave until they are objects too.
+// A PILOT FLIES A SHIP (docs/TODO/183). `brainFly` is `game/npc-brain-pilot.ts`
+// already, and it takes a `PilotShip` rather than this class. `attack` and
+// `pursue` follow in M2, and they move together because the dogfighter falls
+// back to the attack run.
+//
+// TWO FLIGHT MODELS ARE STILL HERE, and `update` still calls them as methods.
+// Every branch that does is named in docs/TODO/183.
 import * as THREE from 'three';
 import { buildShip, buildAsteroid, buildHermitBeacon } from '../ships/geometry.ts';
 import { registeredHull } from '../ships/registry.ts';
 import {
   ASTEROID_IDENTITY, rosterSpec, shipAccel, type NpcSpec,
 } from './ship-specs.ts';
-import { TURN } from '../constants/hull-motion.ts';
 import type { NpcRole } from './ship-roles.ts';
 import type {
   NpcCombatProfileId, ShipDesignId, ShipIdentity,
 } from './ship-identity.ts';
-import {
-  act, makeObs, makeScratch, type Brain,
-} from '../ai-training/policy.ts';
-import {
-  observeFor, shipView, writeView, type ObservableMate, type ThreatsView,
-} from '../ai-training/observation.ts';
 import { defenceBrain } from './brains.ts';
 import { defenceBrainNameFor, pirateBrainNameFor } from './brain-names.ts';
 import { attackRunSteer, attackRunSpeed } from './attack-run.ts';
@@ -99,9 +96,6 @@ import { PURSUIT_SLASH_CONE, PURSUIT_HOLD_CONE } from '../constants/combat-compu
 import {
   MIN_CRUISE_FRACTION, UNDER_FIRE_SECONDS,
 } from '../constants/attack-run.ts';
-import {
-  BRAIN_RATE_DECAY, BRAIN_RATE_RAMP, DECISION_INTERVAL,
-} from '../constants/brain-flight.ts';
 import { TACTICS, type TacticId } from '../constants/tactics.ts';
 import { chooseTactic, tacticSwitchReason, type TacticHull } from './tactic-choice.ts';
 import { PLAYER_INTEREST_RANGE, TURN_AND_FIGHT_RANGE } from '../constants/player-interest.ts';
@@ -123,9 +117,9 @@ import {
   regeneratedEnergy, type NpcEnergyPolicy,
 } from './npc-energy.ts';
 import type { NpcEnergyPoints } from './damage-units.ts';
-import { rampToward } from '../player.ts';
 import { random, randomDirection, randomQuaternion } from './rng.ts';
 import { stepTrader } from './trader-flight.ts';
+import { brainFly } from './npc-brain-pilot.ts';
 import type { NpcBehaviour } from './npc-behaviour.ts';
 import {
   derelictIdle, hermitIdle, inertTumble, rockIdle,
@@ -313,36 +307,6 @@ export class NpcShip {
   private readonly tmpFwd = new THREE.Vector3();
   private readonly mateSlots: THREE.Vector3[] = [];
 
-  // sized for the WIDEST encoder; narrower brains read their own prefix
-  private static readonly obsBuf = makeObs();
-  /** scratch packmate list, reused so the 10 Hz decision stays allocation-light */
-  private static readonly mateView: ObservableMate[] = [];
-  /** …backed by a pool that is never truncated, so growth allocates once */
-  private static readonly matePool: ObservableMate[] = [];
-  private static readonly scratch = makeScratch();
-  /**
-   * The observation views, refilled per decision — see policy.ts `shipView`.
-   *
-   * ONE number is load-bearing, and it is a field brainFly never writes.
-   * `meView.laserTemp` stays 0, so obs slot 1 (our laser heat) is always 0 in
-   * the game. Every shipped brain was fitted against exactly that. To feed it a
-   * real number is a retrain, and not a one-line fix.
-   *
-   * `hp` is filled truthfully. Nothing shipped reads it on this path. Only
-   * `observePackWide`'s slot 25 and `observeDefend`'s slot 14 do. A 26-input
-   * pack brain must be TRAINED against a real number rather than a constant
-   * 1.0. None is in the tree, and `npm test` holds the directory to the three
-   * that are.
-   *
-   * The rest are inert: brainFly overwrites the me envelope and the target's
-   * pos/quat/speed every decision, and no encoder reads a TARGET's `cls`. Kept
-   * with a plausible envelope only because it reads easier in a debugger than
-   * zeroes.
-   */
-  private static readonly meView = shipView(0, 0);
-  private static readonly targetView = shipView(400, 1.1, 300);
-
-  /** the seed its hull and stats were generated from — kept so a snapshot can rebuild it */
   readonly variantSeed: number;
 
   /**
@@ -360,15 +324,6 @@ export class NpcShip {
 
   /** All serialisable mutable state, exposed through this one public path. */
   readonly state: NpcState;
-
-  /** Private aliases keep the flight code readable without duplicating the public API. */
-  private get brainControl(): { pitch: number; roll: number; throttle: number; fire: boolean } | null {
-    return this.state.brainControl;
-  }
-
-  private set brainControl(v: { pitch: number; roll: number; throttle: number; fire: boolean } | null) {
-    this.state.brainControl = v;
-  }
 
   /**
    * @param identity what a RESTORED ship was — omitted for a fresh spawn, which
@@ -470,7 +425,7 @@ export class NpcShip {
    * can change, because the ship is the hull it was built as. A second copy of
    * an immutable fact is a second copy to keep in step.
    */
-  private get tacticHull(): TacticHull {
+  get tacticHull(): TacticHull {
     return { radius: this.radius, maxSpeed: this.maxSpeed, turnRate: this.turnRate };
   }
 
@@ -579,7 +534,7 @@ export class NpcShip {
         const live = this.attackers.filter((a) => a.state.alive);
         if (this.state.provokedByPlayer && distPlayer < TURN_AND_FIGHT_RANGE) {
           // fighting the commander; every NPC attacker is 'the rest of the sky'
-          return this.brainFly(defence, dt,
+          return brainFly(this, defence, dt,
             player.position, player.quaternion, 300, distPlayer, 'player', null, {
               others: live.map((a) => ({ pos: a.object.position })),
               count: live.length + 1,
@@ -589,7 +544,7 @@ export class NpcShip {
         const attacker = this.nearestAttacker(dt);
         if (attacker) {
           const d = attacker.object.position.distanceTo(this.object.position);
-          return this.brainFly(defence, dt,
+          return brainFly(this, defence, dt,
             attacker.object.position, attacker.object.quaternion, 260, d, attacker, null, {
               others: live.filter((a) => a !== attacker)
                 .map((a) => ({ pos: a.object.position })),
@@ -691,34 +646,9 @@ export class NpcShip {
    * The entries are pooled and refilled, not allocated: a gang of four
    * re-deciding at 10 Hz otherwise churns 40 objects a second for nothing.
    */
-  private packmates(fleet: readonly NpcShip[]): ObservableMate[] {
-    const out = NpcShip.mateView;
-    const pool = NpcShip.matePool;
-    let n = 0;
-    for (const m of fleet) {
-      if (m === this || m.role !== 'pirate' || !m.state.alive) continue;
-      const slot = pool[n] ?? (pool[n] = {
-        pos: m.object.position, quat: m.object.quaternion,
-        hp: m.healthFraction, cls: { hp: 1 }, alive: true,
-      });
-      out[n] = slot;
-      slot.pos = m.object.position;
-      slot.quat = m.object.quaternion;
-      // NORMALIZED at the boundary: the encoder divides `hp` by `cls.hp`, so a
-      // fraction with divisor 1 is the observation the brains were fitted
-      // against. Feeding it raw energy points would break the moment a mate's
-      // max differed from the divisor.
-      slot.hp = m.healthFraction;
-      slot.cls.hp = 1;
-      slot.alive = true;
-      n += 1;
-    }
-    out.length = n;
-    return out;
-  }
 
   /** The slowest this ship may fly under power. See MIN_CRUISE_FRACTION. */
-  private get speedFloor(): number {
+  get speedFloor(): number {
     return this.role === 'pirate' || this.role === 'thargoid' || this.role === 'thargon'
       ? this.maxSpeed * MIN_CRUISE_FRACTION : 0;
   }
@@ -732,107 +662,6 @@ export class NpcShip {
    * target. So there is exactly one implementation of "how a brain-flown ship
    * moves" (invariant 5).
    */
-  brainFly(
-    brain: Brain,
-    dt: number,
-    targetPos: THREE.Vector3,
-    targetQuat: THREE.Quaternion,
-    targetSpeed: number,
-    dist: number,
-    fireAt: 'player' | NpcShip | null,
-    /**
-     * The ships this one is hunting with, or null if it flies alone. Pass it
-     * whenever it exists — `observeFor` decides whether this brain can read it.
-     */
-    fleet: readonly NpcShip[] | null = null,
-    /**
-     * The rest of the sky, for a DEFENCE brain — the attackers beyond the one
-     * being fought (`ThreatsView`). Null for the attack phases, whose encoders
-     * never read it; the defence-path callers below build it from `attackers`.
-     */
-    threats: ThreatsView | null = null,
-  ): FireEvent | null {
-    this.state.flownBy = 'brain';
-    this.state.brainTimer -= dt;
-    if (!this.brainControl || this.state.brainTimer <= 0) {
-      this.state.brainTimer = DECISION_INTERVAL;
-      const me = NpcShip.meView;
-      const tv = NpcShip.targetView;
-      writeView(me, this.object.position, this.object.quaternion);
-      me.speed = this.state.speed;
-      me.cls.maxSpeed = this.maxSpeed;
-      me.cls.turnRate = this.turnRate;
-      me.laserCooldown = this.state.fireCooldown;
-      // HOW HURT IT IS. An NPC has ONE pool where the commander has three. So
-      // its bank is both its overall condition and its energy. It is the same
-      // fraction in both slots, because for this ship they are one fact.
-      // `cls.hp` is 1 because `healthFraction` is already normalized, which is
-      // the same conversion `packmates()` makes for a mate's health.
-      me.hp = this.healthFraction;
-      me.cls.hp = 1;
-      me.energy = this.healthFraction;
-      // ...and no warhead flies at it. A hostile warhead flies at the
-      // COMMANDER (`Missile.target === null` is what makes it hostile), and an
-      // NPC's own E.C.M. is `state.hasEcm`, applied by ordnance.ts. So a
-      // defence policy never sees slot 16 set, and its E.C.M. head is not read
-      // here. The button belongs to the ship that has one to press.
-      me.missileInbound = false;
-      // One pool, not two faces. Whichever side a hit lands on, this is what
-      // it spends. So the split a defence brain reads is the pool, twice.
-      me.fore = this.healthFraction;
-      me.aft = this.healthFraction;
-      me.pitchRate = this.state.brainPitchRate;
-      me.rollRate = this.state.brainRollRate;
-      writeView(tv, targetPos, targetQuat);
-      tv.speed = targetSpeed;
-      // Which observation this brain wants is policy.ts's question — see
-      // `observeFor`. All this file owes it is the pack, in the shape the wide
-      // encoder reads, and nothing if this ship flies alone.
-      this.brainControl = act(
-        brain,
-        observeFor(brain, me, tv, fleet ? this.packmates(fleet) : null, NpcShip.obsBuf,
-          threats ?? undefined),
-        NpcShip.scratch,
-      );
-    }
-    const c = this.brainControl;
-
-    // integrate the discrete control, with the player's ramp rule and the
-    // policies' own constants
-    const maxPitch = this.turnRate * TURN.pitch;
-    const maxRoll = this.turnRate * TURN.roll;
-    const rampTo = (cur: number, target: number, active: boolean): number =>
-      rampToward(cur, target, active, dt, BRAIN_RATE_RAMP, BRAIN_RATE_DECAY);
-    this.state.brainPitchRate = rampTo(this.state.brainPitchRate, c.pitch * maxPitch, c.pitch !== 0);
-    this.state.brainRollRate = rampTo(this.state.brainRollRate, c.roll * maxRoll, c.roll !== 0);
-    if (c.throttle > 0) this.state.speed = Math.min(this.maxSpeed, this.state.speed + this.accel * dt);
-    // A fighter that can stop dead becomes a turret — see MIN_CRUISE_FRACTION.
-    if (c.throttle < 0) {
-      this.state.speed = Math.max(this.speedFloor, this.state.speed - this.accel * dt);
-    }
-    if (this.state.brainRollRate !== 0) this.object.rotateZ(this.state.brainRollRate * dt);
-    if (this.state.brainPitchRate !== 0) this.object.rotateX(this.state.brainPitchRate * dt);
-    this.advance(dt);
-
-    this.state.fireCooldown -= dt;
-    // The policy's own `fire` output is deliberately NOT consulted: the brain
-    // decides where to be, the gun decides when to shoot. The trained trigger
-    // is a training artifact nobody tuned (r2 lines up 38% of the time yet
-    // fires 0.6 shots an engagement — the "they point right at me and never
-    // shoot" bug). Rate is exactly what gunnery.ts's npcTriggerPull says, a
-    // number that can be tuned rather than an emergent one.
-    if (fireAt !== null) {
-      const reload = npcTriggerPull(
-        this.state.fireCooldown, this.facing(targetPos), dist, random);
-      if (reload !== null) {
-        this.state.fireCooldown = reload;
-        return fireAt === 'player'
-          ? { at: 'player', weapon: 'laser' }
-          : { at: fireAt, weapon: 'laser' };
-      }
-    }
-    return null;
-  }
 
   /**
    * The pre-RL scripted chase, one step.
@@ -1182,7 +1011,7 @@ export class NpcShip {
     return forward.angleTo(to);
   }
 
-  private steerToward(point: THREE.Vector3, dt: number): void {
+  steerToward(point: THREE.Vector3, dt: number): void {
     steerQuatToward(
       this.object.quaternion,
       this.tmpDir.copy(point).sub(this.object.position),

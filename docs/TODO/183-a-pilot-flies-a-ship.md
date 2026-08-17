@@ -138,3 +138,69 @@ Take the baseline before M1.
    to the ship it was given.
 
 **Prove each able to fail, and each one alone.**
+
+## Outcome
+
+### M1 — the pilot seam, and the trained brain
+
+`game/npc-pilot.ts` is 97 lines and `game/npc-brain-pilot.ts` is 198. `npc.ts`
+went 1,292 lines to 1,117.
+
+**THE `Pilot` INTERFACE IS NOT DECLARED, AND THAT IS A DEVIATION FROM THE
+PLAN.** The plan said M1 declares `Pilot` and `PilotShip`. Written, the three
+pilots share no signature: `brainFly` takes nine arguments and `attack` takes a
+different seven. A common `fly(ship, dt, target)` needs one target OBJECT, and
+the step allocates nothing per frame, so the shape has to be a reused scratch.
+**That is a decision worth taking with all three signatures in view.** M1
+declares `PilotShip` alone, and the file says so where the interface will go.
+
+**SIX STATIC BUFFERS MOVED WITH THE BRAIN**, and they stay shared rather than
+becoming per pilot. `obsBuf`, `mateView`, `matePool`, `scratch`, `meView` and
+`targetView` were static members of `NpcShip`, shared by every ship in the sky.
+One per pilot would allocate per SHIP, and a training episode builds thousands.
+
+**Four members went public**: `speedFloor`, `healthFraction`, `tacticHull` and
+`steerToward`. That is docs/TODO/176 M2's reason again — a collaborator needs
+the primitive.
+
+**A dead private alias came off.** `NpcShip` had a `brainControl` setter that
+only `brainFly` used, and the pilot writes `ship.state.brainControl` directly.
+
+**The seeded stream did not move.** `survivability`, `aim-probe`, `gap-probe`,
+`ram-probe` and `defence-probe` are byte-identical, and `npm run campaign` is
+byte-identical at both sizes.
+
+**`npm run elite-a` DIFFERED, AND IT FOUND A REAL COVERAGE GAP.** Its pool-write
+count fell from 14 to 13. `test/damage-paths.test.ts` scans a HAND-WRITTEN list
+of files for a write to `.energy`, `.foreShield` or `.aftShield`. `brainFly`
+carries one line the pattern matches, and moving it out of a listed file took it
+out of the scan's reach.
+
+**Nothing failed, because the vacuity floor is `>= 8`.** A hand-written file
+list loses reach every time a file splits, and only a count said so.
+
+**The line is not a health pool at all.** `me.energy` is the OBSERVATION view a
+brain reads, and the value written into it is already a fraction. The new file
+is on both the scan's list and its owner table, and the owner entry says which
+of the two it is. The count is 14 again.
+
+**The only difference left in `elite-a` is a file count**: 267 files scanned
+became 269. That is the two new files, which is the move rather than a change.
+
+**`test/npc-brain-pilot.test.ts` is 10 assertions in two parts.** The scan holds
+three things. The pilot's own parameter is a `PilotShip`. Nothing it flies is
+typed `NpcShip`. And **every import from `npc.ts` is `import type`**, which is
+what makes the cycle a paper one. A control reads a file that imports a VALUE
+from `npc.ts`.
+
+**THE CLAIM IS DELIBERATELY NOT `test/hostility.test.ts`'s.** That file holds
+that a fleet RULE names no ship class, which is right for a rule and wrong for a
+pilot. A pilot needs the whole ship, and the honest claim is that the ship it
+FLIES is narrow.
+
+**Proved able to fail two ways, and each one alone.** A pilot typed to take
+`NpcShip` reddens the two scan claims. A pilot that does not stamp
+`state.flownBy` reddens the fixture claim, **and two readout tests with it.**
+That is docs/TODO/88's defect, caught by three files at once.
+
+4,873 assertions became 4,883.

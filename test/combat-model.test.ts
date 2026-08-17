@@ -16,6 +16,7 @@ import {
 } from '../src/constants/npc-gun.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { NpcShip } from '../src/game/npc.ts';
+import { brainFly } from '../src/game/npc-brain-pilot.ts';
 import { MIN_CRUISE_FRACTION } from '../src/constants/attack-run.ts';
 import { BRAIN_RATE_RAMP, BRAIN_RATE_DECAY } from '../src/constants/brain-flight.ts';
 import { PLAYER_SPEED_KEPT, NPC_SPEED_KEPT } from '../src/constants/collision.ts';
@@ -172,7 +173,7 @@ console.log('\none combat model (the trainer flies the game)');
     const level = new THREE.Quaternion();
     for (let i = 0; i < 900; i++) {
       pin(ship, { pitch: 0, roll: 0, throttle: -1, fire: false }); // full brake
-      ship.brainFly(jameson, 1 / 60, ahead, level, 300, 5000, null);
+      brainFly(ship, jameson, 1 / 60, ahead, level, 300, 5000, null);
     }
     return ship.state.speed;
   };
@@ -201,7 +202,7 @@ console.log('\none combat model (the trainer flies the game)');
     for (let i = 0; i < seconds * 60; i++) {
       pin(ship, { pitch: 0, roll: 0, throttle: 0, fire: true });
       ship.object.position.set(0, 0, 0); // hold station, so only the gun varies
-      if (ship.brainFly(jameson, 1 / 60, target, new THREE.Quaternion(),
+      if (brainFly(ship, jameson, 1 / 60, target, new THREE.Quaternion(),
         300, range, 'player', null)) shots += 1;
     }
     return shots;
@@ -278,7 +279,7 @@ console.log('\none combat model (the trainer flies the game)');
     for (let i = 0; i < 120; i++) {
       const pitch = i < 60 ? 1 : 0;
       pin(ship, { pitch, roll: 0, throttle: 0, fire: false });
-      ship.brainFly(jameson, 1 / 60, far, level, 300, 5000, null);
+      brainFly(ship, jameson, 1 / 60, far, level, 300, 5000, null);
       predicted = ccRamp(predicted, pitch * cap, pitch !== 0, 1 / 60);
       worst = Math.max(worst, Math.abs(ship.state.brainPitchRate - predicted));
       peak = Math.max(peak, ship.state.brainPitchRate);

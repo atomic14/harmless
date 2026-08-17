@@ -15,6 +15,7 @@ import {
 } from '../src/game/snapshot.ts';
 import { CargoField, canisterMaxEnergy } from '../src/game/cargo.ts';
 import { NpcShip } from '../src/game/npc.ts';
+import { brainFly } from '../src/game/npc-brain-pilot.ts';
 import { World } from '../src/game/world.ts';
 import { specForDesign } from '../src/game/ship-specs.ts';
 import type { NpcRole } from '../src/game/ship-roles.ts';
@@ -103,7 +104,7 @@ console.log('\nsnapshot round trip');
   const playerPos = at(0, 0, 0);
   const playerQuat = new THREE.Quaternion();
   for (let i = 0; i < 12; i++) {
-    flown.brainFly(defendShaped, 1 / 60, playerPos, playerQuat, 300,
+    brainFly(flown, defendShaped, 1 / 60, playerPos, playerQuat, 300,
       flown.state.pos.distanceTo(playerPos), 'player');
   }
 

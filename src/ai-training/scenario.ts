@@ -2,8 +2,8 @@
 //
 // AN EPISODE IS THE REAL GAME, WITH THE SKY EMPTIED.
 //
-// The pirates are `NpcShip`s flying `NpcShip.brainFly`. The target is a
-// `PlayerShip` flown from a `FlightDemand`, exactly as the human's hands and
+// The pirates are `NpcShip`s, flown by `game/npc-brain-pilot.ts`. The target
+// is a `PlayerShip` flown from a `FlightDemand`, exactly as the human's hands and
 // the combat computer fly it. The guns are `game/gunnery.ts`, the ramming is
 // `game/collisions.ts`, the missiles are `game/ordnance.ts`, the dice are
 // `game/rng.ts`. There is no second physics here at all — this file chooses who
@@ -41,6 +41,7 @@ import * as THREE from 'three';
 import { PlayerShip, rampToward, type FlightDemand } from '../player.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { NpcShip, type FireEvent } from '../game/npc.ts';
+import { brainFly } from '../game/npc-brain-pilot.ts';
 import type { PlayerRef } from '../game/npc-state.ts';
 import { steerQuatToward } from '../game/flight-maths.ts';
 import {
@@ -896,9 +897,9 @@ export class Episode {
         // The fleet goes in unconditionally: what a genome can SEE of it is
         // `observeFor`'s call, not this file's. Deciding it here as well is how
         // the trainer came to be able to produce genomes the game could not fly.
-        ? p.npc.brainFly(
-          ctrl.brain, dt, this.trader.pos, this.trader.quat, this.trader.speed,
-          range, 'player', this.fleet)
+        ? brainFly(
+          p.npc, ctrl.brain, dt, this.trader.pos, this.trader.quat,
+          this.trader.speed, range, 'player', this.fleet)
         // The shipped opposition: the pursuit dogfighter through the same
         // `pursuitFly` the live `update()` path flies, switch and all
         // (docs/TODO/102). The target's speed rides in on the same PlayerRef
