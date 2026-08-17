@@ -13,7 +13,12 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY.**
+1. [178](178-the-campaign-simulator-keeps-its-own-copy-of-a-purchase.md) — the
+   campaign simulator keeps its own copy of a purchase.
+
+**178 came from Chris on 2026-08-17**, when he asked for the next fix. It came
+out of a reading of `test/campaign.ts`. docs/TODO/176 M3 named that file on a
+line count, and the line count was not the defect.
 
 **177 came from Chris on 2026-08-17**, when he asked for the next smell.
 docs/TODO/176's own conclusion rested on a bad count, and he found it. It was a
