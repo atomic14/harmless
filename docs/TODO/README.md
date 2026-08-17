@@ -13,12 +13,13 @@ active context:
 
 ## Execution queue
 
-1. [181](181-the-saved-shape-of-a-ship-leaves-the-ship.md) — the saved shape of a
-   ship leaves the ship.
+**THE QUEUE IS EMPTY, AND SO IS THE DEBT LIST.** `npm run sizes` reads 0 known
+debts. No earlier run of it read zero.
 
 **181 came from Chris on 2026-08-17.** He asked to work on `src/game/npc.ts`,
 the tree's one recorded debt. Four candidates were measured, and not one of them
-has a reader behind it. He chose to take the size cut anyway.
+has a reader behind it. He chose to take the size cut anyway. It landed the same
+day, and it is below.
 
 **180 came from Chris on 2026-08-17.** He read 179's outcome and asked whether
 the magic values should be constants. A measurement answered that for one of
@@ -196,6 +197,33 @@ entry in the same `MIGRATIONS` table. **It is not worth writing, and a future
 reader should not read that table's shape as an invitation.**
 
 ## What landed on 2026-08-17
+
+**181 — the saved shape of a ship leaves the ship.** Chris asked to work on
+`src/game/npc.ts`, the tree's one recorded debt.
+
+**Four candidates were measured, and not one has a reader behind it.** `update`
+IS the file's stated responsibility. `brainFly`, `attack` and `pursue` are
+decision loops behind a 69-call seam. The constructor writes 17 members.
+`NpcState` had exactly one importer outside the file.
+
+**Chris read that and chose the size cut anyway.** `game/npc-state.ts` is 262
+lines, and `npc.ts` went 1,468 to 1,270.
+
+**`FireEvent` and `WorldView` stayed.** Each names `NpcShip`, so moving either
+would make a child import its parent.
+
+**THE SEEDED STREAM DID NOT MOVE, AND THAT WAS THE RISK.** Four probes are
+byte-identical, and the campaign is byte-identical at both sizes.
+
+**THE FACTORY DRAWS THREE VALUES, NOT TWO.** The first draft of that claim said
+two and failed. `randomDirection` spends two draws inside one call.
+
+**A second claim was dropped for being a weaker copy.** `test/snapshot.test.ts`
+already drives a real flown ship through the whole walk.
+
+**M2 RETIRED THE DEBT PREFIX, AND THE DEBT LIST IS EMPTY.** The row states the
+four refusals with their numbers, and what would re-open it: a new measurement,
+and never a line count. 4,858 assertions.
 
 **180 — thirteen game rules have no name.** Chris asked whether the magic values
 should be constants. A measurement answered it for one of three kinds.
