@@ -10,7 +10,7 @@
 
 import type { CommanderData } from './commander.ts';
 import { MAX_FUEL, MAX_MISSILES } from '../constants/commander.ts';
-import { FUEL_PRICE } from '../constants/shop.ts';
+import { BEAM_LASER_PRICE, FUEL_PRICE, PULSE_LASER_PRICE } from '../constants/shop.ts';
 
 /** Tenths of a LY needed to fill the tank. */
 export function fuelNeeded(c: { fuel: number }): number {
@@ -77,5 +77,60 @@ export function equipmentOwned(id: string, c: CommanderData): boolean {
     case 'military': return e.laser === 'military';
     case 'galacticDrive': return e.galacticDrive;
     default: return false;
+  }
+}
+
+/**
+ * Apply a purchase. The caller pays for it first.
+ *
+ * The other half of `equipmentOwned` above. That one READS a flag, and this one
+ * writes it. Both switch over the catalogue's ids, so both belong to the module
+ * that owns the arithmetic over a price list.
+ *
+ * IT DOES NOT DEDUCT THE PRICE, and that is deliberate. Each caller decides
+ * whether a purchase is allowed at all, and each decides on different grounds.
+ * The station screen refuses on the row's status and on the credits. The
+ * campaign's buyer works down a priority list. What they agree on is what a
+ * purchase DOES.
+ *
+ * THE REFUND IS HERE, because it is the one part that moves money. The old gun
+ * is refunded at what it cost, as the manual says, and the prices are the
+ * catalogue's own.
+ *
+ * IT SETS STATE AND SAYS NOTHING. A trumble earns a line in the cockpit, and
+ * that line is `screens/trade.ts`'s.
+ *
+ * TWO CALLERS SHARE IT (invariant 10). `screens/trade.ts` is the shop a player
+ * uses. `test/campaign.ts` is the headless balance playtest, which kept a copy
+ * of this switch until docs/TODO/178. That copy hardcoded the missile cap and
+ * both refunds.
+ */
+export function applyPurchase(c: CommanderData, id: string): void {
+  const e = c.equipment;
+  switch (id) {
+    case 'fuel': c.fuel = MAX_FUEL; break;
+    case 'missile': c.missiles = Math.min(MAX_MISSILES, c.missiles + 1); break;
+    case 'largeBay': e.largeBay = true; break;
+    case 'ecm': e.ecm = true; break;
+    case 'rearLaser': e.rearLaser = true; break;
+    case 'leftLaser': e.leftLaser = true; break;
+    case 'rightLaser': e.rightLaser = true; break;
+    case 'beam':
+      c.credits += PULSE_LASER_PRICE;
+      e.laser = 'beam';
+      break;
+    case 'military':
+      c.credits += e.laser === 'beam' ? BEAM_LASER_PRICE : PULSE_LASER_PRICE;
+      e.laser = 'military';
+      break;
+    case 'scoops': e.scoops = true; break;
+    case 'escapePod': e.escapePod = true; break;
+    case 'energyBomb': e.energyBomb = true; break;
+    case 'energyUnit': e.energyUnit = true; break;
+    case 'dockingComputer': e.dockingComputer = true; break;
+    case 'miningLaser': e.miningLaser = true; break;
+    case 'combatComputer': e.combatComputer = true; break;
+    case 'trumble': c.trumbles = 1; break;
+    case 'galacticDrive': e.galacticDrive = true; break;
   }
 }

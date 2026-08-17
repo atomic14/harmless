@@ -30,7 +30,7 @@ import {
 import { MAX_FUEL } from '../src/constants/commander.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import {
-  equipmentOwned, fuelNeeded, refuelCost,
+  applyPurchase, equipmentOwned, fuelNeeded, refuelCost,
 } from '../src/game/shop.ts';
 import { EQUIPMENT_CATALOGUE } from '../src/constants/shop.ts';
 import { pirateSpecForTier } from '../src/game/ship-specs.ts';
@@ -360,7 +360,7 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
         continue;
       }
       c.credits -= item.price;
-      applyEquipment(c, item.id);
+      applyPurchase(c, item.id);
       if (firstUpgradeLeg === null && item.id !== 'missile') firstUpgradeLeg = leg;
     }
 
@@ -551,28 +551,6 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
     bankruptAtLeg,
     peakCredits,
   };
-}
-
-function applyEquipment(c: CommanderData, id: string): void {
-  const e = c.equipment;
-  switch (id) {
-    case 'missile': c.missiles = Math.min(4, c.missiles + 1); break;
-    case 'largeBay': e.largeBay = true; break;
-    case 'ecm': e.ecm = true; break;
-    case 'rearLaser': e.rearLaser = true; break;
-    case 'leftLaser': e.leftLaser = true; break;
-    case 'rightLaser': e.rightLaser = true; break;
-    case 'beam': c.credits += 4000; e.laser = 'beam'; break;
-    case 'military': c.credits += e.laser === 'beam' ? 10000 : 4000; e.laser = 'military'; break;
-    case 'scoops': e.scoops = true; break;
-    case 'escapePod': e.escapePod = true; break;
-    case 'energyBomb': e.energyBomb = true; break;
-    case 'energyUnit': e.energyUnit = true; break;
-    case 'dockingComputer': e.dockingComputer = true; break;
-    case 'miningLaser': e.miningLaser = true; break;
-    case 'combatComputer': e.combatComputer = true; break;
-    case 'galacticDrive': e.galacticDrive = true; break;
-  }
 }
 
 /**

@@ -29,6 +29,7 @@ import {
 } from '../src/constants/commander.ts';
 import { withoutSaving, writeDockSave } from '../src/game/storage.ts';
 import type { WorldSnapshot } from '../src/game/snapshot.ts';
+import { readFileSync } from 'node:fs';
 import { check, eq } from './harness.ts';
 import { g1 } from './fixtures.ts';
 
@@ -211,5 +212,48 @@ console.log('\noutfitting');
     check(`every catalogue id changes the commander when bought (${handled}/${ids.length})`,
       handled === ids.length,
       'an id with no case in the switch takes the money and does nothing');
+  }
+
+  // --- ...and the headless campaign is behind the same check ----------------
+  //
+  // THE CHECK ABOVE COULD NOT SEE THE CAMPAIGN UNTIL docs/TODO/178.
+  // `test/campaign.ts` kept its own switch over the same ids, hardcoding the
+  // missile cap and both laser refunds. So a new catalogue row could reach
+  // every case here and none there, and the balance playtest would deduct the
+  // price and fit nothing.
+  //
+  // Both callers spend `shop.ts`'s `applyPurchase` now, which is invariant 10:
+  // an economic rule lives in a module the headless campaign shares. This scan
+  // is what stops a second copy coming back.
+  {
+    const source = (path: string): string =>
+      readFileSync(new URL(`../${path}`, import.meta.url), 'utf8')
+        .replace(/\/\*[\s\S]*?\*\//g, '').replace(/^\s*\/\/.*$/gm, '');
+
+    // IT READS THE WRITE RATHER THAN THE SWITCH, and the first draft did not.
+    // A scan for `case 'largeBay'` sees a switch and misses an if-chain, which
+    // the break-it step demonstrated. Fitting a piece of kit is a write of
+    // `true`, whatever shape the code around it takes.
+    //
+    // `test/campaign.ts` holds ONE equipment write of its own and it is
+    // `escapePod = false`, where a pod is spent to survive an encounter. That
+    // is a loss rather than a purchase, so `= true` is the honest pattern.
+    const FITTED = [
+      'largeBay', 'ecm', 'scoops', 'escapePod', 'energyBomb', 'energyUnit',
+      'dockingComputer', 'miningLaser', 'combatComputer', 'galacticDrive',
+      'rearLaser', 'leftLaser', 'rightLaser',
+    ].join('|');
+    const fits = (src: string): boolean =>
+      new RegExp(`\\.\\s*(${FITTED})\\s*=\\s*true`).test(src);
+
+    const campaign = source('test/campaign.ts');
+    check('the campaign reaches for the shared purchase rule',
+      campaign.includes('applyPurchase'));
+    check('...and fits no equipment of its own', !fits(campaign));
+
+    // The control. Without it, a scan that read the wrong file or a pattern
+    // that matched nothing would report exactly the same green.
+    check('...and the scan is not vacuous — src/game/shop.ts fits them',
+      fits(source('src/game/shop.ts')));
   }
 }

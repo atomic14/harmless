@@ -119,3 +119,55 @@ Take the baseline before M1, at both sizes.
 2. change the beam refund to a literal, and the refund claim reddens.
 
 **Report the assertion count**, and say what the campaign printed at both sizes.
+
+## Outcome
+
+### M1 — one purchase rule, shared
+
+`applyPurchase` is in `src/game/shop.ts`, beside the `equipmentOwned` that reads
+the same flags back. `screens/trade.ts` and `test/campaign.ts` both call it, and
+the copy is gone.
+
+**THE CAMPAIGN PRINTS EXACTLY WHAT IT PRINTED BEFORE.** Byte-identical at 40
+commanders by 60 legs, and at 120 by 80, once the wall-clock line is masked.
+That is the evidence the plan asked for: the copy and the rule agreed, so
+sharing the rule moved nothing.
+
+**THE SCREEN NOW IMPORTS NO ECONOMIC CONSTANT AT ALL, AND THE PLAN DID NOT HAVE
+THAT.** `screens/trade.ts` imported `MAX_FUEL`, `MAX_MISSILES`,
+`PULSE_LASER_PRICE` and `BEAM_LASER_PRICE`. All four went with the rule, and
+`tsc` found them unused. A screen holding a price list was the shape of the
+defect.
+
+**THE GATE THE PLAN ASKED FOR ALREADY EXISTED.** `test/trade.test.ts` holds
+*every catalogue id changes the commander when bought*, and it drives
+`buyEquipment` to say it. **It could never reach the campaign**, because the campaign had
+its own switch. So the fix's real value is that an existing gate now guards a
+second caller. M1 added no duplicate of it.
+
+**What M1 added instead is one scan: no second copy comes back.** It reads the
+WRITE rather than the switch, and the first draft did not.
+
+**THE FIRST SCAN WAS TOO NARROW, AND THE BREAK-IT STEP FOUND IT.** It looked for
+`case 'largeBay'`. A copy written as an if-chain passed it. Fitting a piece of
+kit is a write of `true`, whatever shape the code around it takes, so the scan
+reads that now. `test/campaign.ts` holds one equipment write of its own, and it
+is `escapePod = false` in the encounter model. That is a loss rather than a
+purchase.
+
+**THE PLAN'S SECOND BREAK-IT COULD NOT FAIL, AND THAT IS A FINDING.** It said to
+write the beam refund as a literal and watch the refund claim redden. The
+literal is 4,000 and `PULSE_LASER_PRICE` is 4,000, so the suite stayed green.
+**Nothing in the tree catches an inline literal that happens to be right today.**
+`test/constants.test.ts` reads declarations rather than expressions. The claim is
+live, and a refund of `PULSE_LASER_PRICE + 1` reddens it.
+
+**Proved able to fail three ways, and each one alone:**
+
+1. a catalogue id with no case — the per-id check reads 16 of 17;
+2. a copy written as an if-chain in the campaign — the scan reddens;
+3. the same copy written as a switch — the scan reddens.
+
+**Nothing was added to the suite's count.** It is 4,845 assertions, as it was.
+Three checks arrived and the campaign's own switch took none away, because a
+simulator is not part of `npm test`.

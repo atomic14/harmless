@@ -15,9 +15,7 @@ import {
   formatCredits, cargoCapacity, cargoTonnes, consignedTonnes,
   type CommanderData,
 } from '../commander.ts';
-import { MAX_FUEL, MAX_MISSILES } from '../../constants/commander.ts';
-import { fuelQuote } from '../shop.ts';
-import { BEAM_LASER_PRICE, PULSE_LASER_PRICE } from '../../constants/shop.ts';
+import { applyPurchase, fuelQuote } from '../shop.ts';
 import {
   renderMarket, renderEquip, equipRows,
 } from '../../ui/screens-trade.ts';
@@ -303,37 +301,14 @@ export function buyEquipment(id: string, ctx: TradeContext): void {
   // below zero would break three things: the save, the status screen, and the
   // campaign simulator's "credits never go negative" assertion.
   if (!cheat) c.credits -= row.price;
-  switch (id) {
-    case 'fuel': c.fuel = MAX_FUEL; break;
-    case 'missile': c.missiles = Math.min(MAX_MISSILES, c.missiles + 1); break;
-    case 'largeBay': c.equipment.largeBay = true; break;
-    case 'ecm': c.equipment.ecm = true; break;
-    case 'rearLaser': c.equipment.rearLaser = true; break;
-    case 'leftLaser': c.equipment.leftLaser = true; break;
-    case 'rightLaser': c.equipment.rightLaser = true; break;
-    case 'beam':
-      // the old gun is refunded at what it cost, as per the manual — the
-      // pulse's price is the catalogue's own (constants/shop.ts)
-      c.credits += PULSE_LASER_PRICE;
-      c.equipment.laser = 'beam';
-      break;
-    case 'military':
-      c.credits += c.equipment.laser === 'beam' ? BEAM_LASER_PRICE : PULSE_LASER_PRICE;
-      c.equipment.laser = 'military';
-      break;
-    case 'scoops': c.equipment.scoops = true; break;
-    case 'escapePod': c.equipment.escapePod = true; break;
-    case 'energyBomb': c.equipment.energyBomb = true; break;
-    case 'energyUnit': c.equipment.energyUnit = true; break;
-    case 'dockingComputer': c.equipment.dockingComputer = true; break;
-    case 'miningLaser': c.equipment.miningLaser = true; break;
-    case 'combatComputer': c.equipment.combatComputer = true; break;
-    case 'trumble':
-      c.trumbles = 1;
-      ctx.message('IT PURRS. WHAT COULD POSSIBLY GO WRONG?', 5);
-      break;
-    case 'galacticDrive': c.equipment.galacticDrive = true; break;
-  }
+  // What a purchase DOES is `shop.ts`'s `applyPurchase`, beside the
+  // `equipmentOwned` that reads the same flags back. The headless campaign
+  // shares it, which is invariant 10, and it kept a copy until docs/TODO/178.
+  // The old gun's refund travels with it, because the refund moves money.
+  applyPurchase(c, id);
+  // ...and the one line a purchase earns. `applyPurchase` sets state and says
+  // nothing, because the campaign has no cockpit to say it in.
+  if (id === 'trumble') ctx.message('IT PURRS. WHAT COULD POSSIBLY GO WRONG?', 5);
   // Money moved at the station, so the station's checkpoint moves with it.
   ctx.checkpoint();
   sfx.equipmentBought();
