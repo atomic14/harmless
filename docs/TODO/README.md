@@ -13,12 +13,19 @@ active context:
 
 ## Execution queue
 
-**THE QUEUE IS EMPTY.** The sweep of 2026-08-16 put five items in it. Chris
-asked for an architectural and bug sweep against a tree where `npm run check`
-passed. The order was by value over cost, and not by severity. All five landed.
+1. [173](173-the-burst-carries-on-from-the-pirate-into-the-police-ship.md) —
+   the burst carries on from the pirate into the police ship (GitHub #35).
 
-**169 was the last of them, and it closed on 2026-08-17.** It is below. The
-next item comes from a triage, from the GitHub inbox, or from Chris.
+**173 came out of the GitHub inbox, and the queue was empty when it arrived.**
+The sweep of 2026-08-16 put five items in the queue. Chris asked for an
+architectural and bug sweep against a tree where `npm run check` passed. The
+order was by value over cost, and not by severity. All five landed, and 169 was
+the last of them on 2026-08-17.
+
+**#35 was `needs investigation`, and the investigation ran first.** The triage of
+2026-08-16 named two candidate routes and measured neither. A throwaway probe
+flew the real game under node. It found that route 1 is the live one, and that
+the burst is what walks it.
 
 **172, 170, 171 and 168 led this queue and all four landed the same day.** They
 are below.
@@ -27,9 +34,8 @@ are below.
 vocabulary on the player's pages. 168 is the house prose style over `docs/`.
 Neither one answers the other.
 
-**The GitHub inbox holds one item the queue does not.** **#35** is
-`needs investigation`. A police ship turned hostile after a pirate kill. The
-triage of 2026-08-16 found two candidate routes and measured neither.
+**The GitHub inbox holds no item the queue does not.** **#35** is the queue's
+one item, and it is `in progress` as docs/TODO/173.
 
 **#36 closed on 2026-08-16, and A STALE PERMALINK IS THE WHOLE STORY.** Chris
 read `const NAME_COST = ... ' AND YOUR NAME'` at `src/game/prompts.ts:90`. That
