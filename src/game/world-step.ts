@@ -35,6 +35,10 @@ import {
 } from '../constants/law.ts';
 import { afterDeed, characterVerdict } from './character.ts';
 import { hermitRefuses } from './market.ts';
+import {
+  HERMIT_DOCK_RANGE, HERMIT_DOCK_SPEED, HERMIT_HAIL_RANGE,
+} from '../constants/hermit-market.ts';
+import { GENERATION_SIGHT_RANGE } from '../constants/population.ts';
 import { CHARACTER_LINE_SECONDS, DISREPUTE_CAUGHT } from '../constants/character.ts';
 import { queueMessage } from './session.ts';
 import { playerVsNpcs, npcVsNpcs, npcsVsStation } from './collisions.ts';
@@ -769,11 +773,14 @@ export class WorldStep {
       if (npc.role === 'hermit') {
         // must leave and come back before trading again, or you'd be stuck
         // in a docking loop while parked alongside
-        if (dist > 900) session.hermitCooldown = false;
-        if (dist < 900 && !session.hermitCooldown) {
-          out.push(say('ROCK HERMIT — SLOW TO 20 AND CLOSE TO TRADE', 2));
+        if (dist > HERMIT_HAIL_RANGE) session.hermitCooldown = false;
+        if (dist < HERMIT_HAIL_RANGE && !session.hermitCooldown) {
+          // The number is interpolated rather than typed. The line said
+          // `SLOW TO 20` beside a rule of 40 until docs/TODO/180.
+          out.push(say(`ROCK HERMIT — SLOW TO ${HERMIT_DOCK_SPEED} AND CLOSE TO TRADE`, 2));
         }
-        if (dist < 320 && player.speed < 40 && this.host.inFlight() && !session.hermitCooldown) {
+        if (dist < HERMIT_DOCK_RANGE && player.speed < HERMIT_DOCK_SPEED
+          && this.host.inFlight() && !session.hermitCooldown) {
           // A hermit-killer gets as far as the tunnel mouth and no further
           // (docs/TODO/96). The cooldown is what the trade path sets on the
           // way out, and it does the same job here. Say it once. Make them
@@ -787,7 +794,8 @@ export class WorldStep {
             this.host.openHermitTrade();
           }
         }
-      } else if (npc.role === 'generation' && dist < 6000 && !session.genShipSeen) {
+      } else if (npc.role === 'generation' && dist < GENERATION_SIGHT_RANGE
+        && !session.genShipSeen) {
         session.genShipSeen = true;
         out.push(say('DERELICT GENERATION SHIP — NO LIFE SIGNS', 6));
         out.push(heard('generationShipFound'));

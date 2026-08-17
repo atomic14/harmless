@@ -40,5 +40,7 @@ export const MASS_LOCK_PLANET_ALTITUDE = 4000;
  * ...and how near another ship — any live one that is not a rock. Asteroids are
  * excluded deliberately: a drive that cut out on every rock would strand you.
  * What it buys is that a pirate who came to meet you gets to keep you.
+ *
+ * @rule torus.massLockShip
  */
 export const MASS_LOCK_SHIP = 4500;

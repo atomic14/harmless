@@ -5,6 +5,8 @@
 /**
  * How near a wingman has to be before a ship cares, in world units. A higher
  * value costs pack aggression. It must stay below `BREAK_OFF_RANGE`.
+ *
+ * @rule separation.range
  */
 export const SEPARATION_RANGE = 200;
 

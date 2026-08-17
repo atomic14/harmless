@@ -23,7 +23,9 @@ import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
 import {
   inSlotChannel, rollAlignedWithSlot, slotRollOffset,
 } from '../game/docking.ts';
-import { TARGET_BRACKET_RANGE, BOLT_SPEED } from '../constants/console.ts';
+import {
+  BOLT_SPEED, DOCK_AID_RANGE, SHIP_ID_RANGE, TARGET_BRACKET_RANGE,
+} from '../constants/console.ts';
 
 /**
  * Everything on the scanner: the station, the ships, the missiles and the
@@ -96,7 +98,7 @@ export function shipIdUnderView(
     if (!npc.state.alive) continue;
     const to = scratch.copy(npc.object.position).sub(playerPos);
     const dist = to.length();
-    if (dist > 4500) continue;
+    if (dist > SHIP_ID_RANGE) continue;
     const angle = viewDir.angleTo(to.normalize());
     if (angle < bestAngle) {
       bestAngle = angle;
@@ -150,7 +152,7 @@ export function dockingAid(
   const dist = playerPos.distanceTo(station.position);
   const slotN = scratch.a.set(0, 0, -1).applyQuaternion(station.quaternion);
   const onSlotSide = scratch.b.copy(playerPos).sub(station.position).dot(slotN) > 0;
-  if (dist >= 3000 || !onSlotSide) return none;
+  if (dist >= DOCK_AID_RANGE || !onSlotSide) return none;
 
   const slotWorld = scratch.a.set(0, 0, -stationDockZ);
   station.localToWorld(slotWorld);

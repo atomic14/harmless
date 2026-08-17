@@ -78,3 +78,19 @@ export const ASTEROIDS_MIN = 2;
  * (`Math.floor(rng() * ASTEROIDS_VARIATION)`). The most a system holds is four.
  */
 export const ASTEROIDS_VARIATION = 3;
+
+/**
+ * How near a derelict generation ship the commander must be to notice it.
+ *
+ * IT IS NOT `GENERATION_SHIP_RANGE` ABOVE, and the two are easy to confuse.
+ * That one is where the hull is PLACED on an arrival, at 14,000 plus a span.
+ * This is how close she has to fly before the console says what it is. So the
+ * ship is put out of sight, and finding it is the event.
+ *
+ * `game/world-step.ts` spends it, once per career, behind `session.genShipSeen`.
+ * It was a bare 6,000 there until docs/TODO/180.
+ *
+ * @rule population.generationSight
+ * @domain population
+ */
+export const GENERATION_SIGHT_RANGE = 6000;

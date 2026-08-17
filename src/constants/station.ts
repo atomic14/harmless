@@ -57,5 +57,7 @@ export const LAUNCH_SPEED = 120;
  * Where the docked menu parks your ship, along the slot normal, in world units.
  * It is far enough out that the station fills the backdrop rather than clips the
  * camera. It is a backdrop, not the launch point; `LAUNCH_STANDOFF` is that.
+ *
+ * @rule station.backdropDistance
  */
 export const DOCKED_BACKDROP_DISTANCE = 900;

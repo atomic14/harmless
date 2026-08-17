@@ -27,6 +27,8 @@ import { PASS_FAR } from './combat-record.ts';
  *
  * At a quarter throttle (`ENTRY_THROTTLE`), against a pirate's speed, this is ten
  * seconds of approach. Those are the ten seconds the trainer exists to show.
+ *
+ * @rule exercise.openingRange
  */
 export const OPENING_RANGE = 4500;
 

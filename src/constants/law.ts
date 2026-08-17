@@ -80,6 +80,7 @@ export const FUGITIVE = 2;
  * floor because a truced role can do nothing inside it. What the number states
  * is who may engage the commander, and that is the law's.
  *
+ * @rule law.stationTruce
  * @domain law
  */
 export const STATION_TRUCE = 7000;

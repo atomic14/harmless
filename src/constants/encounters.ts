@@ -57,7 +57,9 @@ export const PRODUCTIVITY_PER_SECOND = 1200;
  */
 export const TRADER_GAP_FIRST = 20;
 
-/** ...and its jitter, so two arrivals in one system are not the same arrival. */
+/** ...and its jitter, so two arrivals in one system are not the same arrival. *
+ * @rule encounters.traderGapFirstJitter
+ */
 export const TRADER_GAP_FIRST_JITTER = 40;
 
 /**
@@ -76,6 +78,8 @@ export const PIRATE_WAVE_GAP = 60;
  * `LAWLESS_GOVERNMENT` refuses the wave anyway. The ladder still runs the
  * whole way up, because the timer is a clock and not a gate. It keeps refused
  * systems from all coming due at once, if that line ever moves.
+ *
+ * @rule encounters.pirateWaveGapPerGovernment
  */
 export const PIRATE_WAVE_GAP_PER_GOVERNMENT = 40;
 

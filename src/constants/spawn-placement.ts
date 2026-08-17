@@ -77,6 +77,8 @@ export const ASTEROID_LANE_SCATTER = SCANNER_RANGE / 1.5;
  * value with `PIRATE_HUNT_RANGE` and `HUNTER_RANGE` (hunt-ranges.ts), and it is a
  * different quantity: where a ship begins, not how far it looks. It is therefore
  * left as a literal.
+ *
+ * @rule spawn.hunterScatter
  */
 export const HUNTER_SCATTER = 6000;
 
@@ -275,3 +277,34 @@ export const STATION_DEFENCE_STACK = 120;
  * only that the positions differ.
  */
 export const STATION_DEFENCE_JITTER = 80;
+
+/**
+ * How near the station an arriving trader has to be to start trading.
+ *
+ * It is the end of the `arriving` phase, and the start of the potter about the
+ * lane. Generous, because an arrival comes in at 0.85 of its top speed and a
+ * tight radius would make it circle rather than settle.
+ *
+ * `game/trader-flight.ts` spends it. It was a bare 900 there until
+ * docs/TODO/180.
+ *
+ * @rule spawn.traderArrived
+ * @domain spawn-placement
+ */
+export const TRADER_ARRIVED = 900;
+
+/**
+ * How near its waypoint a departing trader has to be to jump out.
+ *
+ * `DEEP_TRADER_RUN` above puts the waypoint there, and this is the radius at
+ * which the ship reaches it and takes the witch-flash. It is wide, because a
+ * trader flies AT the waypoint rather than to it. A tight radius would let one
+ * overshoot and turn back for a second pass.
+ *
+ * `game/trader-flight.ts` spends it. It was a bare 2,500 there until
+ * docs/TODO/180.
+ *
+ * @rule spawn.traderJumpOut
+ * @domain spawn-placement
+ */
+export const TRADER_JUMP_OUT = 2500;

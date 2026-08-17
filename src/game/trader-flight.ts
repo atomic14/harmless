@@ -27,7 +27,9 @@ import * as THREE from 'three';
 
 import { planDocking, type DockPlan } from './docking.ts';
 import { random, randomDirection } from './rng.ts';
-import { DEEP_TRADER_RUN } from '../constants/spawn-placement.ts';
+import {
+  DEEP_TRADER_RUN, TRADER_ARRIVED, TRADER_JUMP_OUT,
+} from '../constants/spawn-placement.ts';
 import { approach, steerQuatToward } from './flight-maths.ts';
 
 /** Where a trader is in its working life. */
@@ -107,7 +109,7 @@ export function stepTrader(ship: TraderShip, dt: number, world: TraderWorld): vo
     case 'arriving': {
       steerToward(ship, home, dt);
       state.speed = approach(state.speed, ship.maxSpeed * 0.85, 90 * dt);
-      if (ship.object.position.distanceTo(home) < 900) {
+      if (ship.object.position.distanceTo(home) < TRADER_ARRIVED) {
         state.traderPhase = 'trading';
       }
       break;
@@ -171,7 +173,7 @@ export function stepTrader(ship: TraderShip, dt: number, world: TraderWorld): vo
     case 'departing': {
       steerToward(ship, state.waypoint, dt);
       state.speed = approach(state.speed, ship.maxSpeed, 90 * dt);
-      if (ship.object.position.distanceTo(state.waypoint) < 2500) {
+      if (ship.object.position.distanceTo(state.waypoint) < TRADER_JUMP_OUT) {
         state.wantsDespawn = true; // jumps out — game plays the flash
       }
       break;

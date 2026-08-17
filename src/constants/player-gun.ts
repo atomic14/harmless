@@ -135,5 +135,10 @@ export const POD_GRAZE = 16;
  * flank than head-on, and a shot lands on empty space beside a thin hull.
  */
 export const AIM_ASSIST = 0.035;
+/**
+ * Where the aim assist begins to fade out, in world units.
+ *
+ * @rule gun.assistFadeStart
+ */
 export const ASSIST_FADE_START = 900;
 export const ASSIST_FADE_END = 2400;

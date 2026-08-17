@@ -88,12 +88,13 @@ import {
 } from '../constants/brain-flight.ts';
 import { TACTICS, type TacticId } from '../constants/tactics.ts';
 import { chooseTactic, tacticSwitchReason, type TacticHull } from './tactic-choice.ts';
-import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
+import { PLAYER_INTEREST_RANGE, TURN_AND_FIGHT_RANGE } from '../constants/player-interest.ts';
 import { truceHolds } from './law.ts';
 import { isHostileToPlayer } from './hostility.ts';
 import { approach, steerQuatToward, velocityOf } from './flight-maths.ts';
 import { STATION_TRUCE } from '../constants/law.ts';
-import { AMBLE_NEAR, AMBLE_SPAN } from '../constants/amble.ts';
+import { AMBLE_ARRIVED, AMBLE_NEAR, AMBLE_SPAN } from '../constants/amble.ts';
+import { HUNT_HOLD_RANGE } from '../constants/hunt-ranges.ts';
 import { separationFrom } from './separation.ts';
 import { SEPARATION_PUSH } from '../constants/separation.ts';
 import type { BrainSelection } from './brain-names.ts';
@@ -727,7 +728,7 @@ export class NpcShip {
 
     if (this.npcTarget && this.npcTarget.state.alive) {
       const d = this.npcTarget.object.position.distanceTo(this.object.position);
-      if (d < 7000) {
+      if (d < HUNT_HOLD_RANGE) {
         return this.attack(
           dt, this.npcTarget.object.position, d, false, this.npcTarget, view.fleet,
           velocityOf(this.npcTarget.object.quaternion, this.npcTarget.state.speed, this.tmpVel));
@@ -744,7 +745,7 @@ export class NpcShip {
       // is the socket a future trained candidate re-enters through (brains.ts),
       // and flies nothing today.
       if (this.armed && defenceBrainNameFor(brains) === 'attack-run') {
-        if (this.state.provokedByPlayer && distPlayer < 6000) {
+        if (this.state.provokedByPlayer && distPlayer < TURN_AND_FIGHT_RANGE) {
           const shot = this.attack(dt, player.position, distPlayer, true, undefined,
             fleet, velocityOf(player.quaternion, player.speed, this.tmpVel));
           return this.chooseWeapon(shot, distPlayer, player.position, view.missileInbound);
@@ -759,7 +760,7 @@ export class NpcShip {
       const defence = this.armed ? defenceBrain(brains) : null;
       if (defence) {
         const live = this.attackers.filter((a) => a.state.alive);
-        if (this.state.provokedByPlayer && distPlayer < 6000) {
+        if (this.state.provokedByPlayer && distPlayer < TURN_AND_FIGHT_RANGE) {
           // fighting the commander; every NPC attacker is 'the rest of the sky'
           return this.brainFly(defence, dt,
             player.position, player.quaternion, 300, distPlayer, 'player', null, {
@@ -816,7 +817,7 @@ export class NpcShip {
         .add(randomDirection(new THREE.Vector3()).multiplyScalar(near + random() * AMBLE_SPAN));
     }
     this.steerToward(this.state.waypoint, dt);
-    const arrived = this.object.position.distanceTo(this.state.waypoint) < 200;
+    const arrived = this.object.position.distanceTo(this.state.waypoint) < AMBLE_ARRIVED;
     this.state.speed = approach(this.state.speed, arrived ? 0 : this.maxSpeed * 0.4, 80 * dt);
     this.advance(dt);
     return null;

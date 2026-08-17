@@ -21,6 +21,8 @@ export const BANISHED = 1e8;
  * ordinary hyperspace arrival (250). The ambush opens immediately, so an arrival
  * at cruise would fly you into the Thargoids before the console finishes the
  * report.
+ *
+ * @rule witchspace.entrySpeed
  */
 export const WITCHSPACE_ENTRY_SPEED = 200;
 

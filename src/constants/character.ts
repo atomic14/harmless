@@ -29,8 +29,18 @@ export const CHARACTER: readonly (readonly [number, string])[] = [
  * What each deed adds to disrepute, tuned in play. A hermit or a murder is
  * career-marking, and one takes Honest clear to Dodgy. To be caught, or to make a
  * dirty sale, is a nudge that only adds up over a run of them.
+ *
+ * @rule character.hermitKill
  */
 export const DISREPUTE_HERMIT_KILL = 40;
+/**
+ * What killing a trader, a policeman or a bounty hunter costs your reputation.
+ *
+ * It shares its value with `DISREPUTE_HERMIT_KILL` above, and it is a separate
+ * rule. One is a murder in the lane. The other is a murder at a rock.
+ *
+ * @rule character.murder
+ */
 export const DISREPUTE_MURDER = 40;
 export const DISREPUTE_CAUGHT = 10;
 

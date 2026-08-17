@@ -61,3 +61,41 @@ export const HERMIT_REFUSES_AT = CHARACTER.find(([, rung]) => rung === 'Dodgy')!
  * @rule hermit.favour
  */
 export const HERMIT_FAVOUR = 0.2;
+
+/**
+ * How near a rock hermit the commander must be to hear its hail.
+ *
+ * It is also the range she has to LEAVE to hear it again. One number covers
+ * both, because a door you enter and a door you leave are the same door. A
+ * second radius would give a band where the hail neither fires nor resets.
+ *
+ * `game/world-step.ts` spends it twice. It was a bare 900 at both until
+ * docs/TODO/180.
+ *
+ * @rule hermit.hail
+ * @domain hermit-market
+ */
+export const HERMIT_HAIL_RANGE = 900;
+
+/**
+ * How near the commander must be to actually trade with a hermit.
+ *
+ * Well inside `HERMIT_HAIL_RANGE` above. So the hail is a warning with room to
+ * act on it, rather than a line that fires as the door opens.
+ *
+ * @rule hermit.dockRange
+ * @domain hermit-market
+ */
+export const HERMIT_DOCK_RANGE = 320;
+
+/**
+ * How slow the commander must be flying to trade with a hermit.
+ *
+ * There is no numeric speed readout in this game, because `hud.ts` paints a
+ * bar. So the hail interpolates this number rather than stating one of its own.
+ * It said `SLOW TO 20` beside a rule of 40 until docs/TODO/180.
+ *
+ * @rule hermit.dockSpeed
+ * @domain hermit-market
+ */
+export const HERMIT_DOCK_SPEED = 40;

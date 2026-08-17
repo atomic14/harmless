@@ -17,6 +17,8 @@
  * (hunt-ranges.ts), and it is deliberately NOT merged with them. "They engage at
  * scanner range" is not a rule that anything states. If it ever becomes one, both
  * files are one edit apart.
+ *
+ * @rule console.scannerRange
  */
 export const SCANNER_RANGE = 6000;
 
@@ -75,3 +77,33 @@ export const CABIN_GAUGE_WARN = 0.72;
  * defines.
  */
 export const SIGHT_Y = 0.42;
+
+/**
+ * How near a ship has to be for the console to name it on the ship-ID line.
+ *
+ * THREE HUD RANGES SIT WITHIN 1,500 OF EACH OTHER, and they are three rules.
+ * `SCANNER_RANGE` is 6,000 and draws the blip. `TARGET_BRACKET_RANGE` is 5,000
+ * and draws the bracket. This is 4,500, and it writes the ship's name and
+ * distance. So a pilot sees a contact, then a bracket on it, then what it is.
+ *
+ * `shipIdUnderView` in `hud/hud-model.ts` spends it, and it also asks that the
+ * ship is near the view axis. It was a bare 4,500 there until docs/TODO/180.
+ *
+ * @rule console.shipIdRange
+ * @domain console
+ */
+export const SHIP_ID_RANGE = 4500;
+
+/**
+ * How near the station the docking aid and the slot marker appear.
+ *
+ * Tighter than `MARKER_RANGE` above, because the aid is about lining up rather
+ * than about noticing. It also asks that the commander is on the slot side of
+ * the hull, and `hud/hud-model.ts` owns that half.
+ *
+ * It was a bare 3,000 there until docs/TODO/180.
+ *
+ * @rule console.dockAidRange
+ * @domain console
+ */
+export const DOCK_AID_RANGE = 3000;

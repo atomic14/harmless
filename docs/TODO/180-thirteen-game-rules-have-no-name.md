@@ -164,3 +164,60 @@ Take the baseline before M1.
 2. an allowlist entry whose site no longer holds one reddens it;
 3. the scan pointed at a directory with no thresholds leaves the rule green and
    reddens its control.
+
+## Outcome
+
+### M1 — thirteen constants, and a hermit line that agrees with its rule
+
+Thirteen rules have names. **No value moved**, and the evidence is that nothing
+moved: `survivability`, `aim-probe` and `gap-probe` are byte-identical, and
+`npm run campaign` is byte-identical at both sizes.
+
+**THE PLAN'S ARITHMETIC WAS OFF BY ONE.** It said eleven of the 24 are not game
+rules. Twelve are. The thirteenth constant is `HERMIT_DOCK_SPEED = 40`, and the
+scan's floor of 50 never counted it. It was found by reading the site, not by
+the scan.
+
+**THE CHECKER ASKED FOR SEVENTEEN MORE `@rule` IDS.** Every one of the thirteen
+collided with a value already in the tree, and `constants:check` refuses an
+unexplained repeat. `SCANNER_RANGE`, `PIRATE_HUNT_RANGE`, `HUNTER_RANGE`,
+`ASSIST_FADE_START`, `DOCKED_BACKDROP_DISTANCE`, `STATION_TRUCE`,
+`MASS_LOCK_SHIP` and nine more gained one. The tree went 87 rule ids to 114.
+docs/TODO/160 and docs/TODO/173 both record the same situation.
+
+**Two constants had no doc comment at all**, and the checker will not take an id
+without one. `ASSIST_FADE_START` and `DISREPUTE_MURDER` have one now.
+
+**A NAME WAS WRONG AND READING THE CODE FIXED IT.** The 4,500 was called
+`MARKER_RANGE` in the plan. Its site is `shipIdUnderView`, which writes the
+console's ship-ID line, and `TARGET_BRACKET_RANGE` at 5,000 already owns the
+bracket. It is `SHIP_ID_RANGE`, and its doc comment now states the three HUD
+ranges that sit within 1,500 of each other.
+
+**`npm run constants:find` did not surface `TARGET_BRACKET_RANGE`**, because the
+query was poor. The site did. Read the function before naming its number.
+
+**The hermit's line interpolates its rule**, and reads
+`ROCK HERMIT — SLOW TO 40 AND CLOSE TO TRADE`. It said 20 beside a rule of 40.
+
+### M2 — a gate on a bare threshold
+
+`test/bare-thresholds.test.ts` is 4 assertions. The scan reads 12 thresholds and
+every one is on the allowlist with the kind of number it is.
+
+**THE FIRST DRAFT WENT GREEN BY READING NOTHING, AND THE CONTROL CAUGHT IT.** It
+stripped comments and strings with four regular expressions. A TRAILING comment
+holding one backtick survived the line-comment pass. It then unbalanced the
+template-literal pass, which swallowed the rest of `galaxy/galaxy.ts`. That
+included the `i < 256` the gate exists to see. It walks characters now, which is
+`tools/ste-read.mjs`'s own reason.
+
+**The control is what reported it.** Claim 4 names a threshold the scan must
+find, so a reader that reads nothing cannot pass.
+
+**Proved able to fail three ways, and each one alone.** A new bare threshold in
+`npc.ts` reddens claim 1. A stale allowlist entry reddens claim 2. The scan
+pointed at `src/constants/` reddens claims 2, 3 and 4 together, which is the
+vacuous-reader case.
+
+4,845 assertions became 4,849.

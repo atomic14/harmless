@@ -166,6 +166,9 @@ import './combat-sim-career.test.ts';
 // Not a behaviour: a scan of src/ that fails when a game-rule constant grows a
 // second home. See docs/TODO/90.
 import './constants.test.ts';
+// The other half: a game rule compared against a bare number, which has no
+// declaration for the scan above to find. See docs/TODO/180.
+import './bare-thresholds.test.ts';
 // The same shape for the four colours, plus the pinned rgba() spellings that
 // prove the sweep changed nothing on screen. See docs/TODO/93.
 import './palette.test.ts';

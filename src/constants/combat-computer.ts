@@ -148,6 +148,8 @@ export const PURSUIT_CLEAR_RANGE = 560;
 /**
  * How far to the side of the target a chaser aims on a break. It is enough to
  * clear the hull at the speed it passes. It is a feel setting.
+ *
+ * @rule pursuit.breakClearance
  */
 export const PURSUIT_BREAK_CLEARANCE = 320;
 

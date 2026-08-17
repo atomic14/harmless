@@ -19,3 +19,21 @@
  * way.
  */
 export const PLAYER_INTEREST_RANGE = 9000;
+
+/**
+ * How close the commander must be before an armed trader on the run turns and
+ * fights her, rather than whoever else is shooting at it.
+ *
+ * NARROWER THAN `PLAYER_INTEREST_RANGE` ABOVE, ON PURPOSE. That one is where a
+ * hostile starts to close on her. This is where a ship that is ALREADY fleeing
+ * decides she is the one worth turning on. A trader with a pirate behind it and
+ * the commander far off should answer the pirate.
+ *
+ * `game/npc.ts` spends it twice, on the scripted branch and on the trained
+ * defence branch, because the choice of prey is the same either way. It was a
+ * bare 6,000 at both until docs/TODO/180.
+ *
+ * @rule interest.turnAndFight
+ * @domain player-interest
+ */
+export const TURN_AND_FIGHT_RANGE = 6000;

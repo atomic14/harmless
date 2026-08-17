@@ -46,3 +46,17 @@ export const AMBLE_NEAR = 800;
  * @rule amble.span
  */
 export const AMBLE_SPAN = 2500;
+
+/**
+ * How near its waypoint an ambling ship counts as arrived.
+ *
+ * It then coasts to a stop and waits for `waypointTimer` to pick the next one.
+ * Small against `AMBLE_SPAN` above, because the point is to look like a ship
+ * going somewhere rather than a ship at a marker.
+ *
+ * `game/npc.ts` spends it. It was a bare 200 there until docs/TODO/180.
+ *
+ * @rule amble.arrived
+ * @domain amble
+ */
+export const AMBLE_ARRIVED = 200;
