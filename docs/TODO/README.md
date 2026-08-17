@@ -13,7 +13,14 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [185](185-a-contract-kind-declares-only-the-fields-it-uses.md) — a contract
+   kind declares only the fields it uses.
+
+**185 CAME OUT OF A SURVEY THAT RECOMMENDED AGAINST ITS OWN SUBJECT.** Chris
+asked on 2026-08-17 whether docs/TODO/182's pattern helps elsewhere. The survey
+measured 205 branches on a type tag across 51 files. It then read the
+candidates, and it answered no. `Contract` is what it found on the way, and it
+takes a different fix. Chris chose it the same day.
 
 **THE DECOMPOSITION PROGRAMME IS DONE.** docs/TODO/181, 182, 183 and 184 all
 landed on 2026-08-17. `src/game/npc.ts` went 1,468 lines to 856, into eight
@@ -25,8 +32,17 @@ Every cut before it fought a wide seam, because each one asked what narrow
 interface a free FUNCTION would need. Behaviour about a whole ship has no narrow
 interface, and a collaborator that HAS the ship needs one handle.
 
-**HE ALSO ASKED WHETHER THE PATTERN HELPS ELSEWHERE**, and that question is open.
-It needs a measurement rather than a count.
+**HE ALSO ASKED WHETHER THE PATTERN HELPS ELSEWHERE**, and a survey answered
+that on 2026-08-17. The answer is no, and the reason is a good one. `src/` holds
+62 classes, and almost every one is a singleton service. A singleton has no
+family, so it has nothing to dispatch on. Where the tree does have a family, it
+already uses the pattern: 16 classes implement `Screen`. `game/npc.ts` held the
+one family that used a tag instead.
+
+**THE SURVEY FOUND ONE HIT, AND IT IS SMALL.** `ai-training/scenario.ts` picks
+one of four ways for a practice target to move, by a tag fixed when the episode
+is built. That is 45 lines of a 1,576-line file, and it is a training fixture
+rather than a game rule. It is recorded here rather than queued.
 
 **THE DEBT LIST IS EMPTY.** `npm run sizes` reads 0 known debts. No earlier run
 of it read zero.
