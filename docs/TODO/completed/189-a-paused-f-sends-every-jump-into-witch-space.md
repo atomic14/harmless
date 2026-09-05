@@ -103,3 +103,42 @@ rig:
 - the flag survives a snapshot.
 
 Prove it able to fail: make `resolveJump` ignore `forced` for one run.
+
+## Outcome
+
+### M1 — the key, the flag, the beep, and the jump
+
+Landed as planned, in the five parts the plan named. `session.misjumpArmed`
+is saved state. `armMisjump` is bound to F in the flight table, and it is the
+third entry of `WHILE_PAUSED`. The handler lives in
+`game/hyperspace-actions.ts`, beside the jump it arms. While flying it says to
+pause first, and names both keys. `resolveJump` takes `forced`, and the escape
+jump from limbo obeys it too. The two tones are in `audio.ts`.
+
+**THE ROLL IS NOT MADE WHILE FORCED, AND THAT IS DELIBERATE.** A forced jump
+returns before `rng()` is asked, so the seeded stream does not move for a roll
+nobody reads. That is the rule docs/TODO/138 M4 stated for the blueprint draw.
+
+**THE TEST IS 25 ASSERTIONS IN TWO PARTS.** The first drives the switch on its
+own, with a stub host that records the beeps and the refusal. The second
+drives the whole game with a keyboard, on `test/quit.test.ts`'s rig:
+
+1. F while flying, which is refused;
+2. P, F, P, which arms the trap;
+3. a jump, which lands in limbo;
+4. the escape jump, which lands in limbo again;
+5. a snapshot round trip, which keeps the trap;
+6. P, F, P, which disarms it;
+7. the escape jump, which lands at the target.
+
+**Proved able to fail**: a jump rule that ignores `forced` reddens five of
+them. Every one of the five is a jump that arrived where it must not.
+
+**Two pinned tests moved with their rules.** `test/quit.test.ts` counts three
+paused commands. `test/audio.test.ts` names the two tones.
+
+`README.md` carries the F row, and `test/key-help.test.ts` holds it to the
+table. The header of `game/hyperspace-actions.ts` lists the switch as its
+sixth way in and out of a system.
+
+4,939 assertions became 4,972.

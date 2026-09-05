@@ -13,14 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [189](189-a-paused-f-sends-every-jump-into-witch-space.md) — a paused F
-   sends every jump into witch-space.
+The queue is empty.
 
 **189 CAME FROM CHRIS ON 2026-09-05**, after 188 landed. He asked whether he
-can trigger a Thargoid ambush, and he cannot: a mis-jump is a 9% roll. Two
+can trigger a Thargoid ambush, and he could not: a mis-jump is a 9% roll. Two
 designs were put to him, and he chose the Spectrum's cheat over a test-mode
-row. Pause, press F, hear a beep, and every jump lands in witch-space until
-you do it again.
+row. **It landed the same day**, and it is below.
 
 **ALL THREE ITEMS OF 2026-09-05 CAME OUT OF CHRIS'S PLAYTEST, on 2026-09-04
 and 2026-09-05.** They are GitHub #38, #40 and #39, and triage on 2026-09-05
@@ -207,6 +205,26 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-05
+
+**189 — a paused F sends every jump into witch-space.** Chris asked whether he
+can trigger a Thargoid ambush, after 188 landed. He could not. He chose the
+Spectrum's cheat over a test-mode row, and quoted it. Pause, press F, and hear
+a beep. Every jump then lands in witch-space until you do it again. The quote
+was the specification, and it landed in five parts.
+
+**THE PAUSED TABLE HAS THREE ENTRIES NOW.** Its comment said two on purpose,
+because a pause is not a place you play from. The third is a switch and not
+play: the world stays stopped. `test/quit.test.ts` pinned the count, and it
+moved with the rule.
+
+**THE ESCAPE JUMP OBEYS IT TOO**, so an armed commander bounces from one
+ambush into the next until she disarms it. The fare is charged each time. The
+trap is saved with the session, and it does not mark the career, because the
+original did not. Thargoid bounties on demand are the recorded cost.
+
+**A FORCED JUMP MAKES NO ROLL**, so the seeded stream does not move for a
+number nobody reads. 25 assertions in `test/witchspace-trap.test.ts`, and a
+jump rule that ignores the switch reddens five of them. 4,972 assertions.
 
 **188 — the Thargoid ambush is too hard.** GitHub #39: *"thargoid ambush is
 too hard. There should be a limit to how many active drone ships there are."*
