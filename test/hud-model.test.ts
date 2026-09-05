@@ -11,11 +11,11 @@
 import * as THREE from 'three';
 import { seedWorld } from '../src/game/rng.ts';
 import { NpcShip } from '../src/game/npc.ts';
-import { screenTargets, scannerContacts, dockingAid } from '../src/hud/hud-model.ts';
+import { screenTargets, scannerContacts, dockingAid, shipIdUnderView } from '../src/hud/hud-model.ts';
 import { CONTACT_COLORS } from '../src/hud/hud.ts';
 import { dockingOutcome } from '../src/game/docking.ts';
 import { ROLL_TOLERANCE } from '../src/constants/docking.ts';
-import { check } from './harness.ts';
+import { check, eq } from './harness.ts';
 
 console.log('\nhud model');
 {
@@ -52,6 +52,33 @@ console.log('\nhud model');
     !!still?.lead
     && Math.abs(still.lead.x - still.x) < 1e-9
     && Math.abs(still.lead.y - still.y) < 1e-9);
+}
+
+// --- a rock hermit is named as one (docs/TODO/187) ---------------------------
+//
+// GitHub #40: *"It's not obvious enough that you are attacking a rock hermit.
+// You need to be close before it is identified as one."* The bracket and the
+// ship-ID line print the mesh's name, and the hermit's mesh comes from the
+// asteroid builder, which named nothing. So the console read ASTEROID on a
+// hermit at every range, and the beacon was the one tell.
+{
+  const camera = new THREE.PerspectiveCamera(60, 1, 1, 50_000);
+  camera.updateMatrixWorld();
+  const scratch = new THREE.Vector3();
+  const origin = new THREE.Vector3(0, 0, 0);
+  const ahead = new THREE.Vector3(0, 0, -1);
+  seedWorld(187);
+  const hermit = new NpcShip('hermit', new THREE.Vector3(0, 0, -3000), 0);
+  const target = screenTargets([hermit], origin, ahead, camera, 0, null, scratch, Infinity)[0];
+  check('a rock hermit\'s bracket names it, and not as an asteroid',
+    !!target && target.label.startsWith('ROCK HERMIT'), target?.label);
+  eq('...and the ship-ID line agrees',
+    shipIdUnderView([hermit], origin, ahead, scratch).split(' ').slice(0, 2).join(' '),
+    'ROCK HERMIT');
+  const rock = new NpcShip('asteroid', new THREE.Vector3(0, 0, -3000), 0);
+  const rockTarget = screenTargets([rock], origin, ahead, camera, 0, null, scratch, Infinity)[0];
+  check('...while a plain rock still reads ASTEROID', !!rockTarget && rockTarget.label.startsWith('ASTEROID'),
+    rockTarget?.label);
 }
 
 // --- a pod gets its own blip (docs/TODO/108) ---------------------------------

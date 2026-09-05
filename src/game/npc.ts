@@ -348,8 +348,14 @@ export class NpcShip {
     if (role === 'hermit') {
       // The one rostered ship with no tabulated hull: a hollowed rock, so its
       // mesh is generated at the registry's radius for it.
-      const hermitRadius = registeredHull(this.designId).targetRadius;
+      const hull = registeredHull(this.designId);
+      const hermitRadius = hull.targetRadius;
       this.object = buildAsteroid(hermitRadius, variantSeed * 977 + 3, 0xb9b9a5);
+      // NAMED, because the console prints the mesh's name. `buildShip` names
+      // every tabulated hull, and `buildAsteroid` names nothing, so the bracket
+      // and the ship-ID line read ASTEROID on a hermit at every range until
+      // docs/TODO/187 (GitHub #40).
+      this.object.name = hull.name;
       const beacon = buildHermitBeacon(hermitRadius);
       this.object.add(beacon);
       this.behaviour = hermitIdle(beacon);
