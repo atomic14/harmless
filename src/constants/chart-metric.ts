@@ -18,6 +18,11 @@ export const TENTHS_PER_CHART_UNIT = 4;
  * The asymmetry: chart y counts for half of chart x. It is the original's metric,
  * because its chart is drawn half-height. Both charts plot `y / CHART_Y_SQUASH`
  * for the same reason, which keeps the fuel marker a true circle.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule chart.ySquash
  */
 export const CHART_Y_SQUASH = 2;
 

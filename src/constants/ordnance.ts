@@ -60,13 +60,25 @@ export const MISSILE_LAST_STAND_GATE = Math.PI / 2;
  * you cannot dodge is not a fight.
  */
 export const MISSILE_LAST_STAND_MIN_RANGE = 250;
-/** Gap between launches, so a Python does not empty both rails in one frame. */
+/**
+ * Gap between launches, so a Python does not empty both rails in one frame.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule ordnance.missileReload
+ */
 export const MISSILE_RELOAD = 2;
 
 /**
  * How many passes a ship makes before it accepts that this is not going its way.
  * Missiles are for emergencies. Two committed passes with the target still there
  * is that discovery.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule ordnance.missileCommitPasses
  */
 export const MISSILE_COMMIT_PASSES = 2;
 

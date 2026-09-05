@@ -5,6 +5,11 @@
  * A rival threat must be this much NEARER than the threat under fire before the
  * defender may switch to it. It is a sanity test: the rival actually overtook,
  * and it is not a tie. `THREAT_MIN_HOLD` does the real commitment.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule threat.switchMargin
  */
 export const THREAT_SWITCH_MARGIN = 2.0;
 

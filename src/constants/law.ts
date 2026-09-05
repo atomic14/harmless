@@ -55,6 +55,14 @@ export const CLEAN = 0;
  * @rule law.offender
  */
 export const OFFENDER = 1;
+/**
+ * The top rung: every police ship in the galaxy hunts a Fugitive.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule law.fugitive
+ */
 export const FUGITIVE = 2;
 
 /**

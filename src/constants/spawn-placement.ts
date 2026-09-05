@@ -253,6 +253,11 @@ export const STATION_DEFENCE_MIN = 1;
 /**
  * ...and the width of that draw: one or two of them. It is the smallest
  * escalation there is, and the launch can trigger again if you keep shooting.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule spawn.stationDefenceSpan
  */
 export const STATION_DEFENCE_SPAN = 2;
 

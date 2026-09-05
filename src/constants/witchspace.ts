@@ -30,6 +30,11 @@ export const WITCHSPACE_ENTRY_SPEED = 200;
  * The fewest Thargoids that wait. Never one: a single Thargoid is a duel, and
  * this is an ambush. To be outnumbered from the first frame is what makes a
  * mis-jump read as the worst thing that can happen to a jump.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule witchspace.thargoidAmbushMin
  */
 export const THARGOID_AMBUSH_MIN = 2;
 

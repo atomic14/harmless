@@ -21,7 +21,8 @@ export const MIN_TRADERS = 1;
  * ...and never more than this many, however many convoys are due. It is a
  * property of what a system HOLDS, so it lives here and not in `encounters.ts`.
  * `test/constants.test.ts` fails if any file in `src/` declares the name again.
- * `MAX_THARGONS` in `encounters.ts` is also 4, and it is a different rule.
+ * `MAX_THARGONS` in `encounters.ts` is a different rule, and it shared the value
+ * until docs/TODO/188 moved it.
  */
 export const MAX_TRADERS = 4;
 
@@ -69,6 +70,11 @@ export const GENERATION_SHIP_CHANCE = 0.08;
  * The fewest rocks a system holds. Every system has some. They are what a mining
  * laser is for, and a sky with nothing but ships reads as a level rather than as
  * space.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule population.asteroidsMin
  */
 export const ASTEROIDS_MIN = 2;
 

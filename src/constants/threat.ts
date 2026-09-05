@@ -138,8 +138,15 @@ export const LASER_WEIGHT = 8;
 export const PROFESSIONAL_SCORE = 110;
 export const GANG_SCORE = 160;
 
-/** The ladder's top rung. Threat tiers run 0..MAX_TIER everywhere a tier is a
- *  number: `PirateThreat.tier`, `memberTier`, the trainer and the wave ramp. */
+/**
+ * The ladder's top rung. Threat tiers run 0..MAX_TIER everywhere a tier is a
+ * number: `PirateThreat.tier`, `memberTier`, the trainer and the wave ramp.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule threat.maxTier
+ */
 export const MAX_TIER = 2;
 
 /**

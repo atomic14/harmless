@@ -58,5 +58,10 @@ export const SHIELD_REGEN = MAX_SHIELD * SHIELD_REGEN_FRACTION;
 /**
  * An energy unit doubles the bank's recharge. It is applied one time, in
  * `energyRegenPerSecond`, so no caller can helpfully double it a second time.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule recharge.energyUnitMultiplier
  */
 export const ENERGY_UNIT_MULTIPLIER = 2;

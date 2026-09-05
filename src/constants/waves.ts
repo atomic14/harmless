@@ -16,7 +16,14 @@ import { MAX_TIER } from './threat.ts';
 /** The most ships a wave ever holds — the ceiling the ramp exists to have. */
 export const WAVE_MAX_COUNT = 6;
 
-/** The count grows by one every this many waves... */
+/**
+ * The count grows by one every this many waves...
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule waves.countEvery
+ */
 export const WAVE_COUNT_EVERY = 2;
 
 /** ...and the tier climbs a rung every this many. */
@@ -25,6 +32,11 @@ export const WAVE_TIER_EVERY = 3;
 /**
  * One new thing every this many waves, once the numbers stop. The spacing lets
  * you meet a new thing, and then meet it again when you know it is coming.
+ *
+ * It has its own rule id, because thirteen constants share the value 2
+ * (docs/TODO/188), and each is free to move alone.
+ *
+ * @rule waves.stepEvery
  */
 export const WAVE_STEP_EVERY = 2;
 

@@ -46,14 +46,14 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | character | <code>DISREPUTE_DECAY</code> | <code>1.5</code> | How fast disrepute fades, per day. | <code>character.disreputeDecay</code> | [character.ts:209](./character.ts#L209) |
 | character | <code>DISREPUTE_MAX</code> | <code>160</code> | The ceiling, so a lifetime of villainy cannot run the score away past what a season of clean living can undo. |  | [character.ts:215](./character.ts#L215) |
 | chart-metric | <code>TENTHS_PER_CHART_UNIT</code> | <code>4</code> | Tenths of a light year in one unit of chart x. |  | [chart-metric.ts:15](./chart-metric.ts#L15) |
-| chart-metric | <code>CHART_Y_SQUASH</code> | <code>2</code> | The asymmetry: chart y counts for half of chart x. |  | [chart-metric.ts:22](./chart-metric.ts#L22) |
-| chart-metric | <code>CHART_SPAN_X</code> | <code>256</code> | The width of the coordinate space that every chart projects. |  | [chart-metric.ts:30](./chart-metric.ts#L30) |
-| chart-metric | <code>CHART_SPAN_Y</code> | <code>CHART_SPAN_X / CHART_Y_SQUASH</code> | The height — half the width. |  | [chart-metric.ts:36](./chart-metric.ts#L36) |
-| chart-metric | <code>LOCAL_SCALE</code> | <code>15</code> | The console's short-range chart: canvas px per chart unit. |  | [chart-metric.ts:44](./chart-metric.ts#L44) |
-| chart-metric | <code>LOCAL_CANVAS</code> | <code>560</code> | Square, so a light year is the same number of pixels whichever way you go. |  | [chart-metric.ts:47](./chart-metric.ts#L47) |
-| chart-metric | <code>CHART_CANVAS_W</code> | <code>780</code> | The galactic chart's canvas, in px. |  | [chart-metric.ts:59](./chart-metric.ts#L59) |
-| chart-metric | <code>CHART_CANVAS_H</code> | <code>400</code> | Its height. |  | [chart-metric.ts:67](./chart-metric.ts#L67) |
-| chart-metric | <code>LANE_PICK_PX</code> | <code>8</code> | How near the pointer must come to a trade lane to be pointing AT it, in canvas pixels. |  | [chart-metric.ts:78](./chart-metric.ts#L78) |
+| chart-metric | <code>CHART_Y_SQUASH</code> | <code>2</code> | The asymmetry: chart y counts for half of chart x. | <code>chart.ySquash</code> | [chart-metric.ts:27](./chart-metric.ts#L27) |
+| chart-metric | <code>CHART_SPAN_X</code> | <code>256</code> | The width of the coordinate space that every chart projects. |  | [chart-metric.ts:35](./chart-metric.ts#L35) |
+| chart-metric | <code>CHART_SPAN_Y</code> | <code>CHART_SPAN_X / CHART_Y_SQUASH</code> | The height — half the width. |  | [chart-metric.ts:41](./chart-metric.ts#L41) |
+| chart-metric | <code>LOCAL_SCALE</code> | <code>15</code> | The console's short-range chart: canvas px per chart unit. |  | [chart-metric.ts:49](./chart-metric.ts#L49) |
+| chart-metric | <code>LOCAL_CANVAS</code> | <code>560</code> | Square, so a light year is the same number of pixels whichever way you go. |  | [chart-metric.ts:52](./chart-metric.ts#L52) |
+| chart-metric | <code>CHART_CANVAS_W</code> | <code>780</code> | The galactic chart's canvas, in px. |  | [chart-metric.ts:64](./chart-metric.ts#L64) |
+| chart-metric | <code>CHART_CANVAS_H</code> | <code>400</code> | Its height. |  | [chart-metric.ts:72](./chart-metric.ts#L72) |
+| chart-metric | <code>LANE_PICK_PX</code> | <code>8</code> | How near the pointer must come to a trade lane to be pointing AT it, in canvas pixels. |  | [chart-metric.ts:83](./chart-metric.ts#L83) |
 | chart-overlay | <code>LANE_FADE_FLOOR</code> | <code>0.35</code> | The alpha that the quietest drawn trade lane keeps, with the busiest at 1. | <code>chart.laneFadeFloor</code> | [chart-overlay.ts:25](./chart-overlay.ts#L25) |
 | chart-overlay | <code>LANE_CARGO_NAMED</code> | <code>3</code> | How many of a lane's commodities the detail line names before it counts the rest ("+2"). |  | [chart-overlay.ts:35](./chart-overlay.ts#L35) |
 | collision | <code>PLAYER_SPEED_KEPT</code> | <code>0.3</code> | Speed kept after a collision. |  | [collision.ts:10](./collision.ts#L10) |
@@ -138,8 +138,8 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | encounters | <code>PIRATE_WAVE_GAP_JITTER</code> | <code>90</code> | ...and the jitter. |  | [encounters.ts:88](./encounters.ts#L88) |
 | encounters | <code>LAWLESS_GOVERNMENT</code> | <code>3</code> | A government at or below this breeds pirate waves at all. 3 is a dictatorship on the 1984 ladder, so waves stop at communist (4) and above. |  | [encounters.ts:98](./encounters.ts#L98) |
 | encounters | <code>ANARCHY_GOVERNMENT</code> | <code>1</code> | ...and a government at or below THIS sends them two at a time: anarchy (0) and feudal (1). | <code>encounters.anarchyGovernment</code> | [encounters.ts:114](./encounters.ts#L114) |
-| encounters | <code>MAX_THARGONS</code> | <code>4</code> | How many drones one Thargoid mothership keeps in the sky. |  | [encounters.ts:121](./encounters.ts#L121) |
-| encounters | <code>THARGON_REDEPLOY</code> | <code>5</code> | Seconds between one drone and the next, and the wait for the first. | <code>encounters.thargonRedeploy</code> | [encounters.ts:136](./encounters.ts#L136) |
+| encounters | <code>MAX_THARGONS</code> | <code>2</code> | How many drones the Thargoids keep in the sky at once, across every mothership. | <code>encounters.maxThargons</code> | [encounters.ts:134](./encounters.ts#L134) |
+| encounters | <code>THARGON_REDEPLOY</code> | <code>5</code> | Seconds between one drone and the next, and the wait for the first. | <code>encounters.thargonRedeploy</code> | [encounters.ts:149](./encounters.ts#L149) |
 | exercise | <code>OPENING_RANGE</code> | <code>4500</code> | The opening range for a fight that you are meant to see coming. | <code>exercise.openingRange</code> | [exercise.ts:33](./exercise.ts#L33) |
 | exercise | <code>AMBUSH_RANGE</code> | <code>2400</code> | An ambush opens INSIDE their gun, because that is what an ambush is. |  | [exercise.ts:40](./exercise.ts#L40) |
 | exercise | <code>MIN_OPENING_RANGE</code> | <code>2 * PASS_FAR</code> | No opening may be closer than this. |  | [exercise.ts:49](./exercise.ts#L49) |
@@ -188,21 +188,21 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | law | <code>HARM_LINES</code> | <code>[ ['police', 'POLICE SHIP HIT — AND NOW HE IS COMING FOR YOU'], ['hunter', 'BOUNTY HUNTER HIT — AND NOW HE IS COMING FOR YOU'], ['trader', 'TRADER HIT — AND THAT IS AN OFFENCE'], ]</code> | What the console says when the commander's own laser first lands on a ship the law protects, one line per role. |  | [law.ts:40](./law.ts#L40) |
 | law | <code>CLEAN</code> | <code>0</code> |  |  | [law.ts:46](./law.ts#L46) |
 | law | <code>OFFENDER</code> | <code>1</code> | The middle rung of the legal ladder, and the one a stray shot reaches. | <code>law.offender</code> | [law.ts:57](./law.ts#L57) |
-| law | <code>FUGITIVE</code> | <code>2</code> |  |  | [law.ts:58](./law.ts#L58) |
-| law | <code>STATION_TRUCE</code> | <code>7000</code> | How close to the station the commander must be for the truce to hold. | <code>law.stationTruce</code> | [law.ts:86](./law.ts#L86) |
-| law | <code>CONTRABAND</code> | <code>[3, 6, 10]</code> | The commodity indices that the Galactic Government defines as illegal: slaves, narcotics and firearms. |  | [law.ts:94](./law.ts#L94) |
-| law | <code>OFFENDER_FINE</code> | <code>250</code> | The fine for a dock with a record, capped at what you can actually pay. |  | [law.ts:100](./law.ts#L100) |
-| law | <code>FUGITIVE_FINE</code> | <code>750</code> |  |  | [law.ts:101](./law.ts#L101) |
-| law | <code>KILLS_PER_RUNG</code> | <code>5</code> | Pirate kills that take a legal record down one rung. | <code>law.killsPerRung</code> | [law.ts:132](./law.ts#L132) |
-| law | <code>DEFENCE_RANGE</code> | <code>9000</code> | Misbehave within this range of the station slot, and the Vipers launch. |  | [law.ts:140](./law.ts#L140) |
-| law | <code>SCAN_RANGE</code> | <code>2600</code> | How close a police ship must be to scan your hold. |  | [law.ts:143](./law.ts#L143) |
-| law | <code>SCAN_WARN_RANGE</code> | <code>4400</code> | A police ship this close is about to be able to read your hold, and the console says so while it stays there. |  | [law.ts:163](./law.ts#L163) |
-| law | <code>SCAN_WARN_REPEAT</code> | <code>2</code> | Seconds between repeats of that warning, while a patrol stays in the band. | <code>law.scanWarnRepeat</code> | [law.ts:180](./law.ts#L180) |
-| law | <code>BRIBE_SHARE</code> | <code>0.5</code> | What a policeman charges to not read your hold: this share of what the contraband aboard is worth at market. | <code>law.bribeShare</code> | [law.ts:209](./law.ts#L209) |
-| law | <code>BRIBE_FLOOR</code> | <code>500</code> | ...but never less than this, so a light run is not a free pass. 50 Cr, in tenths of a credit (invariant 8). | <code>law.bribeFloor</code> | [law.ts:229](./law.ts#L229) |
-| law | <code>PATROL_BRIBE_FINES</code> | <code>4</code> | What a police ship that already shoots at you charges to break off, as a multiple of the fine for the rung you are on. | <code>law.patrolBribeFines</code> | [law.ts:253](./law.ts#L253) |
-| law | <code>BRIBE_REFUSED</code> | <code>0.35</code> | How often an HONEST commander's offer is refused and reported. | <code>law.bribeRefused</code> | [law.ts:285](./law.ts#L285) |
-| law | <code>SCAN_LINE_SECONDS</code> | <code>4</code> | How long the scan's own line holds the console, and therefore how long the verdict that explains it waits behind it. | <code>law.scanLineSeconds</code> | [law.ts:300](./law.ts#L300) |
+| law | <code>FUGITIVE</code> | <code>2</code> | The top rung: every police ship in the galaxy hunts a Fugitive. | <code>law.fugitive</code> | [law.ts:66](./law.ts#L66) |
+| law | <code>STATION_TRUCE</code> | <code>7000</code> | How close to the station the commander must be for the truce to hold. | <code>law.stationTruce</code> | [law.ts:94](./law.ts#L94) |
+| law | <code>CONTRABAND</code> | <code>[3, 6, 10]</code> | The commodity indices that the Galactic Government defines as illegal: slaves, narcotics and firearms. |  | [law.ts:102](./law.ts#L102) |
+| law | <code>OFFENDER_FINE</code> | <code>250</code> | The fine for a dock with a record, capped at what you can actually pay. |  | [law.ts:108](./law.ts#L108) |
+| law | <code>FUGITIVE_FINE</code> | <code>750</code> |  |  | [law.ts:109](./law.ts#L109) |
+| law | <code>KILLS_PER_RUNG</code> | <code>5</code> | Pirate kills that take a legal record down one rung. | <code>law.killsPerRung</code> | [law.ts:140](./law.ts#L140) |
+| law | <code>DEFENCE_RANGE</code> | <code>9000</code> | Misbehave within this range of the station slot, and the Vipers launch. |  | [law.ts:148](./law.ts#L148) |
+| law | <code>SCAN_RANGE</code> | <code>2600</code> | How close a police ship must be to scan your hold. |  | [law.ts:151](./law.ts#L151) |
+| law | <code>SCAN_WARN_RANGE</code> | <code>4400</code> | A police ship this close is about to be able to read your hold, and the console says so while it stays there. |  | [law.ts:171](./law.ts#L171) |
+| law | <code>SCAN_WARN_REPEAT</code> | <code>2</code> | Seconds between repeats of that warning, while a patrol stays in the band. | <code>law.scanWarnRepeat</code> | [law.ts:188](./law.ts#L188) |
+| law | <code>BRIBE_SHARE</code> | <code>0.5</code> | What a policeman charges to not read your hold: this share of what the contraband aboard is worth at market. | <code>law.bribeShare</code> | [law.ts:217](./law.ts#L217) |
+| law | <code>BRIBE_FLOOR</code> | <code>500</code> | ...but never less than this, so a light run is not a free pass. 50 Cr, in tenths of a credit (invariant 8). | <code>law.bribeFloor</code> | [law.ts:237](./law.ts#L237) |
+| law | <code>PATROL_BRIBE_FINES</code> | <code>4</code> | What a police ship that already shoots at you charges to break off, as a multiple of the fine for the rung you are on. | <code>law.patrolBribeFines</code> | [law.ts:261](./law.ts#L261) |
+| law | <code>BRIBE_REFUSED</code> | <code>0.35</code> | How often an HONEST commander's offer is refused and reported. | <code>law.bribeRefused</code> | [law.ts:293](./law.ts#L293) |
+| law | <code>SCAN_LINE_SECONDS</code> | <code>4</code> | How long the scan's own line holds the console, and therefore how long the verdict that explains it waits behind it. | <code>law.scanLineSeconds</code> | [law.ts:308](./law.ts#L308) |
 | living-galaxy | <code>PRESSURE_DECAY</code> | <code>0.12</code> | How fast price pressure decays back toward the 1984 baseline, per day. |  | [living-galaxy.ts:9](./living-galaxy.ts#L9) |
 | living-galaxy | <code>HEAT_DECAY</code> | <code>0.06</code> | How fast talk about the player dies down, per day. | <code>living.heatDecay</code> | [living-galaxy.ts:24](./living-galaxy.ts#L24) |
 | living-galaxy | <code>DANGER_DECAY</code> | <code>0.015</code> | How fast a system's reputation for piracy fades, per day. |  | [living-galaxy.ts:32](./living-galaxy.ts#L32) |
@@ -250,12 +250,12 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | ordnance | <code>MISSILE_LAST_STAND_HULL</code> | <code>0.4</code> | The hull fraction below which a ship stops saving its missiles for later. | <code>ordnance.missileLastStandHull</code> | [ordnance.ts:51](./ordnance.ts#L51) |
 | ordnance | <code>MISSILE_LAST_STAND_GATE</code> | <code>Math.PI / 2</code> | ...and it launches on a bearing rather than on a firing line. |  | [ordnance.ts:56](./ordnance.ts#L56) |
 | ordnance | <code>MISSILE_LAST_STAND_MIN_RANGE</code> | <code>250</code> | Desperation widens the envelope INWARD, but not all the way. |  | [ordnance.ts:62](./ordnance.ts#L62) |
-| ordnance | <code>MISSILE_RELOAD</code> | <code>2</code> | Gap between launches, so a Python does not empty both rails in one frame. |  | [ordnance.ts:64](./ordnance.ts#L64) |
-| ordnance | <code>MISSILE_COMMIT_PASSES</code> | <code>2</code> | How many passes a ship makes before it accepts that this is not going its way. |  | [ordnance.ts:71](./ordnance.ts#L71) |
-| ordnance | <code>ECM_RANGE</code> | <code>2800</code> | A target with an E.C.M. fries an incoming missile inside this. |  | [ordnance.ts:76](./ordnance.ts#L76) |
-| ordnance | <code>ECM_RATE</code> | <code>0.45</code> | ...at this chance per second. |  | [ordnance.ts:78](./ordnance.ts#L78) |
-| ordnance | <code>ECM_ENERGY_COST</code> | <code>ENERGY_BANK_POINTS</code> | A shot of the E.C.M. costs one bank of energy. |  | [ordnance.ts:84](./ordnance.ts#L84) |
-| ordnance | <code>ENERGY_BOMB_RANGE</code> | <code>8000</code> | The energy bomb reaches this far. |  | [ordnance.ts:87](./ordnance.ts#L87) |
+| ordnance | <code>MISSILE_RELOAD</code> | <code>2</code> | Gap between launches, so a Python does not empty both rails in one frame. | <code>ordnance.missileReload</code> | [ordnance.ts:71](./ordnance.ts#L71) |
+| ordnance | <code>MISSILE_COMMIT_PASSES</code> | <code>2</code> | How many passes a ship makes before it accepts that this is not going its way. | <code>ordnance.missileCommitPasses</code> | [ordnance.ts:83](./ordnance.ts#L83) |
+| ordnance | <code>ECM_RANGE</code> | <code>2800</code> | A target with an E.C.M. fries an incoming missile inside this. |  | [ordnance.ts:88](./ordnance.ts#L88) |
+| ordnance | <code>ECM_RATE</code> | <code>0.45</code> | ...at this chance per second. |  | [ordnance.ts:90](./ordnance.ts#L90) |
+| ordnance | <code>ECM_ENERGY_COST</code> | <code>ENERGY_BANK_POINTS</code> | A shot of the E.C.M. costs one bank of energy. |  | [ordnance.ts:96](./ordnance.ts#L96) |
+| ordnance | <code>ENERGY_BOMB_RANGE</code> | <code>8000</code> | The energy bomb reaches this far. |  | [ordnance.ts:99](./ordnance.ts#L99) |
 | pass-aim | <code>PASS_MISS_DISTANCE</code> | <code>110</code> | How far to the SIDE of its target a ship aims its attack run. 110 clears the largest pirate hull, plus the commander's radius, twice over. |  | [pass-aim.ts:13](./pass-aim.ts#L13) |
 | pass-aim | <code>MAX_LEAD_SECONDS</code> | <code>0.5</code> | The furthest ahead of a target that a ship will aim, in seconds. |  | [pass-aim.ts:21](./pass-aim.ts#L21) |
 | pass-aim | <code>MAX_MISS_STRETCH</code> | <code>3</code> | The most that geometry may stretch the aim, in multiples of the intended pass. |  | [pass-aim.ts:29](./pass-aim.ts#L29) |
@@ -281,19 +281,19 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | pools | <code>ENERGY_BANK_POINTS</code> | <code>Math.round(MAX_ENERGY / ENERGY_BANKS)</code> | One bank, in points. |  | [pools.ts:18](./pools.ts#L18) |
 | pools | <code>LOW_ENERGY</code> | <code>ENERGY_BANK_POINTS</code> | Down to the last bank. |  | [pools.ts:26](./pools.ts#L26) |
 | population | <code>MIN_TRADERS</code> | <code>1</code> | Never fewer than this many traders, whatever the living galaxy says. | <code>population.minTraders</code> | [population.ts:18](./population.ts#L18) |
-| population | <code>MAX_TRADERS</code> | <code>4</code> | ...and never more than this many, however many convoys are due. |  | [population.ts:26](./population.ts#L26) |
-| population | <code>HUNTER_CHANCE_ARRIVAL</code> | <code>0.35</code> | The chance that a bounty hunter works the system when you arrive. | <code>population.hunterChanceArrival</code> | [population.ts:39](./population.ts#L39) |
-| population | <code>HUNTER_CHANCE_LAUNCH</code> | <code>0.2</code> | ...and the lower chance when you launch from its station instead. | <code>population.hunterChanceLaunch</code> | [population.ts:52](./population.ts#L52) |
-| population | <code>HERMIT_CHANCE</code> | <code>0.3</code> | The chance that a rock hermit hides out among the asteroids: a hollowed-out rock that trades ore and asks no questions. |  | [population.ts:59](./population.ts#L59) |
-| population | <code>GENERATION_SHIP_CHANCE</code> | <code>0.08</code> | The chance that a generation ship crosses, on arrival only. |  | [population.ts:66](./population.ts#L66) |
-| population | <code>ASTEROIDS_MIN</code> | <code>2</code> | The fewest rocks a system holds. |  | [population.ts:73](./population.ts#L73) |
-| population | <code>ASTEROIDS_VARIATION</code> | <code>3</code> | ...and how many more it holds, drawn flat: `ASTEROIDS_MIN` plus 0, 1 or 2. |  | [population.ts:80](./population.ts#L80) |
-| population | <code>GENERATION_SIGHT_RANGE</code> | <code>6000</code> | How near a derelict generation ship the commander must be to notice it. | <code>population.generationSight</code> | [population.ts:96](./population.ts#L96) |
+| population | <code>MAX_TRADERS</code> | <code>4</code> | ...and never more than this many, however many convoys are due. |  | [population.ts:27](./population.ts#L27) |
+| population | <code>HUNTER_CHANCE_ARRIVAL</code> | <code>0.35</code> | The chance that a bounty hunter works the system when you arrive. | <code>population.hunterChanceArrival</code> | [population.ts:40](./population.ts#L40) |
+| population | <code>HUNTER_CHANCE_LAUNCH</code> | <code>0.2</code> | ...and the lower chance when you launch from its station instead. | <code>population.hunterChanceLaunch</code> | [population.ts:53](./population.ts#L53) |
+| population | <code>HERMIT_CHANCE</code> | <code>0.3</code> | The chance that a rock hermit hides out among the asteroids: a hollowed-out rock that trades ore and asks no questions. |  | [population.ts:60](./population.ts#L60) |
+| population | <code>GENERATION_SHIP_CHANCE</code> | <code>0.08</code> | The chance that a generation ship crosses, on arrival only. |  | [population.ts:67](./population.ts#L67) |
+| population | <code>ASTEROIDS_MIN</code> | <code>2</code> | The fewest rocks a system holds. | <code>population.asteroidsMin</code> | [population.ts:79](./population.ts#L79) |
+| population | <code>ASTEROIDS_VARIATION</code> | <code>3</code> | ...and how many more it holds, drawn flat: `ASTEROIDS_MIN` plus 0, 1 or 2. |  | [population.ts:86](./population.ts#L86) |
+| population | <code>GENERATION_SIGHT_RANGE</code> | <code>6000</code> | How near a derelict generation ship the commander must be to notice it. | <code>population.generationSight</code> | [population.ts:102](./population.ts#L102) |
 | rating | <code>RATINGS</code> | <code>[ [0, 'Harmless'], [8, 'Mostly Harmless'], [16, 'Poor'], [32, 'Below Average'], [64, 'Average'], [128, 'Above Average'], [512, 'Competent'], [2560, 'Dangerous'], [6400, 'Deadly'], [25600, 'E L I T E'], ]</code> | Score thresholds and the name that each one earns, lowest first. |  | [rating.ts:23](./rating.ts#L23) |
 | recharge | <code>ENERGY_REGEN_FRACTION</code> | <code>0.025</code> | The fraction of a full pool that a Cobra Mk III recovers each second. |  | [recharge.ts:41](./recharge.ts#L41) |
 | recharge | <code>SHIELD_REGEN_FRACTION</code> | <code>0.012</code> | The shield's half of the pair above, and the one docs/TODO/139 moved. |  | [recharge.ts:44](./recharge.ts#L44) |
 | recharge | <code>SHIELD_REGEN</code> | <code>MAX_SHIELD * SHIELD_REGEN_FRACTION</code> | Shield points a second, per face. |  | [recharge.ts:56](./recharge.ts#L56) |
-| recharge | <code>ENERGY_UNIT_MULTIPLIER</code> | <code>2</code> | An energy unit doubles the bank's recharge. |  | [recharge.ts:62](./recharge.ts#L62) |
+| recharge | <code>ENERGY_UNIT_MULTIPLIER</code> | <code>2</code> | An energy unit doubles the bank's recharge. | <code>recharge.energyUnitMultiplier</code> | [recharge.ts:67](./recharge.ts#L67) |
 | render | <code>BLOOM</code> | <code>{ strength: 0.55, radius: 0.5, threshold: 0.15, } as const</code> | The bloom pass, after its resolution vector: `strength`, `radius` and `threshold`, as `UnrealBloomPass` takes them. |  | [render.ts:32](./render.ts#L32) |
 | render | <code>MAX_PIXEL_RATIO</code> | <code>2</code> | The most device pixels per CSS pixel that any canvas in the project will render. | <code>render.maxPixelRatio</code> | [render.ts:57](./render.ts#L57) |
 | saves | <code>AUTOSAVE_INTERVAL</code> | <code>20</code> | Seconds between mid-flight world saves — see Game.autoSave(). |  | [saves.ts:11](./saves.ts#L11) |
@@ -330,12 +330,12 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | spawn-placement | <code>MISSION_TARGET_RANGE_SPAN</code> | <code>4000</code> | ...and the width of that band — the same again, so it can be twice as far. |  | [spawn-placement.ts:232](./spawn-placement.ts#L232) |
 | spawn-placement | <code>THARGON_DEPLOY_RANGE</code> | <code>150</code> | How far from its mother a Thargon drone appears. |  | [spawn-placement.ts:238](./spawn-placement.ts#L238) |
 | spawn-placement | <code>STATION_DEFENCE_MIN</code> | <code>1</code> | The fewest Vipers the station launches after you shoot at something you should not. | <code>spawn.stationDefenceMin</code> | [spawn-placement.ts:251](./spawn-placement.ts#L251) |
-| spawn-placement | <code>STATION_DEFENCE_SPAN</code> | <code>2</code> | ...and the width of that draw: one or two of them. |  | [spawn-placement.ts:257](./spawn-placement.ts#L257) |
-| spawn-placement | <code>STATION_DEFENCE_STANDOFF</code> | <code>500</code> | How far out of the slot the first one launches. |  | [spawn-placement.ts:263](./spawn-placement.ts#L263) |
-| spawn-placement | <code>STATION_DEFENCE_STACK</code> | <code>120</code> | ...and how much further out each one after it starts, so a pair does not arrive inside each other. |  | [spawn-placement.ts:269](./spawn-placement.ts#L269) |
-| spawn-placement | <code>STATION_DEFENCE_JITTER</code> | <code>80</code> | ...and the random nudge on each, so a second launch does not look like the first. |  | [spawn-placement.ts:279](./spawn-placement.ts#L279) |
-| spawn-placement | <code>TRADER_ARRIVED</code> | <code>900</code> | How near the station an arriving trader has to be to start trading. | <code>spawn.traderArrived</code> | [spawn-placement.ts:294](./spawn-placement.ts#L294) |
-| spawn-placement | <code>TRADER_JUMP_OUT</code> | <code>2500</code> | How near its waypoint a departing trader has to be to jump out. | <code>spawn.traderJumpOut</code> | [spawn-placement.ts:310](./spawn-placement.ts#L310) |
+| spawn-placement | <code>STATION_DEFENCE_SPAN</code> | <code>2</code> | ...and the width of that draw: one or two of them. | <code>spawn.stationDefenceSpan</code> | [spawn-placement.ts:262](./spawn-placement.ts#L262) |
+| spawn-placement | <code>STATION_DEFENCE_STANDOFF</code> | <code>500</code> | How far out of the slot the first one launches. |  | [spawn-placement.ts:268](./spawn-placement.ts#L268) |
+| spawn-placement | <code>STATION_DEFENCE_STACK</code> | <code>120</code> | ...and how much further out each one after it starts, so a pair does not arrive inside each other. |  | [spawn-placement.ts:274](./spawn-placement.ts#L274) |
+| spawn-placement | <code>STATION_DEFENCE_JITTER</code> | <code>80</code> | ...and the random nudge on each, so a second launch does not look like the first. |  | [spawn-placement.ts:284](./spawn-placement.ts#L284) |
+| spawn-placement | <code>TRADER_ARRIVED</code> | <code>900</code> | How near the station an arriving trader has to be to start trading. | <code>spawn.traderArrived</code> | [spawn-placement.ts:299](./spawn-placement.ts#L299) |
+| spawn-placement | <code>TRADER_JUMP_OUT</code> | <code>2500</code> | How near its waypoint a departing trader has to be to jump out. | <code>spawn.traderJumpOut</code> | [spawn-placement.ts:315](./spawn-placement.ts#L315) |
 | station | <code>STATION_SPIN</code> | <code>0.26</code> | How fast the station spins about its slot axis, in radians a second. |  | [station.ts:19](./station.ts#L19) |
 | station | <code>DODO_TECH_LEVEL</code> | <code>10</code> | The tech level at which a system's station is the dodecahedral Dodo rather than the Coriolis, in SHOWN one-based units. |  | [station.ts:32](./station.ts#L32) |
 | station | <code>BOUNCE_STANDOFF</code> | <code>420</code> | Where a fluffed docking bounces you to. |  | [station.ts:48](./station.ts#L48) |
@@ -373,10 +373,10 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | threat | <code>LASER_WEIGHT</code> | <code>8</code> |  |  | [threat.ts:132](./threat.ts#L132) |
 | threat | <code>PROFESSIONAL_SCORE</code> | <code>110</code> | The tier ladder over `sourceThreatScore`. |  | [threat.ts:138](./threat.ts#L138) |
 | threat | <code>GANG_SCORE</code> | <code>160</code> |  |  | [threat.ts:139](./threat.ts#L139) |
-| threat | <code>MAX_TIER</code> | <code>2</code> | The ladder's top rung. |  | [threat.ts:143](./threat.ts#L143) |
-| threat | <code>CURATED_TIER</code> | <code>{ 'elite-a:design:17': 0, }</code> | Hulls held at a tier that the score alone would not give them. |  | [threat.ts:153](./threat.ts#L153) |
-| threat-lock | <code>THREAT_SWITCH_MARGIN</code> | <code>2.0</code> | A rival threat must be this much NEARER than the threat under fire before the defender may switch to it. |  | [threat-lock.ts:9](./threat-lock.ts#L9) |
-| threat-lock | <code>THREAT_MIN_HOLD</code> | <code>5</code> | Seconds that the defender fights a threat before it considers a rival. | <code>threat.minHold</code> | [threat-lock.ts:20](./threat-lock.ts#L20) |
+| threat | <code>MAX_TIER</code> | <code>2</code> | The ladder's top rung. | <code>threat.maxTier</code> | [threat.ts:150](./threat.ts#L150) |
+| threat | <code>CURATED_TIER</code> | <code>{ 'elite-a:design:17': 0, }</code> | Hulls held at a tier that the score alone would not give them. |  | [threat.ts:160](./threat.ts#L160) |
+| threat-lock | <code>THREAT_SWITCH_MARGIN</code> | <code>2.0</code> | A rival threat must be this much NEARER than the threat under fire before the defender may switch to it. | <code>threat.switchMargin</code> | [threat-lock.ts:14](./threat-lock.ts#L14) |
+| threat-lock | <code>THREAT_MIN_HOLD</code> | <code>5</code> | Seconds that the defender fights a threat before it considers a rival. | <code>threat.minHold</code> | [threat-lock.ts:25](./threat-lock.ts#L25) |
 | torus | <code>TORUS_MULTIPLIER</code> | <code>8</code> | How much faster the torus drive travels than ordinary flight. |  | [torus.ts:17](./torus.ts#L17) |
 | torus | <code>MASS_LOCK_STATION</code> | <code>5000</code> | How near the station holds the drive down. |  | [torus.ts:29](./torus.ts#L29) |
 | torus | <code>MASS_LOCK_PLANET_ALTITUDE</code> | <code>4000</code> | ...and how near the planet, as an ALTITUDE above the surface. |  | [torus.ts:37](./torus.ts#L37) |
@@ -388,16 +388,16 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | trumbles | <code>APPETITE_DIVISOR</code> | <code>8</code> | One tonne eaten per this many trumbles, per brood. |  | [trumbles.ts:27](./trumbles.ts#L27) |
 | trumbles | <code>NOTICEABLE</code> | <code>4</code> | Below this many, they are not worth a word. |  | [trumbles.ts:33](./trumbles.ts#L33) |
 | waves | <code>WAVE_MAX_COUNT</code> | <code>6</code> | The most ships a wave ever holds — the ceiling the ramp exists to have. |  | [waves.ts:17](./waves.ts#L17) |
-| waves | <code>WAVE_COUNT_EVERY</code> | <code>2</code> | The count grows by one every this many waves... |  | [waves.ts:20](./waves.ts#L20) |
-| waves | <code>WAVE_TIER_EVERY</code> | <code>3</code> | ...and the tier climbs a rung every this many. |  | [waves.ts:23](./waves.ts#L23) |
-| waves | <code>WAVE_STEP_EVERY</code> | <code>2</code> | One new thing every this many waves, once the numbers stop. |  | [waves.ts:29](./waves.ts#L29) |
-| waves | <code>WAVE_COUNT_SATURATION</code> | <code>Math.max( (WAVE_MAX_COUNT - 1) * WAVE_COUNT_EVERY, MAX_TIER * WAVE_TIER_EVERY) + 1</code> | From this wave on, the count and the tier stop growth: six ships, at the top tier, in a gang. |  | [waves.ts:37](./waves.ts#L37) |
+| waves | <code>WAVE_COUNT_EVERY</code> | <code>2</code> | The count grows by one every this many waves... | <code>waves.countEvery</code> | [waves.ts:27](./waves.ts#L27) |
+| waves | <code>WAVE_TIER_EVERY</code> | <code>3</code> | ...and the tier climbs a rung every this many. |  | [waves.ts:30](./waves.ts#L30) |
+| waves | <code>WAVE_STEP_EVERY</code> | <code>2</code> | One new thing every this many waves, once the numbers stop. | <code>waves.stepEvery</code> | [waves.ts:41](./waves.ts#L41) |
+| waves | <code>WAVE_COUNT_SATURATION</code> | <code>Math.max( (WAVE_MAX_COUNT - 1) * WAVE_COUNT_EVERY, MAX_TIER * WAVE_TIER_EVERY) + 1</code> | From this wave on, the count and the tier stop growth: six ships, at the top tier, in a gang. |  | [waves.ts:49](./waves.ts#L49) |
 | witchspace | <code>BANISHED</code> | <code>1e8</code> | Where the planet, the station and the sun go while you are in witch-space. |  | [witchspace.ts:17](./witchspace.ts#L17) |
 | witchspace | <code>WITCHSPACE_ENTRY_SPEED</code> | <code>200</code> | Speed on arrival in witch-space. | <code>witchspace.entrySpeed</code> | [witchspace.ts:27](./witchspace.ts#L27) |
-| witchspace | <code>THARGOID_AMBUSH_MIN</code> | <code>2</code> | The fewest Thargoids that wait. |  | [witchspace.ts:34](./witchspace.ts#L34) |
-| witchspace | <code>THARGOID_AMBUSH_EXTRA_CHANCE</code> | <code>0.3</code> | ...and the chance of a third. |  | [witchspace.ts:37](./witchspace.ts#L37) |
-| witchspace | <code>THARGOID_AMBUSH_RANGE</code> | <code>3500</code> | How far out they wait. |  | [witchspace.ts:43](./witchspace.ts#L43) |
-| witchspace | <code>THARGOID_AMBUSH_RANGE_SPAN</code> | <code>2500</code> | ...and the width of that band, so they do not all arrive at one distance. | <code>witchspace.thargoidAmbushRangeSpan</code> | [witchspace.ts:54](./witchspace.ts#L54) |
+| witchspace | <code>THARGOID_AMBUSH_MIN</code> | <code>2</code> | The fewest Thargoids that wait. | <code>witchspace.thargoidAmbushMin</code> | [witchspace.ts:39](./witchspace.ts#L39) |
+| witchspace | <code>THARGOID_AMBUSH_EXTRA_CHANCE</code> | <code>0.3</code> | ...and the chance of a third. |  | [witchspace.ts:42](./witchspace.ts#L42) |
+| witchspace | <code>THARGOID_AMBUSH_RANGE</code> | <code>3500</code> | How far out they wait. |  | [witchspace.ts:48](./witchspace.ts#L48) |
+| witchspace | <code>THARGOID_AMBUSH_RANGE_SPAN</code> | <code>2500</code> | ...and the width of that band, so they do not all arrive at one distance. | <code>witchspace.thargoidAmbushRangeSpan</code> | [witchspace.ts:59](./witchspace.ts#L59) |
 | world-clock | <code>FIXED_DT</code> | <code>1 / 60</code> | The world advances in slices of exactly this. 60Hz. |  | [world-clock.ts:16](./world-clock.ts#L16) |
 | world-clock | <code>MAX_FRAME_TIME</code> | <code>0.25</code> | The longest real interval the loop will simulate before it drops the backlog. |  | [world-clock.ts:23](./world-clock.ts#L23) |
 | world-clock | <code>MAX_STEPS_PER_FRAME</code> | <code>5</code> | ...and the most steps one frame may run, so a stall cannot spiral. | <code>clock.maxStepsPerFrame</code> | [world-clock.ts:35](./world-clock.ts#L35) |
