@@ -68,6 +68,7 @@ import './help-overlay.test.ts';
 import './briefing-onboarding.test.ts';
 import './test-mode.test.ts';
 import './quit.test.ts';
+import './witchspace-trap.test.ts';
 import './state.test.ts';
 import './snapshot.test.ts';
 import './snapshot-parse.test.ts';

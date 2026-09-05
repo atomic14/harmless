@@ -8,7 +8,8 @@
 //   - it spends the days;
 //   - it drops the ship at the witchpoint;
 //   - it crosses to the next galaxy;
-//   - it tows a commander whom a mis-jump left stranded.
+//   - it tows a commander whom a mis-jump left stranded;
+//   - it arms the Spectrum's mis-jump switch, on a paused F (docs/TODO/189).
 //
 // ONE RESPONSIBILITY: what a jump does to the world. Five ways in and out of a
 // system, and every one of them ends at `arriveInSystem`.
@@ -31,7 +32,8 @@ import {
 } from './hyperspace.ts';
 import { afterDecay } from './character.ts';
 import { freshTimers } from './encounters.ts';
-import { randomDirection, rngState, seedWorld } from './rng.ts';
+import { random, randomDirection, rngState, seedWorld } from './rng.ts';
+import { boundKey } from '../ui/key-help.ts';
 import type { WorldBuild } from './world-build.ts';
 import type { GameState } from './state.ts';
 import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
@@ -67,6 +69,8 @@ export interface HyperspaceHost {
   countdownSound(seconds: number): void;
   hyperspaceSound(): void;
   distressBeaconSound(): void;
+  /** the Spectrum's beep: high to arm the mis-jump, low to disarm it */
+  misjumpArmed(armed: boolean): void;
 }
 
 export class HyperspaceActions {
@@ -109,10 +113,32 @@ export class HyperspaceActions {
     this.host.countdownSound(COUNTDOWN);
   }
 
+  /**
+   * The Spectrum's cheat, on its key: paused, F arms the drive to mis-jump,
+   * and F again disarms it. Every jump lands in witch-space while it is armed.
+   *
+   * THE GATE IS PAUSE, as it is for `quitFlight`. `WHILE_PAUSED` is what lets
+   * F reach this handler at all while paused, and this is what refuses it the
+   * rest of the time. It says so rather than doing nothing, because a bound
+   * key that appears dead is a bug report (docs/TODO/189).
+   */
+  armMisjump(): void {
+    if (!this.state.session.paused) {
+      this.host.showMessage(
+        `PAUSE FIRST — ${boundKey('flight', 'togglePause')},`
+        + ` THEN ${boundKey('flight', 'armMisjump')} TO ARM THE MIS-JUMP`, 3);
+      this.host.refused();
+      return;
+    }
+    this.state.session.misjumpArmed = !this.state.session.misjumpArmed;
+    this.host.misjumpArmed(this.state.session.misjumpArmed);
+  }
+
   /** @internal — driven by src/game/game.ts, whose step host reaches it. */
   completeHyperspace(): void {
     const target = this.state.chart.targetIndex!;
-    const jump = resolveJump(this.state.commander, this.state.systems, target, this.state.session.witchspace);
+    const jump = resolveJump(this.state.commander, this.state.systems, target,
+      this.state.session.witchspace, random, this.state.session.misjumpArmed);
     if (jump.misjump) {
       this.world.enterWitchspace(); // target retained for the escape jump
       return;

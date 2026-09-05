@@ -150,6 +150,7 @@ export function freshSession(): SessionState {
     trumbleTimer: BREED_INTERVAL,
     beaconTimer: -1,
     paused: false,
+    misjumpArmed: false,
     view: 0,
     ccEngaged: false,
     beamTimer: 0,

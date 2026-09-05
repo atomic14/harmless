@@ -44,6 +44,8 @@ const expected = {
   commanderDeleted: [400, 0.1],
   commanderNamed: [700, 0.1],
   combatSimulationLaunched: [700, 0.08],
+  misjumpArmed: [1300, 0.12],
+  misjumpDisarmed: [450, 0.12],
 } as const;
 
 for (const [name, [frequency, duration]] of Object.entries(expected)) {

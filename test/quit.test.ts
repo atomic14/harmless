@@ -50,10 +50,11 @@ console.log('\nQ gives up the flight — and still ends an exercise');
     COMMAND_HELP.quitFlight.what.includes('pause first')
     && COMMAND_HELP.quitFlight.what.includes('station autosave'));
 
-  // What a stopped world answers: the key that starts it again, and the one
-  // that gives up. Two, and no more — pause is not a place you play from.
-  eq('a paused cockpit answers exactly two commands',
-    [...WHILE_PAUSED].sort().join(','), 'quitFlight,togglePause');
+  // What a stopped world answers: the key that starts it again, the one that
+  // gives up, and the Spectrum's mis-jump switch (docs/TODO/189). Three, and
+  // no more — pause is not a place you play from.
+  eq('a paused cockpit answers exactly three commands',
+    [...WHILE_PAUSED].sort().join(','), 'armMisjump,quitFlight,togglePause');
 }
 
 // --- the confirmation --------------------------------------------------------

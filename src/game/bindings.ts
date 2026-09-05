@@ -54,6 +54,10 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'Digit3', independent: true, command: 'view2' },
   { key: 'Digit4', independent: true, command: 'view3' },
   { key: 'KeyP', command: 'togglePause' },
+  // The Spectrum's cheat, on the Spectrum's key: paused, F arms the drive to
+  // mis-jump. It answers only while PAUSED (see WHILE_PAUSED), and the handler
+  // says to pause first the rest of the time (docs/TODO/189).
+  { key: 'KeyF', command: 'armMisjump' },
   { key: 'KeyG', command: 'openChart' },
   { key: 'KeyN', command: 'openLocalChart' },
   { key: 'KeyI', command: 'openStatus' },
@@ -139,9 +143,14 @@ export const NOT_IN_THE_SIMULATOR: readonly Command[] = [
  * What a PAUSED cockpit answers. Everything else waits.
  *
  * A pause is not a menu in this game. It is the world stopped. So the list is
- * deliberately two entries: the key that starts it again, and the one that
- * gives up on the flight. Anything else would make a pause a place you can play
- * from, which is the thing a paused world is not.
+ * deliberately short: the key that starts it again, the one that gives up on
+ * the flight, and one homage. Anything else would make a pause a place you can
+ * play from, which is the thing a paused world is not.
+ *
+ * `armMisjump` is the homage, and Chris chose it on 2026-09-05 (docs/TODO/189).
+ * The Spectrum's Elite let you pause, press F, and hear a beep. Every jump then
+ * landed in witch-space until you did it again. It is a switch and not play:
+ * the world stays stopped, and nothing moves until P.
  *
  * `quitFlight` is here because it is ONLY here. To give up a flight is a
  * deliberate act. The world has to be stopped first, which makes it two
@@ -155,7 +164,7 @@ export const NOT_IN_THE_SIMULATOR: readonly Command[] = [
  * nothing is paused at all. `quitFlight` reaches its handler there too and gets
  * the same honest refusal, which is why this list needs no third state.
  */
-export const WHILE_PAUSED: readonly Command[] = ['togglePause', 'quitFlight'];
+export const WHILE_PAUSED: readonly Command[] = ['togglePause', 'quitFlight', 'armMisjump'];
 
 /**
  * The binding table. This IS the key map for commands — see CLAUDE.md's

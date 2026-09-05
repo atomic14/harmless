@@ -73,6 +73,12 @@ export interface SessionState {
   beaconTimer: number;
   paused: boolean;
   /**
+   * The Spectrum's cheat: while true, every jump lands in witch-space, the
+   * escape jump included. Paused F flips it (docs/TODO/189). Saved with the
+   * rest of the session, so a reload keeps the trap you set.
+   */
+  misjumpArmed: boolean;
+  /**
    * 0 front, 1 rear, 2 left, 3 right. NOT a camera setting. laserForView()
    * picks the weapon from it, and viewDir() aims the shot. So a reload in rear
    * view used to fire the FRONT laser at empty space ahead.

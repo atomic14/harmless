@@ -153,6 +153,10 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     section: 'flight',
   },
   togglePause: { what: 'pause', section: 'flight' },
+  armMisjump: {
+    what: 'pause first, then F arms the drive to mis-jump — every jump lands in witch-space until you press it again (the Spectrum\'s cheat)',
+    section: 'flight',
+  },
   startHyperspace: { what: 'hyperspace jump to your target', section: 'navigation' },
   galacticJump: {
     what: 'galactic hyperdrive — one jump to the next galaxy (if fitted)',

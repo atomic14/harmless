@@ -195,6 +195,7 @@ joystick the original supported.
 | R | missions — the Navy mission and the jobs you have signed for |
 | P | pause |
 | Q | **while paused only** — quit this flight; asks first, then puts you back at the station autosave you launched from |
+| F | **while paused only** — arm the drive to mis-jump; every jump lands in witch-space, Thargoids and all, until you pause and press it again (the Spectrum's cheat) |
 | V | mouse flight — pointer-locked analogue stick, left button fires |
 | ? | controls guide |
 

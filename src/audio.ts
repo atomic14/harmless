@@ -212,6 +212,10 @@ export const sfx = {
   commanderDeleted(): void { tone(400, 0.1); },
   commanderNamed(): void { tone(700, 0.1); },
   combatSimulationLaunched(): void { tone(700); },
+  // The Spectrum's beep, in two pitches so the ear knows which way it went
+  // (docs/TODO/189): high arms the mis-jump, low disarms it.
+  misjumpArmed(): void { tone(1300, 0.12); },
+  misjumpDisarmed(): void { tone(450, 0.12); },
   /**
    * The hyperspace countdown, with `n` seconds left on it: a blip that climbs
    * a hundred hertz a second towards the jump.

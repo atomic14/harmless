@@ -56,6 +56,7 @@ export function legacyHandles<T extends object & Stateful>(
     trumbleTimer: () => s.session.trumbleTimer,
     beaconTimer: () => s.session.beaconTimer,
     paused: () => s.session.paused,
+    misjumpArmed: () => s.session.misjumpArmed,
     ccEngaged: () => s.session.ccEngaged,
     beamTimer: () => s.session.beamTimer,
     dcEngaged: () => s.session.dcEngaged,

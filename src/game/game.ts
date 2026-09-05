@@ -349,6 +349,7 @@ export class Game {
     countdownSound: (seconds) => sfx.countdown(seconds),
     hyperspaceSound: () => sfx.hyperspace(),
     distressBeaconSound: () => sfx.distressBeacon(),
+    misjumpArmed: (armed) => { if (armed) sfx.misjumpArmed(); else sfx.misjumpDisarmed(); },
   } satisfies HyperspaceHost);
 
   /**
@@ -1130,6 +1131,7 @@ export class Game {
     toggleMouseFlight: () => this.flight_.switches.toggleMouseFlight(),
     toggleTorus: () => this.flight_.switches.toggleTorus(),
     togglePause: () => { this.state.session.paused = !this.state.session.paused; },
+    armMisjump: () => this.jump_.armMisjump(),
     startHyperspace: () => this.startHyperspace(),
     galacticJump: () => this.galacticJump(),
     distressBeacon: () => this.sendDistressBeacon(),

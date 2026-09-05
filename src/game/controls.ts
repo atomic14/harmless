@@ -94,6 +94,7 @@ export type Command =
   | 'toggleMouseFlight'
   | 'toggleTorus'
   | 'togglePause'
+  | 'armMisjump'
   | 'startHyperspace'
   | 'galacticJump'
   | 'distressBeacon'

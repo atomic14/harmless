@@ -91,6 +91,10 @@ export interface JumpResult {
  *
  * A mis-jump still charges full fare. That is the original's cruelty and it is
  * the point: the fuel is gone and you are nowhere.
+ *
+ * `forced` is the Spectrum's cheat (docs/TODO/189): every jump is a mis-jump
+ * while it holds, the escape from limbo included, and the fare is still paid.
+ * The roll is not made, so the seeded stream does not move for it.
  */
 export function resolveJump(
   commander: CommanderData,
@@ -98,12 +102,15 @@ export function resolveJump(
   target: number,
   witchspace: boolean,
   rng: () => number = random,
+  forced = false,
 ): JumpResult {
   const here = systems[commander.systemIndex];
 
   if (witchspace) {
-    // an escape from limbo costs a flat rate, and cannot itself mis-jump
+    // an escape from limbo costs a flat rate, and cannot itself mis-jump —
+    // unless the trap is armed, which sends it straight back
     commander.fuel -= Math.min(commander.fuel, WITCHSPACE_ESCAPE_COST);
+    if (forced) return { misjump: true, days: 0 };
   } else {
     // Floored, as the escape jump above already is. Ordinarily it changes
     // nothing, because `checkJump` refused anything the tank cannot cover.
@@ -111,7 +118,7 @@ export function resolveJump(
     // tank is a number no gauge, shop or chart in the game reads correctly. So
     // it takes what is there and no more.
     commander.fuel -= Math.min(commander.fuel, distanceTenths(here, systems[target]));
-    if (rng() < witchspaceChance(commander.mission.stage)) {
+    if (forced || rng() < witchspaceChance(commander.mission.stage)) {
       return { misjump: true, days: 0 };
     }
   }
