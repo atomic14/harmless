@@ -14,6 +14,7 @@
 // player key to reach in the first place (docs/INVARIANTS.md invariant 3).
 
 import { buyEquipment, type TradeContext } from '../src/game/screens/trade.ts';
+import { equipmentOwned, equipmentSuperseded } from '../src/game/shop.ts';
 import {
   equipRows, type EquipRow,
 } from '../src/ui/screens-trade.ts';
@@ -151,6 +152,45 @@ console.log('\noutfitting');
       check('the beam is worth more as a trade-in than the pulse it replaced',
         priceOf('beam') > PULSE_TRADE_IN && priceOf('beam') > 0);
     }
+  }
+
+  // --- a better gun is not the beam laser owned (docs/TODO/186) --------------
+  //
+  // GitHub #38: *"I bought a military laser and that marked the beam laser as
+  // "owned" as well."* The beam row answered "not a pulse laser", which was a
+  // purchase guard in an ownership check. The guard holds, and the word is
+  // SUPERSEDED. Every claim below drives the real rows and the real purchase.
+  {
+    const { ctx, commander } = ctxFor();
+    commander.credits = 200_000;
+    const rowFor = (id: string): EquipRow | undefined =>
+      equipRows(ctx.system, commander, false).find((r: EquipRow) => r.id === id);
+    buy('beam', ctx);
+    eq('a beam laser fitted reads OWNED on its own row', rowFor('beam')?.status, 'OWNED');
+    check('...and the beam is the fit', equipmentOwned('beam', commander));
+    check('...and nothing supersedes it', !equipmentSuperseded('beam', commander));
+
+    buy('military', ctx);
+    eq('the military laser is fitted', commander.equipment.laser, 'military');
+    eq('...and its row reads OWNED', rowFor('military')?.status, 'OWNED');
+    eq('...and the beam row reads SUPERSEDED, not OWNED', rowFor('beam')?.status, 'SUPERSEDED');
+    check('...because the beam is not the fit', !equipmentOwned('beam', commander));
+    check('...and a better gun fills its mount', equipmentSuperseded('beam', commander));
+
+    const before = commander.credits;
+    const refused = buy('beam', ctx);
+    eq('a purchase of the superseded row is refused, and no money moves',
+      commander.credits, before);
+    eq('...and the military laser stays fitted', commander.equipment.laser, 'military');
+    check('...and nothing is written', refused.length === 0);
+
+    // The status screen's own filter, minus the missile row it skips. It
+    // listed Beam Laser and Military Laser together before this item.
+    const fit = EQUIPMENT_CATALOGUE
+      .filter((item) => item.id !== 'missile' && equipmentOwned(item.id, commander))
+      .map((item) => item.id);
+    eq('the fit lists one laser, and it is the military one',
+      fit.filter((id) => id === 'beam' || id === 'military').join(','), 'military');
   }
 
   // --- the shelf cannot advertise a bay the game does not fit ---------------

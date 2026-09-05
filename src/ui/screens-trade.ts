@@ -12,7 +12,9 @@
 import { type StarSystem, type MarketEntry, COMMODITIES } from '../galaxy/galaxy.ts';
 import { type CommanderData, cargoTonnes, consignedTonnes, formatCredits, cargoCapacity } from '../game/commander.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
-import { equipmentOwned, fuelQuote, type FuelQuote } from '../game/shop.ts';
+import {
+  equipmentOwned, equipmentSuperseded, fuelQuote, type FuelQuote,
+} from '../game/shop.ts';
 import { EQUIPMENT_CATALOGUE } from '../constants/shop.ts';
 import { show } from './screen-shell.ts';
 
@@ -82,7 +84,12 @@ export interface EquipRow {
   id: string;
   label: string;
   price: number; // tenths; 0 = nothing to buy
-  status: '' | 'OWNED' | 'TL-LOCKED';
+  /**
+   * Why the row is not for sale, or empty when it is. `SUPERSEDED` is a beam
+   * laser under a military laser: not the fit, and not on sale either
+   * (docs/TODO/186). It read OWNED until then.
+   */
+  status: '' | 'OWNED' | 'SUPERSEDED' | 'TL-LOCKED';
 }
 /** Purchasable rows for this station, shared by renderer and purchase logic. */
 /**
@@ -99,12 +106,13 @@ export function equipRows(sys: StarSystem, c: CommanderData, cheat = false): Equ
   }];
   for (const item of EQUIPMENT_CATALOGUE) {
     const owned = equipmentOwned(item.id, c);
+    const superseded = equipmentSuperseded(item.id, c);
     const locked = !cheat && sys.techLevel + 1 < item.minTL;
     rows.push({
       id: item.id,
       label: item.name,
       price: item.price,
-      status: owned ? 'OWNED' : locked ? 'TL-LOCKED' : '',
+      status: owned ? 'OWNED' : superseded ? 'SUPERSEDED' : locked ? 'TL-LOCKED' : '',
     });
   }
   return rows;
@@ -119,6 +127,7 @@ export function renderEquip(
         <td class="num">${r.price > 0 ? (r.price / 10).toFixed(1) : '-'}</td>
         <td class="num">${
           r.status === 'OWNED' ? 'OWNED'
+          : r.status === 'SUPERSEDED' ? 'SUPERSEDED'
           : r.status === 'TL-LOCKED' ? 'NOT AVAILABLE HERE'
           : cheat ? 'FREE'
           : ''

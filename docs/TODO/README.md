@@ -13,22 +13,17 @@ active context:
 
 ## Execution queue
 
-1. [186](186-the-shop-says-owned-when-it-means-superseded.md) — the shop says
-   owned when it means superseded.
-2. [187](187-the-console-reads-asteroid-on-a-rock-hermit.md) — the console
+1. [187](187-the-console-reads-asteroid-on-a-rock-hermit.md) — the console
    reads ASTEROID on a rock hermit.
-3. [188](188-the-thargoid-ambush-is-too-hard.md) — the Thargoid ambush is too
+2. [188](188-the-thargoid-ambush-is-too-hard.md) — the Thargoid ambush is too
    hard.
 
-**ALL THREE CAME OUT OF CHRIS'S PLAYTEST, on 2026-09-04 and 2026-09-05.** They
-are GitHub #38, #40 and #39, and triage on 2026-09-05 read each one against the
-code that runs. The order is by value over cost. 186 and 187 are each one
-line of cause with a small fix. 188 is a balance verdict with no probe behind
-it, so its first milestone builds the measurement.
-
-**186 IS ONE LINE, AND THREE READERS REPEAT IT.** `equipmentOwned` answers the
-beam row with "not a pulse laser", so a military laser makes the beam read as
-OWNED on the shop, on the status screen, and in the campaign's net worth.
+**ALL THREE ITEMS OF 2026-09-05 CAME OUT OF CHRIS'S PLAYTEST, on 2026-09-04
+and 2026-09-05.** They are GitHub #38, #40 and #39, and triage on 2026-09-05
+read each one against the code that runs. The order is by value over cost. 186
+and 187 are each one line of cause with a small fix. 188 is a balance verdict
+with no probe behind it, so its first milestone builds the measurement. **186
+landed the same day**, and it is below.
 
 **187 IS A MISSING NAME.** The hermit's mesh comes from the asteroid builder,
 which names nothing, so the bracket and the ship-ID line print ASTEROID at
@@ -215,6 +210,30 @@ headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
+
+## What landed on 2026-09-05
+
+**186 — the shop says owned when it means superseded.** GitHub #38: *"I bought
+a military laser and that marked the beam laser as "owned" as well."* True,
+and the cause was one line. `equipmentOwned` answered the beam row with "not a
+pulse laser". That was a purchase guard inside an ownership check, and three
+readers repeated its answer: the shop, the status screen, and the campaign's
+net worth.
+
+**THE SHOP ASKS TWO QUESTIONS NOW.** `equipmentOwned('beam')` is true under a
+beam laser alone. `equipmentSuperseded` is true for the beam row under a
+military laser, and for nothing else. The row reads SUPERSEDED, and the
+purchase stays refused. The status screen lists one laser.
+
+**THE CAMPAIGN MOVED BY EXACTLY THE BEAM'S PRICE.** The best career fell by
+1,000 Cr at both sizes, and cash in hand did not move by a tenth of a credit.
+The beam column reads ownership now: 96% became 30% at 200 x 100, because 66%
+of those traders hold a military laser. The SCALING row moved by 0.01, and the
+plan did not have it: the row splits the halves on net worth.
+
+**PROVED ABLE TO FAIL TWO WAYS.** The old line reddens three assertions. A
+superseded question that always answers no reddens six, and in that run the
+shop sold the beam laser back under a military laser. 4,927 assertions.
 
 ## Closed decisions — do not reopen these
 

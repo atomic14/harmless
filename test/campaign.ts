@@ -30,7 +30,7 @@ import {
 import { MAX_FUEL } from '../src/constants/commander.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import {
-  applyPurchase, equipmentOwned, fuelNeeded, refuelCost,
+  applyPurchase, equipmentOwned, equipmentSuperseded, fuelNeeded, refuelCost,
 } from '../src/game/shop.ts';
 import { EQUIPMENT_CATALOGUE } from '../src/constants/shop.ts';
 import { pirateSpecForTier } from '../src/game/ship-specs.ts';
@@ -344,7 +344,10 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
     for (const item of shoppingList) {
       if (item.id === 'trumble') continue; // a trap, not an upgrade
       if (SKIP.includes(item.id)) continue; // see SKIP: nobody flies backwards
-      if (equipmentOwned(item.id, c)) continue;
+      // Either question refuses the row, as the shop does. Under ownership
+      // alone a commander with a military laser bought a beam laser back, at a
+      // pulse laser's refund (docs/TODO/186).
+      if (equipmentOwned(item.id, c) || equipmentSuperseded(item.id, c)) continue;
       if (here.techLevel + 1 < item.minTL) continue; // not sold here, try elsewhere
       if (c.credits - item.price < float) {
         // SAVE for it, do not drop down to something cheaper. Skipping ahead is

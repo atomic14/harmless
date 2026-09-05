@@ -94,3 +94,61 @@ The gate is in `test/trade.test.ts`:
 - the status screen's fit lists one laser.
 
 Prove it able to fail: restore `e.laser !== 'pulse'` for one run.
+
+## Outcome
+
+### M1 — two questions in the shop
+
+`game/shop.ts` asks two questions. `equipmentOwned('beam')` answers
+`e.laser === 'beam'`. `equipmentSuperseded` answers yes for the beam row under
+a military laser, and for nothing else. `equipRows` gives the row the status
+`SUPERSEDED`, and `renderEquip` prints the word. `buyEquipment` did not change:
+it refuses any status that is not empty, and that is the purchase guard.
+
+The campaign buyer skips a row on either answer. `kitValue` and the status
+screen read ownership alone, so each lists one laser.
+
+**THE GATE IS 12 ASSERTIONS IN `test/trade.test.ts`, AND IT WAS PROVED ABLE TO
+FAIL TWO WAYS.** The old line, `e.laser !== 'pulse'`, reddens three of them.
+A superseded question that always answers no reddens six. In that second run
+the shop sold the beam laser back under a military laser, and the fit went to
+`beam`. That is the downgrade the plan warned of, and the gate sees it.
+
+**THE CAMPAIGN MOVED, AND ONLY WHERE THE PLAN SAID IT WOULD.** Measured at
+40 x 60 and at 200 x 100, all three strategies, before and after:
+
+| size | strategy | column | before | after |
+| --- | --- | --- | --- | --- |
+| 40 x 60 | trader | best career | 14,252.1 Cr | 13,252.1 Cr |
+| 40 x 60 | trader | beam owned | 95% | 90% |
+| 40 x 60 | privateer | best career | 21,489.0 Cr | 20,489.0 Cr |
+| 40 x 60 | privateer | beam owned | 90% | 83% |
+| 200 x 100 | trader | median net worth | 17,974.5 Cr | 17,007.4 Cr |
+| 200 x 100 | trader | beam owned | 96% | 30% |
+| 200 x 100 | privateer | median net worth | 22,049.0 Cr | 21,278.2 Cr |
+| 200 x 100 | privateer | beam owned | 95% | 17% |
+
+**The best career fell by exactly 1,000 Cr at both sizes**, which is the beam
+laser's price. That career held a military laser, and its net worth counted a
+beam it did not hold. **The beam column now reads ownership.** At 200 x 100,
+66% of traders end with a military laser, and the beam column fell from 96% to
+30%. The sum of the two is the old figure, because every one of those
+commanders traded the beam in on the way up.
+
+**Cash in hand did not move by a tenth of a credit at either size.** Nor did
+any other equipment column. So no purchase changed, and the buyer's second
+question is the same refusal the old check made.
+
+**THE SCALING ROW MOVED, AND THE PLAN DID NOT HAVE IT.** At 200 x 100 the
+poorer half's appeal read 0.32 and reads 0.33, and the gang rate moved by 0.1.
+The row sorts careers by net worth to split the halves. A corrected net worth
+moved a few careers across the median, and the halves' membership moved with
+them. The fights themselves did not change, because the cash and the kit did
+not.
+
+**A COMMIT WENT OUT WITH `ste:check` RED, AND IT WAS THE TRIAGE COMMIT.** The
+index paragraph that announced this item held a 30-word sentence. The gate
+reads the index, and the plans were checked before the index was written. The
+landing commit splits it.
+
+4,915 assertions became 4,927.

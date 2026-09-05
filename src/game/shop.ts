@@ -56,6 +56,16 @@ export function fuelQuote(c: { fuel: number }): FuelQuote {
   };
 }
 
+/**
+ * Is this row the fit?
+ *
+ * ONE LASER GRADE, THREE ROWS. A commander holds `pulse`, `beam` or `military`,
+ * and the shop sells the last two. The beam row answered "not a pulse laser"
+ * until docs/TODO/186, which made a military laser read as a beam laser owned
+ * as well (GitHub #38). The status screen listed both guns, and the campaign's
+ * net worth counted both. That answer was a purchase guard, and the guard is
+ * `equipmentSuperseded` below now.
+ */
 export function equipmentOwned(id: string, c: CommanderData): boolean {
   const e = c.equipment;
   switch (id) {
@@ -65,7 +75,7 @@ export function equipmentOwned(id: string, c: CommanderData): boolean {
     case 'rearLaser': return e.rearLaser;
     case 'leftLaser': return e.leftLaser;
     case 'rightLaser': return e.rightLaser;
-    case 'beam': return e.laser !== 'pulse';
+    case 'beam': return e.laser === 'beam';
     case 'scoops': return e.scoops;
     case 'escapePod': return e.escapePod;
     case 'energyBomb': return e.energyBomb;
@@ -78,6 +88,24 @@ export function equipmentOwned(id: string, c: CommanderData): boolean {
     case 'galacticDrive': return e.galacticDrive;
     default: return false;
   }
+}
+
+/**
+ * Does a better gun fill the mount this row would fill?
+ *
+ * THE SHOP SELLS FORWARD ONLY. A beam laser replaces a pulse laser, and a
+ * military laser replaces either. No row sells a gun back, so a row under a
+ * better gun is refused. Only the beam row can be in that state, and only
+ * under a military laser.
+ *
+ * It is a question of its own rather than a branch of `equipmentOwned`,
+ * because the two answers go to different readers. The shop and the campaign
+ * buyer refuse on either. The status screen and the campaign's net worth read
+ * ownership alone, and they were wrong for as long as the two were one
+ * (docs/TODO/186).
+ */
+export function equipmentSuperseded(id: string, c: CommanderData): boolean {
+  return id === 'beam' && c.equipment.laser === 'military';
 }
 
 /**
