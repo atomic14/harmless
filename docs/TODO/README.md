@@ -13,7 +13,14 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [189](189-a-paused-f-sends-every-jump-into-witch-space.md) — a paused F
+   sends every jump into witch-space.
+
+**189 CAME FROM CHRIS ON 2026-09-05**, after 188 landed. He asked whether he
+can trigger a Thargoid ambush, and he cannot: a mis-jump is a 9% roll. Two
+designs were put to him, and he chose the Spectrum's cheat over a test-mode
+row. Pause, press F, hear a beep, and every jump lands in witch-space until
+you do it again.
 
 **ALL THREE ITEMS OF 2026-09-05 CAME OUT OF CHRIS'S PLAYTEST, on 2026-09-04
 and 2026-09-05.** They are GitHub #38, #40 and #39, and triage on 2026-09-05
