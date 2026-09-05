@@ -13,7 +13,31 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [186](186-the-shop-says-owned-when-it-means-superseded.md) — the shop says
+   owned when it means superseded.
+2. [187](187-the-console-reads-asteroid-on-a-rock-hermit.md) — the console
+   reads ASTEROID on a rock hermit.
+3. [188](188-the-thargoid-ambush-is-too-hard.md) — the Thargoid ambush is too
+   hard.
+
+**ALL THREE CAME OUT OF CHRIS'S PLAYTEST, on 2026-09-04 and 2026-09-05.** They
+are GitHub #38, #40 and #39, and triage on 2026-09-05 read each one against the
+code that runs. The order is by value over cost. 186 and 187 are each one
+line of cause with a small fix. 188 is a balance verdict with no probe behind
+it, so its first milestone builds the measurement.
+
+**186 IS ONE LINE, AND THREE READERS REPEAT IT.** `equipmentOwned` answers the
+beam row with "not a pulse laser", so a military laser makes the beam read as
+OWNED on the shop, on the status screen, and in the campaign's net worth.
+
+**187 IS A MISSING NAME.** The hermit's mesh comes from the asteroid builder,
+which names nothing, so the bracket and the ship-ID line print ASTEROID at
+every range. Chris's own suggestion, a line on the first hit, is its M2.
+
+**188 HAS A CAP ALREADY, AND IT IS FOUR.** `MAX_THARGONS` caps the drones across
+every mothership, and a replacement is up 5 seconds later. No probe kills a
+mothership (docs/TODO/184), so no number has a measurement behind it. M1 builds
+one over the real `WorldStep`.
 
 **ONE CANDIDATE CAME OUT OF 185, AND IT NEEDS ITS OWN ITEM.** `commander.ts`
 says it describes who you are, what you are carrying, and how you rank. A job on
