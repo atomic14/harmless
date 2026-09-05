@@ -114,7 +114,7 @@ Regenerate before the gates, not after them.
 `npm run check`, because `npm test` already runs every assertion inside it
 (docs/ELITE-A.md). The probes are the measurement a balance change answers to:
 `survivability`, `flight-probe`, `aim-probe`, `ram-probe`, `gap-probe`,
-`defence-probe`, `dock-probe` and `dock-traffic`.
+`defence-probe`, `dock-probe`, `dock-traffic` and `ambush-probe`.
 
 `CLAUDE.md`'s Validation rules apply here, and this file does not restate them.
 A new gate must be proved able to fail. A sampled number must be checked at two
