@@ -37,6 +37,7 @@ import './character.test.ts';
 import './character-line.test.ts';
 import './record-line.test.ts';
 import './lawful-hit.test.ts';
+import './hermit-hit.test.ts';
 import './grudge-line.test.ts';
 import './ladder-words.test.ts';
 import './contracts.test.ts';

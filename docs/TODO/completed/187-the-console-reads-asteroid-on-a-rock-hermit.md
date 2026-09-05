@@ -85,3 +85,45 @@ Gates:
 - `test/hud-model.test.ts`: the bracket names a hermit. It fails today.
 - `test/hermit-hit.test.ts`: the first hit says the line, once. Prove it able
   to fail: drop the hermit branch for one run.
+
+## Outcome
+
+### M1 — the hermit carries its name
+
+`npc.ts` names the hermit's mesh from the registry, and the name is
+`Rock hermit`. The bracket reads `ROCK HERMIT 3.0KM` at 3,000 units, and the
+ship-ID line agrees. A plain rock still reads ASTEROID, and the test holds
+that as a control.
+
+Three assertions in `test/hud-model.test.ts`. Two go red without the name.
+
+### M2 — the first hit says so
+
+`HERMIT_HIT_LINE` lives in `constants/character.ts`, beside
+`DISREPUTE_HERMIT_KILL`. `Combat.fire` says it on the frame
+`provokedByPlayer` latches, and on no other frame. A kill on the first shot
+says nothing of it, and the wreck's own character verdict follows as before.
+`constants:check` accepted the home with no `@domain` argument.
+
+**THE TRADE HAIL MASKS THE WARNING INSIDE 900 UNITS, AND THE PLAN DID NOT HAVE
+IT.** The first run staged the hermit at 600 units, which is `test/lawful-hit.test.ts`'s
+distance. The console read the trade hail and never the warning. The step says
+`ROCK HERMIT — SLOW TO 40 AND CLOSE TO TRADE` on every frame inside
+`HERMIT_HAIL_RANGE`, and the console holds one line. So inside the hail, the
+hail is the identification, and the warning is one frame long. Outside it, the
+warning stands. The test stages the hermit at 1,500 units: outside the hail,
+and inside the gun's 3,500. That is the shot GitHub #40 reported, and M1's
+bracket now names the rock before it.
+
+This item does not change the hail. A line said every frame is a separate
+question, and nobody asked it.
+
+Nine assertions in `test/hermit-hit.test.ts`, on the lawful-hit rig. **Proved
+able to fail**: a branch that never matches the hermit reddens two of them.
+
+**THE M1 COMMIT WENT OUT WITH `ste:check` RED.** Its comment in `npc.ts` held
+a 28-word sentence, and the gate was run on the test file alone. The landing
+commit splits it. That is the second such commit today, and the lesson is the
+same both times: run `npm run ste:check` before the commit, not after.
+
+4,927 assertions became 4,939.

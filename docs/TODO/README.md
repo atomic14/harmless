@@ -13,9 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [187](187-the-console-reads-asteroid-on-a-rock-hermit.md) — the console
-   reads ASTEROID on a rock hermit.
-2. [188](188-the-thargoid-ambush-is-too-hard.md) — the Thargoid ambush is too
+1. [188](188-the-thargoid-ambush-is-too-hard.md) — the Thargoid ambush is too
    hard.
 
 **ALL THREE ITEMS OF 2026-09-05 CAME OUT OF CHRIS'S PLAYTEST, on 2026-09-04
@@ -23,11 +21,7 @@ and 2026-09-05.** They are GitHub #38, #40 and #39, and triage on 2026-09-05
 read each one against the code that runs. The order is by value over cost. 186
 and 187 are each one line of cause with a small fix. 188 is a balance verdict
 with no probe behind it, so its first milestone builds the measurement. **186
-landed the same day**, and it is below.
-
-**187 IS A MISSING NAME.** The hermit's mesh comes from the asteroid builder,
-which names nothing, so the bracket and the ship-ID line print ASTEROID at
-every range. Chris's own suggestion, a line on the first hit, is its M2.
+and 187 landed the same day**, and each is below.
 
 **188 HAS A CAP ALREADY, AND IT IS FOUR.** `MAX_THARGONS` caps the drones across
 every mothership, and a replacement is up 5 seconds later. No probe kills a
@@ -212,6 +206,29 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-05
+
+**187 — the console reads ASTEROID on a rock hermit.** GitHub #40: *"It's not
+obvious enough that you are attacking a rock hermit. You need to be close
+before it is identified as one."* True at every range, and the cause was a
+missing name. The bracket and the ship-ID line print the mesh's name. The
+hermit's mesh comes from the asteroid builder, which named nothing, so the
+console read ASTEROID until the amber beacon was close enough to see.
+
+**M1 NAMES THE MESH FROM THE REGISTRY**, so the bracket reads ROCK HERMIT
+inside 5,000 units. **M2 IS CHRIS'S OWN SUGGESTION**: one line on the first
+hit, said on the frame `provokedByPlayer` latches, as the law's lines are. The
+words are `constants/character.ts`'s, beside the disrepute a kill costs. The
+law does not protect a hermit, and `harmVerdict` is right to refuse one.
+
+**THE TRADE HAIL MASKS THE WARNING INSIDE 900 UNITS, AND THE PLAN DID NOT HAVE
+IT.** The step says the hail on every frame inside `HERMIT_HAIL_RANGE`, and the
+console holds one line. Inside the hail, the hail is the identification.
+Outside it, the warning stands, and that is the shot the issue reported. The
+hail itself is a separate question, and nobody asked it.
+
+Twelve assertions across two files, each gate proved able to fail. **The M1
+commit went out with `ste:check` red** on a 28-word comment, and the landing
+commit split it. 4,939 assertions.
 
 **186 — the shop says owned when it means superseded.** GitHub #38: *"I bought
 a military laser and that marked the beam laser as "owned" as well."* True,

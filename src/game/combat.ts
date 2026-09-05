@@ -46,7 +46,9 @@ import { OFFENDER } from '../constants/law.ts';
 import { heard, later, say, type CombatEvent } from './combat-events.ts';
 import { destroyShip, wreckShip } from './combat-wreck.ts';
 import { WRECK_BURST_GRACE } from '../constants/wreck.ts';
-import { CHARACTER_LINE_SECONDS, DISREPUTE_MURDER } from '../constants/character.ts';
+import {
+  CHARACTER_LINE_SECONDS, DISREPUTE_MURDER, HERMIT_HIT_LINE,
+} from '../constants/character.ts';
 import { afterDeed, characterVerdict } from './character.ts';
 
 /** Seconds the cockpit beams stay lit after a shot. */
@@ -220,7 +222,13 @@ export class Combat {
       // Not for a kill. A destroyed ship comes for nobody, and `destroy` below
       // has its own words for it.
       const turned = !wasProvoked && shot.ship.state.provokedByPlayer && !destroyed;
-      const harm = turned ? harmVerdict(shot.ship.role) : null;
+      // The law's words for the three roles it protects. A hermit is outside
+      // the law and inside the character's ledger, so its warning is
+      // `constants/character.ts`'s, and it takes the same once-per-ship frame
+      // (docs/TODO/187).
+      const harm = !turned ? null
+        : shot.ship.role === 'hermit' ? HERMIT_HIT_LINE
+        : harmVerdict(shot.ship.role);
       if (harm) out.push(say(harm, 3));
       out.push({ kind: 'offence', level: offenceFor(shot.ship.role, false) });
       if (destroyed) {

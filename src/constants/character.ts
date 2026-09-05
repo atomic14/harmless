@@ -33,6 +33,23 @@ export const CHARACTER: readonly (readonly [number, string])[] = [
  * @rule character.hermitKill
  */
 export const DISREPUTE_HERMIT_KILL = 40;
+
+/**
+ * What the console says on the first hit that lands on a rock hermit.
+ *
+ * The law does not protect a hermit, so `harmVerdict` (game/law.ts) has no
+ * line for one, and that refusal is right. The consequence of a hermit kill is
+ * `DISREPUTE_HERMIT_KILL` above, which is a mark on the character rather than
+ * on the record. So the warning lives beside the mark it warns of.
+ *
+ * It exists because the console said nothing at all until docs/TODO/187. A
+ * hermit read ASTEROID at every range (GitHub #40), and the first word a
+ * commander got was the character verdict after the kill. Said once per
+ * hermit, on the frame `provokedByPlayer` latches, as the harm lines are.
+ *
+ * The words are a default. Player-facing text is Chris's to reword.
+ */
+export const HERMIT_HIT_LINE = 'ROCK HERMIT HIT — SOMEBODY LIVES IN THAT ROCK';
 /**
  * What killing a trader, a policeman or a bounty hunter costs your reputation.
  *
