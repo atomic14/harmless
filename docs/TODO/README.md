@@ -13,20 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [188](188-the-thargoid-ambush-is-too-hard.md) — the Thargoid ambush is too
-   hard.
+The queue is empty.
 
 **ALL THREE ITEMS OF 2026-09-05 CAME OUT OF CHRIS'S PLAYTEST, on 2026-09-04
 and 2026-09-05.** They are GitHub #38, #40 and #39, and triage on 2026-09-05
-read each one against the code that runs. The order is by value over cost. 186
-and 187 are each one line of cause with a small fix. 188 is a balance verdict
-with no probe behind it, so its first milestone builds the measurement. **186
-and 187 landed the same day**, and each is below.
-
-**188 HAS A CAP ALREADY, AND IT IS FOUR.** `MAX_THARGONS` caps the drones across
-every mothership, and a replacement is up 5 seconds later. No probe kills a
-mothership (docs/TODO/184), so no number has a measurement behind it. M1 builds
-one over the real `WorldStep`.
+read each one against the code that runs. The order was by value over cost. 186
+and 187 were each one line of cause with a small fix. 188 was a balance verdict
+with no probe behind it, so its first milestone built the measurement. **All
+three landed the same day**, and each is below.
 
 **ONE CANDIDATE CAME OUT OF 185, AND IT NEEDS ITS OWN ITEM.** `commander.ts`
 says it describes who you are, what you are carrying, and how you rank. A job on
@@ -206,6 +200,33 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-05
+
+**188 — the Thargoid ambush is too hard.** GitHub #39: *"thargoid ambush is
+too hard. There should be a limit to how many active drone ships there are."*
+A limit existed, and it was four across every mothership, with a replacement
+up 5 seconds later. No probe killed a mothership (docs/TODO/184), so neither
+number had a measurement behind it.
+
+**M1 BUILT `npm run ambush-probe`**, which stages the ambush as
+`enterWitchspace` does and flies every frame after that through the real
+`WorldStep`. The stand-in is the scripted co-pilot, the defence the combat
+computer sells, in a new commander's Cobra. The plan named a hand-written
+knife-fighter, and the co-pilot is the better stand-in: a rule the tree
+already ships, where a copy is forbidden. At the shipped values she died in
+one ambush in seven, ended with half her pools, and took seven tenths of the
+damage from drones. 40 and 160 episodes agreed on every column.
+
+**M2 MOVED THE CAP TO 2, AND LEFT THE REDEPLOY AT 5.** The cap alone takes
+survival to 100% at both sizes and the pools left from 54% to 76% and 79%. A
+slower redeploy alone did nearly as well on the pools, but it left the peak
+count at 3.5 of 4. The count was the complaint. Both together spared more,
+and the plan asked for the smallest change with a clear margin.
+
+**THIRTEEN CONSTANTS GAINED A RULE ID**, because twelve others sit at 2 and
+the gate refuses two equal values without one. The trainer's "Thargoid ambush"
+scenario stages three to five drones by tier, which is above the live cap now.
+It is a practice scenario, and it is recorded rather than changed. Chris flies
+the ambush next, and his report enters triage as an issue. 4,939 assertions.
 
 **187 — the console reads ASTEROID on a rock hermit.** GitHub #40: *"It's not
 obvious enough that you are attacking a rock hermit. You need to be close

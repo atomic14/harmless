@@ -187,3 +187,6 @@ change to either constant answers to.
 `test/world.test.ts` walks the cap up the ladder against the constant, so it
 followed the value with no edit. The other eight probes stage no mothership,
 by a search of `train/` for the word, so none of them can read the cap.
+
+The suite did not change: 4,939 assertions before and after. The probe is not
+a gate, and the pinning test follows the constant.
