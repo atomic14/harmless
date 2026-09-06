@@ -61,6 +61,7 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'KeyG', command: 'openChart' },
   { key: 'KeyN', command: 'openLocalChart' },
   { key: 'KeyI', command: 'openStatus' },
+  { key: 'KeyR', shift: true, command: 'openLog' },   // the log of the oRders; ⇧R docked too
   { key: 'KeyR', command: 'openMissions' },   // the standing oRders; R docked too
   { key: 'KeyT', command: 'armMissile' },
   { key: 'KeyM', command: 'launchMissile' },
@@ -197,6 +198,7 @@ export const BINDINGS: Record<ControlMode, readonly Binding[]> = {
     // R for the standing oRders. A PLAIN letter, because this is a menu ROW —
     // see `Binding.shift`. R is the only one free in both tables, and this
     // screen is reached from the cockpit as well as from here.
+    { key: 'KeyR', shift: true, command: 'openLog' },
     { key: 'KeyR', command: 'openMissions' },
     // ⇧T beside T, because the development levers and the simulator are the
     // two things on this menu that are not the career. It must come FIRST for

@@ -96,6 +96,7 @@ import { MarketScreen, EquipScreen } from './screens/trade.ts';
 import { StatusScreen, type StatusContext } from './screens/status.ts';
 import { MissionsScreen, type MissionsContext } from './screens/missions.ts';
 import { MissionDesk } from './mission-desk.ts';
+import { LogScreen, type LogContext } from './screens/log.ts';
 import { missionFacts } from './mission-bridge.ts';
 import { boardRumour, worldNews } from '../missions/hints.ts';
 import { DataScreen, type DataContext } from './screens/data.ts';
@@ -635,6 +636,10 @@ export class Game {
         systems: this.state.systems,
         targetIndex: this.state.chart.targetIndex,
       } satisfies StatusContext)),
+      new LogScreen(() => ({
+        commander: this.state.commander,
+        systems: this.state.systems,
+      } satisfies LogContext)),
       new MissionsScreen(() => ({
         commander: this.state.commander,
         systems: this.state.systems,
@@ -1147,6 +1152,7 @@ export class Game {
     openLocalChart: () => this.openLocalChart(this.cameFrom()),
     openStatus: () => this.openReadingScreen('status', this.cameFrom()),
     openMissions: () => this.openReadingScreen('missions', this.cameFrom()),
+    openLog: () => this.openReadingScreen('log', this.cameFrom()),
     // A reading screen from the cockpit. The board it also carries is a
     // station's, and `ContractsContext.atStation` is what makes that the
     // SCREEN's question rather than this call's.
@@ -1280,7 +1286,7 @@ export class Game {
    * than this call's. The screen is what knows a board is a station's.
    */
   private openReadingScreen(
-    id: 'status' | 'missions' | 'contracts', from: 'docked' | 'flight',
+    id: 'status' | 'missions' | 'contracts' | 'log', from: 'docked' | 'flight',
   ): void {
     this.input.releaseMouseFlight();
     this.baseMode = from;

@@ -21,7 +21,7 @@ import type { Input } from '../engine/input.ts';
  * new screen needs. So two people who add two screens collide on one line.
  */
 export type ScreenId =
-  | 'market' | 'equip' | 'contracts' | 'status' | 'data' | 'missions'
+  | 'market' | 'equip' | 'contracts' | 'status' | 'data' | 'missions' | 'log'
   | 'chart' | 'local' | 'saves' | 'save-name' | 'naming' | 'new-name'
   | 'briefing' | 'combat-sim' | 'test-mode' | 'quit' | 'survivors';
 

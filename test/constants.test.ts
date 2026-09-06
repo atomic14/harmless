@@ -113,6 +113,9 @@ const OUTSIDE: readonly Group[] = [
       ],
       'missions/skeletons/index.ts': ['SKELETONS'],
       'missions/verbs/registry.ts': ['VERBS'],
+      // the dossier table item 191 fills, and the words that end a story page
+      'missions/dossiers.ts': ['DOSSIERS'],
+      'missions/story.ts': ['ENDINGS'],
     },
   },
 

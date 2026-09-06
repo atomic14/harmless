@@ -217,7 +217,12 @@ Two quirks are deliberate:
   the one message a dock may say. All eight verbs have a module under
   `verbs/`. `skeletons/side.ts` is one local side job per verb, so every
   verb is a job a player can take. The escort and the scan verdicts are the
-  world's to give, and `world-step.ts` gives them.
+  world's to give, and `world-step.ts` gives them. `story.ts` tells the
+  journal as pages, one per run, in a dossier's words where one exists and
+  the skeleton's plain words where none does. `route-map.ts` draws the
+  worlds a story names as SVG text. The LOG screen (`game/screens/log.ts`,
+  `ui/screens-log.ts`) shows both, and `dossiers.ts` is the table item 191
+  fills.
 - `src/game/character.ts` owns the disrepute ladder. It owns what a score is
   CALLED, and how a deed and a quiet week move it. It also owns whether a move
   crossed a rung that the pilot must hear about. Every deed in the game asks it

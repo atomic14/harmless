@@ -110,6 +110,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   openChart: { what: 'galactic chart', section: 'navigation', menu: 'GALACTIC CHART' },
   openLocalChart: { what: 'short range chart', section: 'navigation', menu: 'LOCAL CHART' },
   openStatus: { what: 'commander status', section: 'navigation', menu: 'COMMANDER STATUS' },
+  openLog: { what: "the commander's log — every mission as a story", section: 'navigation', keyline: 'LOG' },
   openMissions: {
     what: 'missions — what the Navy wants doing, and where',
     section: 'navigation',

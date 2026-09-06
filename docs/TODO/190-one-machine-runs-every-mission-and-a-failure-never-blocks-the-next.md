@@ -868,6 +868,27 @@ M4 landed as planned, with these additions that the plan did not have:
 3. Add a LOG screen with the story, patron portrait and travelled route.
    Design the renderer for reuse by the site work proposed for item 193.
 
+#### M5 outcome (2026-09-06)
+
+M5 landed as planned, with these additions that the plan did not have:
+
+- `src/missions/dossiers.ts` is the table a dossier is looked up in. It is
+  empty until item 191 writes one, and every reader falls back to the
+  skeleton's plain words.
+- A story page is one run of one mission. It carries the title, the origin,
+  the worlds in order, the lines, and the ending. An abandonment and a galaxy
+  departure are told as the reason, and the `fail` that follows closes the
+  page.
+- The route map is SVG text in the chart's own frame: every system a faint
+  dot, the visited worlds joined and marked. The LOG screen puts it under the
+  pages. `ui/screens-log.ts` is its own file, so `ui/screens.ts` grows no
+  further.
+- The LOG opens on ⇧R at the station and in the cockpit, beside R for the
+  standing orders. It is a key line entry rather than a menu row, because a
+  shifted row cannot keep invariant 13's promise.
+- The patron's face is the world's portrait for a world or local patron, and
+  none for the Navy.
+
 ## Decisions already made
 
 Chris made the following decisions on 2026-09-06:

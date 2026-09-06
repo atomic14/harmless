@@ -351,8 +351,10 @@ console.log('\nR opens the standing orders in both modes, and takes nothing else
   eqc('I is still the commander status at the station',
     cmds('docked', ['KeyI'], []), ['openStatus']);
   eqc('...and in the cockpit', cmds('flight', ['KeyI'], []), ['openStatus']);
-  eqc('a held shift does not turn R into something else',
-    cmds('docked', ['KeyR'], ['ShiftLeft']), ['openMissions']);
+  // ⇧R is the LOG since docs/TODO/190 M5. The rule above is about the ROW:
+  // the missions row is plain R, and the log has no row, only a keyline.
+  eqc('a held shift turns R into the log, which has no row to click',
+    cmds('docked', ['KeyR'], ['ShiftLeft']), ['openLog']);
 }
 
 // The SHAPE of the summary, which the joined assertions above cannot see.

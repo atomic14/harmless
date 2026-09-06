@@ -84,6 +84,7 @@ export type Command =
   | 'openLocalChart'
   | 'openStatus'
   | 'openMissions'
+  | 'openLog'
   | 'openContracts'
   // --- the cockpit --------------------------------------------------------
   | 'view0' | 'view1' | 'view2' | 'view3'
