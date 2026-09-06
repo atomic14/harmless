@@ -13,7 +13,16 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [191](191-a-model-writes-the-patrons-and-the-dossiers-and-a-gate-reads-them-first.md)
+   — a model writes the patrons and the dossiers, and a gate reads them first.
+2. [192](192-five-arcs-cross-the-galaxy-and-each-one-ends-near-the-next.md)
+   — five arcs cross the galaxy, and each one ends near the next.
+3. [193](193-the-site-tells-the-mission-tour.md) — the site tells the
+   mission tour.
+
+**191, 192 AND 193 ARE THE THREE PLANS 190 PROPOSED**, drafted on 2026-09-06
+after it landed. The pipeline comes first, so the arcs ship with words. The
+arcs come second, and the site page last, because it reads both.
 
 **190 CAME FROM CHRIS ON 2026-09-06.** He asked to expand the missions, and
 he set the direction in one conversation. The game is ours from here. No jump
