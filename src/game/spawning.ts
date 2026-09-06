@@ -21,7 +21,7 @@ import type { PopulationPlan } from './population.ts';
 import type { NpcShip } from './npc.ts';
 import { steerQuatToward } from './flight-maths.ts';
 import { pirateSpecForTier, specForDesign } from './ship-specs.ts';
-import type { TaggedShip } from '../missions/model.ts';
+import type { TaggedItem, TaggedShip } from '../missions/model.ts';
 import { memberTier } from './threat.ts';
 import { slotNormal } from '../world/slot.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
@@ -82,6 +82,7 @@ export function spawnPopulation(
   playerPos: THREE.Vector3,
   missionShips: readonly TaggedShip[],
   situation: 'launch' | 'arrival' = 'arrival',
+  missionItems: readonly TaggedItem[] = [],
 ): SpawnResult {
   const home = world.station.position;
   const arriving = situation === 'arrival';
@@ -170,20 +171,32 @@ export function spawnPopulation(
       3 + randomInt(4), ORDINARY_GOODS);
   }
 
-  // A mission ship flies the roster row for its design, under the pirate
-  // role, which is the role the Constrictor always flew with. A design the
-  // roster cannot fly as a pirate is skipped. The skeleton lint is the place
-  // to catch that.
+  // A mission ship flies the roster row for its design, under the role its
+  // job wants. A hunt's target is a pirate, as the Constrictor always was. An
+  // escort's charge and a scan's subject are traders. An escort's charge
+  // arrives with the commander and flies for the slot, so she can see it in.
+  // A design the roster cannot fly in that role is skipped, and the skeleton
+  // lint is the place to catch that.
   const spawned: NpcShip[] = [];
   for (const tagged of missionShips) {
-    const spec = specForDesign('pirate', tagged.ship);
+    const role = tagged.job === 'hunt' ? 'pirate' : 'trader';
+    const spec = specForDesign(role, tagged.ship);
     if (!spec) continue;
     const pos = playerPos.clone()
       .add(randomDirection(new THREE.Vector3())
         .multiplyScalar(MISSION_TARGET_RANGE + random() * MISSION_TARGET_RANGE_SPAN));
-    const ship = world.spawn('pirate', pos, 0, spec);
+    const ship = world.spawn(role, pos, 0, spec);
     ship.state.missionTag = tagged.tag;
+    if (tagged.job === 'escort') ship.state.traderPhase = 'arriving';
     spawned.push(ship);
+  }
+  // A mission's canister or pod drifts at the same reach as a mission ship,
+  // so the scanner shows it in the same place.
+  for (const item of missionItems) {
+    const pos = playerPos.clone()
+      .add(randomDirection(new THREE.Vector3())
+        .multiplyScalar(MISSION_TARGET_RANGE + random() * MISSION_TARGET_RANGE_SPAN));
+    world.cargo.spawnMission(pos, item.kind, item.tag);
   }
 
   return { generationShip, missionShips: spawned };

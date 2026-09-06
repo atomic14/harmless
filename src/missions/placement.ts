@@ -36,11 +36,17 @@ export function pickInBand(
  */
 export function placeLeg(
   place: Placement, state: MissionState, commander: CommanderFacts,
-  systems: readonly StarSystem[], rng: () => number,
+  systems: readonly StarSystem[], rng: () => number, skeleton: string,
 ): { ok: true; target: number | null } | { ok: false } {
   switch (place.kind) {
     case 'here': return { ok: true, target: commander.systemIndex };
     case 'anywhere': return { ok: true, target: null };
+    case 'origin': {
+      // The world of the latest acceptance: the journal holds it.
+      const accepted = state.journal.filter((j) => j.skeleton === skeleton && j.outcome === 'accepted');
+      const last = accepted[accepted.length - 1];
+      return last ? { ok: true, target: last.world } : { ok: false };
+    }
     case 'band': {
       const target = pickInBand(systems, commander.systemIndex, place, rng);
       return target === null ? { ok: false } : { ok: true, target };

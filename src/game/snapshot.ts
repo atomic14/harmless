@@ -253,6 +253,12 @@ export interface CanisterSnapshot {
   occupant: string;
   /** seconds of launch grace left, so a capsule saved fresh comes back safe */
   grace: number;
+  /**
+   * The mission tag it answers to, or null. OPTIONAL in the saved bytes. A
+   * flight save written before docs/TODO/190 M4 has no key. The loader reads
+   * that as null rather than refusing the save.
+   */
+  missionTag?: string | null;
 }
 
 export interface WorldSnapshot {

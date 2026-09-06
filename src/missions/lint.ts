@@ -13,7 +13,8 @@
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { distanceTenths } from '../galaxy/navigation.ts';
 import type { Skeleton } from './model.ts';
-import { verbModule } from './verbs/registry.ts';
+import { specForDesign } from '../game/ship-specs.ts';
+import { verbJob, verbModule, verbNeedsShip } from './verbs/registry.ts';
 
 export function lintSkeleton(
   s: Skeleton, all: readonly Skeleton[], systems: readonly StarSystem[],
@@ -26,6 +27,10 @@ export function lintSkeleton(
   for (const leg of s.legs) {
     const at = `${s.id}/${leg.id}`;
     if (!verbModule(leg.verb.kind)) out.push(`${at}: no module for verb ${leg.verb.kind}`);
+    if (verbNeedsShip(leg.verb)) {
+      const role = verbJob(leg.verb) === 'hunt' ? 'pirate' : 'trader';
+      if (!specForDesign(role, leg.verb.ship)) out.push(`${at}: no ${role} row for ${leg.verb.ship}`);
+    }
     if (!leg.next.some((b) => b.on === 'failed')) out.push(`${at}: no failed branch`);
     for (const b of leg.next) {
       if (b.to !== 'complete' && b.to !== 'fail' && !ids.has(b.to)) {

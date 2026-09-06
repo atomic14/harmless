@@ -12,6 +12,12 @@ export const GANG_SHARE = 0.3;
 
 /** ...but never less than this, so a near-empty hold is not a free pass. */
 export const OPPORTUNIST_FLOOR = 400;
+/**
+ * ...and a gang's floor, in tenths of a credit: more, because a gang came
+ * for you on purpose.
+ *
+ * @rule jettison.gangFloor
+ */
 export const GANG_FLOOR = 1500;
 
 /**

@@ -21,7 +21,11 @@ export const HERMIT_SUPPLIES: ReadonlySet<string> = new Set(['Food', 'Liquor/Win
 /** Ore is a quarter off here, and there is plenty of it. */
 export const HERMIT_ORE_PRICE = 0.75;
 
-/** Bulk stock a rock miner is never short of, on top of the rolled quantity. */
+/**
+ * Bulk stock a rock miner is never short of, on top of the rolled quantity.
+ *
+ * @rule hermitmarket.hermitOreGlut
+ */
 export const HERMIT_ORE_GLUT = 20;
 
 /** Supplies cost a third more: nobody else delivers out here. */

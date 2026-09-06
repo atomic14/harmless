@@ -6,8 +6,9 @@
 
 import type { Skeleton } from '../model.ts';
 import { CONSTRICTOR } from './constrictor.ts';
+import { SIDE_JOBS } from './side.ts';
 
-export const SKELETONS: readonly Skeleton[] = [CONSTRICTOR];
+export const SKELETONS: readonly Skeleton[] = [CONSTRICTOR, ...SIDE_JOBS];
 
 export function skeletonById(
   id: string, from: readonly Skeleton[] = SKELETONS,

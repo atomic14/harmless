@@ -89,7 +89,7 @@ export function constrictorAt(
   st.live.push({ skeleton: 'constrictor', leg, target, tag, progress: 0, deadlineDay: null });
   st.journal.push({ skeleton: 'constrictor', leg: 'hunt', outcome: 'accepted', day: 0, world: 7 });
   if (tag) {
-    st.entities[tag] = { ship: CONSTRICTOR_SPEC.designId, hull: 1, lastWorld: target ?? 7, alive: true };
+    st.entities[tag] = { kind: 'ship', ship: CONSTRICTOR_SPEC.designId, hull: 1, lastWorld: target ?? 7, alive: true };
   }
   return st;
 }

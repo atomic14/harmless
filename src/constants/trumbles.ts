@@ -14,6 +14,8 @@ export const TRUMBLE_PURGE_TEMP = 0.55;
 /**
  * Seconds between broods. It is also the fresh session's countdown:
  * `freshSession` in game/state.ts starts `trumbleTimer` at exactly one interval.
+ *
+ * @rule trumbles.breedInterval
  */
 export const BREED_INTERVAL = 20;
 

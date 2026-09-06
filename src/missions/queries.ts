@@ -9,7 +9,8 @@
 import type { BlueprintOverride } from '../game/blueprint-set.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { legOf } from './machine.ts';
-import type { Leg, LiveMission, MissionState, Skeleton, TaggedShip } from './model.ts';
+import type { Leg, LiveMission, MissionState, Skeleton, TaggedItem, TaggedShip } from './model.ts';
+import { verbJob, verbNeedsShip } from './verbs/registry.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, lineSlots } from './text.ts';
 
@@ -51,12 +52,35 @@ export function missionSpawns(
   st: MissionState, here: number, from: readonly Skeleton[] = SKELETONS,
 ): TaggedShip[] {
   const out: TaggedShip[] = [];
+  for (const { live, leg } of liveLegs(st, from)) {
+    if (live.tag === null || live.target !== here || !verbNeedsShip(leg.verb)) continue;
+    const e = st.entities[live.tag];
+    if (e && e.alive && e.kind === 'ship') out.push({ ship: e.ship, tag: live.tag, job: verbJob(leg.verb) });
+  }
+  return out;
+}
+
+/** The tagged canisters and capsules adrift at `here`, for a live leg. */
+export function missionItems(
+  st: MissionState, here: number, from: readonly Skeleton[] = SKELETONS,
+): TaggedItem[] {
+  const out: TaggedItem[] = [];
   for (const { live } of liveLegs(st, from)) {
     if (live.tag === null || live.target !== here) continue;
     const e = st.entities[live.tag];
-    if (e && e.alive) out.push({ ship: e.ship, tag: live.tag });
+    if (e && e.alive && e.kind !== 'ship') out.push({ tag: live.tag, kind: e.kind });
   }
   return out;
+}
+
+/** The seconds a scan leg wants of the ship with `tag`, or null. */
+export function scanSecondsFor(
+  st: MissionState, tag: string, from: readonly Skeleton[] = SKELETONS,
+): number | null {
+  for (const { live, leg } of liveLegs(st, from)) {
+    if (live.tag === tag && leg.verb.kind === 'scan') return leg.verb.seconds;
+  }
+  return null;
 }
 
 /** The standing order for one live mission, in the game's voice. */
@@ -83,13 +107,19 @@ export function legReward(live: LiveMission, from: readonly Skeleton[] = SKELETO
     .reduce((best, b) => Math.max(best, b.settle?.pay ?? 0), 0);
 }
 
-/** `NAVY MISSION`, or `LAVE MISSION` for a world patron: the chart's word. */
+/**
+ * `NAVY MISSION`, or `LAVE MISSION` for a world patron: the chart's word. A
+ * local patron is named by the world the job was accepted at.
+ */
 export function missionName(
-  live: LiveMission, systems: readonly StarSystem[], from: readonly Skeleton[] = SKELETONS,
+  st: MissionState, live: LiveMission, systems: readonly StarSystem[],
+  from: readonly Skeleton[] = SKELETONS,
 ): string {
   const s = skeletonById(live.skeleton, from);
   if (!s || s.patron.kind === 'navy') return 'NAVY MISSION';
-  return `${systems[s.patron.seedSlot].name.toUpperCase()} MISSION`;
+  const world = s.patron.kind === 'world' ? s.patron.seedSlot
+    : st.journal.filter((j) => j.skeleton === live.skeleton && j.outcome === 'accepted').pop()?.world;
+  return world === undefined ? 'MISSION' : `${systems[world].name.toUpperCase()} MISSION`;
 }
 
 /** Every world a live leg sends the commander to. */

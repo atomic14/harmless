@@ -112,6 +112,10 @@ export interface NpcState {
    * names.
    */
   missionTag: string | null;
+  /** seconds under the scanner lock so far: a scan leg's clock */
+  observed: number;
+  /** the escort or the scan verdict was sent once; it is never sent again */
+  missionReported: boolean;
   fleeing: boolean;
   /** where this ship is in its attack run — see break-off.ts */
   attackPhase: AttackPhase;
@@ -259,7 +263,7 @@ export function freshNpcState(maxEnergy: number): NpcState {
     tumbleAxis: randomDirection(new THREE.Vector3()),
     energy: maxEnergy, regenCarry: 0,
     alive: true, provoked: false, provokedByPlayer: false, missiles: 0,
-    missionTag: null, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
+    missionTag: null, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
     extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
     tactic: 'run', tacticClock: 0, dryFor: 0,
     inert: false, tradeTimer: 0,

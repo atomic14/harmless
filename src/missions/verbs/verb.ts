@@ -20,6 +20,8 @@ export interface VerbContext {
 export interface VerbReaction {
   trigger?: Trigger;
   progress?: number;
+  /** the scooped pod is this mission's passenger; the machine records it */
+  passenger?: boolean;
 }
 
 export type VerbModule = (ctx: VerbContext, input: MissionInput) => VerbReaction | null;

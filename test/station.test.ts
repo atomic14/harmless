@@ -72,6 +72,8 @@ function setup() {
       'sound:tunnel',
       'presentation:tunnel:in',
       'presentation:screen:docked',
+      // The three side jobs on Lave's board, as one line (docs/TODO/190 M4).
+      'message:3 SIDE JOBS ON THE STATION BOARD',
       'message:CONTRACT SETTLED',
     ].join('|'));
   check('dock still changes the core mode synchronously', x.mode() === 'docked');

@@ -216,7 +216,7 @@ console.log('\na lead crosses the galaxy with her, to a world she can reach');
     leads: [{ skeleton: 'second', galaxy: 1, world: 12, sinceDay: 0 }],
   };
   const r = stepMissions(state, { kind: 'galaxyChanged', from: 1, to: 2 }, {
-    commander: { galaxy: 2, systemIndex: arrival, kills: 0, combatScore: 0, legalStatus: 0, day: 5 },
+    commander: { galaxy: 2, systemIndex: arrival, kills: 0, combatScore: 0, legalStatus: 0, day: 5, cargo: [] },
     systems: g2, rng: () => 0.5, skeletons: pair,
   });
   eq('the held arc failed', r.state.done.first, 'fail');

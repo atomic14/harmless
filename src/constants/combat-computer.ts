@@ -128,6 +128,8 @@ export const PURSUIT_TURN_FLOOR = 0.15;
  * The speed deadband, in world units, inside which the co-pilot coasts.
  * `FlightDemand.throttle` is only a sign. Without this, it would flip between
  * accelerate and brake every frame at its held speed.
+ *
+ * @rule combatcomputer.pursuitSpeedDeadband
  */
 export const PURSUIT_SPEED_DEADBAND = 6;
 

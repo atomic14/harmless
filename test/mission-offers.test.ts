@@ -29,7 +29,7 @@ import { check, eq } from './harness.ts';
 
 const LAVE = 7;
 const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 0, ...over,
+  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], ...over,
 });
 
 /** An arc at Lave that leads to a second arc at `world`. */

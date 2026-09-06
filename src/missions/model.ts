@@ -38,7 +38,11 @@ export interface Deed { disrepute: number }
  * patron is derived from the 1984 seed of the system at `seedSlot`, so Lave
  * always has the same governor.
  */
-export type PatronRef = { kind: 'navy' } | { kind: 'world'; seedSlot: number };
+export type PatronRef =
+  | { kind: 'navy' }
+  | { kind: 'world'; seedSlot: number }
+  /** whoever runs the station she stands at: a side job's patron, anywhere */
+  | { kind: 'local' };
 
 /**
  * The facts about the commander that a rule can read. A projection of
@@ -51,13 +55,23 @@ export interface CommanderFacts {
   combatScore: number;
   legalStatus: number;
   day: number;
+  /** tonnes per commodity index, read only: a smuggle leg asks what is aboard */
+  cargo: readonly number[];
 }
 
 /** A temporary change to a world that a later mission asks for. */
 export interface WorldChange { override: BlueprintOverride }
 
 /** A ship the game must spawn, with the mission tag it answers to. */
-export interface TaggedShip { ship: ShipId; tag: string }
+export interface TaggedShip {
+  ship: ShipId;
+  tag: string;
+  /** what the leg wants of it, which picks the role it flies with */
+  job: 'hunt' | 'escort' | 'scan';
+}
+
+/** A canister or a capsule the game must spawn, tagged for a leg. */
+export interface TaggedItem { tag: string; kind: 'cargo' | 'capsule' }
 
 export type Verb =
   | { kind: 'hunt'; ship: ShipId; canEscape: boolean }
@@ -81,6 +95,8 @@ export type Verb =
 export type Placement =
   | { kind: 'here' }
   | { kind: 'anywhere' }
+  /** the world the mission was accepted at: a side job's way home */
+  | { kind: 'origin' }
   | { kind: 'band'; min: number; max: number }
   | { kind: 'world'; seedSlot: number }
   | { kind: 'entity'; tag: string }
@@ -227,6 +243,9 @@ export interface JournalEntry {
 }
 
 export interface EntityState {
+  /** a tagged ship, or a tagged canister or capsule adrift at `lastWorld` */
+  kind: 'ship' | 'cargo' | 'capsule';
+  /** the design, for a ship; '' for an item */
   ship: ShipId;
   /** hull left, as a fraction of full */
   hull: number;
@@ -284,4 +303,8 @@ export type MissionEffect =
   | { kind: 'legal'; delta: number }
   | { kind: 'lead'; skeleton: string; galaxy: number; world: number }
   | { kind: 'worldOverride'; world: number; until: number; change: WorldChange }
-  | { kind: 'standingSpawn'; world: number; until: number; ships: TaggedShip[] };
+  | { kind: 'standingSpawn'; world: number; until: number; ships: TaggedShip[] }
+  /** the patron's goods go aboard: a smuggle leg starts with them */
+  | { kind: 'cargo'; commodity: number; tonnes: number }
+  /** passengers a finished mission leaves in the crew spaces, as survivors */
+  | { kind: 'survivors'; people: number };

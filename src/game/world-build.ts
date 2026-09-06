@@ -27,7 +27,7 @@
 import * as THREE from 'three';
 import { blueprintRandomBits, blueprintSetFor } from './blueprint-set.ts';
 import { specsForSet } from './set-roster.ts';
-import { missionOverride, missionSpawns } from '../missions/queries.ts';
+import { missionItems, missionOverride, missionSpawns } from '../missions/queries.ts';
 import { planPopulation } from './population.ts';
 import { markOf, pirateThreat } from './threat.ts';
 import { spawnPopulation } from './spawning.ts';
@@ -181,9 +181,11 @@ export class WorldBuild {
 
     const missionShips = situation === 'arrival'
       ? missionSpawns(this.state.commander.missions, sys.index) : [];
+    const adrift = situation === 'arrival'
+      ? missionItems(this.state.commander.missions, sys.index) : [];
 
     const built = spawnPopulation(
-      this.state.world, plan, sys, this.state.player.position, missionShips, situation);
+      this.state.world, plan, sys, this.state.player.position, missionShips, situation, adrift);
 
     if (plan.threat) {
       this.state.lastThreat = plan.threat;

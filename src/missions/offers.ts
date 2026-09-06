@@ -11,6 +11,7 @@
 // lists the MISSIONS screen, and by the tests. It changes nothing.
 
 import { MISSION_LIVE_CAP, MISSION_REOFFER_DAYS } from '../constants/missions.ts';
+import type { StarSystem } from '../galaxy/galaxy.ts';
 import { ratingRung } from '../game/rating.ts';
 import type { CommanderFacts, Gate, MissionState, Skeleton } from './model.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
@@ -19,6 +20,24 @@ import { SKELETONS, skeletonById } from './skeletons/index.ts';
 export interface OfferContext {
   commander: CommanderFacts;
   skeletons?: readonly Skeleton[];
+  /** the galaxy, for a local patron's roster; absent means every job everywhere */
+  systems?: readonly StarSystem[];
+}
+
+/**
+ * Whether a local patron's job is on this world's board.
+ *
+ * Every world offers about a third of the side jobs, picked off the world's
+ * chart position and the job's id. So the same world offers the same jobs
+ * on every visit. It is a placeholder for the patrons the pipeline plan
+ * (item 191 of docs/TODO/190) derives from the 1984 seed.
+ */
+function localJobHere(s: Skeleton, c: CommanderFacts, systems: readonly StarSystem[] | undefined): boolean {
+  if (s.patron.kind !== 'local' || !systems) return true;
+  const w = systems[c.systemIndex];
+  let hash = 0;
+  for (const ch of s.id) hash = (hash * 31 + ch.charCodeAt(0)) % 997;
+  return (w.x + w.y * 3 + hash) % 3 === 0;
 }
 
 function gateOpen(gate: Gate, st: MissionState, c: CommanderFacts): boolean {
@@ -77,7 +96,8 @@ export function canAccept(st: MissionState, id: string, ctx: OfferContext): bool
   if (ended.count >= (s.kind === 'side' ? (s.cap ?? 1) : 1)) return false;
   if (ended.count > 0 && ctx.commander.day < ended.lastDay + MISSION_REOFFER_DAYS) return false;
   if (excluded(st, id, from)) return false;
-  return leadHere(st, id, ctx.commander) || gateOpen(s.offer, st, ctx.commander);
+  if (leadHere(st, id, ctx.commander)) return true;
+  return localJobHere(s, ctx.commander, ctx.systems) && gateOpen(s.offer, st, ctx.commander);
 }
 
 /** Every skeleton on offer where the commander stands. */

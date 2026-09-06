@@ -13,7 +13,11 @@
 
 import { MAX_TIER } from './threat.ts';
 
-/** The most ships a wave ever holds — the ceiling the ramp exists to have. */
+/**
+ * The most ships a wave ever holds — the ceiling the ramp exists to have.
+ *
+ * @rule waves.waveMaxCount
+ */
 export const WAVE_MAX_COUNT = 6;
 
 /**

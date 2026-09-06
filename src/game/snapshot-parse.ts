@@ -133,6 +133,9 @@ export function parseSnapshot(raw: unknown): WorldSnapshot {
     finite(can.energy, `canisters[${i}].energy`);
     if (typeof can.occupant !== 'string') bad(`canisters[${i}].occupant`);
     finite(can.grace, `canisters[${i}].grace`);
+    if (can.missionTag !== undefined && can.missionTag !== null && typeof can.missionTag !== 'string') {
+      bad(`canisters[${i}].missionTag`);
+    }
   }
 
   record(s.encounterTimers, 'encounterTimers');

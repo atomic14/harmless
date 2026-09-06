@@ -38,6 +38,15 @@ export const ORDINARY_GOODS: readonly number[] = [0, 1, 4, 8, 9, 12];
 export const SLAVES = 3;
 
 /**
+ * Narcotics: the row a smuggle job loads (missions/skeletons/side.ts). It is
+ * one of the three `CONTRABAND` rows (constants/law.ts), and the one a
+ * patron would pay to move.
+ *
+ * @rule commodities.narcotics
+ */
+export const NARCOTICS = 6;
+
+/**
  * What a mined asteroid yields: minerals three draws in five, and otherwise gold
  * or platinum. It is a WEIGHTED draw, written as repeated indices. `cargo.spawn`
  * picks uniformly, so the repetition is the distribution.

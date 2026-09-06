@@ -75,6 +75,8 @@ export const BRIEFING_VERSION = 1;
  * a pirate's `markOf` and big-bay threshold (game/threat.ts), and the shop's
  * shelf label all read these. The shelf therefore cannot advertise a bay that the
  * game does not fit.
+ *
+ * @rule commander.holdTonnes
  */
 export const HOLD_TONNES = 20;
 export const LARGE_BAY_TONNES = 35;

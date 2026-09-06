@@ -13,7 +13,7 @@
 
 import { generateGalaxy, type StarSystem } from '../galaxy/galaxy.ts';
 import { afterDeed } from './character.ts';
-import type { CommanderData } from './commander.ts';
+import { cargoCapacity, cargoTonnes, type CommanderData } from './commander.ts';
 import { random } from './rng.ts';
 import { specForDesign, type NpcSpec } from './ship-specs.ts';
 import { huntWarning } from './hunt-warning.ts';
@@ -38,6 +38,7 @@ export function missionFacts(c: CommanderData): CommanderFacts {
   return {
     galaxy: c.galaxy, systemIndex: c.systemIndex, kills: c.kills,
     combatScore: c.combatScore, legalStatus: c.legalStatus, day: c.day,
+    cargo: c.cargo,
   };
 }
 
@@ -84,8 +85,18 @@ export function runMissions(
           text: `A LEAD: ASK AT ${systems[e.world].name.toUpperCase()}`,
         });
         break;
-      // Docs/TODO/190 M4 connects the two world effects with the verbs that
-      // ask for them. No shipped skeleton asks for one yet.
+      // The patron's goods go aboard, as far as the hold allows. A hold too
+      // full for all of them is a leg that starts short. The smuggle verb then
+      // fails a dock with fewer tonnes than it wants.
+      case 'cargo': {
+        const room = Math.max(0, cargoCapacity(c) - cargoTonnes(c));
+        c.cargo[e.commodity] += Math.min(room, e.tonnes);
+        break;
+      }
+      // Passengers a finished mission left aboard are survivors now, once.
+      case 'survivors': c.survivors += e.people; break;
+      // The two world effects wait for a skeleton that asks for one. None
+      // shipped does (item 192 of docs/TODO/190).
       case 'worldOverride': case 'standingSpawn': break;
     }
   }

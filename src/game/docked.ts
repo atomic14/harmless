@@ -38,6 +38,7 @@ import { hermitMarket } from './market.ts';
 import { Station, type StationEvent, type StationHost, type DockArrival } from './station.ts';
 import { generateContractOffers } from './contract-offers.ts';
 import { acceptContract, settleContracts, contractMessage, type ContractEvent } from './contracts.ts';
+import { runMissions } from './mission-bridge.ts';
 import {
   resolveSurvivors, survivorMessage, survivorOffers, type SurvivorChoice,
 } from './survivors.ts';
@@ -200,7 +201,8 @@ export class Docked {
     // The order is decided here, rather than left to whichever opens first. The
     // forced choice is what holds the clearance up. The briefing is reading
     // matter, and it is still there behind it.
-    if (this.state.commander.survivors > 0) this.host.openScreen('survivors');
+    const c = this.state.commander;
+    if (c.survivors > 0 || c.missions.passengers.length > 0) this.host.openScreen('survivors');
   }
 
   /** @internal — driven by src/game/game.ts, which delegates to it. */
@@ -350,6 +352,16 @@ export class Docked {
   answerForSurvivors(choice: SurvivorChoice): void {
     const c = this.state.commander;
     const before = c.disrepute ?? 0;
+    // A MISSION'S PASSENGER ANSWERS TO ITS OWN TAG (docs/TODO/190 M4). The
+    // one answer covers everyone aboard, and each passenger's mission alone
+    // hears it: `landed` for medical or a release, `sold` for the Slaves row.
+    // The machine removes the record, and says what the patron makes of it.
+    const fate = choice === 'sold' ? 'sold' as const : 'landed' as const;
+    for (const p of [...c.missions.passengers]) {
+      for (const m of runMissions(c, { kind: 'survivor', tag: p.tag, fate }, this.state.systems)) {
+        this.host.sayEvent(m);
+      }
+    }
     const e = resolveSurvivors(c, choice, this.survivorOffers());
     if (!e) return;
     // The law and the region come first, so the SALE has the console after

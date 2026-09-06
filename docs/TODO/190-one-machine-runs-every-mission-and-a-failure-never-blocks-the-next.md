@@ -830,6 +830,35 @@ one M2 measured: 33 of 40 and 168 of 200 reached sixteen kills.
 3. Write one side mission skeleton for each verb so the player can use every
    verb in the game. Show plain objective text until the work proposed for item 191 supplies dossiers.
 
+#### M4 outcome (2026-09-06)
+
+M4 landed as planned, with these additions that the plan did not have:
+
+- `PatronRef` gains `local`: whoever runs the station she stands at. A side
+  job has no fixed world, and the pipeline plan (item 191) derives patrons
+  from the seed later. About a third of the side jobs sit on any one world's
+  board, picked off the world's chart position and the job's id.
+- `Placement` gains `origin`, the world the mission was accepted at, read
+  from the journal. A recover job and a rescue job come home on it.
+- `EntityState` gains `kind`, so a tagged canister or pod is an entity like a
+  tagged ship. `Canister` and its snapshot gain `missionTag`, optional in the
+  saved bytes, so a flight save from before it still loads.
+- `MissionEffect` gains `cargo` and `survivors`. The patron's goods go aboard
+  when a smuggle leg starts. Passengers a finished mission leaves aboard
+  become ordinary survivors, once.
+- `NpcState` gains `observed` and `missionReported`. The scan clock counts
+  seconds under the scanner lock. The escort and the scan verdicts are sent
+  one time each.
+- A wrecked tagged ship, lost to anyone, sends `escortLost` from
+  `flight-weapons.ts`. A tagged canister or pod broken by the player sends
+  `destroyed` from `combat.ts`.
+- The survivors prompt counts passengers, and one answer covers everyone
+  aboard. Each passenger's mission alone hears it, under the pod's tag.
+- Seven constants own the side jobs' numbers, and `ESCORT_ENEMY_ROLES`
+  names who counts as an enemy near a charge. `NARCOTICS` joins `SLAVES`.
+- The scan verdict is tested through the machine and not through a real
+  world step, because `Ordnance` and its lock are private to the Game.
+
 ### M5 — Commander's log
 
 1. Add `src/missions/story.ts` to produce story pages from the journal and

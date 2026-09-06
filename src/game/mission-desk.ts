@@ -37,7 +37,7 @@ export class MissionDesk {
   offers(): Skeleton[] {
     if (this.host.baseMode() !== 'docked') return [];
     const c = this.state.commander;
-    return offersFor(c.missions, { commander: missionFacts(c) });
+    return offersFor(c.missions, { commander: missionFacts(c), systems: this.state.systems });
   }
 
   /**

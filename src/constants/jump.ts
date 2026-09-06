@@ -46,6 +46,8 @@ export const JUMP_DAYS_BASE = 1;
  * It is a CEILING, not a rate, because `daysForJump` rounds up. That function is
  * in galaxy/navigation.ts, the one home for the arithmetic. 2.1 LY therefore
  * costs the same as 4.0.
+ *
+ * @rule jump.tenthsPerJumpDay
  */
 export const TENTHS_PER_JUMP_DAY = 20;
 

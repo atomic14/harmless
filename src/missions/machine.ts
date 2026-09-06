@@ -31,7 +31,7 @@ import { canAccept, offersFor } from './offers.ts';
 import { placeLeg } from './placement.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, lineSlots } from './text.ts';
-import { verbModule, verbNeedsShip } from './verbs/registry.ts';
+import { verbItem, verbModule, verbNeedsShip } from './verbs/registry.ts';
 
 export interface MissionContext {
   commander: CommanderFacts;
@@ -77,17 +77,23 @@ export function legOf(skeleton: Skeleton, id: string): Leg {
   return leg;
 }
 
-/** The key that `MissionState.standing` and a dossier file use for a patron. */
-export function patronId(skeleton: Skeleton): string {
-  return skeleton.patron.kind === 'navy' ? 'navy' : `world-${skeleton.patron.seedSlot}`;
+/**
+ * The key that `MissionState.standing` and a dossier file use for a patron.
+ * A local patron is the world she stands at, so the key names that world.
+ */
+export function patronId(skeleton: Skeleton, commander: CommanderFacts): string {
+  const p = skeleton.patron;
+  if (p.kind === 'navy') return 'navy';
+  return `world-${p.kind === 'world' ? p.seedSlot : commander.systemIndex}`;
 }
 
 /**
  * Where a skeleton is offered. A world patron waits at home. The Navy has no
- * home, so its lead opens wherever the commander stands.
+ * home, and a local patron is every home, so their leads open wherever the
+ * commander stands.
  */
 export function startWorld(skeleton: Skeleton, commander: CommanderFacts): number {
-  return skeleton.patron.kind === 'navy' ? commander.systemIndex : skeleton.patron.seedSlot;
+  return skeleton.patron.kind === 'world' ? skeleton.patron.seedSlot : commander.systemIndex;
 }
 
 /**
@@ -100,8 +106,18 @@ function hail(
 ): void {
   st.idleDocks = moved ? 0 : st.idleDocks + 1;
   const offers = offersFor(st, ctx);
-  for (const s of offers) {
-    effects.push({ kind: 'say', text: s.hail, command: 'openMissions' });
+  // ONE CONSOLE LINE PER KIND. An arc hails by name, because a patron who
+  // briefs a commander one time deserves the console. The side jobs on the
+  // board are one count, said behind an arc's hail when there is one. So a
+  // dock with four offers cannot say four lines into one frame and show the
+  // last of them.
+  const arcs = offers.filter((s) => s.kind !== 'side');
+  const side = offers.length - arcs.length;
+  for (const s of arcs) effects.push({ kind: 'say', text: s.hail, command: 'openMissions' });
+  if (side > 0) {
+    const text = `${side} SIDE JOB${side === 1 ? '' : 'S'} ON THE STATION BOARD`;
+    if (arcs.length === 0) effects.push({ kind: 'say', text, command: 'openMissions' });
+    else effects.push({ kind: 'later', text });
   }
   const hint = dockHint(st, ctx.commander, ctx.systems, offers.length > 0, st.idleDocks);
   if (hint) effects.push({ kind: 'later', text: hint });
@@ -116,14 +132,14 @@ function accept(
   const skeleton = skeletonOf(id, ctx);
   const c = ctx.commander;
   const first = skeleton.legs[0];
-  const placed = placeLeg(first.place, st, c, ctx.systems, ctx.rng);
+  const placed = placeLeg(first.place, st, c, ctx.systems, ctx.rng, id);
   if (!placed.ok) return;
   st.journal.push({ skeleton: id, leg: first.id, outcome: 'accepted', day: c.day, world: c.systemIndex });
   const live: LiveMission = {
     skeleton: id, leg: first.id, target: null, tag: null, progress: 0, deadlineDay: null,
   };
   st.live.push(live);
-  startLeg(st, live, skeleton, first, placed.target, ctx);
+  startLeg(st, live, skeleton, first, placed.target, ctx, effects);
   st.leads = st.leads.filter((l) => l.skeleton !== id);
   effects.push({ kind: 'say', text: fillSlots(first.line, lineSlots(ctx.systems, placed.target)) });
 }
@@ -183,9 +199,11 @@ function reachableFrom(systems: readonly StarSystem[], here: number, preferred: 
 function react(
   st: MissionState, input: MissionInput, ctx: MissionContext, effects: MissionEffect[],
 ): void {
-  // A tagged ship that died is dead in the record, whatever any leg makes of
-  // it. `missionSpawns` (queries.ts) then never puts it back in the sky.
-  if (input.kind === 'destroyed' && input.tag in st.entities) st.entities[input.tag].alive = false;
+  // A tagged thing that died or was scooped is gone from the record, whatever
+  // any leg makes of it. `missionSpawns` (queries.ts) then never puts it back.
+  if ((input.kind === 'destroyed' || input.kind === 'scooped') && input.tag in st.entities) {
+    st.entities[input.tag].alive = false;
+  }
   for (const live of [...st.live]) {
     const skeleton = skeletonOf(live.skeleton, ctx);
     const leg = legOf(skeleton, live.leg);
@@ -194,8 +212,13 @@ function react(
     const reaction = module({ live, leg, commander: ctx.commander }, input);
     if (!reaction) continue;
     if (reaction.progress !== undefined) live.progress = reaction.progress;
+    if (reaction.passenger && input.kind === 'scooped') {
+      st.passengers.push({ tag: input.tag, mission: live.skeleton });
+    }
     if (reaction.trigger !== undefined) fire(st, live, reaction.trigger, ctx, effects);
   }
+  // A passenger answered for is off the ship, whichever mission owned them.
+  if (input.kind === 'survivor') st.passengers = st.passengers.filter((p) => p.tag !== input.tag);
 }
 
 function deadlines(st: MissionState, ctx: MissionContext, effects: MissionEffect[]): void {
@@ -247,21 +270,23 @@ function takeBranch(
     return;
   }
   const next = legOf(skeleton, branch.to);
-  const placed = placeLeg(next.place, st, c, ctx.systems, ctx.rng);
+  const placed = placeLeg(next.place, st, c, ctx.systems, ctx.rng, live.skeleton);
   if (!placed.ok) return;
   settle(st, skeleton, branch.settle, placed.target, ctx, effects);
   st.journal.push(entry);
-  startLeg(st, live, skeleton, next, placed.target, ctx);
+  startLeg(st, live, skeleton, next, placed.target, ctx, effects);
 }
 
 /**
  * Put a live mission on a leg. A hunt, an escort or a scan gets a tag for its
- * ship. The tag is unique across missions and across repeats of one job. The
- * ship enters `entities`, so the game can spawn it and a save can rebuild it.
+ * ship, and a recover or a rescue gets one for its item. The tag is unique
+ * across missions and across repeats of one job. The thing enters
+ * `entities`, so the game can spawn it and a save can rebuild it. A smuggle
+ * leg asks the game to put the patron's goods aboard.
  */
 function startLeg(
   st: MissionState, live: LiveMission, skeleton: Skeleton, leg: Leg,
-  target: number | null, ctx: MissionContext,
+  target: number | null, ctx: MissionContext, effects: MissionEffect[],
 ): void {
   const c = ctx.commander;
   live.leg = leg.id;
@@ -269,11 +294,18 @@ function startLeg(
   live.progress = 0;
   live.tag = null;
   live.deadlineDay = leg.deadlineDays === undefined ? null : c.day + leg.deadlineDays;
+  const run = st.journal.filter((j) => j.skeleton === skeleton.id && j.outcome === 'accepted').length;
+  const tag = `${skeleton.id}#${run}#${leg.id}`;
+  const item = verbItem(leg.verb);
   if (verbNeedsShip(leg.verb)) {
-    const run = st.journal.filter((j) => j.skeleton === skeleton.id && j.outcome === 'accepted').length;
-    const tag = `${skeleton.id}#${run}#${leg.id}`;
-    st.entities[tag] = { ship: leg.verb.ship, hull: 1, lastWorld: target ?? c.systemIndex, alive: true };
+    st.entities[tag] = { kind: 'ship', ship: leg.verb.ship, hull: 1, lastWorld: target ?? c.systemIndex, alive: true };
     live.tag = tag;
+  } else if (item !== null) {
+    st.entities[tag] = { kind: item, ship: '', hull: 1, lastWorld: target ?? c.systemIndex, alive: true };
+    live.tag = tag;
+  }
+  if (leg.verb.kind === 'smuggle') {
+    effects.push({ kind: 'cargo', commodity: leg.verb.commodity, tonnes: leg.verb.tonnes });
   }
 }
 
@@ -287,7 +319,7 @@ function settle(
   if (s.legal) effects.push({ kind: 'legal', delta: s.legal });
   for (const f of s.setFlags ?? []) if (!st.flags.includes(f)) st.flags.push(f);
   if (s.standing) {
-    const id = patronId(skeleton);
+    const id = patronId(skeleton, ctx.commander);
     st.standing[id] = (st.standing[id] ?? 0) + s.standing;
   }
   if (s.say) effects.push({ kind: 'say', text: fillSlots(s.say, lineSlots(ctx.systems, target, s.pay)) });
@@ -311,6 +343,12 @@ function finish(
   st.live = st.live.filter((l) => l !== live);
   for (const tag of Object.keys(st.entities)) {
     if (tag.startsWith(`${live.skeleton}#`)) delete st.entities[tag];
+  }
+  // Anyone still aboard for this mission is an ordinary survivor now, once.
+  const left = st.passengers.filter((p) => p.mission === live.skeleton).length;
+  if (left > 0) {
+    st.passengers = st.passengers.filter((p) => p.mission !== live.skeleton);
+    effects.push({ kind: 'survivors', people: left });
   }
   if (o.lead) offerLead(st, o.lead, ctx, effects);
 }

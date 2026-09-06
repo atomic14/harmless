@@ -107,6 +107,10 @@ const OUTSIDE: readonly Group[] = [
       + ' is the module for each verb kind',
     files: {
       'missions/skeletons/constrictor.ts': ['CONSTRICTOR'],
+      'missions/skeletons/side.ts': [
+        'SIDE_HUNT', 'SIDE_DELIVER', 'SIDE_RECOVER', 'SIDE_RESCUE', 'SIDE_AMBUSH',
+        'SIDE_SMUGGLE', 'SIDE_ESCORT', 'SIDE_SCAN', 'SIDE_JOBS', 'FAIL', 'LOCAL', 'AWAY',
+      ],
       'missions/skeletons/index.ts': ['SKELETONS'],
       'missions/verbs/registry.ts': ['VERBS'],
     },

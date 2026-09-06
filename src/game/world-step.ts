@@ -73,6 +73,9 @@ import type { NpcShip, FireEvent, WorldView } from './npc.ts';
 import { nearestNpc } from './hostility.ts';
 import type { SoundEvent, SoundName } from './sounds.ts';
 import { runMissions } from './mission-bridge.ts';
+import { scanSecondsFor } from '../missions/queries.ts';
+import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
+import { ESCORT_ENEMY_ROLES } from '../constants/missions.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
 import type { GameState } from './state.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
@@ -426,6 +429,8 @@ export class WorldStep {
       }
     }
 
+    this.stepMissionShips(dt, out);
+
     // Ships are solid. The geometry lives in collisions.ts, and what it costs
     // is decided here, because the price is not symmetric. The player's shields
     // absorb a ram. Two NPCs that bump must not credit the player. A bounce off
@@ -500,6 +505,44 @@ export class WorldStep {
     }
   }
 
+  /**
+   * The two verdicts only the world can give (docs/TODO/190 M4).
+   *
+   * An ESCORT is safe when its ship is alive, inside `DOCK_COMPUTER_RANGE` of
+   * the station, and no enemy is inside that same radius of it. All three at
+   * once, and it is sent ONCE. `missionReported` latches, so a fight after
+   * the fee cannot undo it. The ship goes on to dock as any trader does.
+   *
+   * A SCAN counts the seconds a tagged ship spends under the scanner lock,
+   * and sends `scanned` when the leg's seconds are up, once.
+   */
+  private stepMissionShips(dt: number, out: StepEvent[]): void {
+    const { world, commander } = this.state;
+    const lock = this.ordnance.targetLock;
+    for (const npc of world.npcs) {
+      const tag = npc.state.missionTag;
+      if (tag === null || npc.state.missionReported || !npc.state.alive) continue;
+      if (npc.role === 'trader') {
+        const wanted = scanSecondsFor(commander.missions, tag);
+        if (wanted !== null) {
+          if (lock === npc) npc.state.observed += dt;
+          if (npc.state.observed >= wanted) {
+            npc.state.missionReported = true;
+            out.push(...runMissions(commander, { kind: 'scanned', tag }));
+          }
+          continue;
+        }
+        const at = npc.object.position;
+        if (at.distanceTo(world.station.position) > DOCK_COMPUTER_RANGE) continue;
+        const threatened = world.npcs.some((other) => other !== npc && other.state.alive
+          && ESCORT_ENEMY_ROLES.includes(other.role) && other.object.position.distanceTo(at) <= DOCK_COMPUTER_RANGE);
+        if (threatened) continue;
+        npc.state.missionReported = true;
+        out.push(...runMissions(commander, { kind: 'escortSafe', tag }));
+      }
+    }
+  }
+
   /** Cargo, missiles, and the things that are only ever seen. */
   private stepProjectilesAndEffects(dt: number, out: StepEvent[]): void {
     const { world, player, commander } = this.state;
@@ -515,6 +558,12 @@ export class WorldStep {
         out.push(say(
           c.kind === 'capsule'
             ? 'ESCAPE CAPSULE DESTROYED ON HULL' : 'CANISTER DESTROYED ON HULL', 2));
+      } else if (c.missionTag !== null) {
+        // A MISSION'S THING, and the machine says what it was. It is a
+        // canister that never enters the hold, or a pod whose passenger rides
+        // under the pod's own tag (docs/TODO/190 M4).
+        out.push(...runMissions(commander, { kind: 'scooped', tag: c.missionTag }));
+        out.push(heard(c.kind === 'capsule' ? 'survivorScooped' : 'cargoScooped'));
       } else if (c.kind === 'capsule') {
         // A person, not stock. See CommanderData.survivors — a capsule is not
         // cargo commodity 3 (Slaves), which would make rescue read as smuggling.
@@ -654,6 +703,8 @@ export class WorldStep {
       const reach = patrolReach(nearest);
       if (reach === 'scan') {
         session.policeScanned = true;
+        // A smuggle leg fails on the read, whatever the hold held.
+        out.push(...runMissions(commander, { kind: 'policeScan' }));
         // ...which queues what the record now means, behind the line below
         // that explains it. Police hunt Fugitives, so the Viper that reads your
         // hold flies on. A conviction then looks from the cockpit exactly like

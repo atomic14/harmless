@@ -42,7 +42,11 @@ export const SIX_CONE = Math.PI / 3;
 export const PASS_CLOSE = 400;
 export const PASS_FAR = 600;
 
-/** How many exercise records the in-memory ring keeps. */
+/**
+ * How many exercise records the in-memory ring keeps.
+ *
+ * @rule combatrecord.simLogLimit
+ */
 export const SIM_LOG_LIMIT = 20;
 
 /**

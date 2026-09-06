@@ -45,6 +45,7 @@ import { isHostileToPlayer } from './hostility.ts';
 import { OFFENDER } from '../constants/law.ts';
 import { heard, later, say, type CombatEvent } from './combat-events.ts';
 import { destroyShip, wreckShip } from './combat-wreck.ts';
+import { runMissions } from './mission-bridge.ts';
 import { WRECK_BURST_GRACE } from '../constants/wreck.ts';
 import {
   CHARACTER_LINE_SECONDS, DISREPUTE_MURDER, HERMIT_HIT_LINE,
@@ -174,6 +175,11 @@ export class Combat {
         broke ? { count: 10, speed: 55, duration: 0.4 }
           : { count: 4, speed: 30, duration: 0.25 });
       if (!broke) return [...sounds, ...out];
+      // A mission's thing, broken: the machine says what the leg makes of it
+      // (docs/TODO/190 M4). The offence below still stands for a pod.
+      if (shot.cargo.missionTag !== null) {
+        out.push(...runMissions(commander, { kind: 'destroyed', tag: shot.cargo.missionTag }));
+      }
       if (shot.cargo.kind === 'capsule') {
         // there is someone in that thing
         out.push(say('ESCAPE CAPSULE DESTROYED', 3), ...this.podKilled(commander, shot.cargo));

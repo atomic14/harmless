@@ -679,7 +679,7 @@ export class Game {
         keepFlying: () => { this.state.session.paused = true; },
       } satisfies QuitContext)),
       new SurvivorsScreen(() => ({
-        people: this.state.commander.survivors,
+        people: this.state.commander.survivors + this.state.commander.missions.passengers.length,
         offers: this.docked_.survivorOffers(),
         handOver: () => this.docked_.answerForSurvivors('medical'),
         sell: () => this.docked_.answerForSurvivors('sold'),

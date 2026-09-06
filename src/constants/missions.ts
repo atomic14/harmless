@@ -84,3 +84,77 @@ export const LEAD_RUMOUR_JUMPS = 5;
  * @rule missions.leadNagDocks
  */
 export const LEAD_NAG_DOCKS = 4;
+
+/**
+ * What a side job pays, per verb, in tenths of a credit.
+ *
+ * One table rather than eight constants, because the eight are one decision.
+ * A side job pays less than the Navy's bounty and more than a board contract
+ * of the same run. The hunt pays most, because the target shoots back. The
+ * scan pays least, because nothing is fired. `missions/skeletons/side.ts`
+ * spends them, and nothing else reads the table. A pipeline that prices a
+ * job from its dossier is the arc plan's (item 192 of docs/TODO/190).
+ *
+ * @rule missions.sideJobPay
+ */
+export const SIDE_JOB_PAY = {
+  hunt: 8_000, deliver: 3_000, recover: 4_000, rescue: 5_000,
+  ambush: 6_000, smuggle: 7_000, escort: 6_000, scan: 2_500,
+} as const;
+
+/**
+ * The lower fee a rescue pays when the pod is lost and the data still
+ * arrives, in tenths of a credit. The scientist example in docs/TODO/190:
+ * a failure is a branch, and the branch pays less.
+ *
+ * It is a FEE, in tenths of a credit, and the word "salvage" puts it beside
+ * the commodities. Nothing about a market reads it.
+ *
+ * @domain missions
+ * @rule missions.rescueSalvagePay
+ */
+export const RESCUE_SALVAGE_PAY = 1_500;
+
+/**
+ * How far a side job sends the commander, in tenths of a light year: two to
+ * seven. So a job is one jump out and back on a full tank at most.
+ *
+ * @rule missions.sideJobRange
+ */
+export const SIDE_JOB_RANGE = { min: 20, max: 70 } as const;
+
+/**
+ * Days a side job allows before its deadline passes: two weeks.
+ *
+ * @rule missions.sideJobDays
+ */
+export const SIDE_JOB_DAYS = 14;
+
+/**
+ * Seconds a scan target must stay under the scanner lock: twenty, which is a
+ * pass and a turn at a trader's speed.
+ *
+ * @rule missions.scanSeconds
+ */
+export const SCAN_SECONDS = 20;
+
+/**
+ * Tonnes of the patron's goods on a smuggle job: three, which fits a Cobra's
+ * hold beside its own stock.
+ *
+ * It is a mission leg's load, and the word "smuggle" puts it beside the
+ * board's contracts. A board job prices its own tonnes in contract-offers.ts.
+ *
+ * @domain missions
+ * @rule missions.smuggleTonnes
+ */
+export const SMUGGLE_TONNES = 3;
+
+/**
+ * The roles that count as an enemy near an escorted ship: the ones that
+ * prey. A police ship beside the charge is no threat to it, whatever the
+ * commander's own record says. A trader beside it never blocks the fee
+ * (docs/TODO/190, escort completion). `world-step.ts` reads it inside
+ * `DOCK_COMPUTER_RANGE` of the charge.
+ */
+export const ESCORT_ENEMY_ROLES: readonly string[] = ['pirate', 'hunter', 'thargoid', 'thargon'];

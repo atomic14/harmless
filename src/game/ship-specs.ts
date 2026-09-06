@@ -37,7 +37,7 @@ import {
  * silently change what a ship is. These are the pack's own design ids, each
  * validated by `eliteAShipIdentity` as the table below is built.
  */
-const SOURCE_DESIGN = {
+export const SOURCE_DESIGN = {
   shuttle: 8, transporter: 9, cobraMk3: 10, python: 11, boa: 12, anaconda: 13,
   worm: 14, viper: 16, sidewinder: 17, mamba: 18, krait: 19, adder: 20,
   gecko: 21, cobraMk1: 22, asp: 23, ferDeLance: 24, moray: 25, thargoid: 26,

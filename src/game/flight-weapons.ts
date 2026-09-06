@@ -51,6 +51,7 @@ import type { CockpitView } from './cockpit-view.ts';
 import type { LawActions } from './law-actions.ts';
 import type { SoundEvent } from './sounds.ts';
 import type { GameState } from './state.ts';
+import { runMissions } from './mission-bridge.ts';
 
 /**
  * What a spend and a hit taken have to reach back for.
@@ -253,7 +254,11 @@ export class Weapons {
 
   /** Removal with no credit — an NPC-vs-NPC kill, or a collision. */
   wreckNpc(npc: NpcShip): void {
-    this.applyCombat(this.combat.wreck(npc));
+    // A tagged ship wrecked with no credit to anyone is still a ship lost to
+    // its leg. The machine says what that costs (docs/TODO/190 M4).
+    const tag = npc.state.missionTag;
+    const lost = tag === null ? [] : runMissions(this.state.commander, { kind: 'escortLost', tag });
+    this.applyCombat([...this.combat.wreck(npc), ...lost]);
   }
 
   /**

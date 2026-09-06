@@ -74,6 +74,8 @@ export const AMBUSH_CONE_DEG = 30;
  * camera. A 60-degree vertical field of view (`engine/render-stack.ts`) has 30
  * degrees a side, and the console eats the bottom. 20 is therefore the arc that a
  * contact is genuinely IN.
+ *
+ * @rule exercise.inViewDeg
  */
 export const IN_VIEW_DEG = 20;
 

@@ -242,8 +242,9 @@ console.log('\nthe station line and the briefing, through a real Game');
 
   // The gun warning EXPLAINS the order, so it queues behind it (session.ts).
   // Said in the same frame it took the console away, and a commander with
-  // the wrong gun never saw that the Navy had called.
-  const after = said(400);
+  // the wrong gun never saw that the Navy had called. The board's own line
+  // about its side jobs waits in the same queue, so the window is long.
+  const after = said(1200);
   check('the order is said on acceptance', after.some((t) => t.startsWith('NAVY MISSION')));
   check('the gun warning arrives after the line it explains, not instead of it',
     after.some((t) => t.includes('MILITARY LASER')));

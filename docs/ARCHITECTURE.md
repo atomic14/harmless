@@ -214,7 +214,10 @@ Two quirks are deliberate:
   `offers.ts` decides what a station offers: the gate, the lead, the slot cap
   and the re-offer delay. `hints.ts` decides how a far commander hears about
   a lead. It writes the MISSIONS row, the board rumour, the DATA ON line, and
-  the one message a dock may say.
+  the one message a dock may say. All eight verbs have a module under
+  `verbs/`. `skeletons/side.ts` is one local side job per verb, so every
+  verb is a job a player can take. The escort and the scan verdicts are the
+  world's to give, and `world-step.ts` gives them.
 - `src/game/character.ts` owns the disrepute ladder. It owns what a score is
   CALLED, and how a deed and a quiet week move it. It also owns whether a move
   crossed a rung that the pilot must hear about. Every deed in the game asks it

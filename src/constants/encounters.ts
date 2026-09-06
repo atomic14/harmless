@@ -54,6 +54,8 @@ export const PRODUCTIVITY_PER_SECOND = 1200;
  * clean (see `TORUS_MULTIPLIER`). `freshTimers` restarts the clocks on every
  * hyperspace arrival, so this is the wait that a player actually experiences on
  * landing.
+ *
+ * @rule encounters.traderGapFirst
  */
 export const TRADER_GAP_FIRST = 20;
 

@@ -19,6 +19,7 @@ import {
 } from '../src/missions/queries.ts';
 import { distanceTenths } from '../src/galaxy/navigation.ts';
 import { CONSTRICTOR_SPEC } from '../src/game/ship-specs.ts';
+import { CONSTRICTOR } from '../src/missions/skeletons/constrictor.ts';
 import { MISSION_REOFFER_DAYS } from '../src/constants/missions.ts';
 import { g1 } from './fixtures.ts';
 import { check, eq } from './harness.ts';
@@ -27,7 +28,7 @@ const LAVE = 7;
 
 /** A commander at Lave with `over` on top: the facts, and nothing else. */
 const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 0, ...over,
+  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], ...over,
 });
 
 /** A generator that counts its draws, so a test can say how many it made. */
@@ -36,8 +37,9 @@ function counting(value = 0.5): { rng: () => number; draws: () => number } {
   return { rng: () => { n += 1; return value; }, draws: () => n };
 }
 
-const ctx = (c: CommanderFacts, rng: () => number = () => 0.5, skeletons?: Skeleton[]): MissionContext =>
-  ({ commander: c, systems: g1, rng, ...(skeletons ? { skeletons } : {}) });
+// The Constrictor alone, so the eight side jobs on Lave's board stay quiet.
+const ctx = (c: CommanderFacts, rng: () => number = () => 0.5, skeletons: Skeleton[] = [CONSTRICTOR]): MissionContext =>
+  ({ commander: c, systems: g1, rng, skeletons });
 
 const paid = (effects: MissionEffect[]): number =>
   effects.reduce((sum, e) => sum + (e.kind === 'pay' ? e.tenths : 0), 0);

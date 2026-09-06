@@ -178,7 +178,7 @@ export function orderVerdict(
     if (daysAway === 0) return { text: 'A LEAD · YOU ARE HERE', late: false };
     return { text: `A LEAD · ${dayWord(daysAway)} AWAY`, late: false };
   }
-  const name = missionName(live, systems);
+  const name = missionName(c.missions, live, systems);
 
   // No deadline, so nothing here can be late. `NO ROUTE` is red all the same:
   // it is not a deadline she will miss, it is a world she cannot reach.

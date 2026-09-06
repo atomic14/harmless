@@ -7,7 +7,11 @@
 // shapes they version. The storage namespaces stay module-private in storage.ts,
 // so nothing importable can compute a player's key.
 
-/** Seconds between mid-flight world saves — see Game.autoSave(). */
+/**
+ * Seconds between mid-flight world saves — see Game.autoSave().
+ *
+ * @rule saves.autosaveInterval
+ */
 export const AUTOSAVE_INTERVAL = 20;
 
 /**
@@ -49,6 +53,8 @@ export const FLIGHT_RING = 3;
  * is not this cap, and it is not a round-off of the pressures.
  * `LivingGalaxy.save()` explains why a quantisation of them lands a reload on a
  * nearby galaxy instead of the same one.
+ *
+ * @rule saves.maxNamedSaves
  */
 export const MAX_NAMED_SAVES = 20;
 

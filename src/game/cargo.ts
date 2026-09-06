@@ -74,6 +74,16 @@ export interface Canister {
    */
   occupant: string;
   /**
+   * The mission tag this thing answers to, or null for every other one.
+   *
+   * A recover leg's canister and a rescue leg's pod carry one. The scoop sends
+   * `scooped` with it, and a shot that breaks it sends `destroyed`, so the
+   * machine (missions/machine.ts) can say what either meant. A tagged
+   * canister never enters the hold, and a tagged pod is a passenger rather
+   * than a survivor (docs/TODO/190 M4).
+   */
+  missionTag: string | null;
+  /**
    * Seconds left before this object can be shot, counted down by `update`.
    *
    * `POD_LAUNCH_GRACE` for a fresh capsule and 0 for everything else. See that
@@ -185,6 +195,27 @@ export class CargoField {
       kind: 'cargo',
       energy: canisterMaxEnergy('cargo'),
       occupant: '',
+      missionTag: null,
+      grace: 0,
+    });
+  }
+
+  /**
+   * A mission's canister or pod, adrift where a leg put it, answering to its
+   * tag. A pod's occupant is '' here: nobody's role, so a shot at it is the
+   * murder of a stranger, which is what `offenceFor('')` says.
+   */
+  spawnMission(at: THREE.Vector3, kind: 'cargo' | 'capsule', tag: string): void {
+    const object = build(kind);
+    object.position.copy(at);
+    this.add(object, {
+      commodity: 0,
+      velocity: randomDirection(new THREE.Vector3()).multiplyScalar(15 + random() * 30),
+      spinAxis: randomDirection(new THREE.Vector3()),
+      kind,
+      energy: canisterMaxEnergy(kind),
+      occupant: '',
+      missionTag: tag,
       grace: 0,
     });
   }
@@ -209,6 +240,7 @@ export class CargoField {
       kind: 'capsule',
       energy: canisterMaxEnergy('capsule'),
       occupant,
+      missionTag: null,
       grace: POD_LAUNCH_GRACE,
     });
   }
@@ -217,7 +249,7 @@ export class CargoField {
   restore(
     pos: THREE.Vector3, velocity: THREE.Vector3, spinAxis: THREE.Vector3,
     kind: 'cargo' | 'capsule', commodity: number, energy: number,
-    occupant: string, grace: number,
+    occupant: string, grace: number, missionTag: string | null,
   ): void {
     const object = build(kind);
     object.position.copy(pos);
@@ -226,7 +258,7 @@ export class CargoField {
     // tolerance went with the rest of the legacy handling (2026-08-04). The
     // occupant and the grace are taken the same way. So a save made in the
     // second after a kill comes back with the capsule still safe.
-    this.add(object, { commodity, velocity, spinAxis, kind, energy, occupant, grace });
+    this.add(object, { commodity, velocity, spinAxis, kind, energy, occupant, grace, missionTag });
   }
 
   private add(object: THREE.Object3D, rest: Omit<Canister, 'object'>): void {
@@ -289,6 +321,7 @@ export class CargoField {
       energy: c.energy,
       occupant: c.occupant,
       grace: c.grace,
+      missionTag: c.missionTag,
     } satisfies CanisterSnapshot));
   }
 
@@ -299,7 +332,7 @@ export class CargoField {
       this.restore(
         new THREE.Vector3(...c.pos), new THREE.Vector3(...c.velocity),
         new THREE.Vector3(...c.spinAxis), c.kind, c.commodity, c.energy,
-        c.occupant, c.grace);
+        c.occupant, c.grace, c.missionTag ?? null);
     }
   }
 
