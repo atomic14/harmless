@@ -6,8 +6,8 @@ import { distanceTenths } from '../galaxy/navigation.ts';
 
 import { type CommanderData, cargoTonnes, formatCredits, cargoCapacity } from '../game/commander.ts';
 import type { Contract } from '../game/contract-record.ts';
-import { standingOrders, type ContractOrder } from '../game/orders.ts';
-import type { MissionLeg } from '../game/missions.ts';
+import { standingOrders, type ContractOrder, type MissionOrder } from '../game/orders.ts';
+import type { Skeleton } from '../missions/model.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 
 import { rating } from '../game/rating.ts';
@@ -138,37 +138,70 @@ export function renderStatus(
   `);
 }
 
+/** What the MISSIONS screen draws: the offers here, and the missions held. */
+export interface MissionsView {
+  offers: readonly Skeleton[];
+  held: readonly MissionOrder[];
+  systems: StarSystem[];
+  /** the cursor over offers then held rows, in that order */
+  selected: number;
+  atStation: boolean;
+}
+
 /**
- * What the Navy has this commander doing (docs/TODO/144, split by 145).
+ * What the patrons want of this commander (docs/TODO/144, split by 145,
+ * opened to every mission by 190).
  *
  * This screen is what invariant 16 asks for: the briefing was said one time,
  * for five seconds, and the one line under the station header was the only
  * other place the target system was ever written — which any contract took away
  * from it (GitHub #27).
  *
- * THE NAVY'S ORDERS ONLY. Board work has its own screen, because a contract and
- * a mission are two kinds of thing (Chris, 2026-08-13). The docked summary line
- * still names both, and that is a different rule: it is the one surface where
- * dropping a kind hides it completely.
+ * THE PATRONS' ORDERS ONLY. Board work has its own screen, because a contract
+ * and a mission are two kinds of thing (Chris, 2026-08-13). The docked summary
+ * line still names both, and that is a different rule: it is the one surface
+ * where dropping a kind hides it completely.
  *
- * One leg runs at a time, so this is a panel rather than a table. `missionLeg`
- * (game/missions.ts) decides what it says.
+ * An offer is a row she can accept at a station. A held mission is a row she
+ * can abandon anywhere. `game/orders.ts` decides what a held row says.
  */
-export function renderMissions(leg: MissionLeg | null, systems: StarSystem[]): void {
-  show(`
-    <h2>NAVY MISSIONS</h2>
-    <div class="rule"></div>
-    ${leg === null ? '<div class="info">The Navy has no orders for you.</div>' : `
-    <div class="info">
-      ${leg.line}<br/>
-      Destination: ${systems[leg.destination].name}<br/>
-      Pays: ${formatCredits(leg.reward)} on completion
-      ${leg.warning
+export function renderMissions(view: MissionsView): void {
+  const { offers, held, systems, selected, atStation } = view;
+  const offerRows = offers.map((s, i) => `
+    <tr class="${i === selected ? 'sel' : ''} pick" data-row="${i}">
+      <td>${s.pitch}</td>
+      <td class="num">${atStation ? '<button data-key="KeyA">ACCEPT</button>' : 'AT A STATION'}</td>
+    </tr>`).join('');
+  const board = offers.length === 0 ? '' : `
+    <table>
+      <tr><th>ON OFFER</th><th class="num"></th></tr>
+      ${offerRows}
+    </table>`;
+
+  const heldRows = held.map((m, i) => `
+    <tr class="${i + offers.length === selected ? 'sel' : ''} pick" data-row="${i + offers.length}">
+      <td>${m.line}${m.warning
     // Amber, which is the colour this file already spends on a warning. The
-    // Navy states the two numbers and lets the commander decide;
-    // `constrictorWarning` is the one home of that sentence.
-    ? `<br/><br/><span style="color:var(--hud-amber)">${leg.warning}</span>` : ''}
-    </div>`}
+    // patron states the two numbers and lets the commander decide;
+    // `huntWarning` is the one home of that sentence.
+    ? `<br/><span style="color:var(--hud-amber)">${m.warning}</span>` : ''}</td>
+      <td class="num">${m.destination === null ? 'ANY STATION' : systems[m.destination].name}</td>
+      <td class="num">${formatCredits(m.reward)}</td>
+      <td class="num"><button data-key="KeyX">ABANDON</button></td>
+    </tr>`).join('');
+  const holding = held.length === 0
+    ? `<div class="info">${offers.length === 0 ? 'No patron has orders for you.' : 'You hold no mission.'}</div>`
+    : `
+    <table>
+      <tr><th>HELD</th><th class="num">DESTINATION</th><th class="num">PAYS</th><th class="num"></th></tr>
+      ${heldRows}
+    </table>`;
+
+  show(`
+    <h2>MISSIONS</h2>
+    <div class="rule"></div>
+    ${board}
+    ${holding}
     <div class="buttons"><button data-key="Escape">BACK</button></div>
   `);
 }

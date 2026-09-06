@@ -165,9 +165,9 @@ Two quirks are deliberate:
   `set-roster.ts` says what that one set files under each job. That is
   selection. A design must pass permission and selection both. The set is drawn
   once on arrival, and it is saved state. Two released overrides can answer in
-  place of that number: the Navy mission raises one, and witch-space raises the
-  other. `missions.ts` and `world-build.ts` name the override. Each of the three
-  module headers holds the rule and the measurement behind it.
+  place of that number: a mission's leg raises one, and witch-space raises the
+  other. `missions/queries.ts` and `world-build.ts` name the override. Each of
+  the three module headers holds the rule and the measurement behind it.
 - `src/game/contract-record.ts` holds the shape of a job: the `Contract` union
   on `kind`, and the two kinds that carry goods. It holds no rule. It left
   `commander.ts` when docs/TODO/190 M1 pushed that file over the size ceiling.
@@ -188,11 +188,18 @@ Two quirks are deliberate:
   number, so a caller cannot measure a deadline from the living galaxy's day by
   mistake.
 - `src/game/orders.ts` lists everything a commander is under orders to do. The
-  game has two kinds of standing order: a signed contract, and the Navy mission.
+  game has two kinds of standing order: a signed contract, and a live mission.
   This module asks both kinds the same question, so the menu line, the MISSIONS
   screen and the charts cannot hold three answers. Invariant 16 lives here. It
-  restates no words: a contract reads through `contract-offers.ts`, and the
-  mission through `missions.ts`.
+  restates no words: a contract reads through `contract-offers.ts`, and a
+  mission through its skeleton (`missions/queries.ts`).
+- `src/game/mission-bridge.ts` is the game's side of the mission machine. It
+  runs one input, installs the record on the commander, and applies the
+  effects that are the commander's: credits, reputation and legal status. It
+  hands the words back, and the caller says them. `src/game/mission-desk.ts`
+  is the MISSIONS screen's two actions, acceptance and abandonment, and the
+  offers it lists. `src/game/hunt-warning.ts` prices her gun against the ship
+  a hunt names, through the combat oracle.
 - `src/missions/` is the mission machine (docs/TODO/190). `model.ts` holds the
   types. A skeleton under `skeletons/` is one mission's rules, written by a
   developer. A dossier is its generated words, and the machine never reads one.
@@ -202,8 +209,8 @@ Two quirks are deliberate:
   the machine takes the branch. `placement.ts` picks a leg's world with one
   draw. `queries.ts` answers the game's questions without a change. `lint.ts`
   holds the five failure rules as data checks, and
-  `test/mission-skeletons.test.ts` runs it over every skeleton. The old
-  five-stage machine in `game/missions.ts` runs the game until M2 replaces it.
+  `test/mission-skeletons.test.ts` runs it over every skeleton. `repair.ts`
+  reads a saved record for both loaders, and drops the old stage number.
 - `src/game/character.ts` owns the disrepute ladder. It owns what a score is
   CALLED, and how a deed and a quiet week move it. It also owns whether a move
   crossed a rung that the pilot must hear about. Every deed in the game asks it

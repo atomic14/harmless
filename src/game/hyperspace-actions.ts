@@ -34,6 +34,7 @@ import { afterDecay } from './character.ts';
 import { freshTimers } from './encounters.ts';
 import { random, randomDirection, rngState, seedWorld } from './rng.ts';
 import { boundKey } from '../ui/key-help.ts';
+import { runMissions } from './mission-bridge.ts';
 import type { WorldBuild } from './world-build.ts';
 import type { GameState } from './state.ts';
 import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
@@ -56,6 +57,8 @@ import { WITCHPOINT_RADII } from '../constants/planet.ts';
  */
 export interface HyperspaceHost {
   showMessage(text: string, seconds: number): void;
+  /** a message event, said or queued as it asks — see game.ts's `sayEvent` */
+  sayEvent(e: { text: string; seconds: number; queued?: boolean }): void;
   /** a deed moved the Character score — see game/character.ts */
   markCharacter(before: number, after: number): void;
   /** the system we are standing in */
@@ -243,8 +246,16 @@ export class HyperspaceActions {
       this.host.refused();
       return;
     }
+    const from = this.state.commander.galaxy;
     const jump = resolveGalacticJump(this.state.commander, this.host.system());
     this.state.systems = jump.systems;
+    // EVERY HELD MISSION FAILS, and every lead moves with her (docs/TODO/190).
+    // The machine decides both. It is told the new galaxy's systems, so the
+    // lead it relocates is a world she can reach from where she arrives.
+    for (const m of runMissions(this.state.commander,
+      { kind: 'galaxyChanged', from, to: jump.galaxy }, jump.systems)) {
+      this.host.sayEvent(m);
+    }
     // A NEW GALAXY BRINGS ITS OWN ECONOMY (docs/TODO/117). The old
     // `LivingGalaxy` carried across the jump left galaxy 2's system 7 under
     // galaxy 1's Lave danger and price pressure. Every convoy in the list then
@@ -260,6 +271,23 @@ export class HyperspaceActions {
     this.arriveInSystem();
     this.host.showMessage(
       `GALAXY ${jump.galaxy} — ${this.host.system().name.toUpperCase()}`, 5);
+  }
+
+  /**
+   * The line the cockpit shows before a jump that fails held missions, or
+   * null when nothing is held and the jump needs no answer.
+   *
+   * It names the keys off the binding table (invariant 9). A refusal the
+   * drive would give anyway is not asked about. The jump is refused when she
+   * confirms, as it was refused on the one key before.
+   */
+  galacticJumpWarning(): string | null {
+    const held = this.state.commander.missions.live.length;
+    if (held === 0) return null;
+    const yes = boundKey('confirmGalacticJump', 'confirmGalacticJump');
+    const no = boundKey('confirmGalacticJump', 'cancelGalacticJump');
+    return `GALACTIC JUMP FAILS ${held} HELD MISSION${held === 1 ? '' : 'S'}`
+      + ` — ${yes} TO JUMP, ${no} TO STAY`;
   }
 
   /**

@@ -30,7 +30,7 @@ import type { NpcShip } from './npc.ts';
 import { type CommanderData, formatCredits, killValue } from './commander.ts';
 import { offenceFor } from './law.ts';
 import { FUGITIVE, CONTRABAND } from '../constants/law.ts';
-import { constrictorDestroyed } from './missions.ts';
+import { runMissions } from './mission-bridge.ts';
 import { random, randomInt } from './rng.ts';
 import { heard, later, say, type CombatEvent } from './combat-events.ts';
 import {
@@ -101,11 +101,10 @@ export function destroyShip(
     world.cargo.spawn(npc.object.position,
       MINING_YIELD_MIN + randomInt(MINING_YIELD_SPAN), ORE);
   }
-  if (npc.state.isMissionTarget) {
-    const e = constrictorDestroyed(c);
-    if (e) {
-      out.push(say(`CONSTRICTOR DESTROYED — ${formatCredits(e.bounty)} NAVY BOUNTY`, 6));
-    }
+  // A tagged ship is a mission's. The machine decides what its death means,
+  // pays through the bridge, and says so here in the kill's own stream.
+  if (npc.state.missionTag !== null) {
+    out.push(...runMissions(c, { kind: 'destroyed', tag: npc.state.missionTag }));
   }
   return out;
 }

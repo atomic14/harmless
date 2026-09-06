@@ -160,6 +160,8 @@ export interface Skeleton {
   patron: PatronRef;
   /** the console line that announces the offer on docking */
   hail: string;
+  /** the offer in words on the MISSIONS screen, before a dossier replaces it */
+  pitch: string;
   offer: Gate;
   /** `legs[0]` starts when the player accepts */
   legs: Leg[];

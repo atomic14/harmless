@@ -322,16 +322,17 @@ console.log('\nnpc identity round-trips through a snapshot');
     npc.state.threatTier = tier;
   }));
   const constrictor = world.spawn('pirate', new THREE.Vector3(900, 0, 0), 0, CONSTRICTOR_SPEC);
-  constrictor.state.isMissionTarget = true;
+  constrictor.state.missionTag = 'constrictor#1#hunt';
 
   const before = world.npcs.map((n) => `${n.role} ${n.designId} ${n.profileId}`);
   check('every ship in the sky knows what it is',
     world.npcs.every((n) => isShipDesignId(n.designId) && isNpcCombatProfileId(n.profileId)));
 
   // The same rule persistence.ts applies: the hull comes from the state, the
-  // identity from the save.
+  // identity from the save. A tagged ship is looked up by the entity its tag
+  // names, which here is the one the Constrictor's hunt would write.
   const specFor = (n: NpcSnapshot): NpcSpec | undefined => (
-    n.state.isMissionTarget ? CONSTRICTOR_SPEC
+    n.state.missionTag === 'constrictor#1#hunt' ? CONSTRICTOR_SPEC
       : n.role === 'pirate' ? pirateSpecForTier(Number(n.state.threatTier ?? 0), n.seed)
         : undefined);
 

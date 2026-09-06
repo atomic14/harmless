@@ -1,10 +1,9 @@
 // Where a leg happens: the one draw that picks its world.
 //
-// `pickInBand` is the Constrictor's own target rule, moved here from
-// `game/missions.ts` so both machines share it until the old one goes
-// (docs/TODO/190 M2 step 7). It makes ONE random draw, and only when the band
-// has a candidate. A draw advances the shared world stream, so an extra one
-// changes every result after it.
+// `pickInBand` is the Constrictor's own target rule, as the old five-stage
+// machine drew it (docs/TODO/190). It makes ONE random draw, and only when the
+// band has a candidate. A draw advances the shared world stream, so an extra
+// one changes every result after it.
 
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { distanceTenths } from '../galaxy/navigation.ts';

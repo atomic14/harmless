@@ -5,7 +5,7 @@
 //
 //   - THE CALLER IS THE ONLY PLACE THAT KNOWS. Three facts raise an override and
 //     they sit in three files — the hunting leg and the courier run in
-//     `missions.ts`, the limbo flag in `game.ts`. None of them is the chooser's.
+//     `missions/queries.ts`, the limbo flag in `game.ts`. None of them is the chooser's.
 //   - THE ASSERTIONS ARE SHARP BECAUSE THE SYSTEMS WERE PICKED TO MAKE THEM SO.
 //     Both test systems fly a set that is never C, D or G at any of the four bit
 //     values, so an override that failed to fire cannot land on the right letter
@@ -23,8 +23,9 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { newCommander, type CommanderData } from '../src/game/commander.ts';
-import { missionBlueprintOverride } from '../src/game/missions.ts';
+import { missionOverride } from '../src/missions/queries.ts';
+import { emptyMissionState } from '../src/missions/state.ts';
+import { constrictorAt } from './fixtures.ts';
 import { blueprintSetFor } from '../src/game/blueprint-set.ts';
 import { emptyBandsForSet, specsForSet } from '../src/game/set-roster.ts';
 import {
@@ -39,20 +40,20 @@ console.log('\nwho names a blueprint override (docs/TODO/138 M4)');
 // --- the mission's two, driven directly ---------------------------------------
 
 {
-  const cmdr = (stage: number, target: number | null): CommanderData => ({
-    ...newCommander(), systemIndex: 7, mission: { stage, targetIndex: target },
-  }) as unknown as CommanderData;
+  const at = (leg: 'hunt' | 'report' | 'courier' | null, target: number | null) =>
+    leg === null ? emptyMissionState() : constrictorAt(leg, target);
 
-  eq('an idle commander raises no override', missionBlueprintOverride(cmdr(0, null)), null);
+  eq('an idle commander raises no override', missionOverride(at(null, null), 7), null);
   eq('the hunt raises the Constrictor\'s, at the system she was sent to',
-    missionBlueprintOverride(cmdr(1, 7)), 'constrictor');
+    missionOverride(at('hunt', 7), 7), 'constrictor');
   eq('...and raises nothing at any other system',
-    missionBlueprintOverride(cmdr(1, 8)), null);
-  eq('reporting the kill raises nothing', missionBlueprintOverride(cmdr(2, null)), null);
+    missionOverride(at('hunt', 8), 7), null);
+  eq('reporting the kill raises nothing', missionOverride(at('report', null), 7), null);
   eq('carrying the plans raises the Thargoid one',
-    missionBlueprintOverride(cmdr(3, 12)), 'thargoid');
-  eq('...and delivering them puts it down again',
-    missionBlueprintOverride(cmdr(4, null)), null);
+    missionOverride(at('courier', 12), 7), 'thargoid');
+  const done = emptyMissionState();
+  done.done.constrictor = 'complete';
+  eq('...and delivering them puts it down again', missionOverride(done, 7), null);
 }
 
 // --- the wiring, through a real arrival ----------------------------------------
@@ -85,42 +86,46 @@ console.log('\nwho names a blueprint override (docs/TODO/138 M4)');
   const s = g.state;
 
   /** Fly her there and let the arrival choose, as a jump does. */
-  const arriveAt = (index: number, stage: number, target: number | null): string => {
-    s.commander.mission = { stage, targetIndex: target };
+  const arriveAt = (
+    index: number, leg: 'hunt' | 'courier' | null, target: number | null,
+  ): string => {
+    s.commander.missions = leg === null ? emptyMissionState() : constrictorAt(leg, target);
     s.commander.systemIndex = index;
     withoutSaving(() => g.arriveInSystem());
     return s.session.blueprintSet;
   };
 
   check('an ordinary arrival flies the set its own number picked',
-    ordinary(LOW).includes(arriveAt(LOW, 0, null))
+    ordinary(LOW).includes(arriveAt(LOW, null, null))
     && s.world.roster === specsForSet(s.session.blueprintSet));
 
   eq('the Constrictor\'s system flies its own set',
-    arriveAt(LOW, 1, LOW), CONSTRICTOR_BLUEPRINT_SET);
+    arriveAt(LOW, 'hunt', LOW), CONSTRICTOR_BLUEPRINT_SET);
   check('...and the world is built with it',
     s.world.roster === specsForSet(CONSTRICTOR_BLUEPRINT_SET));
   check('...but only at the system she was sent to',
-    ordinary(LOW).includes(arriveAt(LOW, 1, HIGH)));
+    ordinary(LOW).includes(arriveAt(LOW, 'hunt', HIGH)));
 
   eq('the plans pick the low-tech Thargoid set at a low-tech system',
-    arriveAt(LOW, 3, null), THARGOID_BLUEPRINT_SET_LOW_TECH);
+    arriveAt(LOW, 'courier', null), THARGOID_BLUEPRINT_SET_LOW_TECH);
   eq('...and the high-tech one at a high-tech system',
-    arriveAt(HIGH, 3, null), THARGOID_BLUEPRINT_SET_HIGH_TECH);
+    arriveAt(HIGH, 'courier', null), THARGOID_BLUEPRINT_SET_HIGH_TECH);
 
   // --- witch-space --------------------------------------------------------
 
   /** Mis-jump out of `index`, which is where a mis-jump leaves you. */
-  const misjumpFrom = (index: number, stage: number, target: number | null): string => {
-    arriveAt(index, stage, target);
+  const misjumpFrom = (
+    index: number, leg: 'hunt' | 'courier' | null, target: number | null,
+  ): string => {
+    arriveAt(index, leg, target);
     withoutSaving(() => g.enterWitchspace());
     return s.session.blueprintSet;
   };
 
   eq('limbo out of a low-tech system flies the low-tech Thargoid set',
-    misjumpFrom(LOW, 0, null), THARGOID_BLUEPRINT_SET_LOW_TECH);
+    misjumpFrom(LOW, null, null), THARGOID_BLUEPRINT_SET_LOW_TECH);
   eq('...and out of a high-tech one the other',
-    misjumpFrom(HIGH, 0, null), THARGOID_BLUEPRINT_SET_HIGH_TECH);
+    misjumpFrom(HIGH, null, null), THARGOID_BLUEPRINT_SET_HIGH_TECH);
   check('...and the sky in limbo is built with it',
     s.world.roster === specsForSet(THARGOID_BLUEPRINT_SET_HIGH_TECH));
 
@@ -131,7 +136,7 @@ console.log('\nwho names a blueprint override (docs/TODO/138 M4)');
     !emptyBandsForSet(s.session.blueprintSet).includes('thargoid'));
 
   eq('limbo outranks the hunt — the Constrictor waits in a system, not between two',
-    misjumpFrom(LOW, 1, LOW), THARGOID_BLUEPRINT_SET_LOW_TECH);
+    misjumpFrom(LOW, 'hunt', LOW), THARGOID_BLUEPRINT_SET_LOW_TECH);
 
   // --- the ambush did not move ---------------------------------------------
   //
@@ -141,7 +146,7 @@ console.log('\nwho names a blueprint override (docs/TODO/138 M4)');
   // to fill it — and a draw that crept in would move all nine figures, because
   // the ambush count and every bearing come off the next values of this stream.
   {
-    arriveAt(LOW, 0, null);
+    arriveAt(LOW, null, null);
     seedWorld(1234);
     withoutSaving(() => g.enterWitchspace());
     const at = s.world.npcs.filter((n) => n.role === 'thargoid').map((n) => {
@@ -157,7 +162,7 @@ console.log('\nwho names a blueprint override (docs/TODO/138 M4)');
   {
     const inLimbo = s.session.blueprintSet;
     const snap = withoutSaving(() => g.captureSnapshot()).value;
-    arriveAt(HIGH, 0, null); // somewhere else entirely, out of limbo
+    arriveAt(HIGH, null, null); // somewhere else entirely, out of limbo
     withoutSaving(() => g.restoreSnapshot(snap));
     check('a save taken in limbo comes back to limbo\'s own set',
       s.session.witchspace && s.session.blueprintSet === inLimbo

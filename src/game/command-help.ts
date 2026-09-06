@@ -102,6 +102,10 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   newGame: { what: 'yes — name a new commander and start again' },
   cancelNewGame: { what: 'keep flying this commander' },
 
+  // --- leaving the galaxy with missions held ----------------------------------
+  confirmGalacticJump: { what: 'yes — jump, and fail every mission you hold' },
+  cancelGalacticJump: { what: 'stay in this galaxy' },
+
   // --- shared between the menu and the cockpit -------------------------------
   openChart: { what: 'galactic chart', section: 'navigation', menu: 'GALACTIC CHART' },
   openLocalChart: { what: 'short range chart', section: 'navigation', menu: 'LOCAL CHART' },

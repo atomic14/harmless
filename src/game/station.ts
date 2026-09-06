@@ -14,7 +14,7 @@
 // cannot own, it asks for through `StationHost`.
 //
 // TWO THINGS ARE DELIBERATELY NOT EVENTS, and both for the same reason
-// (game/rng.ts). `populateSystem` and the Navy mission step DRAW from the
+// (game/rng.ts). `populateSystem` and the mission step DRAW from the
 // seeded stream. A draw moved across a branch would change every seeded outcome
 // after it. So they are direct host calls, made at exactly the point they were
 // made before. The four draws in a dock happen in the order the stream saw
@@ -28,17 +28,16 @@
 // Every other way onto the pad draws exactly what it drew before.
 //
 // What this file is NOT: it does not own the rules. The fine is law.ts, the
-// market is contracts.ts, the mission is missions.ts, the save is storage.ts.
+// market is contracts.ts, the missions are missions/machine.ts, the save is storage.ts.
 
 import * as THREE from 'three';
 import { slotNormal } from '../world/slot.ts';
 
 import type { StarSystem } from '../galaxy/galaxy.ts';
-import { formatCredits } from './commander.ts';
 import { LAUNCH_STANDOFF, LAUNCH_SPEED } from '../constants/station.ts';
 import { generateContractOffers } from './contract-offers.ts';
 import { makeLocalMarket } from './market.ts';
-import { stepMissionAtDock, constrictorWarning } from './missions.ts';
+import { runMissions } from './mission-bridge.ts';
 import { ordersSummary, standingOrders } from './orders.ts';
 import type { Command } from './controls.ts';
 import type { Ordnance } from './ordnance.ts';
@@ -213,37 +212,17 @@ export class Station {
     s.session.witchspace = false;
     s.session.beaconTimer = -1;
     s.world.cargo.clear();
-    // The Navy mission advances on docking. missions.ts owns the machine and
-    // this owns the announcement, exactly as combat.ts announces the kill.
-    // FIRST of the dock's rng draws — it picks the next target.
-    for (const e of stepMissionAtDock(c, s.systems)) {
-      if (e.kind === 'briefed') {
-        // POINTED AT THE SCREEN THAT KEEPS IT (invariant 16). This line is
-        // said one time, for five seconds, and it names no target system. On
-        // its own it was the same as no briefing at all.
-        messages.push(say('INCOMING NAVY TRANSMISSION', 5, 'openMissions'));
-        // What the job NEEDS, and not just where it is. The Constrictor's
-        // armour halves a player hit before its own defence subtracts. So a
-        // beam laser does literally nothing to it, and the commander would
-        // find that out forty light years from here.
-        //
-        // missions.ts derives the line from her actual fitted gun through the
-        // oracle, and returns '' where the gun will do.
-        //
-        // QUEUED, because it explains the line above it. Said with `say`, it
-        // took the console away from the transmission in the same frame. A
-        // commander with the wrong gun then never saw the Navy call at all.
-        // Found by docs/TODO/144 M3, and the rule is session.ts's own.
-        const warning = constrictorWarning(c);
-        if (warning) messages.push(later(warning, 8));
-      }
-      else if (e.kind === 'courierOrders') {
-        messages.push(say(
-          'NAVY: COURIER RUN — EXPECT THARGOID INTERFERENCE', 6, 'openMissions'));
-      } else if (e.kind === 'delivered') {
-        messages.push(say(
-          `PLANS DELIVERED — ${formatCredits(e.payment)}, RIGHT ON COMMANDER`, 6));
-      }
+    // The missions read the dock. The machine (missions/machine.ts) owns what
+    // it means, the bridge applies what it pays, and this owns the saying,
+    // exactly as combat.ts announces the kill. FIRST of the dock's rng draws.
+    // A leg that ends here and opens another draws once for the next world. A
+    // dock with no leg to end and no offer to make draws nothing.
+    //
+    // An offer is a `say` POINTED AT THE SCREEN THAT KEEPS IT (invariant 16).
+    // This line is said one time, for five seconds, and it names no target
+    // system. On its own it was the same as no briefing at all.
+    for (const m of runMissions(c, { kind: 'docked' }, s.systems)) {
+      messages.push(m.queued ? later(m.text, m.seconds) : say(m.text, m.seconds, m.command));
     }
     s.session.hermitTrading = false;
     // SECOND draw: the market's seed. It is skipped only for a `resumed` dock.

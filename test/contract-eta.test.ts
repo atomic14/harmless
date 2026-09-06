@@ -31,7 +31,7 @@ import type { ChartOverlays } from '../src/game/chart-overlay.ts';
 import { drawChart } from '../src/ui/chart-galactic.ts';
 import { drawLocalChart } from '../src/ui/chart-local.ts';
 import { captureById, captureCanvas, type CanvasOp } from './screen-capture.ts';
-import { g1 } from './fixtures.ts';
+import { constrictorAt, g1 } from './fixtures.ts';
 import { check, eq } from './harness.ts';
 
 /**
@@ -295,7 +295,7 @@ console.log('\nthe chart marks the world the Navy sent you to');
   /** A commander hunting the Constrictor at `target`. */
   const hunting = (target: number): CommanderData => {
     const c = standing(7, 10);
-    c.mission = { stage: 1, targetIndex: target };
+    c.missions = constrictorAt('hunt', target);
     return c;
   };
 
@@ -324,12 +324,12 @@ console.log('\nthe chart marks the world the Navy sent you to');
   check('...and the deadline is the line that is printed',
     painted(infoLines(both, inside).wide).startsWith('DUE IN 30 DAYS'));
 
-  // Stage 2 is the gap between the kill and the next briefing, and stage 4 is
-  // over. `missionDestination` is what keeps a cleared `targetIndex` off the
-  // chart, rather than every caller knowing which stages mean anything.
+  // The report leg has no world: any station will do. A null target is what
+  // keeps it off the chart, rather than every caller knowing which legs mean
+  // anything.
   const between = standing(7, 10);
-  between.mission = { stage: 2, targetIndex: null };
+  between.missions = constrictorAt('report', null);
   eq('between the two legs nothing is marked', orderDestinations(between).size, 0);
   eq('...and a system nobody sent her to has no verdict',
-    orderVerdict(between, inside.index, 2), null);
+    orderVerdict(between, inside.index, 2, g1), null);
 }

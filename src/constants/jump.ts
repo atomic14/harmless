@@ -71,8 +71,8 @@ export const WITCHSPACE_ESCAPE_COST = 10;
 export const MISJUMP_CHANCE = 0.09;
 
 /**
- * ...and the raised chance while you carry the Constrictor plans (mission stage
- * 3, per `game/missions.ts`). The ambush is the point of that leg, so it should
- * not depend on luck alone.
+ * ...and the raised chance while you carry the Constrictor plans. The courier
+ * leg of the skeleton says so (`carryingPlans`, read by `missions/queries.ts`).
+ * The ambush is the point of that leg, so it should not depend on luck alone.
  */
 export const MISJUMP_CHANCE_PLANS = 0.22;

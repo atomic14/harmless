@@ -182,7 +182,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | jump | <code>TENTHS_PER_JUMP_DAY</code> | <code>20</code> | ...and that "one more per": 20 tenths, which is 2.0 light years a day. |  | [jump.ts:50](./jump.ts#L50) |
 | jump | <code>WITCHSPACE_ESCAPE_COST</code> | <code>10</code> | Flat fuel cost of an escape from a mis-jump, in tenths of a LY. |  | [jump.ts:62](./jump.ts#L62) |
 | jump | <code>MISJUMP_CHANCE</code> | <code>0.09</code> | The chance that a jump drops you into witch-space instead of at your destination. |  | [jump.ts:71](./jump.ts#L71) |
-| jump | <code>MISJUMP_CHANCE_PLANS</code> | <code>0.22</code> | ...and the raised chance while you carry the Constrictor plans (mission stage 3, per `game/missions.ts`). |  | [jump.ts:78](./jump.ts#L78) |
+| jump | <code>MISJUMP_CHANCE_PLANS</code> | <code>0.22</code> | ...and the raised chance while you carry the Constrictor plans. |  | [jump.ts:78](./jump.ts#L78) |
 | law | <code>LEGAL_NAMES</code> | <code>['Clean', 'Offender', 'Fugitive'] as const</code> | The three legal statuses, in the order the number encodes them. |  | [law.ts:9](./law.ts#L9) |
 | law | <code>LAW_ROLE_NAMES</code> | <code>[ ['police', 'POLICE'], ['hunter', 'BOUNTY HUNTERS'], ]</code> | The two roles that come for a commander on the record alone, and what the console calls each of them. |  | [law.ts:20](./law.ts#L20) |
 | law | <code>HARM_LINES</code> | <code>[ ['police', 'POLICE SHIP HIT — AND NOW HE IS COMING FOR YOU'], ['hunter', 'BOUNTY HUNTER HIT — AND NOW HE IS COMING FOR YOU'], ['trader', 'TRADER HIT — AND THAT IS AN OFFENCE'], ]</code> | What the console says when the commander's own laser first lands on a ship the law protects, one line per role. |  | [law.ts:40](./law.ts#L40) |

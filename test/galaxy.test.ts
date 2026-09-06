@@ -38,6 +38,8 @@ import { planetDescription } from '../src/galaxy/goatsoup.ts';
 import { LivingGalaxy } from '../src/galaxy/living.ts';
 import { makeRng } from '../src/game/rng.ts';
 import { check, eq } from './harness.ts';
+import { constrictorAt } from './fixtures.ts';
+import { emptyMissionState } from '../src/missions/state.ts';
 import { g1 } from './fixtures.ts';
 
 // --- the canonical universe -------------------------------------------------
@@ -300,8 +302,10 @@ console.log('\ninhabitant portraits');
 console.log('\nhyperspace');
 {
   const sys = generateGalaxy(1);
-  const cmdr = (systemIndex: number, fuel: number, stage = 0) =>
-    ({ systemIndex, fuel, day: 0, mission: { stage } }) as unknown as CommanderData;
+  const cmdr = (systemIndex: number, fuel: number, plans = false) => ({
+    systemIndex, fuel, day: 0,
+    missions: plans ? constrictorAt('courier', null) : emptyMissionState(),
+  }) as unknown as CommanderData;
   // Lave -> Diso is a short hop; something far away is not
   const near = sys.reduce((best, s) => {
     const d = distanceTenths(sys[7], s);
@@ -357,10 +361,42 @@ console.log('\nhyperspace');
       && c.fuel === 70 - jumpCost(sys[7], near, false));
   }
   check('the courier run is the dangerous one',
-    witchspaceChance(3) > witchspaceChance(0));
+    witchspaceChance(true) > witchspaceChance(false));
   check('...and the two chances are the ones constants/jump.ts states',
-    witchspaceChance(3) === MISJUMP_CHANCE_PLANS && witchspaceChance(0) === MISJUMP_CHANCE
+    witchspaceChance(true) === MISJUMP_CHANCE_PLANS && witchspaceChance(false) === MISJUMP_CHANCE
     && MISJUMP_CHANCE > 0 && MISJUMP_CHANCE_PLANS < 1);
+
+  // --- who draws, and who does not (docs/TODO/190 M2) ------------------------
+  //
+  // A plain jump and a courier jump each roll once. A forced jump rolls
+  // nothing, and neither does an escape from limbo. `carryingPlans` picks the
+  // chance and `forced` skips the roll, and the two must not be confused.
+  {
+    const counting = (value: number) => {
+      let n = 0;
+      return { rng: () => { n += 1; return value; }, draws: () => n };
+    };
+    const between = (MISJUMP_CHANCE + MISJUMP_CHANCE_PLANS) / 2;
+    const plain = counting(between);
+    const r1 = resolveJump(cmdr(7, 70), sys, near.index, false, plain.rng);
+    check('a plain jump rolls once, and lands on the plain chance',
+      plain.draws() === 1 && !r1.misjump);
+    const courier = counting(between);
+    const r2 = resolveJump(cmdr(7, 70, true), sys, near.index, false, courier.rng);
+    check('a courier jump rolls once, and lands on the raised chance',
+      courier.draws() === 1 && r2.misjump);
+    const forced = counting(1);
+    const r3 = resolveJump(cmdr(7, 70), sys, near.index, false, forced.rng, true);
+    check('a forced jump rolls nothing and mis-jumps anyway',
+      forced.draws() === 0 && r3.misjump);
+    const forcedCourier = counting(1);
+    resolveJump(cmdr(7, 70, true), sys, near.index, false, forcedCourier.rng, true);
+    eq('...with the plans aboard too', forcedCourier.draws(), 0);
+    const escape = counting(0);
+    const r4 = resolveJump(cmdr(7, 70, true), sys, near.index, true, escape.rng);
+    check('an escape from limbo rolls nothing, plans or no plans',
+      escape.draws() === 0 && !r4.misjump);
+  }
 }
 
 // --- the chart metric, and what a jump costs in days ------------------------

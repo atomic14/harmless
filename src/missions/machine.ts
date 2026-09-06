@@ -19,6 +19,7 @@
 
 import { MISSION_LIVE_CAP } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
+import { routeEstimate } from '../galaxy/route.ts';
 import { ratingRung } from '../game/rating.ts';
 import type {
   Branch, CommanderFacts, Gate, Leg, LiveMission, MissionEffect, MissionInput,
@@ -49,7 +50,7 @@ export function stepMissions(
     case 'accept': accept(st, input.skeleton, ctx, effects); break;
     case 'abandon': abandon(st, input.skeleton, ctx, effects); break;
     case 'dayPassed': deadlines(st, ctx, effects); break;
-    case 'galaxyChanged': break;
+    case 'galaxyChanged': leaveGalaxy(st, input.to, ctx, effects); break;
     default: react(st, input, ctx, effects);
   }
   if (input.kind === 'docked') hail(st, ctx, effects);
@@ -176,6 +177,42 @@ function abandon(
   const c = ctx.commander;
   st.journal.push({ skeleton: id, leg: live.leg, outcome: 'abandoned', day: c.day, world: c.systemIndex });
   finish(st, live, 'fail', ctx, effects);
+}
+
+/**
+ * The commander left the galaxy. Every live mission fails by its own final
+ * outcome, with the departure as the reason. Every lead moves to its
+ * skeleton's start world in the new galaxy. Its galaxy moves with it, so a
+ * lead never points at an index in a galaxy she is not in.
+ */
+function leaveGalaxy(
+  st: MissionState, to: number, ctx: MissionContext, effects: MissionEffect[],
+): void {
+  const c = ctx.commander;
+  for (const live of [...st.live]) {
+    st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome: 'galaxyLeft', day: c.day, world: c.systemIndex });
+    finish(st, live, 'fail', ctx, effects);
+  }
+  for (const lead of st.leads) {
+    const s = skeletonById(lead.skeleton, ctx.skeletons ?? SKELETONS);
+    if (!s) continue;
+    lead.galaxy = to;
+    lead.world = reachableFrom(ctx.systems, c.systemIndex, startWorld(s, c));
+  }
+}
+
+/**
+ * `preferred`, or the next index after it that a chain of full-tank jumps
+ * from `here` reaches. Galaxies 3, 4, 6, 7 and 8 each strand a group of
+ * worlds (galaxy/route.ts). A lead on one of those is a lead nobody can
+ * follow. The arc plan, item 192 of docs/TODO/190, owns the placement proper.
+ */
+function reachableFrom(systems: readonly StarSystem[], here: number, preferred: number): number {
+  for (let step = 0; step < systems.length; step++) {
+    const index = (preferred + step) % systems.length;
+    if (index === here || routeEstimate(systems, systems[here], systems[index]) !== null) return index;
+  }
+  return here;
 }
 
 // --- events -----------------------------------------------------------------

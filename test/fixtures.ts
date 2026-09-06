@@ -15,6 +15,9 @@ import {
 } from '../src/ai-training/policy.ts';
 import { makeRng } from '../src/game/rng.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
+import { CONSTRICTOR_SPEC } from '../src/game/ship-specs.ts';
+import { emptyMissionState } from '../src/missions/state.ts';
+import type { MissionState } from '../src/missions/model.ts';
 
 /**
  * Galaxy 1: the canonical universe, and the most-shared fixture in the suite.
@@ -68,3 +71,25 @@ export const ecmPresser = (() => {
   b.weights[biasBase + 12] = 50;  // ecm-yes
   return b;
 })();
+
+/**
+ * A commander's mission record with the Constrictor live at one leg.
+ *
+ * Four files put her on the hunt or the courier run by hand: the chart, the
+ * blueprint override, the standing orders and the trainer's career check. A
+ * record built here has the shape the machine writes: the live leg, its tag,
+ * the tagged entity, and the acceptance in the journal. A test that needs the
+ * machine's own placement accepts through `runMissions` instead.
+ */
+export function constrictorAt(
+  leg: 'hunt' | 'report' | 'courier', target: number | null,
+): MissionState {
+  const st = emptyMissionState();
+  const tag = leg === 'hunt' ? 'constrictor#1#hunt' : null;
+  st.live.push({ skeleton: 'constrictor', leg, target, tag, progress: 0, deadlineDay: null });
+  st.journal.push({ skeleton: 'constrictor', leg: 'hunt', outcome: 'accepted', day: 0, world: 7 });
+  if (tag) {
+    st.entities[tag] = { ship: CONSTRICTOR_SPEC.designId, hull: 1, lastWorld: target ?? 7, alive: true };
+  }
+  return st;
+}

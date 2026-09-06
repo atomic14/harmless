@@ -25,7 +25,7 @@ check('the Constrictor ships', SKELETONS.some((s) => s.id === 'constrictor'));
 function arc(over: Partial<Skeleton> = {}): Skeleton {
   return {
     id: 'a', kind: 'arc', anchor: 'local', patron: { kind: 'world', seedSlot: 7 },
-    hail: 'HAIL', offer: {},
+    hail: 'HAIL', pitch: 'GO', offer: {},
     legs: [
       {
         id: 'one', verb: { kind: 'deliver' }, place: { kind: 'band', min: 30, max: 80 }, line: 'ONE',

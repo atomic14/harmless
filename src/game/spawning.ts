@@ -20,7 +20,8 @@ import type { World } from './world.ts';
 import type { PopulationPlan } from './population.ts';
 import type { NpcShip } from './npc.ts';
 import { steerQuatToward } from './flight-maths.ts';
-import { pirateSpecForTier, CONSTRICTOR_SPEC } from './ship-specs.ts';
+import { pirateSpecForTier, specForDesign } from './ship-specs.ts';
+import type { TaggedShip } from '../missions/model.ts';
 import { memberTier } from './threat.ts';
 import { slotNormal } from '../world/slot.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
@@ -64,8 +65,8 @@ export function ringBasis(axis: THREE.Vector3, u: THREE.Vector3, v: THREE.Vector
 export interface SpawnResult {
   /** the generation ship, if one crossed — the Game announces it */
   generationShip: NpcShip | null;
-  /** the Constrictor, if this is the system it hid in */
-  missionTarget: NpcShip | null;
+  /** the ships a live mission put here, each with its tag */
+  missionShips: NpcShip[];
 }
 
 /**
@@ -79,7 +80,7 @@ export function spawnPopulation(
   plan: PopulationPlan,
   sys: StarSystem,
   playerPos: THREE.Vector3,
-  missionTargetHere: boolean,
+  missionShips: readonly TaggedShip[],
   situation: 'launch' | 'arrival' = 'arrival',
 ): SpawnResult {
   const home = world.station.position;
@@ -169,16 +170,23 @@ export function spawnPopulation(
       3 + randomInt(4), ORDINARY_GOODS);
   }
 
-  let missionTarget: NpcShip | null = null;
-  if (missionTargetHere) {
+  // A mission ship flies the roster row for its design, under the pirate
+  // role, which is the role the Constrictor always flew with. A design the
+  // roster cannot fly as a pirate is skipped. The skeleton lint is the place
+  // to catch that.
+  const spawned: NpcShip[] = [];
+  for (const tagged of missionShips) {
+    const spec = specForDesign('pirate', tagged.ship);
+    if (!spec) continue;
     const pos = playerPos.clone()
       .add(randomDirection(new THREE.Vector3())
         .multiplyScalar(MISSION_TARGET_RANGE + random() * MISSION_TARGET_RANGE_SPAN));
-    missionTarget = world.spawn('pirate', pos, 0, CONSTRICTOR_SPEC);
-    missionTarget.state.isMissionTarget = true;
+    const ship = world.spawn('pirate', pos, 0, spec);
+    ship.state.missionTag = tagged.tag;
+    spawned.push(ship);
   }
 
-  return { generationShip, missionTarget };
+  return { generationShip, missionShips: spawned };
 }
 
 /**

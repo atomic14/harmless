@@ -95,6 +95,7 @@ import { NewCommanderScreen } from './screens/new-commander.ts';
 import { MarketScreen, EquipScreen } from './screens/trade.ts';
 import { StatusScreen, type StatusContext } from './screens/status.ts';
 import { MissionsScreen, type MissionsContext } from './screens/missions.ts';
+import { MissionDesk } from './mission-desk.ts';
 import { DataScreen, type DataContext } from './screens/data.ts';
 import { BriefingScreen } from './screens/briefing.ts';
 import { ContractsScreen, type ContractsContext } from './screens/contracts.ts';
@@ -161,6 +162,11 @@ export class Game {
 
   /** waiting on the player to confirm erasing their commander */
   private pendingNewGame = false;
+  /**
+   * ⇧H was pressed with missions held, and the cockpit waits for an answer.
+   * The same shape as `pendingNewGame`: a mode, not a flag the handlers test.
+   */
+  private pendingGalacticJump = false;
 
   /**
    * Whether the `?` controls guide is open.
@@ -265,6 +271,14 @@ export class Game {
    * `setBaseMode` is the seam. The station decides that a dock happened; the
    * Game decides what the game then IS.
    */
+  /** The MISSIONS screen's two actions, and the offers it lists (docs/TODO/190). */
+  private readonly missions_ = new MissionDesk(this.state, {
+    baseMode: () => this.baseMode,
+    sayEvent: (e) => this.sayEvent(e),
+    queueMessage: (text, seconds) => this.queueMessage(text, seconds),
+    checkpoint: () => { this.persistence.checkpoint(); },
+  });
+
   private readonly docked_ = new Docked(
     this.state, this.ordnance, this.market_, this.contracts_, this.persistence, {
       baseMode: () => this.baseMode,
@@ -340,6 +354,7 @@ export class Game {
    */
   private readonly jump_ = new HyperspaceActions(this.state, this.world_, {
     showMessage: (text, seconds) => this.showMessage(text, seconds),
+    sayEvent: (e) => this.sayEvent(e),
     markCharacter: (before, after) => this.markCharacter(before, after),
     system: () => this.system,
     lookAlong: (dir) => this.lookAlong(dir),
@@ -619,6 +634,10 @@ export class Game {
       new MissionsScreen(() => ({
         commander: this.state.commander,
         systems: this.state.systems,
+        offers: this.missions_.offers(),
+        atStation: this.baseMode === 'docked',
+        accept: (index) => { this.missions_.accept(index); },
+        abandon: (index) => { this.missions_.abandon(index); },
       } satisfies MissionsContext)),
       new DataScreen(() => ({
         subject: this.dataSubject ?? this.system,
@@ -1057,7 +1076,10 @@ export class Game {
     // same mode to the world, and a different TABLE to the keyboard. It has no
     // hyperspace, no beacon, no jettison and no docking computer. Escape or Q
     // ends it (controls.ts, NOT_IN_THE_SIMULATOR).
-    if (this.mode === 'flight') return this.flight_.inSimulator() ? 'simulator' : 'flight';
+    if (this.mode === 'flight') {
+      if (this.pendingGalacticJump) return 'confirmGalacticJump';
+      return this.flight_.inSimulator() ? 'simulator' : 'flight';
+    }
     if (this.mode === 'dead') return 'dead';
     return null;
   }
@@ -1133,7 +1155,22 @@ export class Game {
     togglePause: () => { this.state.session.paused = !this.state.session.paused; },
     armMisjump: () => this.jump_.armMisjump(),
     startHyperspace: () => this.startHyperspace(),
-    galacticJump: () => this.galacticJump(),
+    // A jump that fails held missions asks first (docs/TODO/190). With nothing
+    // held it fires on the one key, as it always did.
+    galacticJump: () => {
+      const warning = this.jump_.galacticJumpWarning();
+      if (warning === null) { this.galacticJump(); return; }
+      this.pendingGalacticJump = true;
+      this.showMessage(warning, 8);
+    },
+    confirmGalacticJump: () => {
+      this.pendingGalacticJump = false;
+      this.galacticJump();
+    },
+    cancelGalacticJump: () => {
+      this.pendingGalacticJump = false;
+      this.showMessage('GALACTIC JUMP CANCELLED', 3);
+    },
     distressBeacon: () => this.sendDistressBeacon(),
     quitFlight: () => this.career_.quitFlight(),
     jettison1: () => this.flight_.racks.jettisonCargo(1),

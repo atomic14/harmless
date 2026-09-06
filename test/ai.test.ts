@@ -222,7 +222,8 @@ console.log('\npurity');
 
   const PURE = [
     'commander.ts', 'shop.ts', 'contracts.ts', 'law.ts', 'jettison.ts',
-    'systems.ts', 'trumbles.ts', 'hyperspace.ts', 'missions.ts', 'population.ts',
+    'systems.ts', 'trumbles.ts', 'hyperspace.ts', 'mission-bridge.ts', 'hunt-warning.ts',
+    'population.ts',
     'encounters.ts', 'gunnery.ts', 'docking.ts', 'state.ts', 'session.ts',
     // an NPC's energy bank and what a hit is worth against it — a rule module,
     // so it has to be steppable and testable with no browser behind it

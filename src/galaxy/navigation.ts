@@ -151,10 +151,11 @@ export function oneJumpDays(
 /**
  * Chance a jump drops you into witch-space instead.
  *
- * Raised during the Constrictor mission's final stage — the ambush is the
- * point of that leg, so it should not depend on luck alone. Which stage that
- * is belongs to game/missions.ts; both chances are constants/jump.ts's.
+ * Raised while the commander carries the plans. The ambush is the point of
+ * that leg, so it should not depend on luck alone. Which leg carries them is
+ * the skeleton's fact (`missions/queries.ts` `carryingPlans`). Both chances
+ * are constants/jump.ts's.
  */
-export function witchspaceChance(missionStage: number): number {
-  return missionStage === 3 ? MISJUMP_CHANCE_PLANS : MISJUMP_CHANCE;
+export function witchspaceChance(carryingPlans: boolean): number {
+  return carryingPlans ? MISJUMP_CHANCE_PLANS : MISJUMP_CHANCE;
 }

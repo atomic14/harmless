@@ -68,6 +68,30 @@ export function orderLine(
   return fillSlots(legOf(s, live.leg).line, lineSlots(systems, live.target));
 }
 
+/**
+ * What a live leg pays when it goes right, in tenths of a credit.
+ *
+ * The largest settlement on a branch that is not the leg's failure. A screen
+ * quotes this, and it is the same number the branch settles, so the screen
+ * cannot name a price the mission does not pay.
+ */
+export function legReward(live: LiveMission, from: readonly Skeleton[] = SKELETONS): number {
+  const s = skeletonById(live.skeleton, from);
+  if (!s) return 0;
+  return legOf(s, live.leg).next
+    .filter((b) => b.on !== 'failed' && b.on !== 'deadlinePassed')
+    .reduce((best, b) => Math.max(best, b.settle?.pay ?? 0), 0);
+}
+
+/** `NAVY MISSION`, or `LAVE MISSION` for a world patron: the chart's word. */
+export function missionName(
+  live: LiveMission, systems: readonly StarSystem[], from: readonly Skeleton[] = SKELETONS,
+): string {
+  const s = skeletonById(live.skeleton, from);
+  if (!s || s.patron.kind === 'navy') return 'NAVY MISSION';
+  return `${systems[s.patron.seedSlot].name.toUpperCase()} MISSION`;
+}
+
 /** Every world a live leg sends the commander to. */
 export function missionDestinations(st: MissionState): ReadonlySet<number> {
   const out = new Set<number>();

@@ -76,6 +76,9 @@ export type Command =
   | 'askNewGame'
   | 'newGame'
   | 'cancelNewGame'
+  // --- leaving the galaxy with missions held ------------------------------
+  | 'confirmGalacticJump'
+  | 'cancelGalacticJump'
   // --- shared between the menu and the cockpit ----------------------------
   | 'openChart'
   | 'openLocalChart'
@@ -116,12 +119,14 @@ export type Command =
  * `confirmNewGame` is a mode rather than a flag, because that is what it is.
  * The confirmation that ends a commander swallows every other key. As a table
  * that is both shorter and harder to get wrong than the early return it
- * replaced.
+ * replaced. `confirmGalacticJump` is the same shape in the cockpit: a jump
+ * that fails every held mission asks first (docs/TODO/190 M2).
  *
  * The Game decides which mode it is in. The screen stack owns the rest, so an
  * open overlay never reaches this file at all.
  */
-export type ControlMode = 'docked' | 'confirmNewGame' | 'flight' | 'simulator' | 'dead';
+export type ControlMode =
+  | 'docked' | 'confirmNewGame' | 'flight' | 'confirmGalacticJump' | 'simulator' | 'dead';
 
 /**
  * The slice of `engine/input.ts` a binding needs.

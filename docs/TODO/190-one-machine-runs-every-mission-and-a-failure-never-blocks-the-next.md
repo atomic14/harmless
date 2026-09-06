@@ -724,6 +724,50 @@ the duplicate-payment check in `test/mission-machine.test.ts`.
    Then delete the old `mission` field, the old state type and every reader of
    them. Run `npm run check`.
 
+#### M2 outcome (2026-09-06)
+
+M2 landed as planned, with these additions that the plan did not have:
+
+- `src/game/mission-bridge.ts` is the game's side of the machine. It installs
+  the record, applies pay, deed and legal effects, and returns the words. The
+  wreck resolver and the world step hold no `systems`, so the bridge memoises
+  one galaxy's systems for them.
+- `src/game/missions.ts` is gone. Its gun check became
+  `src/game/hunt-warning.ts`, and `huntWarning` prices any hunt target, not
+  the Constrictor alone. `constrictorWarning` stays as a name for the tests.
+- The MISSIONS screen accepts and abandons already. The plan put the controls
+  in M3. A game where nobody can accept the Constrictor is not a game. So the
+  screen has an ACCEPT row per offer and an ABANDON key per held mission.
+  `src/game/mission-desk.ts` holds both actions, because they pushed
+  `docked.ts` over the size ceiling. M3 adds the LEADS section and the offer
+  tests.
+- `Skeleton` gains `pitch`, the offer in words before a dossier exists.
+- `orderVerdict` takes `systems`, because a world patron's mission is named
+  after its world on the chart.
+- The galactic-jump confirmation is a control mode, `confirmGalacticJump`,
+  with its own key table, help section and play.html host. Y jumps; Escape and
+  N stay. The ship flies on underneath, because a pause is its own key.
+- A relocated lead lands on the first index from its skeleton's start world
+  that a chain of full-tank jumps reaches from the arrival. Galaxies 3, 4, 6, 7
+  and 8 strand worlds, and the arc plan (item 192) owns placement proper.
+- A tagged ship that despawns sends `escaped`. The Constrictor's `canEscape`
+  is false, so the input is inert for it, and the test says so.
+- `MissionOrder` replaces `NavyOrder`. The summary prints every held mission's
+  line, because there are at most three and each is briefed one time.
+
+Measured after M2, on 2026-09-06:
+
+| run | result |
+| --- | --- |
+| `npm run ambush-probe` | 100% survived, 76% pools left, peak drones 2.0 of 2 |
+| `npm run campaign -- 40 60` | all balance checks passed; 33 of 40 reached 16 kills, median leg 42 |
+| `npm run campaign -- 200 60` | all balance checks passed; 168 of 200 reached 16 kills, median leg 44 |
+
+The ambush probe reads as docs/TODO/188 M2 left it. The campaign's mission
+column is the leg of the sixteenth kill, and the machine does not move it.
+A temporary fault proved the jump gate: `carryingPlans` used as the `forced`
+control failed two of the draw-count checks in `test/galaxy.test.ts`.
+
 ### M3 — Offers, leads and hints
 
 1. Add `src/missions/offers.ts` to select station offers on docking.

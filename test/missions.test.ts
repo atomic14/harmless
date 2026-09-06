@@ -1,92 +1,28 @@
-// The Navy's mission, and the thing breeding in your cabin.
+// The Navy's gun warning, and the thing breeding in your cabin.
 //
-// The two things that change a commander between docks without her deciding
-// anything: a five-stage state machine the Navy walks her through, and a
+// Two things that change between docks without the commander deciding
+// anything. The first is what her gun is worth against the ship the Navy sent
+// her after, which the briefing states in two numbers. The second is a
 // stowaway that eats the hold. They were the back half of
 // test/contracts.test.ts, which carried three subjects and crossed the size
-// ceiling when passenger work landed (docs/TODO/109) — the contract rules keep
-// that file; these two share a file because neither is big enough for its own
-// and both answer "what happened while I was flying?".
+// ceiling when passenger work landed (docs/TODO/109). The Navy's five-stage
+// machine was the first subject here until docs/TODO/190 replaced it. Its
+// tests are test/mission-machine.test.ts now.
 //
-// Both modules are pure (game/missions.ts, game/trumbles.ts), so these drive
-// them directly rather than through a Game.
+// Both modules are pure (game/hunt-warning.ts, game/trumbles.ts), so these
+// drive them directly rather than through a Game.
 
 import { newCommander } from '../src/game/commander.ts';
 import type { CommanderData } from '../src/game/commander.ts';
 import { stepTrumbles, trumbleMessage } from '../src/game/trumbles.ts';
 import { BREED_INTERVAL, MAX_TRUMBLES } from '../src/constants/trumbles.ts';
-import {
-  stepMissionAtDock,
-  constrictorDestroyed,
-  constrictorLurksHere,
-  missionHeadline, constrictorGunCheck, constrictorWarning,
-} from '../src/game/missions.ts';
-import { generateGalaxy } from '../src/galaxy/galaxy.ts';
+import { constrictorGunCheck, constrictorWarning } from '../src/game/hunt-warning.ts';
 import { check, eq } from './harness.ts';
 
-// --- the Navy mission -------------------------------------------------------
+// --- the Navy's gun warning --------------------------------------------------
 
-// A five-stage state machine that lived in three private methods of game.ts
-// and one branch of destroyNpc, so nothing could advance a commander through
-// it. game/missions.ts is pure, so these are its first tests.
-
-console.log('\nNavy mission');
+console.log('\nthe Navy gun warning');
 {
-  const systems = generateGalaxy(1);
-  // A real commander underneath, because the headline now derives the Navy's
-  // weapon warning from the hull and the fitted gun (missions.ts
-  // `constrictorGunCheck`) — a stub with no `shipId` is not a ship.
-  const cmdr = (over: Record<string, unknown> = {}) => ({
-    ...newCommander(),
-    kills: 0, galaxy: 1, systemIndex: 7, credits: 1000,
-    mission: { stage: 0, targetIndex: null }, ...over,
-  }) as unknown as Parameters<typeof stepMissionAtDock>[0];
-  const half = () => 0.5;
-
-  {
-    const c = cmdr({ kills: 15 });
-    check('the Navy ignores you below the kill threshold',
-      stepMissionAtDock(c, systems, half).length === 0 && c.mission.stage === 0);
-  }
-  {
-    const c = cmdr({ kills: 16 });
-    const ev = stepMissionAtDock(c, systems, half);
-    check('...and briefs you at it', ev[0]?.kind === 'briefed' && c.mission.stage === 1);
-    check('...with a target that is somewhere else', c.mission.targetIndex !== 7);
-  }
-  {
-    const c = cmdr({ kills: 16, galaxy: 2 });
-    check('the mission is galaxy 1 only',
-      stepMissionAtDock(c, systems, half).length === 0);
-  }
-  {
-    const c = cmdr({ mission: { stage: 1, targetIndex: 7 } });
-    check('the Constrictor lurks where you were told', constrictorLurksHere(c));
-    const before = c.credits;
-    const e = constrictorDestroyed(c);
-    check('killing it pays the Navy bounty and moves you to stage 2',
-      e?.bounty === 25_000 && c.credits === before + 25_000 && c.mission.stage === 2);
-    check('...and it cannot be claimed twice', constrictorDestroyed(c) === null);
-  }
-  {
-    const c = cmdr({ mission: { stage: 2, targetIndex: null } });
-    const ev = stepMissionAtDock(c, systems, half);
-    check('reporting back gets the courier orders',
-      ev[0]?.kind === 'courierOrders' && c.mission.stage === 3);
-    // fly there and dock
-    c.systemIndex = c.mission.targetIndex as number;
-    const before = c.credits;
-    const done = stepMissionAtDock(c, systems, half);
-    check('delivering the plans pays and completes it',
-      done[0]?.kind === 'delivered' && c.credits === before + 15_000 && c.mission.stage === 4);
-  }
-  {
-    check('an idle commander has no mission line',
-      missionHeadline(cmdr(), systems) === '');
-    check('a briefed one names the system',
-      missionHeadline(cmdr({ mission: { stage: 1, targetIndex: 7 } }), systems).includes('LAVE'));
-  }
-
   // --- what the job NEEDS, which is the other half of a briefing -------------
   //
   // TODO 29's ruling on the Constrictor: the source-exact halving stays, and
@@ -94,7 +30,7 @@ console.log('\nNavy mission');
   // years to discover that the upgrade she bought does nothing.
   {
     const withLaser = (laser: string) => {
-      const c = cmdr({ mission: { stage: 1, targetIndex: 7 } }) as unknown as CommanderData;
+      const c = newCommander();
       c.equipment.laser = laser as CommanderData['equipment']['laser'];
       return c;
     };
@@ -107,10 +43,6 @@ console.log('\nNavy mission');
       && constrictorWarning(withLaser('beam')).includes('MILITARY'));
     eq('a commander already carrying the right gun is told nothing',
       constrictorWarning(withLaser('military')), '');
-    check('and the mission headline carries the warning while the hunt is on',
-      missionHeadline(withLaser('beam'), systems).includes('MILITARY'));
-    check('...but not once she has the gun',
-      !missionHeadline(withLaser('military'), systems).includes('MILITARY LASER'));
   }
 }
 

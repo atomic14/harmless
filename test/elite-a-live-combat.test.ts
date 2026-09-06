@@ -251,7 +251,7 @@ console.log('\nlive combat — the cases the contract names');
   check('...which is NOT halving after defence, and the flag is never consulted',
     playerLaserDamage(constrictor.energyPolicy, anacondaMil)
       !== Math.floor((anacondaMil - 3) * 0.5)
-    && constrictor.state.isMissionTarget === false);
+    && constrictor.state.missionTag === null);
   eq('a 7-point hit halves to 3, and 3 defence leaves nothing',
     playerLaserDamage(constrictor.energyPolicy, 7), 0);
 

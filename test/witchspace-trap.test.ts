@@ -30,6 +30,7 @@ console.log('\nthe Spectrum\'s cheat: paused F arms the mis-jump');
   let refused = 0;
   const host: HyperspaceHost = {
     showMessage: (t) => { said.push(t); },
+    sayEvent: (e) => { said.push(e.text); },
     markCharacter: () => {},
     system: () => state.systems[state.commander.systemIndex],
     lookAlong: () => {},

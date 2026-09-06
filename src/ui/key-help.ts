@@ -137,6 +137,7 @@ export function guideSections(): GuideSection[] {
     { id: 'help-navigation', bindings: flightIn('navigation') },
     { id: 'help-docked', bindings: BINDINGS.docked },
     { id: 'help-confirm', bindings: BINDINGS.confirmNewGame },
+    { id: 'help-confirm-jump', bindings: BINDINGS.confirmGalacticJump },
     { id: 'help-dead', bindings: BINDINGS.dead },
     // what the SIMULATOR adds to the cockpit; what it takes away is
     // NOT_IN_THE_SIMULATOR, and the panel says so in prose beside this

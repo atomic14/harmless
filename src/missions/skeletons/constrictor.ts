@@ -1,7 +1,7 @@
 // The Navy mission, as a skeleton: find the Constrictor, kill it, carry the
 // plans home.
 //
-// This is the 1984 mission that `game/missions.ts` ran as five numbered
+// This is the 1984 mission that the old `game/missions.ts` ran as five numbered
 // stages, written as three legs (docs/TODO/190 M1). The numbers are the same
 // constants. The hunt pays the bounty when the target dies. The courier leg
 // pays the fee at the delivery world. Both final outcomes pay nothing, so the
@@ -30,6 +30,7 @@ export const CONSTRICTOR: Skeleton = {
   anchor: 'relative',
   patron: { kind: 'navy' },
   hail: 'INCOMING NAVY TRANSMISSION',
+  pitch: 'THE NAVY WANTS A STOLEN PROTOTYPE HULL DESTROYED. ACCEPT FOR ITS LAST KNOWN POSITION.',
   offer: { minKills: MISSION_KILL_THRESHOLD, galaxy: 1 },
   legs: [
     {

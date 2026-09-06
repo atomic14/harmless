@@ -43,6 +43,7 @@ import { type FlightDemand } from '../src/player.ts';
 import { CombatComputer } from '../src/game/combat-computer.ts';
 import { COMMODITIES } from '../src/galaxy/galaxy.ts';
 import { check } from './harness.ts';
+import { constrictorAt } from './fixtures.ts';
 import { playerPoolPoints } from '../src/game/damage-units.ts';
 import { npcImpactDamage } from '../src/game/impact-damage.ts';
 import { IMPACT } from '../src/constants/impact.ts';
@@ -96,7 +97,7 @@ console.log('\ncombat simulator: nothing leaves the exercise');
       laser: 'beam', rearLaser: true, ecm: true, scoops: true,
       energyBomb: true, energyUnit: true, escapePod: true, largeBay: true,
     },
-    mission: { stage: 1, targetIndex: 42 },
+    missions: constrictorAt('hunt', 42),
     trumbles: 2,
     day: 88,
     contracts: [

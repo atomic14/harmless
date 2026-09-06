@@ -27,7 +27,7 @@
 import * as THREE from 'three';
 import { blueprintRandomBits, blueprintSetFor } from './blueprint-set.ts';
 import { specsForSet } from './set-roster.ts';
-import { constrictorLurksHere, missionBlueprintOverride } from './missions.ts';
+import { missionOverride, missionSpawns } from '../missions/queries.ts';
 import { planPopulation } from './population.ts';
 import { markOf, pirateThreat } from './threat.ts';
 import { spawnPopulation } from './spawning.ts';
@@ -102,14 +102,16 @@ export class WorldBuild {
    * in does not restock its sky because you accepted them.
    *
    * THE OVERRIDE IS NAMED HERE AND DECIDED IN TWO PLACES. `blueprint-set.ts`
-   * takes one and never works one out, `missions.ts` owns the two mission
-   * stages, and witch-space is the Game's own flag. Limbo is asked first,
+   * takes one and never works one out, the live leg's skeleton owns the
+   * mission's override (`missions/queries.ts`), and witch-space is the Game's
+   * own flag. Limbo is asked first,
    * because a mis-jump on the hunting leg is still limbo — the Constrictor waits
    * in a system, and this is not one.
    */
   chooseBlueprintSet(): void {
+    const c = this.state.commander;
     const override = this.state.session.witchspace
-      ? 'thargoid' as const : missionBlueprintOverride(this.state.commander);
+      ? 'thargoid' as const : missionOverride(c.missions, c.systemIndex);
     // NO DRAW BEHIND AN OVERRIDE. `blueprintSetFor` does not consult the number
     // while one is in force, so nothing reads the 0 below. A draw made to fill
     // it would spend the seeded stream on a value nothing reads. It would also
@@ -177,10 +179,11 @@ export class WorldBuild {
         : null,
     );
 
-    const constrictorHere = situation === 'arrival' && constrictorLurksHere(this.state.commander);
+    const missionShips = situation === 'arrival'
+      ? missionSpawns(this.state.commander.missions, sys.index) : [];
 
     const built = spawnPopulation(
-      this.state.world, plan, sys, this.state.player.position, constrictorHere, situation);
+      this.state.world, plan, sys, this.state.player.position, missionShips, situation);
 
     if (plan.threat) {
       this.state.lastThreat = plan.threat;
@@ -195,7 +198,7 @@ export class WorldBuild {
       }
     }
     if (built.generationShip) this.state.session.genShipSeen = false;
-    if (built.missionTarget) {
+    if (built.missionShips.length > 0) {
       this.host.showMessage('SCANNER: UNREGISTERED PROTOTYPE DETECTED', 5);
     }
   }

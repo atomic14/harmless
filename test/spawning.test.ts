@@ -79,7 +79,7 @@ console.log('\nwhere a system puts its traffic');
       world.clearNpcs();
       const home = world.station.position;
       const player = arriving ? home.clone().add(new THREE.Vector3(0, 0, ROUTE)) : home.clone();
-      spawnPopulation(world, PLAN, sys, player, false, situation);
+      spawnPopulation(world, PLAN, sys, player, [], situation);
       route.copy(home).sub(player).normalize();
       for (const npc of world.npcs) {
         const d = npc.object.position.distanceTo(home);

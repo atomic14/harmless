@@ -1,7 +1,7 @@
 // Everything this commander is under orders to do, as one list.
 //
 // A STANDING ORDER is an obligation that outlives the moment it is announced.
-// The game has two kinds: a signed contract, and the Navy mission. Until
+// The game has two kinds: a signed contract, and a live mission. Until
 // docs/TODO/144 they shared one line under the station header, and the
 // contract won it. So a commander who took any job before the Navy briefed her
 // was never told where the Constrictor was (GitHub #27).
@@ -17,9 +17,9 @@
 //   - a surface that carries orders never drops one kind for another.
 //
 // IT RESTATES NO RULE. A contract's words come from `describeContract`
-// (contract-offers.ts) and the mission's from `missionOrderLine`
-// (missions.ts). Both stay the one home of their own prose. This file joins
-// them and sorts them, and that is all it does.
+// (contract-offers.ts) and a mission's from its skeleton, through
+// `orderLine` (missions/queries.ts). Both stay the one home of their own
+// prose. This file joins them and sorts them, and that is all it does.
 
 import type { CommanderData } from './commander.ts';
 import type { Contract } from './contract-record.ts';
@@ -29,18 +29,25 @@ import { describeContract } from './contract-offers.ts';
 import {
   contractDestinations, contractVerdict, type ContractVerdict,
 } from './contract-eta.ts';
-import { missionDestination, missionLeg } from './missions.ts';
+import { missionWarning } from './mission-bridge.ts';
+import type { LiveMission } from '../missions/model.ts';
+import {
+  legReward, missionDestinations, missionName, orderLine,
+} from '../missions/queries.ts';
 
-/** The Navy leg, named as an order. `MissionLeg` (missions.ts) is its source. */
-export interface NavyOrder {
-  readonly kind: 'navy';
+/** One live mission's current leg, named as an order. */
+export interface MissionOrder {
+  readonly kind: 'mission';
   /** the order in words, upper case, WITHOUT the warning */
   readonly line: string;
-  readonly destination: number;
-  /** what the leg pays on completion, in tenths of a credit */
+  /** the leg's world, or null when any station will do */
+  readonly destination: number | null;
+  /** what the leg pays when it goes right, in tenths of a credit */
   readonly reward: number;
   /** what her gun is worth against the target, or '' when it will do */
   readonly warning: string;
+  /** the mission this leg belongs to */
+  readonly live: LiveMission;
 }
 
 /** One signed job off a bulletin board. */
@@ -66,18 +73,18 @@ export interface ContractOrder {
  * One obligation, ready for a row or for a summary.
  *
  * A UNION rather than one shape with nullable fields, and that is
- * load-bearing. A contract always has a deadline, and the Navy mission never
- * has one. Written as `daysLeft: number | null`, the summary below would need
- * a branch for a case that cannot happen. That is the defensive dead code
- * docs/TODO/142 found and deleted elsewhere.
+ * load-bearing. A contract always has a deadline, and a mission leg carries
+ * its own deadline day or none. Written as one shape, the summary below would
+ * need a branch for a case that cannot happen. That is the defensive dead
+ * code docs/TODO/142 found and deleted elsewhere.
  */
-export type StandingOrder = NavyOrder | ContractOrder;
+export type StandingOrder = MissionOrder | ContractOrder;
 
 /**
  * Every standing order this commander holds, most urgent kind first.
  *
- * The Navy mission sorts above the contracts, and the reason is not taste. A
- * board re-offers work every day. The Navy briefs a commander one time. The
+ * A mission sorts above the contracts, and the reason is not taste. A board
+ * re-offers work every day. A patron briefs a commander one time. The
  * contracts then sort by deadline, so the row that decides when she must leave
  * is the row at the top of them.
  */
@@ -86,8 +93,16 @@ export function standingOrders(
 ): StandingOrder[] {
   const out: StandingOrder[] = [];
 
-  const leg = missionLeg(c, systems);
-  if (leg) out.push({ kind: 'navy', ...leg });
+  for (const live of c.missions.live) {
+    out.push({
+      kind: 'mission',
+      line: orderLine(live, systems),
+      destination: live.target,
+      reward: legReward(live),
+      warning: missionWarning(c, live),
+      live,
+    });
+  }
 
   const byDeadline = [...c.contracts].sort((a, b) => a.deadlineDay - b.deadlineDay);
   for (const k of byDeadline) {
@@ -116,8 +131,7 @@ export function standingOrders(
  */
 export function orderDestinations(c: CommanderData): ReadonlySet<number> {
   const marks = new Set(contractDestinations(c));
-  const navy = missionDestination(c);
-  if (navy !== null) marks.add(navy);
+  for (const world of missionDestinations(c.missions)) marks.add(world);
   return marks;
 }
 
@@ -138,16 +152,19 @@ export function orderDestinations(c: CommanderData): ReadonlySet<number> {
  */
 export function orderVerdict(
   c: CommanderData, systemIndex: number, daysAway: number | null,
+  systems: readonly StarSystem[],
 ): ContractVerdict | null {
   const owed = contractVerdict(c, systemIndex, daysAway);
   if (owed) return owed;
-  if (missionDestination(c) !== systemIndex) return null;
+  const live = c.missions.live.find((l) => l.target === systemIndex);
+  if (!live) return null;
+  const name = missionName(live, systems);
 
   // No deadline, so nothing here can be late. `NO ROUTE` is red all the same:
   // it is not a deadline she will miss, it is a world she cannot reach.
-  if (daysAway === null) return { text: 'NAVY MISSION · NO ROUTE', late: true };
-  if (daysAway === 0) return { text: 'NAVY MISSION · YOU ARE HERE', late: false };
-  return { text: `NAVY MISSION · ${dayWord(daysAway)} AWAY`, late: false };
+  if (daysAway === null) return { text: `${name} · NO ROUTE`, late: true };
+  if (daysAway === 0) return { text: `${name} · YOU ARE HERE`, late: false };
+  return { text: `${name} · ${dayWord(daysAway)} AWAY`, late: false };
 }
 
 /**
@@ -173,15 +190,18 @@ export function orderVerdict(
 export function ordersSummary(orders: readonly StandingOrder[]): string[] {
   const lines: string[] = [];
 
-  const navy = orders.find((o): o is NavyOrder => o.kind === 'navy');
-  if (navy) {
-    lines.push(navy.line);
+  // EVERY MISSION GETS ITS LINE. There are at most three (`MISSION_LIVE_CAP`),
+  // and a mission is briefed one time. A count would hide the one order the
+  // commander cannot read again anywhere but the MISSIONS screen.
+  for (const m of orders) {
+    if (m.kind !== 'mission') continue;
+    lines.push(m.line);
     // THE WARNING IS BACK, and the one-line budget is why it ever left.
     // docs/TODO/144 M1 cut it, because it is long enough to push the order off
     // the row on its own. That was a length argument, and length is no longer
     // the constraint. It is the one thing on this menu that a commander must
-    // not learn forty light years from here (`constrictorWarning`).
-    if (navy.warning) lines.push(navy.warning);
+    // not learn forty light years from here (`huntWarning`).
+    if (m.warning) lines.push(m.warning);
   }
 
   const contracts = orders.filter((o): o is ContractOrder => o.kind === 'contract');

@@ -183,7 +183,7 @@ console.log('\nmission machine: the rules around a mission');
   // satisfy and its failure would not.
   const first: Skeleton = {
     id: 'first', kind: 'arc', anchor: 'local', patron: { kind: 'world', seedSlot: LAVE },
-    hail: 'A WORD FROM THE GOVERNOR', offer: {},
+    hail: 'A WORD FROM THE GOVERNOR', pitch: 'GO', offer: {},
     legs: [{
       id: 'go', verb: { kind: 'deliver' }, place: { kind: 'anywhere' }, line: 'GO', deadlineDays: 3,
       next: [
@@ -196,7 +196,7 @@ console.log('\nmission machine: the rules around a mission');
   };
   const second: Skeleton = {
     id: 'second', kind: 'arc', anchor: 'local', patron: { kind: 'world', seedSlot: 12 },
-    hail: 'HAIL', offer: { flags: ['plans'], minKills: 999 },
+    hail: 'HAIL', pitch: 'GO', offer: { flags: ['plans'], minKills: 999 },
     legs: [{
       id: 'go', verb: { kind: 'deliver' }, place: { kind: 'here' }, line: 'GO',
       next: [{ on: 'success', to: 'complete' }, { on: 'failed', to: 'fail' }],
@@ -255,7 +255,7 @@ console.log('\nmission machine: the ambush verb');
 {
   const trap: Skeleton = {
     id: 'trap', kind: 'side', anchor: 'local', patron: { kind: 'world', seedSlot: LAVE },
-    hail: 'HAIL', offer: {}, cap: 2,
+    hail: 'HAIL', pitch: 'RUN', offer: {}, cap: 2,
     legs: [{
       id: 'run', verb: { kind: 'ambush' }, place: { kind: 'band', min: 30, max: 80 }, line: 'RUN',
       next: [{ on: 'success', to: 'complete', settle: { pay: 10 } }, { on: 'failed', to: 'fail' }],

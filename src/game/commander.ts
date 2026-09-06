@@ -6,7 +6,7 @@ import {
 } from '../constants/commander.ts';
 import { PASSENGER_BERTH_TONNES } from '../constants/contracts.ts';
 import type { Contract } from './contract-record.ts';
-import type { MissionState as MissionRecord } from '../missions/model.ts';
+import type { MissionState } from '../missions/model.ts';
 import { emptyMissionState } from '../missions/state.ts';
 
 // Commander Jameson: who you are, what you are carrying, and how you rank.
@@ -74,12 +74,6 @@ export function defaultEquipment(): Equipment {
   };
 }
 
-
-export interface MissionState {
-  /** 0 none · 1 constrictor hunt · 2 constrictor done · 3 courier run · 4 all done */
-  stage: number;
-  targetIndex: number | null;
-}
 
 export function cargoCapacity(c: CommanderData): number {
   return c.equipment.largeBay ? LARGE_BAY_TONNES : HOLD_TONNES;
@@ -153,16 +147,13 @@ export interface CommanderData {
    */
   disrepute: number;
   /**
-   * The Navy's five-stage machine. It stays until docs/TODO/190 M2 step 7
-   * deletes it with every reader. `missions` below is what runs after that.
-   */
-  mission: MissionState;
-  /**
    * Every mission this commander holds, held, or was led to
-   * (`missions/model.ts`). The mission machine writes it, and the game
-   * installs what the machine returns. Nothing else writes it.
+   * (`missions/model.ts`). The mission machine writes it, and the bridge
+   * (`game/mission-bridge.ts`) installs what the machine returns. Nothing
+   * else writes it. A save from before it carried `mission`, a stage number,
+   * and the two loaders drop that field (docs/TODO/190).
    */
-  missions: MissionRecord;
+  missions: MissionState;
   /** breeding stowaways; they eat cargo and hate heat */
   trumbles: number;
   /** elapsed days — advanced by hyperspace jumps, used for deadlines */
@@ -228,7 +219,6 @@ export function newCommander(): CommanderData {
     legalStatus: 0,
     atonement: 0,
     disrepute: 0,
-    mission: { stage: 0, targetIndex: null },
     missions: emptyMissionState(),
     trumbles: 0,
     day: 0,

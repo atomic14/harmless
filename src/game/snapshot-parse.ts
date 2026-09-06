@@ -38,6 +38,7 @@
 // exists. Otherwise the sweep finds that this parser does not check it.
 // `test/snapshot-migrate.test.ts` owns the other half: what is RAISED.
 
+import { repairMissionState } from '../missions/repair.ts';
 import {
   SNAPSHOT_VERSION, isRecord, migrateSnapshot, type WorldSnapshot,
 } from './snapshot.ts';
@@ -84,6 +85,13 @@ export function parseSnapshot(raw: unknown): WorldSnapshot {
 
   const commander = record(s.commander, 'commander');
   requirePlayerHullId(commander.shipId);
+  // THE MISSION RECORD IS REPAIRED, NOT REFUSED (docs/TODO/190). A save from
+  // before the mission machine carries `mission`, a stage number. It is
+  // dropped, and an empty record stands in. The save loads, and only the
+  // mission progress is lost. The one write to the caller's bytes is this
+  // one, and it is a copy: `s` is already the migration's copy.
+  commander.missions = repairMissionState(commander.missions);
+  delete commander.mission;
   // The two numbers the rebuild would otherwise hang or crash on: the galaxy
   // seed loop runs `galaxy` twists, and the scene indexes systems[systemIndex].
   const galaxy = finite(commander.galaxy, 'commander.galaxy');

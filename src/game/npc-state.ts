@@ -102,8 +102,16 @@ export interface NpcState {
   provokedByPlayer: boolean;
   /** Homing missiles this ship can still launch at the player. */
   missiles: number;
-  /** Mission flag: destroying this advances the Constrictor hunt. */
-  isMissionTarget: boolean;
+  /**
+   * The mission tag this ship answers to, or null for every other ship.
+   *
+   * The wreck resolver sends `destroyed` with it, and a despawn sends
+   * `escaped`. The machine (`missions/machine.ts`) matches it against the live
+   * leg's own tag, so a second hunt cannot claim the first hunt's kill. A save
+   * carries it, and `persistence.ts` rebuilds the hull from the entity it
+   * names.
+   */
+  missionTag: string | null;
   fleeing: boolean;
   /** where this ship is in its attack run — see break-off.ts */
   attackPhase: AttackPhase;
@@ -251,7 +259,7 @@ export function freshNpcState(maxEnergy: number): NpcState {
     tumbleAxis: randomDirection(new THREE.Vector3()),
     energy: maxEnergy, regenCarry: 0,
     alive: true, provoked: false, provokedByPlayer: false, missiles: 0,
-    isMissionTarget: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
+    missionTag: null, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
     extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
     tactic: 'run', tacticClock: 0, dryFor: 0,
     inert: false, tradeTimer: 0,

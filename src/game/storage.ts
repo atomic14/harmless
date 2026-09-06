@@ -43,7 +43,7 @@ import {
 import { DEFAULT_NAME } from '../constants/commander.ts';
 import { requirePlayerHullId } from './ship-identity.ts';
 import type { WorldSnapshot } from './snapshot.ts';
-import { emptyMissionState } from '../missions/state.ts';
+import { repairMissionState } from '../missions/repair.ts';
 import {
   SAVE_ID_PREFIX, SAVE_RECORD_VERSION,
   dockId, fileId, flightIds, parseSaveId, uniqueSaveName,
@@ -493,8 +493,10 @@ export function commanderNameTaken(name: string): boolean {
 function repairCommander(stored: Partial<CommanderData>): CommanderData {
   const parsed = { ...newCommander(), ...stored };
   parsed.equipment = { ...defaultEquipment(), ...(stored.equipment ?? {}) };
-  parsed.mission = { stage: 0, targetIndex: null, ...(stored.mission ?? {}) };
-  parsed.missions = { ...emptyMissionState(), ...(stored.missions ?? {}) };
+  // An old record carries `mission`, a stage number. It is dropped here, and
+  // the mission record is repaired or replaced (docs/TODO/190).
+  parsed.missions = repairMissionState(stored.missions);
+  delete (parsed as { mission?: unknown }).mission;
   if (!Array.isArray(parsed.contracts)) parsed.contracts = [];
   if (typeof parsed.day !== 'number') parsed.day = 0;
   // 0 is "never briefed". So a hand-edited or pre-marker record earns the one

@@ -320,7 +320,7 @@ const OUTSIDE: readonly Group[] = [
     why: 'MOVED, apart from one BLOCKED derivation: the career\'s tuning went to eleven'
       + ' subject files (commander, law, contracts, market, hermit-market, jettison,'
       + ' missions, rating, shop, trumbles, living-galaxy, commodities, scoop), and'
-      + ' commander.ts, contracts.ts, law.ts, jettison.ts, missions.ts, rating.ts,'
+      + ' commander.ts, contracts.ts, law.ts, jettison.ts, hunt-warning.ts, rating.ts,'
       + ' shop.ts and trumbles.ts declare nothing at all now. `COMMODITY_COUNT` is'
       + ' `COMMODITIES.length` — a derivation off the 1984 table, which is DATA the'
       + ' home may not import: the `ANCHOR_RECHARGE_RATING` shape exactly. See'

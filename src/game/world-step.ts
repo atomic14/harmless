@@ -72,6 +72,7 @@ import { Ordnance, ordnanceMessage, type OrdnanceOutcome } from './ordnance.ts';
 import type { NpcShip, FireEvent, WorldView } from './npc.ts';
 import { nearestNpc } from './hostility.ts';
 import type { SoundEvent, SoundName } from './sounds.ts';
+import { runMissions } from './mission-bridge.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
 import type { GameState } from './state.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
@@ -416,6 +417,11 @@ export class WorldStep {
             { count: 10, speed: 120, duration: 0.7 });
         }
         world.despawn(npc);
+        // A tagged ship that jumped out escaped its hunt. The machine decides
+        // whether the leg minds (`canEscape`), and says so in this stream.
+        if (npc.state.missionTag !== null && !npc.state.docked) {
+          out.push(...runMissions(s.commander, { kind: 'escaped', tag: npc.state.missionTag }));
+        }
         continue;
       }
     }

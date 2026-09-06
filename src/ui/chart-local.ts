@@ -175,7 +175,7 @@ export function drawLocalChart(
       `<span class="dist"> &middot; ${(d / 10).toFixed(1)} LY` +
         `${daysTerm(trip)}</span>` +
       (out ? ' <span class="oor">OUT OF RANGE</span>' : '') +
-      contractTerm(c, near, trip) +
+      contractTerm(c, near, trip, systems) +
       '</div>' +
 `<div class="sysrow">` +
       `<dl class="sysfacts">

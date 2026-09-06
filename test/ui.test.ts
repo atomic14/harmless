@@ -28,7 +28,7 @@ import { readFileSync } from 'node:fs';
 import { LASER_GAUGE_WARN, CABIN_GAUGE_WARN, SIGHT_Y } from '../src/constants/console.ts';
 import { LASER_CUTOUT } from '../src/constants/player-gun.ts';
 import { CABIN_TEMP_FATAL } from '../src/constants/sun.ts';
-import { constrictorWarning } from '../src/game/missions.ts';
+import { constrictorWarning } from '../src/game/hunt-warning.ts';
 
 // --- the screen contract ----------------------------------------------------
 

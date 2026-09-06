@@ -151,7 +151,7 @@ export function drawChart(
         (d > c.fuel ? ' &middot; <span style="color:var(--hud-red)">OUT OF RANGE</span>' : '') +
         // Last, because it is the verdict on everything before it: the world,
         // the distance and what the journey costs.
-        contractTerm(c, near, trip);
+        contractTerm(c, near, trip, systems);
     } else {
       info.textContent = ' ';
     }

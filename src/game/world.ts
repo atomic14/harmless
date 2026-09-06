@@ -132,7 +132,7 @@ export class World {
    *
    * `serialiseState` walks the state generically. So a new field on NpcState
    * saves itself, and there is no list here to keep in step. The spec is NOT
-   * stored: threatTier and isMissionTarget are in the state, and the hull
+   * stored: threatTier and missionTag are in the state, and the hull
    * follows from those two plus the seed.
    *
    * The IDENTITY is stored, and it is the exception that proves that rule. It

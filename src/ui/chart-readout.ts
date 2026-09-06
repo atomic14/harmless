@@ -124,8 +124,10 @@ export function daysTerm(trip: Journey | null): string {
  * colour of the marker on the chart beside it. Red when the deadline cannot be
  * met. The words say TOO FAR as well, so the colour is never the only signal.
  */
-export function contractTerm(c: CommanderData, near: StarSystem, trip: Journey | null): string {
-  const verdict = orderVerdict(c, near.index, trip === null ? null : trip.days);
+export function contractTerm(
+  c: CommanderData, near: StarSystem, trip: Journey | null, systems: readonly StarSystem[],
+): string {
+  const verdict = orderVerdict(c, near.index, trip === null ? null : trip.days, systems);
   if (verdict === null) return '';
   const tint = verdict.late ? 'var(--hud-red)' : 'var(--hud-amber)';
   return ` &middot; <span class="due" style="color:${tint}">${verdict.text}</span>`;

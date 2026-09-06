@@ -22,6 +22,7 @@ import { generateGalaxy, type StarSystem } from '../galaxy/galaxy.ts';
 import {
   distanceTenths, daysForJump, witchspaceChance, nearestSystemTo,
 } from '../galaxy/navigation.ts';
+import { carryingPlans } from '../missions/queries.ts';
 import { WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
 import { random } from './rng.ts';
 
@@ -118,7 +119,7 @@ export function resolveJump(
     // tank is a number no gauge, shop or chart in the game reads correctly. So
     // it takes what is there and no more.
     commander.fuel -= Math.min(commander.fuel, distanceTenths(here, systems[target]));
-    if (forced || rng() < witchspaceChance(commander.mission.stage)) {
+    if (forced || rng() < witchspaceChance(carryingPlans(commander.missions))) {
       return { misjump: true, days: 0 };
     }
   }

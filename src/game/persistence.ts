@@ -27,7 +27,8 @@ import { generateGalaxy, type MarketEntry } from '../galaxy/galaxy.ts';
 import { LivingGalaxy } from '../galaxy/living.ts';
 import type { Contract } from './contract-record.ts';
 import type { PirateThreat } from './threat.ts';
-import { CONSTRICTOR_SPEC, pirateSpecForTier, specForDesign } from './ship-specs.ts';
+import { pirateSpecForTier, specForDesign } from './ship-specs.ts';
+import { missionShipSpec } from './mission-bridge.ts';
 import type { NpcRole } from './ship-roles.ts';
 import type { CombatComputer } from './combat-computer.ts';
 import type { Ordnance } from './ordnance.ts';
@@ -235,7 +236,12 @@ export class Persistence {
     // for a retired hull, and not legacy tolerance.
     this.ordnance.clear();
     s.world.restoreNpcs(snap.npcs, (n) => {
-      if (n.state.isMissionTarget) return CONSTRICTOR_SPEC;
+      // A tagged ship is rebuilt from the entity its tag names, which the
+      // mission record carries. The tier is not consulted for it.
+      if (typeof n.state.missionTag === 'string') {
+        const spec = missionShipSpec(s.commander, n.state.missionTag);
+        if (spec) return spec;
+      }
       const role = n.role as NpcRole;
       return specForDesign(role, n.designId)
         ?? (role === 'pirate'
