@@ -116,6 +116,9 @@ const OUTSIDE: readonly Group[] = [
       // the dossier table item 191 fills, and the words that end a story page
       'missions/dossiers.ts': ['DOSSIERS'],
       'missions/story.ts': ['ENDINGS'],
+      // the committed patron file given a name, the one patron with no world,
+      // and the plain title a world with no record takes (docs/TODO/191 M1)
+      'missions/patrons.ts': ['FILES', 'NAVY_PATRON', 'PLAIN_ROLE'],
     },
   },
 

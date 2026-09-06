@@ -1,0 +1,12 @@
+{
+  "galaxy": 1,
+  "promptVersion": 1,
+  "model": "",
+  "generated": "",
+  "usage": {
+    "requests": 0,
+    "inputTokens": 0,
+    "outputTokens": 0
+  },
+  "entries": {}
+}

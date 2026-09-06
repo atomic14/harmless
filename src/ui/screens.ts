@@ -7,7 +7,6 @@ import { distanceTenths } from '../galaxy/navigation.ts';
 import { type CommanderData, cargoTonnes, formatCredits, cargoCapacity } from '../game/commander.ts';
 import type { Contract } from '../game/contract-record.ts';
 import { standingOrders, type ContractOrder, type MissionOrder } from '../game/orders.ts';
-import type { Skeleton } from '../missions/model.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 
 import { rating } from '../game/rating.ts';
@@ -139,9 +138,20 @@ export function renderStatus(
 }
 
 /** What the MISSIONS screen draws: the offers here, and the missions held. */
+/** An offer on the board, with the name of who makes it. */
+export interface OfferRow {
+  pitch: string;
+  patron: string;
+}
+
+/** A held mission's order, with the name of who gave it. */
+export interface HeldRow extends MissionOrder {
+  patron: string;
+}
+
 export interface MissionsView {
-  offers: readonly Skeleton[];
-  held: readonly MissionOrder[];
+  offers: readonly OfferRow[];
+  held: readonly HeldRow[];
   /** one line per saved lead, from `missions/hints.ts` */
   leads: readonly string[];
   systems: StarSystem[];
@@ -172,11 +182,12 @@ export function renderMissions(view: MissionsView): void {
   const offerRows = offers.map((s, i) => `
     <tr class="${i === selected ? 'sel' : ''} pick" data-row="${i}">
       <td>${s.pitch}</td>
+      <td class="num">${escapeHtml(s.patron.toUpperCase())}</td>
       <td class="num">${atStation ? '<button data-key="KeyA">ACCEPT</button>' : 'AT A STATION'}</td>
     </tr>`).join('');
   const board = offers.length === 0 ? '' : `
     <table>
-      <tr><th>ON OFFER</th><th class="num"></th></tr>
+      <tr><th>ON OFFER</th><th class="num">PATRON</th><th class="num"></th></tr>
       ${offerRows}
     </table>`;
 
@@ -187,6 +198,7 @@ export function renderMissions(view: MissionsView): void {
     // patron states the two numbers and lets the commander decide;
     // `huntWarning` is the one home of that sentence.
     ? `<br/><span style="color:var(--hud-amber)">${m.warning}</span>` : ''}</td>
+      <td class="num">${escapeHtml(m.patron.toUpperCase())}</td>
       <td class="num">${m.destination === null ? 'ANY STATION' : systems[m.destination].name}</td>
       <td class="num">${formatCredits(m.reward)}</td>
       <td class="num"><button data-key="KeyX">ABANDON</button></td>
@@ -195,7 +207,7 @@ export function renderMissions(view: MissionsView): void {
     ? `<div class="info">${offers.length === 0 ? 'No patron has orders for you.' : 'You hold no mission.'}</div>`
     : `
     <table>
-      <tr><th>HELD</th><th class="num">DESTINATION</th><th class="num">PAYS</th><th class="num"></th></tr>
+      <tr><th>HELD</th><th class="num">PATRON</th><th class="num">DESTINATION</th><th class="num">PAYS</th><th class="num"></th></tr>
       ${heldRows}
     </table>`;
 

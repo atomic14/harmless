@@ -121,7 +121,7 @@ console.log('\nthe LOG screen, painted and opened');
     && html.includes('TARGET DESTROYED'));
   check('...and the route', html.includes('<svg') && html.includes('class="visited"'));
   check('...and no face for the Navy', !html.includes('<figure'));
-  const empty = captureById(() => { renderLog({ pages: [], route: '', portrait: '' }); }).get('screen') ?? '';
+  const empty = captureById(() => { renderLog({ pages: [], route: '', portrait: '', patron: '' }); }).get('screen') ?? '';
   check('a commander with no story still gets a page, and it says so', empty.includes('Nothing yet'));
 
   eqc('⇧R at the station opens the log', cmds('docked', ['KeyR'], ['ShiftLeft']), ['openLog']);

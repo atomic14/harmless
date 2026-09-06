@@ -4,6 +4,7 @@
 // it paints. Nothing here decides what a page says. The site page (item 193
 // of docs/TODO/190) renders the same two results in its own frame.
 
+import { escapeHtml } from '../engine/escape-html.ts';
 import type { StoryPage } from '../missions/story.ts';
 import { show } from './screen-shell.ts';
 
@@ -13,14 +14,16 @@ export interface LogView {
   route: string;
   /** the latest patron's portrait path, or '' */
   portrait: string;
+  /** the latest patron's name, for the caption */
+  patron: string;
 }
 
 export function renderLog(view: LogView): void {
-  const { pages, route, portrait } = view;
+  const { pages, route, portrait, patron } = view;
   const face = portrait ? `
     <figure class="portrait">
-      <img src="${portrait}" alt="The patron" onerror="this.parentElement.remove()"/>
-      <figcaption>THE PATRON</figcaption>
+      <img src="${portrait}" alt="${escapeHtml(patron)}" onerror="this.parentElement.remove()"/>
+      <figcaption>${escapeHtml(patron.toUpperCase())}</figcaption>
     </figure>` : '';
   const body = pages.length === 0
     ? '<div class="info">Nothing yet. A mission accepted is the first line.</div>'

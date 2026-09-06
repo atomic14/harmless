@@ -108,6 +108,15 @@ export function legReward(live: LiveMission, from: readonly Skeleton[] = SKELETO
 }
 
 /**
+ * The world a mission's latest run was accepted at, or undefined before any.
+ * A local patron is whoever runs that station, so her name and her face read
+ * from here (patrons.ts).
+ */
+export function acceptedAt(st: MissionState, skeleton: string): number | undefined {
+  return st.journal.filter((j) => j.skeleton === skeleton && j.outcome === 'accepted').pop()?.world;
+}
+
+/**
  * `NAVY MISSION`, or `LAVE MISSION` for a world patron: the chart's word. A
  * local patron is named by the world the job was accepted at.
  */
@@ -117,8 +126,7 @@ export function missionName(
 ): string {
   const s = skeletonById(live.skeleton, from);
   if (!s || s.patron.kind === 'navy') return 'NAVY MISSION';
-  const world = s.patron.kind === 'world' ? s.patron.seedSlot
-    : st.journal.filter((j) => j.skeleton === live.skeleton && j.outcome === 'accepted').pop()?.world;
+  const world = s.patron.kind === 'world' ? s.patron.seedSlot : acceptedAt(st, live.skeleton);
   return world === undefined ? 'MISSION' : `${systems[world].name.toUpperCase()} MISSION`;
 }
 

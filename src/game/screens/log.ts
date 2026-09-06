@@ -6,26 +6,26 @@
 
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import { renderLog } from '../../ui/screens-log.ts';
-import { portraitUrl } from '../../ui/portrait.ts';
 import type { CommanderData } from '../commander.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
+import type { Patron } from '../../missions/model.ts';
+import { NAVY_PATRON, patronFor } from '../../missions/patrons.ts';
 import { storyPages, type StoryPage } from '../../missions/story.ts';
 import { routeMapSvg } from '../../missions/route-map.ts';
 import { skeletonById } from '../../missions/skeletons/index.ts';
+import { missionFacts } from '../mission-bridge.ts';
 
 export interface LogContext {
   readonly commander: CommanderData;
   readonly systems: StarSystem[];
 }
 
-/** The latest page's patron, as a face: a world's portrait, or none for the Navy. */
-function patronPortrait(page: StoryPage | undefined, systems: StarSystem[], galaxy: number): string {
-  if (!page) return '';
-  const s = skeletonById(page.skeleton);
-  if (!s || s.patron.kind === 'navy') return '';
-  const world = s.patron.kind === 'world' ? s.patron.seedSlot : page.origin;
-  return portraitUrl(systems[world], galaxy);
+/** The latest page's patron, by name and face. A local patron ran the origin's station. */
+function patronOf(page: StoryPage | undefined, c: CommanderData, systems: StarSystem[]): Patron {
+  const s = page ? skeletonById(page.skeleton) : null;
+  if (!page || !s) return NAVY_PATRON;
+  return patronFor(s.patron, missionFacts(c), systems, page.origin);
 }
 
 export class LogScreen implements Screen {
@@ -44,10 +44,12 @@ export class LogScreen implements Screen {
     const { commander, systems } = this.ctx();
     const pages = storyPages(commander.missions, systems);
     const worlds = pages.flatMap((p) => p.worlds);
+    const patron = patronOf(pages[pages.length - 1], commander, systems);
     renderLog({
       pages,
       route: routeMapSvg(systems, worlds),
-      portrait: patronPortrait(pages[pages.length - 1], systems, commander.galaxy),
+      portrait: patron.portrait,
+      patron: patron.name,
     });
   }
 

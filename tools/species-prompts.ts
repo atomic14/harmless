@@ -42,7 +42,7 @@ export interface SpeciesPrompt {
  * first economy phrase would always draw the first government phrase too, and
  * the variants would collapse back into three fixed outfits.
  */
-function pickVariant<T>(sys: StarSystem, slot: number, options: readonly T[]): T {
+export function pickVariant<T>(sys: StarSystem, slot: number, options: readonly T[]): T {
   let h = Math.imul(sys.seed[0] ^ 0x9e3779b1, 0x85ebca6b);
   h = Math.imul(h ^ sys.seed[1], 0xc2b2ae35);
   h = Math.imul(h ^ sys.seed[2], 0x27d4eb2f);
@@ -467,89 +467,94 @@ export function buildPrompt(sys: StarSystem, style: Style = 'crt'): SpeciesPromp
 
 // --- CLI --------------------------------------------------------------------
 
-const galaxy = Number(process.argv[2]) || 1;
-const asJson = process.argv.includes('--json');
-const styleArg = process.argv.find((a) => a.startsWith('--style'));
-const style = ((styleArg?.includes('=')
-  ? styleArg.split('=')[1]
-  : styleArg && process.argv[process.argv.indexOf(styleArg) + 1]) || 'crt') as Style;
-if (!(style in STYLES)) {
-  console.error(`unknown --style ${style}; try ${Object.keys(STYLES).join(', ')}`);
-  process.exit(1);
-}
-const systems = generateGalaxy(galaxy);
+// Under a guard, so `tools/patron-prompts.ts` can import `pickVariant`
+// without this sample printed under its own.
+if (process.argv[1]?.endsWith('species-prompts.ts')) {
 
-/**
- * A term must never appear in both a prompt and its own negative.
- *
- * Twice now this has been a real bug rather than a theoretical one: `ink`
- * asked for a "clear silhouette" while negating "silhouette", and `crt`
- * negated "frame" and "device" while the prompt said the subject fills the
- * frame and the tech-level clause said "tools and simple devices". Both slip
- * past a read-through, because the two halves are written far apart and the
- * collision comes from a clause generated per system.
- *
- * So it is checked over every style against every system, which is cheap and
- * exhaustive where spot-checking one world is neither.
- */
-function checkNoContradictions(): void {
-  const bad: string[] = [];
-  for (const s of Object.keys(STYLES) as Style[]) {
-    for (const sys of systems) {
-      const p = buildPrompt(sys, s);
-      const positive = p.prompt.split(',').map((t) => t.trim().toLowerCase());
-      for (const term of p.negative.split(',').map((t) => t.trim().toLowerCase())) {
-        if (positive.some((t) => t.split(/\s+/).includes(term))) {
-          bad.push(`  ${s}/${sys.name}: negative "${term}" also appears in the prompt`);
+  const galaxy = Number(process.argv[2]) || 1;
+  const asJson = process.argv.includes('--json');
+  const styleArg = process.argv.find((a) => a.startsWith('--style'));
+  const style = ((styleArg?.includes('=')
+    ? styleArg.split('=')[1]
+    : styleArg && process.argv[process.argv.indexOf(styleArg) + 1]) || 'crt') as Style;
+  if (!(style in STYLES)) {
+    console.error(`unknown --style ${style}; try ${Object.keys(STYLES).join(', ')}`);
+    process.exit(1);
+  }
+  const systems = generateGalaxy(galaxy);
+
+  /**
+   * A term must never appear in both a prompt and its own negative.
+   *
+   * Twice now this has been a real bug rather than a theoretical one: `ink`
+   * asked for a "clear silhouette" while negating "silhouette", and `crt`
+   * negated "frame" and "device" while the prompt said the subject fills the
+   * frame and the tech-level clause said "tools and simple devices". Both slip
+   * past a read-through, because the two halves are written far apart and the
+   * collision comes from a clause generated per system.
+   *
+   * So it is checked over every style against every system, which is cheap and
+   * exhaustive where spot-checking one world is neither.
+   */
+  function checkNoContradictions(): void {
+    const bad: string[] = [];
+    for (const s of Object.keys(STYLES) as Style[]) {
+      for (const sys of systems) {
+        const p = buildPrompt(sys, s);
+        const positive = p.prompt.split(',').map((t) => t.trim().toLowerCase());
+        for (const term of p.negative.split(',').map((t) => t.trim().toLowerCase())) {
+          if (positive.some((t) => t.split(/\s+/).includes(term))) {
+            bad.push(`  ${s}/${sys.name}: negative "${term}" also appears in the prompt`);
+          }
         }
       }
     }
+    if (bad.length) {
+      console.error('prompt contradicts its own negative:');
+      console.error([...new Set(bad)].slice(0, 10).join('\n'));
+      process.exit(1);
+    }
   }
-  if (bad.length) {
-    console.error('prompt contradicts its own negative:');
-    console.error([...new Set(bad)].slice(0, 10).join('\n'));
-    process.exit(1);
-  }
-}
-checkNoContradictions();
+  checkNoContradictions();
 
-/**
- * Every hero name must match a real system, or the override silently does
- * nothing and the world quietly falls back to generated clauses — a typo that
- * looks exactly like success.
- *
- * Only checked for galaxy 1: these are galaxy 1 names, and generating galaxy 2
- * legitimately has none of them.
- */
-if (galaxy === 1) {
-  const names = new Set(systems.map((s) => s.name));
-  const missing = Object.keys(HEROES).filter((n) => !names.has(n));
-  if (missing.length) {
-    console.error(`hero worlds not in galaxy 1: ${missing.join(', ')}`);
-    process.exit(1);
+  /**
+   * Every hero name must match a real system, or the override silently does
+   * nothing and the world quietly falls back to generated clauses — a typo that
+   * looks exactly like success.
+   *
+   * Only checked for galaxy 1: these are galaxy 1 names, and generating galaxy 2
+   * legitimately has none of them.
+   */
+  if (galaxy === 1) {
+    const names = new Set(systems.map((s) => s.name));
+    const missing = Object.keys(HEROES).filter((n) => !names.has(n));
+    if (missing.length) {
+      console.error(`hero worlds not in galaxy 1: ${missing.join(', ')}`);
+      process.exit(1);
+    }
   }
-}
 
-const prompts = systems.map((s) => buildPrompt(s, style));
+  const prompts = systems.map((s) => buildPrompt(s, style));
 
-if (asJson) {
-  console.log(JSON.stringify({ galaxy, style, count: prompts.length, prompts }, null, 2));
-} else {
-  // a spread: the famous ones, plus the extremes of the environment axes
-  const picks = [
-    systems[7], // Lave
-    systems.find((s) => s.name === 'Diso')!,
-    systems.find((s) => s.name === 'Riedquat')!,
-    systems.find((s) => s.government === 0)!, // an anarchy
-    systems.find((s) => s.economy === 0 && s.techLevel >= 9)!, // rich industrial, high TL
-    systems.find((s) => s.economy === 7)!, // poor agricultural
-  ].filter(Boolean);
-  for (const sys of picks) {
-    const p = buildPrompt(sys);
-    console.log(`\n=== ${p.system} — ${p.species} (${p.economy}, ${p.government}, TL ${p.techLevel})`);
-    console.log(p.prompt);
+  if (asJson) {
+    console.log(JSON.stringify({ galaxy, style, count: prompts.length, prompts }, null, 2));
+  } else {
+    // a spread: the famous ones, plus the extremes of the environment axes
+    const picks = [
+      systems[7], // Lave
+      systems.find((s) => s.name === 'Diso')!,
+      systems.find((s) => s.name === 'Riedquat')!,
+      systems.find((s) => s.government === 0)!, // an anarchy
+      systems.find((s) => s.economy === 0 && s.techLevel >= 9)!, // rich industrial, high TL
+      systems.find((s) => s.economy === 7)!, // poor agricultural
+    ].filter(Boolean);
+    for (const sys of picks) {
+      const p = buildPrompt(sys);
+      console.log(`\n=== ${p.system} — ${p.species} (${p.economy}, ${p.government}, TL ${p.techLevel})`);
+      console.log(p.prompt);
+    }
+    console.log(`\n${prompts.length} systems in galaxy ${galaxy}; ` +
+      `${new Set(prompts.map((p) => p.species)).size} distinct species; style '${style}'.`);
+    console.log(`styles: ${Object.keys(STYLES).join(', ')} (--style ink)`);
   }
-  console.log(`\n${prompts.length} systems in galaxy ${galaxy}; ` +
-    `${new Set(prompts.map((p) => p.species)).size} distinct species; style '${style}'.`);
-  console.log(`styles: ${Object.keys(STYLES).join(', ')} (--style ink)`);
 }

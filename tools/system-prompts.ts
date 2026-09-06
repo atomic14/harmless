@@ -133,8 +133,12 @@ export interface SystemPrompt {
  * anywhere else.
  */
 export function hashPrompt(facts: string): string {
+  return fnv1a(`v${PROMPT_VERSION}\n${SYSTEM_PROMPT}\n${facts}`);
+}
+
+/** The hash itself, shared with the patron and the dossier prompts (docs/TODO/191). */
+export function fnv1a(text: string): string {
   let h = 0x811c9dc5;
-  const text = `v${PROMPT_VERSION}\n${SYSTEM_PROMPT}\n${facts}`;
   for (let i = 0; i < text.length; i += 1) {
     h ^= text.charCodeAt(i);
     h = Math.imul(h, 0x01000193);
@@ -196,15 +200,35 @@ const FORMULAS: readonly (readonly [RegExp, string])[] = [
     'frames this around what a visitor notices'],
 ] as const;
 
+/**
+ * What a caller may relax, field by field.
+ *
+ * The defaults are the gazetteer's rules, and every description field takes
+ * them. A dossier field (docs/TODO/191) is a different kind of text. A patron
+ * speaks to the commander, so a briefing must say "you". A title is a noun
+ * phrase with no full stop. The travelogue formulas are a gazetteer's fault,
+ * and "report on arrival" is a plain order.
+ */
+export interface FaultOptions {
+  /** the sentence range; the default is by field name, as the descriptions ask */
+  sentences?: readonly [number, number];
+  /** true lets the text address the reader */
+  reader?: boolean;
+  /** false skips the travelogue formulas */
+  formulas?: boolean;
+}
+
 /** Every fault in one field, named. Empty means it passes. */
-export function faults(text: string, field: string): string[] {
+export function faults(text: string, field: string, opts: FaultOptions = {}): string[] {
   const bad: string[] = [];
   const trimmed = text.trim();
 
   if (!trimmed) bad.push(`${field} is empty`);
   if (trimmed.length > MAX_FIELD) bad.push(`${field} is ${trimmed.length} chars, over ${MAX_FIELD}`);
   if (/\d/.test(trimmed)) bad.push(`${field} contains a digit`);
-  if (/\byou(?:r|rs|'re|rself)?\b/i.test(trimmed)) bad.push(`${field} addresses the reader`);
+  if (!opts.reader && /\byou(?:r|rs|'re|rself)?\b/i.test(trimmed)) {
+    bad.push(`${field} addresses the reader`);
+  }
   // `<` and `>` are here because a model put them there: Sonnet closed both
   // of Tiraor's fields with a literal `</br>`. The renderer interpolates this
   // text into innerHTML, so markup in a field is not a cosmetic problem — it
@@ -229,11 +253,11 @@ export function faults(text: string, field: string): string[] {
   // the set can see a formula forming. A hit here sends the system back for
   // another attempt with the fault named.
   for (const [re, why] of FORMULAS) {
-    if (re.test(trimmed)) bad.push(`${field} ${why}`);
+    if (opts.formulas !== false && re.test(trimmed)) bad.push(`${field} ${why}`);
   }
 
   const sentences = (trimmed.match(/[.!?](?:\s|$)/g) ?? []).length;
-  const [lo, hi] = field === 'description' ? [2, 5] : [1, 4];
+  const [lo, hi] = opts.sentences ?? (field === 'description' ? [2, 5] : [1, 4]);
   if (sentences < lo || sentences > hi) {
     bad.push(`${field} has ${sentences} sentences, wanted ${lo}-${hi}`);
   }

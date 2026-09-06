@@ -52,6 +52,7 @@ import './mission-game.test.ts';
 import './mission-offers.test.ts';
 import './mission-verbs.test.ts';
 import './mission-story.test.ts';
+import './patrons.test.ts';
 import './standing-orders.test.ts';
 import './contracts-screen.test.ts';
 import './survivors.test.ts';

@@ -167,7 +167,10 @@ console.log('\nthe MISSIONS screen draws the held legs, and nothing else');
   const systems = generateGalaxy(1);
   const paint = (c: CommanderData): string =>
     captureById(() => {
-      renderMissions({ offers: [], held: held(c, systems), leads: [], systems, selected: 0, atStation: true });
+      renderMissions({
+        offers: [], held: held(c, systems).map((o) => ({ ...o, patron: 'THE NAVY' })),
+        leads: [], systems, selected: 0, atStation: true,
+      });
     }).get('screen') ?? '';
 
   const c: CommanderData = {

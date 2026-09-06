@@ -16,12 +16,15 @@
 //
 // It reads and it asks. `game/mission-desk.ts` owns what accepting means.
 
-import { renderMissions } from '../../ui/screens.ts';
+import { renderMissions, type HeldRow, type OfferRow } from '../../ui/screens.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { CommanderData } from '../commander.ts';
 import { standingOrders, type MissionOrder } from '../orders.ts';
 import type { Skeleton } from '../../missions/model.ts';
 import { leadLine } from '../../missions/hints.ts';
+import { patronFor } from '../../missions/patrons.ts';
+import { acceptedAt } from '../../missions/queries.ts';
+import { skeletonById } from '../../missions/skeletons/index.ts';
 import { missionFacts } from '../mission-bridge.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
@@ -60,11 +63,26 @@ export class MissionsScreen implements Screen {
       .filter((o): o is MissionOrder => o.kind === 'mission');
   }
 
+  /**
+   * The rows, each with its patron's name (docs/TODO/191 M1). An offer's
+   * local patron runs this station. A held job's ran the station it was
+   * taken at, which is not where she reads the row.
+   */
   render(): void {
     const { commander, systems, offers, atStation } = this.ctx();
     const facts = missionFacts(commander);
     const leads = commander.missions.leads.map((l) => leadLine(l, facts, systems));
-    renderMissions({ offers, held: this.held(), leads, systems, selected: this.selected, atStation });
+    const offerRows: OfferRow[] = offers.map((s) => ({
+      pitch: s.pitch, patron: patronFor(s.patron, facts, systems).name,
+    }));
+    const heldRows: HeldRow[] = this.held().map((o) => {
+      const s = skeletonById(o.live.skeleton);
+      const origin = acceptedAt(commander.missions, o.live.skeleton);
+      return { ...o, patron: s ? patronFor(s.patron, facts, systems, origin).name : '' };
+    });
+    renderMissions({
+      offers: offerRows, held: heldRows, leads, systems, selected: this.selected, atStation,
+    });
   }
 
   select(row: number): void {

@@ -222,7 +222,11 @@ Two quirks are deliberate:
   the skeleton's plain words where none does. `route-map.ts` draws the
   worlds a story names as SVG text. The LOG screen (`game/screens/log.ts`,
   `ui/screens-log.ts`) shows both, and `dossiers.ts` is the table item 191
-  fills.
+  fills. `patrons.ts` answers who offers a mission, by name and by face
+  (docs/TODO/191). It reads the committed file under `patrons/`, which
+  `tools/generate-patrons.ts` writes from the prompts
+  `tools/patron-prompts.ts` derives from the seed. A world with no record
+  gets a plain patron, and the Navy is fixed in code.
 - `src/game/character.ts` owns the disrepute ladder. It owns what a score is
   CALLED, and how a deed and a quiet week move it. It also owns whether a move
   crossed a rung that the pilot must hear about. Every deed in the game asks it
