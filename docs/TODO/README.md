@@ -13,7 +13,17 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [190](190-one-machine-runs-every-mission-and-a-failure-never-blocks-the-next.md)
+   — one machine runs every mission, and a failure never blocks the next.
+
+**190 CAME FROM CHRIS ON 2026-09-06.** He asked to expand the missions, and
+he set the direction in one conversation. The game is ours from here. No jump
+between galaxies is needed. The content is generated offline. Every
+mission gets a patron with a face. A skeleton is code and a dossier is words.
+Arcs dovetail across the galaxy, a far player gets hints, and a failure is a
+branch rather than a wall. The commander reads the path taken as a story. 190
+builds the machine and converts the Constrictor. The pipelines, the arcs and
+the site page are 191, 192 and 193, each a plan of its own when 190 lands.
 
 **189 CAME FROM CHRIS ON 2026-09-05**, after 188 landed. He asked whether he
 can trigger a Thargoid ambush, and he could not: a mis-jump is a 9% roll. Two
