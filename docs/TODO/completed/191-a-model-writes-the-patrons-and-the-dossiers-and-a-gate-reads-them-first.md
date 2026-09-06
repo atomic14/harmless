@@ -212,3 +212,86 @@ Restore the correct content after each check.
 | Name Diso in a side job's rumour | Foreign world name |
 | Write "combat reputation" into a briefing | Ladder word |
 | Change one prompt word without regenerating | Drift check |
+
+## Outcome
+
+Landed on 2026-09-06, in four milestones, one commit each. The pipeline,
+the validator, the readers and the gate are in place. **The generation run
+did not happen.** This machine holds no `ANTHROPIC_API_KEY` and no
+`.env.local`. So the two committed tables are empty, every reader runs on
+its fallback, and the drift checks pass on empty files. The run is one
+command each, from a machine with the key:
+
+```
+npm run generate:patrons
+npm run generate:dossiers
+```
+
+Taste first, as the descriptions did: `--limit 1` for the patrons, and
+`--out <dir>` for a dossier, so a taste never reaches the generated index.
+
+### What the milestones did
+
+- **M1.** `tools/patron-prompts.ts` derives a role and a manner per world
+  from the seed, with the portraits' own variant hash. `tools/generate-patrons.ts`
+  asks for the name and the voice. `src/missions/patrons.ts` reads the
+  file, and a world with no record gets a plain patron named by its world
+  and its government. The MISSIONS screen names the patron beside each
+  row, and the LOG screen shows the face through `patronFor`.
+- **M2.** `tools/dossier-prompts.ts` builds one prompt per skeleton from
+  its shape and its patron, and the hash covers both. `tools/generate-dossiers.ts`
+  takes a list of skeleton ids, builds a schema per skeleton, and writes
+  one file per skeleton plus a generated `dossiers/index.ts`.
+  `tools/dossier-faults.ts` holds the six checks.
+- **M3.** The MISSIONS screen shows the dossier's title and briefing. The
+  hints read `lead`, `rumour.far`, `rumour.near` and `news`. A branch's
+  console line comes from `legs[leg].success` or `.fail`. The story was
+  already a reader.
+- **M4.** `npm run check` runs both drift checks. The ladder-word test
+  reads the committed files as a fourth surface. Each check was broken by
+  hand and restored.
+
+### What the plan did not have
+
+- **The machine never reads a dossier, and the plan's M3.2 would have made
+  it.** A `say` effect now names the word it may be replaced by
+  (`DossierWord` in `model.ts`), and the bridge resolves it. A silent
+  failure names its fail word with no text, so a dossier can give a
+  failure a line, and the bridge drops it when none does. The one-jump
+  dock message is resolved the same way.
+- **A branch is not always a success or a failure.** The rescue's lost pod
+  goes on to a delivery leg. `wordKind` in `missions/triggers.ts` says
+  which branches may speak with a dossier line: a branch to `fail`, a
+  branch to `complete`, and the leg's success trigger. A hunt's success
+  trigger is `targetDestroyed`.
+- **The machine crossed the size ceiling by seven lines.** The trigger
+  vocabulary moved to `missions/triggers.ts`.
+- **`faults()` took options.** A briefing must say "you", a title has no
+  full stop, and "report on arrival" is a plain order. The description
+  checks keep their defaults.
+- **One batch runner.** The descriptions generator moved onto
+  `tools/batch.ts`, so three generators share one copy of the refusal, the
+  truncation and the retry. The API path of that refactor was not
+  exercised, for the reason above. `--check` was.
+- **One home for the ladder-word lists.** They moved from the test to
+  `tools/ladder-rules.ts`, because the generator must refuse a line the
+  test would fail.
+- **The Navy is not in the patron manifest.** M1.1 said to add it. M1.3
+  fixed it in code. One patron has one home, and it is the code.
+- **The dossier's `images` field is not generated.** A model writes no
+  image, so the generator writes `{}`, and nothing reads it yet.
+- **`arrive` has a reader.** The acceptance line names the first leg's
+  `arrive` word, so a dossier can put the standing order in the patron's
+  voice.
+- **A local patron of a held job is the origin's.** `acceptedAt` in
+  `queries.ts` finds the world, and `missionName` reads it too.
+- **The Sonnet 5 batch rate moved** to the post-introductory figure in
+  `tools/batch.ts`, because the introductory rate ended on 2026-08-31.
+
+### Measurements
+
+- 5,348 assertions, from 5,252.
+- `npm run check` passes with both generated tables empty.
+- `dossiers: ok — 0/9 skeletons have a dossier` and
+  `patrons: galaxy-1.json ok — 0/256 worlds have a patron` are the two
+  new gate lines.

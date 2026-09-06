@@ -13,16 +13,19 @@ active context:
 
 ## Execution queue
 
-1. [191](191-a-model-writes-the-patrons-and-the-dossiers-and-a-gate-reads-them-first.md)
-   — a model writes the patrons and the dossiers, and a gate reads them first.
-2. [192](192-five-arcs-cross-the-galaxy-and-each-one-ends-near-the-next.md)
+1. [192](192-five-arcs-cross-the-galaxy-and-each-one-ends-near-the-next.md)
    — five arcs cross the galaxy, and each one ends near the next.
-3. [193](193-the-site-tells-the-mission-tour.md) — the site tells the
+2. [193](193-the-site-tells-the-mission-tour.md) — the site tells the
    mission tour.
 
 **191, 192 AND 193 ARE THE THREE PLANS 190 PROPOSED**, drafted on 2026-09-06
-after it landed. The pipeline comes first, so the arcs ship with words. The
-arcs come second, and the site page last, because it reads both.
+after it landed. The pipeline came first, so the arcs ship with words. **191
+landed the same day**, and it is below. The arcs come second, and the site
+page last, because it reads both. **THE GENERATION RUN IS STILL TO DO.** The
+machine 191 landed on holds no API key. So both generated tables are empty,
+and every reader runs on its plain fallback. The run is `npm run
+generate:patrons` and then `npm run generate:dossiers`, from a machine with
+the key.
 
 **190 CAME FROM CHRIS ON 2026-09-06.** He asked to expand the missions, and
 he set the direction in one conversation. The game is ours from here. No jump
@@ -224,6 +227,21 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-06
+
+**191 — a model writes the patrons and the dossiers, and a gate reads them
+first.** The pipeline is built, and the run is not. `tools/patron-prompts.ts`
+derives a role and a manner per world from the seed. `tools/dossier-prompts.ts`
+builds one prompt per skeleton from its shape and its patron, and the hash
+covers both. Two generators share one batch runner with the descriptions.
+`tools/dossier-faults.ts` refuses a dossier with a missing branch line, a
+stray slot, a foreign world or a ladder word, and the test proves each one.
+Every reader speaks the dossier's words where one exists: the MISSIONS
+screen, the console, the hints and the story. The machine never reads one.
+A say effect names the word, and the bridge resolves it. The MISSIONS and
+LOG screens name the patron, and a world with no record gets a plain one.
+Both drift checks gate the build, and each was broken by hand. 5,348
+assertions, from 5,252. **No API key on the machine, so no content
+shipped.** The two commands above write it.
 
 **190 — one machine runs every mission, and a failure never blocks the next.**
 Chris asked to expand the missions and set the direction in one conversation.
