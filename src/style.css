@@ -811,7 +811,9 @@ body.screen-open #exercise { display: none; }
 #screen tr.pick:hover td { background: rgba(var(--hud-green-rgb), 0.14); }
 #screen tr.sel.pick:hover td { background: var(--hud-green); }
 #screen .buttons { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
-#screen .buttons button {
+/* A button in a table row (the MISSIONS screen's ACCEPT and ABANDON) wears
+   the same face as one in the button row, smaller. */
+#screen .buttons button, #screen table button {
   background: rgba(0, 30, 6, 0.9);
   border: 1px solid var(--hud-dim);
   color: var(--hud-green);
@@ -821,8 +823,12 @@ body.screen-open #exercise { display: none; }
   padding: 6px 14px;
   cursor: pointer;
 }
-#screen .buttons button:hover { border-color: var(--hud-green); background: rgba(var(--hud-green-rgb), 0.16); }
-#screen .buttons button:active { background: var(--hud-green); color: #001402; }
+#screen .buttons button:hover, #screen table button:hover { border-color: var(--hud-green); background: rgba(var(--hud-green-rgb), 0.16); }
+#screen .buttons button:active, #screen table button:active { background: var(--hud-green); color: #001402; }
+#screen table button { padding: 3px 8px; letter-spacing: 1px; }
+/* The LOG screen's route map: the chart's 2:1 frame, held to a height that
+   leaves the pages and the BACK row on the screen. */
+#screen .route-map { display: block; width: 100%; max-height: 200px; margin: 10px auto 0; }
 
 /* combat overlay: target bracket + lead reticle */
 #reticle { position: absolute; inset: 0; pointer-events: none; }
