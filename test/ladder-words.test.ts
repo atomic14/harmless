@@ -53,7 +53,9 @@ import { recordVerdict } from '../src/game/law.ts';
 import { CHARACTER } from '../src/constants/character.ts';
 import { CLEAN, FUGITIVE, OFFENDER } from '../src/constants/law.ts';
 import { PAGES, commentParagraphs, playerSentences, shoutedStrings } from './ladder-scan.ts';
-import { COMBAT, PROSE, SHOUTED as BANNED } from '../tools/ladder-rules.ts';
+import { COMBAT, PROSE, SHOUTED as BANNED, proseLadderOffences } from '../tools/ladder-rules.ts';
+import { DOSSIER_FILES } from '../src/missions/dossiers/index.ts';
+import { patronFile } from '../src/missions/patrons.ts';
 import { capture } from './screen-capture.ts';
 import { check, eq } from './harness.ts';
 
@@ -195,6 +197,33 @@ console.log('\n...and no comment in src/ calls a ladder by another ladder\'s wor
   // The control: the first version of this gate stripped every comment, and a
   // reader that stripped them all would report the same success.
   check('...and the scan really read the comments', paras.length > 5000);
+}
+
+console.log('\n...and no generated line a player reads calls a ladder by another word');
+{
+  // The fourth surface, since docs/TODO/191. A dossier and a patron are
+  // words a player reads, written by a model and committed as JSON. The
+  // generator refuses a line with `proseLadderOffences`, and this reads the
+  // COMMITTED files with the same rule, so a hand edit cannot slip one in.
+  const texts: { where: string; text: string }[] = [];
+  const walk = (where: string, v: unknown) => {
+    if (typeof v === 'string') texts.push({ where, text: v });
+    else if (v && typeof v === 'object') for (const [k, x] of Object.entries(v)) walk(`${where}.${k}`, x);
+  };
+  for (const f of DOSSIER_FILES) walk(`dossiers/${f.dossier.skeleton}`, f.dossier);
+  for (const [i, r] of Object.entries(patronFile(1)?.entries ?? {})) walk(`patrons/${i}`, { name: r.name, voice: r.voice });
+
+  // The predicate first: the rule catches what the plan says it must.
+  check('the rule catches a combat reputation',
+    proseLadderOffences('A combat reputation like yours is what this needs.').length === 1);
+  check('...and a criminal record', proseLadderOffences('Your record is your own business.').length === 1);
+  check('...and a character', proseLadderOffences('A pilot of character.').length === 1);
+  check('...while the right words pass',
+    proseLadderOffences('Your reputation precedes you, and your legal status is clean.').length === 0);
+
+  const found = texts.flatMap((t) => proseLadderOffences(t.text).map((why) => `${t.where}: "${t.text}" — ${why}`));
+  check(`no committed dossier or patron line names a ladder in another ladder's word (${texts.length} fields)`,
+    found.length === 0, found.join('\n     '));
 }
 
 console.log('\n...and the two verdict lines say the player\'s word');
