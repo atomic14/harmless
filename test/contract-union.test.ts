@@ -29,7 +29,8 @@
 // WHAT IS NOT HERE. What a contract PAYS is `test/contracts.test.ts`'s. The
 // migration ladder is `test/snapshot-migrate.test.ts`'s.
 
-import { newCommander, type CommanderData, type Contract } from '../src/game/commander.ts';
+import { newCommander, type CommanderData } from '../src/game/commander.ts';
+import type { Contract } from '../src/game/contract-record.ts';
 import { settleContracts } from '../src/game/contracts.ts';
 import { parseSnapshot } from '../src/game/snapshot-parse.ts';
 import { SNAPSHOT_VERSION } from '../src/game/snapshot.ts';

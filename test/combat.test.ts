@@ -7,7 +7,8 @@
 
 import * as THREE from 'three';
 import { World } from '../src/game/world.ts';
-import { newCommander, cargoTonnes, type Contract } from '../src/game/commander.ts';
+import { newCommander, cargoTonnes } from '../src/game/commander.ts';
+import type { Contract } from '../src/game/contract-record.ts';
 
 /** A bounty job taken at `destination`, with no kills on it yet. */
 const bounty = (destination: number): Extract<Contract, { kind: 'bounty' }> =>

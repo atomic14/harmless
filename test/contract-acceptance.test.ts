@@ -9,8 +9,9 @@
 // check here is about the hold, and none of them settles anything.
 
 import {
-  newCommander, cargoCapacity, cargoTonnes, type Contract,
+  newCommander, cargoCapacity, cargoTonnes,
 } from '../src/game/commander.ts';
+import type { Contract } from '../src/game/contract-record.ts';
 import type { CommanderData } from '../src/game/commander.ts';
 import { acceptContract } from '../src/game/contracts.ts';
 import { MAX_CONTRACTS, PASSENGER_BERTH_TONNES } from '../src/constants/contracts.ts';

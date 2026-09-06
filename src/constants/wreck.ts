@@ -108,6 +108,11 @@ export const POD_LAUNCH_GRACE = 1.5;
  * @rule wreck.miningYieldMin
  */
 export const MINING_YIELD_MIN = 1;
+/**
+ * ...and the span above the minimum: one to four canisters in all.
+ *
+ * @rule wreck.miningYieldSpan
+ */
 export const MINING_YIELD_SPAN = 3;
 
 /**
@@ -120,6 +125,8 @@ export const MINING_YIELD_SPAN = 3;
  * job, because it is tougher than any hull (npc-energy.ts), so it has to pay like
  * one. What the cans hold is contraband, which is worth the carry only where you
  * can sell it: another hermit, if you can find one.
+ *
+ * @rule wreck.hermitContrabandMin
  */
 export const HERMIT_CONTRABAND_MIN = 3;
 export const HERMIT_CONTRABAND_SPAN = 4;

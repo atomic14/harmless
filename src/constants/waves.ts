@@ -26,7 +26,11 @@ export const WAVE_MAX_COUNT = 6;
  */
 export const WAVE_COUNT_EVERY = 2;
 
-/** ...and the tier climbs a rung every this many. */
+/**
+ * ...and the tier climbs a rung every this many.
+ *
+ * @rule waves.tierEvery
+ */
 export const WAVE_TIER_EVERY = 3;
 
 /**

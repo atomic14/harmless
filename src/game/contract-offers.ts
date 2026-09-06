@@ -23,7 +23,7 @@
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
 import { random } from './rng.ts';
 import { distanceTenths } from '../galaxy/navigation.ts';
-import type { Contract } from './commander.ts';
+import type { Contract } from './contract-record.ts';
 import { CONTRACT_RANGE } from '../constants/contracts.ts';
 import { ORDINARY_GOODS } from '../constants/commodities.ts';
 import { CONTRABAND } from '../constants/law.ts';

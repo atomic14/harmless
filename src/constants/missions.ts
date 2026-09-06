@@ -27,3 +27,19 @@ export const CONSTRICTOR_BOUNTY = 25_000;
 
 /** ...and what a delivery of the plans pays: 1,500 Cr. */
 export const COURIER_PAYMENT = 15_000;
+
+/**
+ * How many missions a commander can hold open at one time: three.
+ *
+ * Chris chose three on 2026-09-06 (docs/TODO/190). One slot would make a lead
+ * wait for the current mission to end. The bulletin board already offers
+ * several contracts at once, and a mission is no rarer than a job. The mission
+ * machine (`missions/machine.ts`) refuses a fourth acceptance. A saved lead
+ * waits in `MissionState.leads` until a slot frees.
+ *
+ * It equals `MAX_CONTRACTS`, and that is a coincidence, not a rule. A board
+ * job and a mission are separate slots. Each cap moves on its own evidence.
+ *
+ * @rule missions.liveCap
+ */
+export const MISSION_LIVE_CAP = 3;

@@ -20,8 +20,9 @@
 // the same reason. `test/contracts.test.ts` owns the settlement half.
 
 import {
-  newCommander, consignedTonnes, type CommanderData, type Contract,
+  newCommander, consignedTonnes, type CommanderData,
 } from '../src/game/commander.ts';
+import type { Contract } from '../src/game/contract-record.ts';
 import { generateMarket, COMMODITIES } from '../src/galaxy/galaxy.ts';
 import {
   renderMarket,

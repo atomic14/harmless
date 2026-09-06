@@ -22,8 +22,9 @@ import { distanceTenths } from '../src/galaxy/navigation.ts';
 import { generateContractOffers, describeContract } from '../src/game/contract-offers.ts';
 import { settleContracts } from '../src/game/contracts.ts';
 import {
-  newCommander, type CommanderData, type ConsignmentContract, type Contract,
+  newCommander, type CommanderData,
 } from '../src/game/commander.ts';
+import type { ConsignmentContract, Contract } from '../src/game/contract-record.ts';
 import { CONTRACT_RANGE } from '../src/constants/contracts.ts';
 import { ORDINARY_GOODS } from '../src/constants/commodities.ts';
 import { CONTRABAND } from '../src/constants/law.ts';

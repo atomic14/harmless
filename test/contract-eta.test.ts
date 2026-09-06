@@ -17,7 +17,8 @@
 import type { StarSystem } from '../src/galaxy/galaxy.ts';
 import { distanceTenths, daysForJump } from '../src/galaxy/navigation.ts';
 import { routeEstimate } from '../src/galaxy/route.ts';
-import { newCommander, type CommanderData, type Contract } from '../src/game/commander.ts';
+import { newCommander, type CommanderData } from '../src/game/commander.ts';
+import type { Contract } from '../src/game/contract-record.ts';
 import { contractDestinations, contractVerdict } from '../src/game/contract-eta.ts';
 import { orderDestinations, orderVerdict } from '../src/game/orders.ts';
 import { MAX_FUEL } from '../src/constants/commander.ts';

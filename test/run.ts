@@ -46,6 +46,8 @@ import './contract-offers.test.ts';
 import './contract-acceptance.test.ts';
 import './consigned-hold.test.ts';
 import './missions.test.ts';
+import './mission-machine.test.ts';
+import './mission-skeletons.test.ts';
 import './standing-orders.test.ts';
 import './contracts-screen.test.ts';
 import './survivors.test.ts';

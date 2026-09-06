@@ -21,9 +21,9 @@
 // for the campaign simulator, and COMMODITIES is a value import, not a type.
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
 import {
-  cargoCapacity, cargoTonnes, formatCredits,
-  type CommanderData, type ConsignmentContract, type Contract,
+  cargoCapacity, cargoTonnes, formatCredits, type CommanderData,
 } from './commander.ts';
+import type { ConsignmentContract, Contract } from './contract-record.ts';
 import type { SoundName } from './sounds.ts';
 import { describeContract } from './contract-offers.ts';
 import { MAX_CONTRACTS, PASSENGER_BERTH_TONNES } from '../constants/contracts.ts';

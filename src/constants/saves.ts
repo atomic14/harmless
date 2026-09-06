@@ -20,6 +20,8 @@ export const AUTOSAVE_INTERVAL = 20;
  * A SMALLER RING ORPHANS KEYS. The slots are storage keys
  * (`save:auto:<CAREER>:fly:<n>`). A smaller ring therefore leaves the higher
  * slots on the shelf, where `flightIds` can no longer address them.
+ *
+ * @rule saves.flightRing
  */
 export const FLIGHT_RING = 3;
 

@@ -6,7 +6,8 @@
 
 import { renderContracts } from '../../ui/screens.ts';
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
-import type { Contract, CommanderData } from '../commander.ts';
+import type { CommanderData } from '../commander.ts';
+import type { Contract } from '../contract-record.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
 

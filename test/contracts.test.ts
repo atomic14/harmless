@@ -10,8 +10,9 @@
 // when the bill for a shorted consignment (docs/TODO/113) took it over again.
 
 import {
-  newCommander, cargoTonnes, type Contract,
+  newCommander, cargoTonnes,
 } from '../src/game/commander.ts';
+import type { Contract } from '../src/game/contract-record.ts';
 import type { CommanderData } from '../src/game/commander.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { settleContracts, contractMessage } from '../src/game/contracts.ts';

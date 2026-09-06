@@ -25,5 +25,7 @@ export const MAX_LEAD_SECONDS = 0.5;
  * It binds only where no heading opens the gap asked for. Past it, the ship flies
  * more across its run than along it, which is the orbit that this flight model
  * replaced.
+ *
+ * @rule passaim.maxMissStretch
  */
 export const MAX_MISS_STRETCH = 3;

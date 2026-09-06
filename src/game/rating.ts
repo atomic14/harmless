@@ -38,3 +38,17 @@ export function rating(combatScore: number): string {
 export function ratingLadder(): readonly string[] {
   return RATINGS.map(([, name]) => name);
 }
+
+/**
+ * Which rung of the ladder a score stands on: 0 for Harmless, up to
+ * `RATINGS.length - 1` for Elite.
+ *
+ * A mission gate (`missions/model.ts` `Gate.minRating`) compares rungs, not
+ * names. The number lives here beside `rating()`, so the two cannot read the
+ * table two ways.
+ */
+export function ratingRung(combatScore: number): number {
+  let rung = 0;
+  for (let i = 0; i < RATINGS.length; i++) if (combatScore >= RATINGS[i][0]) rung = i;
+  return rung;
+}

@@ -654,6 +654,43 @@ Later damage or destruction does not reverse the completed mission or its paymen
    Check that each lead names an existing arc without a conflicting prerequisite
    or exclusion. Test access to the next offer after both final outcomes.
 
+#### M1 outcome (2026-09-06)
+
+M1 landed as planned, with these additions that the plan did not have:
+
+- `Placement` gains `anywhere`. The Constrictor's report leg ends at any
+  station, as the 1984 mission did, and no listed placement said that.
+- `Leg` gains `line`, `override` and `carryingPlans`. The standing order, the
+  blueprint override and the raised mis-jump chance were stage numbers in the
+  old machine. Each is now a fact on the leg it belongs to, and `queries.ts`
+  reads them for M2.
+- `Settlement` gains `say`, and `Skeleton` gains `hail`. The console lines the
+  old machine spoke are on the branch that earns them.
+- `Gate` gains `galaxy`. The Navy briefs in galaxy 1 only, and no listed
+  condition said so.
+- The machine saves a lead into `MissionState.leads` itself, and it also
+  returns the `lead` effect. M3 step 2 needs no second writer.
+- The machine handles `abandon` and `dayPassed` already. The MISSIONS screen
+  control for abandonment is still M3.
+- A `destroyed` input marks the tagged entity dead. `missionSpawns` then never
+  spawns it again. The entity is deleted when its mission ends.
+- `ratingRung` joins `game/rating.ts`, so `Gate.minRating` compares rungs.
+- Twelve constants that equal 3 gained a rule id, as docs/TODO/188 M2 did for
+  the value 2, because `constants:check` refuses a repeated value without one.
+- The ambush verb is written and tested on a fixture. The Constrictor's
+  courier leg is a deliver leg with the Thargoid override and `carryingPlans`,
+  because the 1984 courier run had no separate encounter stage.
+- The report leg has a standing order of its own. Stage 2 printed nothing.
+- The `Contract` union left `commander.ts` for `src/game/contract-record.ts`.
+  The new `missions` field and its doc pushed `commander.ts` to 412 lines, and
+  the size gate wants a split, not a trim. Nineteen importers repoint.
+- `test/missions.test.ts` still drives the old machine, because the old
+  machine still runs the game. M2 step 7 converts or deletes it.
+
+Two temporary faults proved the gates. A removed failure branch failed
+`test/mission-skeletons.test.ts`. A branch that settled without a move failed
+the duplicate-payment check in `test/mission-machine.test.ts`.
+
 ### M2 — Integration with the game world
 
 1. Replace `NpcState.isMissionTarget` with `missionTag: string | null`.

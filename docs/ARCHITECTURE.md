@@ -168,6 +168,9 @@ Two quirks are deliberate:
   place of that number: the Navy mission raises one, and witch-space raises the
   other. `missions.ts` and `world-build.ts` name the override. Each of the three
   module headers holds the rule and the measurement behind it.
+- `src/game/contract-record.ts` holds the shape of a job: the `Contract` union
+  on `kind`, and the two kinds that carry goods. It holds no rule. It left
+  `commander.ts` when docs/TODO/190 M1 pushed that file over the size ceiling.
 - `src/game/contract-offers.ts` owns what the bulletin board offers today, and
   how each job reads. `src/game/contracts.ts` owns the rest of a contract's
   life: what acceptance costs the hold, what a delivery pays, and what a failure
@@ -190,6 +193,17 @@ Two quirks are deliberate:
   screen and the charts cannot hold three answers. Invariant 16 lives here. It
   restates no words: a contract reads through `contract-offers.ts`, and the
   mission through `missions.ts`.
+- `src/missions/` is the mission machine (docs/TODO/190). `model.ts` holds the
+  types. A skeleton under `skeletons/` is one mission's rules, written by a
+  developer. A dossier is its generated words, and the machine never reads one.
+  `machine.ts` is one pure step. It takes the record, one input and the facts
+  it may read. It returns a new record with the effects the game applies.
+  A verb module under `verbs/` decides what an input means for one leg, and
+  the machine takes the branch. `placement.ts` picks a leg's world with one
+  draw. `queries.ts` answers the game's questions without a change. `lint.ts`
+  holds the five failure rules as data checks, and
+  `test/mission-skeletons.test.ts` runs it over every skeleton. The old
+  five-stage machine in `game/missions.ts` runs the game until M2 replaces it.
 - `src/game/character.ts` owns the disrepute ladder. It owns what a score is
   CALLED, and how a deed and a quiet week move it. It also owns whether a move
   crossed a rung that the pilot must hear about. Every deed in the game asks it

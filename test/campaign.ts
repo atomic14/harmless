@@ -25,8 +25,9 @@ import { MAX_CONTRACTS, SMUGGLE_DELIVERY_NOTORIETY } from '../src/constants/cont
 import { pirateThreat, markOf, memberTier } from '../src/game/threat.ts';
 import {
   newCommander, cargoCapacity, cargoTonnes, killValue,
-  type CommanderData, type Contract,
+  type CommanderData,
 } from '../src/game/commander.ts';
+import type { Contract } from '../src/game/contract-record.ts';
 import { MAX_FUEL } from '../src/constants/commander.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import {

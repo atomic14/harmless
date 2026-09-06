@@ -13,7 +13,10 @@ import { MAX_FUEL } from './commander.ts';
 
 /** The most work you may hold at once. It is the single home for a threshold
  *  that game.ts and the balance harness both read, so they play the same-sized
- *  board. */
+ *  board.
+ *
+ * @rule contracts.maxContracts
+ */
 export const MAX_CONTRACTS = 3;
 
 /**

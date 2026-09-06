@@ -32,6 +32,8 @@ export const ORDINARY_GOODS: readonly number[] = [0, 1, 4, 8, 9, 12];
  * It is also `CONTRABAND[0]` (constants/law.ts). It is not read from there. That
  * list is what the law will fine you for CARRYING, in an order that its own
  * consumers index, and this is a price lookup.
+ *
+ * @rule commodities.slaves
  */
 export const SLAVES = 3;
 

@@ -45,7 +45,11 @@ export const PROMPT_LIMIT = 2;
 /** Closer than this to the sun, the compass switches to it for a sun-skim. */
 export const SUNSKIM_COMPASS_RANGE = 130_000;
 
-/** The station takes the compass within this many planet radii. */
+/**
+ * The station takes the compass within this many planet radii.
+ *
+ * @rule console.stationCompassRadii
+ */
 export const STATION_COMPASS_RADII = 3;
 
 /** Notional bolt speed, for the lead marker only. A real shot is instant. */

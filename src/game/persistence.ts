@@ -25,7 +25,7 @@
 
 import { generateGalaxy, type MarketEntry } from '../galaxy/galaxy.ts';
 import { LivingGalaxy } from '../galaxy/living.ts';
-import type { Contract } from './commander.ts';
+import type { Contract } from './contract-record.ts';
 import type { PirateThreat } from './threat.ts';
 import { CONSTRICTOR_SPEC, pirateSpecForTier, specForDesign } from './ship-specs.ts';
 import type { NpcRole } from './ship-roles.ts';

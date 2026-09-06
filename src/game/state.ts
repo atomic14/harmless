@@ -19,7 +19,8 @@
 // what happens next changes. Only what you see changes.
 
 import type { StarSystem, MarketEntry } from '../galaxy/galaxy.ts';
-import type { CommanderData, Contract } from './commander.ts';
+import type { CommanderData } from './commander.ts';
+import type { Contract } from './contract-record.ts';
 import type { PirateThreat } from './threat.ts';
 import type { EncounterTimers } from './encounters.ts';
 import type { ShipSystems } from './systems.ts';

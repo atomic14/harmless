@@ -12,8 +12,9 @@
 // `mission.stage` by hand would pass while the machine that sets it was broken.
 
 import {
-  formatCredits, newCommander, type CommanderData, type Contract,
+  formatCredits, newCommander, type CommanderData,
 } from '../src/game/commander.ts';
+import type { Contract } from '../src/game/contract-record.ts';
 import { standingOrders, ordersSummary } from '../src/game/orders.ts';
 import { constrictorDestroyed, missionLeg, stepMissionAtDock } from '../src/game/missions.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';

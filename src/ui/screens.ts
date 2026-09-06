@@ -4,7 +4,8 @@ import { systemDescription } from '../galaxy/descriptions.ts';
 import { escapeHtml } from '../engine/escape-html.ts';
 import { distanceTenths } from '../galaxy/navigation.ts';
 
-import { type CommanderData, type Contract, cargoTonnes, formatCredits, cargoCapacity } from '../game/commander.ts';
+import { type CommanderData, cargoTonnes, formatCredits, cargoCapacity } from '../game/commander.ts';
+import type { Contract } from '../game/contract-record.ts';
 import { standingOrders, type ContractOrder } from '../game/orders.ts';
 import type { MissionLeg } from '../game/missions.ts';
 import { MAX_FUEL } from '../constants/commander.ts';

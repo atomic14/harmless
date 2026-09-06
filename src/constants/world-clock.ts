@@ -39,5 +39,7 @@ export const MAX_STEPS_PER_FRAME = 5;
  * is about the most a hand delivers into a single dropped frame. It is well
  * inside `MAX_STEPS_PER_FRAME`, so a backlog is spent as movement the player
  * asked for. `test/input.test.ts` holds the inequality.
+ *
+ * @rule clock.carryLimit
  */
 export const CARRY_LIMIT = 3;

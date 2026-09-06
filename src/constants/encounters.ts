@@ -94,6 +94,8 @@ export const PIRATE_WAVE_GAP_JITTER = 90;
  * above. That is the line between policed space and space where you are on your
  * own. It is the same line that the player weighs when a rich cargo is only worth
  * the carry through an anarchy.
+ *
+ * @rule encounters.lawlessGovernment
  */
 export const LAWLESS_GOVERNMENT = 3;
 

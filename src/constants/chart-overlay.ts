@@ -31,5 +31,7 @@ export const LANE_FADE_FLOOR = 0.35;
  * Three fit beside the systems, the convoy count, the tonnage and the arrival, on
  * one keyline, at the width both charts are drawn at. The list runs
  * heaviest-first, so what drops off is the shipment nobody asks about.
+ *
+ * @rule chart.laneCargoNamed
  */
 export const LANE_CARGO_NAMED = 3;

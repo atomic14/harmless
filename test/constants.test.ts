@@ -99,6 +99,20 @@ const OUTSIDE: readonly Group[] = [
 
 
   {
+    why: 'STAYS: a skeleton is a TABLE of mission rules, and a registry is a table'
+      + ' of modules (docs/TODO/190). Every number a skeleton spends is imported'
+      + ' from constants/missions.ts, so the rule keeps one home there. The table'
+      + ' itself names legs, verbs and branches, which no catalogue row can hold.'
+      + ' `SKELETONS` is the list the machine looks a mission up in, and `VERBS`'
+      + ' is the module for each verb kind',
+    files: {
+      'missions/skeletons/constrictor.ts': ['CONSTRICTOR'],
+      'missions/skeletons/index.ts': ['SKELETONS'],
+      'missions/verbs/registry.ts': ['VERBS'],
+    },
+  },
+
+  {
     why: 'resolved once at load, not a rule — a catalogue lookup, and moving it would'
       + ' put a `requireShipDef` call inside a directory that may not import',
     files: {

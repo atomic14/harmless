@@ -44,7 +44,7 @@ import {
 import { SLAVES } from '../constants/commodities.ts';
 import { SMUGGLE_DELIVERY_NOTORIETY } from '../constants/contracts.ts';
 import { BRIEFING_VERSION } from '../constants/commander.ts';
-import type { Contract } from './commander.ts';
+import type { Contract } from './contract-record.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { buyEquipment, type MarketScreen, type TradeContext } from './screens/trade.ts';
 import type { ContractsScreen } from './screens/contracts.ts';

@@ -43,6 +43,7 @@ import {
 import { DEFAULT_NAME } from '../constants/commander.ts';
 import { requirePlayerHullId } from './ship-identity.ts';
 import type { WorldSnapshot } from './snapshot.ts';
+import { emptyMissionState } from '../missions/state.ts';
 import {
   SAVE_ID_PREFIX, SAVE_RECORD_VERSION,
   dockId, fileId, flightIds, parseSaveId, uniqueSaveName,
@@ -493,6 +494,7 @@ function repairCommander(stored: Partial<CommanderData>): CommanderData {
   const parsed = { ...newCommander(), ...stored };
   parsed.equipment = { ...defaultEquipment(), ...(stored.equipment ?? {}) };
   parsed.mission = { stage: 0, targetIndex: null, ...(stored.mission ?? {}) };
+  parsed.missions = { ...emptyMissionState(), ...(stored.missions ?? {}) };
   if (!Array.isArray(parsed.contracts)) parsed.contracts = [];
   if (typeof parsed.day !== 'number') parsed.day = 0;
   // 0 is "never briefed". So a hand-edited or pre-marker record earns the one

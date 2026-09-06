@@ -10,8 +10,9 @@
 // `atStation`, and these are its two states.
 
 import {
-  newCommander, type CommanderData, type Contract,
+  newCommander, type CommanderData,
 } from '../src/game/commander.ts';
+import type { Contract } from '../src/game/contract-record.ts';
 import { renderContracts } from '../src/ui/screens.ts';
 import { standingOrders } from '../src/game/orders.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';

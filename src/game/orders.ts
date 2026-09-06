@@ -21,7 +21,8 @@
 // (missions.ts). Both stay the one home of their own prose. This file joins
 // them and sorts them, and that is all it does.
 
-import type { CommanderData, Contract } from './commander.ts';
+import type { CommanderData } from './commander.ts';
+import type { Contract } from './contract-record.ts';
 import { dayWord } from './commander.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { describeContract } from './contract-offers.ts';

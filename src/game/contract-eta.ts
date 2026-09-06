@@ -21,7 +21,8 @@
 // deadline day therefore pays. A pilot who stands on the destination on the
 // last day is not late, and the verdict must not say they are.
 
-import type { CommanderData, Contract } from './commander.ts';
+import type { CommanderData } from './commander.ts';
+import type { Contract } from './contract-record.ts';
 import { dayWord } from './commander.ts';
 
 /**
