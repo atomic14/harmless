@@ -13,8 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [190](190-one-machine-runs-every-mission-and-a-failure-never-blocks-the-next.md)
-   — one machine runs every mission, and a failure never blocks the next.
+The queue is empty.
 
 **190 CAME FROM CHRIS ON 2026-09-06.** He asked to expand the missions, and
 he set the direction in one conversation. The game is ours from here. No jump
@@ -22,8 +21,9 @@ between galaxies is needed. The content is generated offline. Every
 mission gets a patron with a face. A skeleton is code and a dossier is words.
 Arcs dovetail across the galaxy, a far player gets hints, and a failure is a
 branch rather than a wall. The commander reads the path taken as a story. 190
-builds the machine and converts the Constrictor. The pipelines, the arcs and
-the site page are 191, 192 and 193, each a plan of its own when 190 lands.
+built the machine and converted the Constrictor. **It landed the same day, in
+five milestones**, and it is below. The pipelines, the arcs and the site page
+are 191, 192 and 193, each a plan of its own, and none is written yet.
 
 **189 CAME FROM CHRIS ON 2026-09-05**, after 188 landed. He asked whether he
 can trigger a Thargoid ambush, and he could not: a mis-jump is a 9% roll. Two
@@ -213,6 +213,35 @@ headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
+
+## What landed on 2026-09-06
+
+**190 — one machine runs every mission, and a failure never blocks the next.**
+Chris asked to expand the missions and set the direction in one conversation.
+The Navy's five-stage machine is gone. `src/missions/` is one pure step that
+reads an event and returns the record and the effects, and the game applies
+them. A skeleton is a mission's rules in code. A dossier is its words, and no
+dossier ships yet.
+
+**THE CONSTRICTOR IS THE FIRST SKELETON**, three legs for five stages, and
+the same two payments at the same two moments. Nothing starts on its own any
+more: the MISSIONS screen offers, accepts and abandons. A galactic jump with
+missions held asks first, fails them on Y, and moves every lead to a world
+she can reach.
+
+**EVERY VERB IS A JOB.** Eight side jobs, one per verb, sit on about a third
+of the boards. A rescue's pod shot turns the leg into a delivery at a lower
+fee, which is Chris's scientist. An escort is safe when its ship is alive,
+inside station range and clear of enemies, once. A lead travels by word of
+mouth. The MISSIONS row and a chart pointer say it at any distance. A board
+rumour and a DATA ON line say it inside five jumps. A patron's message says
+it one jump out.
+
+**THE COMMANDER READS THE PATH SHE TOOK AS A STORY.** ⇧R opens the log. It
+is one page per run, the branch she took and never the other, with the route
+drawn.
+5,252 assertions, from 4,972. The ambush probe and both campaign sizes read
+as before. Thirty-one constants gained a rule id for a repeated value.
 
 ## What landed on 2026-09-05
 

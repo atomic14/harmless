@@ -1031,3 +1031,11 @@ Restore the correct implementation after each check.
 | Remove the passenger tag comparison | Incorrect progress in concurrent rescues |
 | Pay the bounty again for a duplicate event | Duplicate payment |
 | Use `carryingPlans` as the `forced` control | Incorrect jump result or random draw count |
+
+## Outcome (2026-09-06)
+
+All five milestones landed on 2026-09-06, one commit each, and the plan moved
+to the archive. Each milestone's outcome section above records what the plan
+did not have. The pipelines, the arcs and the site page are proposed items
+191, 192 and 193, and none is written yet. `src/missions/dossiers.ts` is the
+empty table item 191 fills.
