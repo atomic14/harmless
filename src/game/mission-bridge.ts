@@ -17,6 +17,7 @@ import { cargoCapacity, cargoTonnes, type CommanderData } from './commander.ts';
 import { random } from './rng.ts';
 import { specForDesign, type NpcSpec } from './ship-specs.ts';
 import { huntWarning } from './hunt-warning.ts';
+import { dossierWord } from '../missions/dossiers.ts';
 import { stepMissions } from '../missions/machine.ts';
 import { legOf } from '../missions/machine.ts';
 import type { CommanderFacts, LiveMission, MissionInput } from '../missions/model.ts';
@@ -70,6 +71,11 @@ export function runMissions(
   });
   c.missions = state;
   const out: MissionMessage[] = [];
+  // A dossier's line replaces the skeleton's where one exists (docs/TODO/191
+  // M3). The machine named the line and never read it. A word with no
+  // dossier and no plain text is silence, as the skeleton meant it.
+  const spoken = (e: { text: string; word?: Parameters<typeof dossierWord>[0] }): string =>
+    (e.word ? dossierWord(e.word, missionFacts(c), systems) : null) ?? e.text;
   for (const e of effects) {
     switch (e.kind) {
       case 'pay': c.credits += e.tenths; break;
@@ -77,8 +83,16 @@ export function runMissions(
       case 'legal':
         c.legalStatus = Math.max(0, Math.min(FUGITIVE, c.legalStatus + e.delta));
         break;
-      case 'say': out.push({ kind: 'message', text: e.text, seconds: 6, command: e.command }); break;
-      case 'later': out.push({ kind: 'message', text: e.text, seconds: 6, queued: true }); break;
+      case 'say': {
+        const text = spoken(e);
+        if (text) out.push({ kind: 'message', text, seconds: 6, command: e.command });
+        break;
+      }
+      case 'later': {
+        const text = spoken(e);
+        if (text) out.push({ kind: 'message', text, seconds: 6, queued: true });
+        break;
+      }
       case 'lead':
         out.push({
           kind: 'message', queued: true, seconds: 6,

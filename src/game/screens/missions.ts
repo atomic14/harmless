@@ -20,9 +20,11 @@ import { renderMissions, type HeldRow, type OfferRow } from '../../ui/screens.ts
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { CommanderData } from '../commander.ts';
 import { standingOrders, type MissionOrder } from '../orders.ts';
-import type { Skeleton } from '../../missions/model.ts';
+import type { Dossier, Skeleton } from '../../missions/model.ts';
+import { dossierFor } from '../../missions/dossiers.ts';
 import { leadLine } from '../../missions/hints.ts';
 import { patronFor } from '../../missions/patrons.ts';
+import { fillSlots } from '../../missions/text.ts';
 import { acceptedAt } from '../../missions/queries.ts';
 import { skeletonById } from '../../missions/skeletons/index.ts';
 import { missionFacts } from '../mission-bridge.ts';
@@ -40,6 +42,8 @@ export interface MissionsContext {
   accept(index: number): void;
   /** give up the live mission at `index` of the held rows */
   abandon(index: number): void;
+  /** the dossier table; a test empties it, and the game uses the committed one */
+  readonly dossiers?: (id: string) => Dossier | null;
 }
 
 export class MissionsScreen implements Screen {
@@ -66,15 +70,23 @@ export class MissionsScreen implements Screen {
   /**
    * The rows, each with its patron's name (docs/TODO/191 M1). An offer's
    * local patron runs this station. A held job's ran the station it was
-   * taken at, which is not where she reads the row.
+   * taken at, which is not where she reads the row. An offer shows its
+   * dossier's title and briefing, with the patron and this world filled in.
+   * It shows the skeleton's plain pitch when no dossier exists (M3).
    */
   render(): void {
-    const { commander, systems, offers, atStation } = this.ctx();
+    const { commander, systems, offers, atStation, dossiers = dossierFor } = this.ctx();
     const facts = missionFacts(commander);
-    const leads = commander.missions.leads.map((l) => leadLine(l, facts, systems));
-    const offerRows: OfferRow[] = offers.map((s) => ({
-      pitch: s.pitch, patron: patronFor(s.patron, facts, systems).name,
-    }));
+    const leads = commander.missions.leads.map((l) => leadLine(l, facts, systems, dossiers));
+    const offerRows: OfferRow[] = offers.map((s) => {
+      const patron = patronFor(s.patron, facts, systems);
+      const d = dossiers(s.id);
+      const slots = { PATRON: patron.name, HERE: systems[commander.systemIndex].name };
+      return {
+        pitch: s.pitch, patron: patron.name,
+        title: d?.title ?? '', pages: (d?.briefing ?? []).map((p) => fillSlots(p, slots)),
+      };
+    });
     const heldRows: HeldRow[] = this.held().map((o) => {
       const s = skeletonById(o.live.skeleton);
       const origin = acceptedAt(commander.missions, o.live.skeleton);

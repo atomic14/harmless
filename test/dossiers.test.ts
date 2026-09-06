@@ -10,17 +10,29 @@
 // drift gate are each proved on a dossier built here and then broken.
 
 import { readdirSync, readFileSync } from 'node:fs';
-import { dossierFor } from '../src/missions/dossiers.ts';
+import { newCommander, type CommanderData } from '../src/game/commander.ts';
+import { runMissions } from '../src/game/mission-bridge.ts';
+import { MissionsScreen } from '../src/game/screens/missions.ts';
+import { dossierFor, dossierWord } from '../src/missions/dossiers.ts';
 import { DOSSIER_FILES } from '../src/missions/dossiers/index.ts';
-import type { Dossier, Skeleton } from '../src/missions/model.ts';
+import { boardRumour, dockHint, leadJumps, leadLine, worldNews } from '../src/missions/hints.ts';
+import { stepMissions, type MissionContext } from '../src/missions/machine.ts';
+import type {
+  CommanderFacts, Dossier, MissionEffect, MissionState, Skeleton,
+} from '../src/missions/model.ts';
+import { patronFor } from '../src/missions/patrons.ts';
 import { SKELETONS, skeletonById } from '../src/missions/skeletons/index.ts';
-import { SIDE_RESCUE } from '../src/missions/skeletons/side.ts';
+import { SIDE_HUNT, SIDE_RESCUE } from '../src/missions/skeletons/side.ts';
+import { emptyMissionState } from '../src/missions/state.ts';
+import { storyPages } from '../src/missions/story.ts';
 import { CONSTRICTOR } from '../src/missions/skeletons/constrictor.ts';
 import { dossierFaults } from '../tools/dossier-faults.ts';
 import {
   DOSSIER_PROMPT_VERSION, dossierDrift, dossierPromptFor, dossierPrompts, indexSource, shapeOf,
 } from '../tools/dossier-prompts.ts';
+import { g1 } from './fixtures.ts';
 import { check, eq } from './harness.ts';
+import { captureById } from './screen-capture.ts';
 
 /** A dossier that passes every check, built from the skeleton's shape. */
 export function sampleDossier(s: Skeleton): Dossier {
@@ -41,7 +53,7 @@ export function sampleDossier(s: Skeleton): Dossier {
       opening: 'On day {DAY} she took the errand at {WORLD}.',
       closing: { complete: 'It was done at {WORLD} on day {DAY}.', fail: 'It failed at {WORLD} on day {DAY}.' },
       legs: Object.fromEntries(shape.legs.map((leg) => [leg, Object.fromEntries(
-        shape.triggers[leg].map((t) => [t, `On day {DAY}, at {WORLD}, the leg ended by ${t.replace(/[^a-z]/gi, ' ').toLowerCase()}.`]),
+        shape.triggers[leg].map((t) => [t, `On day {DAY}, at {WORLD}, the leg ended by ${t.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[^a-z ]/gi, ' ').toLowerCase()}.`]),
       )])),
     },
   };
@@ -150,4 +162,108 @@ console.log('\n...and the drift gate reads the skeleton\'s shape');
   check('...and for two files imports both',
     indexSource(['side-hunt', 'constrictor']).includes("import d_constrictor from './constrictor.json'")
     && indexSource(['side-hunt', 'constrictor']).includes('d_side_hunt as DossierFile'));
+}
+
+console.log('\n...and every reader speaks the dossier\'s words, or the skeleton\'s without one');
+{
+  const LAVE = 7;
+  const facts = (day = 0): CommanderFacts => ({
+    galaxy: 1, systemIndex: LAVE, kills: 20, combatScore: 0, legalStatus: 0, day, cargo: [],
+  });
+  const ctx = (c: CommanderFacts): MissionContext => ({ commander: c, systems: g1, rng: () => 0.5 });
+  const full = (id: string): Dossier | null => {
+    const s = skeletonById(id);
+    return s ? sampleDossier(s) : null;
+  };
+  const none = (): Dossier | null => null;
+  const says = (effects: MissionEffect[]) => effects.filter((e) => e.kind === 'say');
+
+  // The machine names the word and never reads it.
+  const taken = stepMissions(emptyMissionState(), { kind: 'accept', skeleton: 'constrictor' }, ctx(facts()));
+  const first = says(taken.effects)[0];
+  check('an acceptance says the leg line, and names the arrive word',
+    first?.text.startsWith('NAVY MISSION') && first.word?.kind === 'arrive' && first.word.skeleton === 'constrictor');
+  const tag = taken.state.live[0].tag ?? '';
+  const killed = stepMissions(taken.state, { kind: 'destroyed', tag }, ctx(facts()));
+  const kill = says(killed.effects).find((e) => e.word?.kind === 'success');
+  check('a hunt\'s kill names the success word, with the skeleton\'s own line as the text',
+    kill?.text.includes('CONSTRICTOR DESTROYED') === true && kill.word?.kind === 'success' && kill.word.leg === 'hunt');
+  const overdue: MissionState = {
+    ...emptyMissionState(),
+    live: [{ skeleton: 'side-deliver', leg: 'run', target: 12, tag: null, progress: 0, deadlineDay: 10 }],
+  };
+  const late = stepMissions(overdue, { kind: 'dayPassed', days: 1 }, ctx(facts(11)));
+  const fail = says(late.effects).find((e) => e.word?.kind === 'fail');
+  check('a silent failure still names the fail word, with no text',
+    fail !== undefined && fail.text === '' && late.state.done['side-deliver'] === 'fail');
+  check('the rescue\'s lost pod names no word, because only the skeleton\'s line fits it', (() => {
+    const pod: MissionState = {
+      ...emptyMissionState(),
+      journal: [{ skeleton: 'side-rescue', leg: 'pod', outcome: 'accepted', day: 0, world: LAVE }],
+      live: [{ skeleton: 'side-rescue', leg: 'pod', target: 12, tag: 'side-rescue#0#pod', progress: 0, deadlineDay: null }],
+      entities: { 'side-rescue#0#pod': { kind: 'capsule', ship: '', hull: 1, lastWorld: 12, alive: true } },
+    };
+    const r = stepMissions(pod, { kind: 'destroyed', tag: 'side-rescue#0#pod' }, ctx(facts()));
+    const said = says(r.effects).find((e) => e.text.includes('POD LOST'));
+    return said !== undefined && said.word === undefined && r.state.live[0]?.leg === 'data';
+  })());
+
+  // The bridge resolves the word.
+  const word = kill!.word!;
+  eq('a dossier\'s line replaces the skeleton\'s, filled and shouted',
+    dossierWord(word, facts(), g1, full), 'DONE, AND 2500.0 CR IS YOURS.');
+  eq('...and no dossier means the skeleton\'s line stands', dossierWord(word, facts(), g1, none), null);
+  eq('the one-jump message fills the world and the patron',
+    dossierWord({ skeleton: 'constrictor', kind: 'near', world: LAVE }, facts(), g1, full),
+    'A MESSAGE FROM LAVE: COME WHEN YOU CAN.');
+  const c: CommanderData = { ...newCommander(), systemIndex: LAVE, day: 11, contracts: [] };
+  c.missions = overdue;
+  check('through the bridge, a silent failure with no dossier says nothing',
+    runMissions(c, { kind: 'dayPassed', days: 1 }, g1).every((m) => m.text.length > 0)
+    && c.missions.done['side-deliver'] === 'fail');
+
+  // The hints.
+  const lead = { skeleton: 'constrictor', galaxy: 1, world: LAVE, sinceDay: 0 };
+  const near = g1.find((s) => s.index !== LAVE && leadJumps(lead, { ...facts(), systemIndex: s.index }, g1) === 1)!;
+  const away = { ...facts(), systemIndex: near.index };
+  const st = { ...emptyMissionState(), leads: [lead] };
+  check('the LEADS row is the dossier\'s lead line, then the distance',
+    leadLine(lead, away, g1, full).startsWith('THE NAVY AT LAVE HAS ASKED FOR YOU BY NAME. —'));
+  check('...or the plain row', leadLine(lead, away, g1, none).startsWith('SOMEBODY AT LAVE WANTS A WORD —'));
+  eq('the board rumour is rumour.far', boardRumour(st, away, g1, full), 'THEY SAY THE NAVY AT LAVE WANTS A PILOT.');
+  check('...or the plain rumour', boardRumour(st, away, g1, none)?.startsWith('RUMOUR:') === true);
+  eq('the DATA ON line is news', worldNews(st, away, g1, LAVE, full), 'THE NAVY IS ASKING AFTER A PILOT HERE.');
+  check('...or the plain line', worldNews(st, away, g1, LAVE, none)?.startsWith('A PATRON HERE') === true);
+  const hint = dockHint(st, away, g1, false, 1);
+  check('the one-jump dock message names the near word for the bridge',
+    hint?.word?.kind === 'near' && hint.text.includes('A MESSAGE FROM LAVE'));
+
+  // The MISSIONS screen.
+  const screen = (dossiers: (id: string) => Dossier | null) => captureById(() => {
+    new MissionsScreen(() => ({
+      commander: { ...newCommander(), systemIndex: LAVE, contracts: [] }, systems: g1,
+      offers: [SIDE_HUNT], atStation: true, accept: () => {}, abandon: () => {}, dossiers,
+    })).render();
+  }).get('screen') ?? '';
+  const patron = patronFor({ kind: 'local' }, facts(), g1).name;
+  check('an offer shows the dossier\'s title and its briefing, with the patron and this world filled',
+    screen(full).includes('THE QUIET ERRAND') && screen(full).includes(`${patron} here, at Lave.`));
+  check('...or the plain pitch', screen(none).includes(SIDE_HUNT.pitch) && !screen(none).includes('ERRAND'));
+
+  // The story.
+  const run: MissionState = {
+    ...emptyMissionState(),
+    journal: [
+      { skeleton: 'side-rescue', leg: 'pod', outcome: 'accepted', day: 3, world: LAVE },
+      { skeleton: 'side-rescue', leg: 'pod', outcome: 'targetDestroyed', day: 5, world: 12 },
+      { skeleton: 'side-rescue', leg: 'data', outcome: 'success', day: 7, world: LAVE },
+      { skeleton: 'side-rescue', leg: 'data', outcome: 'complete', day: 7, world: LAVE },
+    ],
+  };
+  const [page] = storyPages(run, g1, undefined, full);
+  check('a dossier that names every branch tells the whole path in its own words',
+    page.lines.length === 4 && page.lines.every((l) => !l.startsWith('DAY '))
+    && page.lines[1].includes('target destroyed') && page.lines[3].includes('done at LAVE on day 7'));
+  check('...and the plain words stand without one',
+    storyPages(run, g1, undefined, none)[0].lines.every((l) => l.startsWith('DAY ')));
 }

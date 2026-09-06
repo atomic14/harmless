@@ -315,10 +315,25 @@ export type MissionInput =
   | { kind: 'abandon'; skeleton: string }
   | { kind: 'galaxyChanged'; from: number; to: number };
 
-/** A consequence the game applies. The machine never touches the commander. */
+/**
+ * Which dossier line may replace a console line, and how to fill it. The
+ * machine names the line and never reads it. The bridge resolves it
+ * (`dossierWord`, dossiers.ts), so generated words stay out of the machine
+ * (docs/TODO/191 M3). A leg word carries its slots filled. A `near` word is
+ * the patron's message one jump out, and the resolver fills that one.
+ */
+export type DossierWord =
+  | { skeleton: string; leg: string; kind: 'arrive' | 'success' | 'fail'; slots: Record<string, string> }
+  | { skeleton: string; kind: 'near'; world: number };
+
+/**
+ * A consequence the game applies. The machine never touches the commander.
+ * A `say` or a `later` with an empty `text` and a `word` is a line only a
+ * dossier can supply. The bridge drops it when none does.
+ */
 export type MissionEffect =
-  | { kind: 'say'; text: string; command?: 'openMissions' }
-  | { kind: 'later'; text: string }
+  | { kind: 'say'; text: string; command?: 'openMissions'; word?: DossierWord }
+  | { kind: 'later'; text: string; word?: DossierWord }
   | { kind: 'pay'; tenths: number }
   | { kind: 'deed'; deed: Deed }
   | { kind: 'legal'; delta: number }

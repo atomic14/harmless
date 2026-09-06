@@ -12,6 +12,7 @@
 // file asks them on `accept` and on `docked`, and applies what they answer.
 //
 // A VERB MODULE decides what an input means for one leg and names a trigger.
+// `triggers.ts` says what a trigger is called and which one means success.
 // This file finds the branch that trigger selects, places the next leg, and
 // settles the branch. A settlement is paid ONCE, at the moment its branch is
 // taken. A second input for the same kill finds the mission on the next leg,
@@ -24,13 +25,14 @@ import type { StarSystem } from '../galaxy/galaxy.ts';
 import { routeEstimate } from '../galaxy/route.ts';
 import { dockHint } from './hints.ts';
 import type {
-  Branch, CommanderFacts, Leg, LiveMission, MissionEffect, MissionInput,
+  Branch, CommanderFacts, DossierWord, Leg, LiveMission, MissionEffect, MissionInput,
   MissionState, Settlement, Skeleton, Trigger,
 } from './model.ts';
 import { canAccept, offersFor } from './offers.ts';
 import { placeLeg } from './placement.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, lineSlots } from './text.ts';
+import { sameTrigger, triggerLabel, wordKind } from './triggers.ts';
 import { verbItem, verbModule, verbNeedsShip } from './verbs/registry.ts';
 
 export interface MissionContext {
@@ -120,7 +122,7 @@ function hail(
     else effects.push({ kind: 'later', text });
   }
   const hint = dockHint(st, ctx.commander, ctx.systems, offers.length > 0, st.idleDocks);
-  if (hint) effects.push({ kind: 'later', text: hint });
+  if (hint) effects.push({ kind: 'later', ...hint });
 }
 
 // --- acceptance and abandonment ---------------------------------------------
@@ -141,7 +143,11 @@ function accept(
   st.live.push(live);
   startLeg(st, live, skeleton, first, placed.target, ctx, effects);
   st.leads = st.leads.filter((l) => l.skeleton !== id);
-  effects.push({ kind: 'say', text: fillSlots(first.line, lineSlots(ctx.systems, placed.target)) });
+  const slots = lineSlots(ctx.systems, placed.target);
+  effects.push({
+    kind: 'say', text: fillSlots(first.line, slots),
+    word: { skeleton: id, leg: first.id, kind: 'arrive', slots },
+  });
 }
 
 /**
@@ -229,21 +235,6 @@ function deadlines(st: MissionState, ctx: MissionContext, effects: MissionEffect
   }
 }
 
-function sameTrigger(a: Trigger, b: Trigger): boolean {
-  if (typeof a === 'string' || typeof b === 'string') return a === b;
-  return JSON.stringify(a) === JSON.stringify(b);
-}
-
-/**
- * `targetDestroyed`, or `flag:plans` for the object forms: the journal's
- * word, and the key a dossier's story lines are filed under (docs/TODO/191).
- */
-export function triggerLabel(t: Trigger): string {
-  if (typeof t === 'string') return t;
-  const [k, v] = Object.entries(t)[0];
-  return `${k}:${v}`;
-}
-
 /**
  * Take the branch a trigger selects, or nothing when the leg has no such
  * branch. A passed deadline with no branch of its own falls to the leg's
@@ -266,8 +257,13 @@ function takeBranch(
   const skeleton = skeletonOf(live.skeleton, ctx);
   const c = ctx.commander;
   const entry = { skeleton: live.skeleton, leg: live.leg, outcome: triggerLabel(branch.on), day: c.day, world: c.systemIndex };
+  const leg = legOf(skeleton, live.leg);
+  const kind = wordKind(leg, branch);
+  const word = (target: number | null): DossierWord | undefined => (kind
+    ? { skeleton: skeleton.id, leg: leg.id, kind, slots: lineSlots(ctx.systems, target, branch.settle?.pay) }
+    : undefined);
   if (branch.to === 'complete' || branch.to === 'fail') {
-    settle(st, skeleton, branch.settle, null, ctx, effects);
+    settle(st, skeleton, branch.settle, null, ctx, effects, word(null));
     st.journal.push(entry);
     finish(st, live, branch.to, ctx, effects);
     return;
@@ -275,10 +271,11 @@ function takeBranch(
   const next = legOf(skeleton, branch.to);
   const placed = placeLeg(next.place, st, c, ctx.systems, ctx.rng, live.skeleton);
   if (!placed.ok) return;
-  settle(st, skeleton, branch.settle, placed.target, ctx, effects);
+  settle(st, skeleton, branch.settle, placed.target, ctx, effects, word(placed.target));
   st.journal.push(entry);
   startLeg(st, live, skeleton, next, placed.target, ctx, effects);
 }
+
 
 /**
  * Put a live mission on a leg. A hunt, an escort or a scan gets a tag for its
@@ -312,20 +309,27 @@ function startLeg(
   }
 }
 
+/**
+ * Apply a settlement, and say its word. A silent settlement with a dossier
+ * word still says an empty line. The bridge puts the dossier's line in its
+ * place, or drops it.
+ */
 function settle(
   st: MissionState, skeleton: Skeleton, s: Settlement | undefined,
-  target: number | null, ctx: MissionContext, effects: MissionEffect[],
+  target: number | null, ctx: MissionContext, effects: MissionEffect[], word?: DossierWord,
 ): void {
-  if (!s) return;
-  if (s.pay > 0) effects.push({ kind: 'pay', tenths: s.pay });
-  if (s.deed) effects.push({ kind: 'deed', deed: s.deed });
-  if (s.legal) effects.push({ kind: 'legal', delta: s.legal });
-  for (const f of s.setFlags ?? []) if (!st.flags.includes(f)) st.flags.push(f);
-  if (s.standing) {
-    const id = patronId(skeleton, ctx.commander);
-    st.standing[id] = (st.standing[id] ?? 0) + s.standing;
+  if (s) {
+    if (s.pay > 0) effects.push({ kind: 'pay', tenths: s.pay });
+    if (s.deed) effects.push({ kind: 'deed', deed: s.deed });
+    if (s.legal) effects.push({ kind: 'legal', delta: s.legal });
+    for (const f of s.setFlags ?? []) if (!st.flags.includes(f)) st.flags.push(f);
+    if (s.standing) {
+      const id = patronId(skeleton, ctx.commander);
+      st.standing[id] = (st.standing[id] ?? 0) + s.standing;
+    }
   }
-  if (s.say) effects.push({ kind: 'say', text: fillSlots(s.say, lineSlots(ctx.systems, target, s.pay)) });
+  const text = s?.say ? fillSlots(s.say, lineSlots(ctx.systems, target, s.pay)) : '';
+  if (text || word) effects.push({ kind: 'say', text, word });
 }
 
 /**

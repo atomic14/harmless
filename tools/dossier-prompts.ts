@@ -14,7 +14,7 @@
 
 import { COMMODITIES, generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { shipDesign } from '../src/game/ship-identity.ts';
-import { triggerLabel } from '../src/missions/machine.ts';
+import { triggerLabel } from '../src/missions/triggers.ts';
 import type { DossierFile, Leg, Placement, Skeleton, Trigger, Verb } from '../src/missions/model.ts';
 import { patronFor } from '../src/missions/patrons.ts';
 import { SKELETONS, skeletonById } from '../src/missions/skeletons/index.ts';

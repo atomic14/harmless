@@ -138,10 +138,16 @@ export function renderStatus(
 }
 
 /** What the MISSIONS screen draws: the offers here, and the missions held. */
-/** An offer on the board, with the name of who makes it. */
+/**
+ * An offer on the board, with the name of who makes it. `title` and `pages`
+ * are the dossier's, filled, and empty when none exists; `pitch` is the
+ * skeleton's plain word, shown then (docs/TODO/191 M3).
+ */
 export interface OfferRow {
   pitch: string;
   patron: string;
+  title: string;
+  pages: readonly string[];
 }
 
 /** A held mission's order, with the name of who gave it. */
@@ -181,7 +187,9 @@ export function renderMissions(view: MissionsView): void {
   const { offers, held, leads, systems, selected, atStation } = view;
   const offerRows = offers.map((s, i) => `
     <tr class="${i === selected ? 'sel' : ''} pick" data-row="${i}">
-      <td>${s.pitch}</td>
+      <td>${s.title
+    ? `<b>${escapeHtml(s.title.toUpperCase())}</b><br/>${s.pages.map((p) => escapeHtml(p)).join('<br/>')}`
+    : s.pitch}</td>
       <td class="num">${escapeHtml(s.patron.toUpperCase())}</td>
       <td class="num">${atStation ? '<button data-key="KeyA">ACCEPT</button>' : 'AT A STATION'}</td>
     </tr>`).join('');

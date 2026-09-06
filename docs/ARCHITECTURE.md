@@ -206,7 +206,8 @@ Two quirks are deliberate:
   `machine.ts` is one pure step. It takes the record, one input and the facts
   it may read. It returns a new record with the effects the game applies.
   A verb module under `verbs/` decides what an input means for one leg, and
-  the machine takes the branch. `placement.ts` picks a leg's world with one
+  the machine takes the branch. `triggers.ts` says what a trigger is called,
+  and which dossier line a branch may speak with. `placement.ts` picks a leg's world with one
   draw. `queries.ts` answers the game's questions without a change. `lint.ts`
   holds the five failure rules as data checks, and
   `test/mission-skeletons.test.ts` runs it over every skeleton. `repair.ts`
