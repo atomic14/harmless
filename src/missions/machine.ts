@@ -234,8 +234,11 @@ function sameTrigger(a: Trigger, b: Trigger): boolean {
   return JSON.stringify(a) === JSON.stringify(b);
 }
 
-/** `targetDestroyed`, or `flag:plans` for the object forms: the journal's word. */
-function triggerLabel(t: Trigger): string {
+/**
+ * `targetDestroyed`, or `flag:plans` for the object forms: the journal's
+ * word, and the key a dossier's story lines are filed under (docs/TODO/191).
+ */
+export function triggerLabel(t: Trigger): string {
   if (typeof t === 'string') return t;
   const [k, v] = Object.entries(t)[0];
   return `${k}:${v}`;

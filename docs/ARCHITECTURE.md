@@ -221,8 +221,14 @@ Two quirks are deliberate:
   journal as pages, one per run, in a dossier's words where one exists and
   the skeleton's plain words where none does. `route-map.ts` draws the
   worlds a story names as SVG text. The LOG screen (`game/screens/log.ts`,
-  `ui/screens-log.ts`) shows both, and `dossiers.ts` is the table item 191
-  fills. `patrons.ts` answers who offers a mission, by name and by face
+  `ui/screens-log.ts`) shows both. `dossiers.ts` reads the committed
+  dossiers through the generated `dossiers/index.ts` (docs/TODO/191).
+  `tools/generate-dossiers.ts` writes one file per skeleton from the prompts
+  `tools/dossier-prompts.ts` builds from a skeleton's shape and its patron.
+  `tools/dossier-faults.ts` refuses a dossier before it is committed, and
+  `tools/ladder-rules.ts` is the one home of the ladder-word lists it and
+  the ladder test share. `tools/batch.ts` runs the batch for all three
+  generators. `patrons.ts` answers who offers a mission, by name and by face
   (docs/TODO/191). It reads the committed file under `patrons/`, which
   `tools/generate-patrons.ts` writes from the prompts
   `tools/patron-prompts.ts` derives from the seed. A world with no record

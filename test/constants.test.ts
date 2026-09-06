@@ -119,6 +119,8 @@ const OUTSIDE: readonly Group[] = [
       // the committed patron file given a name, the one patron with no world,
       // and the plain title a world with no record takes (docs/TODO/191 M1)
       'missions/patrons.ts': ['FILES', 'NAVY_PATRON', 'PLAIN_ROLE'],
+      // the generated list of committed dossier files (docs/TODO/191 M2)
+      'missions/dossiers/index.ts': ['DOSSIER_FILES'],
     },
   },
 

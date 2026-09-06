@@ -40,8 +40,10 @@
 // `reputation` is right where it means the disrepute ladder, and a comment
 // about the ban has to be able to state the ban.
 //
-// `test/ladder-scan.ts` decides what each rule reads. `test/key-prose.test.ts`
-// is the shape both halves copy: a scan of the shipped source that fails on the
+// `test/ladder-scan.ts` decides what each rule reads. `tools/ladder-rules.ts`
+// holds the three lists, since docs/TODO/191, because the dossier generator
+// must refuse a line this test would fail. `test/key-prose.test.ts` is the
+// shape both halves copy: a scan of the shipped source that fails on the
 // next offence, rather than a list somebody maintains.
 
 import { newCommander } from '../src/game/commander.ts';
@@ -51,25 +53,12 @@ import { recordVerdict } from '../src/game/law.ts';
 import { CHARACTER } from '../src/constants/character.ts';
 import { CLEAN, FUGITIVE, OFFENDER } from '../src/constants/law.ts';
 import { PAGES, commentParagraphs, playerSentences, shoutedStrings } from './ladder-scan.ts';
+import { COMBAT, PROSE, SHOUTED as BANNED } from '../tools/ladder-rules.ts';
 import { capture } from './screen-capture.ts';
 import { check, eq } from './harness.ts';
 
 console.log('\nno console line calls a ladder by the code\'s word');
 {
-  /**
-   * The words a sentence may not use, and why each one is here.
-   *
-   * `NAME` is not on it, and that is deliberate rather than an omission: a
-   * commander and a save each have one, and three screens ask for it. The
-   * banned form is the POSSESSIVE, which is the one the issue reported.
-   */
-  const BANNED: readonly (readonly [RegExp, string])[] = [
-    [/\bYOUR NAME\b/, 'the ladder is REPUTATION; a NAME is what you type'],
-    [/\bCHARACTER\b/, 'the player word for that ladder is REPUTATION'],
-    [/\bDISREPUTE\b/, 'the score is not shown; the ladder is REPUTATION'],
-    [/\bRECORD\b/, 'the player word for that ladder is LEGAL STATUS'],
-  ];
-
   const offences = (text: string): string[] => {
     // the console's voice, and `key-prose.test.ts`'s test for it: a shouted
     // string with real words in it. An identifier is not a message.
@@ -107,26 +96,9 @@ console.log('\nno console line calls a ladder by the code\'s word');
 
 console.log('\n...and no page tells a player REPUTATION means something else');
 {
-  /**
-   * What a mixed-case sentence may not say about REPUTATION, and why.
-   *
-   * The word reached a player four times when docs/TODO/171 measured it, and
-   * three of the four meant a different ladder. Neither rule is a ban on the
-   * word: it is the right word for the disrepute ladder, and it is the only
-   * word a player has for it.
-   *
-   * A shouted line is `shoutedStrings`'s, and it is banned on other words. The
-   * two lists never merge. `Your legal status follows you` is a correct
-   * sentence of the manual, and one merged list would fail on it.
-   */
-  const PROSE: readonly (readonly [RegExp, string])[] = [
-    [/\b(?:no|any|little|without)\s+(?:[a-z]+\s+){0,2}reputation\b|\breputation\s+(?:whatsoever|at all)\b/i,
-      'every commander has a reputation, and Honest is its best rung — a new'
-      + ' pilot has no RATING, which is the other ladder'],
-    [/\breputations\b/i,
-      'REPUTATION is one commander\'s one ladder; a plural means something else'],
-  ];
-
+  // A shouted line is `shoutedStrings`'s, and it is banned on other words.
+  // The two lists never merge. `Your legal status follows you` is a correct
+  // sentence of the manual, and one merged list would fail on it.
   const misread = (text: string): string[] =>
     PROSE.filter(([re]) => re.test(text)).map(([, why]) => why);
 
@@ -175,9 +147,6 @@ console.log('\n...and no comment in src/ calls a ladder by another ladder\'s wor
 
   /** `name` as a bare noun. A possessive is excluded; `name's` names a thing. */
   const BARE_NAME = /\b(?:a|an|the|your|my|his|her|their|its)\s+((?:[A-Za-z]+\s+){0,3})name\b(?!')/gi;
-
-  /** The combat ladder is the RATING. Calling it a reputation is the mirror fault. */
-  const COMBAT = /\b(?:combat|kill|fighting)\s+reputation\b/i;
 
   /**
    * The two files that state the rule, which a blanket ban would fail on.
