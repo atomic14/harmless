@@ -15,13 +15,13 @@ import { type StarSystem, ECONOMY_NAMES, GOVERNMENT_NAMES } from '../galaxy/gala
 import { HUD, TINT } from '../palette.ts';
 import { distanceTenths } from '../galaxy/navigation.ts';
 import { type CommanderData } from '../game/commander.ts';
-import { orderDestinations } from '../game/orders.ts';
+import { leadDestinations, orderDestinations } from '../game/orders.ts';
 import { type ChartState } from '../game/chart-state.ts';
 import { type ChartOverlays } from '../game/chart-overlay.ts';
 import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH, CHART_CANVAS_W, CHART_CANVAS_H } from '../constants/chart-metric.ts';
 import { maybeById, show } from './screen-shell.ts';
 import { nearestSystem, journey, daysTerm, contractTerm, chartKeyline } from './chart-readout.ts';
-import { drawContractMarks, drawLanes, laneSummary, drawPriceTells } from './chart-overlays.ts';
+import { drawContractMarks, drawLanes, drawLeadMarks, laneSummary, drawPriceTells } from './chart-overlays.ts';
 
 export function renderChart(
   systems: StarSystem[],
@@ -105,6 +105,7 @@ export function drawChart(
   }
 
   drawContractMarks(ctx, orderDestinations(c), systems, px, py, 7);
+  drawLeadMarks(ctx, leadDestinations(c), systems, px, py, 7);
 
   // current system crosshair
   ctx.strokeStyle = HUD.green;

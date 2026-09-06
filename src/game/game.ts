@@ -96,6 +96,8 @@ import { MarketScreen, EquipScreen } from './screens/trade.ts';
 import { StatusScreen, type StatusContext } from './screens/status.ts';
 import { MissionsScreen, type MissionsContext } from './screens/missions.ts';
 import { MissionDesk } from './mission-desk.ts';
+import { missionFacts } from './mission-bridge.ts';
+import { boardRumour, worldNews } from '../missions/hints.ts';
 import { DataScreen, type DataContext } from './screens/data.ts';
 import { BriefingScreen } from './screens/briefing.ts';
 import { ContractsScreen, type ContractsContext } from './screens/contracts.ts';
@@ -192,6 +194,8 @@ export class Game {
     systems: this.state.systems,
     offers: this.state.contractOffers,
     atStation: this.baseMode === 'docked',
+    rumour: boardRumour(this.state.commander.missions,
+      missionFacts(this.state.commander), this.state.systems),
     accept: (index) => { this.contracts_.selected = index; this.docked_.acceptContract(); },
   } satisfies ContractsContext));
 
@@ -643,7 +647,16 @@ export class Game {
         subject: this.dataSubject ?? this.system,
         here: this.system,
         galaxy: this.state.commander.galaxy,
-        headline: (index) => this.state.living.headline(index),
+        // The living galaxy's word, and then a lead's (missions/hints.ts).
+        // Both when both, because neither is the other's to hide.
+        headline: (index) => {
+          const c = this.state.commander;
+          const lines = [
+            this.state.living.headline(index),
+            worldNews(c.missions, missionFacts(c), this.state.systems, index),
+          ].filter((l): l is string => typeof l === 'string' && l.length > 0);
+          return lines.length ? lines.join(' — ') : undefined;
+        },
       } satisfies DataContext)),
       new BriefingScreen(),
       this.contracts_,

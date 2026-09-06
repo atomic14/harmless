@@ -8,6 +8,9 @@
 // the whole Constrictor mission with no game world, and a reload cannot pay
 // twice (docs/TODO/190).
 //
+// The offers and the hints are their own files (offers.ts, hints.ts). This
+// file asks them on `accept` and on `docked`, and applies what they answer.
+//
 // A VERB MODULE decides what an input means for one leg and names a trigger.
 // This file finds the branch that trigger selects, places the next leg, and
 // settles the branch. A settlement is paid ONCE, at the moment its branch is
@@ -17,14 +20,14 @@
 // The random generator is an argument, so a test can count its draws. A
 // placement in a band makes one draw. Nothing else here draws.
 
-import { MISSION_LIVE_CAP } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { routeEstimate } from '../galaxy/route.ts';
-import { ratingRung } from '../game/rating.ts';
+import { dockHint } from './hints.ts';
 import type {
-  Branch, CommanderFacts, Gate, Leg, LiveMission, MissionEffect, MissionInput,
+  Branch, CommanderFacts, Leg, LiveMission, MissionEffect, MissionInput,
   MissionState, Settlement, Skeleton, Trigger,
 } from './model.ts';
+import { canAccept, offersFor } from './offers.ts';
 import { placeLeg } from './placement.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, lineSlots } from './text.ts';
@@ -46,6 +49,7 @@ export function stepMissions(
 ): MissionStep {
   const st: MissionState = structuredClone(state);
   const effects: MissionEffect[] = [];
+  const journalBefore = st.journal.length;
   switch (input.kind) {
     case 'accept': accept(st, input.skeleton, ctx, effects); break;
     case 'abandon': abandon(st, input.skeleton, ctx, effects); break;
@@ -53,11 +57,11 @@ export function stepMissions(
     case 'galaxyChanged': leaveGalaxy(st, input.to, ctx, effects); break;
     default: react(st, input, ctx, effects);
   }
-  if (input.kind === 'docked') hail(st, ctx, effects);
+  if (input.kind === 'docked') hail(st, ctx, effects, st.journal.length !== journalBefore);
   return { state: st, effects };
 }
 
-// --- offers -----------------------------------------------------------------
+// --- lookups ----------------------------------------------------------------
 
 /** The skeleton, or an error: the lint test keeps a live mission from naming a ghost. */
 function skeletonOf(id: string, ctx: MissionContext): Skeleton {
@@ -86,62 +90,21 @@ export function startWorld(skeleton: Skeleton, commander: CommanderFacts): numbe
   return skeleton.patron.kind === 'navy' ? commander.systemIndex : skeleton.patron.seedSlot;
 }
 
-function gateOpen(gate: Gate, st: MissionState, c: CommanderFacts): boolean {
-  if (gate.galaxy !== undefined && c.galaxy !== gate.galaxy) return false;
-  if (gate.minKills !== undefined && c.kills < gate.minKills) return false;
-  if (gate.minRating !== undefined && ratingRung(c.combatScore) < gate.minRating) return false;
-  if (gate.legalStatus === 'clean' && c.legalStatus !== 0) return false;
-  if (gate.flags?.some((f) => !st.flags.includes(f))) return false;
-  if (gate.notFlags?.some((f) => st.flags.includes(f))) return false;
-  if (gate.done?.some((d) => !(d in st.done))) return false;
-  return true;
-}
-
-/** How many times this skeleton ended, by either outcome. */
-function timesFinished(st: MissionState, id: string): number {
-  return st.journal.filter((j) => j.skeleton === id
-    && (j.outcome === 'complete' || j.outcome === 'fail')).length;
-}
-
-/** A skeleton the commander holds, or held, shuts this one out for good. */
-function excluded(st: MissionState, id: string, ctx: MissionContext): boolean {
-  const held = [...st.live.map((l) => l.skeleton), ...Object.keys(st.done)];
-  const from = ctx.skeletons ?? SKELETONS;
-  return held.some((h) => skeletonById(h, from)?.excludes?.includes(id) ?? false);
-}
-
-function leadHere(st: MissionState, id: string, c: CommanderFacts): boolean {
-  return st.leads.some((l) => l.skeleton === id
-    && l.galaxy === c.galaxy && l.world === c.systemIndex);
-}
-
 /**
- * Whether the commander can accept this skeleton where she stands.
- *
- * A LEAD OPENS THE OFFER regardless of the gate (docs/TODO/190, failure rule
- * 3). It does not open a slot, and it does not restart an arc she holds or
- * finished. A side job with a `cap` comes back until the cap is spent.
+ * What a dock says about missions beyond the legs it moved: the offers here,
+ * and then at most one hint about a lead (hints.ts). `moved` is whether this
+ * dock advanced any journal entry, which resets the idle count.
  */
-export function canAccept(st: MissionState, id: string, ctx: MissionContext): boolean {
-  const s = skeletonById(id, ctx.skeletons ?? SKELETONS);
-  if (!s) return false;
-  if (st.live.length >= MISSION_LIVE_CAP) return false;
-  if (st.live.some((l) => l.skeleton === id)) return false;
-  const runs = timesFinished(st, id);
-  if (runs >= (s.kind === 'side' ? (s.cap ?? 1) : 1)) return false;
-  if (excluded(st, id, ctx)) return false;
-  return leadHere(st, id, ctx.commander) || gateOpen(s.offer, st, ctx.commander);
-}
-
-/** Every skeleton on offer where the commander stands. */
-export function offersFor(st: MissionState, ctx: MissionContext): Skeleton[] {
-  return (ctx.skeletons ?? SKELETONS).filter((s) => canAccept(st, s.id, ctx));
-}
-
-function hail(st: MissionState, ctx: MissionContext, effects: MissionEffect[]): void {
-  for (const s of offersFor(st, ctx)) {
+function hail(
+  st: MissionState, ctx: MissionContext, effects: MissionEffect[], moved: boolean,
+): void {
+  st.idleDocks = moved ? 0 : st.idleDocks + 1;
+  const offers = offersFor(st, ctx);
+  for (const s of offers) {
     effects.push({ kind: 'say', text: s.hail, command: 'openMissions' });
   }
+  const hint = dockHint(st, ctx.commander, ctx.systems, offers.length > 0, st.idleDocks);
+  if (hint) effects.push({ kind: 'later', text: hint });
 }
 
 // --- acceptance and abandonment ---------------------------------------------

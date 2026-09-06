@@ -23,6 +23,8 @@ export const MIN_TRADERS = 1;
  * `test/constants.test.ts` fails if any file in `src/` declares the name again.
  * `MAX_THARGONS` in `encounters.ts` is a different rule, and it shared the value
  * until docs/TODO/188 moved it.
+ *
+ * @rule population.maxTraders
  */
 export const MAX_TRADERS = 4;
 

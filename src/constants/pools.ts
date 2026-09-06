@@ -6,7 +6,11 @@
 export const MAX_ENERGY = 255;
 export const MAX_SHIELD = 255;
 
-/** How many banks the console reads the energy pool as. Four, as the original. */
+/**
+ * How many banks the console reads the energy pool as. Four, as the original.
+ *
+ * @rule pools.energyBanks
+ */
 export const ENERGY_BANKS = 4;
 
 /**

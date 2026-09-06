@@ -221,8 +221,14 @@ export class Station {
     // An offer is a `say` POINTED AT THE SCREEN THAT KEEPS IT (invariant 16).
     // This line is said one time, for five seconds, and it names no target
     // system. On its own it was the same as no briefing at all.
-    for (const m of runMissions(c, { kind: 'docked' }, s.systems)) {
-      messages.push(m.queued ? later(m.text, m.seconds) : say(m.text, m.seconds, m.command));
+    //
+    // A RESUMED DOCK IS NOT A DOCK. The record was written after the machine
+    // read this one. A reload that sent it again would count a dock twice,
+    // and it would hail an offer the screen already lists.
+    if (arrival !== 'resumed') {
+      for (const m of runMissions(c, { kind: 'docked' }, s.systems)) {
+        messages.push(m.queued ? later(m.text, m.seconds) : say(m.text, m.seconds, m.command));
+      }
     }
     s.session.hermitTrading = false;
     // SECOND draw: the market's seed. It is skipped only for a `resumed` dock.

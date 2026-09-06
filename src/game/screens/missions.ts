@@ -21,6 +21,8 @@ import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { CommanderData } from '../commander.ts';
 import { standingOrders, type MissionOrder } from '../orders.ts';
 import type { Skeleton } from '../../missions/model.ts';
+import { leadLine } from '../../missions/hints.ts';
+import { missionFacts } from '../mission-bridge.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
 
@@ -59,8 +61,10 @@ export class MissionsScreen implements Screen {
   }
 
   render(): void {
-    const { systems, offers, atStation } = this.ctx();
-    renderMissions({ offers, held: this.held(), systems, selected: this.selected, atStation });
+    const { commander, systems, offers, atStation } = this.ctx();
+    const facts = missionFacts(commander);
+    const leads = commander.missions.leads.map((l) => leadLine(l, facts, systems));
+    renderMissions({ offers, held: this.held(), leads, systems, selected: this.selected, atStation });
   }
 
   select(row: number): void {

@@ -57,6 +57,37 @@ export function drawContractMarks(
     ctx.stroke();
   }
 }
+
+/**
+ * A pointer over every world a saved lead names — on both charts.
+ *
+ * A TRIANGLE, and not a second diamond. A lead is not an order: nobody
+ * briefed her, and nothing is owed (docs/TODO/190 M3). The shape carries
+ * which fact it is, as the diamond does for an order, and the same amber
+ * carries the tone. It sits above the world, clear of a diamond's top point.
+ */
+export function drawLeadMarks(
+  ctx: CanvasRenderingContext2D,
+  marks: ReadonlySet<number>,
+  systems: StarSystem[],
+  px: (s: { x: number; y: number }) => number,
+  py: (s: { x: number; y: number }) => number,
+  reach: number,
+): void {
+  ctx.strokeStyle = HUD.amber;
+  for (const index of marks) {
+    const s = systems[index];
+    if (!s) continue;
+    const x = px(s);
+    const y = py(s) - reach;
+    ctx.beginPath();
+    ctx.moveTo(x, y);
+    ctx.lineTo(x + reach * 0.7, y - reach);
+    ctx.lineTo(x - reach * 0.7, y - reach);
+    ctx.closePath();
+    ctx.stroke();
+  }
+}
 /**
  * The trade lanes, faded by how much freight is on them — on both charts.
  *

@@ -136,6 +136,19 @@ export function orderDestinations(c: CommanderData): ReadonlySet<number> {
 }
 
 /**
+ * Every world a saved lead points to, in the galaxy she is in.
+ *
+ * A DIFFERENT MARK from an order's (docs/TODO/190 M3). A lead is not an
+ * obligation. Nobody briefed her, and nothing is owed. It is where the next
+ * arc starts, and the chart says so with a pointer rather than a diamond.
+ */
+export function leadDestinations(c: CommanderData): ReadonlySet<number> {
+  const out = new Set<number>();
+  for (const l of c.missions.leads) if (l.galaxy === c.galaxy) out.add(l.world);
+  return out;
+}
+
+/**
  * What the chart says about the system under the cursor, or null when nothing
  * sends her there.
  *
@@ -157,7 +170,14 @@ export function orderVerdict(
   const owed = contractVerdict(c, systemIndex, daysAway);
   if (owed) return owed;
   const live = c.missions.live.find((l) => l.target === systemIndex);
-  if (!live) return null;
+  if (!live) {
+    // A lead has no deadline and no route it must take. It is a word about
+    // where the next arc starts, and the chart passes it on.
+    if (!leadDestinations(c).has(systemIndex)) return null;
+    if (daysAway === null) return { text: 'A LEAD · NO ROUTE', late: true };
+    if (daysAway === 0) return { text: 'A LEAD · YOU ARE HERE', late: false };
+    return { text: `A LEAD · ${dayWord(daysAway)} AWAY`, late: false };
+  }
   const name = missionName(live, systems);
 
   // No deadline, so nothing here can be late. `NO ROUTE` is red all the same:

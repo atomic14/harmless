@@ -10,7 +10,7 @@
 // the station's business, and this desk opens in flight too, because that is
 // where the commander who met the Constrictor was.
 
-import { offersFor } from '../missions/machine.ts';
+import { offersFor } from '../missions/offers.ts';
 import type { Skeleton } from '../missions/model.ts';
 import { missionFacts, missionWarning, runMissions } from './mission-bridge.ts';
 import type { GameState } from './state.ts';
@@ -37,7 +37,7 @@ export class MissionDesk {
   offers(): Skeleton[] {
     if (this.host.baseMode() !== 'docked') return [];
     const c = this.state.commander;
-    return offersFor(c.missions, { commander: missionFacts(c), systems: this.state.systems, rng: () => 0 });
+    return offersFor(c.missions, { commander: missionFacts(c) });
   }
 
   /**

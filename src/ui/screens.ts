@@ -142,6 +142,8 @@ export function renderStatus(
 export interface MissionsView {
   offers: readonly Skeleton[];
   held: readonly MissionOrder[];
+  /** one line per saved lead, from `missions/hints.ts` */
+  leads: readonly string[];
   systems: StarSystem[];
   /** the cursor over offers then held rows, in that order */
   selected: number;
@@ -166,7 +168,7 @@ export interface MissionsView {
  * can abandon anywhere. `game/orders.ts` decides what a held row says.
  */
 export function renderMissions(view: MissionsView): void {
-  const { offers, held, systems, selected, atStation } = view;
+  const { offers, held, leads, systems, selected, atStation } = view;
   const offerRows = offers.map((s, i) => `
     <tr class="${i === selected ? 'sel' : ''} pick" data-row="${i}">
       <td>${s.pitch}</td>
@@ -197,11 +199,21 @@ export function renderMissions(view: MissionsView): void {
       ${heldRows}
     </table>`;
 
+  // A LEAD HAS A ROW (invariant 16, docs/TODO/190 M3). It is not an order,
+  // so it is not a `pick` row. It is the one place the next arc's world is
+  // written down at any distance, beside the chart's pointer.
+  const leading = leads.length === 0 ? '' : `
+    <table>
+      <tr><th>LEADS</th></tr>
+      ${leads.map((l) => `<tr><td>${l}</td></tr>`).join('')}
+    </table>`;
+
   show(`
     <h2>MISSIONS</h2>
     <div class="rule"></div>
     ${board}
     ${holding}
+    ${leading}
     <div class="buttons"><button data-key="Escape">BACK</button></div>
   `);
 }
@@ -270,6 +282,7 @@ export function renderContracts(
   offers: Contract[],
   selected: number,
   atStation: boolean,
+  rumour: string | null = null,
 ): void {
   // Illicit freight is flagged, not disguised (docs/TODO/110): the reward is
   // paying for the police scan on the way out, and a player cannot choose to
@@ -304,11 +317,14 @@ export function renderContracts(
   // in `state.contractOffers` are the last station's — drawing them would show
   // a pilot work she cannot take. The ACCEPTED half travels with her, because
   // what she owes is true wherever she is (docs/TODO/145).
+  // A RUMOUR IS A STATION'S TOO. It is the bulletin board's word about a
+  // lead a few jumps out (missions/hints.ts), in the amber a lead's mark
+  // wears on the chart.
   const board = !atStation ? '' : `
     <table>
       <tr><th>WORK ON OFFER AT ${sys.name.toUpperCase()}</th><th class="num">DISTANCE</th><th class="num">TIME</th><th class="num">PAYS</th></tr>
       ${rows}
-    </table>`;
+    </table>${rumour ? `<div class="info" style="color:var(--hud-amber)">${rumour}</div>` : ''}`;
 
   show(`
     <h2>CONTRACTS</h2>

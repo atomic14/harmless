@@ -51,5 +51,7 @@ export const JETTISON_CLEARANCE = 25;
  * Otherwise a bribe sized off one answers an appetite sized off the other. Both
  * import this. `test/economy.test.ts` solves the multiplier back out of `markOf`
  * and compares.
+ *
+ * @rule jettison.valuePerTonne
  */
 export const VALUE_PER_TONNE = 4;

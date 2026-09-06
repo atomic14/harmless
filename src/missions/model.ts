@@ -251,6 +251,8 @@ export interface MissionState {
   entities: Record<string, EntityState>;
   passengers: MissionPassenger[];
   journal: JournalEntry[];
+  /** docks since the journal last moved; the second patron message reads it */
+  idleDocks: number;
 }
 
 /** An event that already happened. The machine decides what it means. */

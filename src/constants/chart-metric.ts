@@ -11,6 +11,8 @@
  * Tenths of a light year in one unit of chart x. It is the scale that makes the
  * original's numbers come out: a full 70-tenth tank is the classic 7.0 LY. The
  * fuel-range marker is drawn at `fuel / TENTHS_PER_CHART_UNIT` chart units.
+ *
+ * @rule chart.tenthsPerUnit
  */
 export const TENTHS_PER_CHART_UNIT = 4;
 

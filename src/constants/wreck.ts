@@ -129,4 +129,9 @@ export const MINING_YIELD_SPAN = 3;
  * @rule wreck.hermitContrabandMin
  */
 export const HERMIT_CONTRABAND_MIN = 3;
+/**
+ * ...and the span above that minimum: three to six cans in all.
+ *
+ * @rule wreck.hermitContrabandSpan
+ */
 export const HERMIT_CONTRABAND_SPAN = 4;

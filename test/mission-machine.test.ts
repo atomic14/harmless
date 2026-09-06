@@ -8,7 +8,8 @@
 // (docs/TODO/190 M1).
 
 import { emptyMissionState } from '../src/missions/state.ts';
-import { stepMissions, canAccept, offersFor } from '../src/missions/machine.ts';
+import { stepMissions } from '../src/missions/machine.ts';
+import { canAccept, offersFor } from '../src/missions/offers.ts';
 import type { MissionContext } from '../src/missions/machine.ts';
 import type {
   CommanderFacts, MissionEffect, MissionInput, MissionState, Skeleton,
@@ -18,6 +19,7 @@ import {
 } from '../src/missions/queries.ts';
 import { distanceTenths } from '../src/galaxy/navigation.ts';
 import { CONSTRICTOR_SPEC } from '../src/game/ship-specs.ts';
+import { MISSION_REOFFER_DAYS } from '../src/constants/missions.ts';
 import { g1 } from './fixtures.ts';
 import { check, eq } from './harness.ts';
 
@@ -272,11 +274,13 @@ console.log('\nmission machine: the ambush verb');
   eq('arrival at the world is progress', arrived.live[0].progress, 1);
   const done = stepMissions(arrived, { kind: 'docked' }, at(target));
   eq('...and the next dock completes it', paid(done.effects), 10);
-  check('a capped side job comes back', canAccept(done.state, 'trap', at(LAVE)));
+  const later = (systemIndex: number) =>
+    ctx(facts({ systemIndex, day: MISSION_REOFFER_DAYS }), () => 0.5, [trap]);
+  check('a capped side job comes back, after the delay', canAccept(done.state, 'trap', later(LAVE)));
   const twice = stepMissions(
-    stepMissions(done.state, { kind: 'accept', skeleton: 'trap' }, at(LAVE)).state,
-    { kind: 'abandon', skeleton: 'trap' }, at(LAVE)).state;
-  check('...until the cap is spent', !canAccept(twice, 'trap', at(LAVE)));
+    stepMissions(done.state, { kind: 'accept', skeleton: 'trap' }, later(LAVE)).state,
+    { kind: 'abandon', skeleton: 'trap' }, later(LAVE)).state;
+  check('...until the cap is spent', !canAccept(twice, 'trap', later(LAVE)));
 }
 
 const inputs: MissionInput['kind'][] = ['arrived', 'misjumped', 'scooped', 'policeScan', 'choice'];

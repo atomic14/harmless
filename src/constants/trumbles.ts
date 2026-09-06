@@ -29,5 +29,7 @@ export const APPETITE_DIVISOR = 8;
 /**
  * Below this many, they are not worth a word. The console stays quiet, so the
  * pilot discovers the infestation rather than hears it announced.
+ *
+ * @rule trumbles.noticeable
  */
 export const NOTICEABLE = 4;

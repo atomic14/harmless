@@ -126,6 +126,7 @@ console.log('\nthe accept key is refused in flight, not merely hidden');
       systems,
       offers,
       atStation,
+      rumour: null,
       accept: () => { signed += 1; },
     }));
     screen.open();

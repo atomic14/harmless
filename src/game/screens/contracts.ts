@@ -22,6 +22,8 @@ export interface ContractsContext {
    * what she came for, and nothing can be signed.
    */
   readonly atStation: boolean;
+  /** the board's word about a lead a few jumps out, or null (missions/hints.ts) */
+  readonly rumour: string | null;
   /** sign for `offers[index]` — the Game owns what accepting means */
   accept(index: number): void;
 }
@@ -42,8 +44,8 @@ export class ContractsScreen implements Screen {
   }
 
   render(): void {
-    const { system, systems, commander, offers, atStation } = this.ctx();
-    renderContracts(system, systems, commander, offers, this.selected, atStation);
+    const { system, systems, commander, offers, atStation, rumour } = this.ctx();
+    renderContracts(system, systems, commander, offers, this.selected, atStation, rumour);
   }
 
   select(row: number): void {

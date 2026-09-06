@@ -44,7 +44,11 @@ export const CHEAT_CREDIT_GRANT = 100_000;
  */
 export const MAX_FUEL = 70;
 
-/** The missile rails: four, as the original's Cobra carried. */
+/**
+ * The missile rails: four, as the original's Cobra carried.
+ *
+ * @rule commander.maxMissiles
+ */
 export const MAX_MISSILES = 4;
 
 /**

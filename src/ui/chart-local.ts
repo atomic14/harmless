@@ -14,7 +14,7 @@ import { escapeHtml } from '../engine/escape-html.ts';
 import { HUD, TINT } from '../palette.ts';
 import { distanceTenths } from '../galaxy/navigation.ts';
 import { type CommanderData } from '../game/commander.ts';
-import { orderDestinations } from '../game/orders.ts';
+import { leadDestinations, orderDestinations } from '../game/orders.ts';
 import { type MarketEstimate } from '../game/market.ts';
 import { type ChartState } from '../game/chart-state.ts';
 import { type ChartOverlays } from '../game/chart-overlay.ts';
@@ -22,7 +22,7 @@ import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH, LOCAL_SCALE, LOCAL_CANVAS } from
 import { maybeById, show } from './screen-shell.ts';
 import { portraitUrl } from './portrait.ts';
 import { nearestSystem, journey, daysTerm, contractTerm, chartKeyline } from './chart-readout.ts';
-import { drawContractMarks, drawLanes, laneSummaryParts, drawPriceTells } from './chart-overlays.ts';
+import { drawContractMarks, drawLanes, drawLeadMarks, laneSummaryParts, drawPriceTells } from './chart-overlays.ts';
 
 export function renderLocalChart(
   systems: StarSystem[],
@@ -112,6 +112,7 @@ export function drawLocalChart(
   }
 
   drawContractMarks(ctx, orderDestinations(c), systems, px, py, 8);
+  drawLeadMarks(ctx, leadDestinations(c), systems, px, py, 8);
 
   // current system crosshair
   ctx.strokeStyle = HUD.green;

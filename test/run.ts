@@ -49,6 +49,7 @@ import './missions.test.ts';
 import './mission-machine.test.ts';
 import './mission-skeletons.test.ts';
 import './mission-game.test.ts';
+import './mission-offers.test.ts';
 import './standing-orders.test.ts';
 import './contracts-screen.test.ts';
 import './survivors.test.ts';

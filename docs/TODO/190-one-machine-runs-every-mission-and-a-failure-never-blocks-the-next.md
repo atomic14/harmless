@@ -787,6 +787,34 @@ control failed two of the draw-count checks in `test/galaxy.test.ts`.
    Each lead must appear on a screen. A hint must not replace an active
    mission's standing order on the amber instruction line.
 
+#### M3 outcome (2026-09-06)
+
+M3 landed as planned, with these additions that the plan did not have:
+
+- The gate, the lead access and the slot cap moved from `machine.ts` into
+  `src/missions/offers.ts`, so the machine and the desk read one rule. An arc
+  in `done` never comes back, even when a hand-built record has no journal.
+- Three constants: `MISSION_REOFFER_DAYS` (7), `LEAD_RUMOUR_JUMPS` (5) and
+  `LEAD_NAG_DOCKS` (4). The plan said "a delay", "about five jumps" and
+  "several docks". Each number has its rationale beside it.
+- `MissionState` gains `idleDocks`, the docks since the journal last moved.
+  The second patron message reads it, and the repair reads an absent one as 0.
+- A hint is a `later` effect, so it never takes the console from an order.
+  A dock that makes an offer says nothing about a lead.
+- The board rumour is a line under the CONTRACTS board. The DATA ON news
+  joins the living galaxy's headline with a dash, because neither hides the
+  other. The chart marks a lead with a triangle above the world, and the
+  readout says `A LEAD` rather than a job.
+- `test/mission-offers.test.ts` holds the slots, the ignored offer, the
+  abandonment and the re-offer delay. It also holds the four distances, the
+  one-hint rule, the second message, and invariant 16 for a lead.
+- A resumed dock sends no `docked` input. The snapshot round trip found it:
+  a reload counted a dock, and the record differed from the one it restored.
+- Seven constants that equal 4 gained a rule id, as the values 2 and 3 did.
+
+Both campaign sizes passed every balance check after M3. The NAVY line is the
+one M2 measured: 33 of 40 and 168 of 200 reached sixteen kills.
+
 ### M4 — Remaining mission actions
 
 1. Add recover, rescue, smuggle, escort and scan modules.
