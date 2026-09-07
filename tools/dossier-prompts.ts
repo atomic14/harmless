@@ -21,7 +21,7 @@ import { SKELETONS, skeletonById } from '../src/missions/skeletons/index.ts';
 import { fnv1a } from './system-prompts.ts';
 
 /** Bumped by hand when the rules below change. It is part of every hash. */
-export const DOSSIER_PROMPT_VERSION = 1;
+export const DOSSIER_PROMPT_VERSION = 3;
 
 /**
  * The rules, shared by every request.
@@ -39,12 +39,12 @@ SLOTS. A field may carry the slots its heading lists, written exactly as shown, 
 
 Write these fields:
 
-TITLE — a name for the mission, two to five words, no full stop, no slot.
-BRIEFING — one to three short paragraphs in the patron's own voice, spoken to the commander. Second person is right here. Slots: {PATRON} {HERE}. For a job offered at any station, {PATRON} and {HERE} are the only way to name the patron or the world.
-LEGS — for each leg, three console lines, one sentence each, in the game's terse voice. "arrive" is the standing order as the patron would put it. "success" is said when the leg goes right; "fail" when it goes wrong. Slots: {TARGET} {PAY}.
+TITLE — a name for the mission, two to five words, no full stop, no slot. A title a reader would remember, never the mission's id or the verb alone.
+BRIEFING — one to three short paragraphs in the patron's own voice, spoken to the commander. Second person is right here. Slots: {PATRON} {HERE}. For a job offered at any station, {PATRON} and {HERE} are the only way to name the patron or the world. The Navy has no world and no name: a Navy briefing is a signal, and it uses neither slot.
+LEGS — for each leg, three console lines, one sentence each, in the game's terse voice, with no full stop needed. "arrive" is the standing order as the patron would put it. "success" is said when the leg goes right; "fail" when it goes wrong. Slots: {TARGET} {PAY}.
 LEAD — one sentence for the commander's mission screen, on how she hears that the patron wants a word. Slots: {PATRON} {WORLD}.
-RUMOUR — "far" is a bulletin-board rumour heard a few jumps out; "near" is the patron's own message when she docks one jump away. One sentence each. Slots: {PATRON} {WORLD}.
-NEWS — one sentence for the data page of the patron's world, saying that work waits there. Slots: {PATRON} {WORLD}.
+RUMOUR — "far" is a bulletin-board rumour the commander reads a few jumps from the patron's world; "near" is the patron's own message, reaching the commander when she docks one jump from that world. The patron stays at home in both. One sentence each. Slots: {PATRON} {WORLD}.
+NEWS — one sentence of local news about the patron's world, saying that work waits there. It is read on that world's data page, and it never mentions a page or a screen. Slots: {PATRON} {WORLD}.
 STORY — the commander's log, told in the third person and the past tense, one sentence per entry. "opening" is the day she took the job. "closing" has one line for each ending. "legs" has one line per leg per outcome listed, saying what that outcome meant. Slots: {WORLD} {DAY}.
 
 Absolute rules:
@@ -97,7 +97,10 @@ export function triggerMeaning(t: Trigger, verb: Verb): string {
     case 'targetDestroyed':
       return verb.kind === 'hunt' ? 'the target was destroyed'
         : verb.kind === 'rescue' ? 'the pod was destroyed before the scoop'
-          : 'the ship was destroyed';
+          : verb.kind === 'recover' ? 'the canister was destroyed before the scoop'
+            : verb.kind === 'escort' ? 'the escorted ship was destroyed'
+              : verb.kind === 'scan' ? 'the watched ship was destroyed'
+                : 'the ship was destroyed';
   }
 }
 
@@ -131,7 +134,9 @@ function patronLine(s: Skeleton): { line: string; own: string } {
   }
   const facts = { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [] };
   const p = patronFor(s.patron, facts, generateGalaxy(1));
-  if (s.patron.kind === 'navy') return { line: `Patron: ${p.name}, in service signals: rank, no courtesy, no name.`, own: '' };
+  if (s.patron.kind === 'navy') {
+    return { line: `Patron: ${p.name}, in service signals: rank, no courtesy, no name, no world. Use neither {PATRON} nor {HERE}.`, own: '' };
+  }
   const world = generateGalaxy(1)[s.patron.seedSlot].name;
   return {
     line: `Patron: ${p.name}, ${p.role} of ${world}. ${p.voice || 'Voice: plain and direct.'}`,

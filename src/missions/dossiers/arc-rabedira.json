@@ -1,68 +1,68 @@
 {
-  "promptVersion": 1,
+  "promptVersion": 3,
   "model": "claude-sonnet-5 via claude -p",
   "generated": "2026-09-07",
   "usage": {
-    "requests": 7,
-    "inputTokens": 59611,
-    "outputTokens": 44166
+    "requests": 2,
+    "inputTokens": 16803,
+    "outputTokens": 11708
   },
   "dossier": {
     "briefing": [
-      "Friend of the cause, welcome to {HERE}. I am {PATRON}, and already I owe you thanks before you have named your price.",
-      "Carry my truce paper to the neighbour that waits for it, and every door in this sector opens wider for you. When the ink is dry, walk my Boa safely home, and I will remember the favour twice over.",
-      "Do this for the cause, friend, and you will find {PATRON} a patron worth keeping."
+      "Friend of the cause, well met on {HERE}. I am {PATRON}, and before I name a single fee, I promise you my gratitude runs deep and does not fade.",
+      "A truce paper must reach a neighbour world before the old quarrel flares again, and then you must see me safely to the meeting itself, aboard my Boa.",
+      "Do this and you will find {PATRON} generous past the fee alone: favours owed, doors opened, and a friend at {HERE} for as long as you fly."
     ],
-    "lead": "A signal from {WORLD} says {PATRON} wants a word with her.",
+    "lead": "Word comes that {PATRON} wants a word with her at {WORLD}.",
     "legs": {
       "paper": {
-        "arrive": "Carry the truce paper to {TARGET} for {PAY}, friend.",
-        "success": "The truce paper reached {TARGET}, and {PAY} is already yours.",
-        "fail": "The truce paper never reached {TARGET}, and the {PAY} stays locked away."
+        "arrive": "Take the truce paper to {TARGET} for {PAY}",
+        "success": "The paper reached {TARGET} and earned {PAY}",
+        "fail": "The paper never reached {TARGET}, and {PAY} stays unpaid"
       },
       "convoy": {
-        "arrive": "See my Boa safely into range at {TARGET}, and earn the {PAY} promised.",
-        "success": "The Boa reached station range at {TARGET}, and {PAY} is paid in full.",
-        "fail": "The Boa never reached {TARGET}, and the {PAY} goes unpaid."
+        "arrive": "See my Boa safely into range at {TARGET} for {PAY}",
+        "success": "The Boa reached {TARGET} safely, and {PAY} is yours",
+        "fail": "The Boa never reached {TARGET}, and {PAY} goes unpaid"
       },
       "salvage": {
-        "arrive": "Scoop the strongbox adrift near {TARGET}, friend, and the {PAY} still stands.",
-        "success": "The strongbox came aboard near {TARGET}, and {PAY} is yours.",
-        "fail": "The strongbox stayed lost near {TARGET}, and the {PAY} slipped away."
+        "arrive": "Scoop the strongbox adrift near {TARGET} for {PAY}",
+        "success": "The strongbox came aboard at {TARGET}, and {PAY} is yours",
+        "fail": "The strongbox slipped away near {TARGET}, and {PAY} goes unpaid"
       }
     },
-    "news": "{PATRON} has work waiting at {WORLD} for any pilot willing to help the cause.",
     "rumour": {
-      "far": "Traders say an envoy named {PATRON} is buying goodwill at {WORLD}.",
-      "near": "{PATRON} sends word from {WORLD}: come quickly, friend, the cause cannot wait."
+      "far": "Traders say {PATRON} at {WORLD} is buying goodwill with fine words and finer pay.",
+      "near": "{PATRON} sends word from {WORLD}: the truce paper waits, friend, and so does the fee."
     },
+    "news": "News circles say {PATRON} at {WORLD} still seeks a pilot willing to fly a truce.",
+    "title": "The Envoy's Passage",
     "story": {
-      "opening": "On day {DAY} at {WORLD}, she took the envoy's truce for delivery.",
+      "opening": "On day {DAY}, she took the envoy's job at {WORLD}.",
       "closing": {
-        "complete": "By day {DAY} at {WORLD}, the truce had done its work.",
-        "fail": "By day {DAY} at {WORLD}, the truce mission had collapsed."
+        "complete": "By day {DAY}, the mission was complete, and {WORLD} lay behind her.",
+        "fail": "By day {DAY}, the mission had failed, and {WORLD} lay behind her."
       },
       "legs": {
         "paper": {
-          "success": "On day {DAY} at {WORLD}, the truce paper reached its hands.",
-          "failed": "On day {DAY} at {WORLD}, the truce paper never arrived."
+          "success": "On day {DAY}, the truce paper reached {WORLD} safely.",
+          "failed": "On day {DAY}, the truce paper never reached {WORLD}."
         },
         "convoy": {
-          "success": "On day {DAY} at {WORLD}, the Boa reached station range safely.",
-          "targetDestroyed": "On day {DAY} at {WORLD}, the Boa was destroyed before reaching harbour.",
-          "targetEscaped": "On day {DAY} at {WORLD}, the Boa jumped away before she could close.",
-          "failed": "On day {DAY} at {WORLD}, the escort mission failed outright."
+          "success": "On day {DAY}, the Boa reached {WORLD} safely.",
+          "targetDestroyed": "On day {DAY}, the Boa was destroyed short of {WORLD}.",
+          "targetEscaped": "On day {DAY}, the Boa jumped away before {WORLD}.",
+          "failed": "On day {DAY}, the escort failed short of {WORLD}."
         },
         "salvage": {
-          "success": "On day {DAY} at {WORLD}, she scooped the strongbox from the wreck.",
-          "targetDestroyed": "On day {DAY} at {WORLD}, her ship was lost chasing the strongbox.",
-          "failed": "On day {DAY} at {WORLD}, the strongbox slipped from her reach."
+          "success": "On day {DAY}, the strongbox came aboard at {WORLD}.",
+          "targetDestroyed": "On day {DAY}, the strongbox was destroyed before the scoop at {WORLD}.",
+          "failed": "On day {DAY}, the strongbox was lost near {WORLD}."
         }
       }
     },
-    "title": "Truce for Rabedira",
     "skeleton": "arc-rabedira",
-    "hash": "b091d11f",
+    "hash": "1d4e1a9f",
     "images": {}
   }
 }

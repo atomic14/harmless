@@ -1,46 +1,46 @@
 {
-  "promptVersion": 1,
-  "model": "claude-haiku-4-5 via claude -p",
-  "generated": "2026-09-06",
+  "promptVersion": 3,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
   "usage": {
-    "requests": 15,
-    "inputTokens": 85254,
-    "outputTokens": 216573
+    "requests": 21,
+    "inputTokens": 164690,
+    "outputTokens": 100025
   },
   "dossier": {
-    "title": "No Questions Run",
     "briefing": [
-      "I have a sealed packet that needs to reach the neighbouring world. You take it, dock at the target, and hand it over. No questions asked, no questions answered. You will not need hold space for it.",
-      "This is how we work here at {HERE}, {PATRON}'s way. Simple work, and we pay well for your silence and discretion."
+      "This is {PATRON}. I run things here at {HERE}, and I have a packet that has to move fast.",
+      "Take it to the station one jump out. Do not ask what is inside, and do not ask about the paperwork. Just get it there before anyone notices it moved."
     ],
+    "lead": "{PATRON} sent word from {WORLD} and wants a moment of the commander's time.",
     "legs": {
       "run": {
-        "arrive": "Delivery: take the packet to {TARGET}.",
-        "success": "Packet delivered at {TARGET}. Payment: {PAY}.",
-        "fail": "Failed to reach {TARGET} within the deadline."
+        "arrive": "Dock at {TARGET} and hand off the packet for {PAY}",
+        "success": "The packet reached {TARGET} in time, {PAY} is banked",
+        "fail": "The packet missed {TARGET}, {PAY} stays unpaid"
       }
     },
-    "lead": "Word comes that {PATRON} at {WORLD} has work that needs discretion.",
     "rumour": {
-      "far": "They say {PATRON} at {WORLD} handles sealed deliveries for captains who ask no questions.",
-      "near": "Sealed delivery work at {WORLD} with {PATRON}; discretion is expected and well paid."
+      "far": "Traders say {PATRON} on {WORLD} pays well for a quiet delivery.",
+      "near": "{PATRON} sends word from {WORLD} that the packet is ready and waiting."
     },
-    "news": "{PATRON} at {WORLD} offers sealed delivery work to captains who value discretion.",
+    "news": "Work waits at {WORLD}, where {PATRON} needs a packet moved without delay.",
     "story": {
-      "opening": "The commander accepted a sealed delivery job at {WORLD} on day {DAY}.",
+      "opening": "The commander picked up a sealed packet at {WORLD} on day {DAY}.",
       "closing": {
-        "complete": "The sealed packet was delivered at {WORLD} on day {DAY}.",
-        "fail": "The sealed packet was never delivered to {WORLD} by day {DAY}."
+        "complete": "By day {DAY}, the packet had reached its destination, and the job was done.",
+        "fail": "By day {DAY}, the packet never arrived, and the deal fell through."
       },
       "legs": {
         "run": {
-          "success": "The commander docked at {WORLD} and delivered the sealed packet on day {DAY}.",
-          "failed": "The commander failed to dock at {WORLD} with the sealed packet by day {DAY}."
+          "success": "On day {DAY}, the packet reached {WORLD} without incident.",
+          "failed": "On day {DAY}, the packet failed to reach {WORLD} in time."
         }
       }
     },
+    "title": "The Sealed Packet Run",
     "skeleton": "side-deliver",
-    "hash": "0ef7fa73",
+    "hash": "37aaca6d",
     "images": {}
   }
 }

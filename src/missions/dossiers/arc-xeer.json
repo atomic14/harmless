@@ -1,69 +1,69 @@
 {
-  "promptVersion": 1,
+  "promptVersion": 3,
   "model": "claude-sonnet-5 via claude -p",
   "generated": "2026-09-07",
   "usage": {
-    "requests": 7,
-    "inputTokens": 59611,
-    "outputTokens": 44166
+    "requests": 21,
+    "inputTokens": 164690,
+    "outputTokens": 100025
   },
   "dossier": {
     "briefing": [
-      "Your docking fee at {HERE} is paid, so listen. I am {PATRON}, port administrator, and the harvest quota is short again this cycle.",
-      "An Anaconda is forging the harvest numbers. Hold it on your scanner, do not fire, then find the ship that carries the false papers and end it.",
-      "I do not apologise for the queue. Do the job, report to me, and your berth stays open."
+      "{PATRON} here, port administrator of {HERE}. The docking fee is due, and the harvest quota is short again.",
+      "An Anaconda is forging the harvest through the manifests, and it drags this port's numbers down with it. Hold it on your scanner — do not fire, I need it watched, not wrecked.",
+      "When it moves on, find the Fer-de-Lance that carries the false papers and end the run. A taxpayer with a berth expects results, not excuses."
     ],
-    "lead": "A channel opens: {PATRON} at {WORLD} wants a word about the harvest count.",
     "legs": {
       "watch": {
-        "arrive": "Hold the Anaconda at {TARGET} on your scanner, and earn {PAY} for patience.",
-        "success": "You held the scan at {TARGET} steady, and the fee of {PAY} is yours.",
-        "fail": "You lost the Anaconda at {TARGET}, and {PAY} stays in my account."
+        "arrive": "Hold the Anaconda at {TARGET} on your scanner, and hold your fire",
+        "success": "The Anaconda is marked, and the payout climbs by {PAY}",
+        "fail": "The Anaconda slipped away, and {PAY} slipped with it"
       },
       "chase": {
-        "arrive": "Destroy the Fer-de-Lance last seen at {TARGET}, and collect {PAY} when it burns.",
-        "success": "The Fer-de-Lance is wreckage at {TARGET}; {PAY} is credited to you.",
-        "fail": "The Fer-de-Lance slipped past {TARGET}, and {PAY} waits for another pilot."
+        "arrive": "Destroy the Fer-de-Lance, last seen at {TARGET}",
+        "success": "The Fer-de-Lance is run down, and {PAY} is closer",
+        "fail": "The Fer-de-Lance broke off pursuit, and the case goes cold"
       },
       "trail": {
-        "arrive": "Report the courier's trail at {TARGET}, and I will pay {PAY} on arrival.",
-        "success": "You docked at {TARGET} with the trail intact; {PAY} is transferred.",
-        "fail": "You missed the trail at {TARGET}, and {PAY} is withheld."
+        "arrive": "Report the courier's trail at {TARGET}",
+        "success": "The trail closes at {TARGET}, and {PAY} is paid in full",
+        "fail": "The trail went cold, and {PAY} stays unpaid"
       }
     },
+    "lead": "A tightbeam from {WORLD} carries {PATRON}'s demand for a word, sharp and unfriendly.",
     "rumour": {
-      "far": "Bulletin traffic says {PATRON} at {WORLD} is short a harvest count and wants proof.",
-      "near": "{PATRON} sends word from one jump out: dock at {WORLD}, she has work for you."
+      "far": "Traders near {WORLD} mutter that {PATRON} is hunting forged harvest papers again.",
+      "near": "{PATRON} sends word from {WORLD} that the forger is still loose and time is short."
     },
-    "news": "The data page at {WORLD} notes that {PATRON} has work for any pilot who docks.",
+    "news": "Port records at {WORLD} show {PATRON} still short of pilots for the harvest audit.",
     "story": {
-      "opening": "On day {DAY}, the commander logged the job offered at {WORLD}.",
+      "opening": "On day {DAY}, the commander took the port administrator's contract for {WORLD}.",
       "closing": {
-        "complete": "By day {DAY}, the trail closed at {WORLD}, and the commander's report was done.",
-        "fail": "By day {DAY}, the trail went cold near {WORLD}, and the job lapsed."
+        "complete": "By day {DAY}, {WORLD} had its proof, and the courier's run was over.",
+        "fail": "By day {DAY}, {WORLD} still waited on proof that never came."
       },
       "legs": {
         "watch": {
-          "success": "On day {DAY}, the commander held the scan steady near {WORLD}.",
-          "targetDestroyed": "On day {DAY}, the Anaconda burned near {WORLD} before the watch ended.",
-          "targetEscaped": "On day {DAY}, the Anaconda jumped clear of {WORLD} mid-watch.",
-          "failed": "On day {DAY}, the watch near {WORLD} lapsed past the deadline."
+          "success": "On day {DAY}, the commander held the Anaconda steady on the scanner over {WORLD}.",
+          "targetDestroyed": "On day {DAY}, the Anaconda was destroyed over {WORLD} before the watch was done.",
+          "targetEscaped": "On day {DAY}, the Anaconda jumped clear of {WORLD} before the watch was done.",
+          "failed": "On day {DAY}, the watch over {WORLD} lapsed, and the trail was lost."
         },
         "chase": {
-          "targetDestroyed": "On day {DAY}, the Fer-de-Lance was destroyed near {WORLD}.",
-          "targetEscaped": "On day {DAY}, the Fer-de-Lance jumped away from {WORLD}.",
-          "targetFled": "On day {DAY}, the Fer-de-Lance fled the chase near {WORLD}.",
-          "failed": "On day {DAY}, the chase near {WORLD} ran past the deadline."
+          "targetDestroyed": "On day {DAY}, the commander destroyed the Fer-de-Lance over {WORLD}.",
+          "targetEscaped": "On day {DAY}, the Fer-de-Lance escaped {WORLD}, and the chase moved on.",
+          "targetFled": "On day {DAY}, the Fer-de-Lance fled {WORLD} rather than fight.",
+          "failed": "On day {DAY}, the chase past {WORLD} ran out of time."
         },
         "trail": {
-          "success": "On day {DAY}, the commander docked at {WORLD} and closed the trail.",
-          "failed": "On day {DAY}, the trail at {WORLD} went cold past the deadline."
+          "success": "On day {DAY}, the commander docked at {WORLD} and closed the courier's trail.",
+          "failed": "On day {DAY}, the trail past {WORLD} went cold."
         }
       }
     },
-    "title": "Proof of the Harvest",
+    "title": "The Forged Harvest",
     "skeleton": "arc-xeer",
-    "hash": "77069e55",
+    "hash": "ceb4f75d",
     "images": {}
   }
 }

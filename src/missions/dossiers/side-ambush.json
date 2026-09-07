@@ -1,46 +1,47 @@
 {
-  "promptVersion": 1,
-  "model": "claude-haiku-4-5 via claude -p",
-  "generated": "2026-09-06",
+  "promptVersion": 3,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
   "usage": {
-    "requests": 15,
-    "inputTokens": 85254,
-    "outputTokens": 216573
+    "requests": 21,
+    "inputTokens": 164690,
+    "outputTokens": 100025
   },
   "dossier": {
-    "title": "Clear the Lane",
     "briefing": [
-      "I'm {PATRON}, running {HERE}, and pirates control the lane to our neighbour. Every trader either pays them or turns back. I'm losing money and patience. I need this cleared now.",
-      "Fly to the target station. Get through whatever they throw at you and dock. Prove the lane is open. That's all I'm asking."
+      "This is {PATRON}, and this station needs a lane cleared.",
+      "Pirates hold the way out of {HERE}, and every hull I send back limps home empty.",
+      "Fly it, fight through, and dock on the far side, and I will pay you well for it."
     ],
+    "lead": "{PATRON} wants a word about the lane out of {WORLD}.",
     "legs": {
       "lane": {
-        "arrive": "Fly to {TARGET} through the pirates and dock.",
-        "success": "You docked at {TARGET} and earned {PAY}.",
-        "fail": "You did not reach {TARGET} before the deadline."
+        "arrive": "Fly to {TARGET} through the pirates on the lane, and dock for {PAY}",
+        "success": "You broke the lane and docked at {TARGET}, and earned {PAY}",
+        "fail": "The lane held, {TARGET} stayed out of reach, and the {PAY} was lost"
       }
     },
-    "lead": "{PATRON} at {WORLD} needs someone to clear the pirates from the lane.",
     "rumour": {
-      "far": "Reports say {PATRON} at {WORLD} loses traders to pirates on the lane.",
-      "near": "{PATRON} at {WORLD} sends word: the pirate lane to the neighbour needs clearing."
+      "far": "They say {PATRON} at {WORLD} pays well for anyone who can break the pirate lane.",
+      "near": "{PATRON} sends word from {WORLD}: the lane still needs clearing, and the pay still stands."
     },
-    "news": "Traders report {PATRON} at {WORLD} is looking for someone to run the pirate lane.",
+    "news": "Word around {WORLD} says {PATRON} still needs a pilot to break the pirate lane.",
     "story": {
-      "opening": "The commander docked at {WORLD} on day {DAY} and took a pirate-clearing contract.",
+      "opening": "On day {DAY}, she agreed to break the pirate lane out of {WORLD}.",
       "closing": {
-        "complete": "By day {DAY}, traders at {WORLD} resumed crossing the lane to the neighbour.",
-        "fail": "By day {DAY}, the pirates at {WORLD} had sealed the lane completely."
+        "complete": "By day {DAY}, the lane out of {WORLD} was open again.",
+        "fail": "By day {DAY}, the lane out of {WORLD} was still shut."
       },
       "legs": {
         "lane": {
-          "success": "The commander docked at {WORLD} on day {DAY}, proving the lane was open.",
-          "failed": "The commander did not reach {WORLD} by the deadline of day {DAY}."
+          "success": "On day {DAY}, she broke the lane and docked at {WORLD}.",
+          "failed": "On day {DAY}, the lane beat her before she reached {WORLD}."
         }
       }
     },
+    "title": "Clear the Lane",
     "skeleton": "side-ambush",
-    "hash": "caf2c288",
+    "hash": "9b23affa",
     "images": {}
   }
 }

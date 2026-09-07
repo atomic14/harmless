@@ -1,58 +1,58 @@
 {
-  "promptVersion": 1,
-  "model": "claude-haiku-4-5 via claude -p",
-  "generated": "2026-09-06",
+  "promptVersion": 3,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
   "usage": {
-    "requests": 15,
-    "inputTokens": 85254,
-    "outputTokens": 216573
+    "requests": 21,
+    "inputTokens": 164690,
+    "outputTokens": 100025
   },
   "dossier": {
-    "title": "Survey Pilot Down",
     "briefing": [
-      "A survey pilot is adrift in an escape pod one jump out from {HERE}. I'm {PATRON}, and she's my pilot. You're going to scoop that pod and bring her in alive.",
-      "Get her to dock breathing, and we're square—you get paid. Any station will do, as long as she's safe.",
-      "But if she doesn't make it to dock alive? If she's sold off or dies out there? Then we're done, and I don't pay."
+      "This is {PATRON}, calling from {HERE}. One of our survey pilots is drifting out there in an escape pod, and the air will not last.",
+      "Scoop that pod before something else does, and land her alive at any station you can reach.",
+      "Do this well, and {PATRON} will remember it long after you leave {HERE}."
     ],
     "legs": {
       "pod": {
-        "arrive": "Scoop the escape pod at {TARGET} and dock your passenger for {PAY}.",
-        "success": "Your passenger landed alive—rescue complete.",
-        "fail": "The rescue operation failed—passenger lost."
+        "arrive": "Scoop the pod adrift at {TARGET} and bring her home for {PAY}.",
+        "success": "She came in alive from {TARGET}, and {PAY} is yours.",
+        "fail": "She did not survive {TARGET}, and {PAY} goes unpaid."
       },
       "data": {
-        "arrive": "Return to {TARGET} with the survey data for {PAY}.",
-        "success": "Survey data delivered to {TARGET}—mission complete.",
-        "fail": "Data recovery failed—deadline exceeded."
+        "arrive": "Take the survey data back to {TARGET} for {PAY}.",
+        "success": "The data reached {TARGET}, and {PAY} is paid in full.",
+        "fail": "The data never reached {TARGET}, and {PAY} is lost."
       }
     },
-    "lead": "Distress call from {PATRON} at {WORLD}: a survey pilot adrift needs rescue.",
+    "lead": "{PATRON} has left word at {WORLD}, asking for a private channel.",
     "rumour": {
-      "far": "{PATRON} at {WORLD} offers credits for rescuing a survey pilot from an escape pod.",
-      "near": "{PATRON} at {WORLD} is calling urgent—survey pilot adrift one jump out, rescue needed."
+      "far": "Word on the board says {PATRON} at {WORLD} is short a pilot and paying well for her return.",
+      "near": "{PATRON} sends word from {WORLD}: a survey pilot is adrift, and time is short."
     },
-    "news": "{PATRON} at {WORLD} pays for rescue work—a survey pilot is down in a pod.",
+    "news": "Word from {WORLD} says {PATRON} is offering fair pay to whoever brings a stranded pilot home.",
     "story": {
-      "opening": "Day {DAY} at {WORLD}: the commander accepted a rescue mission for a downed survey pilot.",
+      "opening": "On day {DAY}, out of {WORLD}, she took the call for a pilot adrift in a pod.",
+      "closing": {
+        "complete": "By day {DAY}, the pilot was landed alive and the job out of {WORLD} was closed clean.",
+        "fail": "By day {DAY}, the rescue died on the vine, and {WORLD} logged another life lost."
+      },
       "legs": {
         "pod": {
-          "survivor:landed": "Day {DAY} at {WORLD}: the escape pod survivor reached dock alive—mission success.",
-          "survivor:sold": "Day {DAY} at {WORLD}: the escape pod survivor was sold—mission failed.",
-          "targetDestroyed": "Day {DAY} at {WORLD}: the escape pod was destroyed before retrieval.",
-          "failed": "Day {DAY} at {WORLD}: the rescue deadline passed without reaching the pod."
+          "survivor:landed": "The pod gave up its pilot alive near {WORLD} on day {DAY}.",
+          "survivor:sold": "The pilot from {WORLD} was sold before day {DAY} closed, and the rescue failed.",
+          "targetDestroyed": "The pod was destroyed near {WORLD} on day {DAY}, and the search moved on.",
+          "failed": "The pod near {WORLD} was never scooped, and day {DAY} closed the chase."
         },
         "data": {
-          "success": "Day {DAY} at {WORLD}: the survey data was delivered safely—mission complete.",
-          "failed": "Day {DAY} at {WORLD}: the data recovery deadline passed—mission failed."
+          "success": "The survey data reached {WORLD} safely on day {DAY}.",
+          "failed": "The survey data never reached {WORLD}, and the trail went cold by day {DAY}."
         }
-      },
-      "closing": {
-        "complete": "Day {DAY} at {WORLD}: the rescue mission concluded successfully.",
-        "fail": "Day {DAY} at {WORLD}: the rescue mission concluded in failure."
       }
     },
+    "title": "Bring Her In Alive",
     "skeleton": "side-rescue",
-    "hash": "f336d5d3",
+    "hash": "82bdcf15",
     "images": {}
   }
 }

@@ -258,6 +258,17 @@ dossier, so a taste never reaches the generated index.
   later. A run keeps what it wrote, so the answer is to run it again with
   `--jobs 2`. The runner closes stdin on each call now, which saves three
   seconds a call and keeps the real stderr line.
+- **The dossiers are Sonnet's too, under prompt version 3.** Chris asked
+  for a polish of the prose on 2026-09-07, and the nine Haiku dossiers
+  were the weakest words a player reads: a title that echoed the job id,
+  a Navy briefing that spoke "from {HERE}", and a "near" message read as
+  the patron docking rather than the commander. The prompt now says the
+  Navy uses neither slot, the patron stays at home in both rumours, a
+  title is never the id or the verb alone, and a news line never names
+  the page it sits on. A recover leg's loss is "the canister was destroyed
+  before the scoop", because the first draft had the commander's own ship
+  lost. All fourteen were written again on Sonnet 5, and every one passes
+  the gates.
 - **An `arrive` line that quotes `{PAY}` filled it with zero.** The
   acceptance slot carries the leg's fee now, and `legPay` in `text.ts` is
   the one home of that number.
@@ -345,4 +356,5 @@ dossier, so a taste never reaches the generated index.
   million out, most of it thinking, at about a minute a call. The Sonnet
   patrons that ship cost 493 calls over four sittings, 3.5 million tokens
   in and 0.24 million out, at about fifteen seconds a call. The dossiers
-  cost 22 Haiku calls.
+  that ship cost about 45 Sonnet calls over three runs, after 22 Haiku
+  calls for the first set.

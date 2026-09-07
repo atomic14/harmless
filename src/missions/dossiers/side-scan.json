@@ -1,47 +1,48 @@
 {
-  "promptVersion": 1,
-  "model": "claude-haiku-4-5 via claude -p",
-  "generated": "2026-09-06",
+  "promptVersion": 3,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
   "usage": {
-    "requests": 15,
-    "inputTokens": 85254,
-    "outputTokens": 216573
+    "requests": 21,
+    "inputTokens": 164690,
+    "outputTokens": 100025
   },
   "dossier": {
-    "title": "Side Scan",
     "briefing": [
-      "Commander, I'm {PATRON} running {HERE}. An Anaconda is working a neighbor world. When you're out there, hold it on your scanner for twenty seconds. Keep it steady. Do not fire on it—this is surveillance work only."
+      "This is {PATRON}, speaking from {HERE}. There is an Anaconda working the neighbour system, and I want eyes kept on it.",
+      "Hold it on your scanner for twenty seconds. Do not fire, do not provoke it, just watch and report back."
     ],
+    "lead": "{PATRON} at {WORLD} has sent word, wanting a moment of the commander's time.",
     "legs": {
       "watch": {
-        "arrive": "Hold the Anaconda on scanner at {TARGET} for twenty seconds.",
-        "success": "Anaconda held on scanner at {TARGET} successfully.",
-        "fail": "Failed to hold Anaconda on scanner at {TARGET}."
+        "arrive": "Hold the Anaconda on your scanner at {TARGET} without firing, for {PAY}",
+        "success": "You held the Anaconda at {TARGET} without firing, and earned {PAY}",
+        "fail": "The Anaconda got away at {TARGET}, and {PAY} stays unpaid"
       }
     },
-    "lead": "{PATRON} at {WORLD} needs your scanner for surveillance work.",
+    "news": "{PATRON} at {WORLD} is offering steady pay to any pilot who can hold a scan.",
     "rumour": {
-      "far": "{PATRON} from {WORLD} is looking for scanner work on a nearby ship.",
-      "near": "{PATRON} at {WORLD} calling: bring your scanner, I have work for you."
+      "far": "Some say {PATRON} at {WORLD} is paying well to have a ship watched.",
+      "near": "{PATRON} sends word from {WORLD} that the ship still needs watching."
     },
-    "news": "{PATRON} at {WORLD} has surveillance work available to qualified pilots.",
     "story": {
-      "opening": "The commander accepted a surveillance contract at {WORLD} on day {DAY}.",
+      "opening": "On day {DAY}, the commander took on a watching job at {WORLD}.",
       "closing": {
-        "complete": "The target was held on scanner at {WORLD} by day {DAY}, and the contract was complete.",
-        "fail": "The surveillance contract could not be completed at {WORLD} by day {DAY}."
+        "complete": "By day {DAY}, the watch had paid off, and the commander's job at {WORLD} was done.",
+        "fail": "By day {DAY}, the watch had failed, and the job at {WORLD} was lost."
       },
       "legs": {
         "watch": {
-          "success": "The Anaconda held on scanner at {WORLD} on day {DAY}.",
-          "targetDestroyed": "The target was destroyed at {WORLD} on day {DAY}.",
-          "targetEscaped": "The target escaped into jump space at {WORLD} on day {DAY}.",
-          "failed": "The twenty-second hold deadline was missed at {WORLD} on day {DAY}."
+          "success": "On day {DAY}, the commander held the Anaconda at {WORLD} for the full watch.",
+          "targetDestroyed": "On day {DAY}, the Anaconda was destroyed at {WORLD} before the watch was done.",
+          "targetEscaped": "On day {DAY}, the Anaconda slipped away from the scanner at {WORLD}.",
+          "failed": "On day {DAY}, the watch at {WORLD} ran out before it was done."
         }
       }
     },
+    "title": "Eyes on the Anaconda",
     "skeleton": "side-scan",
-    "hash": "b0cf2aa8",
+    "hash": "5c5d6d6c",
     "images": {}
   }
 }

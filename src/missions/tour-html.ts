@@ -25,7 +25,7 @@ function arcHtml(a: TourArc, n: number): string {
           ${face}
           <div>
             <h3>${n}. ${escapeHtml(a.title)}</h3>
-            <p class="who">${escapeHtml(a.patron.name)}, ${escapeHtml(a.patron.role)} of ${escapeHtml(a.world.name)}</p>
+            <p class="who">${escapeHtml(a.patron.name)}, ${escapeHtml(a.patron.role)} at ${escapeHtml(a.world.name)}</p>
           </div>
         </div>
         ${a.briefing.map((p) => `<p class="briefing">${escapeHtml(p)}</p>`).join('\n        ')}

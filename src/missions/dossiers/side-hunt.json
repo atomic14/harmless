@@ -1,47 +1,47 @@
 {
-  "promptVersion": 1,
-  "model": "claude-haiku-4-5 via claude -p",
-  "generated": "2026-09-06",
+  "promptVersion": 3,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
   "usage": {
-    "requests": 15,
-    "inputTokens": 85254,
-    "outputTokens": 216573
+    "requests": 21,
+    "inputTokens": 164690,
+    "outputTokens": 100025
   },
   "dossier": {
-    "title": "Krait Bounty",
     "briefing": [
-      "I am {PATRON} at {HERE}. A Krait has been taking ships on the lane. The station will not tolerate it.",
-      "I will pay a bounty for its destruction. Go to the location we name. Hunt the Krait and destroy it. If it jumps, no bounty."
+      "This is {PATRON}. I run the docks at {HERE}, and a Krait has been picking off ships on our lane.",
+      "Find it, burn it, and the fee is yours the day you dock here again."
     ],
+    "lead": "Word comes in that {PATRON} at {WORLD} wants a word with you.",
     "legs": {
       "hunt": {
-        "arrive": "Destroy the Krait near {TARGET} for bounty {PAY}.",
-        "success": "Krait destroyed; bounty earned.",
-        "fail": "Hunt failed; no bounty."
+        "arrive": "Destroy the Krait last seen at {TARGET} and claim {PAY}",
+        "success": "The Krait burns, and {PAY} is now yours",
+        "fail": "The Krait slipped away, and {PAY} stays on the board"
       }
     },
-    "lead": "{PATRON} has posted a bounty for a Krait at {WORLD}.",
+    "news": "{PATRON} at {WORLD} still wants the lane Krait destroyed.",
     "rumour": {
-      "far": "Bounty posted: a Krait has been hitting traffic near {WORLD}, and {PATRON} wants it dead.",
-      "near": "{PATRON} at {WORLD} offers credits for the destruction of a Krait hunting that space."
+      "far": "Traders say {PATRON} at {WORLD} is paying well for a dead Krait.",
+      "near": "{PATRON} sends word from {WORLD} that the Krait bounty still stands."
     },
-    "news": "{PATRON} at {WORLD} posts a bounty for the destruction of a Krait threatening the lane.",
     "story": {
-      "opening": "{WORLD} on day {DAY}: Accepted a bounty to destroy a Krait.",
+      "opening": "She signed on to hunt a Krait at {WORLD} on day {DAY}.",
       "closing": {
-        "complete": "{WORLD} on day {DAY}: Krait destroyed; bounty claimed.",
-        "fail": "{WORLD} on day {DAY}: Krait hunt failed; bounty unclaimed."
+        "complete": "By day {DAY}, the Krait bounty out of {WORLD} was closed for good.",
+        "fail": "By day {DAY}, the Krait bounty out of {WORLD} had gone unpaid."
       },
       "legs": {
         "hunt": {
-          "targetDestroyed": "{WORLD} on day {DAY}: The Krait was destroyed in combat.",
-          "targetEscaped": "{WORLD} on day {DAY}: The Krait was detected and pursued but escaped.",
-          "failed": "{WORLD} on day {DAY}: The Krait was not found before deadline."
+          "targetDestroyed": "At {WORLD} on day {DAY}, the Krait was destroyed and the bounty paid.",
+          "targetEscaped": "At {WORLD} on day {DAY}, the Krait jumped clear and the trail went cold.",
+          "failed": "By day {DAY}, the hunt near {WORLD} had run past its deadline."
         }
       }
     },
+    "title": "Krait on the Lane",
     "skeleton": "side-hunt",
-    "hash": "fdea6cd8",
+    "hash": "cebda7e6",
     "images": {}
   }
 }

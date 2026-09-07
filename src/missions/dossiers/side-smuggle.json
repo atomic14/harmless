@@ -1,47 +1,47 @@
 {
-  "promptVersion": 1,
-  "model": "claude-haiku-4-5 via claude -p",
-  "generated": "2026-09-06",
+  "promptVersion": 3,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
   "usage": {
-    "requests": 15,
-    "inputTokens": 85254,
-    "outputTokens": 216573
+    "requests": 21,
+    "inputTokens": 164690,
+    "outputTokens": 100025
   },
   "dossier": {
-    "title": "Silent Run",
     "briefing": [
-      "I'm {PATRON} here at {HERE}. I need three tonnes of narcotics moved to a neighbouring world, past the patrols. This is quiet work, entirely off the books.",
-      "You land at the target unscanned, drop the cargo, and leave. No police inspections, no records, nothing traced. The authorities are vigilant, so you'll need to plan your approach.",
-      "Payment waits at the destination. It's straightforward work if you're discreet. Are you interested?"
+      "This is {PATRON}, and this conversation never happened.",
+      "Three tonnes of narcotics need to move from {HERE} to a neighbour world, past every patrol on the way.",
+      "Land it unscanned and you are paid at the far end. Get scanned, and you were never here."
     ],
+    "lead": "Word reaches the commander that {PATRON} wants a quiet talk at {WORLD}.",
     "legs": {
       "run": {
-        "arrive": "Transport narcotics to {TARGET} unscanned for {PAY}.",
-        "success": "Cargo delivered unscanned to {TARGET} for {PAY}.",
-        "fail": "Run to {TARGET} failed, no {PAY} issued."
+        "arrive": "Land the narcotics at {TARGET} unscanned for {PAY}",
+        "success": "The narcotics reached {TARGET} unscanned, and {PAY} is yours",
+        "fail": "The narcotics never reached {TARGET}, and {PAY} stays unpaid"
       }
     },
-    "lead": "{PATRON} at {WORLD} has quiet work available.",
+    "news": "Locals say {PATRON} at {WORLD} is looking for a pilot willing to keep quiet.",
     "rumour": {
-      "far": "{PATRON} at {WORLD} has work for qualified pilots.",
-      "near": "{PATRON} at {WORLD} has discrete, immediate, profitable work available."
+      "far": "Rumour on the board says {PATRON} at {WORLD} pays well for quiet cargo runs.",
+      "near": "{PATRON} sends word from {WORLD}: the quiet job still needs a pilot."
     },
-    "news": "{PATRON} at {WORLD} seeks pilots for a quiet delivery contract.",
     "story": {
-      "opening": "The commander accepted a smuggling contract at {WORLD} on day {DAY}.",
+      "opening": "On day {DAY}, the commander took a quiet cargo job tied to {WORLD}.",
       "closing": {
-        "complete": "The smuggling contract at {WORLD} was fulfilled on day {DAY}.",
-        "fail": "The smuggling run to {WORLD} failed on day {DAY}."
+        "complete": "By day {DAY}, the narcotics run was done, and the commander's ties to {WORLD} stayed hidden.",
+        "fail": "By day {DAY}, the deal collapsed, and the commander's name was linked to {WORLD}."
       },
       "legs": {
         "run": {
-          "success": "Narcotics landed unscanned at {WORLD}, and payment was received on day {DAY}.",
-          "failed": "Cargo to {WORLD} was intercepted or deadline passed on day {DAY}."
+          "success": "By day {DAY}, the commander landed the narcotics at {WORLD} without a scan.",
+          "failed": "By day {DAY}, the commander failed to land the narcotics at {WORLD} before the deadline."
         }
       }
     },
+    "title": "Past the Patrols",
     "skeleton": "side-smuggle",
-    "hash": "52dfd22e",
+    "hash": "b1c227d0",
     "images": {}
   }
 }
