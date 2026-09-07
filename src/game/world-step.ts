@@ -437,7 +437,9 @@ export class WorldStep {
     // the station is free.
     //
     // A RAM costs each side its own stated number of its own points
-    // (`IMPACT.ram`). Neither meets armour: armour is a laser's business.
+    // (`IMPACT.ram`). Neither meets armour: armour is a laser's business. It
+    // provokes nobody, because nothing here can say who flew into whom
+    // (`PROVOKES` in damage-dealt.ts, docs/TODO/194).
     const ramEnergy = npcImpactDamage(IMPACT.ram);
     const ramPlayer = playerImpactDamage(IMPACT.ram);
     for (const npc of playerVsNpcs(

@@ -76,9 +76,11 @@ export function isHostileToPlayer(
   // What they have in common is that they are done with you.
   if (npc.state.satisfied) return false;
   // The station's truce, and the commander who ends it. `provokedByPlayer` is
-  // set by `takeDamage` for damage from the commander, whatever the role. So a
-  // ship shot at inside the truce answers exactly as it does outside one. A
-  // truce that covered that case would make the port a free firing position.
+  // set by `takeDamage` for an AIMED hit from the commander, whatever the role.
+  // So a ship shot at inside the truce answers exactly as it does outside one.
+  // A truce that covered that case would make the port a free firing position.
+  // A ram is contact, and it never sets the flag (`PROVOKES` in
+  // damage-dealt.ts, docs/TODO/194).
   if (!npc.state.provokedByPlayer && truceHolds(npc.role, playerToStation)) return false;
   return (
     npc.role === 'pirate' || npc.role === 'thargoid' || npc.role === 'thargon' ||

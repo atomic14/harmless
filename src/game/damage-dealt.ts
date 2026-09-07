@@ -38,6 +38,7 @@ import type * as THREE from 'three';
 import type { DamageSource } from './combat.ts';
 import type { NpcEnergyPoints } from './damage-units.ts';
 import type { NpcShip } from './npc.ts';
+import { PROVOKES } from '../constants/blame.ts';
 
 /**
  * What the commander can hurt a ship WITH.
@@ -76,13 +77,15 @@ export interface DealtOutcome {
  * @param points already minted by the module that owns the rule — a ram, a
  * warhead or the energy bomb from `impact-damage.ts`. Nothing is minted here.
  * @param from the attacker's position, which is how a trader decides where to
- * flee to and what marks the ship as provoked BY THE PLAYER.
+ * flee to.
+ * @param source what did it. `PROVOKES` (constants/blame.ts) reads it: an
+ * aimed source marks the ship as provoked BY THE PLAYER, and a ram does not.
  */
 export function dealToNpc(
   npc: NpcShip, points: NpcEnergyPoints, from: THREE.Vector3, source: DealtSource,
 ): DealtOutcome {
   const before = npc.state.energy;
-  const destroyed = npc.takeDamage(points, from, true);
+  const destroyed = npc.takeDamage(points, from, PROVOKES[source]);
   return {
     event: { kind: 'playerDealt', npc, damage: before - npc.state.energy, source },
     destroyed,
