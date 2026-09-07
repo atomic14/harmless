@@ -208,7 +208,9 @@ Two quirks are deliberate:
   A verb module under `verbs/` decides what an input means for one leg, and
   the machine takes the branch. `triggers.ts` says what a trigger is called,
   and which dossier line a branch may speak with. `placement.ts` picks a leg's world with one
-  draw. `queries.ts` answers the game's questions without a change. `lint.ts`
+  draw. A band measures tenths on the chart. A handover measures jumps on
+  the full-tank graph. `tour.ts` places the five arc starts from the seed,
+  and a galactic jump moves a lead by the same rule (docs/TODO/192). `queries.ts` answers the game's questions without a change. `lint.ts`
   holds the five failure rules as data checks, and
   `test/mission-skeletons.test.ts` runs it over every skeleton. `repair.ts`
   reads a saved record for both loaders, and drops the old stage number.

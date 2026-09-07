@@ -72,9 +72,9 @@ const faults: [string, Skeleton, readonly Skeleton[], string][] = [
   ['a verb with no module',
     arc({ legs: [{ ...legs()[0], verb: { kind: 'teleport' } as never }, legs()[1]] }),
     [b], 'no module'],
-  ['a handover placement, before it is built',
-    arc({ legs: [{ ...legs()[0], place: { kind: 'handover', toward: 'b', min: 2, max: 4 } }, legs()[1]] }),
-    [b], 'not built yet'],
+  ['a handover toward a skeleton that does not exist',
+    arc({ legs: [{ ...legs()[0], place: { kind: 'handover', toward: 'ghost', min: 2, max: 4 } }, legs()[1]] }),
+    [b], 'unknown skeleton ghost'],
 ];
 for (const [name, s, others, word] of faults) {
   const problems = lintSkeleton(s, [s, ...others], g1);

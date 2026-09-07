@@ -37,7 +37,9 @@ export function lintSkeleton(
         out.push(`${at}: branch to unknown leg ${b.to}`);
       }
     }
-    if (leg.place.kind === 'handover') out.push(`${at}: handover placement is not built yet`);
+    if (leg.place.kind === 'handover' && !all.some((t) => t.id === (leg.place as { toward: string }).toward)) {
+      out.push(`${at}: handover toward unknown skeleton ${leg.place.toward}`);
+    }
     if (leg.place.kind === 'band') {
       const band = leg.place;
       const dry = systems.filter((from) => !systems.some((to) => {

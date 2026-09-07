@@ -59,11 +59,42 @@ export function routeEstimate(
   from: StarSystem,
   to: StarSystem,
 ): RouteEstimate | null {
+  const table = settle(systems, from.index, to.index);
+  return table.days[to.index] === Infinity ? null
+    : { days: table.days[to.index], jumps: table.jumps[to.index] };
+}
+
+/** Days and jumps from one system to every other; `Infinity` where no chain joins them. */
+export interface RouteTable {
+  days: readonly number[];
+  jumps: readonly number[];
+}
+
+/**
+ * The cheapest route from `from` to EVERY system, in one search.
+ *
+ * The mission tour and the handover placement (missions/tour.ts,
+ * missions/placement.ts) measure a band of jumps over the whole galaxy at
+ * once. 256 pair searches from one source repeat the same work 256 times.
+ * This runs the search to the end instead. An unreachable system
+ * reads `Infinity` in both arrays, so `jumps` is never 0 for a system that
+ * cannot be reached.
+ */
+export function routeTable(systems: readonly StarSystem[], from: number): RouteTable {
+  return settle(systems, from, -1);
+}
+
+/**
+ * Dijkstra from `from`, stopped when `stopAt` settles, or run to the end for
+ * -1. The rules are `routeEstimate`'s, and this is their one home.
+ */
+function settle(systems: readonly StarSystem[], from: number, stopAt: number): RouteTable {
   const n = systems.length;
   const days = new Array<number>(n).fill(Infinity);
-  const jumps = new Array<number>(n).fill(0);
+  const jumps = new Array<number>(n).fill(Infinity);
   const settled = new Array<boolean>(n).fill(false);
-  days[from.index] = 0;
+  days[from] = 0;
+  jumps[from] = 0;
 
   for (;;) {
     // The next system to settle: the cheapest in days, and among those the one
@@ -81,9 +112,9 @@ export function routeEstimate(
         at = i;
       }
     }
-    // Everything left is unreachable, and the target is in it.
-    if (at < 0 || bestDays === Infinity) return null;
-    if (at === to.index) return { days: bestDays, jumps: bestJumps };
+    // Everything left is unreachable, and the target, if any, is in it.
+    if (at < 0 || bestDays === Infinity) return { days, jumps };
+    if (at === stopAt) return { days, jumps };
     settled[at] = true;
 
     for (let v = 0; v < n; v++) {

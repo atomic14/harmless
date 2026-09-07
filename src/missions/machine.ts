@@ -22,7 +22,6 @@
 // placement in a band makes one draw. Nothing else here draws.
 
 import type { StarSystem } from '../galaxy/galaxy.ts';
-import { routeEstimate } from '../galaxy/route.ts';
 import { dockHint } from './hints.ts';
 import type {
   Branch, CommanderFacts, DossierWord, Leg, LiveMission, MissionEffect, MissionInput,
@@ -30,8 +29,9 @@ import type {
 } from './model.ts';
 import { canAccept, offersFor } from './offers.ts';
 import { placeLeg } from './placement.ts';
-import { SKELETONS, skeletonById } from './skeletons/index.ts';
+import { ARC_TOUR, SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, legPay, lineSlots } from './text.ts';
+import { leadWorldIn } from './tour.ts';
 import { sameTrigger, triggerLabel, wordKind } from './triggers.ts';
 import { verbItem, verbModule, verbNeedsShip } from './verbs/registry.ts';
 
@@ -134,7 +134,7 @@ function accept(
   const skeleton = skeletonOf(id, ctx);
   const c = ctx.commander;
   const first = skeleton.legs[0];
-  const placed = placeLeg(first.place, st, c, ctx.systems, ctx.rng, id);
+  const placed = placeLeg(first.place, st, c, ctx.systems, ctx.rng, id, ctx.skeletons ?? SKELETONS);
   if (!placed.ok) return;
   st.journal.push({ skeleton: id, leg: first.id, outcome: 'accepted', day: c.day, world: c.systemIndex });
   const live: LiveMission = {
@@ -167,9 +167,10 @@ function abandon(
 
 /**
  * The commander left the galaxy. Every live mission fails by its own final
- * outcome, with the departure as the reason. Every lead moves to its
- * skeleton's start world in the new galaxy. Its galaxy moves with it, so a
- * lead never points at an index in a galaxy she is not in.
+ * outcome, with the departure as the reason. Every lead moves to the world
+ * the tour of the new galaxy gives its arc (tour.ts), from the arrival
+ * world. Its galaxy moves with it, so a lead never points at an index in a
+ * galaxy she is not in. `ctx.systems` is the galaxy she arrives in.
  */
 function leaveGalaxy(
   st: MissionState, to: number, ctx: MissionContext, effects: MissionEffect[],
@@ -180,25 +181,10 @@ function leaveGalaxy(
     finish(st, live, 'fail', ctx, effects);
   }
   for (const lead of st.leads) {
-    const s = skeletonById(lead.skeleton, ctx.skeletons ?? SKELETONS);
-    if (!s) continue;
+    if (!skeletonById(lead.skeleton, ctx.skeletons ?? SKELETONS)) continue;
     lead.galaxy = to;
-    lead.world = reachableFrom(ctx.systems, c.systemIndex, startWorld(s, c));
+    lead.world = leadWorldIn(ctx.systems, c.systemIndex, ARC_TOUR.indexOf(lead.skeleton));
   }
-}
-
-/**
- * `preferred`, or the next index after it that a chain of full-tank jumps
- * from `here` reaches. Galaxies 3, 4, 6, 7 and 8 each strand a group of
- * worlds (galaxy/route.ts). A lead on one of those is a lead nobody can
- * follow. The arc plan, item 192 of docs/TODO/190, owns the placement proper.
- */
-function reachableFrom(systems: readonly StarSystem[], here: number, preferred: number): number {
-  for (let step = 0; step < systems.length; step++) {
-    const index = (preferred + step) % systems.length;
-    if (index === here || routeEstimate(systems, systems[here], systems[index]) !== null) return index;
-  }
-  return here;
 }
 
 // --- events -----------------------------------------------------------------
@@ -270,7 +256,7 @@ function takeBranch(
     return;
   }
   const next = legOf(skeleton, branch.to);
-  const placed = placeLeg(next.place, st, c, ctx.systems, ctx.rng, live.skeleton);
+  const placed = placeLeg(next.place, st, c, ctx.systems, ctx.rng, live.skeleton, ctx.skeletons ?? SKELETONS);
   if (!placed.ok) return;
   settle(st, skeleton, branch.settle, placed.target, ctx, effects, word(placed.target));
   st.journal.push(entry);

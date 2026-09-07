@@ -158,3 +158,35 @@ export const SMUGGLE_TONNES = 3;
  * `DOCK_COMPUTER_RANGE` of the charge.
  */
 export const ESCORT_ENEMY_ROLES: readonly string[] = ['pirate', 'hunter', 'thargoid', 'thargon'];
+
+/**
+ * How many arcs the tour holds: five, Chris's number (docs/TODO/190, item 192).
+ *
+ * `missions/tour.ts` places that many start worlds from the seed, and
+ * `skeletons/index.ts` lists the arcs in tour order.
+ *
+ * @rule missions.tourArcs
+ */
+export const TOUR_ARCS = 5;
+
+/**
+ * How far each arc's start world is from the one before it, in JUMPS on the
+ * full-tank graph: four to six. "Each four to six jumps farther across the
+ * galaxy" is the intended tour (docs/TODO/192). Galaxy 1's most distant
+ * world is 21 jumps from Lave, so five steps of this size cross it.
+ *
+ * It is a band of jumps, not of tenths of a light year. `SIDE_JOB_RANGE`
+ * and the Navy's ranges are tenths on the chart.
+ *
+ * @rule missions.tourStepJumps
+ */
+export const TOUR_STEP_JUMPS = { min: 4, max: 6 } as const;
+
+/**
+ * How far an arc's final leg lies from the next arc's start world, in JUMPS:
+ * two to four. Close enough that the rumour range (`LEAD_RUMOUR_JUMPS`)
+ * always covers it, and far enough that the lead is a journey.
+ *
+ * @rule missions.arcHandoverJumps
+ */
+export const ARC_HANDOVER_JUMPS = { min: 2, max: 4 } as const;

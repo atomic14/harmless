@@ -111,7 +111,8 @@ const OUTSIDE: readonly Group[] = [
         'SIDE_HUNT', 'SIDE_DELIVER', 'SIDE_RECOVER', 'SIDE_RESCUE', 'SIDE_AMBUSH',
         'SIDE_SMUGGLE', 'SIDE_ESCORT', 'SIDE_SCAN', 'SIDE_JOBS', 'FAIL', 'LOCAL', 'AWAY',
       ],
-      'missions/skeletons/index.ts': ['SKELETONS'],
+      // ...and the arcs in tour order, which is a list of ids (docs/TODO/192)
+      'missions/skeletons/index.ts': ['SKELETONS', 'ARC_TOUR'],
       'missions/verbs/registry.ts': ['VERBS'],
       // the dossier table item 191 fills, and the words that end a story page
       'missions/dossiers.ts': ['DOSSIERS'],

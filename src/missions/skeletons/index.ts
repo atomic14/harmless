@@ -10,6 +10,13 @@ import { SIDE_JOBS } from './side.ts';
 
 export const SKELETONS: readonly Skeleton[] = [CONSTRICTOR, ...SIDE_JOBS];
 
+/**
+ * The arcs of the tour, in order. The arc at index k starts at the k-th
+ * world `arcStarts` (tour.ts) places. The Constrictor is a Navy arc outside
+ * the tour, with its own gate. The five arcs of docs/TODO/192 M2 fill this.
+ */
+export const ARC_TOUR: readonly string[] = [];
+
 export function skeletonById(
   id: string, from: readonly Skeleton[] = SKELETONS,
 ): Skeleton | null {
