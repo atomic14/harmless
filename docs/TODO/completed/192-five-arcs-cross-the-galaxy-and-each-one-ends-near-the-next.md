@@ -188,3 +188,65 @@ Restore the correct implementation after each check.
 | Make `arcStarts` read the world's random stream | Starts differ between runs |
 | Let a flag trigger fire on every settlement | Flag fires twice |
 | Drop the expiry from a world change | Change never expires |
+
+## Outcome
+
+Landed on 2026-09-07, in four milestones, one commit each. The tour of
+galaxy 1 is Lave, Rabedira, Vetitice, Xeer and Edle. Five arcs sit on it,
+each with a dossier written on Sonnet 5 through the command line, and the
+gate holds every rule the plan named.
+
+### What the milestones did
+
+- **M1.** `missions/tour.ts` places five starts from the seed. Each is four
+  to six jumps from the one before, and farther from Lave. `placement.ts`
+  builds the handover by jumps on the full-tank graph. `route.ts` gains a
+  single-source table. A galactic jump moves every lead by the tour of the
+  new galaxy, and the test covers all eight galaxies.
+- **M2.** Five arcs under `skeletons/arcs/`, each with a theme, two to four
+  legs, mixed verbs, and a recovery leg. The lint measures a final leg
+  against the lead's world, and names two legs that force two sets at one
+  world. `test/arcs.test.ts` walks each arc through the machine on both
+  paths.
+- **M3.** `withinJumps`, the flag trigger, the world changes with expiry,
+  and the choice prompt, each with its test.
+- **M4.** Each world draws two or three side jobs from the seed. Both
+  campaign sizes read line for line as before.
+
+### What the plan did not have
+
+- **A second arc at one dock took the console from the first.** The
+  governor of Lave stands beside the Navy there. The machine now hails the
+  first arc and queues the rest. Two fixtures that assumed a quiet dock at
+  Lave wait for one.
+- **A world patron's arc was offered everywhere.** The offer rule had no
+  world check. It has one now, and `withinJumps` widens it.
+- **Two legs of one skeleton are never live together.** The override rule
+  compares two skeletons only, or the Constrictor's hunt and its courier
+  run would conflict.
+- **A recovery branch is not a recovery leg.** Three arcs first rejoined
+  the happy path with no leg of their own. Vetitice and Edle gained one,
+  and the walker takes the branch that leads off the happy path.
+- **The fault "a flag fires on every settlement" is not observable.** A
+  leg whose flag is already set moves when the leg starts, by design, so
+  that fault changes nothing a test can see. The test counts one journal
+  entry per flag instead.
+- **The shared seeded pick must be the tour's exact hash.** An avalanche
+  step moved the tour, and the arcs are pinned to its worlds.
+- **The machine crossed the size ceiling twice.** The trigger vocabulary
+  left in docs/TODO/191, and the three skeleton lookups left here, to
+  `missions/lookups.ts`.
+- **The screen cannot be driven to a choice in a test**, because it reads
+  the shipped skeletons and none ships a choice leg. The renderer is
+  driven through its own row type, and the machine's choice path is
+  tested directly.
+
+### Measurements
+
+- 5,462 assertions, from 5,353.
+- The five starts are 4, 4, 5 and 4 jumps apart, and 4, 8, 13 and 17
+  jumps from Lave.
+- Each world's board holds two jobs on 137 worlds and three on 119. The
+  rarest side job sits on 60 boards, the commonest on 99.
+- Both campaign sizes are unchanged to the digit at 40 and at 200
+  commanders over 60 legs.

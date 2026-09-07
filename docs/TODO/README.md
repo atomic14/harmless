@@ -13,15 +13,13 @@ active context:
 
 ## Execution queue
 
-1. [192](192-five-arcs-cross-the-galaxy-and-each-one-ends-near-the-next.md)
-   — five arcs cross the galaxy, and each one ends near the next.
-2. [193](193-the-site-tells-the-mission-tour.md) — the site tells the
+1. [193](193-the-site-tells-the-mission-tour.md) — the site tells the
    mission tour.
 
 **191, 192 AND 193 ARE THE THREE PLANS 190 PROPOSED**, drafted on 2026-09-06
 after it landed. The pipeline came first, so the arcs ship with words. **191
-landed the same day**, and it is below. The arcs come second, and the site
-page last, because it reads both. **THE GENERATION RUN HAPPENED ON
+landed the same day, and 192 the day after**; both are below. The site page
+comes last, because it reads both. **THE GENERATION RUN HAPPENED ON
 2026-09-07**, through the `claude` command line. The machine holds no API
 key, and Chris asked whether the command line could do it. It can, with
 `--via claude` on either generator.
@@ -224,6 +222,22 @@ headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
+
+## What landed on 2026-09-07
+
+**192 — five arcs cross the galaxy, and each one ends near the next.** The
+tour of galaxy 1 is Lave, Rabedira, Vetitice, Xeer and Edle, placed from
+the seed. Each is four to six jumps from the last, and farther from Lave. Five
+arcs sit on it, one file each, with a theme, mixed verbs, and a recovery
+leg. Each final leg hands over toward the next arc's world by jumps on the
+full-tank graph, and both outcomes lead there. The lint measures that, and
+names two skeletons that force two sets at one world. Every arc walks
+through the machine on both paths in a test. The four waiting pieces work.
+A gate opens by jumps. A flag fires a branch once. A world change expires.
+A choice prompt sits on the MISSIONS screen. Each world draws two
+or three side jobs from the seed. The five dossiers are Sonnet's, through
+the command line. Both campaign sizes read as before. 5,462 assertions,
+from 5,353.
 
 ## What landed on 2026-09-06
 
