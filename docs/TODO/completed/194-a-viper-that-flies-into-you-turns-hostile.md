@@ -91,3 +91,33 @@ Gates:
   Prove it able to fail: pass `true` for the ram for one run.
 - `test/combat-sim-dealt.test.ts`: the ram still reaches the ledger. It holds
   today, and it must hold after.
+
+## Outcome
+
+### M1 — contact does not provoke
+
+`PROVOKES` says which sources are the commander's own deed. The laser, a
+warhead and the bomb are. A ram is not. `dealToNpc` reads the table by the
+source, so a ram still costs the ship its 44 points and still reaches the
+ledger, and it sets no grudge. A trader still flees the contact.
+
+`test/ram-blame.test.ts` flies a Viper, a pirate and a trader through the real
+step, each spawned on the commander's own position. The Viper holds no grudge
+and is not hostile. The laser door on the same Viper provokes it, as the
+control. The pirate is hostile by role. Twelve assertions. **Proved able to
+fail**: the ram set to provoke reddens five of them.
+
+**THE TABLE COULD NOT LIVE IN THE DAMAGE DOOR, AND THE PLAN DID NOT HAVE IT.**
+The plan put the rule beside `DealtSource`. `test/constants.test.ts` refuses a
+game-rule constant outside `src/constants/`, and the catalogue had no home for
+blame. So the table lives in a new `constants/blame.ts`. That layer imports
+nothing from `game/`, so the table names its own four keys, and the index in
+`dealToNpc` holds the two lists in step: a new source with no row does not
+compile.
+
+**THE TEST MUST ASK THE RULE CLEAR OF THE TRUCE.** A launch puts the commander
+inside `STATION_TRUCE`, and the truce covers every role a grudge does not. The
+first run read a rammed pirate as not hostile for that reason. The test passes
+Infinity for the station distance, so only the grudge and the role answer.
+
+`npm run elite-a` passed. 5,503 assertions became 5,515.

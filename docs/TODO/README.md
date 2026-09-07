@@ -13,10 +13,8 @@ active context:
 
 ## Execution queue
 
-1. [194](194-a-viper-that-flies-into-you-turns-hostile.md) — a Viper that
-   flies into you turns hostile.
-2. [195](195-q-launches-the-escape-pod.md) — Q launches the escape pod.
-3. [196](196-a-dead-thargon-is-a-tonne-of-alien-items.md) — a dead Thargon is
+1. [195](195-q-launches-the-escape-pod.md) — Q launches the escape pod.
+2. [196](196-a-dead-thargon-is-a-tonne-of-alien-items.md) — a dead Thargon is
    a tonne of alien items.
 
 **ALL THREE ITEMS CAME OUT OF CHRIS'S PLAYTEST ON 2026-09-06.** They are
@@ -25,7 +23,8 @@ code that runs. The order is by value over cost. 194 is one line of cause. A
 ram takes the same door as a missile. That door marks the ship as provoked
 by the commander. 195 is a key and a shared body, because only death
 fires the pod today. 196 is the largest, because a dead drone must move from
-the sky into the cargo field, and the inert state then has no writer.
+the sky into the cargo field, and the inert state then has no writer. **194
+landed the same day**, and it is below.
 
 **191, 192 AND 193 ARE THE THREE PLANS 190 PROPOSED**, drafted on 2026-09-06
 after it landed. The pipeline came first, so the arcs ship with words. **191
@@ -234,6 +233,15 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-07
+
+**194 — a Viper that flies into you turns hostile.** GitHub #42. A collision
+billed the ship through the same door as a missile, and that door marked the
+ship as provoked by the commander. The geometry reads overlap only, so it
+cannot say who moved. `PROVOKES` in `constants/blame.ts` says which sources
+are the commander's own deed, and a ram is not one. The ram still costs the
+ship its points and still reaches the ledger. A test flies the collision
+through the real step, with the laser door as the control. 5,515 assertions,
+from 5,503.
 
 **193 — the site tells the mission tour.** `missions.html` is built from
 the skeletons, the patrons, the dossiers and the galaxy at build time, the
