@@ -248,7 +248,7 @@ console.log('\n...and every reader speaks the dossier\'s words, or the skeleton\
   const screen = (dossiers: (id: string) => Dossier | null) => captureById(() => {
     new MissionsScreen(() => ({
       commander: { ...newCommander(), systemIndex: LAVE, contracts: [] }, systems: g1,
-      offers: [SIDE_HUNT], atStation: true, accept: () => {}, abandon: () => {}, dossiers,
+      offers: [SIDE_HUNT], atStation: true, accept: () => {}, abandon: () => {}, choose: () => {}, dossiers,
     })).render();
   }).get('screen') ?? '';
   const patron = patronFor({ kind: 'local' }, facts(), g1).name;

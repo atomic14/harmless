@@ -163,7 +163,7 @@ console.log('\nthe MISSIONS screen draws the held legs, and nothing else');
   const paint = (c: CommanderData): string =>
     captureById(() => {
       renderMissions({
-        offers: [], held: held(c, systems).map((o) => ({ ...o, patron: 'THE NAVY' })),
+        offers: [], held: held(c, systems).map((o) => ({ ...o, patron: 'THE NAVY', choices: [] })),
         leads: [], systems, selected: 0, atStation: true,
       });
     }).get('screen') ?? '';

@@ -150,9 +150,11 @@ export interface OfferRow {
   pages: readonly string[];
 }
 
-/** A held mission's order, with the name of who gave it. */
+/** A held mission's order, with the name of who gave it, and the choices its leg waits on. */
 export interface HeldRow extends MissionOrder {
   patron: string;
+  /** the choice ids of the leg's `{ choice }` branches; empty when it waits on none */
+  choices: readonly string[];
 }
 
 export interface MissionsView {
@@ -205,7 +207,10 @@ export function renderMissions(view: MissionsView): void {
     // Amber, which is the colour this file already spends on a warning. The
     // patron states the two numbers and lets the commander decide;
     // `huntWarning` is the one home of that sentence.
-    ? `<br/><span style="color:var(--hud-amber)">${m.warning}</span>` : ''}</td>
+    ? `<br/><span style="color:var(--hud-amber)">${m.warning}</span>` : ''}${m.choices.length
+    // A CHOICE PROMPT (docs/TODO/192 M3). A leg that waits on a choice lists
+    // it here, one key per option, and nothing moves until she presses one.
+    ? `<br/>${m.choices.map((id, k) => `<button data-key="Digit${k + 1}">${k + 1} ${escapeHtml(id.replace(/-/g, ' ').toUpperCase())}</button>`).join(' ')}` : ''}</td>
       <td class="num">${escapeHtml(m.patron.toUpperCase())}</td>
       <td class="num">${m.destination === null ? 'ANY STATION' : systems[m.destination].name}</td>
       <td class="num">${formatCredits(m.reward)}</td>

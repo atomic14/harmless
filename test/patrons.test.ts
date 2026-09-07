@@ -138,7 +138,7 @@ console.log('\n...and both screens show the patron');
   c.missions = constrictorAt('hunt', 12);
   const screen = new MissionsScreen(() => ({
     commander: c, systems: g1, offers: [SIDE_HUNT], atStation: true,
-    accept: () => {}, abandon: () => {},
+    accept: () => {}, abandon: () => {}, choose: () => {},
   }));
   const html = captureById(() => { screen.render(); }).get('screen') ?? '';
   const local = patronFor({ kind: 'local' }, facts(LAVE), g1).name.toUpperCase();

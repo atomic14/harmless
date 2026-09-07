@@ -60,6 +60,15 @@ export class MissionDesk {
     this.host.checkpoint();
   }
 
+  /** Answer a choice a held mission waits on. The machine takes the branch it names. */
+  choose(index: number, id: string): void {
+    const c = this.state.commander;
+    const live = c.missions.live[index];
+    if (!live) return;
+    for (const m of runMissions(c, { kind: 'choice', id }, this.state.systems)) this.host.sayEvent(m);
+    if (this.host.baseMode() === 'docked') this.host.checkpoint();
+  }
+
   /**
    * Give a mission up. It fails by its own final outcome, and the slot frees.
    * Its lead survives the failure (docs/TODO/190, failure rule 3). The

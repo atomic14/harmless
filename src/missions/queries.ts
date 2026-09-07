@@ -8,7 +8,7 @@
 
 import type { BlueprintOverride } from '../game/blueprint-set.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
-import { legOf } from './machine.ts';
+import { legOf } from './lookups.ts';
 import type { Leg, LiveMission, MissionState, Skeleton, TaggedItem, TaggedShip } from './model.ts';
 import { verbJob, verbNeedsShip } from './verbs/registry.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
@@ -39,6 +39,8 @@ export function missionOverride(
     if (!leg.override) continue;
     if (leg.override.where === 'everywhere' || live.target === here) return leg.override.set;
   }
+  // A settlement's change to this world, while it holds (docs/TODO/192 M3).
+  for (const ch of st.changes) if (ch.world === here && ch.override) return ch.override;
   return null;
 }
 
@@ -57,6 +59,8 @@ export function missionSpawns(
     const e = st.entities[live.tag];
     if (e && e.alive && e.kind === 'ship') out.push({ ship: e.ship, tag: live.tag, job: verbJob(leg.verb) });
   }
+  // A standing spawn a settlement left here, on every arrival while it holds.
+  for (const ch of st.changes) if (ch.world === here && ch.ships) out.push(...ch.ships);
   return out;
 }
 
@@ -71,6 +75,13 @@ export function missionItems(
     if (e && e.alive && e.kind !== 'ship') out.push({ tag: live.tag, kind: e.kind });
   }
   return out;
+}
+
+/** The choice ids a leg's branches wait on, in branch order, for the MISSIONS screen's prompt. */
+export function legChoices(s: Skeleton, legId: string): string[] {
+  const leg = s.legs.find((l) => l.id === legId);
+  if (!leg) return [];
+  return leg.next.flatMap((b) => (typeof b.on !== 'string' && 'choice' in b.on ? [b.on.choice] : []));
 }
 
 /** The seconds a scan leg wants of the ship with `tag`, or null. */

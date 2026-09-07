@@ -23,7 +23,8 @@ export function repairMissionState(raw: unknown): MissionState {
   if (!arrays.every((k) => Array.isArray(raw[k]))) return empty;
   if (!records.every((k) => isRecord(raw[k]))) return empty;
   const kept = structuredClone(raw) as unknown as MissionState;
-  // A count added after the first records were written: absent reads as 0.
+  // Fields added after the first records were written: absent reads as none.
   if (typeof kept.idleDocks !== 'number') kept.idleDocks = 0;
+  if (!Array.isArray(kept.changes)) kept.changes = [];
   return kept;
 }

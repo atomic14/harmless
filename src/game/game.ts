@@ -647,6 +647,7 @@ export class Game {
         atStation: this.baseMode === 'docked',
         accept: (index) => { this.missions_.accept(index); },
         abandon: (index) => { this.missions_.abandon(index); },
+        choose: (index, id) => { this.missions_.choose(index, id); },
       } satisfies MissionsContext)),
       new DataScreen(() => ({
         subject: this.dataSubject ?? this.system,

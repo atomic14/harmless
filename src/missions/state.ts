@@ -18,5 +18,6 @@ export function emptyMissionState(): MissionState {
     passengers: [],
     journal: [],
     idleDocks: 0,
+    changes: [],
   };
 }

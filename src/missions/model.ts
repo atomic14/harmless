@@ -117,6 +117,13 @@ export interface Settlement {
   /** a change to the player's standing with this patron */
   standing?: number;
   /**
+   * A blueprint set forced at the branch's world for `days` (docs/TODO/192
+   * M3). The world is the next leg's target, or where she stands at an end.
+   */
+  override?: { set: BlueprintOverride; days: number };
+  /** ships that wait at the branch's world for `days`, spawned on every arrival */
+  spawn?: { ships: TaggedShip[]; days: number };
+  /**
    * What the console says when this settles. `{PAY}` is the fee in credits and
    * `{TARGET}` is the next leg's world. Absent means silence.
    */
@@ -274,6 +281,20 @@ export interface EntityState {
   alive: boolean;
 }
 
+/**
+ * A change a settlement made to one world, until a day. The bridge records
+ * it from a `worldOverride` or `standingSpawn` effect. The machine drops it
+ * when its day passes. `queries.ts` reads it on arrival beside the live
+ * legs (docs/TODO/192 M3).
+ */
+export interface WorldChangeRecord {
+  world: number;
+  /** the last day it holds */
+  until: number;
+  override?: BlueprintOverride;
+  ships?: TaggedShip[];
+}
+
 export interface MissionPassenger {
   /** the same identifier for the pod and its passenger */
   tag: string;
@@ -293,6 +314,8 @@ export interface MissionState {
   journal: JournalEntry[];
   /** docks since the journal last moved; the second patron message reads it */
   idleDocks: number;
+  /** what settlements changed about the worlds, each until a day */
+  changes: WorldChangeRecord[];
 }
 
 /** An event that already happened. The machine decides what it means. */

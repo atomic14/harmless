@@ -207,7 +207,8 @@ Two quirks are deliberate:
   it may read. It returns a new record with the effects the game applies.
   A verb module under `verbs/` decides what an input means for one leg, and
   the machine takes the branch. `triggers.ts` says what a trigger is called,
-  and which dossier line a branch may speak with. `placement.ts` picks a leg's world with one
+  and which dossier line a branch may speak with. `lookups.ts` reads a
+  skeleton: a leg by id, a patron's key, and where a skeleton is offered. `placement.ts` picks a leg's world with one
   draw. A band measures tenths on the chart. A handover measures jumps on
   the full-tank graph. `tour.ts` places the five arc starts from the seed,
   and a galactic jump moves a lead by the same rule (docs/TODO/192). `queries.ts` answers the game's questions without a change. `lint.ts`

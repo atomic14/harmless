@@ -177,7 +177,7 @@ console.log('\ninvariant 16: a lead has a screen, and a hint is not an order');
     renderMissions({
       offers: [],
       held: standingOrders(c, g1).filter((o) => o.kind === 'mission')
-        .map((o) => ({ ...o, patron: 'THE NAVY' })) as never,
+        .map((o) => ({ ...o, patron: 'THE NAVY', choices: [] })) as never,
       leads: c.missions.leads.map((l) => leadLine(l, facts({ systemIndex: LAVE }), g1)),
       systems: g1, selected: 0, atStation: true,
     });

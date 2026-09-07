@@ -26,6 +26,7 @@ import { leadLine } from '../../missions/hints.ts';
 import { patronFor } from '../../missions/patrons.ts';
 import { fillSlots } from '../../missions/text.ts';
 import { acceptedAt } from '../../missions/queries.ts';
+import { legChoices } from '../../missions/queries.ts';
 import { skeletonById } from '../../missions/skeletons/index.ts';
 import { missionFacts } from '../mission-bridge.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
@@ -42,6 +43,8 @@ export interface MissionsContext {
   accept(index: number): void;
   /** give up the live mission at `index` of the held rows */
   abandon(index: number): void;
+  /** answer a choice the live mission at `index` waits on */
+  choose(index: number, id: string): void;
   /** the dossier table; a test empties it, and the game uses the committed one */
   readonly dossiers?: (id: string) => Dossier | null;
 }
@@ -90,7 +93,11 @@ export class MissionsScreen implements Screen {
     const heldRows: HeldRow[] = this.held().map((o) => {
       const s = skeletonById(o.live.skeleton);
       const origin = acceptedAt(commander.missions, o.live.skeleton);
-      return { ...o, patron: s ? patronFor(s.patron, facts, systems, origin).name : '' };
+      return {
+        ...o,
+        patron: s ? patronFor(s.patron, facts, systems, origin).name : '',
+        choices: s ? legChoices(s, o.live.leg) : [],
+      };
     });
     renderMissions({
       offers: offerRows, held: heldRows, leads, systems, selected: this.selected, atStation,
@@ -124,6 +131,16 @@ export class MissionsScreen implements Screen {
     if (i.pressed('KeyX') && this.selected >= offers.length) {
       this.ctx().abandon(this.selected - offers.length);
       redraw = true;
+    }
+    // A choice is a digit on the held row that waits on one. A digit past
+    // the last option, or on a row with none, does nothing.
+    if (this.selected >= offers.length) {
+      const held = this.held()[this.selected - offers.length];
+      const s = held ? skeletonById(held.live.skeleton) : null;
+      const choices = s ? legChoices(s, held.live.leg) : [];
+      choices.forEach((id, k) => {
+        if (i.pressed(`Digit${k + 1}`)) { this.ctx().choose(this.selected - offers.length, id); redraw = true; }
+      });
     }
     if (redraw) {
       const left = this.ctx().offers.length + this.held().length;

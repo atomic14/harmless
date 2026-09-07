@@ -19,8 +19,8 @@ import { specForDesign, type NpcSpec } from './ship-specs.ts';
 import { huntWarning } from './hunt-warning.ts';
 import { dossierWord } from '../missions/dossiers.ts';
 import { stepMissions } from '../missions/machine.ts';
-import { legOf } from '../missions/machine.ts';
-import type { CommanderFacts, LiveMission, MissionInput } from '../missions/model.ts';
+import { legOf } from '../missions/lookups.ts';
+import type { CommanderFacts, LiveMission, MissionInput, Skeleton } from '../missions/model.ts';
 import { skeletonById } from '../missions/skeletons/index.ts';
 import { FUGITIVE } from '../constants/law.ts';
 import type { Command } from './controls.ts';
@@ -65,9 +65,10 @@ function systemsOf(galaxy: number): readonly StarSystem[] {
 export function runMissions(
   c: CommanderData, input: MissionInput,
   systems: readonly StarSystem[] = systemsOf(c.galaxy), rng: () => number = random,
+  skeletons?: readonly Skeleton[],
 ): MissionMessage[] {
   const { state, effects } = stepMissions(c.missions, input, {
-    commander: missionFacts(c), systems, rng,
+    commander: missionFacts(c), systems, rng, skeletons,
   });
   c.missions = state;
   const out: MissionMessage[] = [];
@@ -109,9 +110,14 @@ export function runMissions(
       }
       // Passengers a finished mission left aboard are survivors now, once.
       case 'survivors': c.survivors += e.people; break;
-      // The two world effects wait for a skeleton that asks for one. None
-      // shipped does (item 192 of docs/TODO/190).
-      case 'worldOverride': case 'standingSpawn': break;
+      // A change to a world is kept on the record until its day, and the
+      // arrival queries read it (docs/TODO/192 M3).
+      case 'worldOverride':
+        c.missions.changes.push({ world: e.world, until: e.until, override: e.change.override });
+        break;
+      case 'standingSpawn':
+        c.missions.changes.push({ world: e.world, until: e.until, ships: e.ships });
+        break;
     }
   }
   return out;

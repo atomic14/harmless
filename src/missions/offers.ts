@@ -12,6 +12,7 @@
 
 import { MISSION_LIVE_CAP, MISSION_REOFFER_DAYS } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
+import { routeEstimate } from '../galaxy/route.ts';
 import { ratingRung } from '../game/rating.ts';
 import type { CommanderFacts, Gate, MissionState, Skeleton } from './model.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
@@ -38,6 +39,23 @@ function localJobHere(s: Skeleton, c: CommanderFacts, systems: readonly StarSyst
   let hash = 0;
   for (const ch of s.id) hash = (hash * 31 + ch.charCodeAt(0)) % 997;
   return (w.x + w.y * 3 + hash) % 3 === 0;
+}
+
+/**
+ * A world patron waits at home, so her arc is offered there (docs/TODO/192
+ * M2), and inside `withinJumps` of there when the gate says so (M3). The
+ * jumps are the full-tank graph's. Without the galaxy, home is the only
+ * place.
+ */
+function nearHome(s: Skeleton, ctx: OfferContext): boolean {
+  if (s.patron.kind !== 'world') return true;
+  const home = s.patron.seedSlot;
+  const here = ctx.commander.systemIndex;
+  if (here === home) return true;
+  const reach = s.offer.withinJumps;
+  if (reach === undefined || !ctx.systems) return false;
+  const jumps = routeEstimate(ctx.systems, ctx.systems[here], ctx.systems[home])?.jumps;
+  return jumps !== undefined && jumps <= reach;
 }
 
 function gateOpen(gate: Gate, st: MissionState, c: CommanderFacts): boolean {
@@ -97,9 +115,7 @@ export function canAccept(st: MissionState, id: string, ctx: OfferContext): bool
   if (ended.count > 0 && ctx.commander.day < ended.lastDay + MISSION_REOFFER_DAYS) return false;
   if (excluded(st, id, from)) return false;
   if (leadHere(st, id, ctx.commander)) return true;
-  // A world patron waits at home, so her arc is offered there and nowhere
-  // else (docs/TODO/192 M2). `withinJumps` widens that in M3.
-  if (s.patron.kind === 'world' && s.patron.seedSlot !== ctx.commander.systemIndex) return false;
+  if (!nearHome(s, ctx)) return false;
   return localJobHere(s, ctx.commander, ctx.systems) && gateOpen(s.offer, st, ctx.commander);
 }
 

@@ -29,6 +29,7 @@ import type {
 } from './model.ts';
 import { canAccept, offersFor } from './offers.ts';
 import { placeLeg } from './placement.ts';
+import { legOf, patronId, startWorld } from './lookups.ts';
 import { ARC_TOUR, SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, legPay, lineSlots } from './text.ts';
 import { leadWorldIn } from './tour.ts';
@@ -55,7 +56,11 @@ export function stepMissions(
   switch (input.kind) {
     case 'accept': accept(st, input.skeleton, ctx, effects); break;
     case 'abandon': abandon(st, input.skeleton, ctx, effects); break;
-    case 'dayPassed': deadlines(st, ctx, effects); break;
+    case 'dayPassed':
+      deadlines(st, ctx, effects);
+      // A world change holds through its last day, and is gone the day after.
+      st.changes = st.changes.filter((ch) => ch.until >= ctx.commander.day);
+      break;
     case 'galaxyChanged': leaveGalaxy(st, input.to, ctx, effects); break;
     default: react(st, input, ctx, effects);
   }
@@ -72,31 +77,6 @@ function skeletonOf(id: string, ctx: MissionContext): Skeleton {
   return s;
 }
 
-/** The leg of a skeleton by id. The lint test makes a miss impossible. */
-export function legOf(skeleton: Skeleton, id: string): Leg {
-  const leg = skeleton.legs.find((l) => l.id === id);
-  if (!leg) throw new Error(`mission ${skeleton.id}: no leg ${id}`);
-  return leg;
-}
-
-/**
- * The key that `MissionState.standing` and a dossier file use for a patron.
- * A local patron is the world she stands at, so the key names that world.
- */
-export function patronId(skeleton: Skeleton, commander: CommanderFacts): string {
-  const p = skeleton.patron;
-  if (p.kind === 'navy') return 'navy';
-  return `world-${p.kind === 'world' ? p.seedSlot : commander.systemIndex}`;
-}
-
-/**
- * Where a skeleton is offered. A world patron waits at home. The Navy has no
- * home, and a local patron is every home, so their leads open wherever the
- * commander stands.
- */
-export function startWorld(skeleton: Skeleton, commander: CommanderFacts): number {
-  return skeleton.patron.kind === 'world' ? skeleton.patron.seedSlot : commander.systemIndex;
-}
 
 /**
  * What a dock says about missions beyond the legs it moved: the offers here,
@@ -200,6 +180,12 @@ function react(
   if ((input.kind === 'destroyed' || input.kind === 'scooped') && input.tag in st.entities) {
     st.entities[input.tag].alive = false;
   }
+  // A choice is the MISSIONS screen's, not a verb's: the branch that names
+  // it fires on every live leg that carries it (docs/TODO/192 M3).
+  if (input.kind === 'choice') {
+    for (const live of [...st.live]) fire(st, live, { choice: input.id }, ctx, effects);
+    return;
+  }
   for (const live of [...st.live]) {
     const skeleton = skeletonOf(live.skeleton, ctx);
     const leg = legOf(skeleton, live.leg);
@@ -266,6 +252,25 @@ function takeBranch(
   startLeg(st, live, skeleton, next, placed.target, ctx, effects);
 }
 
+/**
+ * Fire a `{ flag }` trigger on every live leg whose branches name one of
+ * `flags`, once per flag per leg. `settle` calls it with the flags it
+ * newly set. `startLeg` calls it with the flags already set, so a leg that
+ * starts after its flag was set still moves. A branch that names its own
+ * leg is skipped, or a flag that stays set would fire it on every start.
+ */
+function fireFlags(
+  st: MissionState, flags: readonly string[], ctx: MissionContext, effects: MissionEffect[],
+): void {
+  if (!flags.length) return;
+  for (const live of [...st.live]) {
+    if (!st.live.includes(live)) continue;
+    const leg = legOf(skeletonOf(live.skeleton, ctx), live.leg);
+    const named = flags.find((f) => leg.next.some((b) => typeof b.on !== 'string' && 'flag' in b.on && b.on.flag === f && b.to !== leg.id));
+    if (named !== undefined) fire(st, live, { flag: named }, ctx, effects);
+  }
+}
+
 
 /**
  * Put a live mission on a leg. A hunt, an escort or a scan gets a tag for its
@@ -297,6 +302,7 @@ function startLeg(
   if (leg.verb.kind === 'smuggle') {
     effects.push({ kind: 'cargo', commodity: leg.verb.commodity, tonnes: leg.verb.tonnes });
   }
+  fireFlags(st, st.flags, ctx, effects);
 }
 
 /**
@@ -308,18 +314,31 @@ function settle(
   st: MissionState, skeleton: Skeleton, s: Settlement | undefined,
   target: number | null, ctx: MissionContext, effects: MissionEffect[], word?: DossierWord,
 ): void {
+  const added: string[] = [];
   if (s) {
     if (s.pay > 0) effects.push({ kind: 'pay', tenths: s.pay });
     if (s.deed) effects.push({ kind: 'deed', deed: s.deed });
     if (s.legal) effects.push({ kind: 'legal', delta: s.legal });
-    for (const f of s.setFlags ?? []) if (!st.flags.includes(f)) st.flags.push(f);
+    for (const f of s.setFlags ?? []) {
+      if (!st.flags.includes(f)) { st.flags.push(f); added.push(f); }
+    }
     if (s.standing) {
       const id = patronId(skeleton, ctx.commander);
       st.standing[id] = (st.standing[id] ?? 0) + s.standing;
     }
+    // A change to a world is the game's to keep (mission-bridge.ts), at the
+    // branch's world, through its last day.
+    const world = target ?? ctx.commander.systemIndex;
+    if (s.override) {
+      effects.push({ kind: 'worldOverride', world, until: ctx.commander.day + s.override.days, change: { override: s.override.set } });
+    }
+    if (s.spawn) {
+      effects.push({ kind: 'standingSpawn', world, until: ctx.commander.day + s.spawn.days, ships: s.spawn.ships });
+    }
   }
   const text = s?.say ? fillSlots(s.say, lineSlots(ctx.systems, target, s.pay)) : '';
   if (text || word) effects.push({ kind: 'say', text, word });
+  fireFlags(st, added, ctx, effects);
 }
 
 /**
