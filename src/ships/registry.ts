@@ -90,6 +90,12 @@ export const OBJECT_DESIGNS = {
    * beside the canister rather than in the roster. It is an object, not a ship.
    */
   escapePod: shipDesignIdOf(2),
+  /**
+   * A Thargon whose mothership died: a cargo-field item with the drone's own
+   * hull and bank, scooped as Alien Items (docs/TODO/196). Design 27 is
+   * `SOURCE_DESIGN.thargon`, and a live drone builds from the same record.
+   */
+  deadDrone: shipDesignIdOf(27),
   missile: shipDesignIdOf(15),
 } as const;
 

@@ -9,6 +9,8 @@
  * The trainer's arena sits at the same 16 radii anti-sunward (`ARENA_RADII` in
  * game/combat-sim-opening.ts). That is a SEPARATE rule at the same number,
  * measured for its own margins, and it stays separate.
+ *
+ * @rule planet.witchpointRadii
  */
 export const WITCHPOINT_RADII = 16;
 

@@ -20,7 +20,7 @@ import {
   OPPORTUNIST_FLOOR, GANG_FLOOR, VALUE_PER_TONNE,
 } from '../src/constants/jettison.ts';
 import { markOf } from '../src/game/threat.ts';
-import { ORDINARY_GOODS, ORE } from '../src/constants/commodities.ts';
+import { ALIEN_ITEMS, ORDINARY_GOODS, ORE } from '../src/constants/commodities.ts';
 import { CargoField, canisterMaxEnergy } from '../src/game/cargo.ts';
 import { SCOOP_RANGE } from '../src/constants/scoop.ts';
 import { breachLoss, freshSystems } from '../src/game/systems.ts';
@@ -144,21 +144,28 @@ console.log('\ncombat');
       && !msgs(after).some((m) => m!.includes('CONTRACT COMPLETE')));
   }
   {
-    // thargons are drones: killing the mothership shuts them down
+    // thargons are drones: killing the mothership shuts them down, and a dead
+    // drone is cargo, in the field where it fell (docs/TODO/196)
     const { world, combat, c } = setup();
     const goid = world.spawn('thargoid', at(-500), 1);
-    const drone = world.spawn('thargon', at(-400), 2);
+    world.spawn('thargon', at(-400), 2);
     const evs = combat.destroy(c, goid);
+    const drones = world.cargo.items.filter((i) => i.kind === 'drone');
     check('the last thargoid dying deactivates its thargons',
-      drone.state.inert === true
+      !world.npcs.some((n) => n.role === 'thargon')
       && msgs(evs).some((m) => m!.includes('THARGONS DEACTIVATED')));
+    check('...and each dead drone is in the field, where it fell',
+      drones.length === 1 && drones[0]!.object.position.distanceTo(at(-400)) < 1e-6);
+    check('...worth a tonne of Alien Items', drones[0]!.commodity === ALIEN_ITEMS);
   }
   {
     const { world, combat, c } = setup();
     world.spawn('thargoid', at(-900), 9);
-    const drone = world.spawn('thargon', at(-400), 2);
+    world.spawn('thargon', at(-400), 2);
     combat.destroy(c, world.spawn('thargoid', at(-500), 1));
-    check('...but not while another mothership is alive', drone.state.inert === false);
+    check('...but not while another mothership is alive',
+      world.npcs.some((n) => n.role === 'thargon')
+      && !world.cargo.items.some((i) => i.kind === 'drone'));
   }
   {
     const world = new World();

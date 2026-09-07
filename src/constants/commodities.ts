@@ -19,6 +19,23 @@
 export const ORDINARY_GOODS: readonly number[] = [0, 1, 4, 8, 9, 12];
 
 /**
+ * Alien Items: the row a dead Thargon is scooped as (docs/TODO/196).
+ *
+ * The Thargon's released row says `scoopedMarketItemId: 15`, and the source
+ * stores that id one less than the commodity index. The escape pod row says 2,
+ * and a pod is scooped as `SLAVES` at 3. The alloy plate says 8, and Alloys
+ * sit at 9. So the drone is 16, the last row of the table.
+ * `test/elite-a-catalogue.test.ts` holds both rows to their constants.
+ *
+ * When the last mothership dies, each drone leaves the sky for the cargo
+ * field with this index (game/combat-wreck.ts). The scoop then reads it as a
+ * tonne of cargo (game/world-step.ts).
+ *
+ * @rule commodities.alienItems
+ */
+export const ALIEN_ITEMS = 16;
+
+/**
  * Slaves: the row that a rescued survivor is sold on, and the only commodity
  * index named on its own (docs/TODO/127).
  *

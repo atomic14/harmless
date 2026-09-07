@@ -142,11 +142,16 @@ export function wreckShip(world: World, npc: NpcShip): CombatEvent[] {
     world.cargo.spawn(npc.object.position,
       HERMIT_CONTRABAND_MIN + randomInt(HERMIT_CONTRABAND_SPAN), CONTRABAND);
   }
-  // the drones go dead when the last mothership does
+  // The drones go dead when the last mothership does, and a dead drone is
+  // cargo. Each one leaves the sky for the field, where the scoop can reach
+  // it, worth a tonne of Alien Items (docs/TODO/196). Over a copy, because
+  // `despawn` splices the list.
   if (npc.role === 'thargoid'
       && !world.npcs.some((n) => n.state.alive && n.role === 'thargoid')) {
-    for (const t of world.npcs) {
-      if (t.role === 'thargon') t.state.inert = true;
+    for (const t of [...world.npcs]) {
+      if (t.role !== 'thargon' || !t.state.alive) continue;
+      world.cargo.spawnDrone(t.object.position.clone(), t.object.quaternion);
+      world.despawn(t);
     }
     out.push(say('THARGONS DEACTIVATED', 3));
   }

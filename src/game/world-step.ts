@@ -558,8 +558,9 @@ export class WorldStep {
         this.host.applyPlayerDamage(
           playerImpactDamage(IMPACT.canisterOnHull), c.object.position, 'cargo');
         out.push(say(
-          c.kind === 'capsule'
-            ? 'ESCAPE CAPSULE DESTROYED ON HULL' : 'CANISTER DESTROYED ON HULL', 2));
+          c.kind === 'capsule' ? 'ESCAPE CAPSULE DESTROYED ON HULL'
+            : c.kind === 'drone' ? 'THARGON DESTROYED ON HULL'
+            : 'CANISTER DESTROYED ON HULL', 2));
       } else if (c.missionTag !== null) {
         // A MISSION'S THING, and the machine says what it was. It is a
         // canister that never enters the hold, or a pod whose passenger rides
@@ -575,8 +576,10 @@ export class WorldStep {
         out.push(say('SURVIVOR ABOARD', 4));
         out.push(heard('survivorScooped'));
       } else if (cargoTonnes(commander) >= cargoCapacity(commander)) {
-        out.push(say('HOLD FULL — CANISTER LOST', 3));
+        out.push(say(`HOLD FULL — ${c.kind === 'drone' ? 'THARGON' : 'CANISTER'} LOST`, 3));
       } else {
+        // A canister and a dead drone alike: the drone carries `ALIEN_ITEMS`
+        // as its commodity, so this branch never asks the kind (docs/TODO/196).
         commander.cargo[c.commodity] += 1;
         out.push(say(`SCOOPED 1t ${COMMODITIES[c.commodity].name.toUpperCase()}`, 3));
         out.push(heard('cargoScooped'));

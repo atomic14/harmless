@@ -128,7 +128,9 @@ export function parseSnapshot(raw: unknown): WorldSnapshot {
     finiteArray(can.pos, 3, `canisters[${i}].pos`);
     finiteArray(can.velocity, 3, `canisters[${i}].velocity`);
     finiteArray(can.spinAxis, 3, `canisters[${i}].spinAxis`);
-    if (can.kind !== 'cargo' && can.kind !== 'capsule') bad(`canisters[${i}].kind`);
+    if (can.kind !== 'cargo' && can.kind !== 'capsule' && can.kind !== 'drone') {
+      bad(`canisters[${i}].kind`);
+    }
     finite(can.commodity, `canisters[${i}].commodity`);
     finite(can.energy, `canisters[${i}].energy`);
     if (typeof can.occupant !== 'string') bad(`canisters[${i}].occupant`);

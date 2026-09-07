@@ -16,6 +16,7 @@
 // and no WebGL. So a test can simply BUILD the hulls. It does.
 
 import * as THREE from 'three';
+import type { CanisterKind } from './cargo.ts';
 import { LASER_RANGE } from '../constants/player-gun.ts';
 import { hitCone, driftingCone } from './gunnery.ts';
 
@@ -32,7 +33,7 @@ export interface ShootableShip extends Solid {
 
 /** A drifting object, whose graze comes from its KIND — see `driftingCone`. */
 export interface Drifting extends Solid {
-  kind: 'cargo' | 'capsule';
+  kind: CanisterKind;
   /**
    * Seconds of launch grace left. Above zero, the beam passes straight through
    * it. `POD_LAUNCH_GRACE` (constants/wreck.ts) says why a fresh capsule gets

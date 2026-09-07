@@ -352,13 +352,13 @@ const OUTSIDE: readonly Group[] = [
 
   {
     why: 'STAYS: the drifting-cargo field\'s own furniture, none of it a tunable rule.'
-      + ' `CANISTER_HULL` and `POD_HULL` are memoised `requireShipDef` lookups, `LOOK`'
+      + ' `CANISTER_HULL`, `POD_HULL` and `DRONE_HULL` are memoised `requireShipDef` lookups, `LOOK`'
       + ' pairs each kind with the hull and colour it is built from, and `POLICY` is a'
       + ' pair of catalogue reads keyed on the same kinds — all the `MISSILE_HULL`'
       + ' shape — and `SPIN_RATE` is how fast a canister LOOKS to tumble: nothing reads'
       + ' an object\'s orientation back, so it is drawing, like `BEAM_FLASH` below',
     files: {
-      'game/cargo.ts': ['CANISTER_HULL', 'POD_HULL', 'LOOK', 'POLICY', 'SPIN_RATE'],
+      'game/cargo.ts': ['CANISTER_HULL', 'POD_HULL', 'DRONE_HULL', 'LOOK', 'POLICY', 'SPIN_RATE'],
     },
   },
 

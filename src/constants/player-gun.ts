@@ -113,6 +113,20 @@ export const CANISTER_GRAZE = 20;
 export const POD_GRAZE = 16;
 
 /**
+ * The same allowance for a dead Thargon adrift in the cargo field.
+ *
+ * A drone whose mothership died is a field item since docs/TODO/196, with the
+ * Thargon's own hull. Its catalogue radius is 40 source units, twice the
+ * canister's, and the tolerance follows the hull as the other two do.
+ *
+ * Its own rule, for the reason `POD_GRAZE` gives: three silhouettes, and a
+ * retune of one must not silently move another.
+ *
+ * @rule gun.graze.drone
+ */
+export const DRONE_GRAZE = 40;
+
+/**
  * Aim assist: an angular allowance ON TOP of the target's silhouette, so a shot
  * that is nearly right still connects. It is two degrees at knife range, and it
  * tapers to nothing by ASSIST_FADE_END, so distance shooting still demands

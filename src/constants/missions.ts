@@ -8,6 +8,8 @@
 /**
  * Kills before the Navy considers you worth a word: 16, as the original demanded.
  * It is the one gate that this game keeps from the 1984 mission structure.
+ *
+ * @rule missions.killThreshold
  */
 export const MISSION_KILL_THRESHOLD = 16;
 

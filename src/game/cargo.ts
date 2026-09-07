@@ -43,16 +43,26 @@ import { recommendedProfileIdFor } from './ship-identity.ts';
 import { random, randomDirection, randomInt } from './rng.ts';
 import type { CanisterSnapshot } from './snapshot.ts';
 import { SCOOP_RANGE } from '../constants/scoop.ts';
+import { ALIEN_ITEMS } from '../constants/commodities.ts';
+import { SPECS } from './ship-specs.ts';
 import { JETTISON_CLEARANCE } from '../constants/jettison.ts';
 import { POD_LAUNCH_GRACE } from '../constants/wreck.ts';
 
+/**
+ * What drifts in the field. A `cargo` canister carries a tonne. A `capsule`
+ * carries a person. A `drone` is a Thargon whose mothership died, with the
+ * drone's own hull and bank, and it is scooped as `ALIEN_ITEMS`
+ * (docs/TODO/196).
+ */
+export type CanisterKind = 'cargo' | 'capsule' | 'drone';
+
 export interface Canister {
   object: THREE.Object3D;
-  /** commodity index for cargo; ignored for capsules */
+  /** commodity index for cargo and for a drone; ignored for capsules */
   commodity: number;
   velocity: THREE.Vector3;
   spinAxis: THREE.Vector3;
-  kind: 'cargo' | 'capsule';
+  kind: CanisterKind;
   /** what is left of its released bank — 8 points, and it does not regenerate */
   energy: number;
   /**
@@ -98,20 +108,29 @@ const CANISTER_HULL = requireShipDef(OBJECT_DESIGNS.cargoCanister);
 /** ...and the released escape pod, which is a different shape entirely. */
 const POD_HULL = requireShipDef(OBJECT_DESIGNS.escapePod);
 
-/** What each kind is built from and painted, so the two build sites agree. */
-const LOOK: Record<Canister['kind'], { hull: typeof CANISTER_HULL; color: number }> = {
+/** ...and the Thargon, which a dead drone keeps. */
+const DRONE_HULL = requireShipDef(OBJECT_DESIGNS.deadDrone);
+
+/**
+ * What each kind is built from and painted, so the build sites agree. A dead
+ * drone keeps the live drone's colour, from the roster, so the sky and the
+ * field paint one hull one way.
+ */
+const LOOK: Record<CanisterKind, { hull: typeof CANISTER_HULL; color: number }> = {
   cargo: { hull: CANISTER_HULL, color: 0x8ad0ff },
   capsule: { hull: POD_HULL, color: 0xffd24d },
+  drone: { hull: DRONE_HULL, color: SPECS.thargon[0]!.color },
 };
 
 /** What each kind of drifting object can absorb. The pack's, not ours. */
-const POLICY: Record<Canister['kind'], NpcEnergyPolicy> = {
+const POLICY: Record<CanisterKind, NpcEnergyPolicy> = {
   cargo: npcEnergyPolicy(recommendedProfileIdFor(OBJECT_DESIGNS.cargoCanister)),
   capsule: npcEnergyPolicy(recommendedProfileIdFor(OBJECT_DESIGNS.escapePod)),
+  drone: npcEnergyPolicy(recommendedProfileIdFor(OBJECT_DESIGNS.deadDrone)),
 };
 
 /** A fresh object of this kind, at full energy. */
-export function canisterMaxEnergy(kind: Canister['kind']): number {
+export function canisterMaxEnergy(kind: CanisterKind): number {
   return POLICY[kind].maxEnergy;
 }
 
@@ -122,7 +141,7 @@ export function canisterMaxEnergy(kind: Canister['kind']): number {
  * Y. The escape pod is one of the eight asymmetric released hulls, so a mirror
  * is a different object. See docs/INVARIANTS.md invariant 7.
  */
-function build(kind: Canister['kind']): THREE.Object3D {
+function build(kind: CanisterKind): THREE.Object3D {
   return buildShip(LOOK[kind].hull, LOOK[kind].color);
 }
 
@@ -221,6 +240,32 @@ export class CargoField {
   }
 
   /**
+   * A Thargon whose mothership died, left where it was and as it faced.
+   *
+   * It leaves the sky for the field in the same frame (`destroyShip`, in
+   * combat-wreck.ts), so the scoop can reach it. It drifts as a wreck's
+   * scatter drifts, and it is worth a tonne of `ALIEN_ITEMS` (docs/TODO/196).
+   *
+   * @param facing the drone's attitude at the moment, so the hull does not
+   * snap to a new heading as it dies
+   */
+  spawnDrone(at: THREE.Vector3, facing: THREE.Quaternion): void {
+    const object = build('drone');
+    object.position.copy(at);
+    object.quaternion.copy(facing);
+    this.add(object, {
+      commodity: ALIEN_ITEMS,
+      velocity: randomDirection(new THREE.Vector3()).multiplyScalar(15 + random() * 30),
+      spinAxis: randomDirection(new THREE.Vector3()),
+      kind: 'drone',
+      energy: canisterMaxEnergy('drone'),
+      occupant: '',
+      missionTag: null,
+      grace: 0,
+    });
+  }
+
+  /**
    * "Most wily traders, and many pirates, have this device fitted" — a
    * destroyed ship may eject its crew.
    *
@@ -248,7 +293,7 @@ export class CargoField {
   /** Rebuild one from a snapshot, exactly as it was. */
   restore(
     pos: THREE.Vector3, velocity: THREE.Vector3, spinAxis: THREE.Vector3,
-    kind: 'cargo' | 'capsule', commodity: number, energy: number,
+    kind: CanisterKind, commodity: number, energy: number,
     occupant: string, grace: number, missionTag: string | null,
   ): void {
     const object = build(kind);

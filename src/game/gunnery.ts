@@ -26,9 +26,10 @@
 // constants/npc-gun.ts, which is where the reasoning for each of them lives too.
 
 import type { Equipment, LaserType } from './commander.ts';
+import type { CanisterKind } from './cargo.ts';
 import {
   AIM_ASSIST, ASSIST_FADE_END, ASSIST_FADE_START, CANISTER_GRAZE,
-  LASER_CUTOUT, LASER_GRAZE, LASER_PACING, POD_GRAZE,
+  LASER_CUTOUT, LASER_GRAZE, LASER_PACING, POD_GRAZE, DRONE_GRAZE,
 } from '../constants/player-gun.ts';
 import {
   NPC_COOLDOWN_LO, NPC_COOLDOWN_SPREAD, NPC_FIRE_GATE, NPC_HIT_BASE,
@@ -86,8 +87,9 @@ export function hitCone(radius: number, dist: number): number {
  * target. So each gets the generous allowance its own hull is worth, rather
  * than a cone that shrinks and swells as the thing tumbles.
  */
-export function driftingCone(kind: 'cargo' | 'capsule', dist: number): number {
-  return Math.max(0.012, Math.atan((kind === 'capsule' ? POD_GRAZE : CANISTER_GRAZE) / dist));
+export function driftingCone(kind: CanisterKind, dist: number): number {
+  const graze = kind === 'capsule' ? POD_GRAZE : kind === 'drone' ? DRONE_GRAZE : CANISTER_GRAZE;
+  return Math.max(0.012, Math.atan(graze / dist));
 }
 
 /**

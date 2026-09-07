@@ -10,6 +10,8 @@
 // so a regeneration that quietly produced 259 variants fails here rather than
 // being believed.
 
+import { ALIEN_ITEMS, SLAVES } from '../src/constants/commodities.ts';
+import { COMMODITIES } from '../src/galaxy/galaxy.ts';
 import { readFileSync, readdirSync } from 'node:fs';
 
 import { check, eq } from './harness.ts';
@@ -242,4 +244,19 @@ eq('a profile merges the design\'s constants with the variant\'s',
   check('...and the pack really is vendored, so nothing needs to',
     readdirSync(new URL('../reference/elite-a/source/', import.meta.url))
       .filter((n) => !n.startsWith('.')).length === 10);
+}
+
+// --- what a scooped ship is worth names a row of the market table ------------
+//
+// The pack stores the scoop id one less than the commodity index, and two
+// constants read that convention. Held here so the convention is stated once
+// and a re-import that moves a row fails the build (docs/TODO/196).
+
+{
+  const scoopId = (design: number): number | null =>
+    ELITE_A_DESIGNS.find((d) => d.designId === design)!.scoopedMarketItemId;
+  eq('the escape pod is scooped as SLAVES, one more than its id', scoopId(2)! + 1, SLAVES);
+  eq('the Thargon is scooped as ALIEN_ITEMS, one more than its id', scoopId(27)! + 1, ALIEN_ITEMS);
+  eq('...and that row is the last of the table', COMMODITIES[ALIEN_ITEMS]!.name, 'Alien Items');
+  eq('a cargo canister is scooped as its own contents, so it says nothing', scoopId(4), null);
 }

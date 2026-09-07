@@ -62,5 +62,7 @@ export const MAX_NAMED_SAVES = 20;
  * The longest name a player may type. 16, because that is what the list column
  * holds without a wrap, and what keeps an id short. The alphabet is the letters,
  * the digits and the space.
+ *
+ * @rule saves.maxSaveName
  */
 export const MAX_SAVE_NAME = 16;

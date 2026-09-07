@@ -28,6 +28,7 @@
 // 2026-08-16. Nothing here validates anything.
 
 import type { CommanderData } from './commander.ts';
+import type { CanisterKind } from './cargo.ts';
 import type { ShipSystems } from './systems.ts';
 import type { EncounterTimers } from './encounters.ts';
 import type { BrainSelection } from './brain-names.ts';
@@ -242,7 +243,7 @@ export interface CanisterSnapshot {
   pos: [number, number, number];
   velocity: [number, number, number];
   spinAxis: [number, number, number];
-  kind: 'cargo' | 'capsule';
+  kind: CanisterKind;
   commodity: number;
   /**
    * What is left of its released bank (TODO 28). A canister that was shot at,

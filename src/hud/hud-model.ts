@@ -15,6 +15,7 @@
 // in. This runs every frame, so a fresh allocation would show.
 
 import * as THREE from 'three';
+import type { CanisterKind } from '../game/cargo.ts';
 import type { HudState, ScannerContact, ScreenTarget } from './hud.ts';
 import type { NpcShip } from '../game/npc.ts';
 import { velocityOf } from '../game/flight-maths.ts';
@@ -39,7 +40,7 @@ export function scannerContacts(
   stationPos: THREE.Vector3,
   npcs: readonly NpcShip[],
   missiles: readonly { object: THREE.Object3D }[],
-  canisters: readonly { object: THREE.Object3D; kind: 'cargo' | 'capsule' }[],
+  canisters: readonly { object: THREE.Object3D; kind: CanisterKind }[],
   legalStatus: number,
   playerToStation: number,
 ): ScannerContact[] {
@@ -54,6 +55,8 @@ export function scannerContacts(
     contacts.push({ position: npc.object.position, kind });
   }
   for (const m of missiles) contacts.push({ position: m.object.position, kind: 'missile' });
+  // A dead drone is a cargo blip, and that is the point of it: the blip says
+  // what is collectable (docs/TODO/196).
   for (const c of canisters) {
     contacts.push({
       position: c.object.position, kind: c.kind === 'capsule' ? 'pod' : 'cargo',
