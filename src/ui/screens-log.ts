@@ -1,8 +1,10 @@
 // The LOG screen's markup: the story pages, the patron's face, and the route.
 //
 // It reads what `missions/story.ts` and `missions/route-map.ts` return, and
-// it paints. Nothing here decides what a page says. The site page (item 193
-// of docs/TODO/190) renders the same two results in its own frame.
+// it paints. Nothing here decides what a page says. `logHtml` is the one
+// builder of that markup. The screen wraps it in its title and its BACK
+// key. The site's missions page (docs/TODO/193) sets the same markup in
+// its own frame. So the game and the site cannot tell a story two ways.
 
 import { escapeHtml } from '../engine/escape-html.ts';
 import type { StoryPage } from '../missions/story.ts';
@@ -18,7 +20,8 @@ export interface LogView {
   patron: string;
 }
 
-export function renderLog(view: LogView): void {
+/** The log's markup: the face, the pages newest first, and the route. */
+export function logHtml(view: LogView): string {
   const { pages, route, portrait, patron } = view;
   const face = portrait ? `
     <figure class="portrait">
@@ -32,14 +35,19 @@ export function renderLog(view: LogView): void {
       <b>${escapeHtml(p.title.toUpperCase())}</b>${p.ending === null ? ' &middot; IN PROGRESS' : p.ending === 'complete' ? ' &middot; DONE' : ' &middot; FAILED'}<br/>
       ${p.lines.join('<br/>')}
     </div>`).join('');
-  show(`
-    <h2>COMMANDER'S LOG</h2>
-    <div class="rule"></div>
+  return `
     <div class="sysbody">
       ${face}
       ${body}
     </div>
-    ${route}
+    ${route}`;
+}
+
+export function renderLog(view: LogView): void {
+  show(`
+    <h2>COMMANDER'S LOG</h2>
+    <div class="rule"></div>
+    ${logHtml(view)}
     <div class="buttons"><button data-key="Escape">BACK</button></div>
   `);
 }
