@@ -53,7 +53,7 @@ console.log('\nhud binding');
   {
     // witch-space banishes the scenery, so the needle hunts Thargoids instead
     const goid = {
-      state: { alive: true, inert: false },
+      state: { alive: true },
       role: 'thargoid',
       object: { position: V(1, 2, 3) },
     };

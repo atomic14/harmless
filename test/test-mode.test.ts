@@ -307,7 +307,7 @@ console.log('\nthe legal-status lever is the one 122 and 123 are tested through'
   // The narrowest thing `isHostileToPlayer` reads — the idiom is
   // test/combat.test.ts's police-hostility block.
   const police = { role: 'police', state: {
-    alive: true, inert: false, satisfied: false, provoked: false, provokedByPlayer: false,
+    alive: true, satisfied: false, provoked: false, provokedByPlayer: false,
   } } as unknown as Parameters<typeof isHostileToPlayer>[0];
 
   check('a clean commander is nobody the police want',

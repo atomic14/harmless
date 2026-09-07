@@ -156,7 +156,7 @@ export function flyAmbush(seed: number, seconds: number): AmbushEpisode {
   const coPilot = new ScriptedCoPilot();
 
   const live = (role: string): number =>
-    state.world.npcs.filter((n) => n.state.alive && n.role === role && !n.state.inert).length;
+    state.world.npcs.filter((n) => n.state.alive && n.role === role).length;
   let mothers = live('thargoid');
   let drones = 0;
   let mothersKilled = 0;

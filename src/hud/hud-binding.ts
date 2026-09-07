@@ -105,7 +105,7 @@ export function compassTarget(
 ): THREE.Vector3 {
   if (s.witchspace) {
     const thargoid = s.world.npcs.find((n) =>
-      n.state.alive && !n.state.inert && (n.role === 'thargoid' || n.role === 'thargon'));
+      n.state.alive && (n.role === 'thargoid' || n.role === 'thargon'));
     if (thargoid) return thargoid.object.position;
     return s.world.planetPos;
   }

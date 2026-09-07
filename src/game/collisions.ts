@@ -39,7 +39,7 @@ export interface CollisionScratch {
 
 /** A ship that is not a solid body: scenery, wrecks, and the docking traffic. */
 function isPhantom(npc: NpcShip): boolean {
-  return !npc.state.alive || npc.state.inert || npc.role === 'hermit' || npc.role === 'generation';
+  return !npc.state.alive || npc.role === 'hermit' || npc.role === 'generation';
 }
 
 /**
@@ -126,7 +126,7 @@ export function npcsVsStation(
   scratch: CollisionScratch,
 ): void {
   for (const npc of npcs) {
-    if (!npc.state.alive || npc.state.inert || npc.role === 'hermit') continue;
+    if (!npc.state.alive || npc.role === 'hermit') continue;
     if (npc.state.docking) continue; // a trader on final approach is *meant* to go in
     const local = scratch.a.copy(npc.object.position);
     station.worldToLocal(local);

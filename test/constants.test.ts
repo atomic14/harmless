@@ -162,7 +162,7 @@ const OUTSIDE: readonly Group[] = [
       + ' into a behaviour object, and a bare literal in a class body is worse than a'
       + ' named one this list can see',
     files: {
-      'game/npc-idle.ts': ['ROCK_TUMBLE', 'HERMIT_TUMBLE', 'GENERATION_TUMBLE', 'INERT_TUMBLE'],
+      'game/npc-idle.ts': ['ROCK_TUMBLE', 'HERMIT_TUMBLE', 'GENERATION_TUMBLE'],
     },
   },
 

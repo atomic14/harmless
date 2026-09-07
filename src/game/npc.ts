@@ -10,8 +10,7 @@
 // not repeat that list.
 //
 // **`update` IS THE DISPATCH, AND NOTHING ELSE (docs/TODO/184 M2).** It is 37
-// lines. It clears `state.flownBy`, it asks `inert` first, then it asks the
-// role's own behaviour. It sets no speed, it steers nothing, and it reads no
+// lines. It clears `state.flownBy`, then it asks the role's own behaviour. It sets no speed, it steers nothing, and it reads no
 // distance. Three files hold what it used to decide: `game/npc-idle.ts`,
 // `game/npc-fighter.ts` and `game/npc-trader.ts`.
 //
@@ -115,9 +114,7 @@ import { PursuitPilot } from './npc-pursuit.ts';
 import type { PilotShip } from './npc-pilot.ts';
 import { MIN_CRUISE_FRACTION, UNDER_FIRE_SECONDS } from '../constants/attack-run.ts';
 import type { NpcBehaviour } from './npc-behaviour.ts';
-import {
-  derelictIdle, hermitIdle, inertTumble, rockIdle,
-} from './npc-idle.ts';
+import { derelictIdle, hermitIdle, rockIdle } from './npc-idle.ts';
 import { fighterBehaviour } from './npc-fighter.ts';
 import { traderBehaviour } from './npc-trader.ts';
 import { freshNpcState, type NpcState, type PlayerRef } from './npc-state.ts';
@@ -130,7 +127,8 @@ import { ThreatLock } from './threat-lock.ts';
 //    player is out of reach
 //  - police   protect station space: attack pirates on sight and fugitives
 //  - hunters  lone bounty killers; only interested in offender/fugitive players
-//  - thargoid/thargon  always hostile; thargons go inert without a mothership
+//  - thargoid/thargon  always hostile; a thargon without a mothership is cargo
+//    (docs/TODO/196)
 //
 // Every one of them steers by a turn toward a heading at a capped rate, and a
 // thrust along its nose. That is the player's rule too.
@@ -265,14 +263,6 @@ export class NpcShip {
    * flies the ship stamps it, and one that leaves the ship alone does not.
    */
   private readonly behaviour: NpcBehaviour;
-
-  /**
-   * The drone behaviour, for a Thargon whose mothership died.
-   *
-   * NOT the one above, because `inert` is a state a ship enters part-way
-   * through its life rather than a role it spawns as.
-   */
-  private readonly inert: NpcBehaviour = inertTumble();
 
   /**
    * Whether the pursuit pilot is veering off to avoid a ram this frame, for the
@@ -479,22 +469,10 @@ export class NpcShip {
     // defect docs/TODO/88 is about.
     this.state.flownBy = 'none';
 
-    // THE DISPATCH, AND `inert` COMES FIRST (docs/TODO/184 M2). A drone whose
-    // mothership died tumbles. It is a STATE rather than a role, so it is not
-    // built in the constructor.
-    //
-    // **THE ORDER IS A DEFECT docs/TODO/184 M1 SHIPPED, AND M2 CLOSES IT.**
-    // Before M1 a Thargon held no behaviour. It fell past the dispatch to this
-    // check, and it tumbled. M1 gave every fighting role a behaviour, and the
-    // dispatch asked that first. So an inert drone flew the fighter and never
-    // tumbled again. Nine probes stayed byte-identical, because no probe kills
-    // a Thargoid mothership.
-    //
-    // Asking `inert` first is exactly the pre-M1 order. Only
-    // `game/combat-wreck.ts` sets the flag, and only on a Thargon, so no other
-    // role can reach this line with it set.
-    if (this.state.inert) return this.inert.fly(this, dt, player, view);
-
+    // THE DISPATCH. A drone whose mothership died used to be asked for first,
+    // as a state rather than a role (docs/TODO/184 M2). It is a cargo-field
+    // item now, and the field tumbles it (docs/TODO/196). So every ship in
+    // the sky flies its role.
     // THE ROLE'S OWN BEHAVIOUR (docs/TODO/182 M1). Every role holds one since
     // M2, so this line always answers and `update` is the dispatch alone.
     return this.behaviour.fly(this, dt, player, view);

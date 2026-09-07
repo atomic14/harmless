@@ -624,7 +624,7 @@ console.log('\npolice hostility');
 {
   const npcLike = (role: string, over: Record<string, unknown> = {}) =>
     ({ role, state: {
-      alive: true, inert: false, satisfied: false, provoked: false,
+      alive: true, satisfied: false, provoked: false,
       provokedByPlayer: false, ...over,
     } }) as unknown as Parameters<typeof isHostileToPlayer>[0];
 

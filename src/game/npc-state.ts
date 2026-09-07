@@ -181,8 +181,6 @@ export interface NpcState {
    * this stands in for.
    */
   passesMade: number;
-  /** Thargons go inert when their mothership dies. */
-  inert: boolean;
   tradeTimer: number;
   /** Set true once this ship flew off, or docked, and should be removed. */
   wantsDespawn: boolean;
@@ -266,7 +264,7 @@ export function freshNpcState(maxEnergy: number): NpcState {
     missionTag: null, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
     extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
     tactic: 'run', tacticClock: 0, dryFor: 0,
-    inert: false, tradeTimer: 0,
+    tradeTimer: 0,
     wantsDespawn: false, docked: false, docking: false, organised: false,
     satisfied: false, threatTier: 0, speed: 0, fireCooldown: 0, missileReload: 0,
     waypointTimer: 0, brainTimer: 0, brainPitchRate: 0, brainRollRate: 0,

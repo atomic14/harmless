@@ -45,7 +45,7 @@ export function matePositions(
   const out = mateSlots;
   out.length = 0;
   for (const m of fleet) {
-    if (m === ship || m === ship.npcTarget || !m.state.alive || m.state.inert) continue;
+    if (m === ship || m === ship.npcTarget || !m.state.alive) continue;
     out.push(m.object.position);
   }
   return out;

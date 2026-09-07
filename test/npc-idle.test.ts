@@ -25,7 +25,7 @@
 import * as THREE from 'three';
 import { readFileSync } from 'node:fs';
 import {
-  derelictIdle, hermitIdle, inertTumble, rockIdle,
+  derelictIdle, hermitIdle, rockIdle,
 } from '../src/game/npc-idle.ts';
 import type { BehaviourShip } from '../src/game/npc-behaviour.ts';
 import { freshNpcState } from '../src/game/npc-state.ts';
@@ -146,17 +146,5 @@ console.log('four derelicts, flown off an object literal');
     const other = { visible: false } as unknown as THREE.Mesh;
     hermitIdle(other).fly(ship('hermit'), DT, NOBODY, NOWHERE);
     check('...and a second hermit keeps its own clock', other.visible);
-  }
-
-  // 4. AN INERT DRONE ROLLS SLOWER THAN A ROCK, and that is the one thing the
-  //    four rates are for. Asserted as an ordering rather than as a number, so
-  //    a change to the look is not a failure and a change to the ORDER is.
-  {
-    const drone = ship('thargon');
-    const rock = ship('asteroid');
-    inertTumble().fly(drone, DT, NOBODY, NOWHERE);
-    rockIdle().fly(rock, DT, NOBODY, NOWHERE);
-    check('an inert drone rolls slower than a rock', turned(drone) < turned(rock));
-    eq('...and it goes nowhere either', drone.advanced(), 0);
   }
 }

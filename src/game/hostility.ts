@@ -41,14 +41,13 @@ export interface FleetShip {
 /**
  * What the hostility rule reads, and the whole of it.
  *
- * Four flags and a role. A caller that can answer these can ask the rule, so a
+ * Three flags and a role. A caller that can answer these can ask the rule, so a
  * test fixture needs no hull, no geometry and no flight model.
  */
 export interface HostileShip extends FleetShip {
   readonly role: NpcRole;
   readonly state: {
     readonly alive: boolean;
-    readonly inert: boolean;
     readonly satisfied: boolean;
     readonly provokedByPlayer: boolean;
   };
@@ -68,7 +67,7 @@ export interface HostileShip extends FleetShip {
 export function isHostileToPlayer(
   npc: HostileShip, legalStatus: number, playerToStation: number,
 ): boolean {
-  if (!npc.state.alive || npc.state.inert) return false;
+  if (!npc.state.alive) return false;
   // A ship that took its payday stops caring about you. That is what makes a
   // jettisoned cargo a real escape rather than a donation. It is asked FIRST,
   // before the role, so it means the same thing for every ship that can be
@@ -142,7 +141,7 @@ export function hostilesNear(
  * `grudgeVerdict` puts the words on it.
  *
  * IT READS `isHostileToPlayer` RATHER THAN THE FLAG. So one place answers for a
- * dead ship, an inert one, a bought-off one and the station's truce. That is
+ * dead ship, a bought-off one and the station's truce. That is
  * this file's whole point.
  *
  * It then drops every role the record already accounts for. So the line it
@@ -189,10 +188,6 @@ export function nearestEngaging<T extends HostileShip>(
  * The predicate is the only thing that differs between them, so it is the only
  * thing passed. The aliveness and the distance are the part nobody should
  * restate.
- *
- * `inert` is deliberately NOT filtered here. A ship that stopped deciding is
- * still a ship in the sky, and `isHostileToPlayer` is the rule that knows
- * which questions care.
  *
  * The type travels with the caller. A caller that hands in `NpcShip`s gets an
  * `NpcShip` back, so the sweep needs no knowledge of the class.

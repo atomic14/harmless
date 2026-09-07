@@ -47,7 +47,7 @@ console.log('\nthe roles a record cannot account for');
     role,
     object: { position: new THREE.Vector3(0, 0, z) },
     state: {
-      alive: true, inert: false, satisfied: false, provokedByPlayer: false, ...flags,
+      alive: true, satisfied: false, provokedByPlayer: false, ...flags,
     },
   });
 

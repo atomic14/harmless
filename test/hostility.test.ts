@@ -63,7 +63,7 @@ console.log('\nthe rule reads four flags, a role and a position');
     role,
     object: { position: new THREE.Vector3(0, 0, z) },
     state: {
-      alive: true, inert: false, satisfied: false, provokedByPlayer: false, ...flags,
+      alive: true, satisfied: false, provokedByPlayer: false, ...flags,
     },
   });
 

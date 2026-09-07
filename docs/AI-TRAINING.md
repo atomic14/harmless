@@ -44,8 +44,8 @@ simulation. The design is below.
 - **Lone bounty hunters** ignore a clean player. They hunt an offender and a
   pirate. They draw from the released bounty-hunter slot band — nine hulls, led
   by the Fer-de-Lance (`ship-roles.ts`).
-- **Thargoids** are always hostile. They deploy Thargon drones, which go inert
-  when the mothership dies.
+- **Thargoids** are always hostile. They deploy Thargon drones, which become
+  cargo when the mothership dies (docs/TODO/196).
 
 This is decent 1984-plus AI. Reinforcement learning (RL) is the path to a
 dogfight that feels *alive*. That dogfight has four parts: lead pursuit, energy

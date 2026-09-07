@@ -1,23 +1,18 @@
-// A trader chooses between two lives, and `update` chooses between behaviours.
+// A trader chooses between two lives.
 //
 // `game/npc-trader.ts` came out of `game/npc.ts` in docs/TODO/184 M2, the last
 // cut of docs/TODO/182's programme. After it, `NpcShip.update` is 37 lines and
 // decides nothing about flight.
 //
-// THIS FILE HOLDS TWO SUBJECTS, and the second one is a defect.
+// THE TRADER'S CHOICE. A fleeing trader defends itself. A trader that is not
+// fleeing gets on with the working life, and `game/trader-flight.ts` still
+// holds that. The claim is that the behaviour CALLS the working life rather
+// than absorbing it.
 //
-//  1. THE TRADER'S CHOICE. A fleeing trader defends itself. A trader that is
-//     not fleeing gets on with the working life, and `game/trader-flight.ts`
-//     still holds that. The claim is that the behaviour CALLS the working life
-//     rather than absorbing it.
-//  2. THE DISPATCH ORDER, AND `inert` COMES FIRST. docs/TODO/184 M1 gave every
-//     fighting role a behaviour. It left the behaviour ahead of the `inert`
-//     check, so a drone whose mothership died flew the fighter's amble instead
-//     of tumbling. Nine probes and the campaign stayed byte-identical, because
-//     no probe kills a Thargoid mothership. Only a fixture says so.
-//
-// THE SECOND CLAIM DRIVES A REAL `NpcShip`, and it has to. The defect was in
-// the ORDER of two lines in `update`, and no object literal can reach that.
+// A SECOND SUBJECT LIVED HERE UNTIL docs/TODO/196: the dispatch asked `inert`
+// first, so a drone whose mothership died tumbled rather than flew the
+// fighter's amble. A dead drone is a cargo-field item now, and the field
+// tumbles it, so the state and its test are gone.
 //
 // WHAT IS NOT HERE. Whether the working life picks the right waypoint is
 // `test/trader-flight.test.ts`'s. Whether an armed trader WINS is `train/`'s.
@@ -27,7 +22,6 @@ import { readFileSync } from 'node:fs';
 import { traderBehaviour } from '../src/game/npc-trader.ts';
 import type { BehaviourShip } from '../src/game/npc-behaviour.ts';
 import { freshNpcState } from '../src/game/npc-state.ts';
-import { World } from '../src/game/world.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { SHIPPED_BRAINS } from '../src/game/brain-names.ts';
 import { check, eq } from './harness.ts';
@@ -141,42 +135,4 @@ console.log('a trader, flown off an object literal');
     eq('...and it reports no flight model', it.state.flownBy, 'none');
     eq('...and it advanced too', it.advanced(), DT);
   }
-}
-
-// --- the dispatch asks `inert` first ----------------------------------------
-//
-// THE ONE CLAIM IN THIS FILE THAT DRIVES A REAL SHIP. A Thargon holds the
-// fighter behaviour since docs/TODO/184 M1. The flag is a STATE, so nothing in
-// the constructor can carry it, and only the ORDER of two lines in `update`
-// keeps a shut-down drone tumbling.
-
-console.log('a drone whose mothership died tumbles, and goes nowhere');
-{
-  seedWorld(20_260_822);
-
-  const world = new World();
-  const drone = world.spawn('thargon', new THREE.Vector3(), 2);
-  drone.state.inert = true;
-
-  const station = new THREE.Object3D();
-  station.position.set(0, 0, 12_000);
-  const at = drone.object.position.clone();
-  const facing = drone.object.quaternion.clone();
-
-  drone.update(1 / 60,
-    { position: new THREE.Vector3(0, 0, -500), quaternion: new THREE.Quaternion(), speed: 100 },
-    {
-      station, dockZ: 160, fleet: [], playerLegal: 2, brains: SHIPPED_BRAINS,
-      missileInbound: false, playerToStation: Infinity,
-    } as never);
-
-  const moved = drone.object.position.distanceTo(at);
-  const turned = 2 * Math.acos(Math.min(1, Math.abs(drone.object.quaternion.dot(facing))));
-
-  // BOTH HALVES MATTER, AND THE FIRST IS THE ONE M1 BROKE. Under M1's order the
-  // drone flew the fighter's amble: it moved 2.89 units in this one frame, and
-  // it turned nine times as far.
-  eq(`an inert drone goes nowhere (${moved.toFixed(4)})`, moved, 0);
-  check(`...and it still rolls (${turned.toFixed(5)})`, turned > 0 && turned < 0.01);
-  eq('...and it reports no flight model', drone.state.flownBy, 'none');
 }

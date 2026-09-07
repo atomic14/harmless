@@ -126,7 +126,7 @@ Two quirks are deliberate:
   split is docs/TODO/182's, and Chris named the cause on 2026-08-17: the project
   never used a good OO approach. A ship holds one behaviour for its role, built
   in the constructor. There are three behaviours. `npc-idle.ts` flies a rock, a
-  hermit, a derelict and a shut-down drone. `npc-fighter.ts` flies the pirate,
+  hermit and a derelict. `npc-fighter.ts` flies the pirate,
   the police, the bounty hunter, the Thargoid and its drone. `npc-trader.ts`
   flies the trader. The three pilots are `npc-brain-pilot.ts`,
   `npc-attack-run.ts` and `npc-pursuit.ts`.

@@ -172,8 +172,8 @@ export function describeFlight(
   tactic: TacticId = 'run',
   breaking = false,
 ): string {
-  // No combat flight at all: a pirate at ease, a trader on the lane, an inert
-  // Thargon. The name states the absence rather than a guess at the errand.
+  // No combat flight at all: a pirate at ease, a trader on the lane. The name
+  // states the absence rather than a guess at the errand.
   // This function knows the flight and not the role. Any word for an errand
   // would be the same stale quote, one step removed.
   if (flownBy === 'none') return 'not fighting';

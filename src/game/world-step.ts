@@ -472,7 +472,7 @@ export class WorldStep {
       productivity: here.productivity,
       government: here.government,
       traderCount: world.npcs.filter((n) => n.role === 'trader').length,
-      activeThargons: world.npcs.filter((n) => n.state.alive && n.role === 'thargon' && !n.state.inert).length,
+      activeThargons: world.npcs.filter((n) => n.state.alive && n.role === 'thargon').length,
       hasThargoidMother: world.npcs.some((n) => n.state.alive && n.role === 'thargoid'),
       playerFarFromStation: playerToStation > STATION_TRUCE,
     })) {

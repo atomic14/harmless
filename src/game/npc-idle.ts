@@ -1,19 +1,19 @@
-// The ships that never fight: a rock, a hermit, a derelict, and a drone whose
-// mothership died.
+// The ships that never fight: a rock, a hermit and a derelict.
 //
 // ONE RESPONSIBILITY. Each of these tumbles, and one of them drifts. None
 // decides anything, none reads the commander, and none returns a `FireEvent`.
 // They answer null every frame of their lives.
 //
-// FOUR BEHAVIOURS, ONE SHAPE, AND THE RATES ARE WHAT DIFFER. A rock rolls
+// THREE BEHAVIOURS, ONE SHAPE, AND THE RATES ARE WHAT DIFFER. A rock rolls
 // fastest because it was thrown. A hermit is a hollowed rock with an engine and
 // a beacon, so it barely turns. A generation ship is under way and indifferent.
-// A Thargon whose mothership died keeps the spin it had.
+// A Thargon whose mothership died tumbled here too, until docs/TODO/196 made
+// it a cargo-field item, and the field tumbles it now.
 //
 // THE RATES ARE COSMETIC, and docs/TODO/180 measured that class and left it
 // alone. They decide how a hull LOOKS, and no rule reads them. A named constant
-// for each would put four presentation numbers in `src/constants/`. That is the
-// home for what the game decides, and not for what it looks like.
+// for each would put three presentation numbers in `src/constants/`. That is
+// the home for what the game decides, and not for what it looks like.
 //
 // A HERMIT'S BEACON CLOCK LIVES HERE, and that is the first thing a behaviour
 // keeps for itself. It was a private field on `NpcShip`, off the save on
@@ -31,7 +31,6 @@ import type { BehaviourShip, NpcBehaviour } from './npc-behaviour.ts';
 const ROCK_TUMBLE = 0.4;
 const HERMIT_TUMBLE = 0.06;
 const GENERATION_TUMBLE = 0.02;
-const INERT_TUMBLE = 0.2;
 
 /** A rock, and anything else that only rolls. */
 class Tumbling implements NpcBehaviour {
@@ -96,13 +95,3 @@ export const hermitIdle = (beacon: THREE.Mesh | null): NpcBehaviour => new Hermi
 
 /** A derelict generation ship, under way and indifferent. */
 export const derelictIdle = (): NpcBehaviour => new Derelict();
-
-/**
- * A drone whose mothership died.
- *
- * NOT A ROLE, and that is why it is a separate export. `state.inert` is set on
- * a Thargon when the ship that carried it is destroyed. So a ship reaches this
- * behaviour part-way through its life rather than at its spawn. `NpcShip.update`
- * asks the flag before it asks the behaviour it holds.
- */
-export const inertTumble = (): NpcBehaviour => new Tumbling(INERT_TUMBLE);
