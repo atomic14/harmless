@@ -13,7 +13,19 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [194](194-a-viper-that-flies-into-you-turns-hostile.md) — a Viper that
+   flies into you turns hostile.
+2. [195](195-q-launches-the-escape-pod.md) — Q launches the escape pod.
+3. [196](196-a-dead-thargon-is-a-tonne-of-alien-items.md) — a dead Thargon is
+   a tonne of alien items.
+
+**ALL THREE ITEMS CAME OUT OF CHRIS'S PLAYTEST ON 2026-09-06.** They are
+GitHub #42, #43 and #41, and triage on 2026-09-07 read each one against the
+code that runs. The order is by value over cost. 194 is one line of cause. A
+ram takes the same door as a missile. That door marks the ship as provoked
+by the commander. 195 is a key and a shared body, because only death
+fires the pod today. 196 is the largest, because a dead drone must move from
+the sky into the cargo field, and the inert state then has no writer.
 
 **191, 192 AND 193 ARE THE THREE PLANS 190 PROPOSED**, drafted on 2026-09-06
 after it landed. The pipeline came first, so the arcs ship with words. **191
