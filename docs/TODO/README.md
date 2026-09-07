@@ -13,13 +13,11 @@ active context:
 
 ## Execution queue
 
-1. [193](193-the-site-tells-the-mission-tour.md) — the site tells the
-   mission tour.
+The queue is empty.
 
 **191, 192 AND 193 ARE THE THREE PLANS 190 PROPOSED**, drafted on 2026-09-06
 after it landed. The pipeline came first, so the arcs ship with words. **191
-landed the same day, and 192 the day after**; both are below. The site page
-comes last, because it reads both. **THE GENERATION RUN HAPPENED ON
+landed the same day, and 192 and 193 the day after**; all three are below. **THE GENERATION RUN HAPPENED ON
 2026-09-07**, through the `claude` command line. The machine holds no API
 key, and Chris asked whether the command line could do it. It can, with
 `--via claude` on either generator.
@@ -224,6 +222,17 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-07
+
+**193 — the site tells the mission tour.** `missions.html` is built from
+the skeletons, the patrons, the dossiers and the galaxy at build time, the
+way the encyclopaedia is. It shows the route across galaxy one. It shows
+the five arcs in order, each with a face, a patron and a briefing. It shows
+the side jobs by verb. It tells one failure as a branch, through the game's
+own log builder.
+The page is a Vite input, a sitemap entry, and a third card on the landing
+page. The manual gains a Missions section, and the briefing no longer says
+that nobody will give you a mission. Read in a browser at two widths, with
+no sideways scroll. 5,503 assertions, from 5,462.
 
 **192 — five arcs cross the galaxy, and each one ends near the next.** The
 tour of galaxy 1 is Lave, Rabedira, Vetitice, Xeer and Edle, placed from

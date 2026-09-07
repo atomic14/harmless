@@ -149,3 +149,44 @@ Restore the correct implementation after each check.
 | Drop one side job from the model | Verb without its job |
 | Remove the footer marker from the page | Page without the footer |
 | Write `.html` into the landing card's link | Unclean link |
+
+## Outcome
+
+Landed on 2026-09-07, in three milestones, one commit each. The site has
+`missions.html`, built from the skeletons, the patrons, the dossiers and
+the galaxy at build time, and the queue is empty.
+
+### What the milestones did
+
+- **M1.** `missions/tour-page.ts` is the tour as data: the five arcs in
+  order with their worlds, patrons, briefings, legs and recovery legs, the
+  jumps between them, the side jobs by verb, and the route SVG. `logHtml`
+  in `ui/screens-log.ts` is the one builder of the log's markup, and the
+  test finds it verbatim in the captured LOG screen.
+- **M2.** The page, the `missionTour` plugin, the Vite input, the sitemap
+  entry, a third card on the landing page, and `tour-html.ts`, which
+  escapes every word a model wrote. The built page has no script.
+- **M3.** The worked example through `logHtml`, the manual's Missions
+  section, the briefing's line, and the browser check at two widths.
+
+### What the plan did not have
+
+- **The manual had no mission section**, and the briefing and the landing
+  page both said nobody would give you a mission. All three are corrected.
+- **The ladder-word scan reads pages by directory**, so the new page joined
+  it with no edit. The footer test reads the Vite inputs, so the same.
+- **The browser's window would not shrink to phone width.** A same-origin
+  frame at 390 pixels answers the same question, because media queries
+  follow the frame's viewport.
+- **A restore by git does not restore an untracked file.** The by-hand
+  proofs restore by hand where the file is new.
+- **A leg line on the page mixes cases** if the target slot fills in lower
+  case, so it fills in the line's own shouted case.
+
+### Measurements
+
+- 5,503 assertions, from 5,462.
+- The built page is 25 KB of markup with no script, five arcs, five faces,
+  two route maps, nine table rows and the footer.
+- At 388 pixels the page is 388 wide, the route and the table are 348, and
+  a face is 96.
