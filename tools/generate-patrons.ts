@@ -9,6 +9,7 @@
 //   --limit   generate only the first N worlds, for tasting a model cheaply.
 //   --out     write to patrons/<NAME>.json instead of galaxy-<n>.json, so two
 //             models can be read against each other before either is adopted.
+//   --jobs N  how many `claude -p` processes run at once; the default is four.
 //   --via claude   run through `claude -p` on this machine's subscription,
 //             one process per world, instead of the batch API. No key needed.
 //   --fresh   ask for every world again. Without it, a run keeps the records
@@ -133,7 +134,7 @@ function keep(name: string, prompts: readonly PatronPrompt[], fresh: boolean): R
 
 async function generate(
   galaxy: number, name: string, model: string, limit: number, existingBatch: string, via: string,
-  fresh: boolean,
+  fresh: boolean, jobs: number,
 ): Promise<number> {
   const all = patronPrompts(galaxy).slice(0, limit);
   const entries = keep(name, all, fresh);
@@ -151,7 +152,7 @@ async function generate(
   };
   let run;
   if (via === 'claude') {
-    run = await runLocal(job);
+    run = await runLocal(job, jobs);
   } else {
     const client = await newClient('patrons');
     if (!client) return 1;
@@ -164,35 +165,48 @@ async function generate(
   }
 
   // ONE NAME, ONE PATRON. A name a model likes comes back on many worlds:
-  // the first run gave two of its first six worlds the same man. A repeat
-  // is asked again with the taken names listed, once, and a repeat that
-  // survives that is dropped rather than shipped twice.
+  // the first run gave two of its first six worlds the same man, and
+  // thirteen worlds a Marcus. A repeated full name, or a repeated given
+  // name, is asked again with the taken names listed. Two rounds. A full
+  // name still repeated after that is dropped rather than shipped twice.
+  // A given name still repeated is kept, because a plain patron is worse
+  // than a second Petra.
+  const given = (name: string) => name.toLowerCase().split(' ')[0];
   const taken = new Set<string>();
-  const repeats: PatronPrompt[] = [];
+  const takenGiven = new Set<string>();
+  const claim = (e: PatronRecord) => { taken.add(e.name.toLowerCase()); takenGiven.add(given(e.name)); };
+  let repeats: PatronPrompt[] = [];
   for (const p of all) {
     const e = entries[String(p.index)];
     if (!e) continue;
-    if (taken.has(e.name.toLowerCase())) { repeats.push(p); delete entries[String(p.index)]; }
-    else taken.add(e.name.toLowerCase());
+    if (taken.has(e.name.toLowerCase()) || takenGiven.has(given(e.name))) {
+      repeats.push(p);
+      delete entries[String(p.index)];
+    } else claim(e);
   }
-  if (repeats.length) {
+  for (let round = 0; round < 2 && repeats.length; round += 1) {
     console.log(`patrons: ${repeats.length} repeated a name, asking again`);
     const again: BatchJob<PatronPrompt, PatronRecord> = {
       ...job, items: repeats, passes: 1,
-      request: (p, note) => requestFor(p, `${note ? `${note}. ` : ''}These names belong to other worlds already, so choose one that none of them share: ${[...taken].join(', ')}`),
+      request: (p, note) => requestFor(p, `${note ? `${note}. ` : ''}These names, and these given names, belong to other worlds already, so choose a name that shares neither: ${[...taken].join(', ')}`),
     };
-    const more = via === 'claude' ? await runLocal(again) : await runBatches(await newClient('patrons'), again);
+    const more = via === 'claude' ? await runLocal(again, jobs) : await runBatches(await newClient('patrons'), again);
     usage.requests += more.usage.requests;
     usage.inputTokens += more.usage.inputTokens;
     usage.outputTokens += more.usage.outputTokens;
+    const still: PatronPrompt[] = [];
     for (const p of repeats) {
       const e = more.entries.get(`sys-${p.index}`);
       if (!e) { dropped.push(`sys-${p.index}: repeated a name`); continue; }
-      if (taken.has(e.name.toLowerCase())) { dropped.push(`sys-${p.index}: repeated ${e.name} again`); continue; }
-      taken.add(e.name.toLowerCase());
+      if (taken.has(e.name.toLowerCase())) { still.push(p); continue; }
+      if (takenGiven.has(given(e.name)) && round === 0) { still.push(p); continue; }
+      if (takenGiven.has(given(e.name))) console.log(`patrons: sys-${p.index} keeps a second ${e.name.split(' ')[0]}`);
+      claim(e);
       entries[String(p.index)] = e;
     }
+    repeats = still;
   }
+  for (const p of repeats) dropped.push(`sys-${p.index}: repeated a full name twice`);
   // The tokens of every run that wrote a kept record, so the file still
   // answers what the whole galaxy cost.
   const spent = fresh ? usage : {
@@ -234,5 +248,5 @@ process.exit(argv.includes('--check')
   ? check(galaxy, name)
   : await generate(
     galaxy, name, flag('model') || DEFAULT_MODEL,
-    Number(flag('limit')) || Infinity, flag('batch'), flag('via'), argv.includes('--fresh'),
+    Number(flag('limit')) || Infinity, flag('batch'), flag('via'), argv.includes('--fresh'), Number(flag('jobs')) || 4,
   ));

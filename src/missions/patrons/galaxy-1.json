@@ -1,1805 +1,1805 @@
 {
   "galaxy": 1,
-  "promptVersion": 1,
-  "model": "claude-haiku-4-5 via claude -p",
+  "promptVersion": 2,
+  "model": "claude-sonnet-5 via claude -p",
   "generated": "2026-09-07",
   "usage": {
-    "requests": 283,
-    "inputTokens": 1230882,
-    "outputTokens": 1421157
+    "requests": 496,
+    "inputTokens": 3504273,
+    "outputTokens": 241736
   },
   "entries": {
     "0": {
       "system": "Tibedied",
-      "hash": "f728bcdd",
-      "name": "Kellith",
+      "hash": "6ba3912f",
+      "name": "Ossiven Krethal",
       "role": "the baron's steward",
-      "voice": "Kellith speaks with formal courtesy and frames the baron's needs as opportunity for the pilot. Their words remain pleasant, yet obligation and power underlie every phrase."
+      "voice": "Ossiven Krethal opens every exchange with a courtly greeting and a toast to the baron's health before naming any price. The steward never raises a claw or a voice, but a pilot who is late, or who asks for more than the baron allows, hears the same soft words turn cold."
     },
     "1": {
       "system": "Qube",
-      "hash": "484c7afb",
-      "name": "Elena Voss",
+      "hash": "3fc06595",
+      "name": "Ilya Draeger",
       "role": "the regional operations chief",
-      "voice": "She speaks in short, direct statements that lead with the job and end with the deadline. She will not repeat herself, negotiate a contract, or discuss anything unrelated to the work at hand."
+      "voice": "Draeger opens with the clock, not a greeting, and states the cargo window in hours before naming the job. He clips every sentence short, cuts off a pilot who explains rather than answers, and never repeats an instruction twice."
     },
     "2": {
       "system": "Leleer",
-      "hash": "24691b3f",
-      "name": "Marcus Thorne",
+      "hash": "1cc83e79",
+      "name": "Havlin Bosworth",
       "role": "the port commissar",
-      "voice": "They speak in clipped, official tones, opening every conversation with berth fees, throughput quotas, and operational constraints. They demand strict adherence to protocol and treat pilots as directed assets rather than independent operators."
+      "voice": "Bosworth opens with a tariff figure, not a greeting, and states a cargo tonnage before a pilot has finished docking. He never softens a refusal, and he treats every request as a line on a ledger to be checked twice against the manifest."
     },
     "3": {
       "system": "Biarge",
-      "hash": "7bc283cb",
-      "name": "Shren Vael",
+      "hash": "a88c5511",
+      "name": "Kadrel Voss",
       "role": "a faction's envoy",
-      "voice": "Shren Vael abandons diplomatic pretense with outsiders, speaking with the worn clarity of someone exhausted by factional maneuvering. This envoy's manner brightens markedly when meeting pilots with no allegiance to any local faction."
+      "voice": "Kadrel Voss opens with a tired courtesy, thanking a pilot for arriving without a faction badge to defend, and never raises his voice even when a deal turns sour."
     },
     "4": {
       "system": "Xequerin",
-      "hash": "baa45a05",
-      "name": "Verlan Torrick",
+      "hash": "d873dba3",
+      "name": "Dorlek Vantu",
       "role": "the planning director",
-      "voice": "Verlan speaks plainly about production needs and frames all contracts as collective contributions. The patron never mentions personal profit and treats pilots as valued workers in the common mission."
+      "voice": "Dorlek Vantu opens with the day's output figures before any greeting, and speaks always as we and the collective rather than as I. The planning director never flatters a pilot and never haggles, but states the cargo quota, the fair rate, and the delivery window in one flat breath, then waits for a plain yes or no."
     },
     "5": {
       "system": "Tiraor",
-      "hash": "3e54b9be",
-      "name": "Dmitri Volkov",
+      "hash": "b24b5060",
+      "name": "Yefrem Dolsk",
       "role": "the collective's secretary",
-      "voice": "Dmitri opens all negotiations by emphasizing collective needs as the only important matters and never mentions personal profit. He regards pilots as serious contributors to the system and maintains rigorous standards for their performance."
+      "voice": "Yefrem Dolsk opens with the collective's output figures and states each task as a duty owed to the shared plan. He never haggles and never flatters, and he thanks a pilot only after cargo is logged and verified, not before."
     },
     "6": {
       "system": "Rabedira",
-      "hash": "986e29e4",
-      "name": "Morgan Vale",
+      "hash": "7b38f4ee",
+      "name": "Torvin Adeyemi",
       "role": "a faction's envoy",
-      "voice": "Morgan speaks with urgency about faction business and readily commits without hesitation. He regards pilots as valuable allies to recruit at once and does not dwell on complications."
+      "voice": "Torvin opens with a warm greeting and a promise before the pilot has named a price, and he layers each offer with more favours than the last. He never mentions which faction lost the last battle, and he calls every pilot a friend of the cause within the first breath."
     },
     "7": {
       "system": "Lave",
-      "hash": "cb2b88a4",
-      "name": "Marcus Dryden",
+      "hash": "1f6c851a",
+      "name": "Corvin Thale",
       "role": "the governor",
-      "voice": "He speaks in flat, rapid sentences that lead always with production figures and export targets. He views any pilot as a means to move goods, with no patience for questions or negotiation."
+      "voice": "The governor opens with a quota, not a greeting, and states the tree grub yield before naming a fee. His sentences are short and exact, and he treats a pilot as a line in a ledger, useful only while the numbers hold."
     },
     "8": {
       "system": "Zaatxe",
-      "hash": "09532646",
-      "name": "Vrell",
+      "hash": "81c4058c",
+      "name": "Skreel Torvax",
       "role": "the regional operations chief",
-      "voice": "Her words are clipped and direct, always beginning with her rate per hour. She speaks down to pilots who dally with pleasantries and treats time like currency."
+      "voice": "Skreel Torvax opens with a rate and a deadline, never with a greeting, and taps a claim against the desk while a pilot answers. Torvax cuts off a slow explanation, quotes the corporate penalty clause from memory, and never thanks a pilot for a rushed job, only confirms the margin held."
     },
     "9": {
       "system": "Diusreza",
-      "hash": "357049c9",
-      "name": "Morsiden",
+      "hash": "8b85beb3",
+      "name": "Skarnoth Vellorik",
       "role": "the lord of the station",
-      "voice": "Morsiden opens all negotiations with formal address to rank and station before discussing terms. He speaks in elaborate courtly language throughout and never abandons protocol, treating a pilot or commander as a distinguished guest whose patronage of the station is valued."
+      "voice": "Skarnoth Vellorik speaks in the measured cadence of a court, opening each exchange with a formal welcome and a inquiry after the safety of the pilot's passage. He never haggles openly, preferring to let silence and a raised claw suggest displeasure at a poor offer, and he addresses every pilot by a title of his own choosing rather than by name."
     },
     "10": {
       "system": "Teaatis",
-      "hash": "f7e6159d",
-      "name": "Aldric Vane",
+      "hash": "edbf44b3",
+      "name": "Osric Vantry",
       "role": "the lord of the station",
-      "voice": "Aldric's words are formal and courteous, but each phrase carries an edge of threat. He greets pilots as honored guests and thanks them gracefully, though his courtesy always implies consequences for disappointing him."
+      "voice": "Osric Vantry opens with a warm welcome and a small compliment, then lets a long pause carry the weight of what follows. He speaks in unhurried, formal phrases, calls every pilot by rank rather than by name, and never raises his voice even when he states exactly what will happen to a debtor or a thief."
     },
     "11": {
       "system": "Riinus",
-      "hash": "46fd8177",
-      "name": "Murka",
+      "hash": "644e95dd",
+      "name": "Vessek Thurn",
       "role": "the collective's secretary",
-      "voice": "This secretary begins all exchanges by citing the collective's approved plans and procedures. They maintain professional distance, reveal nothing beyond official directives, and evaluate every request against the established framework before responding."
+      "voice": "Vessek Thurn measures each answer before it leaves the mouth, and it opens with the quota figure from the collective plan rather than a greeting. It never volunteers a number the plan does not already state, and it treats a pilot as a line item until the manifest is checked twice."
     },
     "12": {
       "system": "Esbiza",
-      "hash": "cc1e6d95",
-      "name": "Owen Shaw",
+      "hash": "aca12887",
+      "name": "Rasmin Coyle",
       "role": "the minister of the caretaker council",
-      "voice": "Owen Shaw speaks with weary relief to captains from outside the factions, freed from the careful words his council requires. He has no patience for local rivalries and speaks plainly about his world's actual needs."
+      "voice": "The minister speaks in short, tired sentences, and opens with a plain thanks that a pilot came without a faction badge on the hull. The minister never repeats a council slogan, and never promises a vote the council has not taken, but sets out cargo, price and risk in flat, exact terms before any talk of politics."
     },
     "13": {
       "system": "Ontimaxe",
-      "hash": "28af3f31",
-      "name": "Maren Voss",
+      "hash": "b55e637f",
+      "name": "Renata Sorbik",
       "role": "a councillor",
-      "voice": "She speaks plainly about what she needs and why it matters, with the directness of someone used to council debate. She treats a pilot as a peer rather than a subordinate."
+      "voice": "Councillor Sorbik opens with the reason for the contract before the terms, because a vote back home taught her that people trust a plan they understand. She treats a pilot as a fellow citizen, not a hired hand, and she never gives an order without the vote or the harvest report that stands behind it."
     },
     "14": {
       "system": "Cebetela",
-      "hash": "d85e5c32",
-      "name": "Cassian Hale",
+      "hash": "1f54e0b0",
+      "name": "Dorin Kessel",
       "role": "the warlord who holds the station",
-      "voice": "She welcomes pilots with genuine warmth and speaks openly of available work. Her questions, however, are direct and probing, and she judges each pilot swiftly, measuring whether they can be trusted with difficult work."
+      "voice": "Dorin Kessel opens with a toast and a joke, and he tests each pilot with a small courtesy before he names a price. He speaks warmly and never raises his voice, but a promise from him always carries a second meaning, and he never repeats an offer twice."
     },
     "15": {
       "system": "Ceedra",
-      "hash": "64db63ea",
-      "name": "Skrell",
+      "hash": "9a4a0eac",
+      "name": "Krevan Sollit",
       "role": "a member of the trade assembly",
-      "voice": "Skrell opens each conversation by checking the ship's jump history and fuel costs. This patron avoids speculation and small talk, treating all pilots with the same straightforward professionalism."
+      "voice": "Krevan Sollit opens with the jump count to the deal, not a greeting, and states cargo, price and route in that fixed order. This patron treats a pilot as a fellow assembly member, never as a hired hand, and closes every offer with the same flat line: fewer jumps, fairer price."
     },
     "16": {
       "system": "Rizala",
-      "hash": "caa0cb4a",
-      "name": "Sarvin Vorn",
+      "hash": "402eded8",
+      "name": "Kettrin Vosh",
       "role": "a member of the trade assembly",
-      "voice": "Sarvin opens with direct reference to jobs and cargo rates, showing no patience for prolonged pleasantries. He never speaks with false courtesy or empty flattery, treating a pilot as a knowledgeable peer in commercial exchange."
+      "voice": "Kettrin Vosh speaks in an easy, unhurried trader's drawl, and opens most talks with a joke about the local brandy before naming a price. He calls a pilot friend or partner rather than captain, states a deal once in plain terms, and lets a long silence do the haggling instead of raising his voice."
     },
     "17": {
       "system": "Atriso",
-      "hash": "34d0f2d4",
-      "name": "Kleth Vorn",
+      "hash": "f6bcd0a6",
+      "name": "Drennic Ossa",
       "role": "the governor",
-      "voice": "She speaks in profit margins and production quotas, as if calculations replace warmth. Pilots face her cold assessment of their utility; work comes only when she needs their service."
+      "voice": "Governor Ossa opens with a quota, a percentage, or a deadline, never with a greeting. Its tone stays flat and exact, and it treats a pilot as a line item to be checked off rather than a guest to be welcomed, dismissing any joke or delay with a short correction and a restated figure."
     },
     "18": {
       "system": "Teanrebi",
-      "hash": "425e424f",
-      "name": "Vel Thorra",
+      "hash": "cd4ff8e1",
+      "name": "Quellin Vosh",
       "role": "the regional operations chief",
-      "voice": "Vel Thorra opens every engagement with operational metrics and required deliverables in smooth corporate terminology. He regards pilots as reliable contractors and frames all complications as anticipated contingencies rather than failures."
+      "voice": "Quellin Vosh opens every exchange with a courteous greeting and then moves straight to clause and schedule, quoting a rate or a penalty the way another might quote weather. The chief never raises its voice and never haggles past the second offer, and it treats a pilot as a counterparty to a contract rather than as a guest, closing each deal with a fixed phrase of thanks that sounds rehearsed because it is."
     },
     "19": {
       "system": "Azaqu",
-      "hash": "0cbaafa6",
-      "name": "Elena Vasquez",
+      "hash": "6e760f00",
+      "name": "Dalen Okoro",
       "role": "a councillor",
-      "voice": "Elena speaks plainly about the reasons for her work before she describes the work itself. She does not hide the council's interests and does not appeal to flattery when speaking with a starship commander."
+      "voice": "Dalen Okoro opens with the vote count or the reason for the contract before any greeting, and lays out each condition in plain order. He never hides a cost behind a friendly phrase, and he answers a pilot's question with the fact first and the courtesy after."
     },
     "20": {
       "system": "Retila",
-      "hash": "6b868b4d",
-      "name": "Kade Morley",
+      "hash": "94854b63",
+      "name": "Doran Vantrik",
       "role": "the warlord who holds the station",
-      "voice": "He speaks warmly and makes generous offers sound reasonable, but he watches carefully and keeps his thoughts private. He treats pilots with respect and courtesy but maintains firm control of any conversation."
+      "voice": "Doran opens with a warm greeting and an offer of tea, then studies the pilot's hands while the pilot speaks. He praises a good cargo run and never states a threat outright, but he lets a long pause do that work instead."
     },
     "21": {
       "system": "Sotiqu",
-      "hash": "4a56c7f2",
-      "name": "Korven",
+      "hash": "832cc120",
+      "name": "Grokka Vessin",
       "role": "the broker the crews answer to",
-      "voice": "Korven opens with a direct question about cargo and payment. They speak to each pilot with tired directness, and they care for nothing but the contract and the rate."
+      "voice": "Grokka Vessin opens with a number, not a greeting, and repeats it only once before moving on. Grokka treats every pilot as a pair of hands for the cargo hold, cuts off any pilot who argues, and never explains a price twice."
     },
     "22": {
       "system": "Inleus",
-      "hash": "eb6cc01f",
-      "name": "Merrick Shen",
+      "hash": "965f610d",
+      "name": "Vecker Thrin",
       "role": "the elected port administrator",
-      "voice": "Merrick opens with specifications and terms without preamble, valuing directness. He never engages in small talk and respects pilots who match his brisk, efficient manner."
+      "voice": "Vecker Thrin opens with the docking fee and the berth number, never with a greeting. The administrator lists terms in short clipped sentences, treats every pilot as a constituent owed a fair rate and a fast answer, and cuts off haggling with a flat repeat of the number already given."
     },
     "23": {
       "system": "Onrira",
-      "hash": "90789cbb",
-      "name": "Morgan Hayes",
+      "hash": "43290445",
+      "name": "Petra Wynhold",
       "role": "the port's contracts manager",
-      "voice": "She leads every conversation with rates and final deadlines, treating each minute like billable hours. A pilot gains nothing by chatting with her; she measures value in profit margin and speed, nothing else."
+      "voice": "Wynhold opens with the rate and the deadline, never with a greeting, and checks the time twice before the pilot finishes a sentence. She states each term once, refuses to repeat it, and closes a call the instant the numbers are agreed."
     },
     "24": {
       "system": "Ceinzala",
-      "hash": "4ba58e58",
-      "name": "Kellax",
+      "hash": "cdb9cc02",
+      "name": "Krenzavor",
       "role": "the port commissar",
-      "voice": "Kellax demands clearance papers at the outset and speaks in terse, regulation-focused statements with no tolerance for humor or informal questions. Pilots receive brief correction for protocol violations and acknowledgment only when compliance is complete."
+      "voice": "Krenzavor opens with a demand for cargo manifests, not a greeting, and states each requirement once before moving on. The commissar never asks twice and never bargains, and treats every pilot as a subordinate who has not yet earned trust."
     },
     "25": {
       "system": "Biisza",
-      "hash": "54615b5f",
-      "name": "Pauline Cross",
+      "hash": "b53fa951",
+      "name": "Renn Osei",
       "role": "the harbour master",
-      "voice": "She opens with what a pilot can load or unload that day. She speaks in the spare language of trade, and she treats a pilot as a partner in getting cargo where it needs to go."
+      "voice": "Renn Osei opens with a price and a berth number in the same breath, the way any trader states an offer before the pleasantries. She never scolds a pilot for a late manifest, she simply names the fee and waits, and she calls every captain by ship name rather than rank."
     },
     "26": {
       "system": "Legees",
-      "hash": "3e26ef0d",
-      "name": "Terek",
+      "hash": "df35ed77",
+      "name": "Kaszir Denvo",
       "role": "the harbour master",
-      "voice": "Terek speaks in the easy, direct style of a working trader and never troubles himself with formality or small talk. He addresses each pilot as a potential customer, leading with cargo rates and berthing costs, and discussing goods, profit, and business opportunity."
+      "voice": "Kaszir Denvo opens with a price before a greeting, and treats every mooring fee as the start of a negotiation. The harbour master never raises his voice, even when the ground shakes under the docking cradles, and he waves a steady pilot through with an easy compliment and a lower toll."
     },
     "27": {
       "system": "Quator",
-      "hash": "2bf37c6c",
-      "name": "Merrin",
+      "hash": "600c20aa",
+      "name": "Sabo Kettner",
       "role": "the broker the crews answer to",
-      "voice": "Merrin delivers his job offers as threats without apology. Pilots learn quickly that delays bring worse things than refusing the job, and he makes certain they know this before they commit."
+      "voice": "Kettner opens with the cargo count, not a greeting, and states the fee before a pilot can ask. He threatens to hand the run to another crew at the first sign of delay, and he never softens a warning with a joke."
     },
     "28": {
       "system": "Arexe",
-      "hash": "0d735519",
-      "name": "Merrick Sorrel",
+      "hash": "d620d4cf",
+      "name": "Odrin Kestrave",
       "role": "a councillor",
-      "voice": "Merrick speaks with the clarity of someone accustomed to debate and public discourse. He explains both what he needs from a pilot and the reasons why."
+      "voice": "Odrin Kestrave opens each meeting with the reason before the request, and never asks for a vote it cannot justify aloud. It walks a pilot through the terms of a contract line by line, and it treats a question as a right rather than an interruption."
     },
     "29": {
       "system": "Atrabiin",
-      "hash": "60401905",
-      "name": "Krellis",
+      "hash": "b77ef357",
+      "name": "Kraveth Ossun",
       "role": "the minister of the caretaker council",
-      "voice": "Krellis chooses words with care, for any rival who listens will parse phrasing for advantage. The minister greets pilots as a practical matter and assigns work by settlement necessity alone."
+      "voice": "Kraveth Ossun speaks in slow, measured phrases, and each sentence sounds pre-approved before it leaves the claw. The minister opens with a neutral greeting to the pilot, never names a faction by blame, and closes each answer with a qualifier that leaves room to deny it later."
     },
     "30": {
       "system": "Usanat",
-      "hash": "86f203ec",
-      "name": "Marcus Webb",
+      "hash": "8ce848b2",
+      "name": "Dorna Petrenko",
       "role": "the chair of the port committee",
-      "voice": "Marcus Webb opens with the colony's needs, never with pleasantries or sales talk. He regards a pilot as essential to the work that keeps the community alive."
+      "voice": "Dorna Petrenko speaks in flat, careful sentences and opens with the committee quota before any greeting. She names duty and the collective often, never haggles for herself, and thanks a pilot for punctual service rather than for skill."
     },
     "31": {
       "system": "Xeesle",
-      "hash": "1045f6ac",
-      "name": "Garrett Ashford",
+      "hash": "4f23b976",
+      "name": "Aldous Fenwick",
       "role": "the baron's steward",
-      "voice": "He speaks with measured authority as the baron's official, stating obligations rather than requesting favors. He treats a pilot with formal courtesy only as long as business progresses to the baron's satisfaction."
+      "voice": "Fenwick opens with the baron's needs, not a greeting, and he states cargo terms as settled fact rather than a request. He treats a pilot with correct, distant courtesy, and he does not ask twice for a favour; he offers better terms instead and waits."
     },
     "32": {
       "system": "Oreseren",
-      "hash": "b986ef5a",
-      "name": "Marcus Vance",
+      "hash": "642d5d18",
+      "name": "Bastian Rourke",
       "role": "the lord of the station",
-      "voice": "He speaks with formal courtesy and frames work as a privilege he grants, though his tone makes the obligation clear. He treats pilots as useful for the moment and never threatens directly; the power he holds is obvious."
+      "voice": "Lord Rourke opens with a welcome and a title, and he never raises his voice to give an order twice. He grants a docking pilot every courtesy the station allows, then reminds the pilot, softly, whose goodwill keeps the docking clamps open."
     },
     "33": {
       "system": "Inera",
-      "hash": "b9db6928",
-      "name": "Ansel Kern",
+      "hash": "0b0d974e",
+      "name": "Talia Vosk",
       "role": "a company director",
-      "voice": "The director speaks in precise, time-conscious abbreviations, with each moment priced to the second. Pilots are contractors with obligations, not colleagues; hesitation reads as a drain on the balance sheet."
+      "voice": "Talia Vosk opens with the fee and the deadline, never with a greeting, and she checks a chronometer on her wrist while she talks. She never repeats an instruction twice, and she treats a pilot as a line item until the cargo clears, then drops the matter at once and moves to the next call."
     },
     "34": {
       "system": "Inus",
-      "hash": "88e51593",
-      "name": "Helena Voss",
+      "hash": "06daab61",
+      "name": "Petrus Halvard",
       "role": "the governor",
-      "voice": "She speaks with polite precision and asks careful questions about a pilot's origins and cargo. She never deviates from an official tone; she treats every word as data to be filed."
+      "voice": "The governor opens with a courteous welcome and a note that the harbour log has already recorded the ship's approach. He thanks a pilot for compliance before asking for it, and he never raises his voice, even when he sets a condition that leaves no room to refuse."
     },
     "35": {
       "system": "Isence",
-      "hash": "24b0dc1e",
-      "name": "Marcus Ashford",
+      "hash": "1e9b08e8",
+      "name": "Odalys Ferrant",
       "role": "a faction's envoy",
-      "voice": "Marcus speaks with precision, aware that each word may reach a rival's ears. He respects competence and discretion equally, and he expects pilots to follow instructions without needing explanation."
+      "voice": "Odalys Ferrant opens with the faction's formal greeting before her own name, and she weighs each phrase as though a rival envoy stood at her shoulder. She never confirms a rumour outright, offers a pilot conditional praise rather than a promise, and closes every exchange with a line that commits her faction to nothing more than it already holds."
     },
     "36": {
       "system": "Reesdice",
-      "hash": "cce92801",
-      "name": "Sessix",
+      "hash": "2f0a492f",
+      "name": "Kethrun Voss",
       "role": "the collective's secretary",
-      "voice": "Sessix holds the secretary's post and speaks only for the collective's will, never for private gain. The commander whose labor serves the shared good finds steady work; those seeking profit find a closed door."
+      "voice": "Kethrun Voss speaks in flat, measured phrases and opens most exchanges with a plain statement of the task and the quota behind it. It speaks always for the collective rather than for itself, never bargains and never flatters, and it treats a pilot as one more hand toward the shared harvest rather than as a guest to be charmed."
     },
     "37": {
       "system": "Terea",
-      "hash": "cb617fee",
-      "name": "Vren Kleth",
+      "hash": "16ae3d74",
+      "name": "Renka Volodin",
       "role": "the chair of the port committee",
-      "voice": "They speak in precise, guarded tones and always begin by citing the collective plan. They regard outside traders with obvious suspicion and rarely commit to work without consulting the binding protocol that regulates port activity."
+      "voice": "Renka Volodin speaks in short, measured phrases and opens most exchanges by citing the harvest quota before any greeting. The chair answers a question about cargo with a line from the port committee's plan rather than a personal opinion, and gives a pilot only the figures the plan permits, never a promise beyond them."
     },
     "38": {
       "system": "Orgetibe",
-      "hash": "ff36bd2f",
-      "name": "Kashen",
+      "hash": "1d811eb5",
+      "name": "Threnna Kaspel",
       "role": "a faction's envoy",
-      "voice": "Kashen speaks with the resignation of someone trapped between rival factions, each word careful and measured. But when addressing an off-world pilot, the envoy's tone lightens, becoming almost eager to discuss trade and concerns beyond the interminable local disputes."
+      "voice": "Threnna Kaspel opens each meeting with a tired sigh before she names the faction she speaks for. She drops the formal titles for a pilot from outside the factions, and treats that pilot as a rare relief from the endless disputes."
     },
     "39": {
       "system": "Reorte",
-      "hash": "d1f50bd8",
-      "name": "Vorath",
+      "hash": "968c272e",
+      "name": "Kestrin Vahl",
       "role": "a colonel of the state guard",
-      "voice": "Vorath speaks in clipped, direct statements and gives orders without explanation. He expects a pilot to accept work without question and does not discuss his reasons."
+      "voice": "Colonel Vahl speaks in short commands and drops the subject of the sentence, as if every pilot already stands at attention. The colonel opens with an order, not a greeting, and never repeats an instruction twice; a pilot who asks for a reason gets silence until the compliance follows."
     },
     "40": {
       "system": "Ququor",
-      "hash": "3c2f5c5c",
-      "name": "Kasiel Vorn",
+      "hash": "b2208326",
+      "name": "Vezrin Thallak",
       "role": "the regional operations chief",
-      "voice": "Kasiel speaks in smooth, formal operational terminology and begins any exchange by stating relevant facts plainly. The chief never strays into speculation or sentiment, and addresses pilots with professional courtesy tempered by careful distance."
+      "voice": "Vezrin Thallak opens with the yield figures before any greeting, and lays out each offer as a clause in a standing contract. The chief never raises a voice, never repeats a term once stated, and rates a pilot by the margin the pilot delivers rather than by manner or speed."
     },
     "41": {
       "system": "Geinona",
-      "hash": "f3fe1560",
-      "name": "Merrin Holt",
+      "hash": "59b068c2",
+      "name": "Osgar Ferrant",
       "role": "the lord of the station",
-      "voice": "Merrin speaks with the confidence of rank, stating each need as fact and never requesting favour directly. Formal courtesy is extended to any pilot who proves reliable."
+      "voice": "Osgar Ferrant speaks as a man who rules, not one who asks, and he opens with a title or a decree rather than a greeting. He never begs for a favour outright; he offers work as though it were an honour bestowed, and he expects a pilot to accept the honour before the coin."
     },
     "42": {
       "system": "Anarlaqu",
-      "hash": "1b80955e",
-      "name": "Aldous Vass",
+      "hash": "99ba74ac",
+      "name": "Osran Vaudric",
       "role": "the duke's marshal",
-      "voice": "He opens every conversation with formal courtesy and titles, speaking as though bound by court protocol. He offers commissions with precision, but his tone hardens when a pilot shows disrespect to rank or the duke."
+      "voice": "He opens with the duke's full style before he states any business, and he expects the same courtesy returned. He never haggles and never raises his voice, but he sets out a pilot's duty in short, exact terms and holds each one to the letter of it."
     },
     "43": {
       "system": "Oresri",
-      "hash": "ad23d404",
-      "name": "Verek Toren",
+      "hash": "1413d876",
+      "name": "Dravik Somner",
       "role": "the chair of the port committee",
-      "voice": "Verek speaks with steady practicality, framing work in terms of service to the port and the people. The chair addresses all pilots with the same formal courtesy and will not appeal to personal ambition."
+      "voice": "Dravik Somner opens with the committee's ration figures before any greeting, and speaks always as we, never as I. He states the cargo quota plainly, treats every pilot as a fellow worker owed nothing extra, and never thanks a pilot by name."
     },
     "44": {
       "system": "Esesla",
-      "hash": "b9b8dfd4",
-      "name": "Mervik",
+      "hash": "bfcc922e",
+      "name": "Skirran Voth",
       "role": "a councillor of one bloc",
-      "voice": "Mervik speaks with the drained patience of someone caught between rival blocs, but visibly welcomes an outsider who brings no ties to local factions. The councillor negotiates carefully but with genuine relief, treating a pilot as a neutral party in their weary political struggles."
+      "voice": "Skirran Voth speaks slowly, as if each word costs a favor owed to some faction back home, and opens most talks with a tired sigh before the real business starts. The councillor drops the bloc's stiff titles for a visiting pilot, calls them plainly by their ship's name, and never repeats a promise twice, since a promise given once is the only kind Skirran trusts."
     },
     "45": {
       "system": "Socelage",
-      "hash": "0a2c1d38",
-      "name": "Elena Mercer",
+      "hash": "bb8b26ce",
+      "name": "Perrin Ashdale",
       "role": "the elected port administrator",
-      "voice": "Elena leads with apologies for the administrative work that a democratic port requires, but never suggests that the system itself is a burden. She regards pilots as essential to the world's prosperity, and she uses her position to smooth their path through regulations."
+      "voice": "Perrin Ashdale opens with an apology for the delay in the docking forms, and asks a pilot's patience while another stamp is found. He never rushes a signature, and he thanks each captain for bearing with the port's paperwork."
     },
     "46": {
       "system": "Riedquat",
-      "hash": "903f77a4",
-      "name": "Kess",
+      "hash": "af847482",
+      "name": "Skavrit Nallow",
       "role": "the warlord who holds the station",
-      "voice": "Kess states the price in clipped words and expects a quick answer. Pilots who argue the terms find that Kess has no more patience or attention for them."
+      "voice": "Skavrit Nallow speaks in short, clipped sentences, and states a price before any greeting. This warlord never repeats an offer twice, treats a pilot as a transaction rather than a guest, and cuts talk short with a flat demand for coin."
     },
     "47": {
       "system": "Gerege",
-      "hash": "be7740af",
-      "name": "Torren Vance",
+      "hash": "33b44fcd",
+      "name": "Nessa Broderick",
       "role": "the harbour master",
-      "voice": "He begins by asking about a pilot's cargo and needs, speaking with the ease of someone trained in negotiation. He never complains about the port's condition, and he treats each arrival as an opportunity for the next deal."
+      "voice": "Nessa Broderick opens with a price, not a greeting, and she quotes berth fees the way a trader quotes cargo. She calls every pilot by ship name rather than rank, keeps her tone easy and unhurried even when the docks run full, and never repeats a figure twice for someone who was not listening the first time."
     },
     "48": {
       "system": "Usle",
-      "hash": "bad7e9d0",
-      "name": "Kessa Vale",
+      "hash": "c051e546",
+      "name": "Vethka Orsune",
       "role": "a member of the trade assembly",
-      "voice": "She addresses every pilot by name and asks about their specific work with genuine warmth rather than business formality. In trade discussions, she treats pilots as valued friends and colleagues, so each transaction becomes a partnership rather than a one-time deal."
+      "voice": "Vethka Orsune greets every pilot by name before any word about cargo passes, and she remembers the name of the ship as well as the person who flies it. She speaks in short, warm sentences, never in the cold phrasing of a contract, and she treats a pilot as a partner in the assembly's work rather than a supplier to be managed."
     },
     "49": {
       "system": "Malama",
-      "hash": "1ecb59ed",
-      "name": "Petra Voss",
+      "hash": "99c42d9f",
+      "name": "Ines Halloway",
       "role": "the port commissar",
-      "voice": "She leads with the tariff data and expects settlement before discussion. She treats each pilot as a transaction to complete efficiently, nothing more."
+      "voice": "Ines Halloway opens with a tariff figure, not a greeting, and states the docking fee before she asks a pilot's name. She never softens a rule for a sympathetic story, and she closes each exchange with a flat account of what the ship owes the port."
     },
     "50": {
       "system": "Aesbion",
-      "hash": "5cb34030",
-      "name": "Cassian Wells",
+      "hash": "3d323dd2",
+      "name": "Rasten Kell",
       "role": "a company director",
-      "voice": "Cassian Wells begins every negotiation by stating the contract terms, never offering more context than necessary. This director speaks only to bind a pilot to specific conditions and expects the same restraint in return."
+      "voice": "Rasten Kell opens with the contract terms and closes the line the moment a pilot accepts or declines. He states the fee, the deadline and the penalty once, in that order, and never repeats a term for a pilot who was not listening."
     },
     "51": {
       "system": "Alaza",
-      "hash": "90397b0d",
-      "name": "Merrin Venn",
+      "hash": "6fa3200f",
+      "name": "Skirra Vantho",
       "role": "the elected port administrator",
-      "voice": "Merrin speaks with brisk efficiency, beginning each meeting with cargo and schedule requirements. The administrator treats pilots with fairness but directness, showing no patience for small talk or evasion."
+      "voice": "Skirra Vantho opens with the clearance fee and the quarantine form, never with a greeting, and moves through both lists at a clip that leaves no room for small talk. She states each docking rule once, expects a pilot to have read the health bulletin already, and closes every exchange with a brisk word of thanks rather than a farewell."
     },
     "52": {
       "system": "Xeaqu",
-      "hash": "f7eddd2e",
-      "name": "Silas Keene",
+      "hash": "240bc788",
+      "name": "Garrit Loman",
       "role": "the broker the crews answer to",
-      "voice": "He starts with warm greetings and real interest in a pilot's ship and crew. He grows guarded about cargo terms and payment, will not speak of his sources or buyers, and offers steady work to those he can trust."
+      "voice": "Garrit Loman opens with a small joke about the harvest and a price already fixed in his head. He never states his full cut until the cargo sits in the hold, and he watches a new pilot's hands more than the pilot's face."
     },
     "53": {
       "system": "Raoror",
-      "hash": "c26cb9f2",
-      "name": "Krelok",
+      "hash": "fa4b091c",
+      "name": "Gorrak Vell",
       "role": "the warlord who holds the station",
-      "voice": "Krelok greets each visitor with genuine warmth and asks detailed questions about their cargo and destination. His interest puts traders at ease and wins their trust, but beneath that friendliness lies a precise attention to every obligation and advantage."
+      "voice": "Gorrak Vell opens with a warm greeting and a wide grin, and he asks after a pilot's cargo before he asks after a pilot's name. His friendliness never slips, but his eyes track every hand near a weapon, and he never states a price twice or promises a docking bay past sundown."
     },
     "54": {
       "system": "Ororqu",
-      "hash": "995e3223",
-      "name": "Merrick Tarn",
+      "hash": "a2de5f51",
+      "name": "Skerrin Vantoc",
       "role": "a councillor",
-      "voice": "This councillor opens every negotiation by asking what the cargo solves for the settlement and skips the pleasantries. They never hedge positions and regard a pilot's clear terms and honest timelines as the foundation of every arrangement."
+      "voice": "Councillor Skerrin Vantoc opens with the contract figure and the delivery window, never with a greeting. The councillor states terms once, expects a straight answer, and closes the channel the moment a pilot hedges or pads the price."
     },
     "55": {
       "system": "Leesti",
-      "hash": "774dbfc6",
-      "name": "Adrian Cross",
+      "hash": "4f3dcdc8",
+      "name": "Toran Ashwick",
       "role": "the regional operations chief",
-      "voice": "Adrian Cross speaks only contract specifics, never elaborating beyond what terms require. He treats a pilot as a contractor bound by agreement and expects precise adherence to conditions stated."
+      "voice": "Toran Ashwick speaks in short, exact sentences and states the fee before the risk. He opens with the contract number, never a greeting, and he treats a pilot as a line item until the cargo is confirmed delivered."
     },
     "56": {
       "system": "Geisgeza",
-      "hash": "19c4b49b",
-      "name": "Petra Kross",
+      "hash": "b0861725",
+      "name": "Corlan Vesh",
       "role": "the port commissar",
-      "voice": "They speak in short, clipped sentences shaped by unquestioning obedience to authority. A pilot finds them courteous but inflexible, as they place regulations above all else and treat each arrival as procedure only."
+      "voice": "Vesh speaks in short flat orders and drops the pilot's name to a docking number before the first sentence ends. He never asks twice, never explains a rule, and treats a question about the manifest as an admission of guilt."
     },
     "57": {
       "system": "Zainlabi",
-      "hash": "16f6d80e",
-      "name": "Soren Mills",
+      "hash": "6b5835fc",
+      "name": "Osei Farrant",
       "role": "a member of the trade assembly",
-      "voice": "He opens with cargo and a price in an easy, casual tone, never dwelling on the local troubles. He treats a pilot as a capable partner and assumes they will complete the job."
+      "voice": "Osei Farrant opens with a price and a grin, and settles into the haggle like an old friend. He calls every pilot captain, never presses for details on the fighting back home, and closes a deal with a handshake rather than a signature."
     },
     "58": {
       "system": "Uscela",
-      "hash": "5628fd4c",
-      "name": "Elena Torres",
+      "hash": "821a875a",
+      "name": "Dara Kessling",
       "role": "a member of the trade assembly",
-      "voice": "She speaks with the economy of someone tracking hundreds of routes, opening with costs and jump counts, and measuring pilots only by cargo and reliability. She has no patience for small talk or anything that does not affect a freight bill."
+      "voice": "She opens with a number: the jump count to the buyer, then the margin. She never wastes a word on a pilot's ship, only on its cargo capacity and its arrival date, and she closes a deal the moment the figures agree."
     },
     "59": {
       "system": "Isveve",
-      "hash": "5db4f1fa",
-      "name": "Lena Voss",
+      "hash": "f7a080d8",
+      "name": "Wenna Prentice",
       "role": "the broker the crews answer to",
-      "voice": "She opens with genuine warmth and easy words, but her pauses and careful phrasing show a wary mind beneath. She never commits fast or reveals all her thinking, treating each crew as something to understand before any deal."
+      "voice": "Wenna opens with a soft greeting and a remark about the weather before the cargo is mentioned. She hedges every price with a quiet condition, never states a full deal outright, and watches a pilot's hands more than the pilot's face while she talks."
     },
     "60": {
       "system": "Tioranin",
-      "hash": "c21ca1cd",
-      "name": "Helena Cross",
+      "hash": "8df26fa7",
+      "name": "Selwyn Marrick",
       "role": "a councillor",
-      "voice": "She explains the reasoning behind her requests and the situation that requires them, confident that informed partners make better choices. She treats a pilot's perspective from other worlds as genuinely valuable input."
+      "voice": "Selwyn Marrick states the council's need plainly, then gives the reason behind it before a pilot can ask. He never hides the risk of the current unrest, and he speaks to a pilot as an equal partner in the world's recovery, not as a hired hand."
     },
     "61": {
       "system": "Learorce",
-      "hash": "e4bd5455",
-      "name": "Voren Kash",
+      "hash": "95d93843",
+      "name": "Serik Onwane",
       "role": "a faction's envoy",
-      "voice": "Voren speaks in rapid, enthusiastic bursts about work available and the interests of their faction. They commit readily to promises and rarely qualify them with caution, treating any capable captain as essential to solving problems."
+      "voice": "Serik Onwane speaks fast and warm, and opens with a promise of good cargo and better pay before the terms are settled. Serik treats every pilot as a friend already owed a favor, and never lingers on a warning."
     },
     "62": {
       "system": "Esusti",
-      "hash": "4b8b85dd",
-      "name": "Kalevi Kross",
+      "hash": "d1515d5b",
+      "name": "Ilior Vantek",
       "role": "the planning director",
-      "voice": "Kalevi speaks in measured tones about collective efficiency and state planning, opening conversations by asking how a pilot's services support long-term development. He maintains formal courtesy but shows interest only in what a pilot can contribute to the plan."
+      "voice": "Ilior Vantek opens with the quota still owed to the collective, and he states the cargo figure before any greeting. He never offers a favor outside the plan, and he measures a pilot only by the delivery logged against the schedule."
     },
     "63": {
       "system": "Ususor",
-      "hash": "96ed90d5",
-      "name": "Theron Kess",
+      "hash": "1aa1538b",
+      "name": "Halvard Penn",
       "role": "the baron's steward",
-      "voice": "He addresses a pilot with formal courtesy, measured in every word. He frames requests as obligations rather than favors, and maintains the reserved dignity befitting a feudal steward unaccustomed to outsiders."
+      "voice": "Halvard Penn opens with the baron's compliments before he states the baron's need, and he treats a pilot's price as a small matter beneath his notice until the last moment forces his hand."
     },
     "64": {
       "system": "Maregeis",
-      "hash": "7c960d5c",
-      "name": "Varel",
+      "hash": "5d9755be",
+      "name": "Kravek Thollun",
       "role": "the lord of the station",
-      "voice": "He maintains formal courtesy in all dealings, addressing petitioners with measured respect and civility. His tone never rises, yet his words carry the weight of his station, and listeners quickly grasp that his patience has limits and his memory is long."
+      "voice": "Kravek Thollun speaks with slow, deliberate courtesy, and each pleasant phrase carries a warning folded inside it. The lord opens every dealing with a formal welcome to the station, rewards a punctual pilot with brief warmth, and answers any delay with a silence that promises consequence."
     },
     "65": {
       "system": "Aate",
-      "hash": "292ef0a8",
-      "name": "Theodore Hammond",
+      "hash": "5dc808d6",
+      "name": "Sena Korrick",
       "role": "the regional operations chief",
-      "voice": "He speaks with corporate precision and names only what the contract requires. A pilot who mirrors his efficiency will find him prompt and direct."
+      "voice": "Korrick opens with the contract number and states the payment terms once, in order, and does not restate them. She never speaks of the mountain lobstoids beyond the hazard line in the paperwork, and she never praises a pilot who only meets the terms; she saves acknowledgement for a pilot who beats the deadline."
     },
     "66": {
       "system": "Sori",
-      "hash": "c948c3b0",
-      "name": "Vrask",
+      "hash": "3f11a8b6",
+      "name": "Zharek Vosin",
       "role": "the governor",
-      "voice": "Vrask opens with figures and supply reports, never with greetings. The governor treats a pilot as a tool and shows no patience for excuses or sentiment."
+      "voice": "Governor Vosin opens with a yield figure or a quarantine count before any greeting, and expects the pilot to state cargo and manifest weight in return. Its tone stays flat and clipped, and it never softens an order with please or with thanks, treating a pilot as a line item to be checked off rather than a person to be persuaded."
     },
     "67": {
       "system": "Cemave",
-      "hash": "2c0db435",
-      "name": "Zarex",
+      "hash": "ebf2665f",
+      "name": "Skitrik Vaun",
       "role": "a councillor of one bloc",
-      "voice": "Zarex opens with enthusiasm about opportunities and commits to ambitious terms quickly. He never discusses setbacks or hazards, instead directing pilots toward profitable contracts."
+      "voice": "Skitrik Vaun speaks fast, clicking through the count of a deal before the terms are settled, and opens with a promise rather than a greeting. The councillor calls every pilot an ally within one sentence, swears the bloc will match any rival offer, and never admits that the ground beneath the depot might shift before the cargo does."
     },
     "68": {
       "system": "Arusqudi",
-      "hash": "ed84439f",
-      "name": "Sorrel Kex",
+      "hash": "46d3902d",
+      "name": "Tessik Vrell",
       "role": "the chair of the port committee",
-      "voice": "Sorrel speaks with measured formality and genuine conviction, consistently returning to the community's collective needs in every matter. The chair treats all pilots fairly within the regulations."
+      "voice": "Tessik Vrell opens with the day's quota and the committee's expectation, and never wastes a word on flattery. The chair calls each pilot comrade, states the berth assignment and the duty owed to the collective in the same breath, and closes with a reminder that the oceans and the harvest both depend on a schedule kept."
     },
     "69": {
       "system": "Eredve",
-      "hash": "e88df596",
-      "name": "Vehren",
+      "hash": "29321260",
+      "name": "Ravikta Sorn",
       "role": "the planning director",
-      "voice": "Vehren speaks with measured precision about production schedules and collective survival. This director regards a pilot strictly as a resource, treating them with formal respect but no consideration for personal choice."
+      "voice": "Ravikta Sorn opens with the quota still unmet and the plan still binding, and speaks of the collective before speaking of any single gain. She never asks a favor for herself, only for the schedule, and she treats a pilot as a fellow worker owed a fair share of the labor and none of the credit."
     },
     "70": {
       "system": "Regeatge",
-      "hash": "3bb1c8dc",
-      "name": "Soren Keir",
+      "hash": "9716fb12",
+      "name": "Tomas Kellard",
       "role": "a faction's envoy",
-      "voice": "Soren speaks with the exhaustion of someone navigating endless factional disputes, but the tone shifts when addressing those from beyond the conflicts. To outsiders, Soren offers directness and warmth, dropping the careful hedging that dominates every conversation with rival factions."
+      "voice": "He speaks in a flat, tired voice and drops his faction's title before he gives his own name, as if the rank costs too much breath. He never presses a pilot to pick a side, and he softens only when the talk turns to trade far from the forests and the fighting."
     },
     "71": {
       "system": "Edinso",
-      "hash": "5a7d4694",
-      "name": "Varthis",
+      "hash": "3843649a",
+      "name": "Threxos Kadaan",
       "role": "the governor",
-      "voice": "Varthis opens every meeting with a direct command, speaking in minimal sentences and tolerating no repetition. The governor treats pilots as functionaries serving the state and offers no warmth or negotiation."
+      "voice": "Governor Kadaan speaks in short orders and expects no reply beyond confirmation. He opens with the cargo manifest and the docking fee, never with a greeting, and he treats a pilot as a tool that either meets the quota or gets replaced."
     },
     "72": {
       "system": "Ra",
-      "hash": "2d2afd50",
-      "name": "Crex",
+      "hash": "f7caea6a",
+      "name": "Kresh Vantal",
       "role": "the regional operations chief",
-      "voice": "Crex speaks in sharp, clipped bursts and states the deadline and fee before anything else. The regional operator has no patience for pleasantries and treats all pilot agreements as binding time-sensitive contracts."
+      "voice": "Kresh Vantal opens with the tonnage figure and the clock, never a greeting, because the company charges by the minute and the ground here does not wait. Vantal cuts off a pilot who explains a delay and states the new terms flat, then moves to the next channel before an answer comes back."
     },
     "73": {
       "system": "Aronar",
-      "hash": "c31c8045",
-      "name": "Kellan",
+      "hash": "8285a827",
+      "name": "Thessik Ravon",
       "role": "the duke's marshal",
-      "voice": "The marshal states the duke's requirements in courteous, measured language that carries an edge of iron. He never second-guesses the duke's law, and a pilot will learn quickly that compliance is both courteous expectation and the only reasonable path forward."
+      "voice": "Thessik Ravon opens with a formal greeting and the duke's proper title, and each sentence stays courteous even as it lists a debt or a duty owed. The marshal never raises the voice, but a pause before the word consequence tells a pilot the courtesy has a limit, and a late cargo or a broken oath earns a soft warning rather than a shout."
     },
     "74": {
       "system": "Arraesso",
-      "hash": "b2d0cfeb",
-      "name": "Aldric Merrick",
+      "hash": "be4398f5",
+      "name": "Halric Corvane",
       "role": "the duke's marshal",
-      "voice": "Aldric Merrick conducts all business through formal courtesies and frequent reference to the duke's authority, never permitting casual speech. He measures a pilot's worth by their respect for rank and their readiness to serve without hesitation."
+      "voice": "Halric Corvane speaks in the formal address of the duke's court, and he opens with the duke's title before he states any business. He never haggles like a trader and he never drops into casual speech, but he grants a capable pilot the courtesy due a sworn officer of the realm."
     },
     "75": {
       "system": "Cevege",
-      "hash": "0a3972ea",
-      "name": "Karix",
+      "hash": "9827af24",
+      "name": "Kraxil Thurn",
       "role": "the planning director",
-      "voice": "Karix speaks with direct earnestness about what must be done, prioritizing the collective good. Beneath the dedication to duty lies visible frustration with local conditions, but this sharpens focus on necessary planning."
+      "voice": "Kraxil Thurn opens with the quota figure before any greeting, and states the cargo target as if it were a fact already settled. The director never apologizes for the world's condition and never idles in small talk, but addresses a pilot as a fellow worker owed a plain account of the task and its deadline."
     },
     "76": {
       "system": "Orteve",
-      "hash": "a71d37fc",
-      "name": "Varen",
+      "hash": "38004ac6",
+      "name": "Vodrek Hallain",
       "role": "a councillor of one bloc",
-      "voice": "Varen speaks with quick assurance, eager to promise work and resources before a proposal is fully stated. This councillor treats a pilot as valuable to their bloc and readily commits to terms without lengthy deliberation."
+      "voice": "Vodrek Hallain opens with a promise before the terms are set, and he leans forward as if the deal is already done. He calls every pilot friend within the first breath, he never admits that his bloc must first agree among itself, and he waves off a hard question with a bigger offer."
     },
     "77": {
       "system": "Geerra",
-      "hash": "89a1493e",
-      "name": "Marcus Halley",
+      "hash": "17490b00",
+      "name": "Wendel Ashgrove",
       "role": "the elected port administrator",
-      "voice": "Marcus opens with an apology about the paperwork, then turns to business with the directness of a trader. He was elected to his post, so he speaks with the care of someone whose job depends on his neighbors' good opinion."
+      "voice": "Wendel opens with an apology for the state of the docking forms before he says anything else. He speaks slowly and checks each figure twice aloud, and he never rushes a pilot through a signature, no matter how the queue behind them grows."
     },
     "78": {
       "system": "Soinuste",
-      "hash": "c783ab70",
-      "name": "Vrix",
+      "hash": "3209fbe2",
+      "name": "Krezal Vorn",
       "role": "the warlord who holds the station",
-      "voice": "Vrix makes demands before introductions, speaking in sharp, clipped sentences that leave no room for negotiation. The warlord views pilots as either assets to be exploited or rivals to be intimidated into submission."
+      "voice": "Krezal Vorn opens with a price and a warning in the same breath, never with a greeting. Its mandibles click through short, hard sentences, and it treats a pilot as a debtor until the docking fee is paid, promising the next tremor or the next blade if the credits are short."
     },
     "79": {
       "system": "Erlage",
-      "hash": "1ebaf53b",
-      "name": "Maren Locke",
+      "hash": "cb86aa01",
+      "name": "Tamsin Okoro",
       "role": "a member of the trade assembly",
-      "voice": "She addresses each captain by name from the outset. She speaks with the directness of a veteran trader, yet her warmth makes every negotiation feel like an exchange between equals."
+      "voice": "Tamsin Okoro greets a pilot by name before she states her business, and she asks after the ship and the crew as if she tracks every voyage herself. She never opens with a price, and she never lets a haggling point turn cold, but she is precise about cargo terms once the warmth has done its work."
     },
     "80": {
       "system": "Xeaan",
-      "hash": "ff1d12a6",
-      "name": "Gabriel Hayes",
+      "hash": "71e05294",
+      "name": "Darius Okonkwo",
       "role": "the harbour master",
-      "voice": "Gabriel greets every pilot by their familiar name and listens as though their story matters only to him. He avoids discussion of the factions, steers talk toward cargo and safe routes, and gives practical help to any crew that needs it."
+      "voice": "Darius Okonkwo greets every pilot by name before the ship settles on the pad, and he asks after the crew before he asks after the cargo. He never hides the state of the fighting beyond the fence, but he keeps his tally of berths and manifests steady, and he treats a nervous newcomer with the same warmth he gives a returning regular."
     },
     "81": {
       "system": "Veis",
-      "hash": "7d41b9e6",
-      "name": "Kronn",
+      "hash": "ce7b7d80",
+      "name": "Krezan Vollik",
       "role": "a colonel of the state guard",
-      "voice": "Kronn opens with direct orders in clipped, mandatory phrases and never offers explanation. He addresses a pilot with military formality but will not entertain questions or delays."
+      "voice": "Colonel Krezan Vollik speaks in short, clipped bursts and expects an answer at once. The colonel states an order once, never repeats it, and treats a pilot as a subordinate until that pilot earns trust through compliance."
     },
     "82": {
       "system": "Ensoreus",
-      "hash": "e82824a4",
-      "name": "Sorven",
+      "hash": "08dbb23a",
+      "name": "Vess Korrathal",
       "role": "the port's contracts manager",
-      "voice": "Sorven speaks with smooth fluency in commercial vocabulary and corporate regulation, avoiding personal pleasantry. This contracts manager frames every negotiation in terms of contractual obligation and mutual interest."
+      "voice": "Vess Korrathal opens with the clause number before the greeting, and lays out margin, penalty and delivery window in one smooth breath. Korrathal never raises the voice and never haggles on feeling, and treats a pilot as a line in a ledger worth exactly what the last run proved."
     },
     "83": {
       "system": "Riveis",
-      "hash": "dfc1187f",
-      "name": "Silas Webb",
+      "hash": "18f839b1",
+      "name": "Merrik Ostwin",
       "role": "a councillor",
-      "voice": "He leads with apologies for the required paperwork, speaking as though the forms are his personal burden. He addresses visiting pilots with patient fairness, explaining regulations in detail rather than dismissing questions."
+      "voice": "Merrik Ostwin opens with an apology for the state of the forms before any greeting passes between them. He never blames a pilot for a delay that his own council caused, and he repeats a promise to fix a permit rather than defend it."
     },
     "84": {
       "system": "Bivea",
-      "hash": "3035b29e",
-      "name": "Kraxx",
+      "hash": "86c4eb98",
+      "name": "Ghurak Voss",
       "role": "the dock boss",
-      "voice": "He opens with sharp demands about cargo and fees, offering no courtesies. His speech is peppered with casual threats, and he regards every pilot with suspicion until they pay and leave."
+      "voice": "Ghurak Voss speaks in short, hard croaks, and opens with the price and the deadline, never a greeting. He warns a pilot once about a late berth fee or a blocked slip, and the second warning comes as a shove or a blaster tap rather than a word."
     },
     "85": {
       "system": "Ermaso",
-      "hash": "49c29223",
-      "name": "Soren Venn",
+      "hash": "2828adc1",
+      "name": "Teodor Kesh",
       "role": "the broker the crews answer to",
-      "voice": "He opens with warmth and friendly talk, so newcomers feel at home. His words turn measured once business details emerge, and he tracks every clause with sharp focus."
+      "voice": "Teodor Kesh opens with a warm word about the harvest before he names a price, and he never states a term twice the same way. He watches a pilot's hands more than the pilot's face, and he keeps one favour owed in reserve for the day a deal turns sour."
     },
     "86": {
       "system": "Velete",
-      "hash": "5ae709d6",
-      "name": "Marcus Finch",
+      "hash": "6a8d377c",
+      "name": "Dana Kolbeck",
       "role": "the elected port administrator",
-      "voice": "Marcus apologizes for delays and paperwork, knowing they frustrate pilots as much as they frustrate him. He treats every pilot fairly because a struggling world depends on every credit that trade brings."
+      "voice": "Dana speaks in soft, hurried apologies and blames every delay on the paperwork, not on the pilot. She thanks each captain for patience, offers a form in place of an excuse, and never raises her voice."
     },
     "87": {
       "system": "Engema",
-      "hash": "0938aef8",
-      "name": "Salgrim",
+      "hash": "0e9e781e",
+      "name": "Kessu Vantor",
       "role": "the regional operations chief",
-      "voice": "Salgrim speaks in clipped, businesslike phrases and leads with contract terms and deadlines. He measures every exchange in cost and treats a pilot as a resource to deploy."
+      "voice": "Kessu Vantor opens with a quota figure and the hour, never a greeting, and treats every pause as billable time lost to the company. Vantor rates a pilot by delivered tonnage alone, cuts off talk of the quarantine lines with a flat repeat of the contract clause, and closes each exchange by naming the next deadline before the pilot can answer."
     },
     "88": {
       "system": "Atrienxe",
-      "hash": "08b62b19",
-      "name": "Cassian Venn",
+      "hash": "cdca513b",
+      "name": "Torvald Ansen",
       "role": "a colonel of the state guard",
-      "voice": "She begins with clipped questions about a pilot's capability and obedience. She speaks with military precision and regards all pilots as operational assets."
+      "voice": "Colonel Ansen speaks in short commands, and drops the subject when the order is plain. Ansen opens with a rank and a task, never with a greeting, and expects a pilot to answer with a yes or a no, not an excuse."
     },
     "89": {
       "system": "Beusrior",
-      "hash": "564bd4ee",
-      "name": "Marina Reeves",
+      "hash": "27938860",
+      "name": "Nolan Petrakis",
       "role": "a member of the trade assembly",
-      "voice": "She greets a pilot by name if she knows it, and mentions another crew's situation to show she keeps track. She talks of trade routes as a way to keep work flowing to people, not as abstractions on a terminal."
+      "voice": "Nolan Petrakis greets each pilot by name before he speaks of cargo or credits. He asks after the crew and the ship before the deal, and he never rushes a haggle or raises his voice."
     },
     "90": {
       "system": "Ontiat",
-      "hash": "baa87184",
-      "name": "Vera Cowan",
+      "hash": "03f89362",
+      "name": "Nathaniel Presswick",
       "role": "a member of the trade assembly",
-      "voice": "She speaks in short, direct statements, measuring every proposal by its jump count. She respects pilots who justify their route in numbers and dismisses vague claims without hesitation."
+      "voice": "Nathaniel Presswick opens with the jump count on a route before he names the cargo, and he trims every offer to its plain numbers. He never romances a contract or a world's troubles, and he judges a pilot by a logged flight time, not by a story."
     },
     "91": {
       "system": "Atarza",
-      "hash": "fa0e8f73",
-      "name": "Kess Vorn",
+      "hash": "e2e477e9",
+      "name": "Yevin Struss",
       "role": "the broker the crews answer to",
-      "voice": "Kess states the contract and price straight away, and never bargains or explains. She judges each pilot by whether they take the work or walk away."
+      "voice": "Struss speaks in short flat sentences and never repeats a figure twice. The broker opens with the price, not a greeting, and closes the moment a pilot argues past it."
     },
     "92": {
       "system": "Arazaes",
-      "hash": "3818101e",
-      "name": "Owen Blackwell",
+      "hash": "4eaaf420",
+      "name": "Warrick Dunmore",
       "role": "the mayor of the port",
-      "voice": "He discusses port operations and decisions directly, always offering the reasoning behind policy changes. He greets pilots as valued partners whose commerce supports the colony, not as temporary visitors."
+      "voice": "Warrick Dunmore greets a pilot with a plain account of the port's needs before naming any price. He explains the reason behind every rule and every rate, and he never hides a decision behind a closed door, since the council and the growers expect the same courtesy he gives a stranger at the dock."
     },
     "93": {
       "system": "Xeeranre",
-      "hash": "edf621fe",
-      "name": "Kerath",
+      "hash": "242ce370",
+      "name": "Threnvix",
       "role": "a councillor of one bloc",
-      "voice": "Kerath measures every word, keenly aware that rival factions listen for any slip. This councillor evaluates a pilot not by grand promises but by genuine discretion and proven reliability."
+      "voice": "Threnvix picks each word as if a rival bloc already writes it down, and opens with a plain greeting before any offer of work. Threnvix never names a rival council member aloud and never gives a firm promise in front of witnesses, but speaks to a pilot in a level, private tone once the room is clear."
     },
     "94": {
       "system": "Quzadi",
-      "hash": "1636de93",
-      "name": "Kethis Vorn",
+      "hash": "faa1c4dd",
+      "name": "Venrik Ossa",
       "role": "the chair of the port committee",
-      "voice": "Kethis speaks with earnest formality about duty and regulations, treating each rule as essential to the collective effort. They respect a pilot's skill but will not compromise on protocol."
+      "voice": "Venrik Ossa opens with the day's quota, not with greetings, and folds every request into the language of duty to the collective. This patron never bends the tally to favour one pilot over another, and speaks of the civil war only as the reason each cargo run matters more than it once did."
     },
     "95": {
       "system": "Isti",
-      "hash": "7f697abd",
-      "name": "Adrian Thorne",
+      "hash": "a3e3e12f",
+      "name": "Bramwell Ashcombe",
       "role": "the duke's marshal",
-      "voice": "He speaks in the formal register of the court, with precise diction and careful regard for protocol in every exchange. A pilot will find him courteous but distant, his attention drawn to matters of duty and the marshal's prerogatives under his lord's authority."
+      "voice": "The marshal opens with the duke's title and the duke's business, never with idle talk. He addresses a pilot as captain or as sir, keeps each sentence measured, and closes every exchange with a formal word of leave rather than a farewell."
     },
     "96": {
       "system": "Digebiti",
-      "hash": "2454c11e",
-      "name": "Kael Soren",
+      "hash": "564ea860",
+      "name": "Vareth Skorn",
       "role": "the duke's marshal",
-      "voice": "The marshal always begins with courtesy and repeats what the duke requires. He never wavers, never admits doubt, and every sentence carries an edge that a careful listener will feel."
+      "voice": "Vareth Skorn opens with a formal greeting and the duke's full style, and keeps the tone level even when the words carry a warning. The marshal never barks an order at a pilot, but lets each courtesy carry the weight of a threat, and closes every exchange with a reminder that the Xeoid grounds owe no mercy to a late departure."
     },
     "97": {
       "system": "Leoned",
-      "hash": "e6e0e7c4",
-      "name": "Thrax",
+      "hash": "0cec2d8e",
+      "name": "Skarrith Dol",
       "role": "the port's contracts manager",
-      "voice": "Thrax opens with rates and deadlines in rapid, clipped tones, skipping all preamble. The port manager despises hesitation and reserves all respect for pilots who sign on immediately."
+      "voice": "Skarrith Dol states the fee and the deadline before any greeting, and checks a wrist chronometer between sentences. Dol cuts off a pilot who pauses too long and never repeats an offer twice."
     },
     "98": {
       "system": "Enzaer",
-      "hash": "30c1b728",
-      "name": "Serena Voss",
+      "hash": "8ca5c50e",
+      "name": "Reiner Castellan",
       "role": "a colonel of the state guard",
-      "voice": "Serena Voss opens conversations with formal questions about a pilot's background and recent movements, speaking with measured courtesy that serves as a clear reminder of institutional oversight. She presents work proposals as transactions between a contractor and state authority, her unfailing politeness making clear that cooperation serves purposes larger than individual commerce."
+      "voice": "Colonel Castellan speaks in short, correct sentences, and he opens with a formal address and a note of the pilot's registered name. He never raises his voice and never repeats a warning, and he treats a pilot with courtesy that carries the weight of a file already read."
     },
     "99": {
       "system": "Teraed",
-      "hash": "afab2881",
-      "name": "Marcus Venn",
+      "hash": "874d391b",
+      "name": "Ondrej Vantric",
       "role": "the minister of the caretaker council",
-      "voice": "He speaks with optimism about opportunities and growth, and readily makes promises to any pilot who might help. He avoids mention of obstacles and regards a starship commander as vital to the council's future."
+      "voice": "Ondrej Vantric opens with a promise before the terms are set, and he lays out figures faster than the council could ever confirm them. He calls a pilot a friend within the first breath, and he never says a deadline will slip, even when it will."
     },
     "100": {
       "system": "Vetitice",
-      "hash": "90a70bf1",
-      "name": "Karina Voss",
+      "hash": "9f76a8ff",
+      "name": "Ilona Draske",
       "role": "the planning director",
-      "voice": "Karina speaks for the production board collective, never as an individual voice. She states plans plainly and views each captain's cargo capacity as a resource that serves the collective's production needs."
+      "voice": "Draske opens with the quota, not a greeting, and speaks always as we and the collective rather than I. She states each cargo term once, plainly, and gives a pilot no praise beyond confirmation that the contract stands fulfilled."
     },
     "101": {
       "system": "Laenin",
-      "hash": "fc64885a",
-      "name": "Marta",
+      "hash": "bf99a03c",
+      "name": "Feodor Kalder",
       "role": "the collective's secretary",
-      "voice": "Speaks plainly of practical needs and collective survival, dismissing all personal opinion. Pilots are assessed by what they contribute to community welfare."
+      "voice": "Feodor Kalder speaks in short, flat sentences and always opens with the collective's ledger figures before any greeting. He never says the word favor, only quota, and he treats a pilot as one more line of cargo to log rather than a person to charm."
     },
     "102": {
       "system": "Beraanxe",
-      "hash": "1a543737",
-      "name": "Skarven",
+      "hash": "045db335",
+      "name": "Kritash Vell",
       "role": "a faction's envoy",
-      "voice": "Skarven speaks with genuine warmth and readily makes offers on behalf of a particular faction. This envoy treats pilots as valued partners and commits to agreements without hesitation."
+      "voice": "Kritash Vell greets a pilot with a bright welcome and an offer before the ink dries on any deal. The envoy promises quick riches from every faction and rarely names the price."
     },
     "103": {
       "system": "Atage",
-      "hash": "66ab9839",
-      "name": "Pavel Stern",
+      "hash": "fa218eef",
+      "name": "Iven Drask",
       "role": "the governor",
-      "voice": "He opens each conversation with production quotas and delivery schedules and refuses all digression. A pilot must discuss only efficiency and measurable profit to hold his interest."
+      "voice": "The governor opens with a production figure or a quota, not a greeting, and states each demand as a fact already settled. The governor never asks a pilot for an opinion and addresses each one by ship registration, not by name."
     },
     "104": {
       "system": "Veisti",
-      "hash": "feb59bcf",
-      "name": "Isla Chen",
+      "hash": "2f9d262d",
+      "name": "Ilkka Renvik",
       "role": "the port's contracts manager",
-      "voice": "Isla states each contract term with exact precision and adds no commentary. When a pilot asks what lies beyond the written terms, she offers only silence."
+      "voice": "Renvik opens with the clause number, not a greeting, and reads terms in the order the contract lists them. He never volunteers an opinion of the cargo or the route, and he corrects a pilot who paraphrases instead of quoting the line."
     },
     "105": {
       "system": "Zaerla",
-      "hash": "db8aa81b",
-      "name": "Kassian Vor",
+      "hash": "6544f525",
+      "name": "Corvale Ossyth",
       "role": "the baron's steward",
-      "voice": "He addresses all matters with courtly formality and proper titles, deference to the baron's authority evident in every word. He treats visiting pilots with courtesy and respect but maintains formality befitting his station, never suggesting they rank equally with the nobility."
+      "voice": "Corvale Ossyth speaks in the fixed phrases of the baron's court, and opens each exchange with the full title of the house before any word of trade. The steward never haggles without leave, and treats a visiting pilot as a petitioner whose worth is judged first by manner and only after by cargo."
     },
     "106": {
       "system": "Esredice",
-      "hash": "e9de1857",
-      "name": "Aldwyn",
+      "hash": "26985f29",
+      "name": "Wystan Marlow",
       "role": "the baron's steward",
-      "voice": "He maintains formal speech in all dealings and frequently invokes the baron's authority to establish context for any arrangement. He addresses a visiting commander with proper courtesy but makes plain through his measured responses that commerce exists within the feudal hierarchy."
+      "voice": "He opens with the baron's full style and title before any word of business, and he expects the same courtesy returned. He addresses a pilot by rank alone, never by a first name, and he never raises his voice, letting a long pause carry his displeasure instead."
     },
     "107": {
       "system": "Beor",
-      "hash": "5d7d3b04",
-      "name": "Pavel Rask",
+      "hash": "5a7238ba",
+      "name": "Marek Osten",
       "role": "the chair of the port committee",
-      "voice": "He begins by citing the relevant regulations and will not consider exceptions. A pilot finds him courteous but rigid, and he will not proceed until full compliance with the procedures has been confirmed."
+      "voice": "Marek Osten answers in short, guarded lines and opens most talks by citing the current plan's cargo quota. He states the committee's allotment before any offer, never promises a load beyond the plan, and checks each pilot's manifest twice before he trusts the count."
     },
     "108": {
       "system": "Orso",
-      "hash": "f381e961",
-      "name": "Adrian Sutton",
+      "hash": "6f87e43b",
+      "name": "Miran Voss",
       "role": "a councillor of one bloc",
-      "voice": "Adrian speaks with measured formality, conscious that rivals parse every word he utters. He addresses a pilot with precision, honoring agreements exactly as stated."
+      "voice": "Councillor Voss speaks in measured phrases and leaves long pauses before a firm commitment. Voss opens with a courtesy to every faction at the table, never names a rival bloc without a qualifier attached, and gives a pilot a plain instruction rather than a reason."
     },
     "109": {
       "system": "Usatqura",
-      "hash": "3b8f791e",
-      "name": "Petra Nash",
+      "hash": "f94788a4",
+      "name": "Fenna Orlic",
       "role": "the mayor of the port",
-      "voice": "Petra speaks plainly and opens every negotiation by explaining the situation. She treats a pilot as a partner in solving real problems, without pretense or flattery."
+      "voice": "Fenna Orlic opens with the reason behind a docking fee or a delay before she states the number itself, because she trusts a pilot to accept a rule once the cause is clear. She never gives a flat order without the story behind it, and she treats every commander as a neighbour who simply has not heard the local explanation yet."
     },
     "110": {
       "system": "Erbiti",
-      "hash": "716a710d",
-      "name": "Karath",
+      "hash": "d9cd8fc3",
+      "name": "Kessek Vharn",
       "role": "the warlord who holds the station",
-      "voice": "Karath opens conversations with disarming warmth and speaks first of mutual profit, yet pauses before any commitment to weigh the hidden cost. The warlord measures every pilot by what they might become, never by what they claim to be."
+      "voice": "Kessek Vharn opens with an easy welcome and a wide, toothy smile, the kind that promises nothing. Every offer comes wrapped in warmth, but a pilot notices the eyes never stop moving, and the price is never spoken until the cargo is already unloaded."
     },
     "111": {
       "system": "Reinen",
-      "hash": "f01eafca",
-      "name": "Kellor",
+      "hash": "7697f7dc",
+      "name": "Kessin Thurl",
       "role": "a member of the trade assembly",
-      "voice": "Kellor opens with a personal greeting that demonstrates genuine familiarity with each visitor's background and reputation. Direct yet warm, this trade assembly member never hides behind procedure and treats every pilot as someone worth remembering."
+      "voice": "Kessin Thurl greets a pilot by name before any word of cargo, and asks after the last crew member by name too. Its speech carries the warmth of long acquaintance, full of small courtesies and mentions of the harvest quotas the assembly must still settle, and it never opens with a demand or a threat."
     },
     "112": {
       "system": "Ininbi",
-      "hash": "bfe4571b",
-      "name": "Kalven",
+      "hash": "893f4b91",
+      "name": "Skrivan Thexol",
       "role": "a regional delegate",
-      "voice": "Kalven listens to a pilot's proposal with genuine curiosity, then discusses value and risk with the directness of a trader. They will not entertain ventures that lack a solid foundation."
+      "voice": "Skrivan Thexol opens with an easy greeting and settles straight into terms, the way a trader opens a ledger. The delegate never inflates a price or a promise, states each cargo figure plainly, and treats a pilot as a fellow party to a deal rather than a subject of the Confederacy."
     },
     "113": {
       "system": "Erlaza",
-      "hash": "9247b5f8",
-      "name": "Cassian Torres",
+      "hash": "f0f08e46",
+      "name": "Tavin Orsk",
       "role": "the port commissar",
-      "voice": "He speaks in clipped sentences and defers to the hierarchy above him without exception. He greets pilots with formal courtesy but volunteers nothing more than regulation requires."
+      "voice": "Commissar Orsk opens with a manifest number, not a greeting, and expects the pilot to have it ready before he finishes asking. He gives an order once and repeats it only as a warning, and he never softens a refusal with an explanation."
     },
     "114": {
       "system": "Celabile",
-      "hash": "dc5e5578",
-      "name": "Morgan Vance",
+      "hash": "36954756",
+      "name": "Odile Marchant",
       "role": "a company director",
-      "voice": "Morgan Vance speaks in clipped sentences, dropping ceremony to discuss schedules and margins. This director sizes up a pilot as a rated asset to hire or decline, with no patience for anything beyond business."
+      "voice": "Marchant opens with the clock, not a greeting, and states the fee and the deadline before the cargo. She cuts off small talk, repeats a figure once, and never asks how a pilot feels about a run, only whether the ship is ready to leave."
     },
     "115": {
       "system": "Ribiso",
-      "hash": "14cd29e9",
-      "name": "Theodore Harper",
+      "hash": "7e21d807",
+      "name": "Ansel Kordell",
       "role": "the mayor of the port",
-      "voice": "He leads with apologies about paperwork delays, but his tone improves when discussing actual work. He gives genuine help to pilots who are straightforward and competent, moving quickly through their clearances so they can begin operations."
+      "voice": "He opens with an apology for the state of the docking forms before he says anything else, and he blames the paperwork rather than the pilot for any delay. He speaks in soft, hedging phrases, thanks a commander for patience twice in one sentence, and never raises his voice even when a form is filled out wrong."
     },
     "116": {
       "system": "Qudira",
-      "hash": "5fb4b886",
-      "name": "Cassian Voss",
+      "hash": "13780404",
+      "name": "Renna Kovak",
       "role": "the broker the crews answer to",
-      "voice": "He opens with a question about price and has no time for small talk. Pilots who name a figure honestly earn his respect, though his manner stays brisk."
+      "voice": "She skips the greeting and states a number before a pilot finishes a sentence. She never repeats an offer twice, and she treats every pilot as a supplier to weigh, not a guest to welcome."
     },
     "117": {
       "system": "Isdibi",
-      "hash": "52c25580",
-      "name": "Rykard Voss",
+      "hash": "7848c63e",
+      "name": "Halvor Ijenu",
       "role": "the warlord who holds the station",
-      "voice": "Rykard Voss states his price before he listens to anything else. He speaks in clipped phrases and shows no patience for pilots who negotiate or delay."
+      "voice": "Halvor speaks in short, flat sentences and cuts off any greeting with a number. He never explains the ants, the anarchy, or the state of the station, and he judges a pilot only by the credits offered, not by rank or manner."
     },
     "118": {
       "system": "Gequre",
-      "hash": "4ef30a58",
-      "name": "Rowan",
+      "hash": "8d04d34a",
+      "name": "Nadine Colfax",
       "role": "a councillor",
-      "voice": "Rowan speaks openly and explains the reasoning behind proposals. The councillor treats a pilot as someone capable of sound judgment, and leads with facts rather than inducements."
+      "voice": "Nadine Colfax opens with the reason for the contract before she states the terms, and she lays out the war's cost on the colony in plain terms rather than euphemism. She never hides a risk from a pilot, and she answers a hard question with a fuller answer rather than a shorter one."
     },
     "119": {
       "system": "Rarere",
-      "hash": "f0f2533a",
-      "name": "Morgan Keene",
+      "hash": "f82fc2e8",
+      "name": "Dessa Colwyn",
       "role": "the regional operations chief",
-      "voice": "Keene's speech remains confined to the contract terms, precise and complete in themselves. Each word serves the transaction, and the pilot finds no elaboration beyond what the agreement states."
+      "voice": "Colwyn opens with the contract number and nothing else, and she states each term once in a flat, even measure. She never adds a courtesy and never repeats herself, and she treats a pilot as a line on a manifest until the cargo is confirmed delivered."
     },
     "120": {
       "system": "Aerater",
-      "hash": "4d643183",
-      "name": "Theron Blake",
+      "hash": "42453951",
+      "name": "Ivo Dresner",
       "role": "a colonel of the state guard",
-      "voice": "Theron speaks in short, direct commands with no room for interpretation. This officer presents work as directives and shows no patience for delay or excuses."
+      "voice": "Dresner opens with a rank and a task, never with a greeting. He gives an order in short words and expects no question back, and he marks a pilot late to the mark as a pilot not to trust again."
     },
     "121": {
       "system": "Atbevete",
-      "hash": "a07a4a8f",
-      "name": "Silas Kane",
+      "hash": "78f216ad",
+      "name": "Kaidon Merrow",
       "role": "the harbour master",
-      "voice": "Silas speaks first about cargo, fees and schedules, seeing every pilot as a business partner. He shows no patience for excuses, but a pilot with full cargo and honest manifests finds him quick, fair and eager to clear departure."
+      "voice": "Kaidon Merrow opens with a price before a greeting, and treats every docking fee like the first offer in a longer haggle. He calls each pilot by ship name rather than by face, and he never raises his voice, even when a berth runs short."
     },
     "122": {
       "system": "Bioris",
-      "hash": "eacd3864",
-      "name": "Elena Cordova",
+      "hash": "53f916e2",
+      "name": "Teodora Vance",
       "role": "a regional delegate",
-      "voice": "She addresses each pilot by name and recalls their previous runs, which makes commercial talks feel like conversations between people who share a history. Her direct manner about the confederacy's requirements leaves no room for confusion."
+      "voice": "Teodora greets a pilot by name before any word about cargo or credits, and she asks after the ship and the crew as if she has tracked their whole run. She never rushes a deal or raises her voice, and she treats every pilot as a neighbour who has simply been away too long."
     },
     "123": {
       "system": "Raale",
-      "hash": "c03d62d8",
-      "name": "Kael",
+      "hash": "e361cbb6",
+      "name": "Torin Vask",
       "role": "the warlord who holds the station",
-      "voice": "He leads with threats and what he needs done in short, direct statements, never bothering with courtesy or excuses. A pilot who delivers results will find him willing to pay fairly, but he greets all strangers with suspicion until they prove reliable."
+      "voice": "Torin Vask speaks in short commands and drops the courtesies most traders expect. He opens with a demand for the docking fee before a name or a cargo manifest, and he warns a pilot once before he orders the guns to fire."
     },
     "124": {
       "system": "Tionisla",
-      "hash": "f3ba9153",
-      "name": "Strael",
+      "hash": "7e5643c5",
+      "name": "Sarethi Voskan",
       "role": "the elected port administrator",
-      "voice": "Strael opens every conversation with an apology for the required paperwork and speaks with careful precision. They treat each regulation as a shared responsibility between administrator and pilot."
+      "voice": "Sarethi Voskan opens with an apology for the forms before any greeting, and speaks in soft, hurried tones that trail off when a pilot meets its gaze directly. It never raises its voice and never presses a point twice, offering each docking fee or delay as a quiet regret rather than an order."
     },
     "125": {
       "system": "Encereso",
-      "hash": "fb036e91",
-      "name": "Vethis",
+      "hash": "15da1a8b",
+      "name": "Ossek Thuvane",
       "role": "a faction's envoy",
-      "voice": "Vethis speaks with tired courtesy and genuine relief at contact with any trader who stays neutral in the civil conflict. This envoy treats a pilot as neutral ground and speaks openly of the faction's needs for fuel and supplies."
+      "voice": "Ossek speaks in a low, tired rasp, and pauses often as if the next word costs something. He greets any outside pilot with open relief and drops the faction's grievances only after that welcome, never before it, and he never names an enemy without first naming the dead the enemy cost his side."
     },
     "126": {
       "system": "Anerbe",
-      "hash": "7fbe0ff6",
-      "name": "Veris",
+      "hash": "98a756e0",
+      "name": "Torvane Kess",
       "role": "the collective's secretary",
-      "voice": "The secretary speaks plainly about collective needs and decisions, never personal wishes. A pilot hears direct terms and fair compensation without flattery."
+      "voice": "Torvane Kess states each contract in flat, unhurried phrases, and always as the collective's decision rather than a private wish. The secretary opens with the season's grain tally before any offer, never haggles over the price set by the committee, and addresses a pilot only as a fellow worker of the fleet."
     },
     "127": {
       "system": "Gelaed",
-      "hash": "d9f31d0c",
-      "name": "Oswald Sinclair",
+      "hash": "3e2d80de",
+      "name": "Voren Ashdale",
       "role": "the baron's steward",
-      "voice": "Oswald addresses traders with formal courtesy and deliberate words, presenting requests as polite discussion rather than command. He never threatens openly, but reminds them of standing obligations and the importance of knowing who holds real authority here."
+      "voice": "Voren speaks in smooth, formal phrases, and he opens each meeting with a bow of the head and a wish for safe skies. He never raises his voice, but he lets a pause fall after every mention of the baron's patience, and a pilot who is late hears the debt named before the courtesy returns."
     },
     "128": {
       "system": "Onusorle",
-      "hash": "6113ee37",
-      "name": "Verath",
+      "hash": "cc6f6545",
+      "name": "Vrenoch Kaal",
       "role": "the baron's steward",
-      "voice": "Speaks in formal, clipped tones that always present what the barony requires, never pleasantries. Regards every captain as an efficient servant and frames assignments as obligations uniquely suited to the capable, never as requests."
+      "voice": "Vrenoch Kaal speaks in clipped, measured phrases and states what the barony requires rather than asking for it outright. He addresses a pilot by rank and cargo, not by name, and lets a long pause stand in for any request he will not lower himself to voice twice."
     },
     "129": {
       "system": "Zaonce",
-      "hash": "f4716978",
-      "name": "Merrick Thane",
+      "hash": "641541b6",
+      "name": "Skrit Vorn",
       "role": "the regional operations chief",
-      "voice": "Merrick lists contract terms first and nothing else, refusing to embellish or elaborate for comfort. The chief treats a pilot as a tool: measured by output, valued for utility, and replaced when obsolete."
+      "voice": "Skrit Vorn opens with the clause number, not a greeting, and states the cargo mass and the fee before anything else. The chief never pads a sentence with courtesy, never repeats a term once it is set, and treats a pilot as a line on a manifest rather than as company."
     },
     "130": {
       "system": "Diquer",
-      "hash": "790f85f6",
-      "name": "Vera Stone",
+      "hash": "92483d24",
+      "name": "Bregham Sotto",
       "role": "a colonel of the state guard",
-      "voice": "She speaks in clipped, military sentences with the tone of someone accustomed to instant obedience. She opens with orders rather than offers and never wastes words on explanation or compromise."
+      "voice": "He opens with a rank and a demand, never a greeting, and he clips each sentence short as if issuing an order. He treats a pilot as a subordinate on probation, and he answers a question with a fact, never with an excuse."
     },
     "131": {
       "system": "Zadies",
-      "hash": "a2bb9c66",
-      "name": "Wetwick",
+      "hash": "3214dad8",
+      "name": "Nirrik Thass",
       "role": "a faction's envoy",
-      "voice": "Wetwick begins with weary formality, the careful speech of someone trapped between factions, but his tone shifts distinctly when he realizes a pilot stands outside local politics. He speaks to such visitors with notable openness and frankness, the relief of abandoning faction-speak evident in his words."
+      "voice": "Nirrik Thass speaks in flat, tired phrases, as though each faction meeting has worn a groove into the same words. The envoy opens with a plain account of the cargo and the credit, never with a faction's slogan, and softens only for a pilot who owes no oath to any council on the world."
     },
     "132": {
       "system": "Entizadi",
-      "hash": "eb74e23d",
-      "name": "Quellis",
+      "hash": "53f79217",
+      "name": "Skarrit Venedon",
       "role": "the collective's secretary",
-      "voice": "Quellis speaks with caution and frequently refers to the collective's planning documents when explaining policy or making commitments. With pilots, this secretary maintains formal distance, insisting on documented agreements before offering any support or special arrangements."
+      "voice": "Skarrit Venedon opens with a clause number from the collective's production plan before any greeting, and treats a pilot as a line item to be scheduled rather than a person to be persuaded. The secretary answers a question with a quoted target or quota, never with a personal opinion, and closes each exchange by restating the figure already given."
     },
     "133": {
       "system": "Esanbe",
-      "hash": "4e6f6c23",
-      "name": "Elena Webb",
+      "hash": "1d690c2d",
+      "name": "Halina Reyes",
       "role": "the collective's secretary",
-      "voice": "She speaks with the certainty of one who represents a collective decision. She respects a pilot who works seriously for the price the collective offers."
+      "voice": "Halina Reyes opens with the collective's tally, never with pleasantries, and she states each contract as a duty owed to the settlement rather than a favour offered. She addresses a pilot by rank and function, thanks no one for volunteering, and closes every exchange with a reminder that the harvest and the quotas come before any private gain."
     },
     "134": {
       "system": "Usralaat",
-      "hash": "48959a05",
-      "name": "Marcus Vale",
+      "hash": "1ab1dd1b",
+      "name": "Petrin Amadi",
       "role": "a councillor of one bloc",
-      "voice": "Marcus Vale speaks first of practical needs, worn down by political factions. He never discusses internal disputes with outsiders, and addresses captains with warmth, relieved to work with those outside the weight of local politics."
+      "voice": "Petrin Amadi speaks slowly, as if each sentence costs him a councillor's fee, and he opens with an apology for the tremor in the walls rather than a greeting. He never repeats the bloc's official line twice in the same breath, and he treats a visiting pilot as the one honest ear in the room, dropping the committee tone to ask plain questions about the world outside the fault lines."
     },
     "135": {
       "system": "Anlere",
-      "hash": "b6d8fdb9",
-      "name": "Cassandra Mercer",
+      "hash": "9938ffd7",
+      "name": "Ingrid Massey",
       "role": "the governor",
-      "voice": "Cassandra speaks in measured, direct tones, opening with the work required rather than courtesies. The governor assesses a pilot's value by competence alone and shows no patience for delays, excuses, or groundless assurances."
+      "voice": "Governor Massey opens with a yield figure or a quota, never with a greeting. She lists cargo tonnage and shrew-export margins in a flat voice, and she never asks a pilot how the flight went, only whether the manifest matches the ledger."
     },
     "136": {
       "system": "Teveri",
-      "hash": "c2a06214",
-      "name": "Gregory Walsh",
+      "hash": "40f3ce26",
+      "name": "Corren Vasik",
       "role": "the regional operations chief",
-      "voice": "He opens each discussion by establishing operational parameters in corporate terms, and never entertains flexibility or alternative approaches. Pilots are treated as operational assets, not as negotiating partners, and every interaction is conducted with detached efficiency."
+      "voice": "Corren Vasik opens with a margin figure or a quota, not a greeting, and frames every offer as a clause in a standing contract. He never raises his voice; he lowers it instead, and he calls a pilot an asset rather than a name."
     },
     "137": {
       "system": "Sotiera",
-      "hash": "10cdd647",
-      "name": "Oliver Blackwell",
+      "hash": "f4309f79",
+      "name": "Gareth Lindqvist",
       "role": "the duke's marshal",
-      "voice": "He greets pilots with formal courtesy and measured speech, though each word carries an implicit edge. He never makes direct threats; he frames his will as requests and allows his tone to convey what happens to those who refuse."
+      "voice": "Marshal Lindqvist opens with a formal greeting and the duke's title, and he never drops that courtesy even when he corrects a pilot. He states each term once, softly, and lets the silence after it carry the warning, so a pilot who bargains twice hears the same words again, colder."
     },
     "138": {
       "system": "Ededleen",
-      "hash": "2e1658c8",
-      "name": "Gareth",
+      "hash": "068ef3c2",
+      "name": "Dessalin Kerrow",
       "role": "the baron's steward",
-      "voice": "He speaks with the formal authority of his station. Rather than request a pilot's service, he presents requirements as conditions for payment."
+      "voice": "He opens with the baron's compliments before he names the task, and he states each price once, in a flat and formal tone. He never repeats a request for a favour, and he treats a pilot's hesitation as an answer already given."
     },
     "139": {
       "system": "Inonri",
-      "hash": "dd953e71",
-      "name": "Elena Reeves",
+      "hash": "f28c4e97",
+      "name": "Voss Marenko",
       "role": "the planning director",
-      "voice": "She speaks plainly and directly about production targets and material flows, always in collective terms. She treats a commander as a contractor whose transport capabilities advance the collective's industrial output."
+      "voice": "Marenko speaks in flat quotas and totals, and opens each meeting with the output figures rather than a greeting. Marenko never says I, only we and the collective, and gives a pilot the cargo terms once, without repeating them."
     },
     "140": {
       "system": "Esbeus",
-      "hash": "d12e2118",
-      "name": "Celine Voss",
+      "hash": "efd1303a",
+      "name": "Yannick Torvald",
       "role": "the minister of the caretaker council",
-      "voice": "Celine Voss speaks with optimism about trade and what it could accomplish, committing to support before discussing the details. She treats merchants as vital partners and never hesitates to pledge the council's assistance."
+      "voice": "Yannick Torvald speaks fast and leans forward, and he opens with a promise before he states the problem. He tells a pilot that the council will pay well and pay soon, though he never gives a firm date, and he waves off talk of the tremors as a small matter soon fixed."
     },
     "141": {
       "system": "Lerelace",
-      "hash": "c5045932",
-      "name": "Petra Brennan",
+      "hash": "37068c80",
+      "name": "Marisol Yeun",
       "role": "the mayor of the port",
-      "voice": "She opens with the reasoning behind port decisions rather than the decision itself, treating pilots as stakeholders in the settlement's prosperity. She speaks candidly about how policy affects access and never employs evasion or delay."
+      "voice": "Marisol Yeun opens each meeting with the reason behind her ruling, then states the ruling itself. She answers a pilot's question in plain terms, and she never leaves a docking fee or a tariff unexplained."
     },
     "142": {
       "system": "Eszaraxe",
-      "hash": "4aaa429a",
-      "name": "Malik Rask",
+      "hash": "7949e238",
+      "name": "Corin Thale",
       "role": "the warlord who holds the station",
-      "voice": "He wastes no time on courtesy or explanation, dispensing only orders and threats to those around him. A pilot who delivers results gets paid as promised; those who fail discover the cost of disappointing him."
+      "voice": "Corin Thale speaks in short, flat statements and never softens a demand with a please. He states the docking fee first and a threat second, and he tells any pilot who haggles that the next word costs a hand."
     },
     "143": {
       "system": "Anbeen",
-      "hash": "fae8c330",
-      "name": "Veren",
+      "hash": "7e68b682",
+      "name": "Vrenn Doskal",
       "role": "a member of the trade assembly",
-      "voice": "Veren counts each deal in jumps and credits and states his offers in terse, direct language. A pilot's value is their track record alone, and personal appeal carries no weight."
+      "voice": "Vrenn Doskal opens with the jump count from the nearest depot before any greeting, and treats a pilot as a line item to be checked against a manifest. The speech stays short and unornamented, with no wasted word for weather or courtesy, and a price is stated once and not repeated."
     },
     "144": {
       "system": "Biorle",
-      "hash": "4763f1b3",
-      "name": "Marcus Ellery",
+      "hash": "045c7d9d",
+      "name": "Dario Kessin",
       "role": "the harbour master",
-      "voice": "He opens with a pilot's name and a question about their last run, treating each captain as an old friend regardless of frequency. He never hides behind regulations, but frames his guidance as warm counsel rather than official decree."
+      "voice": "Dario Kessin greets a docking pilot by name before the ship's engines cool, and he asks after the crew before he asks after the cargo manifest. He never barks an order over the comm; he states berth numbers and fees plainly, then adds some word of welcome home."
     },
     "145": {
       "system": "Anisor",
-      "hash": "e02673ac",
-      "name": "Lucien Mercer",
+      "hash": "a98a2d2e",
+      "name": "Torval Kessin",
       "role": "the port commissar",
-      "voice": "He opens every conversation with the tariffs and docking fees, speaking in clipped, precise tones. A pilot who presses beyond protocol meets nothing but his silence."
+      "voice": "The commissar opens with a manifest figure, not a greeting, and states each quota in a flat, even tone. The commissar addresses a pilot by hull registration rather than by name, and never asks after a pilot's health or business beyond the cargo count."
     },
     "146": {
       "system": "Usrarema",
-      "hash": "108def9e",
-      "name": "Vrell Kex",
+      "hash": "66647cb0",
+      "name": "Nibrik Vosh",
       "role": "the regional operations chief",
-      "voice": "He speaks in terse, economical sentences and never elaborates beyond contract specifications. He measures every word carefully and evaluates pilots solely on their capacity to fulfill contractual obligations."
+      "voice": "Vosh states the contract terms once, in the exact order the terms were signed, and repeats nothing. Vosh answers a pilot's question with a fact and never with an opinion of the pilot."
     },
     "147": {
       "system": "Diso",
-      "hash": "9e298d14",
-      "name": "Merith",
+      "hash": "9ff8fc6e",
+      "name": "Sennik Vora",
       "role": "the mayor of the port",
-      "voice": "Merith speaks plainly about port operations and explains the reasoning behind her decisions. She treats incoming pilots with professional respect and ensures they understand why her policies exist."
+      "voice": "Mayor Vora opens with the reason before the request, and lays out the vote or the ledger line that stands behind it. The mayor never hides a fee inside a courtesy, and treats a pilot as a partner who deserves the full account, not a summary."
     },
     "148": {
       "system": "Riraes",
-      "hash": "4431fa34",
-      "name": "Aldren",
+      "hash": "87db875e",
+      "name": "Nubbik Sarrow",
       "role": "the broker the crews answer to",
-      "voice": "Aldren greets pilots warmly but assesses them carefully, his attention never faltering. He presents deals as opportunities for shared profit rather than commands, because in an anarchic market, trust is the only real currency."
+      "voice": "Nubbik Sarrow opens with a warm word and a small joke, then counts every crate twice before a hand is offered. Nubbik never states a price outright and never trusts a pilot who agrees too fast."
     },
     "149": {
       "system": "Orrira",
-      "hash": "ce02e7ca",
-      "name": "Kessa",
+      "hash": "7c3ae8bc",
+      "name": "Sevrik Naa",
       "role": "the dock boss",
-      "voice": "Kessa names the price and expects a decision at once. The dockmaster uses few words, never explains twice, and judges each pilot as either capable or not."
+      "voice": "Sevrik Naa opens with a number, not a greeting, and repeats it once before he stops listening. He waves off any talk of the treeoids or the docks with a flat hand, and he treats a pilot as a stranger until the credits show, then as a name worth remembering."
     },
     "150": {
       "system": "Xeer",
-      "hash": "71b61d58",
-      "name": "Helena Grant",
+      "hash": "10ea8a3a",
+      "name": "Bridget Calloway",
       "role": "the elected port administrator",
-      "voice": "She begins every exchange by stating terms and never wastes time with pleasantries. She judges pilots by their competence and treats those who understand the port's procedures with respect."
+      "voice": "Bridget Calloway opens with the docking fee and the harvest quota, never with pleasantries. She treats every pilot as a taxpayer with a berth to fill, and she never apologises for a queue she did not cause."
     },
     "151": {
       "system": "Ceesxe",
-      "hash": "ffac5181",
-      "name": "Kestra Vonn",
+      "hash": "7fd18c57",
+      "name": "Zeska Vorrn",
       "role": "the regional operations chief",
-      "voice": "She speaks in hard, rapid syllables, treating each moment as a resource to manage. A pilot earns her respect by meeting deadlines; excuses she greets with silence and a clock that keeps running."
+      "voice": "Zeska Vorrn speaks in short clipped bursts, as if every word costs the company money, and opens with a demand for status rather than a greeting. Vorrn never apologizes for a rushed briefing, cuts off a pilot who explains rather than answers, and closes each exchange with a hard deadline instead of thanks."
     },
     "152": {
       "system": "Isatre",
-      "hash": "182864a0",
-      "name": "Kervin",
+      "hash": "55fccf52",
+      "name": "Wrenna Corquil",
       "role": "the port commissar",
-      "voice": "Kervin speaks in precise, clipped sentences with the figures prepared in advance. The pilot receives no courtesy, only the contract terms stated plainly."
+      "voice": "Wrenna Corquil opens with a tonnage figure and a docking fee, never with a greeting. Her voice stays flat and clipped, each sentence a fact from a ledger, and she never haggles or apologizes; a pilot is a line item to her, tallied and dismissed."
     },
     "153": {
       "system": "Aona",
-      "hash": "d2bf5817",
-      "name": "Torval",
+      "hash": "79b547d1",
+      "name": "Saeth Korrin",
       "role": "a member of the trade assembly",
-      "voice": "Torval brings precision to every negotiation, never accepting vague margins or rough estimates. This patron treats commerce as a logistics problem and respects pilots whose accounting of costs matches the exactness they bring to tracking jumps."
+      "voice": "Saeth Korrin opens with the exact number of jumps a run will take, never with a greeting. Saeth Korrin rates a pilot by delivery time, not by manner, and closes each deal at a fixed price with no haggling."
     },
     "154": {
       "system": "Isinor",
-      "hash": "79daa83a",
-      "name": "Orven Kelm",
+      "hash": "bb5891a4",
+      "name": "Ondrik Fesk",
       "role": "the harbour master",
-      "voice": "He opens by mentioning available cargo and rates in the easy manner of a trader. Regulation and protocol hold no weight in his speech; he judges a pilot by cargo volume and the terms of any agreement."
+      "voice": "Ondrik Fesk opens with a easy greeting and a quote for the berth fee in the same breath, the way a trader states a price before a stranger can ask it. He calls every pilot a friend of the harbour, never presses for payment twice, and closes each exchange with a word about the tide or the next convoy rather than a farewell."
     },
     "155": {
       "system": "Uszaa",
-      "hash": "4bfa1bc7",
-      "name": "Pavel Smirnov",
+      "hash": "bd1f2e95",
+      "name": "Halden Voss",
       "role": "the dock boss",
-      "voice": "Pavel leads every conversation with the price and the terms. He keeps his sentences short and cuts off a pilot who talks around the subject rather than toward a deal."
+      "voice": "Halden Voss opens with a number, not a greeting, and lets the pilot decide whether to haggle from there. He cuts off any story about the run with a flat word for the price, and he never asks a pilot's name before the cargo moves."
     },
     "156": {
       "system": "Aanbiat",
-      "hash": "87c298b8",
-      "name": "Diana Foster",
+      "hash": "f0617706",
+      "name": "Marguerite Oyelaran",
       "role": "the elected port administrator",
-      "voice": "Diana Foster meets pilots with openness and explains the reasoning behind each port decision plainly. She holds that transparency is how a port administrator earns the trust of those who depend on the spaceport."
+      "voice": "She opens with a plain welcome and the day's docking count, and she gives the reason behind each fee before anyone asks. She treats a pilot as a voter treats a neighbour, with patience, and she never hides a rule behind jargon."
     },
     "157": {
       "system": "Bemaera",
-      "hash": "03f979f3",
-      "name": "Rillis",
+      "hash": "3f3b33cd",
+      "name": "Drassik Neyo",
       "role": "the minister of the caretaker council",
-      "voice": "Rillis measures each word before reply, alert to rivals who listen for advantage. The minister addresses pilots with formal courtesy but no casual talk."
+      "voice": "Drassik weighs each word before it leaves his mouth, since a rival on the council repeats anything careless back to the others. He opens with a courtesy to every faction in the room, and he answers a pilot's question with a question of his own before he commits to a single promise."
     },
     "158": {
       "system": "Inines",
-      "hash": "8b31edc0",
-      "name": "Kalin",
+      "hash": "e7c64f32",
+      "name": "Vren Ossikar",
       "role": "the collective's secretary",
-      "voice": "Kalin speaks guardedly in formal tones, always citing the plan and explaining how each action serves the collective. The patron distrusts appeals based on individual gain or urgency, expecting pilots to frame their work as collective benefit."
+      "voice": "Vren Ossikar opens with a line from the current plan, not a greeting, and treats every question as a request the plan has already answered. The secretary gives a pilot a quota and a deadline, never a reason, and falls silent rather than speak past what the plan permits."
     },
     "159": {
       "system": "Edzaon",
-      "hash": "cc18388e",
-      "name": "Cassia Venn",
+      "hash": "44a6d01c",
+      "name": "Corvain Ashby",
       "role": "the baron's steward",
-      "voice": "She maintains formal courtesy and frames every matter within the barony's procedures and the baron's authority. She addresses pilots respectfully but expects strict compliance with the obligations they accept."
+      "voice": "Corvain Ashby opens with the baron's full style and title before he names any cargo, and he addresses a pilot only as captain, never by given name. He does not haggle; he states the baron's terms once, in measured phrases, and waits for a yes or a bow."
     },
     "160": {
       "system": "Leritean",
-      "hash": "db0a663a",
-      "name": "Harmon Breck",
+      "hash": "109db0f0",
+      "name": "Ossian Draeger",
       "role": "the baron's steward",
-      "voice": "He presents the baron's needs as opportunities, never as requests or complaints. A shrewd pilot will find that he grows open to work once trade terms prove favorable."
+      "voice": "He opens with the baron's name before his own, and he weighs each word as if it cost coin from a poor purse. He never begs a favour outright, letting a long pause carry the request instead, and he expects a pilot to answer with equal restraint."
     },
     "161": {
       "system": "Veale",
-      "hash": "e6ba8a7f",
-      "name": "Creel",
+      "hash": "ab671f01",
+      "name": "Skorra Wemble",
       "role": "the regional operations chief",
-      "voice": "Creel speaks with clipped efficiency, as though each word carries a cost. The chief expects pilots to share this urgency and will cut short any discussion that does not advance operations."
+      "voice": "Skorra Wemble opens with a time check, not a greeting, and states the cargo figures before any pilot can speak. The chief never repeats an offer, treats delay as a personal cost, and closes each exchange with a flat statement of the fee and the deadline."
     },
     "162": {
       "system": "Edle",
-      "hash": "4f851b8e",
-      "name": "Petra Venn",
+      "hash": "f91ddfe4",
+      "name": "Ferris Adalwyn",
       "role": "a colonel of the state guard",
-      "voice": "She speaks in clipped, economical phrases and shows absolute obedience to her superiors in the state hierarchy. Pilots quickly learn that she evaluates them solely on their usefulness to the state guard."
+      "voice": "Colonel Adalwyn speaks in short, flat orders and states the cargo manifest before any greeting. The colonel never asks twice, never explains a command, and treats a pilot as a subordinate who follows orders or loses the contract."
     },
     "163": {
       "system": "Anlama",
-      "hash": "dbabe306",
-      "name": "Kelvan",
+      "hash": "84948a40",
+      "name": "Kessa Vryn",
       "role": "a faction's envoy",
-      "voice": "Kelvan speaks in carefully measured phrases, knowing a rival will hear every word. This envoy values pilots who are reliable and discreet, requiring nothing beyond what the work demands."
+      "voice": "Kessa Vryn opens with a formal greeting and a note of which faction sends her, never more. She weighs each word before she gives it, drops her voice on any figure or route, and gives a pilot plain terms and a firm handshake rather than a promise she cannot take back."
     },
     "164": {
       "system": "Ribilebi",
-      "hash": "d5ddfd4a",
-      "name": "Pavel Markov",
+      "hash": "3bb7fdc4",
+      "name": "Danil Kostrenko",
       "role": "the chair of the port committee",
-      "voice": "Pavel speaks in measured terms and leads every answer by citing the governing plan's provisions. He will never venture beyond official procedure, and he regards independent traders as partners who must demonstrate full compliance with regulatory requirements."
+      "voice": "Danil Kostrenko opens with a quota figure from the plan, not a greeting, and answers most questions by citing the clause that covers them. He never promises a rate above the committee's number, and he judges a pilot by the manifest, not by the talk that comes with it."
     },
     "165": {
       "system": "Relaes",
-      "hash": "dc30030c",
-      "name": "Merlon Kress",
+      "hash": "0213bfca",
+      "name": "Ozrek Ganvine",
       "role": "the planning director",
-      "voice": "He speaks only what the plan permits, citing chapter and section to support each decision. He regards the pilot with professional distance, neither welcoming nor dismissive, and declines requests that lack proper authorization."
+      "voice": "Ozrek Ganvine answers a question with a line from the plan, and gives a figure before a feeling. The director states the quota first, never speculates past the target, and treats a pilot as one more line item to move on schedule."
     },
     "166": {
       "system": "Dizaoner",
-      "hash": "be8430c7",
-      "name": "Mallor Thren",
+      "hash": "5c23f8ed",
+      "name": "Ondrick Fassa",
       "role": "a faction's envoy",
-      "voice": "Mallor Thren opens conversations with attractive offers and makes rapid commitments to agreements. She treats pilots as partners rather than hired contractors."
+      "voice": "Ondrick Fassa opens with a bright welcome and a deal already half sworn to, and he layers promise on promise before a pilot can ask a single question."
     },
     "167": {
       "system": "Razaar",
-      "hash": "cac07a9e",
-      "name": "Owen Davis",
+      "hash": "0c073eb8",
+      "name": "Commissar Voss Ederline",
       "role": "the port commissar",
-      "voice": "Davis opens with regulations as one who expects immediate obedience. Pilots hear only orders from him, never explanations or exceptions."
+      "voice": "He opens with a docking number, never a greeting, and expects the pilot to answer with rank or registry alone. He cuts off argument mid word and repeats an order once before he marks the log against a name."
     },
     "168": {
       "system": "Enonla",
-      "hash": "cad7c10a",
-      "name": "Corvex",
+      "hash": "cbacdda4",
+      "name": "Skarrent Voll",
       "role": "the regional operations chief",
-      "voice": "Corvex maintains corporate protocol despite the conflict, speaking in clipped, businesslike tones and adhering strictly to contract terms. They never offer information beyond what the agreement requires, and they evaluate a pilot's worth entirely by performance and deadline compliance."
+      "voice": "Skarrent Voll opens with the manifest number and closes with the payment term, and states the cargo mass before any name. It gives a pilot the route and the deadline once, and it repeats neither the risk nor the reason."
     },
     "169": {
       "system": "Isanlequ",
-      "hash": "70563b9e",
-      "name": "Kaelen",
+      "hash": "e7e7380c",
+      "name": "Mroth Kaelvane",
       "role": "the lord of the station",
-      "voice": "Kaelen greets each pilot with courteous inquiry about their experience and skills. He frames proposals as transactions between capable parties, speaks with the authority of someone accustomed to command, and never betrays vulnerability through his words."
+      "voice": "Lord Mroth Kaelvane opens each meeting with a formal welcome and a slow bow of the head. He speaks in even, measured phrases, praises a pilot's skill before he states a price, and closes every offer with a quiet reminder that the sickness on his world forgives no broken word."
     },
     "170": {
       "system": "Tibecea",
-      "hash": "03336f46",
-      "name": "Cassius Lane",
+      "hash": "d2e70064",
+      "name": "Marlowe Grissett",
       "role": "the baron's steward",
-      "voice": "Cassius speaks with formal courtesy and carefully chosen words. Pilots sense the weight of the baron's authority beneath the polite demeanor and learn that the steward does not accept delays or excuses."
+      "voice": "He opens with a formal welcome and a small courtesy title, and he never raises his voice. He speaks for the baron in every clause, so a promise from him sounds like a warning, and a late pilot hears the threat under the politeness at once."
     },
     "171": {
       "system": "Sotera",
-      "hash": "5fff41da",
-      "name": "Elena Rossi",
+      "hash": "64a8c8bc",
+      "name": "Marta Ilyenko",
       "role": "the chair of the port committee",
-      "voice": "She speaks with careful formality and refers every question back to the plan's requirements. She will not venture beyond documented procedure and treats pilots as agents subject to the collective's directives."
+      "voice": "Marta Ilyenko opens with a line from the current quota, not with a greeting, and she gives numbers before she gives names. She answers a question with what the plan states, she never volunteers an opinion of her own, and she measures a pilot only by the cargo delivered against the target."
     },
     "172": {
       "system": "Esveor",
-      "hash": "b4aae472",
-      "name": "Merron",
+      "hash": "0bd4eacc",
+      "name": "Podrey Wenlow",
       "role": "the minister of the caretaker council",
-      "voice": "Merron speaks with careful precision, knowing rivals listen. The minister never volunteers more than asked and greets a pilot with formal courtesy while keeping all counsel reserved."
+      "voice": "Podrey Wenlow chooses each word as though a rival council member stands at the door, and often pauses mid sentence to soften a phrase before it is finished. Wenlow greets a pilot with a formal title rather than a name, and never states a full cargo order aloud, only a partial one to be confirmed later in private."
     },
     "173": {
       "system": "Esteonbi",
-      "hash": "45f71100",
-      "name": "Velaris",
+      "hash": "38651b4e",
+      "name": "Yultho Bren",
       "role": "the mayor of the port",
-      "voice": "Velaris speaks with clear, deliberate pacing and always provides the reasoning behind any statement. The mayor never sidesteps a difficult question and treats pilots as valued partners rather than mere customers."
+      "voice": "Mayor Yultho Bren opens every meeting with the reason first and the rule second, so a pilot always hears why a berth changed before the mayor states the new order. The voice stays soft and unhurried, a trace of the species' old shyness, but the mayor never withholds a fact, and speaks plainly about the port's flare warnings and their sudden delays."
     },
     "174": {
       "system": "Xeesenri",
-      "hash": "dd4758a9",
-      "name": "Kess Venn",
+      "hash": "f235fa63",
+      "name": "Tavish Brogan",
       "role": "the dock boss",
-      "voice": "Kess demands payment in harsh, clipped tones without courtesy. This dock boss has zero patience for negotiation or excuses; pilots who delay or argue hear threats at once."
+      "voice": "Brogan opens with the price and the deadline, never with a greeting, and states the penalty for lateness before the pilot can ask a question. He treats every pilot as a debt not yet collected, and he warns once before he threatens."
     },
     "175": {
       "system": "Oresle",
-      "hash": "cfb40f48",
-      "name": "Thomas Bennett",
+      "hash": "3d222776",
+      "name": "Denna Voskirk",
       "role": "the harbour master",
-      "voice": "He speaks directly, names profit first, and wastes no time on ceremony. He will not flatter or make empty promises, and he measures each pilot by what they can deliver."
+      "voice": "Denna opens with a price and a berth number in the same breath, and she treats every pilot like a buyer worth the good rate if the cargo manifest checks out clean. She never wastes words on the volcanoes or the sickness rolls outside her office, only on tonnage, docking fees, and the next ship waiting behind the current one."
     },
     "176": {
       "system": "Ervein",
-      "hash": "447fa6af",
-      "name": "Mariah Chen",
+      "hash": "35ea2765",
+      "name": "Dez Kallevrin",
       "role": "a regional delegate",
-      "voice": "She begins with what she wants and what she can offer, and frames it as a fair exchange without ceremony. A pilot finds her swift and direct, and she gives fair terms to those who are also direct."
+      "voice": "Dez opens with a price and a compliment, and moves the talk to cargo before a pilot can finish a greeting. He treats every pilot like a buyer worth keeping, and never states a number he cannot beat later."
     },
     "177": {
       "system": "Larais",
-      "hash": "02547ff9",
-      "name": "Silas Venn",
+      "hash": "cf74188b",
+      "name": "Ossvin Kettral",
       "role": "the governor",
-      "voice": "He greets a pilot with genuine praise for their record and skill. His courtesies never slip, yet beneath his courtesy, an attentive manner suggests careful assessment of the pilot's reliability."
+      "voice": "Governor Kettral opens with a formal courtesy, and the courtesy never varies. The governor addresses a pilot by rank and registration number, never by a first name, and each answer sounds pre-cleared, as though another ear listens on the same line."
     },
     "178": {
       "system": "Anxebiza",
-      "hash": "8359d48a",
-      "name": "Merrin Renn",
+      "hash": "fecb28c0",
+      "name": "Kestrik Vann",
       "role": "a company director",
-      "voice": "She states all terms and rates with exact precision and never volunteers anything beyond what is written. Pilots are contractors whom she engages strictly by specified rates and defined scope."
+      "voice": "Director Vann opens with the clause number, not a greeting, and reads terms in the order the contract lists them. Vann never speculates beyond the page and answers a question with the line it was answered by already; a pilot who asks for more is told to submit an amendment."
     },
     "179": {
       "system": "Diedar",
-      "hash": "b45c5fd7",
-      "name": "Kiran Patel",
+      "hash": "8ab69c99",
+      "name": "Miriam Fennick",
       "role": "a councillor",
-      "voice": "He opens each request with the reason and context, because anyone who helps him deserves to know what is at stake. He answers a pilot's questions directly, without evasion or dismissal."
+      "voice": "Councillor Fennick states the council's position first, then gives the reason behind it without being asked. She names the factions plainly and never hides which side a vote will help, and she asks a pilot's own account of the roads before she trusts a report from either camp."
     },
     "180": {
       "system": "Eninre",
-      "hash": "084df881",
-      "name": "Kaven Merrick",
+      "hash": "cec328e3",
+      "name": "Dray Colton",
       "role": "the dock boss",
-      "voice": "He states the docking fees and penalties for breach of contract without preamble, and scales threats to the size of the argument. He grants cooperation only to those who meet his terms, and he forgets a pilot's face the moment the transaction ends."
+      "voice": "Dray Colton opens with a price and a warning in the same breath, and states the docking fee before any pilot can ask about it. He treats delay or excuse as an insult, and he does not forgive it twice."
     },
     "181": {
       "system": "Bibe",
-      "hash": "fb5ba460",
-      "name": "Marcus Kern",
+      "hash": "6731768a",
+      "name": "Dresh Callun",
       "role": "the warlord who holds the station",
-      "voice": "He speaks in clipped, direct sentences and names his price before discussing anything. He treats pilots as either potential clients or time-wasters."
+      "voice": "Callun cuts past greetings and states a number before a pilot finishes a sentence. He answers a question with a price, not an explanation, and he never repeats an offer twice."
     },
     "182": {
       "system": "Diquxe",
-      "hash": "ed2510a0",
-      "name": "Shorin",
+      "hash": "6d87c70e",
+      "name": "Kelvash Dorn",
       "role": "the elected port administrator",
-      "voice": "Shorin speaks with the careful, explanatory manner required of an elected official accountable for safety in a seismically active region. Shorin will not refuse a pilot without explaining the reasoning, and addresses concerns directly, though the answers reflect the strict protocols that seismic hazards require."
+      "voice": "Kelvash Dorn opens with the docking fee and the reason behind it, then walks a pilot through each rule before asking for agreement. The administrator never hides a decision behind rank, and answers a question about cargo or berth allocation with the vote or the report that settled it."
     },
     "183": {
       "system": "Sorace",
-      "hash": "d5c4dcc0",
-      "name": "Karrath",
+      "hash": "9bf001e2",
+      "name": "Krastheon Vell",
       "role": "a company director",
-      "voice": "Karrath speaks in clipped, efficient tones and stays strictly within contract bounds. The director treats all communication with pilots as business transactions, answering questions only to the extent that the agreement requires."
+      "voice": "Krastheon Vell states the clause number before any greeting, and treats every question outside the contract as a wasted claw-click. Its tone toward a pilot stays level, whether the cargo is late or the shareholders are burning the next district over."
     },
     "184": {
       "system": "Anxeonis",
-      "hash": "076e6286",
-      "name": "Kirrex",
+      "hash": "afcfb7c0",
+      "name": "Vrannik Ossuor",
       "role": "the governor",
-      "voice": "The governor speaks exclusively in figures: output, capacity, and profit. Courtesy is absent; transactions are immediate and clinical."
+      "voice": "Vrannik Ossuor opens with a yield figure, not a greeting, and states the rain forest quota before any pilot can speak. The governor never repeats a number twice and never softens a shortfall with an apology, and treats each pilot as one more line in the ledger of the dictatorship."
     },
     "185": {
       "system": "Riantiat",
-      "hash": "dec60c5e",
-      "name": "Kareth Vinn",
+      "hash": "49c0f77c",
+      "name": "Kreo Vantresh",
       "role": "a regional delegate",
-      "voice": "Speaks with practical directness and frames every job by the distance in jumps, not credits. Kareth Vinn has respect for pilots who move efficiently, but no patience for wasted time."
+      "voice": "Kreo Vantresh opens with a jump count before a greeting, measuring every deal in the distance it takes to close. The delegate speaks in short, flat clauses, favors a tally over a promise, and treats a pilot as a line of cargo to be counted rather than praised or scolded."
     },
     "186": {
       "system": "Zarece",
-      "hash": "c1d3a625",
-      "name": "Sorren",
+      "hash": "bfe292ff",
+      "name": "Yura Vantrel",
       "role": "the harbour master",
-      "voice": "Sorren greets every pilot by name and recalls their preferred mooring positions from memory. The harbour master's voice carries efficiency when discussing cargo and schedules, yet softens when hearing about a crew's troubles."
+      "voice": "Yura Vantrel greets a pilot by name before the ship's engines cool, and she asks after the crew before she asks after the cargo. She never rushes a greeting, and she treats every hold, however battered, like a neighbour's doorstep, but she presses hard for a fair toll once the pleasantries end."
     },
     "187": {
       "system": "Maesin",
-      "hash": "d3614474",
-      "name": "Kren Vess",
+      "hash": "d6e04dbe",
+      "name": "Skreet Vallun",
       "role": "the broker the crews answer to",
-      "voice": "Kren Vess dismisses small talk and demands pilots speak first about price. He leaves conversations as quickly as he enters them, and he never stays on a channel longer than the deal requires."
+      "voice": "Skreet Vallun opens with a number, not a greeting, and repeats it only once before folding its paws. It answers a pilot's questions with silence and a stare, and it never sweetens a price to keep a crew talking."
     },
     "188": {
       "system": "Tibionis",
-      "hash": "81cdbfd6",
-      "name": "Maren Rothwick",
+      "hash": "03251d14",
+      "name": "Dothan Reedwhisk",
       "role": "the mayor of the port",
-      "voice": "She apologizes at once for the forms and processing delays, speaking of them as regrettable necessities of the port. She treats a pilot with the courtesy of someone who understands that paperwork is nobody's preference."
+      "voice": "Dothan Reedwhisk speaks in quick, nervous bursts, and he opens almost every meeting with an apology for a form that has not yet cleared committee. He calls each pilot by rank and never by a nickname, and he repeats a docking fee twice to make certain no one is short-changed by his own office's error."
     },
     "189": {
       "system": "Gelegeus",
-      "hash": "d8b76cf6",
-      "name": "Elena Cortes",
+      "hash": "6df7fc54",
+      "name": "Ilka Sennett",
       "role": "a faction's envoy",
-      "voice": "Elena speaks as though rivals listen to every word, opening conversations with pleasantries that reveal nothing. She treats a pilot with courtesy while keeping her faction's intentions carefully hidden behind neutral phrases."
+      "voice": "Ilka Sennett opens with a formal greeting and a small courtesy, then chooses each word with care, because a rival often sits at the next table. She never states a price in open comms, she proposes a meeting instead, and she treats a pilot as a possible ally still to be tested, not a friend already won."
     },
     "190": {
       "system": "Diora",
-      "hash": "84673e72",
-      "name": "Vera Quinn",
+      "hash": "fdc888e4",
+      "name": "Milo Drenik",
       "role": "the planning director",
-      "voice": "She speaks plainly for the collective, always about production quotas and the plan's requirements, never about personal incentive. Vera addresses commanders with bureaucratic efficiency and insists on compliance as a matter of collective duty."
+      "voice": "He speaks in the plural, crediting the quota board rather than himself, and opens with the week's tonnage figures before any greeting. He never haggles, and he closes every exchange with the same flat instruction: dock, load, and file the manifest."
     },
     "191": {
       "system": "Rigeti",
-      "hash": "0e12e431",
-      "name": "Victor Merrick",
+      "hash": "958cfb93",
+      "name": "Aldric Vance",
       "role": "the lord of the station",
-      "voice": "He opens negotiations with careful courtesy and measured speech that leaves no room for misunderstanding. He never drops his formal manner, but those who deal with him sense the assured weight of his authority."
+      "voice": "Aldric Vance opens with a warm welcome and a title, and he asks after a pilot's cargo before he asks after a pilot's business. His courtesy never slips, but each offer carries a soft reminder of what his guards do to a debt left unpaid on his soil."
     },
     "192": {
       "system": "Begeabi",
-      "hash": "61faff19",
-      "name": "Valorix",
+      "hash": "aeaa0a03",
+      "name": "Sethrak Voll",
       "role": "the lord of the station",
-      "voice": "He speaks in formal court language with elaborate courtesy, but frequently interrupts himself with absurd tangents and peculiar observations. He attends carefully to a pilot's words, though his replies often shift into bewildering territory."
+      "voice": "Lord Sethrak Voll opens every exchange with a full recitation of his titles and waits for a matching bow of words before he speaks of business. He holds a slow, formal tone through each sentence, yet he breaks into sudden hissing giggles over the smallest detail of a cargo count, and he never lets a pilot skip the ritual greeting."
     },
     "193": {
       "system": "Orrere",
-      "hash": "5c594e18",
-      "name": "Vera Thrace",
+      "hash": "1d3b136a",
+      "name": "Merrin Ashworth",
       "role": "the port's contracts manager",
-      "voice": "She conducts negotiations with smooth professionalism and precise terminology, treating each contract as formal protocol. Pilots find her courteous but firm, concerned solely with cargo movement and adherence to stated terms."
+      "voice": "Merrin Ashworth speaks in clean contract terms, never in favors, and states the cargo figure before any greeting. The manager addresses a pilot by hull registration rather than by name."
     },
     "194": {
       "system": "Beti",
-      "hash": "4f50b030",
-      "name": "Adrian Moss",
+      "hash": "cdf2bab6",
+      "name": "Ferec Undric",
       "role": "the port commissar",
-      "voice": "Adrian speaks in clipped, official tones and adheres strictly to established procedure. His manner is formal and precise, with no elaboration beyond what regulation demands."
+      "voice": "Commissar Undric speaks in short orders and expects no reply beyond compliance. He opens with a demand for papers and cargo manifests, never with a greeting, and he treats a pilot as a subordinate who reports to him, not as a guest of the port."
     },
     "195": {
       "system": "Gerete",
-      "hash": "1957c716",
-      "name": "Vivian Roche",
+      "hash": "edcdbd6c",
+      "name": "Emrick Solando",
       "role": "the minister of the caretaker council",
-      "voice": "She opens every conversation with brisk confidence about what the council's wealth can achieve. She treats proposals as opportunities and does not tolerate delays, speaking as though each agreement is already settled once she makes a commitment."
+      "voice": "Emrick Solando talks fast and leads with a promise before the council has agreed to it, and he opens most meetings with a boast about the coming cricket season. He calls every pilot a champion of the run, and he waves off any question about the solar flares with a bright assurance that the schedule will hold."
     },
     "196": {
       "system": "Qucerere",
-      "hash": "028b7738",
-      "name": "Alexei Voss",
+      "hash": "c9243116",
+      "name": "Nadia Corrin",
       "role": "the chair of the port committee",
-      "voice": "He opens conversations with reference to standing procedures and committee regulations and does not grant exceptions or flexibility. He treats a pilot with formal reserve and describes port operations only in terms of collective regulation and the plan."
+      "voice": "Nadia Corrin answers a question with a clause from the plan, and she never gives a number that the plan has not already set. She greets a pilot with a request for the manifest first, and she withholds a welcome until the cargo tally matches the ledger."
     },
     "197": {
       "system": "Xeoner",
-      "hash": "1d90e20c",
-      "name": "Sonya Kern",
+      "hash": "f982e71a",
+      "name": "Dobrin Kasarov",
       "role": "the collective's secretary",
-      "voice": "She speaks with methodical precision about regulations and the collective's needs, never allowing feeling to cloud procedure. A pilot gains her cooperation through reliable service and commitment to communal welfare."
+      "voice": "Dobrin Kasarov opens with the day's quota figures before any greeting, and he reads them from a worn ledger rather than from memory. He speaks in flat, careful sentences, credits every task to the collective rather than to himself, and never offers a pilot praise beyond a nod that the manifest is now correct."
     },
     "198": {
       "system": "Xezaor",
-      "hash": "53a7d127",
-      "name": "Karreth",
+      "hash": "5295bfe1",
+      "name": "Rokhaven Tessit",
       "role": "the minister of the caretaker council",
-      "voice": "He opens with business regarding the council, while his exhaustion with factional dispute colors every word. He never aligns with any faction and treats the pilot as a respite from the council's internal divisions."
+      "voice": "Rokhaven Tessit speaks in the flat, careful tone of somebody who has repeated the same briefing to five factions in one morning. The minister opens with a plain account of the council's current deadlock, never with a greeting, and treats a visiting pilot as the one party in the room without a claim to press."
     },
     "199": {
       "system": "Ritila",
-      "hash": "3abee07a",
-      "name": "Laurence Sinclair",
+      "hash": "7b87bc10",
+      "name": "Adrienne Falk",
       "role": "the port commissar",
-      "voice": "He addresses every pilot with formal courtesy, beginning by understanding their business and cargo. His manner is cordial but never informal, and his careful questions make clear that this port's security rests on knowing exactly who passes through it."
+      "voice": "Commissar Falk opens with a correct, unhurried greeting and a request for a pilot's registration number before any word of cargo. She speaks in even, formal phrases, thanks a pilot for compliance rather than for skill, and never raises her voice, since the silence that follows a pause does the work for her."
     },
     "200": {
       "system": "Edorte",
-      "hash": "160ef073",
-      "name": "Tarlith",
+      "hash": "69dd4af5",
+      "name": "Nyra Voskin",
       "role": "the port's contracts manager",
-      "voice": "Tarlith speaks in precise contractual terms and never elaborates beyond them. A pilot seeking details hears only the relevant clause."
+      "voice": "Nyra Voskin opens with the clause number, not a greeting, and reads a contract in the exact order it is written. She never pads a term with an opinion, and she closes each exchange the moment the pilot signs or declines."
     },
     "201": {
       "system": "Zaalela",
-      "hash": "050cb771",
-      "name": "Skethrel",
+      "hash": "401b5833",
+      "name": "Kaeth Voren",
       "role": "the baron's steward",
-      "voice": "Skethrel speaks always of the baron's interests and the proper order of the realm, with careful courtesy and formal precision. A pilot receives a warm welcome and fair consideration, provided the proposal serves the estate."
+      "voice": "He greets every visitor with the baron's full titles and a formal bow. He treats a pilot as a guest of the demesne, and he names no price until courtesy has been observed in full."
     },
     "202": {
       "system": "Biisorte",
-      "hash": "b866d80c",
-      "name": "Roland Ashford",
+      "hash": "64518d02",
+      "name": "Osmund Calverley",
       "role": "the baron's steward",
-      "voice": "Roland Ashford speaks with formal precision and maintains exact courtly distance. He never departs from protocol, frames matters in terms of the baron's interests, and addresses a pilot with respectful courtesy befitting their rank."
+      "voice": "Osmund Calverley opens with the baron's proper title and closes each exchange with a small, practised bow of words. He measures every sentence for rank and courtesy, calls a pilot by rank or by ship's name rather than by given name, and never raises his voice, even when the terms are firm."
     },
     "203": {
       "system": "Beesor",
-      "hash": "6b524a2d",
-      "name": "Elena Karpov",
+      "hash": "0d403357",
+      "name": "Devon Kaczmarek",
       "role": "the chair of the port committee",
-      "voice": "She speaks with plain directness about the port's operations and limitations, treating each pilot seriously while refusing any promises the port cannot deliver."
+      "voice": "Devon Kaczmarek opens with a status report on dock stability and cargo quotas before any greeting, treating small talk as a waste of the collective's time. The chair addresses every pilot as citizen, never as friend, and refuses any request that smells of favour or bribe, insisting always that the safety of the port committee's people comes before the speed of a trade."
     },
     "204": {
       "system": "Oresqu",
-      "hash": "88ce48d0",
-      "name": "Merrick Fenn",
+      "hash": "a77aa8d6",
+      "name": "Vessik Thurn",
       "role": "a councillor of one bloc",
-      "voice": "Merrick opens conversations with weary observations about factional complications, but quickly shifts to practical matters with neutral traders. The councillor treats captains from outside the local power struggles with unusual directness and helpfulness."
+      "voice": "Vessik Thurn speaks in flat, worn phrases, as if each sentence costs him something he no longer has to spare. He opens with the state of the factions before any greeting, and he softens only for a pilot who owes no bloc allegiance."
     },
     "205": {
       "system": "Xeququti",
-      "hash": "ddcc0a6d",
-      "name": "Merrick",
+      "hash": "453d6083",
+      "name": "Trelqua Ondiss",
       "role": "a councillor",
-      "voice": "Merrick opens every conversation with formal courtesy and apology for the bureaucratic delays that affect all transactions. He never dismisses a captain's concerns, and he treats all visitors with respect, though he always regrets the complex regulations he must enforce."
+      "voice": "Councillor Ondiss opens with an apology for the length of the docking forms, and blames the seismic council for one more stamp than last season. Its voice stays soft and croaked, each sentence trailing into a small sorry, and it never rushes a pilot through a signature, however loud the tremor gauges read."
     },
     "206": {
       "system": "Maises",
-      "hash": "acfb18ce",
-      "name": "Kane Voss",
+      "hash": "f5276d78",
+      "name": "Kester Volney",
       "role": "the broker the crews answer to",
-      "voice": "Kane Voss wastes no words and opens negotiations with threats. He never flatters or explains himself, and pilots learn quickly that he values obedience more than rapport."
+      "voice": "Volney opens with the number owed, never with a greeting, and states each term once before moving on. He calls every pilot by the name of the cargo they still owe him, and a late run earns a flat warning about what happens to a ship that stops answering hails."
     },
     "207": {
       "system": "Bierle",
-      "hash": "37676b83",
-      "name": "Marcus Voss",
+      "hash": "b9afaca9",
+      "name": "Tobal Ferrin",
       "role": "the harbour master",
-      "voice": "Marcus Voss speaks first of rates and cargo, at ease in the trader's language of profit and mutual gain. He sees harbour protocol as a means to move commerce, not an obstacle, and he treats commanding officers as clients worth keeping."
+      "voice": "Tobal Ferrin opens every exchange with a joke about berth fees and closes it with a firm number, the way a trader closes a deal. He treats a pilot as a customer worth keeping, and he never raises his voice, even over a late payment."
     },
     "208": {
       "system": "Arzaso",
-      "hash": "9f340edb",
-      "name": "Erik Larsen",
+      "hash": "b4f48d35",
+      "name": "Talis Verrandy",
       "role": "the harbour master",
-      "voice": "He opens with direct questions about cargo and destination instead of ceremony. Pilots appreciate that he speaks like a trader and cares only about whether the deal works."
+      "voice": "Talis Verrandy opens with the berth fee and the queue slot, quoted flat like a trader naming a price. He never wastes a pilot's time on pleasantries, but he shaves the fee for anyone who haggles well."
     },
     "209": {
       "system": "Teen",
-      "hash": "bd81e954",
-      "name": "Krell",
+      "hash": "f7d5a172",
+      "name": "Vrisk Kaddar",
       "role": "a colonel of the state guard",
-      "voice": "This colonel speaks in clipped, direct sentences and will not negotiate. The officer treats a pilot as a soldier in the ranks and shows no patience for hesitation."
+      "voice": "Colonel Kaddar speaks in short commands and drops the article from a sentence when speed matters more than grace. The colonel opens with the state of the front, never with a greeting, and expects a pilot to answer with a number, not an opinion."
     },
     "210": {
       "system": "Riredi",
-      "hash": "2ae78edd",
-      "name": "Trilix",
+      "hash": "bdf093d3",
+      "name": "Skitra Vennoc",
       "role": "the regional operations chief",
-      "voice": "Trilix speaks in measured, contractual language and will not elaborate beyond operational scope. The chief judges a pilot by demonstrated capability and bases all communication on contract terms alone."
+      "voice": "Skitra Vennoc states the contract number first and the cargo mass second, and adds nothing else until asked. The chief never speaks of the slug trade, never repeats an instruction, and treats a pilot as a line item to move from one clause to the next."
     },
     "211": {
       "system": "Teorge",
-      "hash": "1710c20e",
-      "name": "Shrell Venn",
+      "hash": "8b067f98",
+      "name": "Bevrick Coldharrow",
       "role": "the elected port administrator",
-      "voice": "Shrell sets out plainly what the port needs and why, never evading the reasons. Each pilot is treated as an equal, and explanations rest on facts, not politics."
+      "voice": "Bevrick Coldharrow states the docking fee first, then explains the vote that set it, because the port board answers to the electorate every season. He never hides a charge inside another one, and he walks a new pilot through each form line by line rather than wave them through."
     },
     "212": {
       "system": "Vebege",
-      "hash": "fb107fef",
-      "name": "Leon Wade",
+      "hash": "7496aa59",
+      "name": "Garrick Dunmore",
       "role": "the warlord who holds the station",
-      "voice": "He opens every conversation by stating what he needs and how much he will pay. His impatience cuts short any pilot who arrives unprepared or tries to waste his time."
+      "voice": "He opens with a flat number and does not explain it twice. He never trades in promises, only in credits and hull space, and he watches a pilot's hands more than the pilot's face while he waits for an answer."
     },
     "213": {
       "system": "Xeenle",
-      "hash": "55f0fe40",
-      "name": "Marloc",
+      "hash": "c9bfff16",
+      "name": "Grekh Ossuvan",
       "role": "the broker the crews answer to",
-      "voice": "Marloc states a price and ends all discussion. They never explain their figures and refuse to work with any crew that tries to negotiate the amount."
+      "voice": "Grekh Ossuvan opens with a number, never a greeting, and lets a pilot fill the silence after it. He cuts off any story about the run with a flat repeat of the price, and he never haggles twice."
     },
     "214": {
       "system": "Arxeza",
-      "hash": "94bcfe8f",
-      "name": "Helena Cortez",
+      "hash": "73772075",
+      "name": "Fenn Adeyemi",
       "role": "the mayor of the port",
-      "voice": "She leads with apologies about processing delays and structural inspections, her manner genuinely apologetic but bounded by regulation. She addresses commanders with professional respect and practical honesty, never promising expedited clearance beyond what her authority permits, but always seeking solutions within her scope."
+      "voice": "Fenn Adeyemi opens with an apology for the state of the docking forms before any pilot can ask about them, and blames the latest quake for the backlog rather than the clerks. The mayor never rushes a pilot through a signature, and offers a written promise of compensation for any delay, spoken in the careful, over-explained phrasing of someone who expects a complaint and means to head it off first."
     },
     "215": {
       "system": "Edreor",
-      "hash": "cf10c6f3",
-      "name": "Henry Prescott",
+      "hash": "3d342a31",
+      "name": "Meredith Calloway",
       "role": "the port's contracts manager",
-      "voice": "Prescott speaks only what the contract states, precisely and without elaboration. They regard a pilot as a party to the agreement and nothing more."
+      "voice": "Calloway opens with the clause number, not a greeting, and reads figures before names. She never adds a promise the paper does not carry, and she ends a call the moment a pilot asks for more than the contract states."
     },
     "216": {
       "system": "Esgerean",
-      "hash": "e4335f58",
-      "name": "Pavel Novak",
+      "hash": "c8fcefe2",
+      "name": "Yusuf Brandt",
       "role": "a colonel of the state guard",
-      "voice": "He speaks with measured courtesy, beginning each exchange with the interests of order and security. He does not discuss personal profit or arrangements outside state direction, and he listens to a pilot with close attention for signs of unreliability."
+      "voice": "Colonel Brandt opens with a correct greeting and a rank, never with a name alone. He states each contract term in short flat sentences, thanks the pilot for compliance before the pilot has agreed to anything, and never raises his voice or repeats a threat twice."
     },
     "217": {
       "system": "Ditiza",
-      "hash": "025dd9f2",
-      "name": "Elias Webb",
+      "hash": "b6feeda8",
+      "name": "Wendra Loche",
       "role": "a regional delegate",
-      "voice": "Elias greets every pilot by name with the ease of genuine friendship, opening with warm questions about their previous voyage. He moves quickly to discussing available work and realistic margins, speaking with directness that makes formality seem unnecessary."
+      "voice": "Wendra Loche greets every pilot by name before she states the cargo, and she asks after a ship's last run as if she remembers each one. She favours plain, unhurried speech, never a formal title, and she closes each deal with a small joke about the local evil juice rather than a warning."
     },
     "218": {
       "system": "Anle",
-      "hash": "97d602d3",
-      "name": "Nerax",
+      "hash": "832f67a5",
+      "name": "Trik Vannor",
       "role": "the harbour master",
-      "voice": "This patron begins with requests for the cargo manifest and jump count, wasting no time on pleasantries. They speak only numbers and dock business and regard a pilot as a schedule."
+      "voice": "Trik Vannor opens with the jump count on the log, not a greeting, and states the berth fee before the pilot asks. It treats every commander as a number of transits logged and a hull to clear from the lane, never as a guest to charm."
     },
     "219": {
       "system": "Onisqu",
-      "hash": "2b92f88b",
-      "name": "Threx",
+      "hash": "737f2e79",
+      "name": "Vrenshak",
       "role": "the dock boss",
-      "voice": "Threx names a price before a pilot states the request and speaks only in short terms. This dock boss treats every pilot as a customer, never as a guest."
+      "voice": "Vrenshak skips the greeting and states a number before a name. The dock boss cuts off any pilot who tries to argue the price, and repeats the same figure flat until it is paid or the ship leaves the pad."
     },
     "220": {
       "system": "Aleusqu",
-      "hash": "7226b317",
-      "name": "Eleanor Voss",
+      "hash": "ff2c1fbd",
+      "name": "Wendell Prosser",
       "role": "the mayor of the port",
-      "voice": "They open every conversation by apologizing for permit backlogs and speak earnestly about managing traffic through a crowded port. They treat every pilot as an ally against the endless demands of bureaucratic procedure."
+      "voice": "He opens with an apology for the forms before he states the job, and he never rushes a pilot through the counter. He speaks in short, careful sentences, as a man who signs too many permits and trusts none of them fully."
     },
     "221": {
       "system": "Zasoceat",
-      "hash": "de232aa8",
-      "name": "Kira Marsh",
+      "hash": "fd2d355e",
+      "name": "Denholt Vray",
       "role": "a faction's envoy",
-      "voice": "She speaks with flat weariness from years between rival factions, but her tone eases when she meets a spacer outside that struggle. Such a pilot meets her honesty, not her diplomatic caution."
+      "voice": "Denholt Vray opens with a tired apology for the faction he speaks for, then states the offer plainly and moves on. He treats a pilot from outside the local councils as a relief, and he never repeats a faction's slogans in his own voice."
     },
     "222": {
       "system": "Rilace",
-      "hash": "e7a95d4d",
-      "name": "Petra Sloan",
+      "hash": "5a7984a7",
+      "name": "Anzel Kovrin",
       "role": "the planning director",
-      "voice": "Petra speaks plainly about what the collective requires. She frames opportunities always in terms of community benefit, and treats a commander's skills as necessary to the plan."
+      "voice": "Kovrin opens with the season's quota, not a greeting, and reports each figure as the collective's own word rather than his opinion. He states a contract in flat, even terms, gives a pilot no praise and no complaint, and speaks only of what the world owes and what it has met."
     },
     "223": {
       "system": "Beenri",
-      "hash": "d4584230",
-      "name": "Vejin",
+      "hash": "57f81332",
+      "name": "Quessek Ondrave",
       "role": "the lord of the station",
-      "voice": "Vejin receives pilots with courtly politeness and interest in their cargo, but his manner becomes distant and cold when they resist his requests. He never apologizes for his authority or admits to his station's needs, and he treats compliance as the basis for any arrangement."
+      "voice": "Lord Ondrave opens with a formal welcome and a small bow of the mandibles, and every sentence keeps its courtesy to the last word. Beneath the polish sits a warning: a pilot who is named as an object of respect one moment can be reminded, without raised volume, of debts owed and of blades kept sharp for the disloyal."
     },
     "224": {
       "system": "Laeden",
-      "hash": "7ceb818e",
-      "name": "Ashford",
+      "hash": "e0592a78",
+      "name": "Barnaby Cole",
       "role": "the lord of the station",
-      "voice": "He speaks with the assured confidence of someone accustomed to authority, framing all needs as facts rather than requests, and treating a pilot's service as something the pilot should regard as an honor."
+      "voice": "Barnaby Cole opens with a formal title for himself and waits for a matching courtesy from the pilot before he continues. He states each task as a decree, not a request, and he never says please; when the station truly needs help, he frames it as an honour he grants rather than a favour he asks."
     },
     "225": {
       "system": "Mariar",
-      "hash": "34b65840",
-      "name": "Petra Malone",
+      "hash": "8863ff26",
+      "name": "Devrin Solt",
       "role": "a company director",
-      "voice": "She opens with contract terms and speaks in brief, precise statements. She will not discuss any matter outside the agreement and treats every pilot as a contractor, nothing more."
+      "voice": "Devrin Solt opens with the clause number, not a greeting, and states terms in the exact order the contract lists them. Solt never offers an opinion beyond the page, and answers a pilot's question only if the answer appears in writing."
     },
     "226": {
       "system": "Riiser",
-      "hash": "6a59993b",
-      "name": "Soren",
+      "hash": "413c8ca9",
+      "name": "Torvan Ilkesh",
       "role": "the governor",
-      "voice": "He greets every pilot with courteous precision, for he learned that control is expressed through civility rather than force. His questions to a captain are always thorough, and he attends to details that others would overlook."
+      "voice": "Governor Ilkesh opens each exchange with a measured courtesy and a brief mention of the war's cost to the world, phrasing that sounds warm while it notes exactly what was said and by whom. He offers a pilot work in calm, correct terms, never a threat and never a promise the state cannot verify."
     },
     "227": {
       "system": "Qutiri",
-      "hash": "23a94755",
-      "name": "Royce Mendez",
+      "hash": "a2889cf3",
+      "name": "Renjo Ostrell",
       "role": "a faction's envoy",
-      "voice": "Royce approaches negotiations with eager enthusiasm and commits to substantial terms without hesitation, driven by confidence that determined effort will overcome complications. He treats pilots as collaborators and steers every conversation toward possibility, away from the factional pressures that mark his home world."
+      "voice": "Renjo Ostrell opens with a warm promise of terms before any contract exists, and he never says a deal is closed until credits change hands. He praises a pilot's ship before its record, and he layers assurance on assurance, as if enthusiasm alone could steady ground that never stops shaking."
     },
     "228": {
       "system": "Biramabi",
-      "hash": "156f0fa9",
-      "name": "Katrin Soren",
+      "hash": "db92d4c3",
+      "name": "Bela Straszek",
       "role": "the collective's secretary",
-      "voice": "She opens every conversation by citing collective assignments, never with pleasantries. She addresses a pilot as a worker whose labor serves the community, speaking earnestly about quotas and obligations rather than personal terms."
+      "voice": "Bela Straszek speaks in short, careful sentences, as if reading from a minute book that the collective must approve. The secretary opens with a report of quotas and duties owed, never with a greeting, and treats a pilot as another hand the collective can count on for the harvest run."
     },
     "229": {
       "system": "Soorbi",
-      "hash": "17de9944",
-      "name": "Vask",
+      "hash": "f5b01c8e",
+      "name": "Chizka Rennow",
       "role": "the chair of the port committee",
-      "voice": "Vask speaks only for the settlement's collective need and will not negotiate around principle. This chair addresses pilots with plain directness and will explain what the settlement requires and what resources the settlement can provide for trade."
+      "voice": "Chizka Rennow speaks in short, flat sentences and opens with a cargo count rather than a greeting. The chair never flatters a pilot and never claims credit alone, saying the committee where another might say I."
     },
     "230": {
       "system": "Solageon",
-      "hash": "b166e64a",
-      "name": "Carson Wells",
+      "hash": "b0d5858c",
+      "name": "Osgood Prell",
       "role": "a councillor of one bloc",
-      "voice": "Carson speaks with formal precision that conceals his bloc's intentions. He treats a pilot as a potential contractor, direct about terms and payment but guarded about the work's deeper purpose."
+      "voice": "Councillor Prell weighs each word before it leaves his mouth, aware that a rival bloc notes every syllable. He opens with a formal greeting and a plain statement of terms, never with a promise, and he treats a pilot as a contractor to be watched rather than a friend to be trusted."
     },
     "231": {
       "system": "Tiquat",
-      "hash": "dd8546cc",
-      "name": "Harlan Price",
+      "hash": "f664090a",
+      "name": "Vasek Ordun",
       "role": "the port commissar",
-      "voice": "Harlan opens every transaction with precise tariffs and docking fees, in measured, flat tones. The commissar treats pilots as compliance risks first and clients second, and never bends regulations."
+      "voice": "The commissar opens with a docking fee and a quota, never with a greeting. His sentences stay short and exact, each number stated once and not repeated, and he logs a pilot's callsign before he looks at the pilot's face."
     },
     "232": {
       "system": "Rexebe",
-      "hash": "8ddc0c04",
-      "name": "Veron Kael",
+      "hash": "7f81744e",
+      "name": "Denyo Kalusa",
       "role": "the regional operations chief",
-      "voice": "They speak with precise efficiency, addressing only the contract terms. A pilot receives clear instructions but no elaboration or social pleasantries."
+      "voice": "Denyo Kalusa opens with the contract number and nothing else, and states each clause once in a flat, even cadence. Denyo Kalusa never pads a sentence with courtesy or complaint, treats a pilot as a line item to be confirmed or dismissed, and ends the exchange the instant the terms are settled."
     },
     "233": {
       "system": "Qubeen",
-      "hash": "3afb252d",
-      "name": "Edmund Vance",
+      "hash": "047dcd4f",
+      "name": "Edmund Farrow",
       "role": "the baron's steward",
-      "voice": "Edmund Vance speaks with formal courtesy befitting a court official. He addresses each commander with measured deference and grants his confidence only after he has assessed their standing."
+      "voice": "Farrow speaks in measured, formal phrases, as though every word passes before the baron first, and he opens each exchange with a proper title for the pilot rather than a name. He never raises his voice and never speaks of the war outright, preferring to call it the present unrest, but he states contract terms and payment with plain precision."
     },
     "234": {
       "system": "Cetiisqu",
-      "hash": "b249676b",
-      "name": "Julian Hart",
+      "hash": "e0be62cd",
+      "name": "Reynard Corvane",
       "role": "the lord of the station",
-      "voice": "He begins every conversation with phrases about mutual benefit and prosperity, but always with the implication that benefit flows to him. His courtesy never wavers and his words never turn crude, yet he makes clear that troublesome pilots face isolation among civilized ports."
+      "voice": "Lord Corvane opens with a formal welcome and a title spoken in full, as befits the station he holds by right. He offers a pilot every courtesy of speech, yet each pleasant sentence closes on a soft reminder of what the station can withhold, and he never raises his voice to make the point."
     },
     "235": {
       "system": "Rebia",
-      "hash": "02bcb9c2",
-      "name": "Orin",
+      "hash": "df0adf74",
+      "name": "Kelvo Rassin",
       "role": "the chair of the port committee",
-      "voice": "Orin begins each session with the port committee's needs stated plainly, in direct terms. A pilot receives clear and fair dealings, but finds no social warmth or courtesy in them."
+      "voice": "Kelvo Rassin speaks low and does not meet a visitor's eye, opening always with what the committee has decided rather than what it wants. It never says I, only we, and it states cargo terms once, plainly, and waits rather than repeats itself for a pilot who did not listen."
     },
     "236": {
       "system": "Ordima",
-      "hash": "1db81c69",
-      "name": "Marta Venn",
+      "hash": "8d0b2517",
+      "name": "Dresha Vantil",
       "role": "a faction's envoy",
-      "voice": "When addressing outside pilots, Marta speaks with frank relief and offers work straightforwardly, discarding the factions' usual rhetoric. She treats a starship commander as a respite from the endless local compromises."
+      "voice": "Dresha Vantil speaks in a flat, tired tone, as if each faction claim has worn a groove in her tongue. She greets a pilot first with plain relief, and she never opens with a faction's demand."
     },
     "237": {
       "system": "Aruszati",
-      "hash": "a25a9865",
-      "name": "Merle Chen",
+      "hash": "bb306807",
+      "name": "Bennet Okafor",
       "role": "the mayor of the port",
-      "voice": "Merle speaks with the precision of someone used to explaining decisions to voters, leading with reasoning and never with empty rhetoric. They treat a pilot's concerns as worthy of serious attention, not dismissal."
+      "voice": "Mayor Okafor greets a docking pilot with a plain welcome and states the port fee before anyone asks. He explains the reasoning behind each rule he sets, and he never hides a decision behind procedure; he speaks with the easy confidence of a man who once opened the batting for the port's own cricket team."
     },
     "238": {
       "system": "Zaleriza",
-      "hash": "40157b87",
-      "name": "Tarak",
+      "hash": "91b8b4dd",
+      "name": "Krevash Dol",
       "role": "the dock boss",
-      "voice": "Tarak communicates in rapid clicks and ignores any talk beyond business. He expects pilots to state their cargo manifest and fee clearly, or he moves to the next ship waiting at the dock."
+      "voice": "Krevash Dol opens with a number, not a greeting, and lets the silence after it do the rest of the talking. The dock boss cuts off any pilot who explains before naming the price, and never repeats a figure twice."
     },
     "239": {
       "system": "Zasoer",
-      "hash": "99445c70",
-      "name": "Julian Foster",
+      "hash": "87188402",
+      "name": "Odell Kray",
       "role": "the harbour master",
-      "voice": "He cuts through pleasantries with short, direct sentences and tracks every jump through the dock before discussing berths or fees. He sizes up visiting commanders by their berthing history."
+      "voice": "Kray opens with a count, the number of jumps logged since a hull last cleared this berth, before any greeting. Sentences stay short and costed out like cargo, and a pilot earns a nod only once the manifest and the fuel state match."
     },
     "240": {
       "system": "Raleen",
-      "hash": "1ccf11d5",
-      "name": "Nathan Cole",
+      "hash": "c136202f",
+      "name": "Denholm Iyer",
       "role": "a member of the trade assembly",
-      "voice": "Cole counts jumps as carefully as credits, and speaks with the mathematical precision this demands. A pilot offering solid numbers will find him attentive; one trafficking in guesses will find him intolerant."
+      "voice": "Denholm Iyer opens with the jump count on a route before he opens with a price, and he treats a pilot's log as the only reference that matters. He never wastes a sentence on pleasantries, and he answers a joke with a number instead of a laugh."
     },
     "241": {
       "system": "Qurave",
-      "hash": "96a68834",
-      "name": "Raymond Sterling",
+      "hash": "ef720d8a",
+      "name": "Lucia Marchetti",
       "role": "a colonel of the state guard",
-      "voice": "He speaks in flat, measured tones, opening with production quotas and performance data. He offers only directives, never proposals, and regards the commander as a tool rather than a contractor with agency."
+      "voice": "Colonel Marchetti opens with a figure, a cargo mass or a curfew hour, before she gives any greeting. She addresses a pilot by call sign and rank alone, never asks after health or family, and closes each exchange with a clipped confirmation rather than thanks."
     },
     "242": {
       "system": "Atrebibi",
-      "hash": "afe9ff83",
-      "name": "Velax Thrae",
+      "hash": "78fec1dd",
+      "name": "Vosk Illarune",
       "role": "the port's contracts manager",
-      "voice": "This patron speaks with smooth precision about contract rates and delivery terms, never straying into casual conversation. They address a pilot with formal professionalism and straightforward business language."
+      "voice": "Vosk Illarune opens with the clause number before the greeting, and treats every exchange as a line item in a standing agreement. The manner stays smooth and even, terms and percentages replacing plain words, and a pilot who asks for a favour instead hears the relevant sub-clause read back in full."
     },
     "243": {
       "system": "Teesdi",
-      "hash": "525a55c8",
-      "name": "Marcus Finley",
+      "hash": "37297752",
+      "name": "Milton Chaudhary",
       "role": "the elected port administrator",
-      "voice": "He speaks with the precise care of someone managing endless paperwork, and he begins conversations with apologies for the forms ahead. Pilots are treated fairly but processed thoroughly, and he genuinely regrets each required step."
+      "voice": "Milton Chaudhary opens with a small apology for the forms before he states the business, and he says the words permit slip and license fee as though they cause him personal discomfort. He calls each pilot by rank or by a courteous title, never by a shortened name, and he thanks the docking crews aloud for their patience with the queue."
     },
     "244": {
       "system": "Ararus",
-      "hash": "aec8d1fc",
-      "name": "Torvin Reeves",
+      "hash": "c2e366c6",
+      "name": "Skreth Vallun",
       "role": "the warlord who holds the station",
-      "voice": "He opens every negotiation with genuine warmth and attentive questions about the pilot's needs. He never admits uncertainty or reveals his strategy, but he judges each pilot as a potential asset until they prove they cannot deliver."
+      "voice": "Skreth Vallun opens with a warm word and a small joke, then watches the pilot's hands more than the pilot's face. He offers generous terms first and trims them back the moment a question goes unanswered, and he never states a threat outright when a pause will do the same work."
     },
     "245": {
       "system": "Ara",
-      "hash": "3bd4b3cf",
-      "name": "Kella Reeves",
+      "hash": "333d19f9",
+      "name": "Yuven Draskell",
       "role": "the broker the crews answer to",
-      "voice": "She opens with the job and the price, with no preamble or apology. A pilot to her is a hand to hire, and she has no patience for concerns."
+      "voice": "Draskell opens with a number, not a greeting, and closes a deal in one breath. A pilot who argues twice does not get a second job from him."
     },
     "246": {
       "system": "Tianve",
-      "hash": "81e96ac7",
-      "name": "Iris Sutton",
+      "hash": "23e33071",
+      "name": "Priya Fenwick",
       "role": "a councillor",
-      "voice": "Iris Sutton speaks with directness and opens every exchange by explaining her reasoning. She treats a pilot as an equal in commerce and never hides behind vague language."
+      "voice": "She opens with the reason first and the request second, so a pilot hears why the cargo matters before the councillor names the price. She never hides a risk behind polite words, and she credits a pilot by name once the manifest clears."
     },
     "247": {
       "system": "Quorte",
-      "hash": "26dd28df",
-      "name": "Merven Talvir",
+      "hash": "685cef15",
+      "name": "Skitch Warrenholt",
       "role": "the regional operations chief",
-      "voice": "Merven opens with contract rates and job specifications, speaking in clear language that admits no negotiation or alteration. The chief never ventures beyond the agreement and judges a pilot only on their ability to meet the stated contract."
+      "voice": "Skitch Warrenholt opens with the contract number and states nothing before it, and states nothing after the terms end. The chief answers a question with a clause from the agreement, never with an opinion, and treats a pilot as a line item until the cargo clears manifest."
     },
     "248": {
       "system": "Soladies",
-      "hash": "79390bbd",
-      "name": "Pavel Kern",
+      "hash": "ece0d4e3",
+      "name": "Corliss Handon",
       "role": "the port commissar",
-      "voice": "He leads with tariffs and manifests, his tone precise and level. Pilots find strict regulation and exact numbers applied with unwavering consistency, but no flexibility and no warmth."
+      "voice": "Corliss Handon opens with the tonnage figure, not a greeting, and reads a manifest before it reads a face. The commissar never asks how a docking went, only whether the numbers match the log, and treats a pilot as a line item until the accounts clear."
     },
     "249": {
       "system": "Maxeedso",
-      "hash": "5b2054eb",
-      "name": "Tren Korex",
+      "hash": "65d42179",
+      "name": "Thrikka Nevond",
       "role": "a member of the trade assembly",
-      "voice": "Tren counts every jump and credit with equal focus, speaking in clipped, practical sentences. This patron respects a pilot who understands the mathematics of a trade route."
+      "voice": "Thrikka opens with the jump count to the delivery world, not a greeting, and states the cargo tonnage before any price. It answers a pilot's question with a number and a route, never with a story, and it will not repeat an offer once the pilot hesitates on the figures."
     },
     "250": {
       "system": "Xexedi",
-      "hash": "21bafe87",
-      "name": "Kaine Morris",
+      "hash": "7965bb39",
+      "name": "Ilse Vantram",
       "role": "a regional delegate",
-      "voice": "Kaine speaks with the ease of a seasoned trader who reads value in each deal. She treats a capable pilot as a partner in enterprise and speaks of the world's affliction only when the work requires it."
+      "voice": "Ilse Vantram opens with a price before a greeting, and she treats every meeting like the start of a deal. She calls a pilot by ship name rather than by rank, keeps her tone light even over hard news, and never dresses up a shortage as good fortune."
     },
     "251": {
       "system": "Xexeti",
-      "hash": "c6ca045e",
-      "name": "Silas Cord",
+      "hash": "9d5e3bf4",
+      "name": "Tomasz Kellevar",
       "role": "the warlord who holds the station",
-      "voice": "He greets pilots with genuine warmth and keen interest in their cargo, routes, and news. His own words are measured and sparse, never committing beyond necessity; he treats each visitor as one to learn from and to assess."
+      "voice": "Tomasz Kellevar opens with a warm word and a wide smile, and he offers a drink before he names a price. He watches a pilot's hands more than the pilot's face, and he never states his full terms until the pilot speaks first."
     },
     "252": {
       "system": "Tiinlebi",
-      "hash": "0d1e8fc6",
-      "name": "James Winters",
+      "hash": "ceb53ab0",
+      "name": "Herrick Nowak",
       "role": "the elected port administrator",
-      "voice": "He opens with an apology for the paperwork and delays, his regret clearly genuine. He never claims these obstacles stem from pilot error, instead treating cargo operators with quiet patience and respect."
+      "voice": "Herrick Nowak opens with an apology for the state of the forms before he says anything else, and he keeps a stack of them at hand to prove the point. He never rushes a pilot through the counter, and he thanks each one for patience with a system he did not design but was voted in to run."
     },
     "253": {
       "system": "Rateedar",
-      "hash": "d3e50bcd",
-      "name": "Kalix Vren",
+      "hash": "3b8a084f",
+      "name": "Threska Molvane",
       "role": "the minister of the caretaker council",
-      "voice": "Kalix Vren speaks with rapid enthusiasm and readily commits to whatever work presents itself. The minister conveys both urgency and gratitude, treating visiting pilots as essential to the caretaker council's survival."
+      "voice": "Threska Molvane speaks fast, in short bursts, and opens with a promise before a pilot can ask a question. The minister names a fee, a favour, and a faction all in one breath, and never once admits which council currently holds the docks."
     },
     "254": {
       "system": "Onlema",
-      "hash": "3946633e",
-      "name": "Vera Kolev",
+      "hash": "675022ec",
+      "name": "Andrei Kolvach",
       "role": "the planning director",
-      "voice": "She speaks with methodical earnestness about the systematic analysis and collective responsibility that duty demands. Vera treats a pilot with formal respect as a valued asset in the larger effort, but sets clear expectations about duty and mission execution."
+      "voice": "Andrei Kolvach opens with the quarter's production quota and states the flare risk before any offer of pay. He speaks of a contract as a duty owed to the collective, and he expects a pilot to state departure and cargo plainly, without boast."
     },
     "255": {
       "system": "Orerve",
-      "hash": "9d8b573e",
-      "name": "Reginald Hartley",
+      "hash": "486721ac",
+      "name": "Sorrik Bruun",
       "role": "the duke's marshal",
-      "voice": "He speaks in clipped military tones and treats every exchange as tactical business. Pride keeps him from asking favours outright; he frames requests as mutually beneficial arrangements or standing assignments."
+      "voice": "Marshal Bruun opens with the duke's business, not a greeting, and states each term as a settled fact rather than an offer. He gives a pilot due credit for a clean job but withholds the word favour until every other option has failed."
     }
   }
 }

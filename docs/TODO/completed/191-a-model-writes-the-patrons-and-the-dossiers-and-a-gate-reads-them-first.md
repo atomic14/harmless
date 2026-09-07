@@ -244,10 +244,20 @@ dossier, so a taste never reaches the generated index.
 - **A story line must say "day" before `{DAY}`.** The first Constrictor
   draft said "On 12".
 - **A name a model likes comes back on many worlds.** The first 101
-  patrons held four repeats. The generator asks a repeated name again
-  with the taken names listed, and the test pins that no two worlds share
-  one. Thirteen patrons are still a Marcus by given name. That is a
-  quality note, not a gate.
+  patrons held four repeats, and the full Haiku set had thirteen worlds
+  with a Marcus. Chris asked for better names from a better model. The
+  patrons were written again on Sonnet 5 under prompt version 2, which
+  tells the model that the first name to come to mind is the wrong one.
+  The generator asks a repeated full name or a repeated given name again
+  with the taken names listed, two rounds, and the test pins that no two
+  worlds share a full name. The result is 256 distinct given names.
+  Sonnet wrote each voice in a tenth of Haiku's output tokens, and a third
+  of its first drafts ran to three sentences, which the second pass fixed.
+- **The command line refuses for a stretch after about a hundred calls
+  in ten minutes**, on both models, and answers again a few minutes
+  later. A run keeps what it wrote, so the answer is to run it again with
+  `--jobs 2`. The runner closes stdin on each call now, which saves three
+  seconds a call and keeps the real stderr line.
 - **An `arrive` line that quotes `{PAY}` filled it with zero.** The
   acceptance slot carries the leg's fee now, and `legPay` in `text.ts` is
   the one home of that number.
@@ -331,6 +341,8 @@ dossier, so a taste never reaches the generated index.
 - `dossiers: ok — 9/9 skeletons have a dossier` and
   `patrons: galaxy-1.json ok — 256/256 worlds have a patron` are the two
   new gate lines.
-- The patrons cost 283 calls, about 1.2 million tokens in and 1.4 million
-  out, most of it Haiku's thinking. The dossiers cost 22 calls. Each
-  call took about a minute, four at a time.
+- The Haiku patrons cost 283 calls, about 1.2 million tokens in and 1.4
+  million out, most of it thinking, at about a minute a call. The Sonnet
+  patrons that ship cost 493 calls over four sittings, 3.5 million tokens
+  in and 0.24 million out, at about fifteen seconds a call. The dossiers
+  cost 22 Haiku calls.

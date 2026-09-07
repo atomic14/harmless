@@ -11,6 +11,7 @@
 //   --limit   write only the first N, for tasting a model cheaply.
 //   --out     write into DIR instead of src/missions/dossiers/, so a taste
 //             never reaches the generated index.
+//   --jobs N  how many `claude -p` processes run at once; the default is four.
 //   --via claude   run through `claude -p` on this machine's subscription,
 //             one process per skeleton, instead of the batch API. No key.
 //
@@ -147,7 +148,7 @@ function dossierFrom(raw: string, p: DossierPrompt): { entry?: Dossier; why?: st
 }
 
 async function generate(
-  ids: string[], dir: string, model: string, limit: number, existingBatch: string, via: string,
+  ids: string[], dir: string, model: string, limit: number, existingBatch: string, via: string, jobs: number,
 ): Promise<number> {
   const prompts = dossierPrompts(ids).slice(0, limit);
   const job: BatchJob<DossierPrompt, Dossier> = {
@@ -159,7 +160,7 @@ async function generate(
   };
   let run;
   if (via === 'claude') {
-    run = await runLocal(job);
+    run = await runLocal(job, jobs);
   } else {
     const client = await newClient('dossiers');
     if (!client) return 1;
@@ -194,5 +195,5 @@ process.exit(argv.includes('--check')
   ? check()
   : await generate(
     ids, flag('out') || DIR, flag('model') || DEFAULT_MODEL,
-    Number(flag('limit')) || Infinity, flag('batch'), flag('via'),
+    Number(flag('limit')) || Infinity, flag('batch'), flag('via'), Number(flag('jobs')) || 4,
   ));

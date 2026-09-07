@@ -27,7 +27,7 @@ import { BANNED, factsFor, faults, fnv1a, foreignSystemNames } from './system-pr
  * every committed patron. It is part of each record's hash, so a bump makes
  * `--check` fail for the whole galaxy at once.
  */
-export const PATRON_PROMPT_VERSION = 1;
+export const PATRON_PROMPT_VERSION = 2;
 
 /**
  * The rules, shared by every request.
@@ -43,7 +43,7 @@ You will be given the established facts about one world, and the role its patron
 
 Write two things:
 
-NAME — one to three words, letters only. A given name and a family name, or a single name. Never the name of a real public figure, a well-known fictional character, or a brand. Never a name that is also a common English word.
+NAME — one to three words, letters only. A given name and a family name, or a single name. Never the name of a real public figure, a well-known fictional character, or a brand. Never a name that is also a common English word. This patron stands beside hundreds of others, so the name that comes to mind first is the wrong one: a first run gave thirteen worlds a Marcus and ten an Elena. Reach past the stock names of English-language fiction. Let the world's species, its government and its trade shape the sound of the name, and let the given name be one a reader has not met on another world.
 
 VOICE — one or two sentences, in the third person, on how this patron speaks. It follows from the role, the government and the manner given. A writer will read it to put words in the patron's mouth, so make it usable: what the patron says first, what the patron never says, how the patron treats a pilot.
 

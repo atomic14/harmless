@@ -246,17 +246,21 @@ async function claudeOnce(model: string, params: LocalParams): Promise<any> {
   const schema = params.output_config?.format?.schema;
   if (schema) args.push('--json-schema', JSON.stringify(schema));
   args.push(params.messages?.[0]?.content ?? '');
-  let out: { stdout: string };
+  let out: { stdout: string | Buffer };
   try {
-    out = await exec('claude', args, { maxBuffer: 16 * 1024 * 1024 });
+    // stdin is closed, or the command line waits three seconds for it on
+    // every call, and then says so on stderr in place of the real reason.
+    out = await exec('claude', args, { maxBuffer: 16 * 1024 * 1024, encoding: 'utf8', stdio: ['ignore', 'pipe', 'pipe'] } as any);
   } catch (e: any) {
     // The message starts with the whole command, so the reason is stderr's.
-    const why = String(e?.stderr || e?.stdout || e?.message || e).trim().split('\n').pop() ?? '';
-    return { result: { type: 'errored', error: { type: why.slice(0, 160) } } };
+    const lines = String(e?.stderr || e?.stdout || e?.message || e).trim().split('\n')
+      .filter((l) => l.trim() && !l.startsWith('Warning:'));
+    const why = lines.pop() ?? 'no reason given';
+    return { result: { type: 'errored', error: { type: why.slice(0, 200) } } };
   }
   let d: any;
   try {
-    d = JSON.parse(out.stdout);
+    d = JSON.parse(String(out.stdout));
   } catch {
     return { result: { type: 'errored', error: { type: 'not JSON from claude -p' } } };
   }
