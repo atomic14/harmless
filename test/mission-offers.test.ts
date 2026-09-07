@@ -7,10 +7,12 @@
 // is the same shape test/mission-machine.test.ts builds, because no shipped
 // arc leaves a lead yet.
 
-import { canAccept, offersFor } from '../src/missions/offers.ts';
+import { canAccept, offersFor, sideJobsAt } from '../src/missions/offers.ts';
 import { stepMissions } from '../src/missions/machine.ts';
 import { boardRumour, leadJumps, leadLine, worldNews } from '../src/missions/hints.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
+import { SIDE_JOBS } from '../src/missions/skeletons/side.ts';
+import { SKELETONS } from '../src/missions/skeletons/index.ts';
 import type { CommanderFacts, MissionEffect, MissionState, Skeleton } from '../src/missions/model.ts';
 import { LEAD_NAG_DOCKS, LEAD_RUMOUR_JUMPS, MISSION_REOFFER_DAYS } from '../src/constants/missions.ts';
 import { routeEstimate } from '../src/galaxy/route.ts';
@@ -209,4 +211,26 @@ console.log('\ninvariant 16: a lead has a screen, and a hint is not an order');
   eq('the galactic chart draws one more closed amber shape for the lead',
     closes(wide) - closes(wideNoLead), 1);
   check('...and so does the short range chart', closes(local) >= 1);
+}
+
+console.log('\nevery world has a roster of side jobs from the seed');
+{
+  const boards = g1.map((s) => sideJobsAt(s, SKELETONS).map((j) => j.id));
+  check('every board offers two or three side jobs',
+    boards.every((b) => b.length >= 2 && b.length <= 3));
+  check('...and no board repeats a job', boards.every((b) => new Set(b).size === b.length));
+  const onSome = new Set(boards.flat());
+  eq('every side job is on some board', [...onSome].sort().join(), SIDE_JOBS.map((s) => s.id).sort().join());
+  check('both counts are in use', boards.some((b) => b.length === 2) && boards.some((b) => b.length === 3));
+  eq('the same world offers the same jobs on every visit',
+    sideJobsAt(g1[LAVE], SKELETONS).map((j) => j.id).join(), boards[LAVE].join());
+  // The offer reads the roster: a job off this board is shut here and open where it sits.
+  const st = emptyMissionState();
+  const off = SIDE_JOBS.find((s) => !boards[LAVE].includes(s.id))!;
+  const where = g1.findIndex((_, i) => boards[i].includes(off.id));
+  check(`${off.id} is shut at Lave and open at ${g1[where].name}`,
+    !canAccept(st, off.id, { commander: facts({ systemIndex: LAVE }), systems: g1 })
+    && canAccept(st, off.id, { commander: facts({ systemIndex: where }), systems: g1 }));
+  check('...and open everywhere with no galaxy to read a roster from',
+    canAccept(st, off.id, { commander: facts({ systemIndex: LAVE }) }));
 }

@@ -15,30 +15,39 @@ import type { StarSystem } from '../galaxy/galaxy.ts';
 import { routeEstimate } from '../galaxy/route.ts';
 import { ratingRung } from '../game/rating.ts';
 import type { CommanderFacts, Gate, MissionState, Skeleton } from './model.ts';
+import { seedPick } from './seed-pick.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 
 /** What an offer decision reads: the facts, and the skeletons in force. */
 export interface OfferContext {
   commander: CommanderFacts;
   skeletons?: readonly Skeleton[];
-  /** the galaxy, for a local patron's roster; absent means every job everywhere */
+  /** the galaxy, for a world's roster of side jobs; absent means every job everywhere */
   systems?: readonly StarSystem[];
 }
 
 /**
- * Whether a local patron's job is on this world's board.
+ * The side jobs on one world's board: two or three, from the seed. So the
+ * same world offers the same jobs on every visit (docs/TODO/192 M4).
  *
- * Every world offers about a third of the side jobs, picked off the world's
- * chart position and the job's id. So the same world offers the same jobs
- * on every visit. It is a placeholder for the patrons the pipeline plan
- * (item 191 of docs/TODO/190) derives from the 1984 seed.
+ * The count is the first pick. Each job is a pick from what is left. So a
+ * world's roster is a walk through the list rather than a hash per job.
+ * That is what keeps every job on some board. Eight jobs over 256 worlds
+ * at two or three each cannot miss one, and the test holds it.
  */
-function localJobHere(s: Skeleton, c: CommanderFacts, systems: readonly StarSystem[] | undefined): boolean {
-  if (s.patron.kind !== 'local' || !systems) return true;
-  const w = systems[c.systemIndex];
-  let hash = 0;
-  for (const ch of s.id) hash = (hash * 31 + ch.charCodeAt(0)) % 997;
-  return (w.x + w.y * 3 + hash) % 3 === 0;
+export function sideJobsAt(sys: StarSystem, jobs: readonly Skeleton[]): Skeleton[] {
+  const local = jobs.filter((s) => s.patron.kind === 'local');
+  const count = Math.min(local.length, 2 + seedPick(sys, 20, 2));
+  const left = [...local];
+  const out: Skeleton[] = [];
+  for (let k = 0; k < count; k += 1) out.push(...left.splice(seedPick(sys, 21 + k, left.length), 1));
+  return out;
+}
+
+/** Whether a local patron's job is on this world's board. Without the galaxy, every job is. */
+function localJobHere(s: Skeleton, c: CommanderFacts, ctx: OfferContext): boolean {
+  if (s.patron.kind !== 'local' || !ctx.systems) return true;
+  return sideJobsAt(ctx.systems[c.systemIndex], ctx.skeletons ?? SKELETONS).some((j) => j.id === s.id);
 }
 
 /**
@@ -116,7 +125,7 @@ export function canAccept(st: MissionState, id: string, ctx: OfferContext): bool
   if (excluded(st, id, from)) return false;
   if (leadHere(st, id, ctx.commander)) return true;
   if (!nearHome(s, ctx)) return false;
-  return localJobHere(s, ctx.commander, ctx.systems) && gateOpen(s.offer, st, ctx.commander);
+  return localJobHere(s, ctx.commander, ctx) && gateOpen(s.offer, st, ctx.commander);
 }
 
 /** Every skeleton on offer where the commander stands. */

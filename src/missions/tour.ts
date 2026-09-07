@@ -17,17 +17,7 @@
 import { TOUR_ARCS, TOUR_STEP_JUMPS } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { routeTable } from '../galaxy/route.ts';
-
-/** A seeded pick, from the previous start's 1984 seed words and the step. */
-function pick(prev: StarSystem, step: number, n: number): number {
-  let h = 0x811c9dc5;
-  for (const v of [...prev.seed, step]) {
-    h ^= v & 0xffff;
-    h = Math.imul(h, 0x01000193);
-    h ^= h >>> 15;
-  }
-  return (h >>> 0) % n;
-}
+import { seedPick } from './seed-pick.ts';
 
 /**
  * The start world of each arc, `TOUR_ARCS` long, the first being `first`.
@@ -52,7 +42,7 @@ export function arcStarts(systems: readonly StarSystem[], first: number, count =
       const inBand = systems.filter((s) => fromPrev[s.index] >= min && fromPrev[s.index] <= max);
       const outward = inBand.filter((s) => fromFirst[s.index] > fromFirst[prev]);
       const pool = outward.length ? outward : inBand;
-      if (pool.length) { chosen = pool[pick(systems[prev], step, pool.length)].index; break; }
+      if (pool.length) { chosen = pool[seedPick(systems[prev], step, pool.length)].index; break; }
       if (min === 1 && max >= systems.length) break;
     }
     starts.push(chosen);

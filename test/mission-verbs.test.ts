@@ -1,7 +1,7 @@
 // The five verbs docs/TODO/190 M4 adds, each driven through the machine on
 // its shipped side job, and the escort verdict through a real world step.
 //
-// A side job is a LOCAL job, on about a third of the boards. Each block
+// A side job is a LOCAL job, on the boards the seed gives it. Each block
 // finds a world whose board carries the job, so the test reads the same
 // offer rule the desk reads (`offers.ts`).
 

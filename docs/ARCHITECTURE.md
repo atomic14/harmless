@@ -216,7 +216,8 @@ Two quirks are deliberate:
   `test/mission-skeletons.test.ts` runs it over every skeleton. `repair.ts`
   reads a saved record for both loaders, and drops the old stage number.
   `offers.ts` decides what a station offers: the gate, the lead, the slot cap
-  and the re-offer delay. `hints.ts` decides how a far commander hears about
+  and the re-offer delay. It also draws each world's roster of two or three
+  side jobs from the seed, through `seed-pick.ts`. `hints.ts` decides how a far commander hears about
   a lead. It writes the MISSIONS row, the board rumour, the DATA ON line, and
   the one message a dock may say. All eight verbs have a module under
   `verbs/`. `skeletons/side.ts` is one local side job per verb, so every
