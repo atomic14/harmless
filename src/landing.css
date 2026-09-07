@@ -80,6 +80,8 @@ h2 {
 
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 22px; }
 @media (max-width: 680px) { .two { grid-template-columns: 1fr; } }
+.three { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 22px; }
+@media (max-width: 860px) { .three { grid-template-columns: 1fr; } }
 
 .card {
   display: block; text-decoration: none; color: var(--ink);

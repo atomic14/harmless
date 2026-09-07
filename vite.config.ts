@@ -3,6 +3,8 @@ import { resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 import { generateGalaxy } from './src/galaxy/galaxy.ts';
 import { entryFor, entryHtml } from './src/encyclopaedia/entry.ts';
+import { tourModel } from './src/missions/tour-page.ts';
+import { tourHtml } from './src/missions/tour-html.ts';
 
 /**
  * Write all 256 encyclopaedia entries into the document.
@@ -35,6 +37,25 @@ function encyclopaediaEntries(): Plugin {
           .map((sys) => entryHtml(entryFor(sys, 1)))
           .join('\n');
         return html.replace(MARKER, entries);
+      },
+    },
+  };
+}
+
+/**
+ * The mission tour, written into missions.html at its marker, the way the
+ * encyclopaedia's entries are (docs/TODO/193). The model is pure and runs
+ * under Node; the page ships as static markup with no game bundle.
+ */
+function missionTour(): Plugin {
+  const MARKER = '<!--TOUR-->';
+  return {
+    name: 'harmless:mission-tour',
+    transformIndexHtml: {
+      order: 'pre',
+      handler(html, ctx) {
+        if (!ctx.path.includes('missions') || !html.includes(MARKER)) return html;
+        return html.replace(MARKER, tourHtml(tourModel(generateGalaxy(1)), ''));
       },
     },
   };
@@ -102,7 +123,7 @@ function buildFooter(): Plugin {
 }
 
 export default defineConfig({
-  plugins: [encyclopaediaEntries(), buildFooter()],
+  plugins: [encyclopaediaEntries(), missionTour(), buildFooter()],
   build: {
     rollupOptions: {
       // `import.meta.dirname` rather than `__dirname`: this file is ESM, and
@@ -120,6 +141,7 @@ export default defineConfig({
         gallery: resolve(import.meta.dirname, 'gallery.html'),
         manual: resolve(import.meta.dirname, 'manual.html'),
         novella: resolve(import.meta.dirname, 'novella.html'),
+        missions: resolve(import.meta.dirname, 'missions.html'),
         // The galaxy as a reference work — public content rather than a dev
         // page, so it is in the sitemap and linked from the landing page.
         encyclopaedia: resolve(import.meta.dirname, 'encyclopaedia.html'),

@@ -7,7 +7,10 @@
 // table is emptied. The builder is proved shared by capturing the game's
 // LOG screen and finding the builder's own markup inside it.
 
+import { readFileSync } from 'node:fs';
 import { TOUR_STEP_JUMPS } from '../src/constants/missions.ts';
+import { escapeHtml } from '../src/engine/escape-html.ts';
+import config, { FOOTER_MARKER } from '../vite.config.ts';
 import { LogScreen } from '../src/game/screens/log.ts';
 import { newCommander, type CommanderData } from '../src/game/commander.ts';
 import type { Dossier } from '../src/missions/model.ts';
@@ -17,6 +20,7 @@ import { ARC_TOUR, SKELETONS } from '../src/missions/skeletons/index.ts';
 import { SIDE_JOBS } from '../src/missions/skeletons/side.ts';
 import { ARC_VETITICE } from '../src/missions/skeletons/arcs/vetitice.ts';
 import { storyPages } from '../src/missions/story.ts';
+import { tourHtml } from '../src/missions/tour-html.ts';
 import { recoveryLegs, tourModel } from '../src/missions/tour-page.ts';
 import { logHtml } from '../src/ui/screens-log.ts';
 import { captureById } from './screen-capture.ts';
@@ -79,4 +83,36 @@ console.log('\n...and the game\'s LOG and the page share one builder');
   const built = logHtml({ pages, route: routeMapSvg(g1, [7]), portrait: patron.portrait, patron: patron.name });
   check('the screen contains the builder\'s markup verbatim', html.includes(built.trim()));
   check('...with the title and the BACK key around it', html.includes("COMMANDER'S LOG") && html.includes('data-key="Escape"'));
+}
+
+console.log('\n...and the page has its four homes, and a clean link to each');
+{
+  const read = (f: string) => readFileSync(new URL(`../${f}`, import.meta.url), 'utf8');
+  const page = read('missions.html');
+  check('the page carries the tour marker and the footer marker',
+    page.includes('<!--TOUR-->') && page.includes(FOOTER_MARKER));
+  check('...and a canonical link with no .html', page.includes('href="https://harmless.atomic14.com/missions"'));
+  check('the page is a Vite input',
+    Object.values((config.build?.rollupOptions?.input ?? {}) as Record<string, string>).some((p) => p.endsWith('missions.html')));
+  check('...and the tour plugin is wired in',
+    ((config.plugins ?? []) as { name?: string }[]).some((p) => p.name === 'harmless:mission-tour'));
+  check('the sitemap lists it', read('public/sitemap.xml').includes('<loc>https://harmless.atomic14.com/missions</loc>'));
+  const landing = read('index.html');
+  check('the landing page links it with a clean link',
+    landing.includes('href="/missions"') && !landing.includes('missions.html'));
+  check('...and no internal link on the page carries .html',
+    !/href="\/[a-z-]+\.html"/.test(page));
+
+  // The markup: every arc, every face, every side job, and every word escaped.
+  const html = tourHtml(tourModel(g1), '<p>EXAMPLE</p>');
+  check('the markup carries the five arcs in order',
+    ARC_TOUR.every((id) => html.includes(`id="${id}"`)) && html.indexOf('id="arc-lave"') < html.indexOf('id="arc-edle"'));
+  check('...each with its face', (html.match(/<img src="\/species\//g) ?? []).length === 5);
+  check('...every side job', SIDE_JOBS.every((s) => html.includes(escapeHtml(s.pitch))));
+  check('...and the example where the marker for it is', html.includes('<p>EXAMPLE</p>'));
+  const hostile = tourModel(g1, 1, () => ({
+    skeleton: 'x', hash: '', title: '<b>x</b>', briefing: ['<script>'], legs: {}, lead: '', rumour: { far: '', near: '' }, news: '', images: {},
+    story: { opening: '', closing: { complete: '', fail: '' }, legs: {} },
+  }));
+  check('a dossier\'s markup is escaped, never set', !tourHtml(hostile, '').includes('<script>') && tourHtml(hostile, '').includes('&lt;script&gt;'));
 }

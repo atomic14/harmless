@@ -159,3 +159,22 @@ footer {
   border-top: 1px solid var(--hud-dim);
   padding-top: 20px; font-size: 12px; color: var(--hud-dim);
 }
+
+/* The missions page (docs/TODO/193): the route, the arcs with their faces,
+   and the worked example, which is the game's own log markup. Everything
+   scales with the column; nothing scrolls the page sideways. */
+.tour .route svg { display: block; width: 100%; height: auto; color: var(--hud-green, #7f7); }
+.tour .arc { margin: 28px 0; }
+.tour .arc-head { display: flex; gap: 16px; align-items: flex-start; }
+.tour .arc-head img { width: 96px; height: 96px; flex: none; image-rendering: pixelated; }
+.tour .arc-head h3 { margin: 0 0 4px; }
+.tour .who, .tour .next { opacity: 0.8; margin: 4px 0; }
+.tour .briefing { max-width: 640px; }
+.tour .legs { padding-left: 18px; }
+.tour .legs .recovery { opacity: 0.85; }
+.tour table.data td:first-child { width: 90px; white-space: nowrap; }
+.tour .sysbody { display: flex; gap: 16px; align-items: flex-start; flex-wrap: wrap; }
+.tour .sysbody .portrait { margin: 0; flex: none; text-align: center; }
+.tour .sysbody .portrait img { width: 96px; height: 96px; image-rendering: pixelated; }
+.tour .sysbody .info { flex: 1 1 320px; }
+.tour .route-map { display: block; width: 100%; height: auto; margin-top: 12px; }
