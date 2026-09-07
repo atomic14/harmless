@@ -195,7 +195,8 @@ joystick the original supported.
 | R | missions — the ones on offer, the ones you hold, and the leads to the next |
 | ⇧R | commander's log — every mission you took, told as a story, with the route flown |
 | P | pause |
-| Q | **while paused only** — quit this flight; asks first, then puts you back at the station autosave you launched from |
+| Q | escape pod — abandon ship; the pod lands you at the station, and the ship and the cargo are gone (if fitted) |
+| ⇧Q | **while paused only** — quit this flight; asks first, then puts you back at the station autosave you launched from |
 | F | **while paused only** — arm the drive to mis-jump; every jump lands in witch-space, Thargoids and all, until you pause and press it again (the Spectrum's cheat) |
 | V | mouse flight — pointer-locked analogue stick, left button fires |
 | ? | controls guide |

@@ -107,6 +107,7 @@ export type Command =
   | 'jettisonContraband'
   | 'bribePolice'
   | 'quitFlight'
+  | 'launchEscapePod'
   // --- the training simulator ---------------------------------------------
   | 'endExercise'
   // --- after the end ------------------------------------------------------

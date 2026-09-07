@@ -138,6 +138,10 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     what: 'energy bomb — destroys everything close by (if fitted)',
     section: 'combat',
   },
+  launchEscapePod: {
+    what: 'escape pod — abandon ship; the pod lands you at the station, and the ship and the cargo are gone (if fitted)',
+    section: 'combat',
+  },
   toggleCombatComputer: {
     what: 'combat computer — the trained defence AI flies your ship (if fitted)',
     section: 'combat',

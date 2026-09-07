@@ -104,3 +104,39 @@ Gates:
   the quit screen. Prove it able to fail: bind Q to `quitFlight` for one run.
 - `test/combat-sim.test.ts`: no two cockpit bindings share a key. It holds the
   ⇧Q order.
+
+## Outcome
+
+### M1 and M2 — one commit, because M1 alone left a gate red
+
+`Career.deployEscapePod` is the one body. It spends the pod, empties the hold
+and docks the commander, and `die` calls it when a pod is fitted.
+`launchEscapePod` forgets the flight saves first, as death does, and then
+calls it. With no pod it refuses with `NO ESCAPE POD FITTED`. Plain Q binds
+it, and ⇧Q gives up the flight, still paused only. The simulator subtracts
+it. The help line sits under `combat`.
+
+**THE TWO MILESTONES LANDED AS ONE COMMIT.** `test/combat-sim.test.ts` holds
+a control for every subtracted command: the cockpit must still bind it. M1
+added the command to the subtraction with no cockpit key, so that control went
+red until M2 bound Q. The plan split a rule from its key, and the gate
+refused the split.
+
+**THREE SURFACES PIN THE KEY, AND THE PLAN NAMED ONE.** The README's commands
+table is held to the tables by `test/key-help.test.ts`, so it gained a Q row
+and a ⇧Q row. The simulator test writes the subtraction list out by name, so
+it gained the pod. The manual's equipment entry names the key through a new
+hook in `src/manual.ts`: an element with `data-bound-key` is filled from the
+tables. That hook was not read in a browser.
+
+**SURVIVORS ARE KEPT.** The plan said a survivor is lost with the hold, as on
+death. Death kept a survivor all along, so the body keeps one too, and the
+comment says nobody asked. That is a question for Chris: whether a pod holds
+two.
+
+**IN THE TUNNEL THE KEY IS SILENT**, as every command outside `WHILE_PAUSED`
+is. The plan promised the hyperspace key's refusal there, and that key is
+silent there too. Nothing changed.
+
+`test/escape-pod-key.test.ts`: 23 assertions. **Proved able to fail**: the two
+Q commands swapped redden nine of them. 5,515 assertions became 5,538.

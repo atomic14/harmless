@@ -32,7 +32,8 @@ import { installStore } from './save-fixtures.ts';
 
 console.log('\nQ gives up the flight — and still ends an exercise');
 {
-  eqc('Q in the cockpit asks to quit', cmds('flight', ['KeyQ']), ['quitFlight']);
+  // ⇧Q since docs/TODO/195, because plain Q is the escape pod.
+  eqc('⇧Q in the cockpit asks to quit', cmds('flight', ['KeyQ'], ['ShiftLeft']), ['quitFlight']);
   // THE REGRESSION. `BINDINGS.simulator` is the cockpit's table spread in ahead
   // of the arena's own Escape and Q, and the scan stops at the first match — so
   // without the filter, the cockpit's Q would answer here instead.
@@ -150,7 +151,7 @@ console.log('\nquitting puts back the commander that launched, not the one flyin
 
     g.input.injectPress('KeyP');
     g.step(1 / 60, at += 1 / 60);
-    g.input.injectPress('KeyQ');
+    g.input.injectPress('KeyQ', true);
     g.step(1 / 60, at += 1 / 60);
     eq('paused, Q opens the confirmation rather than quitting', g.mode, 'quit');
     check('...and the world is frozen while it is up — a confirm cannot get you killed',
@@ -189,7 +190,7 @@ console.log('\nQ does nothing until the world is stopped');
     for (let f = 0; f < 400; f++) g.step(1 / 60, at += 1 / 60);
 
     // Flying, not paused: the key is bound, reaches its handler, and is refused.
-    g.input.injectPress('KeyQ');
+    g.input.injectPress('KeyQ', true);
     g.step(1 / 60, at += 1 / 60);
     eq('Q while flying does NOT open the confirmation', g.mode, 'flight');
     // ...and says so rather than appearing dead, which is the whole reason the
@@ -209,7 +210,7 @@ console.log('\nQ does nothing until the world is stopped');
     check('...and the paused line names Q as the way out',
       g.state.session.messageText.includes('TO QUIT THE FLIGHT'));
 
-    g.input.injectPress('KeyQ');
+    g.input.injectPress('KeyQ', true);
     g.step(1 / 60, at += 1 / 60);
     eq('...and NOW Q asks', g.mode, 'quit');
 
@@ -237,7 +238,7 @@ console.log('\n...and backing out of it costs nothing at all');
 
     g.input.injectPress('KeyP');
     g.step(1 / 60, at += 1 / 60);
-    g.input.injectPress('KeyQ');
+    g.input.injectPress('KeyQ', true);
     g.step(1 / 60, at += 1 / 60);
     g.input.injectPress('Escape');
     g.step(1 / 60, at += 1 / 60);

@@ -96,14 +96,22 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   // not a clash: C, M and T all mean two things across the two tables.
   { key: 'KeyL', command: 'bribePolice' },
   { key: 'KeyJ', command: 'toggleTorus' },
-  // Q for QUIT. It is free in the cockpit. It is the same letter that backs out
-  // of the new-commander confirmation at the station, and ends an exercise in
-  // the arena. Three per-mode tables, one meaning: this is the key that gives
-  // up on what you are doing.
+  // Q is the key that gives up on what you are doing. It is the same letter
+  // that backs out of the new-commander confirmation at the station, and ends
+  // an exercise in the arena. Three per-mode tables, one meaning. In the
+  // cockpit it has two acts, and the letter is shared between them.
   //
-  // It answers only while PAUSED (see WHILE_PAUSED), and it asks before it
-  // acts. So a flight given up takes three deliberate presses.
-  { key: 'KeyQ', command: 'quitFlight' },
+  // PLAIN Q IS THE ESCAPE POD, and Chris named the key (GitHub #43,
+  // docs/TODO/195). It is the ultimate way to give up a flight. It is pressed
+  // in a hurry, so it takes the plain letter and no confirmation. It refuses
+  // with a line when no pod is fitted.
+  //
+  // ⇧Q GIVES UP THE FLIGHT to the station autosave. It answers only while
+  // PAUSED (see WHILE_PAUSED), and it asks before it acts. So a flight given
+  // up takes three deliberate presses. It sits ABOVE the plain entry, because
+  // the scan stops at the first match (see the header).
+  { key: 'KeyQ', shift: true, command: 'quitFlight' },
+  { key: 'KeyQ', command: 'launchEscapePod' },
 ];
 
 /**
@@ -130,6 +138,8 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
  *    thing an exercise must never touch. The arena has its own way out on the
  *    same key. The filter below is what stops the cockpit's binding from
  *    shadowing it: a spread entry is matched before the two appended ones.
+ *  - `launchEscapePod` — it docks the commander, and a dock writes the
+ *    career's save. The clone may carry a pod, and the pod is the career's.
  *
  * Everything else the cockpit has is kept. That is the four views, the whole
  * missile cycle, the E.C.M., the energy bomb, the combat computer, mouse flight
@@ -138,6 +148,7 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
 export const NOT_IN_THE_SIMULATOR: readonly Command[] = [
   'startHyperspace', 'galacticJump', 'distressBeacon', 'jettison1', 'jettison5',
   'jettisonContraband', 'bribePolice', 'toggleDockingComputer', 'quitFlight',
+  'launchEscapePod',
 ];
 
 /**

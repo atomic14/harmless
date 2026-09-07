@@ -174,17 +174,51 @@ export class Career {
     this.saves.forgetFlight();
     sfx.explosion();
     this.state.world.effects.explosion(this.state.player.position.clone(), 0xff8866);
-    if (this.state.commander.equipment.escapePod) {
-      // the pod gets you to the local station; ship and cargo are gone
-      this.state.commander.equipment.escapePod = false;
-      this.state.commander.cargo = this.state.commander.cargo.map(() => 0);
-      this.host.enterDocked();
-      this.host.showMessage('ESCAPE POD DEPLOYED — CARGO LOST', 6);
-      return;
-    }
+    if (this.state.commander.equipment.escapePod) { this.deployEscapePod(); return; }
     this.host.enterDeadMode();
     this.host.showMessage(reason, 6);
     this.showGameOver();
+  }
+
+  /**
+   * The pod, spent. It gets you to the local station, and the ship and the
+   * cargo are gone.
+   *
+   * ONE BODY FOR TWO CALLERS. Death deploys it when it is fitted, and the key
+   * deploys it on purpose (docs/TODO/195). So what a pod costs is stated once.
+   * A survivor aboard is kept, as death kept one before. Nobody asked whether
+   * a pod holds two, and this body does not answer it.
+   */
+  private deployEscapePod(): void {
+    this.state.commander.equipment.escapePod = false;
+    this.state.commander.cargo = this.state.commander.cargo.map(() => 0);
+    this.host.enterDocked();
+    this.host.showMessage('ESCAPE POD DEPLOYED — CARGO LOST', 6);
+  }
+
+  /**
+   * Abandon ship on the key, before the ship is lost (GitHub #43).
+   *
+   * No confirmation. The original fired on one key, and a pod is pressed with
+   * the shields gone, where a second press costs the ship. The press that
+   * matters is refused instead. With no pod fitted it spends nothing, and it
+   * SAYS SO, because a bound key that appears dead is a bug report. A paused
+   * cockpit never dispatches it (`WHILE_PAUSED`), and the simulator subtracts
+   * it (`NOT_IN_THE_SIMULATOR`).
+   *
+   * `forgetFlight` first, as `die()` does. The in-flight ring must not outlive
+   * the ship it recorded. No explosion, because the ship is not destroyed: it
+   * is left behind.
+   */
+  launchEscapePod(): void {
+    if (this.host.baseMode() !== 'flight') return;
+    if (!this.state.commander.equipment.escapePod) {
+      this.host.showMessage('NO ESCAPE POD FITTED', 3);
+      sfx.refused();
+      return;
+    }
+    this.saves.forgetFlight();
+    this.deployEscapePod();
   }
 
   /**

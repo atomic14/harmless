@@ -1193,6 +1193,7 @@ export class Game {
     },
     distressBeacon: () => this.sendDistressBeacon(),
     quitFlight: () => this.career_.quitFlight(),
+    launchEscapePod: () => this.career_.launchEscapePod(),
     jettison1: () => this.flight_.racks.jettisonCargo(1),
     jettison5: () => this.flight_.racks.jettisonCargo(5),
     jettisonContraband: () => this.flight_.racks.jettisonContraband(1),

@@ -13,8 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [195](195-q-launches-the-escape-pod.md) — Q launches the escape pod.
-2. [196](196-a-dead-thargon-is-a-tonne-of-alien-items.md) — a dead Thargon is
+1. [196](196-a-dead-thargon-is-a-tonne-of-alien-items.md) — a dead Thargon is
    a tonne of alien items.
 
 **ALL THREE ITEMS CAME OUT OF CHRIS'S PLAYTEST ON 2026-09-06.** They are
@@ -24,7 +23,7 @@ ram takes the same door as a missile. That door marks the ship as provoked
 by the commander. 195 is a key and a shared body, because only death
 fires the pod today. 196 is the largest, because a dead drone must move from
 the sky into the cargo field, and the inert state then has no writer. **194
-landed the same day**, and it is below.
+and 195 landed the same day**, and both are below.
 
 **191, 192 AND 193 ARE THE THREE PLANS 190 PROPOSED**, drafted on 2026-09-06
 after it landed. The pipeline came first, so the arcs ship with words. **191
@@ -233,6 +232,13 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-07
+
+**195 — Q launches the escape pod.** GitHub #43. Only death fired the pod.
+One body deploys it now, and death and the key both call it. Q launches it,
+with no confirmation, and it refuses with a line when no pod is fitted. ⇧Q
+gives up the flight, still paused only. The simulator subtracts the pod. The
+README, the manual and the guide all show the key from the tables. 5,538
+assertions, from 5,515.
 
 **194 — a Viper that flies into you turns hostile.** GitHub #42. A collision
 billed the ship through the same door as a missile, and that door marked the

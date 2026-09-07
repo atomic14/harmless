@@ -14,7 +14,7 @@
 // per mode. So the scope cannot be wrong either.
 
 import { allLayouts, type Keymap, type LayoutName } from './engine/keymap.ts';
-import { keyLabel, manualCommandsHtml } from './ui/key-help.ts';
+import { boundKey, keyLabel, manualCommandsHtml } from './ui/key-help.ts';
 import { ratingLadder } from './game/rating.ts';
 
 const keys = (codes: string[]): string =>
@@ -50,6 +50,14 @@ if (host) {
       ${table('modern', layouts.modern)}
     </div>
     ${manualCommandsHtml()}`;
+}
+
+// A key named in the page's own prose comes from the table too (invariant 9).
+// An element that carries `data-bound-key="<command>"` is filled with the
+// cockpit key for that command. So the equipment list can name the escape
+// pod's key without a second home for it (docs/TODO/195).
+for (const el of document.querySelectorAll<HTMLElement>('[data-bound-key]')) {
+  el.textContent = boundKey('flight', el.dataset.boundKey as Parameters<typeof boundKey>[1]);
 }
 
 // The combat ladder, from the same table `rating()` reads. It was hand-written

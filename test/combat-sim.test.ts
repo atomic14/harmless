@@ -80,6 +80,9 @@ console.log('\ncombat simulator — the simulator binding table');
     // checkpoint, the one thing an exercise must never touch. Q is the arena's
     // own way out, and this filter is what stops the cockpit's Q shadowing it.
     'quitFlight',
+    // It docks the commander, and a dock writes the career's save. The clone
+    // may carry a pod, and the pod is the career's (docs/TODO/195).
+    'launchEscapePod',
   ] as const) {
     check(`the simulator has no ${escape}`, !sim.includes(escape));
     check(`...and the cockpit still does (the control)`,
@@ -88,7 +91,8 @@ console.log('\ncombat simulator — the simulator binding table');
   eq('...and that is exactly the list controls.ts states',
     [...NOT_IN_THE_SIMULATOR].sort().join(','),
     ['distressBeacon', 'galacticJump', 'jettison1', 'jettison5', 'jettisonContraband',
-      'bribePolice', 'startHyperspace', 'toggleDockingComputer', 'quitFlight']
+      'bribePolice', 'startHyperspace', 'toggleDockingComputer', 'quitFlight',
+      'launchEscapePod']
       .sort().join(','));
 
   // Everything else is kept: an exercise is meant to be the real ship.

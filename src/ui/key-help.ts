@@ -64,7 +64,7 @@ export function boundKey(mode: ControlMode, command: Command): string {
  *
  * It is for the cockpit's key PROMPTS (game/prompts.ts). There an unbound
  * command is an ordinary answer rather than a mistake. The training arena
- * subtracts eight commands from the flight table (`NOT_IN_THE_SIMULATOR`). A
+ * subtracts nine commands from the flight table (`NOT_IN_THE_SIMULATOR`). A
  * prompt for a key that mode does not bind must simply not appear.
  *
  * Prose still uses `boundKey`, which fails the build. The difference is that
