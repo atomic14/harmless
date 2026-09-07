@@ -26,8 +26,14 @@ interface Field {
   opts: FaultOptions;
 }
 
-/** A console line or a hint: one or two sentences, and the patron may say "you". */
-const LINE: FaultOptions = { sentences: [1, 2], reader: true, formulas: false };
+/**
+ * A console line or a hint: at most two sentences, and the patron may say
+ * "you". The floor is zero, because the console's voice has no full stop:
+ * `KRAIT DESTROYED — {PAY} FROM THE STATION` is a skeleton's own line. The
+ * first run dropped three dossiers for that alone. An empty line is still a
+ * fault, from `faults()`.
+ */
+const LINE: FaultOptions = { sentences: [0, 2], reader: true, formulas: false };
 /** A story line: the third person, so never "you". */
 const STORY: FaultOptions = { sentences: [1, 3], reader: false, formulas: false };
 
@@ -94,6 +100,11 @@ export function dossierFaults(d: Dossier, skeleton: Skeleton, own = ''): string[
     bad.push(...faults(f.text, f.path, f.opts));
     for (const m of f.text.matchAll(/\{([A-Z]+)\}/g)) {
       if (!f.slots.includes(m[1])) bad.push(`${f.path} carries {${m[1]}}, which it may not`);
+    }
+    // {DAY} fills with a bare number. "On {DAY}" reads "On 12", and the
+    // first run wrote exactly that, so the word must stand before the slot.
+    if (/\{DAY\}/.test(f.text) && !/\bday\s+\{DAY\}/i.test(f.text)) {
+      bad.push(`${f.path} carries {DAY} without the word "day" before it`);
     }
     bad.push(...foreignSystemNames(f.text, own).map((n) => `${f.path} names another system (${n})`));
     bad.push(...proseLadderOffences(f.text).map((why) => `${f.path}: ${why}`));

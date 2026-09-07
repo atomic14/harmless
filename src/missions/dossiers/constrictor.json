@@ -1,0 +1,64 @@
+{
+  "promptVersion": 1,
+  "model": "claude-haiku-4-5 via claude -p",
+  "generated": "2026-09-06",
+  "usage": {
+    "requests": 2,
+    "inputTokens": 12385,
+    "outputTokens": 26030
+  },
+  "dossier": {
+    "title": "Prototype Destruction",
+    "briefing": [
+      "A military prototype, the Constrictor, has been stolen and is loose in your sector. {PATRON} broadcasts from {HERE} with standing orders: the vessel must be destroyed before hostile forces can analyze its systems. Accept this contract to receive coordinates for the target.",
+      "Once you have destroyed the Constrictor, proceed to any station to report the kill. You will be given further orders and tasked with the delivery of recovered intelligence. The Navy expects swift completion."
+    ],
+    "legs": {
+      "hunt": {
+        "arrive": "Destroy the Constrictor at {TARGET}.",
+        "success": "Target destroyed at {TARGET}. Proceeding to station report.",
+        "fail": "Hunt failed at {TARGET}. Mission abandoned."
+      },
+      "report": {
+        "arrive": "Report to any station for orders at {TARGET}.",
+        "success": "Reported at {TARGET}. Intelligence package acquired.",
+        "fail": "Failed to report at {TARGET}. Mission aborted."
+      },
+      "courier": {
+        "arrive": "Deliver intelligence package to {TARGET}.",
+        "success": "Package delivered to {TARGET}. Mission complete.",
+        "fail": "Delivery failed at {TARGET}. Mission failed."
+      }
+    },
+    "lead": "{PATRON} broadcasts a priority target contract from {WORLD}.",
+    "rumour": {
+      "far": "Rumors from {WORLD} indicate {PATRON} has posted a contract for destroying stolen military hardware.",
+      "near": "{PATRON} broadcasts from {WORLD} that a rogue prototype hull poses a direct security threat."
+    },
+    "news": "{PATRON} is recruiting contractors at {WORLD} for a priority military operation.",
+    "story": {
+      "opening": "On day {DAY}, the commander accepted a Navy contract to eliminate a stolen prototype hull.",
+      "closing": {
+        "complete": "On day {DAY}, the Constrictor was destroyed and its intelligence delivered to {WORLD}, fulfilling the Navy contract.",
+        "fail": "By day {DAY}, operations failed at {WORLD} and the Navy contract was abandoned."
+      },
+      "legs": {
+        "hunt": {
+          "targetDestroyed": "The Constrictor was destroyed on day {DAY} at {WORLD}.",
+          "failed": "The hunt for the Constrictor failed on day {DAY} at {WORLD}."
+        },
+        "report": {
+          "success": "The commander docked at {WORLD} on day {DAY} and reported the kill.",
+          "failed": "On day {DAY}, the commander failed to report at {WORLD}. The mission was abandoned."
+        },
+        "courier": {
+          "success": "The intelligence package was delivered to {WORLD} on day {DAY}.",
+          "failed": "The delivery to {WORLD} failed on day {DAY}. The Navy contract was lost."
+        }
+      }
+    },
+    "skeleton": "constrictor",
+    "hash": "82a687cb",
+    "images": {}
+  }
+}

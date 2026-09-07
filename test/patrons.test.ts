@@ -77,6 +77,8 @@ console.log('\n...and what is committed names a world that exists');
   }
   check(`every committed record obeys the rules${broken.length ? `: ${broken.slice(0, 3).join('; ')}` : ''}`,
     broken.length === 0);
+  const names = Object.values(file?.entries ?? {}).map((r) => r.name.toLowerCase());
+  eq('no two worlds share a patron\'s name', new Set(names).size, names.length);
 
   // The drift gate itself, on a fixture, because the file above passes
   // trivially while it is empty.

@@ -1,0 +1,46 @@
+{
+  "promptVersion": 1,
+  "model": "claude-haiku-4-5 via claude -p",
+  "generated": "2026-09-06",
+  "usage": {
+    "requests": 15,
+    "inputTokens": 85254,
+    "outputTokens": 216573
+  },
+  "dossier": {
+    "title": "No Questions Run",
+    "briefing": [
+      "I have a sealed packet that needs to reach the neighbouring world. You take it, dock at the target, and hand it over. No questions asked, no questions answered. You will not need hold space for it.",
+      "This is how we work here at {HERE}, {PATRON}'s way. Simple work, and we pay well for your silence and discretion."
+    ],
+    "legs": {
+      "run": {
+        "arrive": "Delivery: take the packet to {TARGET}.",
+        "success": "Packet delivered at {TARGET}. Payment: {PAY}.",
+        "fail": "Failed to reach {TARGET} within the deadline."
+      }
+    },
+    "lead": "Word comes that {PATRON} at {WORLD} has work that needs discretion.",
+    "rumour": {
+      "far": "They say {PATRON} at {WORLD} handles sealed deliveries for captains who ask no questions.",
+      "near": "Sealed delivery work at {WORLD} with {PATRON}; discretion is expected and well paid."
+    },
+    "news": "{PATRON} at {WORLD} offers sealed delivery work to captains who value discretion.",
+    "story": {
+      "opening": "The commander accepted a sealed delivery job at {WORLD} on day {DAY}.",
+      "closing": {
+        "complete": "The sealed packet was delivered at {WORLD} on day {DAY}.",
+        "fail": "The sealed packet was never delivered to {WORLD} by day {DAY}."
+      },
+      "legs": {
+        "run": {
+          "success": "The commander docked at {WORLD} and delivered the sealed packet on day {DAY}.",
+          "failed": "The commander failed to dock at {WORLD} with the sealed packet by day {DAY}."
+        }
+      }
+    },
+    "skeleton": "side-deliver",
+    "hash": "0ef7fa73",
+    "images": {}
+  }
+}

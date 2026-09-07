@@ -6,6 +6,7 @@
 // assertion of the first block, on a dossier built here, because no dossier
 // ships until the pipeline plan (item 191) writes one.
 
+import { dossierFor } from '../src/missions/dossiers.ts';
 import { storyPages } from '../src/missions/story.ts';
 import { routeMapSvg } from '../src/missions/route-map.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
@@ -77,8 +78,10 @@ console.log('\nthe story tells the branch she took, and not the other one');
   check('the other branch tells the other line', other.includes('WALKED OFF THE PAD AT LAVE')
     && !other.includes('BROKE UP'));
 
-  // No dossier: the plain words, and every entry still has a line.
-  const plain = storyPages(lost, g1)[0];
+  // No dossier: the plain words, and every entry still has a line. The
+  // table is emptied here, because nine dossiers ship since docs/TODO/191.
+  const none = (): Dossier | null => null;
+  const plain = storyPages(lost, g1, undefined, none)[0];
   eq('without a dossier the title is the job\'s id in words', plain.title, 'SIDE RESCUE');
   eq('...and every entry has a line', plain.lines.length, 4);
   check('...in plain words', plain.lines[1].includes('TARGET DESTROYED') && plain.lines[0].includes('DAY 3'));
@@ -94,7 +97,7 @@ console.log('\nthe story tells the branch she took, and not the other one');
       { skeleton: 'constrictor', leg: 'hunt', outcome: 'fail', day: 22, world: 12 },
     ],
   };
-  const pages = storyPages(twice, g1);
+  const pages = storyPages(twice, g1, undefined, none);
   eq('three runs are three pages, oldest first', pages.map((p) => `${p.title}:${p.ending}`).join('|'),
     'SIDE RESCUE:complete|SIDE RESCUE:null|CONSTRICTOR:fail');
   check('an abandonment is told as the reason', pages[2].lines.some((l) => l.includes('GAVE IT UP')));
@@ -117,8 +120,10 @@ console.log('\nthe LOG screen, painted and opened');
   c.missions.journal.push({ skeleton: 'constrictor', leg: 'hunt', outcome: 'targetDestroyed', day: 4, world: 12 });
   const screen = new LogScreen(() => ({ commander: c, systems: g1 }));
   const html = captureById(() => { screen.render(); }).get('screen') ?? '';
-  check('the screen carries the story', html.includes("COMMANDER'S LOG") && html.includes('CONSTRICTOR')
-    && html.includes('TARGET DESTROYED'));
+  // The title is the dossier's where one ships, and the id's words where none does.
+  const title = (dossierFor('constrictor')?.title ?? 'CONSTRICTOR').toUpperCase();
+  check('the screen carries the story', html.includes("COMMANDER'S LOG") && html.includes(title)
+    && html.includes('IN PROGRESS'));
   check('...and the route', html.includes('<svg') && html.includes('class="visited"'));
   check('...and no face for the Navy', !html.includes('<figure'));
   const empty = captureById(() => { renderLog({ pages: [], route: '', portrait: '', patron: '' }); }).get('screen') ?? '';

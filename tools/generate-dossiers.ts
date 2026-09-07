@@ -11,6 +11,8 @@
 //   --limit   write only the first N, for tasting a model cheaply.
 //   --out     write into DIR instead of src/missions/dossiers/, so a taste
 //             never reaches the generated index.
+//   --via claude   run through `claude -p` on this machine's subscription,
+//             one process per skeleton, instead of the batch API. No key.
 //
 // One file per skeleton under src/missions/dossiers/, and a generated
 // index.ts that imports each one, so the reader (src/missions/dossiers.ts)
@@ -23,7 +25,7 @@ import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import type { Dossier, DossierFile } from '../src/missions/model.ts';
 import { SKELETONS, skeletonById } from '../src/missions/skeletons/index.ts';
-import { newClient, reportCost, runBatches } from './batch.ts';
+import { newClient, reportCost, runBatches, runLocal, type BatchJob } from './batch.ts';
 import { dossierFaults } from './dossier-faults.ts';
 import {
   DOSSIER_PROMPT_VERSION, DOSSIER_SYSTEM_PROMPT, dossierDrift, dossierPrompts, indexSource,
@@ -145,23 +147,30 @@ function dossierFrom(raw: string, p: DossierPrompt): { entry?: Dossier; why?: st
 }
 
 async function generate(
-  ids: string[], dir: string, model: string, limit: number, existingBatch: string,
+  ids: string[], dir: string, model: string, limit: number, existingBatch: string, via: string,
 ): Promise<number> {
-  const client = await newClient('dossiers');
-  if (!client) return 1;
-
   const prompts = dossierPrompts(ids).slice(0, limit);
-  const { entries, usage, dropped } = await runBatches<DossierPrompt, Dossier>(client, {
+  const job: BatchJob<DossierPrompt, Dossier> = {
     label: 'dossiers', model, items: prompts,
     idOf: (p) => p.skeleton,
     request: requestFor,
     parse: dossierFrom,
     existingBatch,
-  });
+  };
+  let run;
+  if (via === 'claude') {
+    run = await runLocal(job);
+  } else {
+    const client = await newClient('dossiers');
+    if (!client) return 1;
+    run = await runBatches(client, job);
+  }
+  const { entries, usage, dropped } = run;
 
   const generated = new Date().toISOString().slice(0, 10);
+  const wrote = via === 'claude' ? `${model} via claude -p` : model;
   for (const [id, dossier] of entries) {
-    const file: DossierFile = { promptVersion: DOSSIER_PROMPT_VERSION, model, generated, usage, dossier };
+    const file: DossierFile = { promptVersion: DOSSIER_PROMPT_VERSION, model: wrote, generated, usage, dossier };
     writeFileSync(join(dir, `${id}.json`), `${JSON.stringify(file, null, 2)}\n`);
   }
   if (dir === DIR) writeFileSync(join(DIR, 'index.ts'), indexSource(committed(DIR).names));
@@ -185,5 +194,5 @@ process.exit(argv.includes('--check')
   ? check()
   : await generate(
     ids, flag('out') || DIR, flag('model') || DEFAULT_MODEL,
-    Number(flag('limit')) || Infinity, flag('batch'),
+    Number(flag('limit')) || Infinity, flag('batch'), flag('via'),
   ));

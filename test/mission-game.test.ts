@@ -23,6 +23,8 @@ import { emptyMissionState } from '../src/missions/state.ts';
 import { installStore } from './save-fixtures.ts';
 import { constrictorAt } from './fixtures.ts';
 import { check, cmds, dismissBriefing, eq, eqc } from './harness.ts';
+import { dossierFor } from '../src/missions/dossiers.ts';
+import { fillSlots, lineSlots } from '../src/missions/text.ts';
 
 const LAVE = 7;
 
@@ -89,7 +91,12 @@ console.log('\nthe Constrictor waits where the machine sent her, and dies once')
   const events = destroyShip(s.world, c, ship!);
   eq('the kill pays the bounty through the wreck resolver', c.credits - before, 25_000 + ship!.bounty);
   eq('...and moves the mission on', c.missions.live[0]?.leg, 'report');
-  check('...and says so', events.some((e) => e.kind === 'message' && e.text.includes('CONSTRICTOR DESTROYED')));
+  // The dossier's success line where one ships (docs/TODO/191), else the skeleton's.
+  const d = dossierFor('constrictor');
+  const killLine = d
+    ? fillSlots(d.legs.hunt.success, lineSlots(s.systems, c.missions.live[0]?.target ?? null, 25_000)).toUpperCase()
+    : 'CONSTRICTOR DESTROYED';
+  check('...and says so', events.some((e) => e.kind === 'message' && e.text.includes(killLine)));
 
   const paid = c.credits;
   runMissions(c, { kind: 'destroyed', tag }, s.systems);

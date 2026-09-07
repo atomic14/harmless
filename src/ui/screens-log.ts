@@ -29,7 +29,7 @@ export function renderLog(view: LogView): void {
     ? '<div class="info">Nothing yet. A mission accepted is the first line.</div>'
     : [...pages].reverse().map((p) => `
     <div class="info">
-      <b>${p.title}</b>${p.ending === null ? ' &middot; IN PROGRESS' : p.ending === 'complete' ? ' &middot; DONE' : ' &middot; FAILED'}<br/>
+      <b>${escapeHtml(p.title.toUpperCase())}</b>${p.ending === null ? ' &middot; IN PROGRESS' : p.ending === 'complete' ? ' &middot; DONE' : ' &middot; FAILED'}<br/>
       ${p.lines.join('<br/>')}
     </div>`).join('');
   show(`

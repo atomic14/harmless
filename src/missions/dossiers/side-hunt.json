@@ -1,0 +1,47 @@
+{
+  "promptVersion": 1,
+  "model": "claude-haiku-4-5 via claude -p",
+  "generated": "2026-09-06",
+  "usage": {
+    "requests": 15,
+    "inputTokens": 85254,
+    "outputTokens": 216573
+  },
+  "dossier": {
+    "title": "Krait Bounty",
+    "briefing": [
+      "I am {PATRON} at {HERE}. A Krait has been taking ships on the lane. The station will not tolerate it.",
+      "I will pay a bounty for its destruction. Go to the location we name. Hunt the Krait and destroy it. If it jumps, no bounty."
+    ],
+    "legs": {
+      "hunt": {
+        "arrive": "Destroy the Krait near {TARGET} for bounty {PAY}.",
+        "success": "Krait destroyed; bounty earned.",
+        "fail": "Hunt failed; no bounty."
+      }
+    },
+    "lead": "{PATRON} has posted a bounty for a Krait at {WORLD}.",
+    "rumour": {
+      "far": "Bounty posted: a Krait has been hitting traffic near {WORLD}, and {PATRON} wants it dead.",
+      "near": "{PATRON} at {WORLD} offers credits for the destruction of a Krait hunting that space."
+    },
+    "news": "{PATRON} at {WORLD} posts a bounty for the destruction of a Krait threatening the lane.",
+    "story": {
+      "opening": "{WORLD} on day {DAY}: Accepted a bounty to destroy a Krait.",
+      "closing": {
+        "complete": "{WORLD} on day {DAY}: Krait destroyed; bounty claimed.",
+        "fail": "{WORLD} on day {DAY}: Krait hunt failed; bounty unclaimed."
+      },
+      "legs": {
+        "hunt": {
+          "targetDestroyed": "{WORLD} on day {DAY}: The Krait was destroyed in combat.",
+          "targetEscaped": "{WORLD} on day {DAY}: The Krait was detected and pursued but escaped.",
+          "failed": "{WORLD} on day {DAY}: The Krait was not found before deadline."
+        }
+      }
+    },
+    "skeleton": "side-hunt",
+    "hash": "fdea6cd8",
+    "images": {}
+  }
+}

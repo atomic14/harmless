@@ -238,7 +238,8 @@ const flag = (n: string, d = ''): string => {
   return i >= 0 ? (argv[i + 1] ?? d) : d;
 };
 
-const galaxy = Number(argv.find((a) => /^\d+$/.test(a)) ?? 1);
+// A bare number not behind a flag: `--limit 3` is a limit, not galaxy 3.
+const galaxy = Number(argv.find((a, i) => /^\d+$/.test(a) && !argv[i - 1]?.startsWith('--')) ?? 1);
 const name = flag('out') || `galaxy-${galaxy}`;
 
 process.exit(argv.includes('--check')

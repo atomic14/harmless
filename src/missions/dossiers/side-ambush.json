@@ -1,0 +1,46 @@
+{
+  "promptVersion": 1,
+  "model": "claude-haiku-4-5 via claude -p",
+  "generated": "2026-09-06",
+  "usage": {
+    "requests": 15,
+    "inputTokens": 85254,
+    "outputTokens": 216573
+  },
+  "dossier": {
+    "title": "Clear the Lane",
+    "briefing": [
+      "I'm {PATRON}, running {HERE}, and pirates control the lane to our neighbour. Every trader either pays them or turns back. I'm losing money and patience. I need this cleared now.",
+      "Fly to the target station. Get through whatever they throw at you and dock. Prove the lane is open. That's all I'm asking."
+    ],
+    "legs": {
+      "lane": {
+        "arrive": "Fly to {TARGET} through the pirates and dock.",
+        "success": "You docked at {TARGET} and earned {PAY}.",
+        "fail": "You did not reach {TARGET} before the deadline."
+      }
+    },
+    "lead": "{PATRON} at {WORLD} needs someone to clear the pirates from the lane.",
+    "rumour": {
+      "far": "Reports say {PATRON} at {WORLD} loses traders to pirates on the lane.",
+      "near": "{PATRON} at {WORLD} sends word: the pirate lane to the neighbour needs clearing."
+    },
+    "news": "Traders report {PATRON} at {WORLD} is looking for someone to run the pirate lane.",
+    "story": {
+      "opening": "The commander docked at {WORLD} on day {DAY} and took a pirate-clearing contract.",
+      "closing": {
+        "complete": "By day {DAY}, traders at {WORLD} resumed crossing the lane to the neighbour.",
+        "fail": "By day {DAY}, the pirates at {WORLD} had sealed the lane completely."
+      },
+      "legs": {
+        "lane": {
+          "success": "The commander docked at {WORLD} on day {DAY}, proving the lane was open.",
+          "failed": "The commander did not reach {WORLD} by the deadline of day {DAY}."
+        }
+      }
+    },
+    "skeleton": "side-ambush",
+    "hash": "caf2c288",
+    "images": {}
+  }
+}

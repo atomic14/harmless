@@ -1,0 +1,47 @@
+{
+  "promptVersion": 1,
+  "model": "claude-haiku-4-5 via claude -p",
+  "generated": "2026-09-06",
+  "usage": {
+    "requests": 15,
+    "inputTokens": 85254,
+    "outputTokens": 216573
+  },
+  "dossier": {
+    "title": "Side Scan",
+    "briefing": [
+      "Commander, I'm {PATRON} running {HERE}. An Anaconda is working a neighbor world. When you're out there, hold it on your scanner for twenty seconds. Keep it steady. Do not fire on it—this is surveillance work only."
+    ],
+    "legs": {
+      "watch": {
+        "arrive": "Hold the Anaconda on scanner at {TARGET} for twenty seconds.",
+        "success": "Anaconda held on scanner at {TARGET} successfully.",
+        "fail": "Failed to hold Anaconda on scanner at {TARGET}."
+      }
+    },
+    "lead": "{PATRON} at {WORLD} needs your scanner for surveillance work.",
+    "rumour": {
+      "far": "{PATRON} from {WORLD} is looking for scanner work on a nearby ship.",
+      "near": "{PATRON} at {WORLD} calling: bring your scanner, I have work for you."
+    },
+    "news": "{PATRON} at {WORLD} has surveillance work available to qualified pilots.",
+    "story": {
+      "opening": "The commander accepted a surveillance contract at {WORLD} on day {DAY}.",
+      "closing": {
+        "complete": "The target was held on scanner at {WORLD} by day {DAY}, and the contract was complete.",
+        "fail": "The surveillance contract could not be completed at {WORLD} by day {DAY}."
+      },
+      "legs": {
+        "watch": {
+          "success": "The Anaconda held on scanner at {WORLD} on day {DAY}.",
+          "targetDestroyed": "The target was destroyed at {WORLD} on day {DAY}.",
+          "targetEscaped": "The target escaped into jump space at {WORLD} on day {DAY}.",
+          "failed": "The twenty-second hold deadline was missed at {WORLD} on day {DAY}."
+        }
+      }
+    },
+    "skeleton": "side-scan",
+    "hash": "b0cf2aa8",
+    "images": {}
+  }
+}

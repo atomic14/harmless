@@ -31,7 +31,7 @@ import type {
 import { canAccept, offersFor } from './offers.ts';
 import { placeLeg } from './placement.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
-import { fillSlots, lineSlots } from './text.ts';
+import { fillSlots, legPay, lineSlots } from './text.ts';
 import { sameTrigger, triggerLabel, wordKind } from './triggers.ts';
 import { verbItem, verbModule, verbNeedsShip } from './verbs/registry.ts';
 
@@ -143,7 +143,8 @@ function accept(
   st.live.push(live);
   startLeg(st, live, skeleton, first, placed.target, ctx, effects);
   st.leads = st.leads.filter((l) => l.skeleton !== id);
-  const slots = lineSlots(ctx.systems, placed.target);
+  // The fee is the leg's, so a dossier's arrive line can quote it.
+  const slots = lineSlots(ctx.systems, placed.target, legPay(first));
   effects.push({
     kind: 'say', text: fillSlots(first.line, slots),
     word: { skeleton: id, leg: first.id, kind: 'arrive', slots },

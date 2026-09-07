@@ -1,0 +1,58 @@
+{
+  "promptVersion": 1,
+  "model": "claude-haiku-4-5 via claude -p",
+  "generated": "2026-09-06",
+  "usage": {
+    "requests": 15,
+    "inputTokens": 85254,
+    "outputTokens": 216573
+  },
+  "dossier": {
+    "title": "Survey Pilot Down",
+    "briefing": [
+      "A survey pilot is adrift in an escape pod one jump out from {HERE}. I'm {PATRON}, and she's my pilot. You're going to scoop that pod and bring her in alive.",
+      "Get her to dock breathing, and we're square—you get paid. Any station will do, as long as she's safe.",
+      "But if she doesn't make it to dock alive? If she's sold off or dies out there? Then we're done, and I don't pay."
+    ],
+    "legs": {
+      "pod": {
+        "arrive": "Scoop the escape pod at {TARGET} and dock your passenger for {PAY}.",
+        "success": "Your passenger landed alive—rescue complete.",
+        "fail": "The rescue operation failed—passenger lost."
+      },
+      "data": {
+        "arrive": "Return to {TARGET} with the survey data for {PAY}.",
+        "success": "Survey data delivered to {TARGET}—mission complete.",
+        "fail": "Data recovery failed—deadline exceeded."
+      }
+    },
+    "lead": "Distress call from {PATRON} at {WORLD}: a survey pilot adrift needs rescue.",
+    "rumour": {
+      "far": "{PATRON} at {WORLD} offers credits for rescuing a survey pilot from an escape pod.",
+      "near": "{PATRON} at {WORLD} is calling urgent—survey pilot adrift one jump out, rescue needed."
+    },
+    "news": "{PATRON} at {WORLD} pays for rescue work—a survey pilot is down in a pod.",
+    "story": {
+      "opening": "Day {DAY} at {WORLD}: the commander accepted a rescue mission for a downed survey pilot.",
+      "legs": {
+        "pod": {
+          "survivor:landed": "Day {DAY} at {WORLD}: the escape pod survivor reached dock alive—mission success.",
+          "survivor:sold": "Day {DAY} at {WORLD}: the escape pod survivor was sold—mission failed.",
+          "targetDestroyed": "Day {DAY} at {WORLD}: the escape pod was destroyed before retrieval.",
+          "failed": "Day {DAY} at {WORLD}: the rescue deadline passed without reaching the pod."
+        },
+        "data": {
+          "success": "Day {DAY} at {WORLD}: the survey data was delivered safely—mission complete.",
+          "failed": "Day {DAY} at {WORLD}: the data recovery deadline passed—mission failed."
+        }
+      },
+      "closing": {
+        "complete": "Day {DAY} at {WORLD}: the rescue mission concluded successfully.",
+        "fail": "Day {DAY} at {WORLD}: the rescue mission concluded in failure."
+      }
+    },
+    "skeleton": "side-rescue",
+    "hash": "f336d5d3",
+    "images": {}
+  }
+}

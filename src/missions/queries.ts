@@ -12,7 +12,7 @@ import { legOf } from './machine.ts';
 import type { Leg, LiveMission, MissionState, Skeleton, TaggedItem, TaggedShip } from './model.ts';
 import { verbJob, verbNeedsShip } from './verbs/registry.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
-import { fillSlots, lineSlots } from './text.ts';
+import { fillSlots, legPay, lineSlots } from './text.ts';
 
 function liveLegs(
   st: MissionState, from: readonly Skeleton[],
@@ -101,10 +101,7 @@ export function orderLine(
  */
 export function legReward(live: LiveMission, from: readonly Skeleton[] = SKELETONS): number {
   const s = skeletonById(live.skeleton, from);
-  if (!s) return 0;
-  return legOf(s, live.leg).next
-    .filter((b) => b.on !== 'failed' && b.on !== 'deadlinePassed')
-    .reduce((best, b) => Math.max(best, b.settle?.pay ?? 0), 0);
+  return s ? legPay(legOf(s, live.leg)) : 0;
 }
 
 /**

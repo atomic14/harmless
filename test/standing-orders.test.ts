@@ -19,14 +19,9 @@ import { standingOrders, ordersSummary, type MissionOrder } from '../src/game/or
 import { runMissions } from '../src/game/mission-bridge.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { renderMissions } from '../src/ui/screens.ts';
-import { keyPointer } from '../src/ui/key-help.ts';
-import { Game } from '../src/game/game.ts';
-import { headlessShell } from '../src/engine/shell.ts';
-import { withoutSaving } from '../src/game/storage.ts';
-import { seedWorld } from '../src/game/rng.ts';
 import { captureById } from './screen-capture.ts';
 import { constrictorAt } from './fixtures.ts';
-import { check, cmds, consoleWatcher, dismissBriefing, eq, eqc } from './harness.ts';
+import { check, cmds, eq, eqc } from './harness.ts';
 
 const held = (c: CommanderData, systems: ReturnType<typeof generateGalaxy>): MissionOrder[] =>
   standingOrders(c, systems).filter((o): o is MissionOrder => o.kind === 'mission');
@@ -200,70 +195,6 @@ console.log('\nthe MISSIONS screen draws the held legs, and nothing else');
   const idle = paint({ ...newCommander(), contracts: [] });
   check('a commander no patron wants still gets a screen, and it says so',
     idle.includes('MISSIONS') && idle.includes('No patron has orders for you'));
-}
-
-// The last stretch is the wiring, and it is where docs/TODO/140 M2's defect
-// lives: a correct function that nothing calls. So these drive a real Game.
-
-console.log('\nthe station line and the briefing, through a real Game');
-{
-  const g = withoutSaving(() => {
-    seedWorld(11);
-    const game = new Game(() => headlessShell());
-    dismissBriefing(game);
-    return game;
-  }).value;
-
-  const c = g.state.commander;
-  c.kills = 16;
-  c.galaxy = 1;
-  c.contracts = [
-    { kind: 'courier', destination: 42, qty: 1, reward: 5000, deadlineDay: c.day + 6},
-    { kind: 'courier', destination: 11, qty: 1, reward: 5000, deadlineDay: c.day + 12},
-  ];
-  c.equipment.laser = 'beam';
-
-  const said = consoleWatcher(g);
-  g.enterDocked();
-  const lines = said(150);   // the docking tunnel plays before a key lands
-
-  const briefing = lines.find((t) => t.startsWith('INCOMING NAVY TRANSMISSION'));
-  check('the transmission still fires at the dock', briefing !== undefined);
-  check('...and it now says where the rest of the briefing lives',
-    briefing?.includes('MISSIONS') === true);
-  check('...naming the key off the binding table rather than a letter in prose',
-    briefing?.includes(keyPointer('docked', 'openMissions')) === true);
-  eq('...and nothing starts until she accepts', c.missions.live.length, 0);
-
-  // She accepts on the MISSIONS screen, as she signs for a contract.
-  g.input.injectPress('KeyR');
-  g.step(1 / 60, 1);
-  eq('R opens the missions screen', g.mode, 'missions');
-  g.input.injectPress('KeyA');
-  g.step(1 / 60, 1 + 1 / 60);
-  eq('A accepts the offer', c.missions.live[0]?.leg, 'hunt');
-
-  // The gun warning EXPLAINS the order, so it queues behind it (session.ts).
-  // Said in the same frame it took the console away, and a commander with
-  // the wrong gun never saw that the Navy had called. The board's own line
-  // about its side jobs waits in the same queue, so the window is long.
-  const after = said(1200);
-  check('the order is said on acceptance', after.some((t) => t.startsWith('NAVY MISSION')));
-  check('the gun warning arrives after the line it explains, not instead of it',
-    after.some((t) => t.includes('MILITARY LASER')));
-
-  // The MENU, painted by the Game itself. The question is whether the line a
-  // docked pilot reads carries both kinds. A second dock re-paints it and
-  // advances nothing: the hunt leg has no branch for a dock.
-  g.input.injectPress('Escape');
-  g.step(1 / 60, 9);
-  const menu = captureById(() => { g.enterDocked('resumed'); }).get('screen') ?? '';
-  const target = g.state.systems[c.missions.live[0].target as number].name.toUpperCase();
-  eq('the machine briefed her, so there is a mission order to hide', c.missions.live[0].leg, 'hunt');
-  check('the station menu names the mission, with two contracts held',
-    menu.includes(target));
-  check('...and still names the work she signed for', menu.includes('SEALED DATA'));
-  check('...and the count of the job it did not print', menu.includes('(+1 MORE)'));
 }
 
 // --- the rule itself (docs/INVARIANTS.md invariant 16) ----------------------

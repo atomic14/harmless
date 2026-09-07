@@ -1,9 +1,16 @@
-// The Message Batches run that every offline generator shares.
+// The model run that every offline generator shares, by either of two roads.
 //
 //   loadKey()      reads ANTHROPIC_API_KEY from the environment, or .env.local
 //   newClient()    the SDK client, or null with the missing key named
 //   runBatches()   submits, polls, collects, and retries a dropped record
+//   runLocal()     the same job through `claude -p`, one process per record
 //   reportCost()   prints the tokens spent, and the money they cost
+//
+// THE SECOND ROAD NEEDS NO KEY. `claude -p` runs on the subscription of the
+// machine it runs on, takes a system prompt and a JSON schema, and returns a
+// structured result. It has no batch mode, so `runLocal` runs a few
+// processes at a time and retries a dropped record the way the batch does.
+// A generator picks the road with `--via claude` (docs/TODO/191).
 //
 // ONE HOME for the batch mechanics. Three generators use it: the descriptions
 // (tools/generate-descriptions.ts), the patrons (tools/generate-patrons.ts)
@@ -16,9 +23,13 @@
 // The API key is a developer credential for an offline tool. It is read from
 // the environment, never committed, and nothing in src/ ever sees it.
 
+import { execFile } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
+import { promisify } from 'node:util';
+
+const exec = promisify(execFile);
 
 const HERE = dirname(fileURLToPath(import.meta.url));
 
@@ -207,5 +218,121 @@ export async function runBatches<K, E>(client: any, job: BatchJob<K, E>): Promis
     todo = failed;
   }
 
+  return { entries, usage, dropped };
+}
+
+/** What a generator's request carries that `claude -p` can take. */
+interface LocalParams {
+  system?: string;
+  messages?: { content: string }[];
+  output_config?: { format?: { schema?: object } };
+}
+
+/**
+ * One `claude -p` call, as a batch result: the same shape `messageText`
+ * reads, so a generator's `parse` sees no difference between the roads.
+ *
+ * The tools are off and the dynamic system prompt sections are excluded, so
+ * the model sees the generator's system prompt and the facts, and nothing
+ * about this repository. Usage counts the cache tokens as input, as the
+ * batch does.
+ */
+async function claudeOnce(model: string, params: LocalParams): Promise<any> {
+  const args = [
+    '-p', '--model', model, '--output-format', 'json', '--tools', '',
+    '--exclude-dynamic-system-prompt-sections', '--no-session-persistence',
+  ];
+  if (params.system) args.push('--system-prompt', params.system);
+  const schema = params.output_config?.format?.schema;
+  if (schema) args.push('--json-schema', JSON.stringify(schema));
+  args.push(params.messages?.[0]?.content ?? '');
+  let out: { stdout: string };
+  try {
+    out = await exec('claude', args, { maxBuffer: 16 * 1024 * 1024 });
+  } catch (e: any) {
+    // The message starts with the whole command, so the reason is stderr's.
+    const why = String(e?.stderr || e?.stdout || e?.message || e).trim().split('\n').pop() ?? '';
+    return { result: { type: 'errored', error: { type: why.slice(0, 160) } } };
+  }
+  let d: any;
+  try {
+    d = JSON.parse(out.stdout);
+  } catch {
+    return { result: { type: 'errored', error: { type: 'not JSON from claude -p' } } };
+  }
+  if (d.is_error) return { result: { type: 'errored', error: { type: String(d.result ?? d.subtype).slice(0, 120) } } };
+  const u = d.usage ?? {};
+  const text = d.structured_output !== undefined ? JSON.stringify(d.structured_output) : d.result;
+  return {
+    result: {
+      type: 'succeeded',
+      message: {
+        stop_reason: 'end_turn',
+        content: [{ type: 'text', text }],
+        usage: {
+          input_tokens: u.input_tokens ?? 0,
+          cache_creation_input_tokens: u.cache_creation_input_tokens ?? 0,
+          cache_read_input_tokens: u.cache_read_input_tokens ?? 0,
+          output_tokens: u.output_tokens ?? 0,
+        },
+      },
+    },
+  };
+}
+
+/**
+ * The job through `claude -p`, `concurrency` processes at a time, with the
+ * batch's three passes. A record dropped for a fault is asked again with
+ * the fault named.
+ */
+export async function runLocal<K, E>(job: BatchJob<K, E>, concurrency = 4): Promise<BatchOutcome<E>> {
+  const { label, model } = job;
+  const entries = new Map<string, E>();
+  const usage: Usage = { requests: 0, inputTokens: 0, outputTokens: 0 };
+  let todo = [...job.items];
+  let notes = new Map<string, string>();
+  let dropped: string[] = [];
+
+  for (let pass = 0; pass < (job.passes ?? 3) && todo.length; pass += 1) {
+    const what = pass === 0 ? `${todo.length} requests` : `${todo.length} retries`;
+    console.log(`${label}: running ${what} through claude -p (${model}), ${concurrency} at a time...`);
+    const failed: K[] = [];
+    const nextNotes = new Map<string, string>();
+    dropped = [];
+    let next = 0;
+    let done = 0;
+    const worker = async () => {
+      for (;;) {
+        const i = next;
+        next += 1;
+        if (i >= todo.length) return;
+        const item = todo[i];
+        const id = job.idOf(item);
+        const result = await claudeOnce(model, job.request(item, notes.get(id)) as LocalParams);
+        const u = result.result.message?.usage;
+        if (u) {
+          usage.requests += 1;
+          usage.inputTokens += u.input_tokens + u.cache_creation_input_tokens + u.cache_read_input_tokens;
+          usage.outputTokens += u.output_tokens;
+        }
+        const { text, why: whyNoText } = messageText(result);
+        const { entry, why } = text === undefined ? { why: whyNoText } : job.parse(text, item);
+        done += 1;
+        if (entry) {
+          entries.set(id, entry);
+          console.log(`${label}: ${done}/${todo.length} ${id} ok`);
+        } else {
+          failed.push(item);
+          nextNotes.set(id, why ?? 'unknown');
+          dropped.push(`${id}: ${why}`);
+          console.log(`${label}: ${done}/${todo.length} ${id} dropped — ${why}`);
+        }
+      }
+    };
+    await Promise.all(Array.from({ length: Math.min(concurrency, todo.length) }, worker));
+    notes = nextNotes;
+    if (failed.length) console.log(`${label}: ${failed.length} to retry`);
+    todo = failed;
+  }
   return { entries, usage, dropped };
 }

@@ -1,0 +1,55 @@
+{
+  "promptVersion": 1,
+  "model": "claude-haiku-4-5 via claude -p",
+  "generated": "2026-09-06",
+  "usage": {
+    "requests": 1,
+    "inputTokens": 5862,
+    "outputTokens": 14021
+  },
+  "dossier": {
+    "title": "Canister Recovery",
+    "briefing": [
+      "We had a canister go adrift during transfer here at {HERE}. I cannot spare anyone to retrieve it, and you are the closest pilot with the skills to do it. Find the canister, scoop it up, and return it to this station. I am {PATRON}, and I can make this worth your while if you succeed."
+    ],
+    "legs": {
+      "find": {
+        "arrive": "RECOVERY: SCOOP THE CANISTER ADRIFT AT {TARGET}",
+        "success": "Canister scooped and secure in hold at {TARGET}.",
+        "fail": "Failed to recover canister at {TARGET} before deadline."
+      },
+      "home": {
+        "arrive": "RECOVERY: BRING THE CANISTER BACK TO {TARGET}",
+        "success": "Canister delivered to {TARGET}; recovery mission complete.",
+        "fail": "Recovery aborted; canister not returned to {TARGET}."
+      }
+    },
+    "lead": "{PATRON} at {WORLD} has a recovery job waiting - a canister went adrift.",
+    "rumour": {
+      "far": "{PATRON} at {WORLD} is recruiting a pilot for a recovery job - canister retrieval.",
+      "near": "From {PATRON} at {WORLD}: canister adrift during transfer, please retrieve it urgently."
+    },
+    "news": "{PATRON} at {WORLD} has posted a recovery contract for an adrift canister.",
+    "story": {
+      "opening": "Day {DAY} at {WORLD}: Commander accepted the recovery contract and set course outbound.",
+      "closing": {
+        "complete": "Day {DAY} at {WORLD}: Canister recovered and returned; contract complete.",
+        "fail": "Day {DAY} at {WORLD}: Recovery contract failed; canister not recovered in time."
+      },
+      "legs": {
+        "find": {
+          "success": "Day {DAY} at {WORLD}: Canister located and scooped successfully.",
+          "targetDestroyed": "Day {DAY} at {WORLD}: Target system lost to catastrophe; recovery impossible.",
+          "failed": "Day {DAY} at {WORLD}: Recovery attempt failed before canister could be scooped."
+        },
+        "home": {
+          "success": "Day {DAY} at {WORLD}: Canister delivered and contract fulfilled.",
+          "failed": "Day {DAY} at {WORLD}: Return journey failed; canister not delivered."
+        }
+      }
+    },
+    "skeleton": "side-recover",
+    "hash": "a9d75851",
+    "images": {}
+  }
+}

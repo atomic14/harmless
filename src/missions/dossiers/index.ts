@@ -5,5 +5,24 @@
 // here is missing from this list.
 
 import type { DossierFile } from '../model.ts';
+import d_constrictor from './constrictor.json' with { type: 'json' };
+import d_side_ambush from './side-ambush.json' with { type: 'json' };
+import d_side_deliver from './side-deliver.json' with { type: 'json' };
+import d_side_escort from './side-escort.json' with { type: 'json' };
+import d_side_hunt from './side-hunt.json' with { type: 'json' };
+import d_side_recover from './side-recover.json' with { type: 'json' };
+import d_side_rescue from './side-rescue.json' with { type: 'json' };
+import d_side_scan from './side-scan.json' with { type: 'json' };
+import d_side_smuggle from './side-smuggle.json' with { type: 'json' };
 
-export const DOSSIER_FILES: readonly DossierFile[] = [];
+export const DOSSIER_FILES: readonly DossierFile[] = [
+  d_constrictor as DossierFile,
+  d_side_ambush as DossierFile,
+  d_side_deliver as DossierFile,
+  d_side_escort as DossierFile,
+  d_side_hunt as DossierFile,
+  d_side_recover as DossierFile,
+  d_side_rescue as DossierFile,
+  d_side_scan as DossierFile,
+  d_side_smuggle as DossierFile,
+];

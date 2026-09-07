@@ -121,6 +121,12 @@ console.log('\n...and the validator refuses what the plan says it must');
     broken((d) => { d.story.opening = 'You took the job at {WORLD}.'; }).some((f) => f.includes('addresses the reader')));
   check('...while a briefing may', broken((d) => { d.briefing = ['You will do, pilot.']; }).length === 0);
   check('a banned word is a fault', broken((d) => { d.news = 'A vibrant offer waits.'; }).some((f) => f.includes('vibrant')));
+  check('{DAY} needs the word day before it',
+    broken((d) => { d.story.opening = 'On {DAY} she took the errand at {WORLD}.'; }).some((f) => f.includes('without the word "day"')));
+  check('a console line needs no full stop', broken((d) => { d.legs.pod.success = 'PILOT LANDED — {PAY}'; }).length === 0);
+  check('...but an empty one is a fault', broken((d) => { d.legs.pod.success = ''; }).some((f) => f.includes('is empty')));
+  check('...and three sentences are too many',
+    broken((d) => { d.legs.pod.success = 'Done. Paid. Go.'; }).some((f) => f.includes('wanted 0-2')));
   check('a fourth briefing page is one too many',
     broken((d) => { d.briefing = ['One.', 'Two.', 'Three.', 'Four.']; }).some((f) => f.includes('wanted 1-3')));
   check('a dossier for another skeleton is refused',

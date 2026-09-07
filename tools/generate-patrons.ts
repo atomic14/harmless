@@ -9,6 +9,11 @@
 //   --limit   generate only the first N worlds, for tasting a model cheaply.
 //   --out     write to patrons/<NAME>.json instead of galaxy-<n>.json, so two
 //             models can be read against each other before either is adopted.
+//   --via claude   run through `claude -p` on this machine's subscription,
+//             one process per world, instead of the batch API. No key needed.
+//   --fresh   ask for every world again. Without it, a run keeps the records
+//             the file already holds under the current prompt, and asks only
+//             for the worlds that lack one.
 //
 // The same shape as tools/generate-descriptions.ts, on the same batch runner
 // (tools/batch.ts). The prompt is tools/patron-prompts.ts's, and the reader
@@ -18,7 +23,7 @@ import { readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
 import type { PatronFile, PatronRecord } from '../src/missions/patrons.ts';
-import { newClient, reportCost, runBatches } from './batch.ts';
+import { newClient, reportCost, runBatches, runLocal, type BatchJob } from './batch.ts';
 import {
   PATRON_PROMPT_VERSION, PATRON_SYSTEM_PROMPT, patronDrift, patronFaults, patronPrompts,
   type PatronPrompt,
@@ -108,38 +113,106 @@ function recordFrom(text: string, want: PatronPrompt): { entry?: PatronRecord; w
   return { entry: { system: want.system, hash: want.hash, name, role: want.role, voice } };
 }
 
-async function generate(
-  galaxy: number, name: string, model: string, limit: number, existingBatch: string,
-): Promise<number> {
-  const client = await newClient('patrons');
-  if (!client) return 1;
+/**
+ * The records the committed file already holds under the current prompt.
+ *
+ * A run that stops halfway wrote what it had, and a rerun asks only for the
+ * rest. `--fresh` asks for every world again. A record whose hash moved is
+ * not kept, so the drift gate and this agree on what is still good.
+ */
+function keep(name: string, prompts: readonly PatronPrompt[], fresh: boolean): Record<string, PatronRecord> {
+  const file = fresh ? null : readFile(name);
+  if (!file || file.promptVersion !== PATRON_PROMPT_VERSION) return {};
+  const out: Record<string, PatronRecord> = {};
+  for (const p of prompts) {
+    const e = file.entries[String(p.index)];
+    if (e && e.system === p.system && e.hash === p.hash) out[String(p.index)] = e;
+  }
+  return out;
+}
 
-  const prompts = patronPrompts(galaxy).slice(0, limit);
-  const { entries: got, usage, dropped } = await runBatches<PatronPrompt, PatronRecord>(client, {
+async function generate(
+  galaxy: number, name: string, model: string, limit: number, existingBatch: string, via: string,
+  fresh: boolean,
+): Promise<number> {
+  const all = patronPrompts(galaxy).slice(0, limit);
+  const entries = keep(name, all, fresh);
+  const prompts = all.filter((p) => !(String(p.index) in entries));
+  if (Object.keys(entries).length) {
+    console.log(`patrons: ${Object.keys(entries).length} kept from ${name}.json, ${prompts.length} to write`);
+  }
+  const before = readFile(name)?.usage ?? { requests: 0, inputTokens: 0, outputTokens: 0 };
+  const job: BatchJob<PatronPrompt, PatronRecord> = {
     label: 'patrons', model, items: prompts,
     idOf: (p) => `sys-${p.index}`,
     request: requestFor,
     parse: recordFrom,
     existingBatch,
-  });
-
-  const entries: Record<string, PatronRecord> = {};
+  };
+  let run;
+  if (via === 'claude') {
+    run = await runLocal(job);
+  } else {
+    const client = await newClient('patrons');
+    if (!client) return 1;
+    run = await runBatches(client, job);
+  }
+  const { entries: got, usage, dropped } = run;
   for (const p of prompts) {
     const e = got.get(`sys-${p.index}`);
     if (e) entries[String(p.index)] = e;
   }
 
+  // ONE NAME, ONE PATRON. A name a model likes comes back on many worlds:
+  // the first run gave two of its first six worlds the same man. A repeat
+  // is asked again with the taken names listed, once, and a repeat that
+  // survives that is dropped rather than shipped twice.
+  const taken = new Set<string>();
+  const repeats: PatronPrompt[] = [];
+  for (const p of all) {
+    const e = entries[String(p.index)];
+    if (!e) continue;
+    if (taken.has(e.name.toLowerCase())) { repeats.push(p); delete entries[String(p.index)]; }
+    else taken.add(e.name.toLowerCase());
+  }
+  if (repeats.length) {
+    console.log(`patrons: ${repeats.length} repeated a name, asking again`);
+    const again: BatchJob<PatronPrompt, PatronRecord> = {
+      ...job, items: repeats, passes: 1,
+      request: (p, note) => requestFor(p, `${note ? `${note}. ` : ''}These names belong to other worlds already, so choose one that none of them share: ${[...taken].join(', ')}`),
+    };
+    const more = via === 'claude' ? await runLocal(again) : await runBatches(await newClient('patrons'), again);
+    usage.requests += more.usage.requests;
+    usage.inputTokens += more.usage.inputTokens;
+    usage.outputTokens += more.usage.outputTokens;
+    for (const p of repeats) {
+      const e = more.entries.get(`sys-${p.index}`);
+      if (!e) { dropped.push(`sys-${p.index}: repeated a name`); continue; }
+      if (taken.has(e.name.toLowerCase())) { dropped.push(`sys-${p.index}: repeated ${e.name} again`); continue; }
+      taken.add(e.name.toLowerCase());
+      entries[String(p.index)] = e;
+    }
+  }
+  // The tokens of every run that wrote a kept record, so the file still
+  // answers what the whole galaxy cost.
+  const spent = fresh ? usage : {
+    requests: before.requests + usage.requests,
+    inputTokens: before.inputTokens + usage.inputTokens,
+    outputTokens: before.outputTokens + usage.outputTokens,
+  };
+
   const file: PatronFile = {
     galaxy,
     promptVersion: PATRON_PROMPT_VERSION,
-    model,
+    model: via === 'claude' ? `${model} via claude -p` : model,
     generated: new Date().toISOString().slice(0, 10),
-    usage,
-    entries,
+    usage: spent,
+    // Sorted numerically so the committed file diffs cleanly between runs.
+    entries: Object.fromEntries(Object.entries(entries).sort((a, b) => Number(a[0]) - Number(b[0]))),
   };
   writeFileSync(filePath(name), `${JSON.stringify(file, null, 2)}\n`);
 
-  console.log(`patrons: wrote ${Object.keys(entries).length}/${prompts.length} to ${name}.json`);
+  console.log(`patrons: wrote ${Object.keys(entries).length}/${all.length} to ${name}.json`);
   if (dropped.length) console.log(`patrons: dropped ${dropped.length} —\n  ${dropped.join('\n  ')}`);
   reportCost('patrons', usage, model, patronPrompts(galaxy).length);
   return 0;
@@ -153,12 +226,13 @@ const flag = (n: string, d = ''): string => {
   return i >= 0 ? (argv[i + 1] ?? d) : d;
 };
 
-const galaxy = Number(argv.find((a) => /^\d+$/.test(a)) ?? 1);
+// A bare number not behind a flag: `--limit 3` is a limit, not galaxy 3.
+const galaxy = Number(argv.find((a, i) => /^\d+$/.test(a) && !argv[i - 1]?.startsWith('--')) ?? 1);
 const name = flag('out') || `galaxy-${galaxy}`;
 
 process.exit(argv.includes('--check')
   ? check(galaxy, name)
   : await generate(
     galaxy, name, flag('model') || DEFAULT_MODEL,
-    Number(flag('limit')) || Infinity, flag('batch'),
+    Number(flag('limit')) || Infinity, flag('batch'), flag('via'), argv.includes('--fresh'),
   ));

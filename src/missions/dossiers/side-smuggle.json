@@ -1,0 +1,47 @@
+{
+  "promptVersion": 1,
+  "model": "claude-haiku-4-5 via claude -p",
+  "generated": "2026-09-06",
+  "usage": {
+    "requests": 15,
+    "inputTokens": 85254,
+    "outputTokens": 216573
+  },
+  "dossier": {
+    "title": "Silent Run",
+    "briefing": [
+      "I'm {PATRON} here at {HERE}. I need three tonnes of narcotics moved to a neighbouring world, past the patrols. This is quiet work, entirely off the books.",
+      "You land at the target unscanned, drop the cargo, and leave. No police inspections, no records, nothing traced. The authorities are vigilant, so you'll need to plan your approach.",
+      "Payment waits at the destination. It's straightforward work if you're discreet. Are you interested?"
+    ],
+    "legs": {
+      "run": {
+        "arrive": "Transport narcotics to {TARGET} unscanned for {PAY}.",
+        "success": "Cargo delivered unscanned to {TARGET} for {PAY}.",
+        "fail": "Run to {TARGET} failed, no {PAY} issued."
+      }
+    },
+    "lead": "{PATRON} at {WORLD} has quiet work available.",
+    "rumour": {
+      "far": "{PATRON} at {WORLD} has work for qualified pilots.",
+      "near": "{PATRON} at {WORLD} has discrete, immediate, profitable work available."
+    },
+    "news": "{PATRON} at {WORLD} seeks pilots for a quiet delivery contract.",
+    "story": {
+      "opening": "The commander accepted a smuggling contract at {WORLD} on day {DAY}.",
+      "closing": {
+        "complete": "The smuggling contract at {WORLD} was fulfilled on day {DAY}.",
+        "fail": "The smuggling run to {WORLD} failed on day {DAY}."
+      },
+      "legs": {
+        "run": {
+          "success": "Narcotics landed unscanned at {WORLD}, and payment was received on day {DAY}.",
+          "failed": "Cargo to {WORLD} was intercepted or deadline passed on day {DAY}."
+        }
+      }
+    },
+    "skeleton": "side-smuggle",
+    "hash": "52dfd22e",
+    "images": {}
+  }
+}
