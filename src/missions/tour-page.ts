@@ -17,6 +17,8 @@ import { dossierFor } from './dossiers.ts';
 import type { CommanderFacts, Dossier, Leg, Patron, Skeleton, Verb } from './model.ts';
 import { patronFor } from './patrons.ts';
 import { routeMapSvg } from './route-map.ts';
+import { storyPages } from './story.ts';
+import { emptyMissionState } from './state.ts';
 import { ARC_TOUR, SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots } from './text.ts';
 import { sameTrigger, successTrigger } from './triggers.ts';
@@ -64,9 +66,9 @@ export function verbWord(verb: Verb): string {
   return verb.kind.charAt(0).toUpperCase() + verb.kind.slice(1);
 }
 
-/** The order for a reader, with the target unnamed. */
+/** The order for a reader, with the target unnamed, in the line's own shouted case. */
 function plainLine(leg: Leg): string {
-  return fillSlots(leg.line, { TARGET: 'the target', PAY: 'the fee' });
+  return fillSlots(leg.line, { TARGET: 'THE TARGET', PAY: 'THE FEE' });
 }
 
 /**
@@ -143,4 +145,33 @@ export function tourModel(
   const sideJobs = [...byVerb.entries()].map(([verb, jobs]) => ({ verb, jobs }));
 
   return { arcs: entries, sideJobs, routeSvg: routeMapSvg(systems, entries.map((a) => a.world.index)) };
+}
+
+/**
+ * The worked example's journal: the rescue side job at Lave, the pod shot
+ * before the scoop, the survey data delivered home, the job complete.
+ * docs/TODO/190's scientist, as one fixed record. The page renders it
+ * through the game's own log builder, so the two cannot differ.
+ */
+export function exampleJournal(origin: number, away: number) {
+  const st = emptyMissionState();
+  st.journal.push(
+    { skeleton: 'side-rescue', leg: 'pod', outcome: 'accepted', day: 3, world: origin },
+    { skeleton: 'side-rescue', leg: 'pod', outcome: 'targetDestroyed', day: 5, world: away },
+    { skeleton: 'side-rescue', leg: 'data', outcome: 'success', day: 7, world: origin },
+    { skeleton: 'side-rescue', leg: 'data', outcome: 'complete', day: 7, world: origin },
+  );
+  return st;
+}
+
+/** The example as the LOG screen would show it: its pages, its route, and its patron. */
+export function exampleLog(
+  systems: readonly StarSystem[], galaxy = 1, dossiers: (id: string) => Dossier | null = dossierFor,
+): { pages: ReturnType<typeof storyPages>; route: string; portrait: string; patron: string } {
+  const origin = 7;
+  const away = systems.find((s) => s.index !== origin && s.name === 'Leesti')?.index ?? 8;
+  const st = exampleJournal(origin, away);
+  const pages = storyPages(st, systems, SKELETONS, dossiers);
+  const patron = patronFor({ kind: 'local' }, facts(galaxy, origin), systems, origin);
+  return { pages, route: routeMapSvg(systems, [origin, away, origin]), portrait: patron.portrait, patron: patron.name };
 }

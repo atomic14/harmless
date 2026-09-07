@@ -72,6 +72,13 @@ export function tourHtml(m: TourModel, example: string): string {
 
       <section id="example">
         <h2>A failure is a branch</h2>
+        <p>A mission never ends at the first thing that goes wrong. Each leg
+          says what happens on each way it can end, and a loss is a way. Here
+          is the rescue job as the game's own log tells it: a survey pilot's
+          pod adrift one jump out, the pod shot before the scoop, and the
+          survey data, which came across first, carried home for a lower fee.
+          The job is done, not failed. An arc keeps its lead to the next
+          patron on either outcome, so a lost arc still moves you on.</p>
         ${example}
       </section>`;
 }

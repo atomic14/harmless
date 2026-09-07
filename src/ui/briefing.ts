@@ -56,10 +56,13 @@ export const BRIEFING: { title: string; body: string }[] = [
     title: 'WHERE YOU ARE',
     body: `You are docked at a space station in your own Cobra Mk III, with
       ${STARTING_CREDITS / 10} credits and a rating of Harmless.<br/><br/>
-      Nobody will give you a mission or tell you where to go. You make money by
-      hauling cargo between worlds that want different things, and you spend it
-      on a better ship, and that is the whole game. The only score that matters
-      is your combat rating, which starts at <b>Harmless</b>.<br/><br/>
+      Nobody tells you where to go. You make money by hauling cargo between
+      worlds that want different things, and you spend it on a better ship,
+      and that is the whole game. The only score that matters is your combat
+      rating, which starts at <b>Harmless</b>. When you want work, the patrons
+      who have it wait on the MISSIONS screen, and
+      <a href="/missions" target="_blank">the mission tour</a> says who they
+      are.<br/><br/>
       Everything on this menu is a letter key. <b>&uarr; &darr;</b> and
       <b>ENTER</b> work too. <b>${KEY.help}</b> shows every control, here and
       in flight; <b>${KEY.briefing}</b> reopens this briefing whenever you

@@ -21,7 +21,7 @@ import { SIDE_JOBS } from '../src/missions/skeletons/side.ts';
 import { ARC_VETITICE } from '../src/missions/skeletons/arcs/vetitice.ts';
 import { storyPages } from '../src/missions/story.ts';
 import { tourHtml } from '../src/missions/tour-html.ts';
-import { recoveryLegs, tourModel } from '../src/missions/tour-page.ts';
+import { exampleLog, recoveryLegs, tourModel } from '../src/missions/tour-page.ts';
 import { logHtml } from '../src/ui/screens-log.ts';
 import { captureById } from './screen-capture.ts';
 import { g1 } from './fixtures.ts';
@@ -115,4 +115,20 @@ console.log('\n...and the page has its four homes, and a clean link to each');
     story: { opening: '', closing: { complete: '', fail: '' }, legs: {} },
   }));
   check('a dossier\'s markup is escaped, never set', !tourHtml(hostile, '').includes('<script>') && tourHtml(hostile, '').includes('&lt;script&gt;'));
+}
+
+console.log('\n...and the worked example is the game\'s own log of the scientist');
+{
+  const ex = exampleLog(g1);
+  eq('one run, one page', ex.pages.length, 1);
+  eq('...told in four lines', ex.pages[0].lines.length, 4);
+  eq('...that ends done, not failed', ex.pages[0].ending, 'complete');
+  check('...through the pod lost and the data delivered',
+    ex.pages[0].lines[1].toLowerCase().includes('pod') && ex.pages[0].lines[2].toLowerCase().includes('data'));
+  check('the route is Lave, out, and home', ex.route.includes('class="visited"') && ex.pages[0].worlds.length === 3);
+  check('the patron is Lave\'s, with a face', ex.portrait === 'species/007-lave.png' && ex.patron.length > 0);
+  const built = logHtml(ex);
+  check('the page sets the builder\'s markup for it', tourHtml(tourModel(g1), built).includes(built));
+  const plain = exampleLog(g1, 1, () => null);
+  check('...and with no dossier the plain words still tell it', plain.pages[0].lines.every((l) => l.startsWith('DAY ')));
 }
