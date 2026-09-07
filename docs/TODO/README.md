@@ -13,8 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [196](196-a-dead-thargon-is-a-tonne-of-alien-items.md) — a dead Thargon is
-   a tonne of alien items.
+The queue is empty.
 
 **ALL THREE ITEMS CAME OUT OF CHRIS'S PLAYTEST ON 2026-09-06.** They are
 GitHub #42, #43 and #41, and triage on 2026-09-07 read each one against the
@@ -22,8 +21,8 @@ code that runs. The order is by value over cost. 194 is one line of cause. A
 ram takes the same door as a missile. That door marks the ship as provoked
 by the commander. 195 is a key and a shared body, because only death
 fires the pod today. 196 is the largest, because a dead drone must move from
-the sky into the cargo field, and the inert state then has no writer. **194
-and 195 landed the same day**, and both are below.
+the sky into the cargo field, and the inert state then has no writer. **ALL THREE
+LANDED THE SAME DAY**, and each is below.
 
 **191, 192 AND 193 ARE THE THREE PLANS 190 PROPOSED**, drafted on 2026-09-06
 after it landed. The pipeline came first, so the arcs ship with words. **191
@@ -232,6 +231,15 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-07
+
+**196 — a dead Thargon is a tonne of alien items.** GitHub #41. The drones
+went inert and stayed in the sky, where the scoop reaches nothing. Each one
+leaves the sky for the cargo field now, with the Thargon's hull and bank,
+where it fell. The scoop reads it as a tonne of Alien Items. The inert
+state then had no writer, and it is gone with its behaviour and every check
+on it. The ambush probe's row did not move. The market sells Alien Items in
+825 of 2,048 systems today, and that is a question for Chris. 5,555
+assertions, from 5,538.
 
 **195 — Q launches the escape pod.** GitHub #43. Only death fired the pod.
 One body deploys it now, and death and the key both call it. Q launches it,

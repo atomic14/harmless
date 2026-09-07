@@ -124,3 +124,56 @@ Gates:
   item for one run.
 - `test/constants.test.ts` or `test/elite-a-catalogue.test.ts`: `ALIEN_ITEMS`
   and `SLAVES` each equal their row's scoop id plus one.
+
+## Outcome
+
+### M1 — the drones become cargo
+
+`CanisterKind` gains `drone`. A drone item builds from the Thargon's hull, in
+the roster's colour, with the Thargon's own profile behind it, through a new
+`OBJECT_DESIGNS.deadDrone`. `CargoField.spawnDrone` puts one adrift where the
+drone fell, as it faced. `destroyShip` despawns each live Thargon and spawns
+the item when the last mothership dies, over a copy of the list. The scoop
+branch never asks the kind, because the item carries `ALIEN_ITEMS`. The two
+hull lines name a Thargon. The scanner shows a cargo blip. A snapshot keeps a
+drone, and the parser accepts the kind.
+
+`ALIEN_ITEMS` is 16, and `test/elite-a-catalogue.test.ts` holds it to the
+Thargon row's scoop id plus one, beside `SLAVES` to the pod row's. `DRONE_GRAZE`
+is 40, the Thargon's catalogue radius, on the rule the canister and the pod
+follow.
+
+**THREE OTHER CONSTANTS SHARE THE VALUE 16, AND THE PLAN DID NOT HAVE IT.** The
+catalogue gate asks every equal value for its own rule id, and
+`MISSION_KILL_THRESHOLD`, `WITCHPOINT_RADII` and `MAX_SAVE_NAME` had none. Each
+has one now.
+
+**THE MARKET SELLS ALIEN ITEMS TODAY.** A sweep of every system in all eight
+galaxies found the row on sale in 825 of 2,048, at some fluctuation. The
+original never sold it, as far as the record here goes, and that memory is
+not confirmed. This item does not touch the market. It is a question for
+Chris.
+
+`test/dead-drone.test.ts`: 13 assertions through the real game. **Proved able
+to fail**: a drone spawned as a canister reddens four of them. The
+deactivation test in `test/combat.test.ts` moved with the rule. `npm run
+elite-a` passed. 5,538 assertions became 5,557.
+
+### M2 — `inert` has no writer, so it goes
+
+The state, `inertTumble` and its rate, the inert-first dispatch, and the
+checks in `hostility.ts`, `collisions.ts`, `npc-attack-run.ts` and the drone
+count all go. **Two readers the plan did not name**: `hud-binding.ts` filtered
+the witch-space compass on it, and `train/ambush-probe.ts` counted live drones
+on it. Six fixtures drop the flag. The idle test loses its inert case, and
+the trader test loses the dispatch-order case that docs/TODO/184 M2 wrote. The
+headers and the architecture map are repaired in the same commit.
+
+`npm run ambush-probe` ran once after M2, and its row is byte-identical to the
+one docs/TODO/188 recorded for the shipped cap: 100% survived, 76% pools left,
+1.38 mothers, 1.02 drones, 2.0 / 2 at peak, 56% drone share. So no fight
+number moved. 5,557 assertions became 5,555.
+
+### M3 — the manual says so
+
+One sentence in the fuel scoops entry.
