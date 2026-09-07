@@ -72,7 +72,10 @@ function setup() {
       'sound:tunnel',
       'presentation:tunnel:in',
       'presentation:screen:docked',
-      // The three side jobs on Lave's board, as one line (docs/TODO/190 M4).
+      // The governor of Lave's arc hails from the first dock (docs/TODO/192),
+      // and the three side jobs on Lave's board wait behind it as one line
+      // (docs/TODO/190 M4).
+      'message:THE GOVERNOR OF LAVE HAS A JOB FOR YOU',
       'message:3 SIDE JOBS ON THE STATION BOARD',
       'message:CONTRACT SETTLED',
     ].join('|'));

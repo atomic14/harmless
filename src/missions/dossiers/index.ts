@@ -5,6 +5,11 @@
 // here is missing from this list.
 
 import type { DossierFile } from '../model.ts';
+import d_arc_edle from './arc-edle.json' with { type: 'json' };
+import d_arc_lave from './arc-lave.json' with { type: 'json' };
+import d_arc_rabedira from './arc-rabedira.json' with { type: 'json' };
+import d_arc_vetitice from './arc-vetitice.json' with { type: 'json' };
+import d_arc_xeer from './arc-xeer.json' with { type: 'json' };
 import d_constrictor from './constrictor.json' with { type: 'json' };
 import d_side_ambush from './side-ambush.json' with { type: 'json' };
 import d_side_deliver from './side-deliver.json' with { type: 'json' };
@@ -16,6 +21,11 @@ import d_side_scan from './side-scan.json' with { type: 'json' };
 import d_side_smuggle from './side-smuggle.json' with { type: 'json' };
 
 export const DOSSIER_FILES: readonly DossierFile[] = [
+  d_arc_edle as DossierFile,
+  d_arc_lave as DossierFile,
+  d_arc_rabedira as DossierFile,
+  d_arc_vetitice as DossierFile,
+  d_arc_xeer as DossierFile,
   d_constrictor as DossierFile,
   d_side_ambush as DossierFile,
   d_side_deliver as DossierFile,

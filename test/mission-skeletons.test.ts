@@ -9,6 +9,7 @@
 import { SKELETONS } from '../src/missions/skeletons/index.ts';
 import { lintSkeleton } from '../src/missions/lint.ts';
 import type { Skeleton } from '../src/missions/model.ts';
+import { routeEstimate } from '../src/galaxy/route.ts';
 import { g1 } from './fixtures.ts';
 import { check, eq } from './harness.ts';
 
@@ -32,7 +33,7 @@ function arc(over: Partial<Skeleton> = {}): Skeleton {
         next: [{ on: 'success', to: 'two' }, { on: 'failed', to: 'fail' }],
       },
       {
-        id: 'two', verb: { kind: 'deliver' }, place: { kind: 'here' }, line: 'TWO',
+        id: 'two', verb: { kind: 'deliver' }, place: { kind: 'handover', toward: 'b', min: 2, max: 4 }, line: 'TWO',
         next: [{ on: 'success', to: 'complete' }, { on: 'failed', to: 'fail' }],
       },
     ],
@@ -41,8 +42,16 @@ function arc(over: Partial<Skeleton> = {}): Skeleton {
     ...over,
   };
 }
-const b: Skeleton = { ...arc(), id: 'b', complete: { pay: 0 }, fail: { pay: 0 } };
+// b starts at Rabedira, four jumps from Lave, so a fixed final leg can be measured against it.
+const b: Skeleton = {
+  ...arc(), id: 'b', patron: { kind: 'world', seedSlot: 6 }, complete: { pay: 0 }, fail: { pay: 0 },
+  legs: [{ ...arc().legs[1], id: 'one', place: { kind: 'here' } }],
+};
 const legs = () => arc().legs;
+/** A world eight or more jumps from Rabedira: too far for a final leg. */
+const far = g1.find((s) => (routeEstimate(g1, g1[6], s)?.jumps ?? 0) >= 8)!.index;
+const withOverride = (leg: Skeleton['legs'][number], set: 'constrictor' | 'thargoid', where: 'target' | 'everywhere') =>
+  ({ ...leg, override: { set, where } });
 
 eq('the fixture itself is clean', lintSkeleton(arc(), [arc(), b], g1).join('; '), '');
 
@@ -72,6 +81,24 @@ const faults: [string, Skeleton, readonly Skeleton[], string][] = [
   ['a verb with no module',
     arc({ legs: [{ ...legs()[0], verb: { kind: 'teleport' } as never }, legs()[1]] }),
     [b], 'no module'],
+  ['a final leg six jumps from the lead\'s world',
+    arc({ legs: [legs()[0], { ...legs()[1], place: { kind: 'world', seedSlot: far } }] }),
+    [b], 'jumps from the lead'],
+  ['a final leg that hands over toward the wrong arc',
+    arc({ legs: [legs()[0], { ...legs()[1], place: { kind: 'handover', toward: 'a', min: 2, max: 4 } }] }),
+    [b], 'and the lead is b'],
+  ['a handover band wider than the rule',
+    arc({ legs: [legs()[0], { ...legs()[1], place: { kind: 'handover', toward: 'b', min: 2, max: 6 } }] }),
+    [b], 'outside 2-4'],
+  ['a final leg placed by a band of tenths',
+    arc({ legs: [legs()[0], { ...legs()[1], place: { kind: 'band', min: 30, max: 80 } }] }),
+    [b], 'too far from the lead'],
+  ['a final leg placed where she stands',
+    arc({ legs: [legs()[0], { ...legs()[1], place: { kind: 'here' } }] }),
+    [b], 'cannot be measured'],
+  ['two arcs that force two sets everywhere',
+    arc({ legs: [withOverride(legs()[0], 'constrictor', 'everywhere'), legs()[1]] }),
+    [{ ...b, legs: [withOverride(b.legs[0], 'thargoid', 'everywhere')] }], 'forces constrictor where b/one forces thargoid'],
   ['a handover toward a skeleton that does not exist',
     arc({ legs: [{ ...legs()[0], place: { kind: 'handover', toward: 'ghost', min: 2, max: 4 } }, legs()[1]] }),
     [b], 'unknown skeleton ghost'],

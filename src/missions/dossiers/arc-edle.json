@@ -1,0 +1,78 @@
+{
+  "promptVersion": 1,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
+  "usage": {
+    "requests": 7,
+    "inputTokens": 59611,
+    "outputTokens": 44166
+  },
+  "dossier": {
+    "briefing": [
+      "Manifest first: one transporter hull, one escort run, one salvage sweep, one kill order. This is Colonel {PATRON}, state guard, out of {HERE}. You carry the manifest to the target, you see the transporter home, and if it burns, you scoop what falls from it.",
+      "Then you find the Asp that hunts it and you put it down, however it runs. The state pays on delivery, not on excuses. Fail me once and the contract ends there."
+    ],
+    "legs": {
+      "manifest": {
+        "arrive": "Take the manifest to {TARGET}. Fee on delivery: {PAY}.",
+        "success": "Manifest delivered to {TARGET}. {PAY} logged.",
+        "fail": "Manifest lost before {TARGET}. No fee earned."
+      },
+      "guard": {
+        "arrive": "See the transporter into station range at {TARGET}. {PAY} on arrival.",
+        "success": "Transporter docked safe at {TARGET}. {PAY} confirmed.",
+        "fail": "Transporter lost before {TARGET}. Contract fails."
+      },
+      "wreck": {
+        "arrive": "Scoop the transporter's cargo adrift at {TARGET}. {PAY} on recovery.",
+        "success": "Cargo recovered near {TARGET}. {PAY} logged.",
+        "fail": "Cargo unrecovered near {TARGET}. Contract fails."
+      },
+      "purge": {
+        "arrive": "Destroy the Asp, last seen at {TARGET}. {PAY} on kill.",
+        "success": "Asp accounted for near {TARGET}. {PAY} paid in full.",
+        "fail": "Asp still loose near {TARGET}. Contract fails."
+      }
+    },
+    "lead": "Colonel {PATRON} wants a word, docked at {WORLD}.",
+    "rumour": {
+      "far": "Word travels that a state guard colonel named {PATRON} hires pilots for a manifest run out of {WORLD}.",
+      "near": "{PATRON} has docked at {WORLD} and wants you for the manifest contract."
+    },
+    "news": "State guard business waits for a pilot at {WORLD}; ask the docking officer for {PATRON}.",
+    "title": "The Colonel's Manifest",
+    "story": {
+      "opening": "On day {DAY} she took the colonel's manifest contract at {WORLD}.",
+      "closing": {
+        "complete": "By day {DAY} the Asp was accounted for and the contract closed at {WORLD}.",
+        "fail": "By day {DAY} the contract collapsed and the colonel's orders went unanswered at {WORLD}."
+      },
+      "legs": {
+        "manifest": {
+          "success": "On day {DAY} she delivered the manifest to {WORLD}.",
+          "failed": "On day {DAY} the manifest never reached {WORLD}, and the contract died."
+        },
+        "guard": {
+          "success": "On day {DAY} she saw the transporter safe into range at {WORLD}.",
+          "targetDestroyed": "On day {DAY} the transporter was destroyed near {WORLD}.",
+          "targetEscaped": "On day {DAY} the transporter jumped clear of {WORLD}.",
+          "failed": "On day {DAY} the escort failed near {WORLD}."
+        },
+        "wreck": {
+          "success": "On day {DAY} she scooped the transporter's cargo adrift near {WORLD}.",
+          "targetDestroyed": "On day {DAY} the wreck was lost before she reached {WORLD}.",
+          "failed": "On day {DAY} the salvage run failed near {WORLD}."
+        },
+        "purge": {
+          "targetDestroyed": "On day {DAY} the Asp was destroyed near {WORLD}.",
+          "targetEscaped": "On day {DAY} the Asp escaped near {WORLD}.",
+          "targetFled": "On day {DAY} the Asp fled from {WORLD}.",
+          "failed": "On day {DAY} the hunt for the Asp failed near {WORLD}."
+        }
+      }
+    },
+    "skeleton": "arc-edle",
+    "hash": "b9f03efa",
+    "images": {}
+  }
+}

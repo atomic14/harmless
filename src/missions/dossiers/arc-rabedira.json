@@ -1,0 +1,68 @@
+{
+  "promptVersion": 1,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
+  "usage": {
+    "requests": 7,
+    "inputTokens": 59611,
+    "outputTokens": 44166
+  },
+  "dossier": {
+    "briefing": [
+      "Friend of the cause, welcome to {HERE}. I am {PATRON}, and already I owe you thanks before you have named your price.",
+      "Carry my truce paper to the neighbour that waits for it, and every door in this sector opens wider for you. When the ink is dry, walk my Boa safely home, and I will remember the favour twice over.",
+      "Do this for the cause, friend, and you will find {PATRON} a patron worth keeping."
+    ],
+    "lead": "A signal from {WORLD} says {PATRON} wants a word with her.",
+    "legs": {
+      "paper": {
+        "arrive": "Carry the truce paper to {TARGET} for {PAY}, friend.",
+        "success": "The truce paper reached {TARGET}, and {PAY} is already yours.",
+        "fail": "The truce paper never reached {TARGET}, and the {PAY} stays locked away."
+      },
+      "convoy": {
+        "arrive": "See my Boa safely into range at {TARGET}, and earn the {PAY} promised.",
+        "success": "The Boa reached station range at {TARGET}, and {PAY} is paid in full.",
+        "fail": "The Boa never reached {TARGET}, and the {PAY} goes unpaid."
+      },
+      "salvage": {
+        "arrive": "Scoop the strongbox adrift near {TARGET}, friend, and the {PAY} still stands.",
+        "success": "The strongbox came aboard near {TARGET}, and {PAY} is yours.",
+        "fail": "The strongbox stayed lost near {TARGET}, and the {PAY} slipped away."
+      }
+    },
+    "news": "{PATRON} has work waiting at {WORLD} for any pilot willing to help the cause.",
+    "rumour": {
+      "far": "Traders say an envoy named {PATRON} is buying goodwill at {WORLD}.",
+      "near": "{PATRON} sends word from {WORLD}: come quickly, friend, the cause cannot wait."
+    },
+    "story": {
+      "opening": "On day {DAY} at {WORLD}, she took the envoy's truce for delivery.",
+      "closing": {
+        "complete": "By day {DAY} at {WORLD}, the truce had done its work.",
+        "fail": "By day {DAY} at {WORLD}, the truce mission had collapsed."
+      },
+      "legs": {
+        "paper": {
+          "success": "On day {DAY} at {WORLD}, the truce paper reached its hands.",
+          "failed": "On day {DAY} at {WORLD}, the truce paper never arrived."
+        },
+        "convoy": {
+          "success": "On day {DAY} at {WORLD}, the Boa reached station range safely.",
+          "targetDestroyed": "On day {DAY} at {WORLD}, the Boa was destroyed before reaching harbour.",
+          "targetEscaped": "On day {DAY} at {WORLD}, the Boa jumped away before she could close.",
+          "failed": "On day {DAY} at {WORLD}, the escort mission failed outright."
+        },
+        "salvage": {
+          "success": "On day {DAY} at {WORLD}, she scooped the strongbox from the wreck.",
+          "targetDestroyed": "On day {DAY} at {WORLD}, her ship was lost chasing the strongbox.",
+          "failed": "On day {DAY} at {WORLD}, the strongbox slipped from her reach."
+        }
+      }
+    },
+    "title": "Truce for Rabedira",
+    "skeleton": "arc-rabedira",
+    "hash": "b091d11f",
+    "images": {}
+  }
+}

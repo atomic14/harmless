@@ -59,8 +59,9 @@ console.log('\nthe station line and the briefing, through a real Game');
   // The gun warning EXPLAINS the order, so it queues behind it (session.ts).
   // Said in the same frame it took the console away, and a commander with
   // the wrong gun never saw that the Navy had called. The board's own line
-  // about its side jobs waits in the same queue, so the window is long.
-  const after = said(1200);
+  // about its side jobs waits in the same queue, and so does the governor
+  // of Lave's hail since docs/TODO/192, so the window is long.
+  const after = said(1800);
   // The dossier's arrive line where one ships (docs/TODO/191), else the skeleton's.
   const d = dossierFor('constrictor');
   const live = c.missions.live[0];

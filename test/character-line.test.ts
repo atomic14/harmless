@@ -42,6 +42,10 @@ function flying(seed: number): { g: Game; fly: (steps: number) => string[] } {
   }).value;
   const fly = consoleWatcher(g);
   fly(400);                                  // past the launch tunnel
+  // ...and past whatever the dock queued. The first dock at Lave hails the
+  // governor's arc since docs/TODO/192, and a line still queued from it
+  // would land among the deed's own lines below.
+  for (let s = 0; s < 60 && (g.state.session.messageText || g.state.session.queued.length); s += 1) fly(60);
   // An empty sky and a ship at rest: a fight in the same seconds as the deed
   // would put its own lines on the console and make the ORDER ambiguous, which
   // is the one thing every block below is about.

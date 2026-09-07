@@ -219,7 +219,9 @@ Two quirks are deliberate:
   a lead. It writes the MISSIONS row, the board rumour, the DATA ON line, and
   the one message a dock may say. All eight verbs have a module under
   `verbs/`. `skeletons/side.ts` is one local side job per verb, so every
-  verb is a job a player can take. The escort and the scan verdicts are the
+  verb is a job a player can take. `skeletons/arcs/` holds the five arcs
+  of the tour, one file each, and `ARC_TOUR` lists them in order
+  (docs/TODO/192). The escort and the scan verdicts are the
   world's to give, and `world-step.ts` gives them. `story.ts` tells the
   journal as pages, one per run, in a dossier's words where one exists and
   the skeleton's plain words where none does. `route-map.ts` draws the

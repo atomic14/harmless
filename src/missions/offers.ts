@@ -97,6 +97,9 @@ export function canAccept(st: MissionState, id: string, ctx: OfferContext): bool
   if (ended.count > 0 && ctx.commander.day < ended.lastDay + MISSION_REOFFER_DAYS) return false;
   if (excluded(st, id, from)) return false;
   if (leadHere(st, id, ctx.commander)) return true;
+  // A world patron waits at home, so her arc is offered there and nowhere
+  // else (docs/TODO/192 M2). `withinJumps` widens that in M3.
+  if (s.patron.kind === 'world' && s.patron.seedSlot !== ctx.commander.systemIndex) return false;
   return localJobHere(s, ctx.commander, ctx.systems) && gateOpen(s.offer, st, ctx.commander);
 }
 

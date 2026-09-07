@@ -1,0 +1,70 @@
+{
+  "promptVersion": 1,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
+  "usage": {
+    "requests": 7,
+    "inputTokens": 59611,
+    "outputTokens": 44166
+  },
+  "dossier": {
+    "briefing": [
+      "I am {PATRON}, governor of {HERE}. The grub yield this season meets quota, and the export ledger tracks it, canister by canister.",
+      "The ledger went missing with a smuggler, and the export figures are now unverified. Recover the canister, and see the smuggler answer for it.",
+      "Complete this, and your fee follows the numbers, not the story."
+    ],
+    "legs": {
+      "ledger": {
+        "arrive": "Scoop the canister adrift at {TARGET}, and earn {PAY}.",
+        "success": "The canister is recovered, and {PAY} is credited to you.",
+        "fail": "The canister is gone, and {PAY} stays out of reach."
+      },
+      "witness": {
+        "arrive": "Hold the partner's Cobra at {TARGET} on your scanner for {PAY}.",
+        "success": "You held the scan clean, and {PAY} is credited to you.",
+        "fail": "The scan broke, and {PAY} stays out of reach."
+      },
+      "runner": {
+        "arrive": "Destroy the smuggler's Cobra, last seen at {TARGET}, for {PAY}.",
+        "success": "The smuggler is finished, and {PAY} closes the ledger.",
+        "fail": "The smuggler slipped free, and {PAY} stays out of reach."
+      }
+    },
+    "lead": "The commander hears that {PATRON} wants a word at {WORLD}.",
+    "news": "The data page at {WORLD} notes that {PATRON} has work waiting for a pilot.",
+    "rumour": {
+      "far": "Word on the board says {PATRON} wants a canister found near {WORLD}.",
+      "near": "{PATRON}'s message waits one jump out, asking after a lost canister near {WORLD}."
+    },
+    "story": {
+      "opening": "On day {DAY}, she took the governor's job at {WORLD}.",
+      "closing": {
+        "complete": "By day {DAY}, the ledger was closed and the smuggler finished, {WORLD} behind her.",
+        "fail": "By day {DAY}, the job lay unfinished, and {WORLD} closed the books on her."
+      },
+      "legs": {
+        "ledger": {
+          "success": "On day {DAY}, she scooped the ledger canister adrift at {WORLD}.",
+          "targetDestroyed": "On day {DAY}, her ship was destroyed near {WORLD}, and the job carried on.",
+          "failed": "On day {DAY}, the canister was lost near {WORLD}, and the job failed."
+        },
+        "witness": {
+          "success": "On day {DAY}, she held the Cobra on her scanner near {WORLD}, unfired.",
+          "targetDestroyed": "On day {DAY}, the Cobra was destroyed near {WORLD} before she fired a shot.",
+          "targetEscaped": "On day {DAY}, the Cobra broke away from {WORLD} before she could act.",
+          "failed": "On day {DAY}, the watch broke near {WORLD}, and the job failed."
+        },
+        "runner": {
+          "targetDestroyed": "On day {DAY}, the smuggler's Cobra was destroyed near {WORLD}, and the ledger closed.",
+          "targetEscaped": "On day {DAY}, the Cobra escaped near {WORLD}, and the ledger closed anyway.",
+          "targetFled": "On day {DAY}, the Cobra fled from {WORLD}, and the ledger closed anyway.",
+          "failed": "On day {DAY}, the hunt failed near {WORLD}, and the job ended unresolved."
+        }
+      }
+    },
+    "title": "The Missing Grub Ledger",
+    "skeleton": "arc-lave",
+    "hash": "4ee8f624",
+    "images": {}
+  }
+}

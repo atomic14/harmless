@@ -55,6 +55,7 @@ import './mission-story.test.ts';
 import './patrons.test.ts';
 import './dossiers.test.ts';
 import './tour.test.ts';
+import './arcs.test.ts';
 import './standing-orders.test.ts';
 import './standing-orders-game.test.ts';
 import './contracts-screen.test.ts';

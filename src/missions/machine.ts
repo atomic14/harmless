@@ -109,13 +109,16 @@ function hail(
   st.idleDocks = moved ? 0 : st.idleDocks + 1;
   const offers = offersFor(st, ctx);
   // ONE CONSOLE LINE PER KIND. An arc hails by name, because a patron who
-  // briefs a commander one time deserves the console. The side jobs on the
-  // board are one count, said behind an arc's hail when there is one. So a
-  // dock with four offers cannot say four lines into one frame and show the
-  // last of them.
+  // briefs a commander one time deserves the console. A second arc at the
+  // same dock waits behind the first, since docs/TODO/192 put the governor
+  // of Lave beside the Navy there. The side jobs on the board are one
+  // count, said behind an arc's hail when there is one. So a dock with four
+  // offers cannot say four lines into one frame and show the last of them.
   const arcs = offers.filter((s) => s.kind !== 'side');
   const side = offers.length - arcs.length;
-  for (const s of arcs) effects.push({ kind: 'say', text: s.hail, command: 'openMissions' });
+  arcs.forEach((s, i) => effects.push(i === 0
+    ? { kind: 'say', text: s.hail, command: 'openMissions' }
+    : { kind: 'later', text: s.hail }));
   if (side > 0) {
     const text = `${side} SIDE JOB${side === 1 ? '' : 'S'} ON THE STATION BOARD`;
     if (arcs.length === 0) effects.push({ kind: 'say', text, command: 'openMissions' });

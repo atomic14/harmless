@@ -1,0 +1,76 @@
+{
+  "promptVersion": 1,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
+  "usage": {
+    "requests": 7,
+    "inputTokens": 59611,
+    "outputTokens": 44166
+  },
+  "dossier": {
+    "briefing": [
+      "The quota stands, and it does not wait on courtesy. Pirates hold the lane the collective's shipment must cross, and {HERE} cannot meet its schedule while they do.",
+      "Clear the lane. Reach the surveyor's escape pod near the target, and land the passenger alive at a station. Then carry the manifest onward, on the collective's schedule.",
+      "{PATRON} speaks for the collective on this contract. Fulfil each term, and the collective confirms the contract fulfilled; nothing more is owed."
+    ],
+    "lead": "{PATRON} at {WORLD} wants a word about a quota the collective must meet.",
+    "legs": {
+      "lane": {
+        "arrive": "Fly the lane to {TARGET} through whatever holds it, and dock, for {PAY}.",
+        "success": "The lane is clear, the ship docked at {TARGET}; the collective confirms {PAY} earned.",
+        "fail": "The lane beat the ship short of {TARGET}; the collective withholds {PAY}."
+      },
+      "pod": {
+        "arrive": "Scoop the surveyor's pod near {TARGET}, and land the passenger alive, for {PAY}.",
+        "success": "The passenger is landed alive; the collective confirms {PAY} earned.",
+        "fail": "The pod is lost, sold, or the deadline passed; the collective withholds {PAY}."
+      },
+      "route": {
+        "arrive": "Bring the surveyor's route back to {TARGET}, and dock, for {PAY}.",
+        "success": "The route is delivered to {TARGET}; the collective confirms {PAY} earned.",
+        "fail": "The route never reached {TARGET}; the collective withholds {PAY}."
+      },
+      "manifest": {
+        "arrive": "Deliver the manifest to {TARGET}, and dock, for {PAY}.",
+        "success": "The manifest is delivered to {TARGET}; the collective confirms {PAY} earned, contract fulfilled.",
+        "fail": "The manifest never reached {TARGET}; the collective withholds {PAY}."
+      }
+    },
+    "rumour": {
+      "far": "Traders report pirates holding the lane out of {WORLD}, and {PATRON} is looking for a pilot to clear it.",
+      "near": "{PATRON} has docked one jump out, and sends word that the quota at {WORLD} still needs a pilot."
+    },
+    "news": "Work waits at {WORLD}, where {PATRON} still needs the lane cleared for the collective's shipment.",
+    "story": {
+      "opening": "On day {DAY}, the commander took on the collective's quota at {WORLD}.",
+      "closing": {
+        "complete": "By day {DAY}, the manifest had reached {WORLD}, and the collective's quota stood met.",
+        "fail": "By day {DAY}, the collective's quota at {WORLD} had gone unmet, and the contract lapsed."
+      },
+      "legs": {
+        "lane": {
+          "success": "By day {DAY}, the lane to {WORLD} lay clear, and the ship docked through it.",
+          "failed": "By day {DAY}, the lane to {WORLD} had beaten the ship back."
+        },
+        "pod": {
+          "survivor:landed": "By day {DAY}, the surveyor's passenger stepped alive onto {WORLD}.",
+          "survivor:sold": "By day {DAY}, the surveyor's passenger had been sold instead of saved, at {WORLD}.",
+          "targetDestroyed": "By day {DAY}, the surveyor's pod lay destroyed short of {WORLD}.",
+          "failed": "By day {DAY}, the pod run at {WORLD} missed its deadline."
+        },
+        "route": {
+          "success": "By day {DAY}, the surveyor's route reached {WORLD} as ordered.",
+          "failed": "By day {DAY}, the surveyor's route never reached {WORLD}."
+        },
+        "manifest": {
+          "success": "By day {DAY}, the manifest reached {WORLD}, fulfilling the collective's contract.",
+          "failed": "By day {DAY}, the manifest never reached {WORLD}."
+        }
+      }
+    },
+    "title": "The Vetitice Lane Quota",
+    "skeleton": "arc-vetitice",
+    "hash": "29fb9155",
+    "images": {}
+  }
+}

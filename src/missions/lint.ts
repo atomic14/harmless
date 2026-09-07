@@ -9,10 +9,16 @@
 // leg has a `failed` branch. Every leg reaches an end. Success and failure
 // carry the same lead. A lead names a skeleton that exists, and neither arc
 // shuts the other out.
+//
+// docs/TODO/192 adds two. An arc's final leg ends two to four jumps from
+// the lead's start world, measured on the full-tank graph. Two legs that
+// force two different blueprint sets at one world are a conflict.
 
+import { ARC_HANDOVER_JUMPS } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { distanceTenths } from '../galaxy/navigation.ts';
-import type { Skeleton } from './model.ts';
+import { routeTable } from '../galaxy/route.ts';
+import type { Leg, Skeleton } from './model.ts';
 import { specForDesign } from '../game/ship-specs.ts';
 import { verbJob, verbModule, verbNeedsShip } from './verbs/registry.ts';
 
@@ -57,8 +63,85 @@ export function lintSkeleton(
   if (s.complete.lead !== undefined) {
     if (s.fail.lead !== s.complete.lead) out.push(`${s.id}: success and failure lead to different arcs`);
     out.push(...leadProblems(s, s.complete.lead, all));
+    out.push(...handoverProblems(s, s.complete.lead, all, systems));
   } else if (s.fail.lead !== undefined) {
     out.push(...leadProblems(s, s.fail.lead, all));
+  }
+  out.push(...overrideProblems(s, all));
+  return out;
+}
+
+/** The start world of a skeleton: its world patron's, or null for a patron with no home. */
+function startOf(s: Skeleton): number | null {
+  return s.patron.kind === 'world' ? s.patron.seedSlot : null;
+}
+
+/**
+ * Every final leg of an arc with a lead ends inside `ARC_HANDOVER_JUMPS` of
+ * the lead's start world. A handover toward that lead inside the band
+ * passes by construction. A fixed world is measured. A band of tenths is
+ * measured over every candidate from every world, so it fails unless the
+ * galaxy is tiny. A `here`, `origin`, `anywhere` or `entity` placement
+ * cannot be measured before the game runs, and is a fault on a final leg.
+ */
+function handoverProblems(
+  s: Skeleton, lead: string, all: readonly Skeleton[], systems: readonly StarSystem[],
+): string[] {
+  const target = all.find((t) => t.id === lead);
+  const goal = target ? startOf(target) : null;
+  if (goal === null) return [];
+  const out: string[] = [];
+  const toGoal = routeTable(systems, goal).jumps;
+  const inside = (w: number) => toGoal[w] >= ARC_HANDOVER_JUMPS.min && toGoal[w] <= ARC_HANDOVER_JUMPS.max;
+  const finals = s.legs.filter((l) => l.next.some((b) => b.to === 'complete'));
+  for (const leg of finals) {
+    const at = `${s.id}/${leg.id}`;
+    const p = leg.place;
+    if (p.kind === 'handover') {
+      if (p.toward !== lead) out.push(`${at}: hands over toward ${p.toward}, and the lead is ${lead}`);
+      if (p.min < ARC_HANDOVER_JUMPS.min || p.max > ARC_HANDOVER_JUMPS.max) {
+        out.push(`${at}: handover band ${p.min}-${p.max} is outside ${ARC_HANDOVER_JUMPS.min}-${ARC_HANDOVER_JUMPS.max}`);
+      }
+    } else if (p.kind === 'world') {
+      if (!inside(p.seedSlot)) out.push(`${at}: ends ${toGoal[p.seedSlot]} jumps from the lead's world ${systems[goal].name}`);
+    } else if (p.kind === 'band') {
+      const far = systems.find((from) => systems.some((to) => {
+        const d = distanceTenths(from, to);
+        return to.index !== from.index && d >= p.min && d <= p.max && !inside(to.index);
+      }));
+      if (far) out.push(`${at}: a band of tenths can end too far from the lead's world (from ${far.name})`);
+    } else {
+      out.push(`${at}: a final leg placed by ${p.kind} cannot be measured against the lead`);
+    }
+  }
+  return out;
+}
+
+/** Whether two legs can force two different sets at one world. */
+function conflict(a: Leg, b: Leg): boolean {
+  if (!a.override || !b.override || a.override.set === b.override.set) return false;
+  if (a.override.where === 'everywhere' || b.override.where === 'everywhere') return true;
+  return a.place.kind === 'world' && b.place.kind === 'world' && a.place.seedSlot === b.place.seedSlot;
+}
+
+/**
+ * Two legs of two skeletons that force different sets at one world. Two
+ * legs of ONE skeleton are never live together, because a mission is on
+ * one leg at a time. So the Constrictor's hunt and its courier run may
+ * disagree. Each pair of skeletons is read once.
+ */
+function overrideProblems(s: Skeleton, all: readonly Skeleton[]): string[] {
+  const out: string[] = [];
+  for (const leg of s.legs) {
+    if (!leg.override) continue;
+    for (const t of all) {
+      if (t.id <= s.id) continue;
+      for (const other of t.legs) {
+        if (conflict(leg, other)) {
+          out.push(`${s.id}/${leg.id}: forces ${leg.override.set} where ${t.id}/${other.id} forces ${other.override?.set}`);
+        }
+      }
+    }
   }
   return out;
 }

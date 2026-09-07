@@ -107,6 +107,13 @@ const OUTSIDE: readonly Group[] = [
       + ' is the module for each verb kind',
     files: {
       'missions/skeletons/constrictor.ts': ['CONSTRICTOR'],
+      // the five arcs of the tour, and the two placements each file names once (docs/TODO/192)
+      'missions/skeletons/arcs/index.ts': ['ARCS'],
+      'missions/skeletons/arcs/lave.ts': ['ARC_LAVE', 'COBRA'],
+      'missions/skeletons/arcs/rabedira.ts': ['ARC_RABEDIRA', 'TOWARD'],
+      'missions/skeletons/arcs/vetitice.ts': ['ARC_VETITICE'],
+      'missions/skeletons/arcs/xeer.ts': ['ARC_XEER', 'TOWARD'],
+      'missions/skeletons/arcs/edle.ts': ['ARC_EDLE', 'AWAY'],
       'missions/skeletons/side.ts': [
         'SIDE_HUNT', 'SIDE_DELIVER', 'SIDE_RECOVER', 'SIDE_RESCUE', 'SIDE_AMBUSH',
         'SIDE_SMUGGLE', 'SIDE_ESCORT', 'SIDE_SCAN', 'SIDE_JOBS', 'FAIL', 'LOCAL', 'AWAY',

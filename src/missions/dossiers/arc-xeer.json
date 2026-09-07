@@ -1,0 +1,69 @@
+{
+  "promptVersion": 1,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-07",
+  "usage": {
+    "requests": 7,
+    "inputTokens": 59611,
+    "outputTokens": 44166
+  },
+  "dossier": {
+    "briefing": [
+      "Your docking fee at {HERE} is paid, so listen. I am {PATRON}, port administrator, and the harvest quota is short again this cycle.",
+      "An Anaconda is forging the harvest numbers. Hold it on your scanner, do not fire, then find the ship that carries the false papers and end it.",
+      "I do not apologise for the queue. Do the job, report to me, and your berth stays open."
+    ],
+    "lead": "A channel opens: {PATRON} at {WORLD} wants a word about the harvest count.",
+    "legs": {
+      "watch": {
+        "arrive": "Hold the Anaconda at {TARGET} on your scanner, and earn {PAY} for patience.",
+        "success": "You held the scan at {TARGET} steady, and the fee of {PAY} is yours.",
+        "fail": "You lost the Anaconda at {TARGET}, and {PAY} stays in my account."
+      },
+      "chase": {
+        "arrive": "Destroy the Fer-de-Lance last seen at {TARGET}, and collect {PAY} when it burns.",
+        "success": "The Fer-de-Lance is wreckage at {TARGET}; {PAY} is credited to you.",
+        "fail": "The Fer-de-Lance slipped past {TARGET}, and {PAY} waits for another pilot."
+      },
+      "trail": {
+        "arrive": "Report the courier's trail at {TARGET}, and I will pay {PAY} on arrival.",
+        "success": "You docked at {TARGET} with the trail intact; {PAY} is transferred.",
+        "fail": "You missed the trail at {TARGET}, and {PAY} is withheld."
+      }
+    },
+    "rumour": {
+      "far": "Bulletin traffic says {PATRON} at {WORLD} is short a harvest count and wants proof.",
+      "near": "{PATRON} sends word from one jump out: dock at {WORLD}, she has work for you."
+    },
+    "news": "The data page at {WORLD} notes that {PATRON} has work for any pilot who docks.",
+    "story": {
+      "opening": "On day {DAY}, the commander logged the job offered at {WORLD}.",
+      "closing": {
+        "complete": "By day {DAY}, the trail closed at {WORLD}, and the commander's report was done.",
+        "fail": "By day {DAY}, the trail went cold near {WORLD}, and the job lapsed."
+      },
+      "legs": {
+        "watch": {
+          "success": "On day {DAY}, the commander held the scan steady near {WORLD}.",
+          "targetDestroyed": "On day {DAY}, the Anaconda burned near {WORLD} before the watch ended.",
+          "targetEscaped": "On day {DAY}, the Anaconda jumped clear of {WORLD} mid-watch.",
+          "failed": "On day {DAY}, the watch near {WORLD} lapsed past the deadline."
+        },
+        "chase": {
+          "targetDestroyed": "On day {DAY}, the Fer-de-Lance was destroyed near {WORLD}.",
+          "targetEscaped": "On day {DAY}, the Fer-de-Lance jumped away from {WORLD}.",
+          "targetFled": "On day {DAY}, the Fer-de-Lance fled the chase near {WORLD}.",
+          "failed": "On day {DAY}, the chase near {WORLD} ran past the deadline."
+        },
+        "trail": {
+          "success": "On day {DAY}, the commander docked at {WORLD} and closed the trail.",
+          "failed": "On day {DAY}, the trail at {WORLD} went cold past the deadline."
+        }
+      }
+    },
+    "title": "Proof of the Harvest",
+    "skeleton": "arc-xeer",
+    "hash": "77069e55",
+    "images": {}
+  }
+}
