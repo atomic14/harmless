@@ -217,18 +217,54 @@ Restore the correct content after each check.
 
 Landed on 2026-09-06, in four milestones, one commit each. The pipeline,
 the validator, the readers and the gate are in place. **The generation run
-did not happen.** This machine holds no `ANTHROPIC_API_KEY` and no
-`.env.local`. So the two committed tables are empty, every reader runs on
-its fallback, and the drift checks pass on empty files. The run is one
-command each, from a machine with the key:
+happened on 2026-09-07, through the `claude` command line.** This machine
+holds no `ANTHROPIC_API_KEY`, and Chris asked whether the command line
+could do the run instead. It can: `claude -p` takes a system prompt and a
+JSON schema, and returns a structured result on the subscription. It has
+no batch mode, so `runLocal` in `tools/batch.ts` runs one process per
+record, four at a time, with the batch's three passes. Both generators
+take it with `--via claude`:
 
 ```
-npm run generate:patrons
-npm run generate:dossiers
+npm run generate:patrons -- --via claude
+npm run generate:dossiers -- --via claude
 ```
 
-Taste first, as the descriptions did: `--limit 1` for the patrons, and
-`--out <dir>` for a dossier, so a taste never reaches the generated index.
+256 patrons and 9 dossiers are committed, and every one passes the
+validator, the drift check and the ladder-word test. Taste first, as the
+descriptions did: `--limit 1` for the patrons, and `--out <dir>` for a
+dossier, so a taste never reaches the generated index.
+
+### What the run taught
+
+- **A console line has no full stop.** `KRAIT DESTROYED — {PAY} FROM THE
+  STATION` is a skeleton's own line. The validator's floor on a console
+  line is zero sentences now, and three dossiers that dropped for that
+  alone pass.
+- **A story line must say "day" before `{DAY}`.** The first Constrictor
+  draft said "On 12".
+- **A name a model likes comes back on many worlds.** The first 101
+  patrons held four repeats. The generator asks a repeated name again
+  with the taken names listed, and the test pins that no two worlds share
+  one. Thirteen patrons are still a Marcus by given name. That is a
+  quality note, not a gate.
+- **An `arrive` line that quotes `{PAY}` filled it with zero.** The
+  acceptance slot carries the leg's fee now, and `legPay` in `text.ts` is
+  the one home of that number.
+- **The first patron run lost 155 calls to an error the runner cut off.**
+  The capture kept the command text and dropped stderr. A run keeps the
+  records the file already holds under the current prompt and asks only
+  for the rest, so the second run cost 155 calls and not 256.
+- **`--limit 3` read as galaxy 3**, in this generator and in the
+  descriptions generator. Both read a bare number behind a flag as the
+  flag's now.
+- **Two game tests asserted the plain words.** They read the expected
+  line through the dossier now, with the plain word as the fallback.
+- **The standing-orders test crossed the ceiling**, and its real-Game
+  block is `test/standing-orders-game.test.ts`.
+- **The MISSIONS screen was read in a browser.** The offer row shows the
+  title and the briefing with the patron and the world filled, and the
+  console says the dossier's line with the target filled.
 
 ### What the milestones did
 
@@ -290,8 +326,11 @@ Taste first, as the descriptions did: `--limit 1` for the patrons, and
 
 ### Measurements
 
-- 5,348 assertions, from 5,252.
-- `npm run check` passes with both generated tables empty.
-- `dossiers: ok — 0/9 skeletons have a dossier` and
-  `patrons: galaxy-1.json ok — 0/256 worlds have a patron` are the two
+- 5,353 assertions, from 5,252.
+- `npm run check` passes with both generated tables full.
+- `dossiers: ok — 9/9 skeletons have a dossier` and
+  `patrons: galaxy-1.json ok — 256/256 worlds have a patron` are the two
   new gate lines.
+- The patrons cost 283 calls, about 1.2 million tokens in and 1.4 million
+  out, most of it Haiku's thinking. The dossiers cost 22 calls. Each
+  call took about a minute, four at a time.

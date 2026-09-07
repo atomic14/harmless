@@ -21,11 +21,10 @@ active context:
 **191, 192 AND 193 ARE THE THREE PLANS 190 PROPOSED**, drafted on 2026-09-06
 after it landed. The pipeline came first, so the arcs ship with words. **191
 landed the same day**, and it is below. The arcs come second, and the site
-page last, because it reads both. **THE GENERATION RUN IS STILL TO DO.** The
-machine 191 landed on holds no API key. So both generated tables are empty,
-and every reader runs on its plain fallback. The run is `npm run
-generate:patrons` and then `npm run generate:dossiers`, from a machine with
-the key.
+page last, because it reads both. **THE GENERATION RUN HAPPENED ON
+2026-09-07**, through the `claude` command line. The machine holds no API
+key, and Chris asked whether the command line could do it. It can, with
+`--via claude` on either generator.
 
 **190 CAME FROM CHRIS ON 2026-09-06.** He asked to expand the missions, and
 he set the direction in one conversation. The game is ours from here. No jump
@@ -239,9 +238,12 @@ Every reader speaks the dossier's words where one exists: the MISSIONS
 screen, the console, the hints and the story. The machine never reads one.
 A say effect names the word, and the bridge resolves it. The MISSIONS and
 LOG screens name the patron, and a world with no record gets a plain one.
-Both drift checks gate the build, and each was broken by hand. 5,348
-assertions, from 5,252. **No API key on the machine, so no content
-shipped.** The two commands above write it.
+Both drift checks gate the build, and each was broken by hand. **The run
+happened the next day through `claude -p`**, which has no batch mode, so
+`tools/batch.ts` runs one process per record. 256 patrons and 9 dossiers
+ship. The run taught four rules. A console line has no full stop. A story
+line says "day" before the number. A repeated name is asked again. The
+acceptance line carries the leg's fee. 5,353 assertions, from 5,252.
 
 **190 — one machine runs every mission, and a failure never blocks the next.**
 Chris asked to expand the missions and set the direction in one conversation.
