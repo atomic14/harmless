@@ -13,7 +13,13 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [198](198-a-phone-can-leave-every-docked-screen.md) — a phone can leave
+   every docked screen.
+
+**198 CAME OUT OF THE PREVIEW OF 197 ON 2026-09-10.** Chris opened PR #44 on
+his phone and was stuck on the briefing. The panel fits. The screen offers no
+button, and a phone has no key. Three screens carry no button row, and the
+console line covers the bottom of a tall panel.
 
 **197 CAME FROM CHRIS ON 2026-09-10.** He asked for the game on a phone, in
 two halves. The docked screens are the easy half, and they came first. The
