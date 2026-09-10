@@ -84,7 +84,7 @@ html, body {
  * clear a panel nothing on that screen uses.
  */
 body.screen-open #hud { display: none; }
-body.screen-open #screen { top: 50%; max-height: 88vh; }
+body.screen-open #screen { top: 50%; max-height: 88dvh; }
 
 /*
  * With a screen open, the transient line drops below the panel instead of
@@ -120,7 +120,7 @@ body.screen-open #message {
 /* Chart screens: map on the left, readout on the right. Stacked, the readout
    sat directly under a map that draws to its own bottom edge, so the two
    always looked like they were touching however much height the box had. */
-#screen.wide { max-width: 1260px; }
+#screen.wide { max-width: min(1260px, calc(100vw - 16px)); }
 /* `stretch`, not `flex-start`, and that is load-bearing. The readout column
    holds a generated description whose length varies by system — 379 characters
    on Atage, 754 on Inonri — and with the column free to size itself the panel
@@ -511,9 +511,19 @@ body.screen-open #exercise { display: none; }
    */
   left: 50%; top: 40%;
   transform: translate(-50%, -50%);
-  min-width: 640px;
-  max-width: 860px;
-  max-height: 66vh;
+  /*
+   * The panel sizes by content between a floor and a cap. On a narrow window
+   * both yield to the viewport, less a gutter, so the panel never hangs off
+   * an edge (docs/TODO/197). A phone is 390 pixels wide, and the floor was 640.
+   * The narrow-window rules at the end of this file take the layout from here.
+   */
+  min-width: min(640px, calc(100vw - 16px));
+  max-width: min(860px, calc(100vw - 16px));
+  /*
+   * `dvh`, not `vh`. On a phone the address bar takes part of a `vh`, and the
+   * bottom of the panel hides under it. A `dvh` is the height that is visible.
+   */
+  max-height: 66dvh;
   overflow: hidden auto;
   padding: 18px 30px 22px;
   border: 1px solid var(--hud-dim);
@@ -635,16 +645,19 @@ body.screen-open #exercise { display: none; }
  * `nowrap`, and centred on `left: 50%`. A line wider than the window hung off
  * both edges of it.
  *
- * This element cannot reach that state. `#screen` sets `min-width: 640px`, so
- * this container never goes below 578 pixels. The longest hint in the tree is
- * the compare screen's `THE OTHER RECORD (n IN THE RING)`, at 319 pixels. That
- * is 55% of the floor, and it leaves 259 pixels spare.
+ * This element cannot reach that state. `#screen` held a floor of 640 pixels
+ * when this was measured, so this container never went below 578 pixels. The
+ * longest hint in the tree is the compare screen's
+ * `THE OTHER RECORD (n IN THE RING)`, at 319 pixels. That was 55% of the floor,
+ * and it left 259 pixels spare.
  *
  * Measured in Chrome at viewports of 1289, 760 and 500 pixels. The container
  * read 578 pixels at each of the two narrow ones.
  *
- * At 500 pixels the PANEL does hang off both edges, and every row goes with it.
- * That is the `min-width` above, and this rule is not part of it.
+ * At 500 pixels the PANEL did hang off both edges, and every row went with it.
+ * docs/TODO/197 made the floor yield to the viewport. On a 390 pixel phone the
+ * container is about 350 pixels wide, and the longest hint still fits in it.
+ * A hint wider than the container would overflow on one side, as a word does.
  *
  * DO NOT DELETE THE `nowrap` ON A RESEMBLANCE TO #29. The station menu's own
  * key line carries no spans and no `nowrap`. It breaks `S COMMANDER FILE`
@@ -834,3 +847,44 @@ body.screen-open #exercise { display: none; }
 #reticle { position: absolute; inset: 0; pointer-events: none; }
 
 .missiles span.armed { background: var(--hud-amber); box-shadow: 0 0 8px var(--hud-amber); }
+
+/*
+ * A NARROW WINDOW: the docked screens on a phone (docs/TODO/197).
+ *
+ * `#screen` above already yields its floor and its cap to the viewport. These
+ * rules take the layout the rest of the way, at 700 pixels or less. That is a
+ * phone in either orientation, and no laptop. Each rule trades space the
+ * desktop layout spends on air: the panel's padding, the menu's indent and a
+ * cell's padding.
+ *
+ * A chart canvas scales in CSS and keeps its pixel size. The click maths in
+ * ui/chart-local.ts and ui/chart-galactic.ts divides by the rendered width, so
+ * a scaled canvas still reads the right system. The readout wraps under the
+ * map, because the two side by side need about 900 pixels.
+ */
+@media (max-width: 700px) {
+  #screen { padding: 12px 10px 16px; }
+  #screen h2 { font-size: 16px; letter-spacing: 4px; }
+  #screen .menu { margin-left: 6%; }
+  #screen th, #screen td { padding: 2px 5px; }
+  #screen canvas { max-width: 100%; height: auto; }
+  #screen .chartrow { flex-wrap: wrap; }
+  /*
+   * `min-width: 0` lets the readout shrink below its content, or the facts row
+   * holds the column at its own width and the text runs off the panel. The
+   * height cap goes, so the panel scrolls as one and not in two places.
+   */
+  #screen .chartrow .info { flex: 1 1 100%; min-width: 0; max-height: none; }
+  #screen .chartrow .info .sysrow { flex-wrap: wrap; }
+  /* A number in a cell stays on one line, or `8 days` breaks after the 8. */
+  #screen td.num { white-space: nowrap; }
+  /* The console line under a tall panel: two rows at this size, not four. */
+  #message { font-size: 13px; letter-spacing: 2px; }
+  /* Four items in one row do not fit. They wrap by item, never inside one. */
+  #topbar {
+    flex-wrap: wrap;
+    gap: 0 12px;
+    font-size: 11px;
+    letter-spacing: 1px;
+  }
+}
