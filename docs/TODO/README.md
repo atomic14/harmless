@@ -13,7 +13,14 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [200](200-the-cockpit-fits-a-phone-in-portrait.md) — the cockpit fits a
+   phone in portrait.
+
+**200 CAME FROM CHRIS'S FLIGHT ON HIS PHONE ON 2026-09-10.** He likes
+portrait. The console is one fixed row of 770 pixels, and it hung off both
+sides. The sight sits at a fixed 42% of the height, which stands in for the
+centre of the view above a desktop console. A reflowed console moves that
+centre, so the shell must measure it.
 
 **199 CAME FROM CHRIS ON 2026-09-10.** He read the landing page and called
 the prose dreadful. The page sells trained combat AI that does not ship. It
