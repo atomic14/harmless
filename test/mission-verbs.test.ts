@@ -25,6 +25,8 @@ import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { parseSnapshot } from '../src/game/snapshot-parse.ts';
 import { g1 } from './fixtures.ts';
+import { SIDE_AMBUSH } from '../src/missions/skeletons/side.ts';
+import { LANE_PIRATES } from '../src/missions/skeletons/lane.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
@@ -268,4 +270,18 @@ console.log('\nthe survivors prompt counts a passenger, and the loader keeps the
   for (const can of old.canisters) delete can.missionTag;
   check('a flight save written before tags still parses',
     parseSnapshot(old as never).canisters.length === snap.canisters.length);
+}
+
+console.log('\nambush: the lane has pirates while the leg is live (docs/TODO/203 M2)');
+{
+  const ctx: MissionContext = { commander: facts(), systems: g1, rng: () => 0.5, skeletons: [SIDE_AMBUSH] };
+  const st = accept(SIDE_AMBUSH, ctx);
+  const target = st.live[0].target as number;
+  eq('the lane job spawns the lane pirates at its world',
+    JSON.stringify(missionSpawns(st, target, [SIDE_AMBUSH])), JSON.stringify(LANE_PIRATES));
+  check('...all flown as pirates', LANE_PIRATES.every((p) => p.job === 'hunt'));
+  eq('...and none anywhere else', missionSpawns(st, (target + 1) % g1.length, [SIDE_AMBUSH]).length, 0);
+  const done = stepMissions(stepMissions(st, { kind: 'arrived' }, { ...ctx, commander: facts({ systemIndex: target }) }).state,
+    { kind: 'docked' }, { ...ctx, commander: facts({ systemIndex: target }) }).state;
+  eq('...and they are gone once the lane is cleared', missionSpawns(done, target, [SIDE_AMBUSH]).length, 0);
 }

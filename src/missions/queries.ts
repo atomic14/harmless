@@ -55,7 +55,11 @@ export function missionSpawns(
 ): TaggedShip[] {
   const out: TaggedShip[] = [];
   for (const { live, leg } of liveLegs(st, from)) {
-    if (live.tag === null || live.target !== here || !verbNeedsShip(leg.verb)) continue;
+    if (live.target !== here) continue;
+    // The ships a leg says wait at its world, such as the pirates on a lane
+    // (docs/TODO/203 M2). They are untracked, so they come back on every arrival.
+    if (leg.spawn) out.push(...leg.spawn);
+    if (live.tag === null || !verbNeedsShip(leg.verb)) continue;
     const e = st.entities[live.tag];
     if (e && e.alive && e.kind === 'ship') out.push({ ship: e.ship, tag: live.tag, job: verbJob(leg.verb) });
   }

@@ -13,6 +13,7 @@
 
 import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../../../constants/missions.ts';
 import type { Skeleton } from '../../model.ts';
+import { LANE_PIRATES } from '../lane.ts';
 
 export const ARC_VETITICE: Skeleton = {
   id: 'arc-vetitice',
@@ -24,7 +25,7 @@ export const ARC_VETITICE: Skeleton = {
   offer: { done: ['arc-rabedira'] },
   legs: [
     {
-      id: 'lane', verb: { kind: 'ambush' }, place: { kind: 'band', ...SIDE_JOB_RANGE },
+      id: 'lane', verb: { kind: 'ambush' }, place: { kind: 'band', ...SIDE_JOB_RANGE }, spawn: [...LANE_PIRATES],
       line: 'DIRECTOR: FLY THE LANE TO {TARGET} THROUGH WHATEVER WAITS, AND DOCK', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: 'success', to: 'pod', settle: { pay: ARC_PAY.ambush, say: 'LANE OPEN — {PAY}. THE SURVEYOR\'S POD IS ADRIFT AT {TARGET}.' } },

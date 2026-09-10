@@ -31,6 +31,9 @@ import { PLAYER_INTEREST_RANGE } from '../src/constants/player-interest.ts';
 import { MASS_LOCK_STATION } from '../src/constants/torus.ts';
 import { SUN_HEAT_START } from '../src/constants/sun.ts';
 import { g1 } from './fixtures.ts';
+import { SOURCE_DESIGN } from '../src/game/ship-specs.ts';
+import { shipDesignIdOf } from '../src/game/ship-identity.ts';
+import type { TaggedShip } from '../src/missions/model.ts';
 import { check, eq } from './harness.ts';
 
 // --- a system's own traffic --------------------------------------------------
@@ -257,4 +260,35 @@ console.log('\nwitch-space');
   }
   check('...and it is still an exact double, so a distance comparison cannot go strange',
     Number.isSafeInteger(BANISHED) && BANISHED * BANISHED < Number.MAX_SAFE_INTEGER * 1e16);
+}
+
+console.log('\na mission target waits inside the scanner, and a scan subject stays (docs/TODO/203 M2)');
+{
+  seedWorld(203);
+  const sys = g1[7];
+  const world = new World();
+  world.build(sys);
+  world.clearNpcs();
+  const player = world.station.position.clone().add(new THREE.Vector3(0, 0, 40_000));
+  const plan = {
+    traders: 0, police: 0, asteroids: 0, pirates: 0, hunter: false, hermit: false,
+    generationShip: false, threat: null,
+  } as Parameters<typeof spawnPopulation>[1];
+  const targets: TaggedShip[] = [
+    { ship: shipDesignIdOf(SOURCE_DESIGN.anaconda), tag: 'watch#1', job: 'scan' },
+    { ship: shipDesignIdOf(SOURCE_DESIGN.krait), tag: 'hunt#1', job: 'hunt' },
+  ];
+  const { missionShips } = spawnPopulation(world, plan, sys, player, targets, 'arrival',
+    [{ tag: 'find#1', kind: 'cargo' }]);
+  eq('both ships spawned', missionShips.length, 2);
+  check('every mission ship is on the scanner from the first frame',
+    missionShips.every((n) => n.object.position.distanceTo(player) <= SCANNER_RANGE));
+  const canister = world.cargo.items.find((c) => c.missionTag === 'find#1');
+  check('...and so is the canister', canister !== undefined
+    && canister.object.position.distanceTo(player) <= SCANNER_RANGE);
+  const watched = missionShips.find((n) => n.state.missionTag === 'watch#1')!;
+  const hunted = missionShips.find((n) => n.state.missionTag === 'hunt#1')!;
+  check('a scan subject does not leave: its trading clock never runs out',
+    watched.state.tradeTimer === Number.POSITIVE_INFINITY);
+  check('...and a hunt target keeps an ordinary clock', Number.isFinite(hunted.state.tradeTimer));
 }

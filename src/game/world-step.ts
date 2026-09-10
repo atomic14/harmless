@@ -530,6 +530,7 @@ export class WorldStep {
           if (lock === npc) npc.state.observed += dt;
           if (npc.state.observed >= wanted) {
             npc.state.missionReported = true;
+            npc.state.tradeTimer = 0;   // watched; it may go about its business now (docs/TODO/203 M2)
             out.push(...runMissions(commander, { kind: 'scanned', tag }));
           }
           continue;

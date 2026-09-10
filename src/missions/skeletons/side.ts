@@ -16,6 +16,7 @@ import {
 import { SOURCE_DESIGN } from '../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../game/ship-identity.ts';
 import type { Branch, Skeleton } from '../model.ts';
+import { LANE_PIRATES } from './lane.ts';
 
 const FAIL: Branch = { on: 'failed', to: 'fail' };
 const LOCAL = { kind: 'side', anchor: 'local', patron: { kind: 'local' } } as const;
@@ -116,7 +117,7 @@ export const SIDE_AMBUSH: Skeleton = {
   pitch: 'PIRATES HOLD THE LANE TO A NEIGHBOUR. FLY IT, FIGHT THROUGH, AND DOCK THERE.',
   offer: {},
   legs: [{
-    id: 'lane', verb: { kind: 'ambush' }, place: AWAY,
+    id: 'lane', verb: { kind: 'ambush' }, place: AWAY, spawn: [...LANE_PIRATES],
     line: 'LANE: FLY TO {TARGET} THROUGH WHATEVER WAITS, AND DOCK', deadlineDays: SIDE_JOB_DAYS,
     next: [
       { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.ambush, say: 'LANE CLEARED — {PAY}' } },

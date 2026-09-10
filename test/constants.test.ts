@@ -120,6 +120,8 @@ const OUTSIDE: readonly Group[] = [
       ],
       // ...and the arcs in tour order, which is a list of ids (docs/TODO/192)
       'missions/skeletons/index.ts': ['SKELETONS', 'ARC_TOUR'],
+      // the pirates both lane legs name (docs/TODO/203 M2)
+      'missions/skeletons/lane.ts': ['LANE_PIRATES'],
       'missions/verbs/registry.ts': ['VERBS'],
       // the dossier table item 191 fills, and the words that end a story page
       'missions/dossiers.ts': ['DOSSIERS'],

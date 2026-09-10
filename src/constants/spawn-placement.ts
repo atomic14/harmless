@@ -223,13 +223,22 @@ export const GENERATION_SHIP_RANGE_SPAN = 8000;
 export const GENERATION_CARGO_SCATTER = 700;
 
 /**
- * How far from the commander the Constrictor hides on the mission leg. It is
- * nearer than any other authored arrival, so the leg becomes a fight quickly.
+ * How far from the commander a mission's target waits on arrival: the
+ * Constrictor, a hunt's pirate, a scan's ship, an escort's charge, a canister
+ * or a pod. It is nearer than any other authored arrival, so a leg becomes a
+ * fight, or a find, quickly.
+ *
+ * It was 4,000 with a span of 4,000, so a target could sit 8,000 out, beyond
+ * the scanner's 6,000. About half the time the player arrived to an empty
+ * scanner and no pointer (docs/TODO/203 M2). The band now ends at 4,500, so
+ * every target is on the scanner from the first frame.
+ *
+ * @rule spawn.missionTargetRange
  */
-export const MISSION_TARGET_RANGE = 4000;
+export const MISSION_TARGET_RANGE = 2500;
 
-/** ...and the width of that band — the same again, so it can be twice as far. */
-export const MISSION_TARGET_RANGE_SPAN = 4000;
+/** ...and the width of that band, so a target sits between 2,500 and 4,500 out. */
+export const MISSION_TARGET_RANGE_SPAN = 2000;
 
 /**
  * How far from its mother a Thargon drone appears. It is almost on top of it, so
