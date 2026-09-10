@@ -899,6 +899,40 @@ body.screen-open #exercise { display: none; }
     padding: 10px 0 16px;
     background: rgba(0, 10, 2, 0.92);
   }
+  /*
+   * THE CONSOLE IN PORTRAIT (docs/TODO/200 M1). The desktop console is one
+   * row of 770 pixels. Here it is a grid of two rows. The scanner takes the
+   * first row with the compass, the indicators and the missiles stacked
+   * beside it. The gauges take the second row in two columns, the left
+   * panel's on the left and the right panel's on the right.
+   *
+   * The three panels give up their boxes through `display: contents`, so
+   * their children become the grid's items and play.html does not change.
+   * `dense` packs the right gauges beside the left ones. Without it, a
+   * column-locked item lands below the last row the left column filled.
+   */
+  #hud {
+    left: 0; right: 0;
+    transform: none;
+    display: grid;
+    grid-template-columns: 3fr 2fr;
+    grid-auto-flow: row dense;
+    gap: 6px 10px;
+    padding: 8px 10px;
+  }
+  .hud-panel { display: contents; }
+  #scanner { grid-column: 1; grid-row: 1; width: 100%; height: auto; }
+  .compass-row {
+    grid-column: 2; grid-row: 1;
+    flex-direction: column;
+    justify-content: center;
+    gap: 8px;
+  }
+  .missiles { padding-left: 0; }
+  .hud-left .gauge { grid-column: 1; }
+  .hud-right .gauge { grid-column: 2; }
+  /* 64 pixels holds LASER TEMP on one line at this size. 62 broke it in two. */
+  .gauge label { width: 64px; font-size: 9px; letter-spacing: 0.5px; }
   /* Four items in one row do not fit. They wrap by item, never inside one. */
   #topbar {
     flex-wrap: wrap;
