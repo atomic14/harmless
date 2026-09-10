@@ -13,12 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [201](201-a-held-mission-keeps-its-briefing.md) — a held mission keeps
-   its briefing.
+The queue is empty.
 
 **201 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He accepted a mission and
 could not read the details of the accepted mission. An offer row shows the title and the
-briefing. A held row shows the current order alone.
+briefing. A held row shows the current order alone. **201 landed the same
+day**, and it is below.
 
 **200 CAME FROM CHRIS'S FLIGHT ON HIS PHONE ON 2026-09-10.** He likes
 portrait. The console is one fixed row of 770 pixels, and it hung off both
@@ -261,6 +261,12 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-10
+
+**201 — a held mission keeps its briefing.** Chris accepted a mission and
+could not read its details afterwards. An offer row showed the title and
+the briefing, and a held row showed the current order alone. A held row
+now shows the title, the briefing and then the order in amber. 5,567
+assertions, from 5,564.
 
 **200 — the cockpit fits a phone in portrait.** The console was one fixed
 row of 770 pixels, and it hung off both sides of a phone. At 700 pixels or

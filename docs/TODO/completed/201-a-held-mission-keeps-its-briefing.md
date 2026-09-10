@@ -65,3 +65,19 @@ The tier: a view model, a painter and a test. Nothing more runs.
 
 Evidence: the check in `test/dossiers.test.ts` fails on the painter as it is
 today, and passes after M1.
+
+## Outcome
+
+M1 landed on 2026-09-10, on docs/TODO/200's branch, as Chris asked. 5,567
+assertions, from 5,564.
+
+A held row shows the dossier's title in bold, its briefing pages with the
+patron and the world it was accepted at filled in, and then the current
+order in amber. A mission with no dossier shows its plain name over the
+order. The three checks in `test/dossiers.test.ts` failed on the old
+painter: the title and the briefing were absent, and so was the plain name.
+
+### What the plan did not have
+
+- **Four tests build a `HeldRow` by hand, not three.** `mission-pieces`
+  builds one for the choice prompt. It gained the two fields as well.
