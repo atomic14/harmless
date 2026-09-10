@@ -13,7 +13,16 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [203](203-a-mission-tells-the-player-where-to-go.md) — a mission tells
+   the player where to go.
+
+**203 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He played three side jobs
+and could not tell how to finish any of them. The review found two signals
+the game never sends, an arrival and a day, so one job cannot complete and
+no deadline ever passes. A target can spawn outside the scanner with no
+marker. A scan needs a missile lock that nobody explains, on a ship that
+leaves at once. The console says almost nothing between acceptance and the
+end. He asked for the mechanics and the words, in full sentences.
 
 **202 CAME FROM CHRIS ON 2026-09-10.** He pressed ⇧R and got MISSIONS, and
 the cause was a Shift keydown the game never saw. His call: every menu can
