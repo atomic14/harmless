@@ -880,6 +880,19 @@ body.screen-open #exercise { display: none; }
   #screen td.num { white-space: nowrap; }
   /* The console line under a tall panel: two rows at this size, not four. */
   #message { font-size: 13px; letter-spacing: 2px; }
+  /*
+   * The button row of a long table sticks to the bottom of the panel. The
+   * market has 17 rows, and on a phone BUY and SELL sat below the fold. The
+   * plate is the panel's own, so the rows scroll under it and not through it.
+   * The negative margin and the matching padding put it flush with the edge.
+   */
+  #screen .buttons {
+    position: sticky;
+    bottom: -16px;
+    margin-bottom: -16px;
+    padding: 10px 0 16px;
+    background: rgba(0, 10, 2, 0.92);
+  }
   /* Four items in one row do not fit. They wrap by item, never inside one. */
   #topbar {
     flex-wrap: wrap;
@@ -887,4 +900,19 @@ body.screen-open #exercise { display: none; }
     font-size: 11px;
     letter-spacing: 1px;
   }
+}
+
+/*
+ * A COARSE POINTER: a finger on a docked screen (docs/TODO/197 M2).
+ *
+ * The query reads the pointer, not the platform. A tablet with a mouse keeps
+ * the desktop targets. A phone gets 44 pixels, which is the common floor for a
+ * finger. Each rule grows the padding of a target, never its font, so the
+ * screen keeps its face and gains only height.
+ */
+@media (pointer: coarse) {
+  #screen .menu div[data-key] { padding-top: 8px; padding-bottom: 8px; }
+  #screen tr.pick td { padding-top: 15px; padding-bottom: 15px; }
+  #screen .buttons button { padding: 15px 18px; }
+  #screen table button { padding: 15px 12px; }
 }
