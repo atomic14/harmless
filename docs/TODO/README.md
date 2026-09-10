@@ -13,7 +13,13 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [202](202-the-station-menu-takes-a-tap-or-the-cursor.md) — the station
+   menu takes a tap or the cursor.
+
+**202 CAME FROM CHRIS ON 2026-09-10.** He pressed ⇧R and got MISSIONS, and
+the cause was a Shift keydown the game never saw. His call: every menu can
+be clicked, so the letter keys on the station menu go. A menu takes a tap,
+the cursor with Enter, and Escape. The menus only. Every flight key stays.
 
 **201 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He accepted a mission and
 could not read the details of the accepted mission. An offer row shows the title and the
