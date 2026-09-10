@@ -133,6 +133,17 @@ export const SIDE_JOB_RANGE = { min: 20, max: 70 } as const;
 export const SIDE_JOB_DAYS = 14;
 
 /**
+ * How many days before a deadline the console starts to say how many are
+ * left: three, so a job with a fortnight on it warns for its last fifth. A
+ * jump costs one to three days, so a warning at one day would come too late
+ * for a job two jumps away (docs/TODO/203 M1).
+ *
+ * @domain missions
+ * @rule missions.deadlineWarningDays
+ */
+export const DEADLINE_WARNING_DAYS = 3;
+
+/**
  * Seconds a scan target must stay under the scanner lock: twenty, which is a
  * pass and a turn at a trader's speed.
  *

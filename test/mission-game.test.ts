@@ -22,7 +22,8 @@ import type { Skeleton, MissionState } from '../src/missions/model.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
 import { installStore } from './save-fixtures.ts';
 import { constrictorAt } from './fixtures.ts';
-import { check, cmds, dismissBriefing, eq, eqc } from './harness.ts';
+import { check, cmds, consoleWatcher, dismissBriefing, eq, eqc } from './harness.ts';
+import { distanceTenths } from '../src/galaxy/navigation.ts';
 import { dossierFor } from '../src/missions/dossiers.ts';
 import { fillSlots, lineSlots } from '../src/missions/text.ts';
 
@@ -242,4 +243,48 @@ console.log('\na lead crosses the galaxy with her, to a world she can reach');
   const snap = parseSnapshot(structuredClone(g.captureSnapshot()));
   eq('a save keeps the lead\'s galaxy and world together',
     JSON.stringify(snap.commander.missions.leads), JSON.stringify(r.state.leads));
+}
+
+console.log('\na jump reaches the machine as a day and an arrival, and the lane completes (docs/TODO/203 M1)');
+{
+  seedWorld(203);
+  const g = withoutSaving(() => {
+    const game = new Game(() => headlessShell());
+    dismissBriefing(game);
+    game.launch();
+    return game;
+  }).value;
+  const fly = consoleWatcher(g);
+  fly(400);   // past the launch tunnel
+  const c = g.state.commander;
+  const { systems } = g.state;
+  const here = c.systemIndex;
+  // The cheapest neighbour inside the tank, off the metric, as
+  // test/character-line.test.ts picks it.
+  let target = -1;
+  for (let i = 0; i < systems.length; i++) {
+    if (i === here) continue;
+    const cost = distanceTenths(systems[here], systems[i]);
+    if (cost <= c.fuel && (target < 0 || cost < distanceTenths(systems[here], systems[target]))) target = i;
+  }
+  check('there is a jump the rules allow', target >= 0);
+  // The lane job, held with that neighbour as its world, as an acceptance
+  // at this station would place it.
+  c.missions = {
+    ...emptyMissionState(),
+    live: [{ skeleton: 'side-ambush', leg: 'lane', target, tag: null, progress: 0, deadlineDay: c.day + 5 }],
+    journal: [{ skeleton: 'side-ambush', leg: 'lane', outcome: 'accepted', day: c.day, world: here }],
+  };
+  const dayBefore = c.day;
+  g.state.chart.targetIndex = target;
+  g.startHyperspace();
+  const said = fly(Math.ceil(24 * 60));
+  check('the jump cost days', c.day > dayBefore);
+  eq('...and the day reached the machine: the deadline is near, and the console says so',
+    said.find((t) => t.includes('DAY') && t.includes('LEFT') || t.includes('MUST BE DONE TODAY')) !== undefined ? 'said' : said.join(' / '),
+    'said');
+  eq('the arrival reached the machine: the lane leg is at its world', c.missions.live[0]?.progress, 1);
+  withoutSaving(() => g.enterDocked('arrived'));
+  check('...and the next dock completes the lane job through the game',
+    c.missions.live.length === 0 && c.missions.done['side-ambush'] === 'complete');
 }

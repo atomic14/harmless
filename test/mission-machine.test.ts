@@ -285,6 +285,36 @@ console.log('\nmission machine: the ambush verb');
   check('...until the cap is spent', !canAccept(twice, 'trap', later(LAVE)));
 }
 
+console.log('\nmission machine: a day passed, and the deadline speaks (docs/TODO/203 M1)');
+{
+  const dated: Skeleton = {
+    id: 'dated', kind: 'side', anchor: 'local', patron: { kind: 'world', seedSlot: LAVE },
+    hail: 'HAIL', pitch: 'RUN', offer: {},
+    legs: [{
+      id: 'run', verb: { kind: 'deliver' }, place: { kind: 'band', min: 30, max: 80 }, line: 'RUN',
+      deadlineDays: 10,
+      next: [{ on: 'success', to: 'complete', settle: { pay: 10 } }, { on: 'failed', to: 'fail' }],
+    }],
+    complete: { pay: 0 },
+    fail: { pay: 0 },
+  };
+  const on = (day: number) => ctx(facts({ systemIndex: LAVE, day }), () => 0.5, [dated]);
+  const held = stepMissions(emptyMissionState(), { kind: 'accept', skeleton: 'dated' }, on(0)).state;
+  const target = g1[held.live[0].target as number].name.toUpperCase();
+  const quiet = stepMissions(held, { kind: 'dayPassed', days: 2 }, on(2));
+  check('a day well inside the deadline says nothing', said(quiet.effects).length === 0);
+  const near = stepMissions(held, { kind: 'dayPassed', days: 5 }, on(7));
+  eq('three days out, the console says how many are left',
+    said(near.effects).join('|'), `THE JOB AT ${target} HAS 3 DAYS LEFT.`);
+  const last = stepMissions(held, { kind: 'dayPassed', days: 3 }, on(10));
+  eq('...and on the last day, that it must be done today',
+    said(last.effects).join('|'), `THE JOB AT ${target} MUST BE DONE TODAY.`);
+  const late = stepMissions(held, { kind: 'dayPassed', days: 1 }, on(11));
+  check('a day past the deadline fails the job',
+    late.state.live.length === 0 && late.state.done.dated === 'fail');
+  eq('...and says so', said(late.effects)[0], `THE JOB AT ${target} RAN OUT OF TIME, AND IT IS LOST.`);
+}
+
 const inputs: MissionInput['kind'][] = ['arrived', 'misjumped', 'scooped', 'policeScan', 'choice'];
 check('an input no live leg reads changes nothing', inputs.every((kind) => {
   const st = emptyMissionState();

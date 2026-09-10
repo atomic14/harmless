@@ -35,6 +35,7 @@ import { fillSlots, legPay, lineSlots } from './text.ts';
 import { leadWorldIn } from './tour.ts';
 import { sameTrigger, triggerLabel, wordKind } from './triggers.ts';
 import { verbItem, verbModule, verbNeedsShip } from './verbs/registry.ts';
+import { DEADLINE_WARNING_DAYS } from '../constants/missions.ts';
 
 export interface MissionContext {
   commander: CommanderFacts;
@@ -203,10 +204,27 @@ function react(
   if (input.kind === 'survivor') st.passengers = st.passengers.filter((p) => p.tag !== input.tag);
 }
 
+/**
+ * A day passed. A deadline behind the day fails its leg, and says so. A
+ * deadline within `DEADLINE_WARNING_DAYS` says how many days are left
+ * (docs/TODO/203 M1). Both lines name the leg's world, because that is where
+ * the player must be.
+ */
 function deadlines(st: MissionState, ctx: MissionContext, effects: MissionEffect[]): void {
   for (const live of [...st.live]) {
-    if (live.deadlineDay !== null && ctx.commander.day > live.deadlineDay) {
+    if (live.deadlineDay === null) continue;
+    const left = live.deadlineDay - ctx.commander.day;
+    const where = live.target === null ? 'ANY STATION' : ctx.systems[live.target].name.toUpperCase();
+    if (left < 0) {
+      effects.push({ kind: 'say', text: `THE JOB AT ${where} RAN OUT OF TIME, AND IT IS LOST.` });
       fire(st, live, 'deadlinePassed', ctx, effects);
+    } else if (left <= DEADLINE_WARNING_DAYS) {
+      effects.push({
+        kind: 'say',
+        text: left === 0
+          ? `THE JOB AT ${where} MUST BE DONE TODAY.`
+          : `THE JOB AT ${where} HAS ${left} DAY${left === 1 ? '' : 'S'} LEFT.`,
+      });
     }
   }
 }

@@ -147,6 +147,13 @@ export class HyperspaceActions {
       return;
     }
     this.state.living.advance(jump.days, COMMODITIES.map((c) => c.gradient));
+    // The days of the jump reach the missions, so a deadline can pass and a
+    // near one can be said (docs/TODO/203 M1). Nothing sent them before, and
+    // no job ever expired. The lines queue, because ARRIVED takes the console
+    // a few lines below, and a line said now would be gone before it showed.
+    for (const m of runMissions(this.state.commander, { kind: 'dayPassed', days: jump.days }, this.state.systems)) {
+      this.host.sayEvent({ ...m, queued: true });
+    }
     // the galaxy forgets a little on the way. A jump is days of honest
     // distance. A fall back down a rung is the one piece of good news the
     // character system has, so it is said too (docs/TODO/129)
@@ -182,6 +189,13 @@ export class HyperspaceActions {
     this.state.session.policeScanned = false;
     this.state.encounterTimers = freshTimers();
     this.world.populateSystem('arrival');
+    // The arrival reaches the missions, after the world is built, so a leg
+    // that waits for it can move and a line about the target can follow
+    // (docs/TODO/203 M1). Nothing sent it before, and the lane job could
+    // never complete.
+    for (const m of runMissions(this.state.commander, { kind: 'arrived' }, this.state.systems)) {
+      this.host.sayEvent({ ...m, queued: true });   // behind ARRIVED, which the caller says
+    }
     this.host.hyperspaceSound();
     this.host.startTunnel(1.1);
   }
@@ -221,6 +235,7 @@ export class HyperspaceActions {
     c.systemIndex = target;
     c.day += 3; // the tow takes a while
     this.state.living.advance(3, COMMODITIES.map((cm) => cm.gradient));
+    for (const m of runMissions(c, { kind: 'dayPassed', days: 3 }, this.state.systems)) this.host.sayEvent(m);
     const wasDisrepute = c.disrepute ?? 0;
     c.disrepute = afterDecay(wasDisrepute, 3);
     this.host.markCharacter(wasDisrepute, c.disrepute);
