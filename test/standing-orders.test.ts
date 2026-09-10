@@ -278,17 +278,21 @@ console.log('\nthe summary never drops a kind for another');
 
 console.log('\nR opens the standing orders in both modes, and takes nothing else');
 {
-  eqc('R at the station asks for the standing orders',
-    cmds('docked', ['KeyR'], []), ['openMissions']);
-  eqc('...and in the cockpit, where the briefing was lost',
+  // The station has rows, not letters, since docs/TODO/202. The cockpit
+  // keeps R and I.
+  eqc('the MISSIONS row at the station asks for the standing orders',
+    cmds('docked', ['VirtOpenMissions'], []), ['openMissions']);
+  eqc('...and R in the cockpit, where the briefing was lost',
     cmds('flight', ['KeyR'], []), ['openMissions']);
-  eqc('I is still the commander status at the station',
-    cmds('docked', ['KeyI'], []), ['openStatus']);
-  eqc('...and in the cockpit', cmds('flight', ['KeyI'], []), ['openStatus']);
-  // ⇧R is the LOG since docs/TODO/190 M5. The rule above is about the ROW:
-  // the missions row is plain R, and the log has no row, only a keyline.
-  eqc('a held shift turns R into the log, which has no row to click',
-    cmds('docked', ['KeyR'], ['ShiftLeft']), ['openLog']);
+  eqc('the COMMANDER STATUS row is the status at the station',
+    cmds('docked', ['VirtOpenStatus'], []), ['openStatus']);
+  eqc('...and I in the cockpit', cmds('flight', ['KeyI'], []), ['openStatus']);
+  // ⇧R is the LOG since docs/TODO/190 M5, in the cockpit. At the station the
+  // log is a row of its own, and no shift is read.
+  eqc('a held shift turns R into the log in the cockpit',
+    cmds('flight', ['KeyR'], ['ShiftLeft']), ['openLog']);
+  eqc('...and the station reads no shift at all',
+    cmds('docked', ['KeyR'], ['ShiftLeft']), []);
 }
 
 // The SHAPE of the summary, which the joined assertions above cannot see.

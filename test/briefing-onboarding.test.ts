@@ -46,8 +46,8 @@ const tap = (g: Game, code: string): void => {
   // ride out the 1.4s docking tunnel — while it runs, handleInput is on its
   // paused-only path and no key is read (same run-out as help-overlay.test.ts)
   withoutSaving(() => { for (let f = 0; f < 120; f++) g.step(1 / 60, at += 1 / 60); });
-  tap(g, 'KeyH');
-  eq('H remains the permanent way back in', g.mode, 'briefing');
+  tap(g, 'VirtOpenBriefing');   // the menu row, since docs/TODO/202
+  eq('the briefing row remains the permanent way back in', g.mode, 'briefing');
   tap(g, 'Escape');
   eq('...and Escape still leaves', g.mode, 'docked');
 }

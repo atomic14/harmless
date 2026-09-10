@@ -23,15 +23,19 @@ import {
   BINDINGS,
 } from '../src/game/bindings.ts';
 import { ordnanceMessage } from '../src/game/ordnance.ts';
-import { ALL_BINDINGS, keyIfBound, keyLabel } from '../src/ui/key-help.ts';
+import { ALL_BINDINGS, isVirtualKey, keyIfBound, keyLabel } from '../src/ui/key-help.ts';
 import { check, eq } from './harness.ts';
 
 console.log('\nno console message in src/game/ spells a key out');
 
 console.log('\nno console message in src/game/ spells a key out');
 {
-  /** Every label the tables bind, as a message could write it. */
-  const bound = new Set(ALL_BINDINGS.map((b) => keyLabel(b.key, b.shift)));
+  /**
+   * Every label the tables bind, as a message could write it. A station row
+   * has no label since docs/TODO/202, and an empty hunt would match every
+   * word, so the rows are left out.
+   */
+  const bound = new Set(ALL_BINDINGS.filter((b) => !isVirtualKey(b.key)).map((b) => keyLabel(b.key, b.shift)));
 
   // Two kinds of label are deliberately NOT hunted:
   //

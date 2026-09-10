@@ -705,14 +705,14 @@ export class Game {
     // same in both layouts, so the binding table paints them once.
     refreshHelpPanel();
     paintCommandGuide();
-    // ...and the two keys this line names come from that same table rather
-    // than from the sentence (docs/TODO/128 M3). The guide is a global binding.
-    // The layout toggle is the docked table's, which is where a commander who
-    // reads this is standing.
+    // ...and the key this line names comes from that same table rather than
+    // from the sentence (docs/TODO/128 M3). The guide is a global binding. The
+    // layout toggle is a row on the station menu, so the line points there
+    // (docs/TODO/202).
     this.showMessage(
       `PRESS ${boundKey('docked', 'toggleHelp')} FOR CONTROLS`
       + ` — ${layoutName().toUpperCase()} LAYOUT`
-      + ` (${boundKey('docked', 'toggleLayout')} TO SWITCH)`, 8);
+      + ' (SWITCH IT ON THE STATION MENU)', 8);
 
     // all screens accept mouse input; the shell owns the listener and hands
     // back the element that carries data-key/data-row

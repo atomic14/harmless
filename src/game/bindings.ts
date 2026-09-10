@@ -195,48 +195,38 @@ export const BINDINGS: Record<ControlMode, readonly Binding[]> = {
    * arranged for a player.
    */
   docked: [
-    { key: 'KeyL', command: 'launch' },
-    { key: 'KeyM', command: 'openMarket' },
-    { key: 'KeyC', command: 'openContracts' },
-    { key: 'KeyE', command: 'openEquip' },
-    { key: 'KeyN', command: 'openLocalChart' },
-    { key: 'KeyG', command: 'openChart' },
-    // The menu advertised "D DATA ON SYSTEM" all along, with nothing behind it
-    // while docked. The only KeyD handlers were on the charts and the save
-    // screen. This reports the system you are standing on.
-    { key: 'KeyD', command: 'openSystemData' },
-    { key: 'KeyI', command: 'openStatus' },
-    // R for the standing oRders. A PLAIN letter, because this is a menu ROW —
-    // see `Binding.shift`. R is the only one free in both tables, and this
-    // screen is reached from the cockpit as well as from here.
-    { key: 'KeyR', shift: true, command: 'openLog' },
-    { key: 'KeyR', command: 'openMissions' },
-    // ⇧T beside T, because the development levers and the simulator are the
-    // two things on this menu that are not the career. It must come FIRST for
-    // its key, because the plain entry is the fallback and would eat the tap
-    // (see Binding). It is a keyline caption rather than a menu row. So its
-    // position in this list decides where it sits on the keyline, and not the
-    // menu's shape.
-    { key: 'KeyT', shift: true, command: 'openTestMode' },
-    // T for TRAINING. It is free on this menu, and it arms a missile in
-    // FLIGHT. That is the established per-mode convention rather than a clash.
-    // C is contracts docked and the docking computer in flight. M is the market
-    // docked and launch-missile in flight. The tables are per mode.
-    { key: 'KeyT', command: 'openCombatSim' },
-    { key: 'KeyH', command: 'openBriefing' },
-    // P clears your legal status. The station clears an Offender or Fugitive
-    // record for a fine, by choice. A dock does not charge it at the door.
-    { key: 'KeyP', command: 'payFine' },
-    // --- the keyline under the menu: bound here, but not rows you arrow onto -
-    { key: 'KeyB', command: 'toggleLayout' },
-    { key: 'KeyS', command: 'openSaves' },
-    { key: 'KeyX', command: 'exportSave' },
-    { key: 'KeyZ', command: 'importSave' },
-    // Q, not a shifted N. ⇧N shared a key with the local chart. A cancel of the
-    // confirm with N, while shift was still down, re-opened it on the very next
-    // tap. You could get stuck in a loop you couldn't type your way out of. A
-    // destructive action should share a key with nothing, modifier or not.
-    { key: 'KeyQ', command: 'askNewGame' },
+    // EVERY ROW IS A VIRTUAL CODE, and no row is a letter (docs/TODO/202 M2).
+    // A tap or a click on the row injects the code, the cursor's Enter does
+    // the same, and this table answers. A code is `Virt` and the command's
+    // own name, so a row's key and its command cannot part company;
+    // test/key-help.test.ts holds that. No keyboard produces one, so no
+    // letter is spent here, and no modifier is read at the station.
+    //
+    // The order is the menu's order, top to bottom.
+    { key: 'VirtLaunch', command: 'launch' },
+    { key: 'VirtOpenMarket', command: 'openMarket' },
+    { key: 'VirtOpenContracts', command: 'openContracts' },
+    { key: 'VirtOpenEquip', command: 'openEquip' },
+    // P used to clear the legal status. The station clears an Offender or
+    // Fugitive record for a fine, by choice. A dock does not charge it at the door.
+    { key: 'VirtPayFine', command: 'payFine' },
+    { key: 'VirtOpenLocalChart', command: 'openLocalChart' },
+    { key: 'VirtOpenChart', command: 'openChart' },
+    // The menu advertised "D DATA ON SYSTEM" for months with nothing behind
+    // it while docked. This reports the system you are standing on.
+    { key: 'VirtOpenSystemData', command: 'openSystemData' },
+    { key: 'VirtOpenStatus', command: 'openStatus' },
+    { key: 'VirtOpenMissions', command: 'openMissions' },
+    { key: 'VirtOpenLog', command: 'openLog' },
+    { key: 'VirtOpenCombatSim', command: 'openCombatSim' },
+    { key: 'VirtOpenBriefing', command: 'openBriefing' },
+    { key: 'VirtToggleLayout', command: 'toggleLayout' },
+    { key: 'VirtOpenSaves', command: 'openSaves' },
+    { key: 'VirtExportSave', command: 'exportSave' },
+    { key: 'VirtImportSave', command: 'importSave' },
+    { key: 'VirtOpenTestMode', command: 'openTestMode' },
+    // A destructive act shares a row with nothing. It asks first.
+    { key: 'VirtAskNewGame', command: 'askNewGame' },
   ],
 
   /** The confirmation swallows every other key — that is the whole point of it. */

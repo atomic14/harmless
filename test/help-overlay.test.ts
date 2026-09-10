@@ -60,8 +60,8 @@ console.log('\nthe ? guide overlay');
     eq('a fresh Game starts docked with the guide closed',
       `${g.mode}/${g.helpVisible}`, 'docked/false');
 
-    tap(g, 'KeyM');
-    eq('M opens the market (the screen the guide must cover)', g.mode, 'market');
+    tap(g, 'VirtOpenMarket');   // the market's menu row, since docs/TODO/202
+    eq('the market row opens the market (the screen the guide must cover)', g.mode, 'market');
     tap(g, 'Question');
     check('? opens the guide over the open screen', g.helpVisible);
     eq('...without disturbing that screen', g.mode, 'market');
@@ -82,12 +82,12 @@ console.log('\nthe ? guide overlay');
       g.mode, 'docked');
 
     tap(g, 'Question');
-    tap(g, 'KeyM');
-    eq('the docked menu under an open guide ignores its own keys', g.mode, 'docked');
+    tap(g, 'VirtOpenMarket');
+    eq('the docked menu under an open guide ignores its own rows', g.mode, 'docked');
     check('...with the guide still up', g.helpVisible);
     tap(g, 'Question');
     check('? closes the guide it opened', !g.helpVisible);
-    tap(g, 'KeyM');
+    tap(g, 'VirtOpenMarket');
     eq('...and the menu answers again', g.mode, 'market');
   }
 

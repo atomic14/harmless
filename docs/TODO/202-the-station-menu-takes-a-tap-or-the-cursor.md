@@ -101,7 +101,7 @@ Its flight sentences do not change.
   accept a contract. Each of those has a button as well.
 - **The cursor stays.** Up, down and Enter walk the rows, and Escape goes
   back. That is the keyboard's way in.
-- **One list, not a submenu.** Twenty rows in two columns fit a desktop
+- **One list, not a submenu.** Nineteen rows in two columns fit a desktop
   window. A phone scrolls one column, which it already does for the market.
 - **A virtual code is named after its command.** So a row's key and its
   command cannot part company, and the table stays the one home.

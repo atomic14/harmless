@@ -50,7 +50,7 @@ console.log('\nL offers the law money — and never in the simulator');
     cmds('simulator', ['KeyL']), []);
   check('...which is what NOT_IN_THE_SIMULATOR is doing',
     NOT_IN_THE_SIMULATOR.includes('bribePolice'));
-  eqc('L at the station is still LAUNCH', cmds('docked', ['KeyL']), ['launch']);
+  eqc('the LAUNCH row at the station is still LAUNCH', cmds('docked', ['VirtLaunch']), ['launch']);
   check('the guide says what it never buys',
     COMMAND_HELP.bribePolice.what.includes('never clears your legal status')
     && COMMAND_HELP.bribePolice.what.includes('costs your reputation'));

@@ -11,7 +11,8 @@
 // EVERY KEY IT NAMES IS READ OFF THE BINDING TABLE (`boundKey`). So a rebound
 // command rewrites its own prose, and an unbound one fails the build. The chart's
 // cursor keys are the screen's own (`game/screens/chart.ts`), not bindings, so
-// those stay written out.
+// those stay written out. A station command has no key since docs/TODO/202:
+// it is a row on the menu, and the prose names the row.
 
 import { MAX_FUEL, STARTING_CREDITS } from '../constants/commander.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
@@ -19,6 +20,7 @@ import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 import { show } from './screen-shell.ts';
 import { TORUS_MULTIPLIER } from '../constants/torus.ts';
 import { boundKey } from './key-help.ts';
+import { COMMAND_HELP } from '../game/command-help.ts';
 
 /**
  * The confirmation before a fresh start. It spells out what is about to be
@@ -37,11 +39,6 @@ import { boundKey } from './key-help.ts';
 // bindings, so those stay written out. The briefing explains goals and
 // consequences. The complete key map is the `?` guide and the manual.
 const KEY = {
-  market: boundKey('docked', 'openMarket'),
-  contracts: boundKey('docked', 'openContracts'),
-  localChart: boundKey('docked', 'openLocalChart'),
-  launch: boundKey('docked', 'launch'),
-  briefing: boundKey('docked', 'openBriefing'),
   help: boundKey('docked', 'toggleHelp'),
   jump: boundKey('flight', 'startHyperspace'),
   torus: boundKey('flight', 'toggleTorus'),
@@ -50,6 +47,14 @@ const KEY = {
   ecm: boundKey('flight', 'fireEcm'),
   armMissile: boundKey('flight', 'armMissile'),
   fireMissile: boundKey('flight', 'launchMissile'),
+};
+/** The station rows the briefing names, read off the same dictionary the menu paints from. */
+const ROW = {
+  market: COMMAND_HELP.openMarket.menu,
+  contracts: COMMAND_HELP.openContracts.menu,
+  localChart: COMMAND_HELP.openLocalChart.menu,
+  launch: COMMAND_HELP.launch.menu,
+  briefing: COMMAND_HELP.openBriefing.menu,
 };
 export const BRIEFING: { title: string; body: string }[] = [
   {
@@ -63,25 +68,25 @@ export const BRIEFING: { title: string; body: string }[] = [
       who have it wait on the MISSIONS screen, and
       <a href="/missions" target="_blank">the mission tour</a> says who they
       are.<br/><br/>
-      Everything on this menu is a letter key. <b>&uarr; &darr;</b> and
-      <b>ENTER</b> work too. <b>${KEY.help}</b> shows every control, here and
-      in flight; <b>${KEY.briefing}</b> reopens this briefing whenever you
-      want it back.`,
+      Tap a row on this menu, or move to it with <b>&uarr; &darr;</b> and
+      press <b>ENTER</b>. <b>${KEY.help}</b> shows every control, here and in
+      flight. <b>${ROW.briefing}</b> on the menu reopens this briefing
+      whenever you want it back.`,
   },
   {
     title: 'MAKE SOME MONEY',
-    body: `Press <b>${KEY.market}</b> for the market.<br/><br/>
+    body: `Open <b>${ROW.market}</b> on the station menu.<br/><br/>
       Worlds are short of what they do not make. <b>Agricultural</b> worlds sell
       food, textiles, liquor and furs cheaply. <b>Industrial</b> worlds sell
       machinery, computers and alloys cheaply — and each pays well for the
       other's goods.<br/><br/>
       So: buy a hold full of something cheap here, and sell it somewhere with
-      the opposite economy. <b>Contracts</b> (<b>${KEY.contracts}</b>) pay
+      the opposite economy. <b>${ROW.contracts}</b>, on the same menu, pay
       better than plain cargo for the same trip, but they have deadlines.`,
   },
   {
     title: 'CHOOSE A DESTINATION',
-    body: `Press <b>${KEY.localChart}</b> for the short range chart.<br/><br/>
+    body: `Open <b>${ROW.localChart}</b> on the station menu.<br/><br/>
       The dashed circle is how far your fuel will take you — ${MAX_FUEL / 10} light years on a
       full tank. Anything inside it you can reach.<br/><br/>
       Move the cursor with the <b>arrow keys</b>, press <b>ENTER</b> to set your
@@ -90,8 +95,8 @@ export const BRIEFING: { title: string; body: string }[] = [
   },
   {
     title: 'FLY THERE',
-    body: `<b>${KEY.launch}</b> to launch, then <b>${KEY.jump}</b> to jump once
-      you are clear of the station. The game saves on its own: a checkpoint at
+    body: `<b>${ROW.launch}</b> from the station menu, then <b>${KEY.jump}</b>
+      to jump once you are clear of the station. The game saves on its own: a checkpoint at
       every docking, and an autosave every ${AUTOSAVE_INTERVAL} seconds in
       flight.<br/><br/>
       You come out of hyperspace a long way from the planet. Point at it and

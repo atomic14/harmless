@@ -226,7 +226,7 @@ export function renderNewGameConfirm(sys: StarSystem, c: CommanderData): void {
       </span><br/>
       and start again at Lave with 100.0 Cr.<br/>
       <span style="opacity:0.8; font-size:11px">
-        NOTHING IS DELETED &mdash; every save on the commander file (S) stays
+        NOTHING IS DELETED &mdash; every save on the commander file stays
         where it is, this one included.<br/>
         You will be asked what the new commander is called.<br/>
         Press ESC or Q to cancel, X to export a backup first.

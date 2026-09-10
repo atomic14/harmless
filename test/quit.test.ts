@@ -46,7 +46,8 @@ console.log('\nQ gives up the flight — and still ends an exercise');
   // It is a cockpit key and nothing else: docked, Q is the new-commander
   // confirmation, and a table that bound both would be two destructive acts on
   // one letter.
-  eqc('Q at the station is still NEW COMMANDER', cmds('docked', ['KeyQ']), ['askNewGame']);
+  eqc('Q at the station is nothing: the new commander is a row (docs/TODO/202)', cmds('docked', ['KeyQ']), []);
+  eqc('...and that row asks first', cmds('docked', ['VirtAskNewGame']), ['askNewGame']);
   check('the guide says the pause comes first, and where it puts you',
     COMMAND_HELP.quitFlight.what.includes('pause first')
     && COMMAND_HELP.quitFlight.what.includes('station autosave'));

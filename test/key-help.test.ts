@@ -33,8 +33,8 @@ import {
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import {
-  ALL_BINDINGS, boundKey, dockedMenuHtml, guideSections, guideTableHtml, keyLabel,
-  manualCommandsHtml, menuRowsHtml, paintCommandGuide,
+  ALL_BINDINGS, STATION_MENU_NOTE, boundKey, dockedMenuHtml, guideSections, guideTableHtml,
+  isVirtualKey, keyLabel, manualCommandsHtml, menuRowsHtml, paintCommandGuide,
 } from '../src/ui/key-help.ts';
 import {
   BRIEFING,
@@ -47,7 +47,9 @@ const sorted = (xs: string[]): string[] => [...new Set(xs)].sort();
 
 console.log('\nthe ? guide documents every binding');
 {
-  const bound = sorted(ALL_BINDINGS.map(id));
+  // A station row is not a key, and the guide says so in one sentence rather
+  // than a table (docs/TODO/202). So the rows are not in the count.
+  const bound = sorted(ALL_BINDINGS.filter((b) => !isVirtualKey(b.key)).map(id));
   const documented = sorted(guideSections().flatMap((s) => s.bindings.map(id)));
 
   const missing = bound.filter((k) => !documented.includes(k));
@@ -109,8 +111,10 @@ console.log('\nthe ? guide documents every binding');
   delete globals.document;
   paintCommandGuide();
   globals.document = previous;
+  // The count is the sections plus one: the station's host takes the one
+  // sentence, not a table (docs/TODO/202).
   check('...and painting it headlessly writes nothing and throws nothing',
-    painted.size === guideSections().length);
+    painted.size === guideSections().length + 1);
 }
 
 console.log('\nthe ? panel has a host for every section');
@@ -129,27 +133,39 @@ console.log('\nthe ? panel has a host for every section');
     lost.length === 0, lost.join(', '));
 }
 
-console.log('\nthe station menu advertises exactly what is bound there');
+console.log('\nthe station menu is every station command, as a row with no letter');
 {
-  const both = BINDINGS.docked.filter((b) => {
-    const help = COMMAND_HELP[b.command];
-    return (help.menu === undefined) === (help.keyline === undefined);
-  });
-  check('every docked command is a menu row or a keyline entry, never both or neither',
-    both.length === 0, both.map((b) => b.command).join(', '));
+  // THE SHAPE SINCE docs/TODO/202. Every docked command is a row. No row is
+  // a letter, and none is shifted, so nothing at the station reads a
+  // modifier. A code is `Virt` and the command's name, so the row and the
+  // command cannot part company.
+  const noRow = BINDINGS.docked.filter((b) => COMMAND_HELP[b.command].menu === undefined);
+  check('every docked command has a menu row', noRow.length === 0, noRow.map((b) => b.command).join(', '));
+  const lettered = BINDINGS.docked.filter((b) => !isVirtualKey(b.key) || b.shift !== undefined);
+  check('no docked binding is a letter, and none is shifted', lettered.length === 0,
+    lettered.map((b) => b.key).join(', '));
+  const misnamed = BINDINGS.docked.filter((b) =>
+    b.key !== `Virt${b.command.charAt(0).toUpperCase()}${b.command.slice(1)}`);
+  check('a row\'s code is Virt and its command\'s name', misnamed.length === 0,
+    misnamed.map((b) => `${b.key} → ${b.command}`).join(', '));
+  check('...and a virtual code has no label, so prose cannot quote it',
+    keyLabel('VirtOpenMarket') === '' && (() => {
+      try { boundKey('docked', 'openMarket'); return false; } catch { return true; }
+    })());
 
   const menu = dockedMenuHtml();
   const rowKeys = [...menu.matchAll(/data-key="([^"]+)"/g)].map((m) => m[1]);
-  const wanted = BINDINGS.docked.filter((b) => COMMAND_HELP[b.command].menu).map((b) => b.key);
-  eq('the rows are the docked bindings that have a row, in table order',
-    rowKeys.join(','), wanted.join(','));
+  eq('the rows are the docked bindings, in table order',
+    rowKeys.join(','), BINDINGS.docked.map((b) => b.key).join(','));
+  check('...and no row prints a letter', !/<div data-key="[^"]+"><b>/.test(menu));
 
   const keyline = (menu.match(/<div class="keyline">([^<]*)</) ?? ['', ''])[1];
-  const unadvertised = [...GLOBAL_BINDINGS, ...BINDINGS.docked]
+  const unadvertised = GLOBAL_BINDINGS
     .filter((b) => COMMAND_HELP[b.command].keyline)
     .filter((b) => !keyline.includes(`${keyLabel(b.key, b.shift)} ${COMMAND_HELP[b.command].keyline}`));
-  check(`the keyline carries the rest (${keyline})`,
-    unadvertised.length === 0, unadvertised.map((b) => b.command).join(', '));
+  check(`the keyline says how the menu works, and names the global keys (${keyline})`,
+    unadvertised.length === 0 && keyline.includes('TAP A ROW') && keyline.includes('ENTER'),
+    unadvertised.map((b) => b.command).join(', '));
   check('...and neither of those is vacuous',
     rowKeys.length >= 8 && keyline.includes('? CONTROLS GUIDE'));
 
@@ -187,14 +203,14 @@ console.log('\nthe station menu advertises exactly what is bound there');
   const plainRow = menuRowsHtml([{ key: 'KeyT', command: 'openCombatSim' }]);
   check('an unshifted row prints no modifier', !plainRow.includes('data-shift'));
 
-  // ...and pressed through the REAL table. ⇧T and T are the station's one
-  // shifted pair, so this is the join the emitter alone cannot make: the row's
-  // modifier reaches `commandsFor` and picks the shifted entry over the plain
-  // one that shares its key.
+  // ...and pressed through a REAL table. The station has no shifted pair
+  // since docs/TODO/202, so the cockpit's ⇧R and R make the join the emitter
+  // alone cannot: the row's modifier reaches `commandsFor` and picks the
+  // shifted entry over the plain one that shares its key.
   eqc('a click carrying the row\'s shift asks for the shifted command',
-    commandsFor('docked', clicks([{ key: 'KeyT', shift: true }])), ['openTestMode']);
+    commandsFor('flight', clicks([{ key: 'KeyR', shift: true }])), ['openLog']);
   eqc('...and without it, the plain entry answers',
-    commandsFor('docked', clicks([{ key: 'KeyT' }])), ['openCombatSim']);
+    commandsFor('flight', clicks([{ key: 'KeyR' }])), ['openMissions']);
 }
 
 console.log('\nthe manual page is generated per mode');
@@ -210,14 +226,13 @@ console.log('\nthe manual page is generated per mode');
   check('every cockpit key is in the flight table',
     absent(inFlight, [...BINDINGS.flight, ...GLOBAL_BINDINGS]).length === 0,
     absent(inFlight, BINDINGS.flight).map((b) => b.key).join(', '));
-  check('every station key is in the station table',
-    absent(atStation, BINDINGS.docked).length === 0,
-    absent(atStation, BINDINGS.docked).map((b) => b.key).join(', '));
+  // The station has no keys since docs/TODO/202, so its table is one sentence.
+  check('the station part is the one sentence, and names no key',
+    atStation.includes(STATION_MENU_NOTE) && !atStation.includes('<kbd>'));
 
-  // The bug the hand-written table had: D is bound on the station menu and
+  // The bug the hand-written table had: D was bound on the station menu and
   // nowhere else, and it was printed as a flight command.
-  check('D is a station key, and the flight table does not claim it',
-    atStation.includes('<kbd>D</kbd>') && !inFlight.includes('<kbd>D</kbd>'));
+  check('the flight table does not claim D', !inFlight.includes('<kbd>D</kbd>'));
   check('...and ⇧Y, which the old table missed entirely, is there',
     inFlight.includes('<kbd>⇧Y</kbd>'));
 }
@@ -253,7 +268,13 @@ console.log('\nthe README lists exactly what is bound');
 
   table('### Commands (identical in both layouts)',
     [...BINDINGS.flight, ...GLOBAL_BINDINGS]);
-  table('### Docked\n', BINDINGS.docked);
+
+  // The station has rows, not keys (docs/TODO/202): the Docked section names
+  // every row's words.
+  const docked = readme.slice(readme.indexOf('### Docked\n'), readme.indexOf('### Combat training simulator'));
+  const unlisted = BINDINGS.docked.filter((b) => !docked.includes(COMMAND_HELP[b.command].menu ?? '\0'));
+  check(`README "Docked" names every row of the station menu (${BINDINGS.docked.length})`,
+    unlisted.length === 0, unlisted.map((b) => b.command).join(', '));
 
   // The control: the parser found a table, and the predicate says no when a
   // key is absent. A heading that stopped matching would leave two empty lists
@@ -272,9 +293,7 @@ console.log('\nthe briefing surfaces the whole first journey');
   // so a REBOUND key rewrites its own prose, and what this holds is that the
   // guidance is not REMOVED — docs/TODO/106 milestone 3.
   const journey: [ControlMode, Command][] = [
-    ['docked', 'openMarket'], ['docked', 'openContracts'],
-    ['docked', 'openLocalChart'], ['docked', 'launch'],
-    ['docked', 'openBriefing'], ['docked', 'toggleHelp'],
+    ['docked', 'toggleHelp'],
     ['flight', 'startHyperspace'], ['flight', 'toggleTorus'],
     ['flight', 'armMissile'], ['flight', 'launchMissile'],
     ['flight', 'fireEcm'], ['flight', 'jettison1'],
@@ -284,6 +303,12 @@ console.log('\nthe briefing surfaces the whole first journey');
   const unquoted = journey
     .filter(([mode, c]) => !text.includes(`<b>${boundKey(mode, c)}</b>`))
     .map(([, c]) => c);
+  // A station command is a row since docs/TODO/202, so the briefing names
+  // the row's words, off the same dictionary the menu paints from.
+  const rows: Command[] = ['openMarket', 'openContracts', 'openLocalChart', 'launch', 'openBriefing'];
+  const unnamed = rows.filter((c) => !text.includes(`<b>${COMMAND_HELP[c].menu}</b>`));
+  check(`every station step of the journey names its menu row (${rows.length})`,
+    unnamed.length === 0, unnamed.join(', '));
   check(`every journey command is quoted with its bound key (${journey.length})`,
     unquoted.length === 0, unquoted.join(', '));
 
@@ -292,13 +317,13 @@ console.log('\nthe briefing surfaces the whole first journey');
     !text.includes(`<b>${boundKey('flight', 'jettison5')}</b>`));
 
   // Where the pilot starts and what dying does, in the same words everywhere:
-  // the README promises the auto-opening briefing and H as the way back, and
+  // the README promises the auto-opening briefing and the row as the way back, and
   // the briefing's death line matches the respawn the game ships.
   const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
   check('the README promises the automatic first briefing',
     readme.includes('opens by itself the first time'));
-  check('...and H as the permanent way back',
-    readme.includes(`**${boundKey('docked', 'openBriefing')}** at the station reopens it`));
+  check('...and the briefing row as the permanent way back (docs/TODO/202)',
+    readme.includes(`**${COMMAND_HELP.openBriefing.menu}** on the station menu reopens it`));
   check('the briefing tells a pilot what death does',
     text.includes('death puts you back at the last station'));
 }

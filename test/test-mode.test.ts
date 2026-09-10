@@ -42,21 +42,18 @@ import { g1 } from './fixtures.ts';
 
 // --- the door ----------------------------------------------------------------
 
-console.log('\n⇧T is the door, and T is still the simulator');
+console.log('\nTEST MODE is a row at the bottom of the menu, and COMBAT TRAINING another');
 {
-  eqc('⇧T at the station asks for test mode', cmds('docked', ['KeyT'], ['ShiftLeft']),
+  // The station has rows, not letters, since docs/TODO/202. The door was a
+  // shifted T beside the simulator's T, and a keyline caption a phone could
+  // not press. It is the last row but one now, and it reads no shift.
+  eqc('the TEST MODE row asks for test mode', cmds('docked', ['VirtOpenTestMode'], ['ShiftLeft']),
     ['openTestMode']);
-  // The reason the shifted entry has to come FIRST in the table: the plain one
-  // is the fallback and `pressed()` consumes, so a plain entry ahead of it eats
-  // the tap and the training simulator opens with shift held.
-  eqc('...and T on its own is still the training simulator', cmds('docked', ['KeyT']),
-    ['openCombatSim']);
-  // A development door belongs on the keyline — keys that work here but are not
-  // controls you arrow onto — not among the menu's rows. Invariant 9's own test
-  // holds that it is one or the other; this says WHICH.
-  check('the door is a keyline caption, not a menu row',
-    COMMAND_HELP.openTestMode.keyline === 'TEST MODE'
-    && COMMAND_HELP.openTestMode.menu === undefined);
+  eqc('...and the COMBAT TRAINING row is still the training simulator',
+    cmds('docked', ['VirtOpenCombatSim']), ['openCombatSim']);
+  check('the door is a menu row, and no keyline caption',
+    COMMAND_HELP.openTestMode.menu === 'TEST MODE'
+    && COMMAND_HELP.openTestMode.keyline === undefined);
   check('...and it is bound at the station and nowhere else',
     BINDINGS.docked.some((b) => b.command === 'openTestMode')
     && !BINDINGS.flight.some((b) => b.command === 'openTestMode')

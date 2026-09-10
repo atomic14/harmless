@@ -49,9 +49,9 @@ console.log('\nthe station line and the briefing, through a real Game');
   eq('...and nothing starts until she accepts', c.missions.live.length, 0);
 
   // She accepts on the MISSIONS screen, as she signs for a contract.
-  g.input.injectPress('KeyR');
+  g.input.injectPress('VirtOpenMissions');   // the menu row, since docs/TODO/202
   g.step(1 / 60, 1);
-  eq('R opens the missions screen', g.mode, 'missions');
+  eq('the MISSIONS row opens the missions screen', g.mode, 'missions');
   g.input.injectPress('KeyA');
   g.step(1 / 60, 1 + 1 / 60);
   eq('A accepts the offer', c.missions.live[0]?.leg, 'hunt');

@@ -431,9 +431,11 @@ const OUTSIDE: readonly Group[] = [
       + ' prose rows',
     files: {
       'hud/hud.ts': ['CONTACT_COLORS', 'VIEW_NAMES', 'SCORE_LABELS'],
-      'ui/briefing.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES'],
+      // ROW is the station rows the briefing names, since docs/TODO/202
+      'ui/briefing.ts': ['KEY', 'BRIEFING', 'BRIEFING_PAGES', 'ROW'],
       'ui/screens-career.ts': ['LEVERS_OFF'],
-      'ui/key-help.ts': ['LABELS', 'ALL_BINDINGS'],
+      // the one sentence the guide and the manual say about the station menu (docs/TODO/202)
+      'ui/key-help.ts': ['LABELS', 'ALL_BINDINGS', 'STATION_MENU_NOTE'],
       'game/command-help.ts': ['COMMAND_HELP'],
       'game/bindings.ts': [
         'GLOBAL_BINDINGS', 'FLIGHT_BINDINGS', 'NOT_IN_THE_SIMULATOR', 'BINDINGS',

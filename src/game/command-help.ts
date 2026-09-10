@@ -49,8 +49,8 @@ export interface CommandHelp {
    */
   menu?: string;
   /**
-   * The same, for the keyline UNDER the menu. It is bound at the station and
-   * worth a mention, and it is not a row you can arrow onto.
+   * The same, for the keyline UNDER the menu. Only a GLOBAL binding carries
+   * one now: every station command is a row (docs/TODO/202 M2).
    */
   keyline?: string;
 }
@@ -75,7 +75,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   },
   openSaves: {
     what: 'commander file — named saves and autosaves',
-    keyline: 'COMMANDER FILE',
+    menu: 'COMMANDER FILE',
   },
   openSystemData: {
     what: 'data on the system you are standing on',
@@ -87,18 +87,17 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   },
   openTestMode: {
     what: 'test mode — development levers; the career that uses them is marked for good',
-    // The keyline, and not a menu row. The keyline holds keys that work here
-    // and are not controls you arrow onto (see CommandHelp.keyline). That is
-    // the right shelf for a development door.
-    keyline: 'TEST MODE',
+    // A row, at the bottom of the menu. It was a keyline caption while the
+    // keyline held keys, and a phone cannot press a caption (docs/TODO/202).
+    menu: 'TEST MODE',
   },
   payFine: { what: 'pay your fine — clears an Offender or Fugitive legal status', menu: 'PAY FINE' },
-  exportSave: { what: 'export a save file', keyline: 'EXPORT' },
-  importSave: { what: 'import a save file', keyline: 'IMPORT' },
-  toggleLayout: { what: 'switch keyboard layout: classic / modern', keyline: 'KEYBOARD LAYOUT' },
+  exportSave: { what: 'export a save file', menu: 'EXPORT SAVE' },
+  importSave: { what: 'import a save file', menu: 'IMPORT SAVE' },
+  toggleLayout: { what: 'switch keyboard layout: classic / modern', menu: 'KEYBOARD LAYOUT' },
 
   // --- the end of a commander -------------------------------------------------
-  askNewGame: { what: 'start a new commander (asks first)', keyline: 'NEW COMMANDER' },
+  askNewGame: { what: 'start a new commander (asks first)', menu: 'NEW COMMANDER' },
   newGame: { what: 'yes — name a new commander and start again' },
   cancelNewGame: { what: 'keep flying this commander' },
 
@@ -110,7 +109,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   openChart: { what: 'galactic chart', section: 'navigation', menu: 'GALACTIC CHART' },
   openLocalChart: { what: 'short range chart', section: 'navigation', menu: 'LOCAL CHART' },
   openStatus: { what: 'commander status', section: 'navigation', menu: 'COMMANDER STATUS' },
-  openLog: { what: "the commander's log — every mission as a story", section: 'navigation', keyline: 'LOG' },
+  openLog: { what: "the commander's log — every mission as a story", section: 'navigation', menu: "COMMANDER'S LOG" },
   openMissions: {
     what: 'missions — what the Navy wants doing, and where',
     section: 'navigation',

@@ -129,8 +129,9 @@ console.log('\nthe LOG screen, painted and opened');
   const empty = captureById(() => { renderLog({ pages: [], route: '', portrait: '', patron: '' }); }).get('screen') ?? '';
   check('a commander with no story still gets a page, and it says so', empty.includes('Nothing yet'));
 
-  eqc('⇧R at the station opens the log', cmds('docked', ['KeyR'], ['ShiftLeft']), ['openLog']);
-  eqc('...and in the cockpit', cmds('flight', ['KeyR'], ['ShiftLeft']), ['openLog']);
+  // The station has rows, not letters, since docs/TODO/202.
+  eqc('the COMMANDER\'S LOG row at the station opens the log', cmds('docked', ['VirtOpenLog'], []), ['openLog']);
+  eqc('...and ⇧R in the cockpit', cmds('flight', ['KeyR'], ['ShiftLeft']), ['openLog']);
   eqc('plain R is still the standing orders', cmds('flight', ['KeyR'], []), ['openMissions']);
 
   const g = withoutSaving(() => {
@@ -139,9 +140,9 @@ console.log('\nthe LOG screen, painted and opened');
     dismissBriefing(game);
     return game;
   }).value;
-  g.input.injectPress('KeyR', true);
+  g.input.injectPress('VirtOpenLog');
   g.step(1 / 60, 1);
-  eq('the key opens the screen through a real Game', g.screens.topId, 'log');
+  eq('the row opens the screen through a real Game', g.screens.topId, 'log');
   g.input.injectPress('Escape');
   g.step(1 / 60, 1 + 1 / 60);
   eq('...and Escape closes it', g.screens.topId, null);

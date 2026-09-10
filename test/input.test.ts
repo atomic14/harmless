@@ -178,7 +178,7 @@ const readPerFrame = (i: Input, code: string, frames: number): number => {
 // the game as one command per frame — not two in one frame, and not one ever.
 {
   const i = new Input();
-  taps(i, 'KeyM', 2);
+  taps(i, 'VirtOpenMarket', 2);   // the market's row, since docs/TODO/202
   eq('a double-tapped command fires once in the busy frame',
     commandsFor('docked', i).join('|'), 'openMarket');
   i.endFrame();

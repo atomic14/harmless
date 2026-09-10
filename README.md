@@ -97,7 +97,7 @@ can also play a commander all the way to **E L I T E** (25,600 kills) in
 about 20 seconds, under three different strategies — `trader`, `hunter`,
 `privateer` — which is how the combat ladder below was measured.
 
-The docked **combat trainer** (`T` at any station) replaced three console
+The docked **combat trainer** (COMBAT TRAINING on any station menu) replaced three console
 harnesses. It logs a fight you actually flew — your accuracy and theirs,
 damage by source, the geometry that decides whether an NPC can shoot at all,
 and how you fly — and exports it as JSON. Scenarios are repeatable from a
@@ -129,7 +129,7 @@ lint or tests fails the deploy build rather than shipping.
 You start docked at Lave Station with 100.0 Cr, a full tank and 3 missiles.
 
 **Saving** is a deliberate act and an automatic safety net, and the two can
-never overwrite each other. **S** at a station opens the commander file: name a
+never overwrite each other. **COMMANDER FILE** on the station menu opens it: name a
 save and it is yours to keep — the same name again replaces it, and it asks
 first. Alongside it the game keeps its own: a **station autosave** written every
 time you dock and every time you launch, and the last three **flight
@@ -146,14 +146,14 @@ own market model — and **[The Long Way Out](https://harmless.atomic14.com/nove
 novella with papers from the eight galaxies.
 
 In-game, the new pilot's briefing opens by itself the first time a commander
-docks; **H** at the station reopens it whenever you want it back, and **?**
-shows the controls at any time.
+docks; **NEW PILOT'S BRIEFING** on the station menu reopens it whenever you
+want it back, and **?** shows the controls at any time.
 
 ## Controls
 
 Two flight layouts ship. **CLASSIC — the authentic 1984 keys — is the
-default**; press **B** when docked to switch to MODERN (WASD), which is
-remembered per browser. Press **?** any time for the in-game guide, which
+default**; **KEYBOARD LAYOUT** on the station menu switches to MODERN (WASD),
+which is remembered per browser. Press **?** any time for the in-game guide, which
 always shows the active layout.
 
 ### Flight
@@ -206,27 +206,30 @@ because browsers claim the function keys.
 
 ### Docked
 
-| Key | Action |
-| --- | --- |
-| L | launch |
-| M / C / E | market · contracts · equip ship |
-| N / G / D / I | local chart · galactic chart · data on system · status |
-| R | missions — every standing order you are under, in one place, and the offers here |
-| ⇧R | commander's log — every mission you took, told as a story |
-| **T** | **combat training simulator** — practise a fight; nothing in it reaches your commander |
-| ⇧T | test mode — development levers; a career that switches them on says so on its status screen, for good |
-| H | new pilot's briefing |
-| P | pay your fine — clear an Offender or Fugitive record |
-| B | switch keyboard layout |
-| S | commander file — named saves and autosaves (S saves the run · ENTER loads, asking first · D deletes · R changes what you are called) |
-| X / Z | export · import a save file |
-| Q | start a new commander (confirms first) |
+The station has no letter keys. Every command is a row on the menu: tap or
+click a row, or move to it with ↑↓ and press ENTER. ESC goes back. The rows,
+in order:
 
-↑↓ and ENTER work on the menu as well as the letter keys.
+| Row | What it does |
+| --- | --- |
+| LAUNCH | launch |
+| MARKET PRICES · CONTRACTS · EQUIP SHIP | buy and sell · the board and the work you signed for · fuel, missiles and upgrades |
+| PAY FINE | clear an Offender or Fugitive record |
+| LOCAL CHART · GALACTIC CHART · DATA ON SYSTEM | the charts, and a report on the world you stand on |
+| COMMANDER STATUS | who you are, what you carry, how you rank |
+| MISSIONS | every standing order you are under, in one place, and the offers here |
+| COMMANDER'S LOG | every mission you took, told as a story |
+| **COMBAT TRAINING** | **combat training simulator** — practise a fight; nothing in it reaches your commander |
+| NEW PILOT'S BRIEFING | what to actually do, page by page |
+| KEYBOARD LAYOUT | switch the flight keys between CLASSIC and MODERN |
+| COMMANDER FILE | named saves and autosaves (on that screen: S saves the run · ENTER loads, asking first · D deletes · R changes what you are called) |
+| EXPORT SAVE · IMPORT SAVE | a save file out, or in |
+| TEST MODE | development levers; a career that switches them on says so on its status screen, for good |
+| NEW COMMANDER | start again (confirms first) |
 
 ### Combat training simulator
 
-Free, at every station, on **T**. Pick a mode (one scored fight · endless
+Free, at every station, from the menu. Pick a mode (one scored fight · endless
 sparring against one hull · escalating waves), a scenario, a threat tier, an
 optional seed, and optionally build the opposition yourself — hull, count,
 tier, how they fly and fit, per group — plus a fit-out override for your own

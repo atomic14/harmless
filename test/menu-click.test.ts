@@ -13,7 +13,9 @@
 //   1. `ScreenHost.click`, for a pointer;
 //   2. `runMenuCursor`, for arrowing onto a row and pressing Enter.
 //
-// ⇧T and T are the station's one shifted pair, so they are what these press.
+// ⇧R and R are the cockpit's shifted pair for the log and the missions, so
+// they are what these press. The station has no shifted row since
+// docs/TODO/202, and the cockpit still has five.
 
 import { Input } from '../src/engine/input.ts';
 import { commandsFor } from '../src/game/controls.ts';
@@ -29,14 +31,14 @@ console.log('\na click on a row sends the modifier the row prints');
   const host = new ScreenHost(() => {});
 
   const shifted = new Input();
-  check('the click is consumed', host.click(row('KeyT', true), shifted) === true);
+  check('the click is consumed', host.click(row('KeyR', true), shifted) === true);
   eqc('...and it asks for the SHIFTED command',
-    commandsFor('docked', shifted), ['openTestMode']);
+    commandsFor('flight', shifted), ['openLog']);
 
   const plain = new Input();
-  host.click(row('KeyT'), plain);
+  host.click(row('KeyR'), plain);
   eqc('a click on a plain row asks for the plain command',
-    commandsFor('docked', plain), ['openCombatSim']);
+    commandsFor('flight', plain), ['openMissions']);
 
   // The false fire, through the click path this time. One shifted click must
   // not arm a DIFFERENT shifted binding in the same frame.
@@ -75,13 +77,13 @@ console.log('\nEnter on a row sends it too, which is the same path');
 
   try {
     // The cursor starts on row 0, so Enter presses the first row.
-    const shifted = drive([menuRow('KeyT', true)], ['Enter']);
+    const shifted = drive([menuRow('KeyR', true)], ['Enter']);
     eqc('Enter on a shifted row asks for the shifted command',
-      commandsFor('docked', shifted), ['openTestMode']);
+      commandsFor('flight', shifted), ['openLog']);
 
-    const plain = drive([menuRow('KeyT')], ['Enter']);
+    const plain = drive([menuRow('KeyR')], ['Enter']);
     eqc('...and on a plain row, the plain one',
-      commandsFor('docked', plain), ['openCombatSim']);
+      commandsFor('flight', plain), ['openMissions']);
   } finally {
     if (had) globals.document = before;
     else delete globals.document;

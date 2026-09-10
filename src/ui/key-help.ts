@@ -72,11 +72,26 @@ export function boundKey(mode: ControlMode, command: Command): string {
  */
 export function keyIfBound(mode: ControlMode, command: Command): string | null {
   const b = [...BINDINGS[mode], ...GLOBAL_BINDINGS].find((x) => x.command === command);
-  return b ? keyLabel(b.key, b.shift) : null;
+  return b && !isVirtualKey(b.key) ? keyLabel(b.key, b.shift) : null;
 }
+
+/**
+ * A code no keyboard produces: a menu row's, or a button's (docs/TODO/202).
+ *
+ * It has no label, and prose cannot quote it. So `keyLabel` prints nothing
+ * for it, and `keyIfBound` answers null, which makes `boundKey` throw for a
+ * station command. A sentence that says "press M for the market" then fails
+ * the build, which is the point: the market is a row you tap.
+ */
+export const isVirtualKey = (code: string): boolean => code.startsWith('Virt');
+
+/** How the station menu works, for the `?` guide and the manual. */
+export const STATION_MENU_NOTE =
+  'At a station, every command is a row on the menu. Tap a row, or move to it with \u2191 \u2193 and press ENTER. ESC goes back.';
 
 /** What to print for a `KeyboardEvent.code`, with the modifier the table wants. */
 export function keyLabel(code: string, shift = false): string {
+  if (isVirtualKey(code)) return '';
   const name = LABELS[code]
     ?? (code.startsWith('Key') ? code.slice(3)
       : code.startsWith('Digit') ? code.slice(5) : code);
@@ -135,7 +150,6 @@ export function guideSections(): GuideSection[] {
     { id: 'help-flight', bindings: flightIn('flight') },
     { id: 'help-combat', bindings: flightIn('combat') },
     { id: 'help-navigation', bindings: flightIn('navigation') },
-    { id: 'help-docked', bindings: BINDINGS.docked },
     { id: 'help-confirm', bindings: BINDINGS.confirmNewGame },
     { id: 'help-confirm-jump', bindings: BINDINGS.confirmGalacticJump },
     { id: 'help-dead', bindings: BINDINGS.dead },
@@ -166,6 +180,8 @@ export function paintCommandGuide(): void {
   for (const section of guideSections()) {
     elementById(section.id).innerHTML = guideTableHtml(section.bindings);
   }
+  // The station has no key table, because it has no keys (docs/TODO/202).
+  elementById('help-docked').innerHTML = `<p>${STATION_MENU_NOTE}</p>`;
 }
 
 // --- the manual page --------------------------------------------------------
@@ -184,7 +200,7 @@ export function manualCommandsHtml(): string {
     <h3>Commands in flight</h3>
     ${table([...BINDINGS.flight, ...GLOBAL_BINDINGS])}
     <h3>Commands at the station</h3>
-    ${table(BINDINGS.docked)}`;
+    <p>${STATION_MENU_NOTE}</p>`;
 }
 
 // --- the station menu -------------------------------------------------------
@@ -193,52 +209,53 @@ export function manualCommandsHtml(): string {
 /**
  * The clickable rows themselves, taken as an argument.
  *
- * A SEAM, and it is there to be tested: `data-shift` is how a row sends what it
- * SHOWS — the label reads ⇧I, so the click presses ⇧I (docs/TODO/146) — and no
- * SHIPPED row is shifted today, so a test driving `dockedMenuHtml` alone could
- * only ever exercise the unshifted branch. `guideTableHtml` takes its bindings
- * for the same reason.
+ * A SEAM, and it is there to be tested. `data-shift` is how a row sends what it
+ * SHOWS. A row that reads ⇧I clicks as ⇧I (docs/TODO/146). No shipped row is
+ * shifted since docs/TODO/202, so a test hands this function a shifted binding
+ * of its own to prove the branch. `guideTableHtml` takes its bindings for the
+ * same reason.
  */
 export function menuRowsHtml(bindings: readonly Binding[]): string {
+  // A virtual code has no label, so the row is the words alone (docs/TODO/202).
+  const lead = (b: Binding): string => {
+    const label = keyLabel(b.key, b.shift);
+    return label ? `<b>${label}</b> ` : '';
+  };
   return bindings
     .map((b) => `<div data-key="${b.key}"${b.shift ? ' data-shift="1"' : ''}>`
-      + `<b>${keyLabel(b.key, b.shift)}</b> ${COMMAND_HELP[b.command].menu}</div>`)
+      + `${lead(b)}${COMMAND_HELP[b.command].menu}</div>`)
     .join('\n      ');
 }
 
 /**
  * The docked menu's rows and the keyline under them.
  *
- * `data-key` IS the click path (invariant 13), so a row naming a key the table
- * does not have is a dead control that looks alive — which the menu shipped for
- * months as "D DATA ON SYSTEM" with no KeyD binding while docked. Generating
- * the rows FROM the table is what retires that failure: there is no longer a
- * way to write one.
+ * `data-key` IS the click path (invariant 13). So a row that names a key the
+ * table does not have is a dead control that looks alive. The menu shipped for
+ * months with `D DATA ON SYSTEM` and no KeyD binding while docked. The rows are
+ * generated FROM the table, so there is no longer a way to write one.
  *
- * A docked command is a row if it has a menu label and a keyline entry if it
- * has a keyline one; `test/key-help.test.ts` asserts every docked binding has
- * exactly one of the two, so nothing bound at the station is unadvertised.
+ * Every docked command is a row since docs/TODO/202, and no row is a letter.
+ * `test/key-help.test.ts` holds that, and it presses every row.
  *
- * **A ROW SENDS THE SHIFT IT PRINTS**, and this function is the one place that
- * says so: `data-shift` beside `data-key`, read by `ScreenHost.click` and by
- * the menu cursor's Enter, and carried on the TAP rather than set on the frame
- * (docs/TODO/146).
- *
- * It could not, once. `data-key` carried the key alone, so a click on a shifted
- * row pressed the plain key and the unshifted entry answered — `⇧I MISSIONS`
- * shipped for an afternoon and clicked through to COMMANDER STATUS
- * (docs/TODO/144 M6). `test/key-help.test.ts` presses every row, and that
- * assertion is now the proof this works rather than a ban on writing one.
+ * A ROW SENDS THE SHIFT IT PRINTS, and this function is the one place that
+ * says so. `data-shift` sits beside `data-key`. `ScreenHost.click` reads it,
+ * and so does the menu cursor's Enter. The tap carries it, and the frame does
+ * not (docs/TODO/146). It could not, once: `data-key` carried the key alone,
+ * and a click on a shifted row pressed the plain key. `⇧I MISSIONS` shipped
+ * for an afternoon and clicked through to COMMANDER STATUS (docs/TODO/144 M6).
  */
 export function dockedMenuHtml(): string {
   const rows = menuRowsHtml(BINDINGS.docked.filter((b) => COMMAND_HELP[b.command].menu));
-  // The keyline is not clickable, so it carries no data-key: these are keys
-  // that work here, not controls you can arrow onto. `?` comes first because it
-  // is the one that explains all the others.
-  const line = [...GLOBAL_BINDINGS, ...BINDINGS.docked]
-    .filter((b) => COMMAND_HELP[b.command].keyline)
-    .map((b) => `${keyLabel(b.key, b.shift)} ${COMMAND_HELP[b.command].keyline}`)
-    .join(' &middot; ');
+  // The keyline says how the menu works, and then names the global keys that
+  // work here, which is `?`. It is not clickable, so it carries no data-key.
+  // The cursor's keys are the menu's own (ScreenHost.runMenuCursor), not
+  // bindings, so they are written out, as the chart's keyline writes its own.
+  const line = ['TAP A ROW', '&uarr; &darr; SELECT', 'ENTER OPEN',
+    ...GLOBAL_BINDINGS
+      .filter((b) => COMMAND_HELP[b.command].keyline)
+      .map((b) => `${keyLabel(b.key, b.shift)} ${COMMAND_HELP[b.command].keyline}`),
+  ].join(' &middot; ');
   return `<div class="menu">
       ${rows}
     </div>
@@ -260,7 +277,13 @@ export function dockedMenuHtml(): string {
 export function keyPointer(mode: ControlMode, command: Command): string {
   const help = COMMAND_HELP[command];
   const label = help.menu ?? help.keyline ?? '';
-  const key = boundKey(mode, command);
+  // A station row has no key, so the pointer is the row's words alone
+  // (docs/TODO/202). A cockpit command still points at its key.
+  const key = keyIfBound(mode, command);
+  if (key === null) {
+    if (!label) throw new Error(`keyPointer: '${command}' has no key and no label in '${mode}'`);
+    return label;
+  }
   return label ? `${key} ${label}` : key;
 }
 

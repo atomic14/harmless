@@ -148,14 +148,19 @@ console.log('\ncommand layer');
   // tests need the same fake keyboard, and two of them would drift.
 
   // --- the bindings themselves, which are the point ---------------------------
-  eqc('L launches', cmds('docked', ['KeyL']), ['launch']);
-  eqc('M opens the market', cmds('docked', ['KeyM']), ['openMarket']);
-  eqc('D reports the system you are standing on', cmds('docked', ['KeyD']), ['openSystemData']);
+  // A station command is a row on a virtual code since docs/TODO/202, and a
+  // letter at the station is nothing.
+  eqc('the LAUNCH row launches', cmds('docked', ['VirtLaunch']), ['launch']);
+  eqc('the MARKET PRICES row opens the market', cmds('docked', ['VirtOpenMarket']), ['openMarket']);
+  eqc('the DATA ON SYSTEM row reports the system you are standing on',
+    cmds('docked', ['VirtOpenSystemData']), ['openSystemData']);
+  eqc('a letter at the station is nothing', cmds('docked', ['KeyL', 'KeyM', 'KeyR']), []);
   eqc('T arms a missile', cmds('flight', ['KeyT']), ['armMissile']);
   eqc('J is the torus drive', cmds('flight', ['KeyJ']), ['toggleTorus']);
   eqc('P pauses in flight', cmds('flight', ['KeyP']), ['togglePause']);
   eqc('P also pauses the training simulator', cmds('simulator', ['KeyP']), ['togglePause']);
-  eqc('P pays your fine on the docked menu', cmds('docked', ['KeyP']), ['payFine']);
+  eqc('the PAY FINE row pays your fine on the docked menu', cmds('docked', ['VirtPayFine']), ['payFine']);
+  eqc('...and P at the station is nothing', cmds('docked', ['KeyP']), []);
   eqc('P does nothing on the new-game confirmation', cmds('confirmNewGame', ['KeyP']), []);
   eqc('P does nothing after destruction', cmds('dead', ['KeyP']), []);
   eqc('Enter is the only key that answers the game over screen',
@@ -178,8 +183,8 @@ console.log('\ncommand layer');
     cmds('flight', ['KeyH']).length === 1);
 
   // --- one command per frame ---------------------------------------------------
-  eqc('two menu keys in one frame run the FIRST in table order, as the chain did',
-    cmds('docked', ['KeyE', 'KeyL']), ['launch']);
+  eqc('two menu rows in one frame run the FIRST in table order, as the chain did',
+    cmds('docked', ['VirtOpenEquip', 'VirtLaunch']), ['launch']);
   eqc('...and in the cockpit', cmds('flight', ['KeyJ', 'KeyT']), ['armMissile']);
 
   // --- the view keys are independent -------------------------------------------
@@ -192,7 +197,7 @@ console.log('\ncommand layer');
     cmds('flight', ['KeyG', 'Digit2']), ['view1', 'openChart']);
 
   // --- the confirmation swallows every other key --------------------------------
-  eqc('Q asks before erasing a career', cmds('docked', ['KeyQ']), ['askNewGame']);
+  eqc('the NEW COMMANDER row asks before erasing a career', cmds('docked', ['VirtAskNewGame']), ['askNewGame']);
   eqc('Y confirms it', cmds('confirmNewGame', ['KeyY']), ['newGame']);
   eqc('X backs the commander up first', cmds('confirmNewGame', ['KeyX']), ['exportSave']);
   eqc('Escape backs out', cmds('confirmNewGame', ['Escape']), ['cancelNewGame']);
@@ -280,18 +285,17 @@ console.log('\nthe docked menu names keys the table has');
     && dead(oneRow, [{ key: 'KeyW' }]).length === 0
     && dead(oneRow, [{ key: 'KeyL' }]).length === 1);
 
-  // The keyline under the menu advertises six more keys without a `data-key`,
-  // so they are not clickable and the scan above never sees them. They are
-  // still a promise the table has to keep. `?` is the global help binding
-  // rather than a docked one, which is why it is asked for separately.
+  // The keyline under the menu says how the menu works and names the global
+  // keys, since docs/TODO/202. A letter it promises must be a global binding,
+  // because the station binds none. `?` is the one there is.
   const keyline = (menu.match(/<div class="keyline">([^<]*)</) ?? ['', ''])[1];
   const advertised = [...keyline.matchAll(/(?:^|·|&middot;)\s*([A-Z?])\s/g)].map((m) => m[1]);
-  const unanswered = advertised.filter((letter) => letter !== '?'
-    && !BINDINGS.docked.some((b) => b.key === `Key${letter}`));
-  check(`every letter the keyline promises is a docked binding (${advertised.join('')})`,
+  const unanswered = advertised.filter((letter) => !GLOBAL_BINDINGS.some((b) =>
+    b.key === (letter === '?' ? 'Question' : `Key${letter}`)));
+  check(`every letter the keyline promises is a global binding (${advertised.join('')})`,
     unanswered.length === 0, unanswered.join(', '));
   check('...and that one is not vacuous either',
-    advertised.length >= 5 && advertised.includes('?')
+    advertised.length >= 1 && advertised.includes('?')
     && GLOBAL_BINDINGS.some((b) => b.key === 'Question'));
 }
 

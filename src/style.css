@@ -673,6 +673,15 @@ body.screen-open #exercise { display: none; }
 #screen .hints span + span::before { content: "\00b7"; margin-right: 6px; }
 
 #screen .menu { font-size: 14px; line-height: 2.1; margin: 8px 0 0 18%; }
+/*
+ * Nineteen rows since docs/TODO/202, so a wide window shows them in two
+ * columns. A narrow one keeps one column and scrolls, as the market does.
+ * `break-inside` keeps a row whole across the column break.
+ */
+@media (min-width: 701px) {
+  #screen .menu { column-count: 2; column-gap: 28px; margin-left: 8%; }
+  #screen .menu div[data-key] { break-inside: avoid; }
+}
 #screen .menu b { color: var(--hud-amber); font-weight: normal; display: inline-block; width: 34px; }
 #screen .info { font-size: 12px; line-height: 1.7; }
 

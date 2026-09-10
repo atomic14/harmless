@@ -33,22 +33,21 @@ import {
   MODES, fitFrom, freshDraft, freshSeed, setupCells, specFrom, type SimDraft,
 } from '../src/game/screens/combat-sim-setup.ts';
 import { draftNotes } from '../src/game/screens/combat-sim-notes.ts';
-import { dockedMenuHtml, guideSections, guideTableHtml } from '../src/ui/key-help.ts';
+import { STATION_MENU_NOTE, dockedMenuHtml, guideSections, guideTableHtml, manualCommandsHtml } from '../src/ui/key-help.ts';
 
 const read = (path: string): string =>
   readFileSync(new URL(`../${path}`, import.meta.url), 'utf8');
 
 // --- T, in the two homes that are code --------------------------------------
 
-console.log('\ncombat simulator — the T key');
+console.log('\ncombat simulator — the COMBAT TRAINING row');
 {
-  eqc('T opens the simulator from the docked menu',
-    cmds('docked', ['KeyT']), ['openCombatSim']);
-  // The per-mode convention, and the reason T is free to mean two things: C is
-  // contracts docked and the docking computer in flight, M is the market docked
-  // and launch-missile in flight. This is the check that says adding T to the
-  // station menu did not take the missile key off the cockpit.
-  eqc('...and still arms a missile in flight', cmds('flight', ['KeyT']), ['armMissile']);
+  // A row on the station menu since docs/TODO/202, not a letter. T stays the
+  // cockpit's missile key, and this is the check that says the row did not
+  // take it.
+  eqc('the COMBAT TRAINING row opens the simulator from the docked menu',
+    cmds('docked', ['VirtOpenCombatSim']), ['openCombatSim']);
+  eqc('...and T still arms a missile in flight', cmds('flight', ['KeyT']), ['armMissile']);
   eqc('...and in an exercise too, which is ordinary flight',
     cmds('simulator', ['KeyT']), ['armMissile']);
   eqc('T does nothing in the erase-your-career confirmation',
@@ -157,16 +156,16 @@ console.log('\ncombat simulator — what the help surfaces say about it');
   // in both directions. What is left here is the trainer's own claim on those
   // surfaces — that T is offered, and that it says what it opens.
   const menu = dockedMenuHtml();
-  check('the docked menu offers T', menu.includes('data-key="KeyT"'));
-  check('...labelled as the combat trainer', /KeyT"><b>T<\/b> COMBAT TRAINING/.test(menu));
+  check('the docked menu offers the row', menu.includes('data-key="VirtOpenCombatSim"'));
+  check('...labelled as the combat trainer', /VirtOpenCombatSim">COMBAT TRAINING/.test(menu));
   check('...and the table really answers it', BINDINGS.docked
-    .some((b) => b.key === 'KeyT' && b.command === 'openCombatSim'));
+    .some((b) => b.key === 'VirtOpenCombatSim' && b.command === 'openCombatSim'));
 
   const help = read('play.html');
   check('play.html mentions the simulator', /COMBAT SIMULATOR/i.test(help));
   check('...and hosts the rows for the keys it adds', help.includes('id="help-simulator"'));
-  check('...with a T row in the DOCKED table',
-    /<tr><td>T<\/td><td>combat training simulator/.test(guideTableHtml(BINDINGS.docked)));
+  check('...and the station part of the guide and the manual is the one sentence about rows',
+    manualCommandsHtml().includes(STATION_MENU_NOTE));
   const exercise = guideSections().find((s) => s.id === 'help-simulator');
   check('...and the exercise\'s own keys, including how to get out of it',
     exercise !== undefined
@@ -174,7 +173,7 @@ console.log('\ncombat simulator — what the help surfaces say about it');
 
   // The README, which is still written by hand.
   const readme = read('README.md');
-  check('the README table has a T row', /\|\s\*\*T\*\*\s\|/.test(readme));
+  check('the README table has a COMBAT TRAINING row', /\|\s\*\*COMBAT TRAINING\*\*\s\|/.test(readme));
   check('...saying what it opens', /combat training simulator/i.test(readme));
   check('...and that nothing in it reaches the career',
     /nothing that happens in it leaves it/i.test(readme));

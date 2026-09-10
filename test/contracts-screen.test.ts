@@ -93,8 +93,8 @@ console.log('\n⇧C reaches it from the cockpit, and C is still the docking comp
     cmds('flight', ['KeyC'], ['ShiftLeft']), ['openContracts']);
   eqc('...and plain C is still the docking computer',
     cmds('flight', ['KeyC'], []), ['toggleDockingComputer']);
-  eqc('C at the station is the contracts, unshifted and clickable',
-    cmds('docked', ['KeyC'], []), ['openContracts']);
+  eqc('the CONTRACTS row at the station is the contracts, and it reads no shift (docs/TODO/202)',
+    cmds('docked', ['VirtOpenContracts'], ['ShiftLeft']), ['openContracts']);
 }
 
 // The key, not just the button. A control that is not DRAWN but whose key still
