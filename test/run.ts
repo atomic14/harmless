@@ -159,6 +159,7 @@ import './roster-probe.test.ts';
 
 // --- the shell --------------------------------------------------------------
 import './ui.test.ts';
+import './sight.test.ts';
 import './chart-overlay.test.ts';
 import './key-help.test.ts';
 import './menu-click.test.ts';

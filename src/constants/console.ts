@@ -1,9 +1,12 @@
-// The cockpit console's game-facing rules. Four of them:
+// The cockpit console's game-facing rules. Three of them:
 //
 //   1. what the scanner and the compass can see;
 //   2. what the aim aid assumes;
-//   3. where the sight sits;
-//   4. when a gauge turns red.
+//   3. when a gauge turns red.
+//
+// Where the sight sits is no longer a number here. The shell measures the
+// console and `engine/sight.ts` puts the sight at the centre of the view
+// above it (docs/TODO/200).
 //
 // Every number here is both a simulation range and a display rule. Pure drawing —
 // the bracket radii, the arrow polygons, the phosphor colours — stays in
@@ -69,18 +72,6 @@ export const LASER_GAUGE_WARN = 0.8;
  * early enough to act on.
  */
 export const CABIN_GAUGE_WARN = 0.72;
-
-/**
- * The gun axis sits above the canvas centre, as a fraction of half the view's
- * height, because the console eats the bottom of the screen.
- *
- * It MUST match `#crosshair { top: 42% }` in style.css, and it CANNOT be
- * expressed there, because CSS cannot import from this directory. The twin
- * therefore stays duplicated, as a decided exception. The shot goes where this
- * says. `BEAM_Z` in render-stack.ts converges on the camera axis that this sight
- * defines.
- */
-export const SIGHT_Y = 0.42;
 
 /**
  * How near a ship has to be for the console to name it on the ship-ID line.

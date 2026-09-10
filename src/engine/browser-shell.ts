@@ -10,6 +10,7 @@
 import type * as THREE from 'three';
 import { createRenderStack } from './render-stack.ts';
 import { elementById } from './inert-dom.ts';
+import { sightFraction } from './sight.ts';
 import type { Shell, Presentation } from './shell.ts';
 
 export function browserShell(canvas: HTMLCanvasElement, scene: THREE.Scene): Shell {
@@ -20,7 +21,20 @@ export function browserShell(canvas: HTMLCanvasElement, scene: THREE.Scene): She
     beams: stack.beams,
     // was `this.render.composer.render()` in Game.draw
     draw: () => stack.composer.render(),
-    resize: (w, h) => stack.resize(w, h),
+    // The console's height decides where the sight sits (engine/sight.ts). It
+    // is measured here, at each resize, because only the browser knows it.
+    // A screen-open console hides by visibility, so it still has a height.
+    // The two custom properties hand the same answer to the stylesheet. The
+    // crosshair and the ship-ID line read `--sight-y`. The console lines on a
+    // narrow window stand on `--console-h`.
+    resize: (w, h) => {
+      const consoleHeight = document.getElementById('hud')?.offsetHeight ?? 0;
+      const sightY = sightFraction(consoleHeight, h);
+      const root = document.documentElement.style;
+      root.setProperty('--sight-y', `${(sightY * 100).toFixed(2)}%`);
+      root.setProperty('--console-h', `${consoleHeight}px`);
+      return stack.resize(w, h, sightY);
+    },
   };
 
   return {

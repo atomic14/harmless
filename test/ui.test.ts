@@ -25,7 +25,7 @@ import { CombatComputer } from '../src/game/combat-computer.ts';
 import { CC_MAX_SPEED } from '../src/constants/combat-computer.ts';
 import { check, eq, cmds, eqc, keys } from './harness.ts';
 import { readFileSync } from 'node:fs';
-import { LASER_GAUGE_WARN, CABIN_GAUGE_WARN, SIGHT_Y } from '../src/constants/console.ts';
+import { LASER_GAUGE_WARN, CABIN_GAUGE_WARN } from '../src/constants/console.ts';
 import { LASER_CUTOUT } from '../src/constants/player-gun.ts';
 import { CABIN_TEMP_FATAL } from '../src/constants/sun.ts';
 import { constrictorWarning } from '../src/game/hunt-warning.ts';
@@ -422,13 +422,13 @@ console.log('\nthe console warns before the rule fires');
   check(`the cabin gauge warns (${CABIN_GAUGE_WARN}) before the fatal band (${CABIN_TEMP_FATAL})`,
     CABIN_GAUGE_WARN < CABIN_TEMP_FATAL);
 
-  // SIGHT_Y's CSS twin is a DECIDED duplication (CSS cannot import), which is
-  // exactly why it gets a gate instead of a hope: the stylesheet's crosshair
-  // must sit at the same fraction the projection shifts the gun axis by.
+  // The crosshair reads the fraction the shell measured, so the stylesheet and
+  // the projection cannot part company (docs/TODO/200). A literal here would
+  // be the old twin back.
   const css = readFileSync(new URL('../src/style.css', import.meta.url), 'utf8');
-  const m = /#crosshair\s*{[^}]*top:\s*(\d+)%/s.exec(css);
-  check(`#crosshair's top (${m?.[1]}%) is SIGHT_Y (${SIGHT_Y * 100}%) — the decided CSS twin`,
-    m !== null && Number(m[1]) === SIGHT_Y * 100);
+  const m = /#crosshair\s*{[^}]*top:\s*([^;]+);/s.exec(css);
+  check(`#crosshair's top (${m?.[1]}) reads the measured --sight-y`,
+    m !== null && m[1].startsWith('var(--sight-y'));
 }
 
 // --- the console line is wider than one row --------------------------------

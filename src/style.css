@@ -22,14 +22,15 @@ html, body {
 #crosshair {
   position: absolute;
   /*
-   * MUST match SIGHT_Y in engine/render-stack.ts, which shifts the camera projection so the
-   * gun axis lands here. Sitting above the canvas centre is deliberate — the
-   * console covers the bottom of the screen — but the AXIS is moved to meet
-   * the sight, not the other way round. When this was 42% against an
-   * unshifted projection, the sight sat 4.6 degrees above where the shot
-   * actually went and you could put the crosshair on a target and miss.
+   * `--sight-y` is the centre of the view above the console. The browser
+   * shell measures the console at each resize and writes it (engine/sight.ts),
+   * and it shifts the camera projection by the same fraction. So the sight,
+   * the beams and the shot share one axis. When this was a fixed 42% against
+   * an unshifted projection, the sight sat 4.6 degrees above where the shot
+   * went, and a crosshair on a target could miss. The fallback holds until
+   * the first resize, which is the constructor's.
    */
-  left: 50%; top: 42%;
+  left: 50%; top: var(--sight-y, 42%);
   width: 0; height: 0;
   pointer-events: none;
 }
@@ -83,7 +84,12 @@ html, body {
  * its full height — the chart in particular was being squeezed into 66vh to
  * clear a panel nothing on that screen uses.
  */
-body.screen-open #hud { display: none; }
+/*
+ * `visibility`, not `display`. The shell measures the console's height at
+ * each resize to place the sight (engine/sight.ts), and a display: none box
+ * has no height. A hidden box keeps its layout and takes no pointer.
+ */
+body.screen-open #hud { visibility: hidden; }
 body.screen-open #screen { top: 50%; max-height: 88dvh; }
 
 /*
@@ -361,7 +367,7 @@ body.screen-open #message {
 
 #lock {
   position: absolute;
-  left: 50%; top: 48%;
+  left: 50%; top: calc(var(--sight-y, 42%) + 6%);
   transform: translateX(-50%);
   font-size: 11px;
   letter-spacing: 3px;
@@ -503,7 +509,7 @@ body.screen-open #exercise { display: none; }
   /*
    * Centred in the space you can actually see, not the canvas: the cockpit
    * console owns the bottom ~21%, so 50% leaves a big void above the panel
-   * and almost nothing below it. Same reasoning as SIGHT_Y in engine/render-stack.ts.
+   * and almost nothing below it. Same reasoning as the sight (engine/sight.ts).
    *
    * These two values are the fallback for a screen shown without the
    * `screen-open` class; with it (see below) the console is hidden and the
@@ -720,7 +726,7 @@ body.screen-open #exercise { display: none; }
 
 #shipid {
   position: absolute;
-  left: 50%; top: 56%;
+  left: 50%; top: calc(var(--sight-y, 42%) + 14%);
   transform: translateX(-50%);
   font-size: 10px;
   letter-spacing: 2px;
@@ -884,8 +890,13 @@ body.screen-open #exercise { display: none; }
   body.screen-open #screen { top: 46%; max-height: 80dvh; }
   /* A number in a cell stays on one line, or `8 days` breaks after the 8. */
   #screen td.num { white-space: nowrap; }
-  /* The console line under a tall panel: two rows at this size, not four. */
-  #message { font-size: 13px; letter-spacing: 2px; }
+  /*
+   * The console lines stand on the console, whatever its height. The shell
+   * writes `--console-h` at each resize. The desktop keeps its own numbers,
+   * which were placed by eye against a console of a fixed height.
+   */
+  #message { font-size: 13px; letter-spacing: 2px; bottom: calc(var(--console-h, 0px) + 6dvh); }
+  #prompts { bottom: calc(var(--console-h, 0px) + 2dvh); }
   /*
    * The button row of a long table sticks to the bottom of the panel. The
    * market has 17 rows, and on a phone BUY and SELL sat below the fold. The

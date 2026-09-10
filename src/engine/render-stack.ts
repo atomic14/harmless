@@ -18,7 +18,6 @@ import { RenderPass } from 'three/addons/postprocessing/RenderPass.js';
 import { UnrealBloomPass } from 'three/addons/postprocessing/UnrealBloomPass.js';
 import { BLOOM, MAX_PIXEL_RATIO } from '../constants/render.ts';
 import { CAMERA_FOV, CAMERA_NEAR, CAMERA_FAR } from '../constants/camera.ts';
-import { SIGHT_Y } from '../constants/console.ts';
 
 /**
  * Where the cockpit beams converge, in camera space.
@@ -27,7 +26,9 @@ import { SIGHT_Y } from '../constants/console.ts';
  * and where the sight sits. They used to meet at y = +0.21 at z = -2.6 —
  * atan(0.21/2.6) = 4.6 degrees high — which lined them up with a mis-placed
  * crosshair (`#crosshair` was top: 42% against an unshifted projection). With
- * the sight corrected the beams had to come down to match.
+ * the sight corrected the beams had to come down to match. The sight's
+ * fraction is measured now, per resize (engine/sight.ts), and the beams still
+ * meet on the axis whatever it is.
  */
 export const BEAM_Z = 2.6;
 
@@ -38,8 +39,13 @@ export interface RenderStack {
   camera: THREE.PerspectiveCamera;
   /** cockpit laser beams, parented to the camera */
   beams: THREE.LineSegments;
-  /** call on resize; returns the pixels-per-radian the HUD needs */
-  resize(width: number, height: number): number;
+  /**
+   * call on resize; returns the pixels-per-radian the HUD needs
+   *
+   * @param sightY where the gun axis sits, as a fraction of the height from
+   * the top. The shell measures it (engine/sight.ts).
+   */
+  resize(width: number, height: number, sightY: number): number;
 }
 
 export function createRenderStack(canvas: HTMLCanvasElement, scene: THREE.Scene): RenderStack {
@@ -68,11 +74,11 @@ export function createRenderStack(canvas: HTMLCanvasElement, scene: THREE.Scene)
   beams.visible = false;
   camera.add(beams);
 
-  const resize = (width: number, height: number): number => {
+  const resize = (width: number, height: number, sightY: number): number => {
     renderer.setSize(width, height);
     composer.setSize(width, height);
     camera.aspect = width / height;
-    // Lift the gun axis to SIGHT_Y BEFORE the projection is built. The eye's
+    // Lift the gun axis to sightY BEFORE the projection is built. The eye's
     // centre is above the canvas centre.
     //
     // setViewOffset shifts the frustum, which is a lens shift, rather than the
@@ -83,7 +89,7 @@ export function createRenderStack(canvas: HTMLCanvasElement, scene: THREE.Scene)
     // +lift: the view window starts BELOW the virtual image top, which pushes
     // the frustum centre up the screen. A negative value moves it down, and
     // that is measured.
-    camera.setViewOffset(width, height, 0, (0.5 - SIGHT_Y) * height, width, height);
+    camera.setViewOffset(width, height, 0, (0.5 - sightY) * height, width, height);
     camera.updateProjectionMatrix();
     return (height / 2) / Math.tan((camera.fov * Math.PI) / 360);
   };
