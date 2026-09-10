@@ -130,3 +130,59 @@ Evidence, measured in Chrome at three viewports, and recorded in the Outcome:
   table row each read at least 44 pixels tall.
 - At 1289 by 800 pixels, `#screen` reads 640 to 860 pixels wide, as before,
   and the chart row stays side by side.
+
+## Outcome
+
+Both milestones landed on 2026-09-10, in `src/style.css` alone. 5,555
+assertions, unchanged, because a stylesheet has no test.
+
+### M1 — the panel yields to the viewport
+
+`#screen`'s floor and cap each yield to the viewport less a 16 pixel gutter,
+through `min()`. `#screen.wide` does the same. Both height caps read `dvh`.
+A window of 700 pixels or less trims the padding, the menu indent, the title
+spacing and the cell padding. It wraps the chart readout under the map, scales
+a chart canvas in CSS, wraps the top bar by item and shrinks the console line.
+
+Measured in Chrome at 390 by 844, through an iframe of that size. Each of
+the twelve screens read a left edge of 8 and a right edge of 382. No table, no
+canvas and no menu read wider than the 352 pixel content box. At 1289 by 757
+the station menu read 645 pixels wide, the local chart 1082, and the chart
+row stayed side by side.
+
+### M2 — a finger finds its target
+
+A `pointer: coarse` query grows the padding of a menu row, a selectable table
+row, a button and a table button. On a narrow window the button row sticks to
+the bottom of the panel.
+
+Measured at 390 by 844 with the coarse rules injected as a plain style,
+because a desktop Chrome reports a fine pointer and cannot be told otherwise.
+A menu row read 45 pixels, a market row 44, a button 45 and a table button
+45. **The query's own firing on a phone is not measured.** Chris's phone is
+the instrument for that, at `npx vite --host`.
+
+### What the plan did not have
+
+- **A flex item refuses to shrink below its content.** The chart readout held
+  the facts and the portrait side by side, and the column ran off the panel.
+  `min-width: 0` on the readout and a wrap on the facts row fixed it.
+- **A number cell broke inside itself.** The contracts table showed `8` over
+  `days`. A `nowrap` on `td.num` holds a number on one line.
+- **The console line took four rows under a tall panel.** At 15 pixels with
+  3 pixels of letter spacing, the layout hint filled the bottom of a phone.
+  It reads 13 pixels with 2 pixels of spacing on a narrow window.
+- **Chrome on macOS refuses a window under 500 pixels wide.** The measurement
+  page was an iframe of 390 by 844 under the gitignored `.cycle/`, which Vite
+  serves. It is three lines:
+
+  ```html
+  <style>iframe{border:0;width:390px;height:844px;display:block}</style>
+  <iframe src="http://localhost:5199/play.html"></iframe>
+  ```
+
+- **A synthetic Escape and a synthetic letter in one frame lose the letter.**
+  The screen that closes consumes the Escape, and nobody reads the letter in
+  that frame, so `endFrame` drops it. A keyboard never lands two keys in one
+  frame, and a wait of one frame between them was enough. This is the interest
+  rule in `engine/input.ts` at work, not a defect.

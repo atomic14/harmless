@@ -13,13 +13,12 @@ active context:
 
 ## Execution queue
 
-1. [197](197-a-docked-screen-fits-a-phone.md) — a docked screen fits a
-   phone.
+The queue is empty.
 
 **197 CAME FROM CHRIS ON 2026-09-10.** He asked for the game on a phone, in
-two halves. The docked screens are the easy half, and they come first. The
+two halves. The docked screens are the easy half, and they came first. The
 flight screen is a later plan, and the brainstorm for it is in the session
-of the same day.
+of the same day. **197 landed the same day**, and it is below.
 
 **ALL THREE ITEMS CAME OUT OF CHRIS'S PLAYTEST ON 2026-09-06.** They are
 GitHub #42, #43 and #41, and triage on 2026-09-07 read each one against the
@@ -235,6 +234,18 @@ headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
+
+## What landed on 2026-09-10
+
+**197 — a docked screen fits a phone.** Every docked screen hung off both
+edges of a phone, because `#screen` held a floor of 640 pixels. The floor and
+the cap yield to the viewport now, and the height caps read `dvh`. A narrow
+window trims the padding, wraps the chart readout under the map and scales a
+chart canvas in CSS. A coarse pointer gets a 44 pixel target on every row and
+button. The button row of a long table sticks to the bottom of the panel.
+Measured at 390 by 844 through an iframe: all twelve screens fit, and the
+desktop layout did not move. The coarse query's firing on a real phone is not
+measured. 5,555 assertions, unchanged.
 
 ## What landed on 2026-09-07
 
