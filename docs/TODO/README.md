@@ -13,7 +13,13 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [204](204-the-ship-flies-by-touch.md) — the ship flies by touch.
+
+**204 CAME FROM CHRIS ON 2026-09-10.** The docked screens and the cockpit fit
+a phone, and nothing on the flight screen takes a touch. The brainstorm set
+the shape. Drag anywhere to steer, and hold to fire. A throttle slider, a
+row of command buttons, tappable prompts, and a flight menu of rows. No
+tilt, no swipe and no pinch. The plan is written, and the work waits on his word.
 
 **203 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He played three side jobs
 and could not tell how to finish any of them. The review found two signals
