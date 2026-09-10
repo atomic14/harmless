@@ -18,7 +18,6 @@
 //
 // No DOM: `new Input()` deliberately constructs without one (there are no
 // listeners, so presses arrive via `injectPress`, exactly as a click does).
-import { readFileSync } from 'node:fs';
 import { Input } from '../src/engine/input.ts';
 import { commandsFor } from '../src/game/controls.ts';
 import { check, eq } from './harness.ts';
@@ -84,9 +83,11 @@ const readPerFrame = (i: Input, code: string, frames: number): number => {
   eq('a key held while the loop is stalled is worth exactly one tap',
     readPerFrame(i, 'Space', 20), 1);
 
-  const src = readFileSync(new URL('../src/engine/input.ts', import.meta.url), 'utf8');
-  check('...because auto-repeat never becomes a tap in the first place',
-    /if \(e\.repeat\) return;/.test(src));
+  // Asserted as behaviour since docs/TODO/202 M1, when `keyDown` became a
+  // method a test can call: a repeat is the same key with the flag set.
+  const r = new Input();
+  r.keyDown('Space', false, true);
+  check('...because auto-repeat never becomes a tap in the first place', !r.pressed('Space'));
 }
 
 // --- the INTEREST bound: only a key being read keeps anything ---------------
@@ -148,6 +149,27 @@ const readPerFrame = (i: Input, code: string, frames: number): number => {
     drained.join('|'), 'KeyA|KeyB');
   i.endFrame();
   eq('...and drains the carry with it', i.drainPresses().length, 0);
+}
+
+// --- a real key carries its own modifier (docs/TODO/202 M1) -----------------
+//
+// The keydown that says shiftKey is the whole evidence. A Shift keydown the
+// game never saw must not turn ⇧R into R.
+{
+  const i = new Input();
+  i.keyDown('KeyR', true);
+  eq('a shifted R with no Shift keydown asks for the log',
+    commandsFor('flight', i).join('|'), 'openLog');
+  i.endFrame();
+  const j = new Input();
+  j.keyDown('KeyR', false);
+  eq('...and a plain R asks for the missions', commandsFor('flight', j).join('|'), 'openMissions');
+  const k = new Input();
+  k.keyDown('KeyR', true, true);
+  eq('an auto-repeat is not a tap', commandsFor('flight', k).join('|'), '');
+  const q = new Input();
+  q.keyDown('Slash', true);
+  check('a shifted slash is ? and not a held throttle', q.pressed('Question') && !q.held('Slash'));
 }
 
 // --- through the command table ----------------------------------------------

@@ -42,9 +42,12 @@ export class Input {
    * The taps still unread, oldest first, and each one carries its own shift.
    * It holds this frame's arrivals, plus whatever carried.
    *
-   * `null` is a REAL keydown, and the live modifier state answers for it,
-   * exactly as it always did. `true`/`false` is an injected tap. That tap knows
-   * its own shift, because a click has no keyboard behind it (docs/TODO/146).
+   * `true`/`false` is the modifier the tap arrived with. A real keydown
+   * carries the event's own `shiftKey` (docs/TODO/202 M1). An injected tap
+   * carries the shift its row printed, because a click has no keyboard
+   * behind it (docs/TODO/146). `null` means "ask the live modifier state",
+   * and nothing pushes it today. `fires` still answers it, for a caller that
+   * has a tap and no modifier.
    *
    * A queue rather than a count, and that is the whole design. The shift cannot
    * be a flag on the frame. `commandsFor` tests every binding in one pass. A
@@ -97,21 +100,41 @@ export class Input {
       if (this.mouseFlight && e.button === 0) this.mouseFire = false;
     });
     window.addEventListener('keydown', (e) => {
-      // auto-repeat is not a tap. That also makes the endFrame() carry safe
-      // against a stalled loop: a key HELD across a stall arrives as one tap.
-      if (e.repeat) return;
-      // '?' gets its own virtual code so shift+/ works even when the shift
-      // keydown itself isn't observable (e.g. synthetic events)
-      const code = e.code === 'Slash' && e.shiftKey ? 'Question' : e.code;
-      this.down.add(code);
-      this.queue(code).push(null);        // a real key: `held` answers for it
       if (e.code === 'Space' || e.code === 'Tab' || e.code === 'Slash') e.preventDefault();
+      this.keyDown(e.code, e.shiftKey, e.repeat);
     });
-    window.addEventListener('keyup', (e) => {
-      this.down.delete(e.code);
-      if (e.code === 'Slash') this.down.delete('Question');
-    });
+    window.addEventListener('keyup', (e) => this.keyUp(e.code));
     window.addEventListener('blur', () => this.down.clear());
+  }
+
+  /**
+   * A key went down. The listener above calls this, and a test calls it with
+   * no window at all.
+   *
+   * THE TAP CARRIES THE MODIFIER THE EVENT REPORTED (docs/TODO/202 M1). It
+   * used to carry null, and `fires` then asked whether a Shift key was held,
+   * which only a Shift keydown the game saw could answer. So ⇧R opened the
+   * missions after a Shift held before the window had focus. A keyboard that
+   * sends a modified key with no Shift event of its own did the same. The
+   * event knows its
+   * own modifier, so the tap does too. `?` keeps its virtual code, because
+   * `held('Slash')` is the throttle on the classic layout and a shifted slash
+   * must not count as one.
+   *
+   * @param repeat the event's auto-repeat flag. A repeat is not a tap. That
+   * also makes the endFrame() carry safe against a stalled loop: a key HELD
+   * across a stall arrives as one tap.
+   */
+  keyDown(code: string, shift: boolean, repeat = false): void {
+    if (repeat) return;
+    const c = code === 'Slash' && shift ? 'Question' : code;
+    this.down.add(c);
+    this.queue(c).push(shift);
+  }
+
+  keyUp(code: string): void {
+    this.down.delete(code);
+    if (code === 'Slash') this.down.delete('Question');
   }
 
   /**
