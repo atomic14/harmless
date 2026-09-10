@@ -13,7 +13,14 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [199](199-the-site-says-what-the-game-is.md) — the site says what the
+   game is.
+
+**199 CAME FROM CHRIS ON 2026-09-10.** He read the landing page and called
+the prose dreadful. The page sells trained combat AI that does not ship. It
+explains arithmetic before it says what you do. The mission tour page
+prints the code's own names and shouted orders. He set the direction: plain
+words, second person, the player first, and no claim the game does not keep.
 
 **198 CAME OUT OF THE PREVIEW OF 197 ON 2026-09-10.** Chris opened PR #44 on
 his phone and was stuck on the briefing. The panel fits. The screen offers no
