@@ -13,14 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [200](200-the-cockpit-fits-a-phone-in-portrait.md) — the cockpit fits a
-   phone in portrait.
+The queue is empty.
 
 **200 CAME FROM CHRIS'S FLIGHT ON HIS PHONE ON 2026-09-10.** He likes
 portrait. The console is one fixed row of 770 pixels, and it hung off both
 sides. The sight sits at a fixed 42% of the height, which stands in for the
 centre of the view above a desktop console. A reflowed console moves that
-centre, so the shell must measure it.
+centre, so the shell must measure it. **200 landed the same day**, and it is
+below.
 
 **199 CAME FROM CHRIS ON 2026-09-10.** He read the landing page and called
 the prose dreadful. The page sells trained combat AI that does not ship. It
@@ -256,6 +256,16 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-10
+
+**200 — the cockpit fits a phone in portrait.** The console was one fixed
+row of 770 pixels, and it hung off both sides of a phone. At 700 pixels or
+less it is a grid of two rows. The scanner takes the first, with the
+compass beside it. The gauges take the second, in two columns. The sight
+was a fixed 42% of the
+height, with a twin in the stylesheet. The rule is one sentence now. The
+gun axis sits at the centre of the view above the console, and the shell
+measures the console at each resize. On the desktop the sight moved from
+42% to 37%, which is the true centre. 5,564 assertions, from 5,559.
 
 **199 — the site says what the game is.** Chris called the landing page's
 prose dreadful. It sold trained combat AI that does not ship, and it

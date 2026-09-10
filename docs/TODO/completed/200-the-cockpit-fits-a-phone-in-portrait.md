@@ -106,3 +106,34 @@ Evidence:
 - At 1289 by 757: `#hud` reads 770 wide as before, and the crosshair's top
   reads 37% of the height.
 - Chris flies the preview in portrait.
+
+## Outcome
+
+Both milestones landed on 2026-09-10, on a branch of their own, stacked on
+docs/TODO/199's. 5,564 assertions, from 5,559: the twin check went, and
+five hold the sight maths, with the constants gate's own lines.
+
+### M1 — the console reflows on a narrow window
+
+At 700 pixels or less the console is a grid of two rows. Measured in Chrome
+at 390 by 844 in flight, it read 0 to 390 wide and 242 pixels tall, which
+is 29% of the height. The scanner read 215 by 126. The ten gauges sat in two
+even columns of 16 pixel rows. The labels needed 64 pixels at 9 pixels of
+font, because 62 broke `LASER TEMP` in two.
+
+### M2 — the sight meets the centre of the view above the console
+
+`sightFraction` in `engine/sight.ts` is the rule, and the browser shell
+measures the console inside its own `resize`. On the phone the crosshair's
+top read 301, the exact centre above the 242 pixel console. On the desktop it
+read 280 of 757, which is 37%, from 42%. The shell measured 197 pixels for
+the console while a screen was open, because the console hides by
+visibility now. The console lines on the phone stood above the console: the
+message line's bottom read 551 against a console top of 602.
+
+### What the plan did not have
+
+- **The first two commits landed on the wrong branch.** They went on
+  199's branch by mistake, and they moved to their own before the push.
+- **The commit message of M1 says 263 tall.** That was before the label
+  fix. The console reads 242.
