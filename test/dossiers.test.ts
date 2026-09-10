@@ -256,6 +256,30 @@ console.log('\n...and every reader speaks the dossier\'s words, or the skeleton\
     screen(full).includes('THE QUIET ERRAND') && screen(full).includes(`${patron} here, at Lave.`));
   check('...or the plain pitch', screen(none).includes(SIDE_HUNT.pitch) && !screen(none).includes('ERRAND'));
 
+  // A held mission keeps what the offer showed (docs/TODO/201). The order
+  // line follows the pages, so the row reads as what she agreed to, then
+  // where she is in it.
+  const holding = (dossiers: (id: string) => Dossier | null) => captureById(() => {
+    const commander = { ...newCommander(), systemIndex: 12, contracts: [] };
+    commander.missions = {
+      ...emptyMissionState(),
+      live: [{ skeleton: SIDE_HUNT.id, leg: 'hunt', target: 12, tag: null, progress: 0, deadlineDay: null }],
+      journal: [{ skeleton: SIDE_HUNT.id, leg: 'hunt', outcome: 'accepted', day: 0, world: LAVE }],
+    };
+    new MissionsScreen(() => ({
+      commander, systems: g1,
+      offers: [], atStation: false, accept: () => {}, abandon: () => {}, choose: () => {}, dossiers,
+    })).render();
+  }).get('screen') ?? '';
+  const heldFull = holding(full);
+  check('a held mission keeps the dossier\'s title and briefing, filled with the world it was taken at',
+    heldFull.includes('THE QUIET ERRAND') && heldFull.includes(`${patron} here, at Lave.`));
+  check('...and the order follows the briefing',
+    heldFull.indexOf('here, at Lave.') < heldFull.indexOf('ABANDON')
+    && heldFull.indexOf('here, at Lave.') < heldFull.indexOf('hud-amber'));
+  check('...or the plain name stands over the order without one',
+    holding(none).includes('LAVE MISSION') && !holding(none).includes('ERRAND'));
+
   // The story.
   const run: MissionState = {
     ...emptyMissionState(),

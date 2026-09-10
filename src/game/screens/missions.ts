@@ -25,7 +25,7 @@ import { dossierFor } from '../../missions/dossiers.ts';
 import { leadLine } from '../../missions/hints.ts';
 import { patronFor } from '../../missions/patrons.ts';
 import { fillSlots } from '../../missions/text.ts';
-import { acceptedAt } from '../../missions/queries.ts';
+import { acceptedAt, missionName } from '../../missions/queries.ts';
 import { legChoices } from '../../missions/queries.ts';
 import { skeletonById } from '../../missions/skeletons/index.ts';
 import { missionFacts } from '../mission-bridge.ts';
@@ -90,13 +90,21 @@ export class MissionsScreen implements Screen {
         title: d?.title ?? '', pages: (d?.briefing ?? []).map((p) => fillSlots(p, slots)),
       };
     });
+    // A held row keeps the offer's title and pages (docs/TODO/201). The
+    // `{HERE}` slot is the world it was accepted at, which is where the
+    // patron spoke, and not where she reads the row.
     const heldRows: HeldRow[] = this.held().map((o) => {
       const s = skeletonById(o.live.skeleton);
       const origin = acceptedAt(commander.missions, o.live.skeleton);
+      const patron = s ? patronFor(s.patron, facts, systems, origin).name : '';
+      const d = dossiers(o.live.skeleton);
+      const slots = { PATRON: patron, HERE: systems[origin ?? commander.systemIndex].name };
       return {
         ...o,
-        patron: s ? patronFor(s.patron, facts, systems, origin).name : '',
+        patron,
         choices: s ? legChoices(s, o.live.leg) : [],
+        title: d?.title ?? missionName(commander.missions, o.live, systems),
+        pages: (d?.briefing ?? []).map((p) => fillSlots(p, slots)),
       };
     });
     renderMissions({

@@ -13,7 +13,12 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [201](201-a-held-mission-keeps-its-briefing.md) — a held mission keeps
+   its briefing.
+
+**201 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He accepted a mission and
+could not read the details of the accepted mission. An offer row shows the title and the
+briefing. A held row shows the current order alone.
 
 **200 CAME FROM CHRIS'S FLIGHT ON HIS PHONE ON 2026-09-10.** He likes
 portrait. The console is one fixed row of 770 pixels, and it hung off both

@@ -150,11 +150,18 @@ export interface OfferRow {
   pages: readonly string[];
 }
 
-/** A held mission's order, with the name of who gave it, and the choices its leg waits on. */
+/**
+ * A held mission's order, with the name of who gave it, and the choices its
+ * leg waits on. `title` and `pages` are the dossier's, as an offer's are, so
+ * what she agreed to stays readable after she accepts (docs/TODO/201).
+ * `pages` is empty without a dossier, and `title` is then the plain name.
+ */
 export interface HeldRow extends MissionOrder {
   patron: string;
   /** the choice ids of the leg's `{ choice }` branches; empty when it waits on none */
   choices: readonly string[];
+  title: string;
+  pages: readonly string[];
 }
 
 export interface MissionsView {
@@ -201,9 +208,12 @@ export function renderMissions(view: MissionsView): void {
       ${offerRows}
     </table>`;
 
+  // A held row reads as the offer did, and then the order: what she agreed
+  // to, then where she is in it (docs/TODO/201). The order is amber because
+  // it is the one line that changes as the legs go by.
   const heldRows = held.map((m, i) => `
     <tr class="${i + offers.length === selected ? 'sel' : ''} pick" data-row="${i + offers.length}">
-      <td>${m.line}${m.warning
+      <td><b>${escapeHtml(m.title.toUpperCase())}</b>${m.pages.map((p) => `<br/>${escapeHtml(p)}`).join('')}<br/><span style="color:var(--hud-amber)">${m.line}</span>${m.warning
     // Amber, which is the colour this file already spends on a warning. The
     // patron states the two numbers and lets the commander decide;
     // `huntWarning` is the one home of that sentence.

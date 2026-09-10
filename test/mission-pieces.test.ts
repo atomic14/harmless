@@ -183,7 +183,7 @@ console.log('\na choice on the MISSIONS screen sends the input, and an unanswere
   const c: CommanderData = { ...newCommander(), systemIndex: LAVE, contracts: [] };
   const row = (choices: string[]): HeldRow => ({
     kind: 'mission', line: 'ASK', destination: null, reward: 500, warning: '', patron: 'THE GOVERNOR OF LAVE',
-    live: st.live[0], choices,
+    live: st.live[0], choices, title: 'LAVE MISSION', pages: [],
   });
   const html = captureById(() => {
     renderMissions({ offers: [], held: [row(['pay-them', 'refuse'])], leads: [], systems: g1, selected: 0, atStation: true });
