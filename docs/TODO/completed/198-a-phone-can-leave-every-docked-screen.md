@@ -79,3 +79,29 @@ Evidence:
 - `test/screen-buttons.test.ts` fails before M1 and passes after it.
 - Chris opens the preview on his phone. He turns a briefing page and closes
   the briefing by touch. He leaves each chart by touch.
+
+## Outcome
+
+Both milestones landed on 2026-09-10, on the branch of PR #44. 5,564
+assertions, from 5,555.
+
+### M1 — every docked screen ends in a button row
+
+The briefing carries PREVIOUS, NEXT and CLOSE. Both charts carry DATA ON
+SYSTEM, TRADE OVERLAY and DONE, through one `chartButtons` helper in
+`ui/chart-readout.ts`. The keylines stay.
+
+`test/screen-buttons.test.ts` failed on all nine checks before the painters
+changed, and it passes after. In the 390 by 844 frame, a click on NEXT
+opened MAKE SOME MONEY, PREVIOUS returned to WHERE YOU ARE, CLOSE returned to
+the station, and DONE left the galactic chart.
+
+### M2 — the console line clears the panel on a narrow window
+
+A screen-open panel caps at 80 `dvh` and centres at 46% on a window of 700
+pixels or less. In the frame, the briefing panel's bottom edge read 726 and
+the console line's top read 727.
+
+### What the plan did not have
+
+Nothing. The plan was small, and the code matched it.

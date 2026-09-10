@@ -13,13 +13,13 @@ active context:
 
 ## Execution queue
 
-1. [198](198-a-phone-can-leave-every-docked-screen.md) — a phone can leave
-   every docked screen.
+The queue is empty.
 
 **198 CAME OUT OF THE PREVIEW OF 197 ON 2026-09-10.** Chris opened PR #44 on
 his phone and was stuck on the briefing. The panel fits. The screen offers no
-button, and a phone has no key. Three screens carry no button row, and the
-console line covers the bottom of a tall panel.
+button, and a phone has no key. Three screens carried no button row, and the
+console line covered the bottom of a tall panel. **198 landed the same day**,
+and it is below.
 
 **197 CAME FROM CHRIS ON 2026-09-10.** He asked for the game on a phone, in
 two halves. The docked screens are the easy half, and they came first. The
@@ -242,6 +242,15 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-10
+
+**198 — a phone can leave every docked screen.** Chris opened the preview
+of PR #44 on his phone and was stuck on the briefing. It closed on Escape,
+and a phone has no key. The briefing carries PREVIOUS, NEXT and
+CLOSE now. Both charts carry DATA ON SYSTEM, TRADE OVERLAY and DONE. A new
+test paints the three screens and asks for each button by its key. It
+failed on all nine checks before the change. On a narrow window the
+screen-open panel stops at 86% of the height, so the console line clears
+it. 5,564 assertions, from 5,555.
 
 **197 — a docked screen fits a phone.** Every docked screen hung off both
 edges of a phone, because `#screen` held a floor of 640 pixels. The floor and
