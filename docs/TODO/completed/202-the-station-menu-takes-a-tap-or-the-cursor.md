@@ -142,3 +142,47 @@ Evidence:
 - In Chrome at 390 by 844, every station row is reachable by a tap. At 1289
   wide, the rows sit in two columns and the cursor walks them in order.
 - Chris uses the menu on his phone and on his desktop.
+
+## Outcome
+
+All four milestones landed on 2026-09-10, in three commits, because M2 and M3
+had to land together. 5,576 assertions, from 5,567.
+
+### M1 — the modifier comes from the event
+
+`Input.keyDown` records the event's own `shiftKey` on the tap, and a test
+calls it with no window. The `?` key keeps its virtual code, because a
+shifted slash must not count as the classic throttle. The new check failed
+with the old rule: a shifted R with no Shift keydown asked for the
+missions.
+
+### M2 and M3 — every station command is a row, and the prose says so
+
+The docked table is nineteen virtual codes, not twenty: the `?` guide stays
+a global key on the keyline, and it gets no row. Measured in Chrome at 1289
+wide: 19 rows in two columns, no row with a letter, and the cursor with
+Enter opened the market. At 390 by 844 in the frame: one column, and a tap
+on the last row opened NEW COMMANDER.
+
+M3 could not wait for its own commit. `boundKey` throws for a station
+command after M2, and the briefing calls it at import, so the whole suite
+died until the briefing named the rows instead.
+
+### M4 — the manual says the same
+
+Six sentences name the rows now.
+
+### What the plan did not have
+
+- **A virtual code's empty label matched every word.** The key-prose
+  scanner hunts every bound label in the console's messages. An empty
+  string is in every string, so 720 messages failed at once. The scanner
+  leaves the rows out.
+- **Twelve tests pressed a station letter, not five.** `combat-sim`,
+  `contracts-screen`, `bribe`, `test-mode`, `mission-story`,
+  `standing-orders`, `standing-orders-game`, `ui` and `key-prose` joined
+  the five the plan named.
+- **The new-commander confirmation said "the commander file (S)".** It says
+  "the commander file" now. The screen's own keys, ESC, Q and X, stay.
+- **Two prose tables read as constants.** `ROW` in the briefing and
+  `STATION_MENU_NOTE` in the key help joined the OUTSIDE list.

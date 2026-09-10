@@ -13,13 +13,13 @@ active context:
 
 ## Execution queue
 
-1. [202](202-the-station-menu-takes-a-tap-or-the-cursor.md) — the station
-   menu takes a tap or the cursor.
+The queue is empty.
 
 **202 CAME FROM CHRIS ON 2026-09-10.** He pressed ⇧R and got MISSIONS, and
 the cause was a Shift keydown the game never saw. His call: every menu can
 be clicked, so the letter keys on the station menu go. A menu takes a tap,
 the cursor with Enter, and Escape. The menus only. Every flight key stays.
+**202 landed the same day**, and it is below.
 
 **201 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He accepted a mission and
 could not read the details of the accepted mission. An offer row shows the title and the
@@ -267,6 +267,16 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-10
+
+**202 — the station menu takes a tap or the cursor.** Chris pressed ⇧R and
+got MISSIONS, and the cause was a Shift keydown the game never saw. A real
+key press now carries the event's own modifier. His call went further:
+every menu can be clicked, so the station menu lost its letters. Every
+station command is a row on a virtual code, nineteen rows in two columns
+on a wide window and one on a phone. The cursor with Enter and Escape are
+the keyboard's way in. The briefing, the boot plate, the README and the
+manual name the rows. Every flight key stays. 5,576 assertions, from
+5,567.
 
 **201 — a held mission keeps its briefing.** Chris accepted a mission and
 could not read its details afterwards. An offer row showed the title and
