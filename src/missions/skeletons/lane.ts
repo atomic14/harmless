@@ -1,7 +1,7 @@
 // The pirates on a lane the player is sent to clear (docs/TODO/203 M2).
 //
-// Clear the Lane and the first leg of the Vetitice arc both promise pirates
-// on the way to the target world. Neither spawned any before this file, so
+// The job Clear the Lane promises pirates on the way to the target world. So
+// does the first leg of the Vetitice arc. Neither spawned any before this file, so
 // the player flew an ordinary lane and could not tell what the job was about.
 // Both legs name this list, so the lane is the same fight from either patron.
 //

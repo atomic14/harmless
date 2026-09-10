@@ -75,7 +75,8 @@ import type { SoundEvent, SoundName } from './sounds.ts';
 import { runMissions } from './mission-bridge.ts';
 import { scanSecondsFor } from '../missions/queries.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
-import { ESCORT_ENEMY_ROLES } from '../constants/missions.ts';
+import { ESCORT_ENEMY_ROLES, WATCH_CONE } from '../constants/missions.ts';
+import { SCANNER_RANGE } from '../constants/console.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
 import type { GameState } from './state.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
@@ -519,8 +520,18 @@ export class WorldStep {
    * and sends `scanned` when the leg's seconds are up, once.
    */
   private stepMissionShips(dt: number, out: StepEvent[]): void {
-    const { world, commander } = this.state;
+    const { world, commander, player, session } = this.state;
     const lock = this.ordnance.targetLock;
+    // A scan counts while the subject is in view: inside WATCH_CONE of the
+    // view's direction and inside scanner range (docs/TODO/203 M5). It used
+    // to count only under the missile lock, which the briefing told the
+    // player not to use.
+    const viewDir = viewDirection(player.quaternion, session.view, this.tmp);
+    const inView = (npc: NpcShip): boolean => {
+      const to = this.tmp2.copy(npc.object.position).sub(player.position);
+      const dist = to.length();
+      return dist <= SCANNER_RANGE && viewDir.angleTo(to.normalize()) <= WATCH_CONE;
+    };
     for (const npc of world.npcs) {
       const tag = npc.state.missionTag;
       if (tag === null || npc.state.missionReported || !npc.state.alive) continue;
@@ -528,7 +539,7 @@ export class WorldStep {
         const wanted = scanSecondsFor(commander.missions, tag);
         if (wanted !== null) {
           const before = Math.floor(npc.state.observed);
-          if (lock === npc) npc.state.observed += dt;
+          if (lock === npc || inView(npc)) npc.state.observed += dt;
           // The count is said aloud once a second while it moves. So the
           // player knows the watch runs, and how much is left (docs/TODO/203
           // M4). It says nothing while the count stands still.

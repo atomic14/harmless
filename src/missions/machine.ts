@@ -262,7 +262,10 @@ function takeBranch(
     ? { skeleton: skeleton.id, leg: leg.id, kind, slots: lineSlots(ctx.systems, target, branch.settle?.pay) }
     : undefined);
   if (branch.to === 'complete' || branch.to === 'fail') {
-    settle(st, skeleton, branch.settle, null, ctx, effects, word(null));
+    // The world a change lands on is where she stands, so the target is
+    // null. The words still name the leg's own world, or a patron's line
+    // read "at ANY STATION" at the end of every job (docs/TODO/203 M5).
+    settle(st, skeleton, branch.settle, null, ctx, effects, word(live.target), live.target);
     st.journal.push(entry);
     finish(st, live, branch.to, ctx, effects);
     return;
@@ -336,6 +339,8 @@ function startLeg(
 function settle(
   st: MissionState, skeleton: Skeleton, s: Settlement | undefined,
   target: number | null, ctx: MissionContext, effects: MissionEffect[], word?: DossierWord,
+  /** the world the words name, when it is not the world a change lands on */
+  sayTarget: number | null = target,
 ): void {
   const added: string[] = [];
   if (s) {
@@ -359,7 +364,7 @@ function settle(
       effects.push({ kind: 'standingSpawn', world, until: ctx.commander.day + s.spawn.days, ships: s.spawn.ships });
     }
   }
-  const text = s?.say ? fillSlots(s.say, lineSlots(ctx.systems, target, s.pay)) : '';
+  const text = s?.say ? fillSlots(s.say, lineSlots(ctx.systems, sayTarget, s.pay)) : '';
   if (text || word) effects.push({ kind: 'say', text, word });
   fireFlags(st, added, ctx, effects);
 }

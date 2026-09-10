@@ -152,6 +152,20 @@ export const DEADLINE_WARNING_DAYS = 3;
 export const SCAN_SECONDS = 20;
 
 /**
+ * How far off the centre of the view a scan's subject may sit and still count
+ * as watched, in radians: 0.35, which is twenty degrees. The whole forward
+ * view is about half a radian to each side. So the subject may sit anywhere
+ * in the middle two thirds of the screen. It used to count only under the
+ * missile lock. That cone is 0.09, and it needs a missile armed. So the
+ * briefing's "do not fire" sent the player to arm a weapon (docs/TODO/203
+ * M5). The lock still counts, so a player who locked on loses nothing.
+ *
+ * @domain missions
+ * @rule missions.watchCone
+ */
+export const WATCH_CONE = 0.35;
+
+/**
  * Tonnes of the patron's goods on a smuggle job: three, which fits a Cobra's
  * hold beside its own stock.
  *
