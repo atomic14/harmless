@@ -876,6 +876,12 @@ body.screen-open #exercise { display: none; }
    */
   #screen .chartrow .info { flex: 1 1 100%; min-width: 0; max-height: none; }
   #screen .chartrow .info .sysrow { flex-wrap: wrap; }
+  /*
+   * A screen-open panel stops at 86% of the height, so the console line at the
+   * bottom clears it. At 88dvh it covered the briefing's hint line on a phone
+   * (docs/TODO/198 M2).
+   */
+  body.screen-open #screen { top: 46%; max-height: 80dvh; }
   /* A number in a cell stays on one line, or `8 days` breaks after the 8. */
   #screen td.num { white-space: nowrap; }
   /* The console line under a tall panel: two rows at this size, not four. */
