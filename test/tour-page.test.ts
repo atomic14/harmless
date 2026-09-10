@@ -20,8 +20,8 @@ import { ARC_TOUR, SKELETONS } from '../src/missions/skeletons/index.ts';
 import { SIDE_JOBS } from '../src/missions/skeletons/side.ts';
 import { ARC_VETITICE } from '../src/missions/skeletons/arcs/vetitice.ts';
 import { storyPages } from '../src/missions/story.ts';
-import { tourHtml } from '../src/missions/tour-html.ts';
-import { exampleLog, recoveryLegs, tourModel } from '../src/missions/tour-page.ts';
+import { stepsLine, tourHtml } from '../src/missions/tour-html.ts';
+import { JOB_SUMMARIES, recoveryLegs, tourModel } from '../src/missions/tour-page.ts';
 import { logHtml } from '../src/ui/screens-log.ts';
 import { captureById } from './screen-capture.ts';
 import { g1 } from './fixtures.ts';
@@ -42,8 +42,10 @@ console.log('\nthe tour as data: five arcs in order, each with a patron and a fa
   check('each arc names its next', m.arcs.slice(0, -1).every((a, i) => a.next === ARC_TOUR[i + 1]));
   check('a briefing is the dossier\'s, with the patron and the world filled',
     m.arcs.every((a) => a.briefing.length >= 1 && a.briefing.every((p) => !p.includes('{PATRON}') && !p.includes('{HERE}'))));
-  check('...and a leg line names no world of its own',
-    m.arcs.every((a) => a.legs.every((l) => !l.line.includes('{TARGET}'))));
+  check('every arc carries its own plain summary, from the table',
+    m.arcs.every((a) => a.summary.length > 0 && a.summary === JOB_SUMMARIES[a.id]));
+  eq('the steps are said in words, with the way out',
+    stepsLine(m.arcs[0]), 'Two steps: recover, then hunt. If a step goes wrong, there is another way to finish the job.');
   check('every arc has a recovery leg, and not every leg is one',
     m.arcs.every((a) => a.legs.some((l) => l.recovery) && a.legs.some((l) => !l.recovery)));
   eq('Vetitice\'s recovery leg is the route home', [...recoveryLegs(ARC_VETITICE)].join(), 'route');
@@ -59,6 +61,8 @@ console.log('\n...every side job under its verb, and the plain words without a d
     listed.sort().join(),
     SIDE_JOBS.map((s) => `${s.legs[0].verb.kind.charAt(0).toUpperCase()}${s.legs[0].verb.kind.slice(1)}:${s.id}`).sort().join());
   eq('eight verbs, one job each', m.sideJobs.length, 8);
+  check('every side job carries its own plain summary, from the table',
+    m.sideJobs.flatMap((g) => g.jobs).every((j) => j.summary.length > 0 && j.summary === JOB_SUMMARIES[j.id]));
 
   const none = (): Dossier | null => null;
   const plain = tourModel(g1, 1, none);
@@ -104,31 +108,19 @@ console.log('\n...and the page has its four homes, and a clean link to each');
     !/href="\/[a-z-]+\.html"/.test(page));
 
   // The markup: every arc, every face, every side job, and every word escaped.
-  const html = tourHtml(tourModel(g1), '<p>EXAMPLE</p>');
+  const m = tourModel(g1);
+  const html = tourHtml(m);
   check('the markup carries the five arcs in order',
     ARC_TOUR.every((id) => html.includes(`id="${id}"`)) && html.indexOf('id="arc-lave"') < html.indexOf('id="arc-edle"'));
   check('...each with its face', (html.match(/<img src="\/species\//g) ?? []).length === 5);
-  check('...every side job', SIDE_JOBS.every((s) => html.includes(escapeHtml(s.pitch))));
-  check('...and the example where the marker for it is', html.includes('<p>EXAMPLE</p>'));
+  check('...every side job, by its summary', m.sideJobs.flatMap((g) => g.jobs).every((j) => html.includes(escapeHtml(j.summary))));
+  check('...every arc\'s summary and its briefing as a quotation',
+    m.arcs.every((a) => html.includes(escapeHtml(a.summary))) && (html.match(/<blockquote class="briefing">/g) ?? []).length === 5);
+  check('...and no shouted order line, and no name from the code',
+    !/AT THE TARGET/.test(html) && !/recovery leg|by verb|branch/i.test(html));
   const hostile = tourModel(g1, 1, () => ({
     skeleton: 'x', hash: '', title: '<b>x</b>', briefing: ['<script>'], legs: {}, lead: '', rumour: { far: '', near: '' }, news: '', images: {},
     story: { opening: '', closing: { complete: '', fail: '' }, legs: {} },
   }));
-  check('a dossier\'s markup is escaped, never set', !tourHtml(hostile, '').includes('<script>') && tourHtml(hostile, '').includes('&lt;script&gt;'));
-}
-
-console.log('\n...and the worked example is the game\'s own log of the scientist');
-{
-  const ex = exampleLog(g1);
-  eq('one run, one page', ex.pages.length, 1);
-  eq('...told in four lines', ex.pages[0].lines.length, 4);
-  eq('...that ends done, not failed', ex.pages[0].ending, 'complete');
-  check('...through the pod lost and the data delivered',
-    ex.pages[0].lines[1].toLowerCase().includes('pod') && ex.pages[0].lines[2].toLowerCase().includes('data'));
-  check('the route is Lave, out, and home', ex.route.includes('class="visited"') && ex.pages[0].worlds.length === 3);
-  check('the patron is Lave\'s, with a face', ex.portrait === 'species/007-lave.png' && ex.patron.length > 0);
-  const built = logHtml(ex);
-  check('the page sets the builder\'s markup for it', tourHtml(tourModel(g1), built).includes(built));
-  const plain = exampleLog(g1, 1, () => null);
-  check('...and with no dossier the plain words still tell it', plain.pages[0].lines.every((l) => l.startsWith('DAY ')));
+  check('a dossier\'s markup is escaped, never set', !tourHtml(hostile).includes('<script>') && tourHtml(hostile).includes('&lt;script&gt;'));
 }

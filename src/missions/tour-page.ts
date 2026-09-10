@@ -10,15 +10,19 @@
 // names which legs are recovery legs, because a failure that becomes a
 // branch is the tour's own point (docs/TODO/190). It does not show the
 // branches or the endings, so the page does not spoil an arc.
+//
+// EACH JOB CARRIES A PLAIN SUMMARY, written here for the site (docs/TODO/199).
+// The skeleton's pitch is the station board's own shouted line, and a case
+// conversion cannot tell a Krait from a krait. So the page says what a job is
+// in the site's voice first, and quotes the patron second. A test holds the
+// table complete, so a new job cannot ship without its sentence.
 
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { routeTable } from '../galaxy/route.ts';
 import { dossierFor } from './dossiers.ts';
-import type { CommanderFacts, Dossier, Leg, Patron, Skeleton, Verb } from './model.ts';
+import type { CommanderFacts, Dossier, Patron, Skeleton, Verb } from './model.ts';
 import { patronFor } from './patrons.ts';
 import { routeMapSvg } from './route-map.ts';
-import { storyPages } from './story.ts';
-import { emptyMissionState } from './state.ts';
 import { ARC_TOUR, SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots } from './text.ts';
 import { sameTrigger, successTrigger } from './triggers.ts';
@@ -27,17 +31,42 @@ export interface TourLeg {
   id: string;
   /** the verb's word for a reader: Hunt, Deliver, Recover... */
   verb: string;
-  /** the standing order in plain words, with the target unnamed */
-  line: string;
   /** true for a leg only a loss leads to */
   recovery: boolean;
 }
+
+/**
+ * What each job is, in the site's voice: one or two plain sentences a
+ * visitor reads before the patron speaks. Keyed by skeleton id.
+ */
+export const JOB_SUMMARIES: Readonly<Record<string, string>> = {
+  'arc-lave': 'The governor of Lave lost the export ledger to a smuggler. '
+    + 'Recover the canister, then hunt the smuggler down.',
+  'arc-rabedira': 'An envoy at Rabedira needs a truce paper carried to a neighbour. '
+    + 'Then he needs an escort to the meeting itself.',
+  'arc-vetitice': 'Pirates hold the lane a shipment must cross at Vetitice. '
+    + 'Clear the lane, bring a survey pilot home alive, then carry the manifest on.',
+  'arc-xeer': 'An Anaconda is forging the harvest figures at Xeer. '
+    + 'Watch it without firing, then find and destroy the ship that carries the false papers.',
+  'arc-edle': 'A colonel at Edle has a manifest to move and a transporter to guard. '
+    + 'After that, an Asp is marked for destruction.',
+  'side-hunt': 'A Krait is taking ships on the lane. Destroy it.',
+  'side-deliver': 'Carry a sealed packet to a station one jump away. It takes no hold space.',
+  'side-recover': 'A canister went adrift one jump away. Scoop it and bring it back.',
+  'side-rescue': 'A survey pilot is adrift in a pod one jump away. Bring her in alive.',
+  'side-ambush': 'Pirates hold the lane to a neighbour. Fly it, fight through, and dock there.',
+  'side-smuggle': 'Carry three tonnes of narcotics to a neighbour, past the patrols. You are paid at the far end.',
+  'side-escort': 'A Python is leaving for a neighbour and wants a gun beside her. See her into station range.',
+  'side-scan': 'An Anaconda is working a neighbour. Hold it on your scanner for twenty seconds, and do not fire.',
+};
 
 export interface TourArc {
   id: string;
   title: string;
   world: { index: number; name: string };
   patron: Patron;
+  /** what the job is, in the site's voice */
+  summary: string;
   /** the dossier's pages with the patron and the world filled, or the plain pitch */
   briefing: string[];
   legs: TourLeg[];
@@ -50,7 +79,8 @@ export interface TourArc {
 export interface TourJob {
   id: string;
   title: string;
-  pitch: string;
+  /** what the job is, in the site's voice */
+  summary: string;
 }
 
 export interface TourModel {
@@ -66,9 +96,9 @@ export function verbWord(verb: Verb): string {
   return verb.kind.charAt(0).toUpperCase() + verb.kind.slice(1);
 }
 
-/** The order for a reader, with the target unnamed, in the line's own shouted case. */
-function plainLine(leg: Leg): string {
-  return fillSlots(leg.line, { TARGET: 'THE TARGET', PAY: 'THE FEE' });
+/** The job's sentence for the site, or the board's own line where none is written. */
+function summaryOf(s: Skeleton): string {
+  return JOB_SUMMARIES[s.id] ?? s.pitch;
 }
 
 /**
@@ -112,8 +142,9 @@ function arcEntry(
     title: d?.title ?? s.id.replace(/-/g, ' ').toUpperCase(),
     world: { index: world, name: systems[world].name },
     patron,
+    summary: summaryOf(s),
     briefing: d ? d.briefing.map((p) => fillSlots(p, slots)) : [s.pitch],
-    legs: s.legs.map((l) => ({ id: l.id, verb: verbWord(l.verb), line: plainLine(l), recovery: recovery.has(l.id) })),
+    legs: s.legs.map((l) => ({ id: l.id, verb: verbWord(l.verb), recovery: recovery.has(l.id) })),
     next: next?.id ?? null,
     jumpsToNext: nextWorld === null ? null : routeTable(systems, world).jumps[nextWorld],
   };
@@ -139,39 +170,10 @@ export function tourModel(
     if (s.kind !== 'side') continue;
     const verb = verbWord(s.legs[0].verb);
     const d = dossiers(s.id);
-    const job: TourJob = { id: s.id, title: d?.title ?? s.id.replace(/-/g, ' ').toUpperCase(), pitch: s.pitch };
+    const job: TourJob = { id: s.id, title: d?.title ?? s.id.replace(/-/g, ' ').toUpperCase(), summary: summaryOf(s) };
     byVerb.set(verb, [...(byVerb.get(verb) ?? []), job]);
   }
   const sideJobs = [...byVerb.entries()].map(([verb, jobs]) => ({ verb, jobs }));
 
   return { arcs: entries, sideJobs, routeSvg: routeMapSvg(systems, entries.map((a) => a.world.index)) };
-}
-
-/**
- * The worked example's journal: the rescue side job at Lave, the pod shot
- * before the scoop, the survey data delivered home, the job complete.
- * docs/TODO/190's scientist, as one fixed record. The page renders it
- * through the game's own log builder, so the two cannot differ.
- */
-export function exampleJournal(origin: number, away: number) {
-  const st = emptyMissionState();
-  st.journal.push(
-    { skeleton: 'side-rescue', leg: 'pod', outcome: 'accepted', day: 3, world: origin },
-    { skeleton: 'side-rescue', leg: 'pod', outcome: 'targetDestroyed', day: 5, world: away },
-    { skeleton: 'side-rescue', leg: 'data', outcome: 'success', day: 7, world: origin },
-    { skeleton: 'side-rescue', leg: 'data', outcome: 'complete', day: 7, world: origin },
-  );
-  return st;
-}
-
-/** The example as the LOG screen would show it: its pages, its route, and its patron. */
-export function exampleLog(
-  systems: readonly StarSystem[], galaxy = 1, dossiers: (id: string) => Dossier | null = dossierFor,
-): { pages: ReturnType<typeof storyPages>; route: string; portrait: string; patron: string } {
-  const origin = 7;
-  const away = systems.find((s) => s.index !== origin && s.name === 'Leesti')?.index ?? 8;
-  const st = exampleJournal(origin, away);
-  const pages = storyPages(st, systems, SKELETONS, dossiers);
-  const patron = patronFor({ kind: 'local' }, facts(galaxy, origin), systems, origin);
-  return { pages, route: routeMapSvg(systems, [origin, away, origin]), portrait: patron.portrait, patron: patron.name };
 }

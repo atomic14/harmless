@@ -3,8 +3,7 @@ import { resolve } from 'node:path';
 import { execSync } from 'node:child_process';
 import { generateGalaxy } from './src/galaxy/galaxy.ts';
 import { entryFor, entryHtml } from './src/encyclopaedia/entry.ts';
-import { exampleLog, tourModel } from './src/missions/tour-page.ts';
-import { logHtml } from './src/ui/screens-log.ts';
+import { tourModel } from './src/missions/tour-page.ts';
 import { tourHtml } from './src/missions/tour-html.ts';
 
 /**
@@ -57,7 +56,7 @@ function missionTour(): Plugin {
       handler(html, ctx) {
         if (!ctx.path.includes('missions') || !html.includes(MARKER)) return html;
         const systems = generateGalaxy(1);
-        return html.replace(MARKER, tourHtml(tourModel(systems), logHtml(exampleLog(systems))));
+        return html.replace(MARKER, tourHtml(tourModel(systems)));
       },
     },
   };
