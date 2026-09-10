@@ -120,3 +120,42 @@ Evidence:
 - The landing page carries no `trained`, `neural` or `neuroevolution`. A
   grep says so.
 - Chris reads both pages on the preview.
+
+## Outcome
+
+Both milestones landed on 2026-09-10, on the branch of their own PR. 5,559
+assertions, from 5,564: the worked example's six checks went with it, and
+six new ones hold the summaries and the markup.
+
+### M1 — the landing page
+
+`index.html` leads with what the player does, in the second person. The
+pirates section, the combat viewer figure and every claim of trained combat
+AI are gone. A grep of the page for `trained`, `neural` and `neuroevolution`
+finds nothing. The description and the structured data say the same as the
+page.
+
+### M2 — the mission tour page
+
+`JOB_SUMMARIES` in `tour-page.ts` holds thirteen sentences, one per arc and
+one per side job, and the model carries each as `summary`. `tour-html.ts`
+gives each job one shape: who asks, the summary, the steps in words, and the
+briefing as a quotation. `stepsLine` writes the steps: "Two steps: recover,
+then hunt. If a step goes wrong, there is another way to finish the job."
+The side jobs are a list. The last section is "If you fail". `exampleLog`,
+`exampleJournal` and the `line` field of a leg are gone, and `tourHtml` takes
+the model alone.
+
+The test holds the table complete. With one summary blanked, it failed on
+"every side job carries its own plain summary, from the table". It also
+holds that no shouted order line and no name from the code reaches the
+markup.
+
+### What the plan did not have
+
+- **The constants gate reads an upper-case table as a game rule.**
+  `JOB_SUMMARIES` joined the missions slice of the OUTSIDE list in
+  `test/constants.test.ts`, as `DOSSIERS` did, with its reason.
+- **A `git checkout` on an uncommitted file discards the work.** The proof
+  step restored the model that way once, and the edits had to be applied
+  again. A proof edits a copy and puts it back by the same script.

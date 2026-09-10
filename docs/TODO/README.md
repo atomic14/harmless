@@ -13,14 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [199](199-the-site-says-what-the-game-is.md) — the site says what the
-   game is.
+The queue is empty.
 
 **199 CAME FROM CHRIS ON 2026-09-10.** He read the landing page and called
 the prose dreadful. The page sells trained combat AI that does not ship. It
 explains arithmetic before it says what you do. The mission tour page
 prints the code's own names and shouted orders. He set the direction: plain
 words, second person, the player first, and no claim the game does not keep.
+**199 landed the same day**, and it is below.
 
 **198 CAME OUT OF THE PREVIEW OF 197 ON 2026-09-10.** Chris opened PR #44 on
 his phone and was stuck on the briefing. The panel fits. The screen offers no
@@ -249,6 +249,17 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-10
+
+**199 — the site says what the game is.** Chris called the landing page's
+prose dreadful. It sold trained combat AI that does not ship, and it
+explained the arithmetic before it said what you do. The page now leads
+with what the player does, in plain words, and every false claim is gone.
+The mission page reads as a guide. It says who asks, what the job is in one
+plain sentence, and the steps in words. Then the patron's own briefing
+follows, as a quotation.
+No shouted order line and no name from the code reaches it, and a test
+says so. 5,559 assertions, from 5,564, because the log dump's checks went
+with it.
 
 **198 — a phone can leave every docked screen.** Chris opened the preview
 of PR #44 on his phone and was stuck on the briefing. It closed on Escape,
