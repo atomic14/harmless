@@ -20,7 +20,7 @@ import { type ChartState } from '../game/chart-state.ts';
 import { type ChartOverlays } from '../game/chart-overlay.ts';
 import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH, CHART_CANVAS_W, CHART_CANVAS_H } from '../constants/chart-metric.ts';
 import { maybeById, show } from './screen-shell.ts';
-import { nearestSystem, journey, daysTerm, contractTerm, chartKeyline } from './chart-readout.ts';
+import { nearestSystem, journey, daysTerm, contractTerm, chartKeyline, chartButtons } from './chart-readout.ts';
 import { drawContractMarks, drawLanes, drawLeadMarks, laneSummary, drawPriceTells } from './chart-overlays.ts';
 
 export function renderChart(
@@ -35,6 +35,7 @@ export function renderChart(
     <canvas id="chart-canvas" width="${CHART_CANVAS_W}" height="${CHART_CANVAS_H}"></canvas>
     <div class="keyline" id="chart-info"></div>
     <div class="keyline">${chartKeyline(overlays.mode)}</div>
+    ${chartButtons()}
   `);
   drawChart(systems, c, chart, overlays);
 }

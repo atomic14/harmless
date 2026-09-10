@@ -162,6 +162,7 @@ import './ui.test.ts';
 import './chart-overlay.test.ts';
 import './key-help.test.ts';
 import './menu-click.test.ts';
+import './screen-buttons.test.ts';
 import './key-prose.test.ts';
 import './site-footer.test.ts';
 import './input.test.ts';

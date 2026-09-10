@@ -21,7 +21,7 @@ import { type ChartOverlays } from '../game/chart-overlay.ts';
 import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH, LOCAL_SCALE, LOCAL_CANVAS } from '../constants/chart-metric.ts';
 import { maybeById, show } from './screen-shell.ts';
 import { portraitUrl } from './portrait.ts';
-import { nearestSystem, journey, daysTerm, contractTerm, chartKeyline } from './chart-readout.ts';
+import { nearestSystem, journey, daysTerm, contractTerm, chartKeyline, chartButtons } from './chart-readout.ts';
 import { drawContractMarks, drawLanes, drawLeadMarks, laneSummaryParts, drawPriceTells } from './chart-overlays.ts';
 
 export function renderLocalChart(
@@ -38,6 +38,7 @@ export function renderLocalChart(
       <div class="info" id="local-info"></div>
     </div>
     <div class="keyline">${chartKeyline(overlays.mode)}</div>
+    ${chartButtons()}
   `, true);
   drawLocalChart(systems, c, chart, overlays);
 }

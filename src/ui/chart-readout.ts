@@ -140,6 +140,17 @@ export function contractTerm(
  * them (see the note at the top of this file). So this line is where they
  * live.
  */
+/**
+ * The button row under either chart, for a finger (docs/TODO/198). A tap on a
+ * system already targets it. These are the three keys a phone has no way to
+ * press: D for the data screen, T for the overlay and Escape to leave.
+ */
+export const chartButtons = (): string => `
+    <div class="buttons">
+      <button data-key="KeyD">DATA ON SYSTEM</button>
+      <button data-key="KeyT">TRADE OVERLAY</button>
+      <button data-key="Escape">DONE</button>
+    </div>`;
 export const chartKeyline = (mode: ChartOverlay): string =>
   'CLICK A SYSTEM TO TARGET IT &middot; ARROWS MOVE &middot; ENTER TARGET'
   + ' &middot; D DATA ON SYSTEM &middot; M MARKET &middot; F FIND &middot; ESC EXIT'
