@@ -219,7 +219,10 @@ Two quirks are deliberate:
   and the re-offer delay. It also draws each world's roster of two or three
   side jobs from the seed, through `seed-pick.ts`. `hints.ts` decides how a far commander hears about
   a lead. It writes the MISSIONS row, the board rumour, the DATA ON line, and
-  the one message a dock may say. All eight verbs have a module under
+  the one message a dock may say. `hail.ts` is what a dock says about the
+  offers and that message, and the machine calls it on a dock
+  (docs/TODO/203). `game/mission-arrival.ts` says where a target is on an
+  arrival, as a distance and a bearing in words. All eight verbs have a module under
   `verbs/`. `skeletons/side.ts` is one local side job per verb, so every
   verb is a job a player can take. `skeletons/arcs/` holds the five arcs
   of the tour, one file each, and `ARC_TOUR` lists them in order
