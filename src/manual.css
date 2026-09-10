@@ -170,7 +170,6 @@ footer {
 .tour .arc-head h3 { margin: 0 0 4px; }
 .tour .who, .tour .next { opacity: 0.8; margin: 4px 0; }
 .tour .summary { max-width: 640px; }
-.tour .steps { max-width: 640px; opacity: 0.8; }
 /* The patron's own words, set apart from the site's (docs/TODO/199). */
 .tour blockquote.briefing {
   max-width: 640px;

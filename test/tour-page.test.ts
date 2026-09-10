@@ -20,7 +20,7 @@ import { ARC_TOUR, SKELETONS } from '../src/missions/skeletons/index.ts';
 import { SIDE_JOBS } from '../src/missions/skeletons/side.ts';
 import { ARC_VETITICE } from '../src/missions/skeletons/arcs/vetitice.ts';
 import { storyPages } from '../src/missions/story.ts';
-import { stepsLine, tourHtml } from '../src/missions/tour-html.ts';
+import { tourHtml } from '../src/missions/tour-html.ts';
 import { JOB_SUMMARIES, recoveryLegs, tourModel } from '../src/missions/tour-page.ts';
 import { logHtml } from '../src/ui/screens-log.ts';
 import { captureById } from './screen-capture.ts';
@@ -44,8 +44,6 @@ console.log('\nthe tour as data: five arcs in order, each with a patron and a fa
     m.arcs.every((a) => a.briefing.length >= 1 && a.briefing.every((p) => !p.includes('{PATRON}') && !p.includes('{HERE}'))));
   check('every arc carries its own plain summary, from the table',
     m.arcs.every((a) => a.summary.length > 0 && a.summary === JOB_SUMMARIES[a.id]));
-  eq('the steps are said in words, with the way out',
-    stepsLine(m.arcs[0]), 'Two steps: recover, then hunt. If a step goes wrong, there is another way to finish the job.');
   check('every arc has a recovery leg, and not every leg is one',
     m.arcs.every((a) => a.legs.some((l) => l.recovery) && a.legs.some((l) => !l.recovery)));
   eq('Vetitice\'s recovery leg is the route home', [...recoveryLegs(ARC_VETITICE)].join(), 'route');
@@ -114,8 +112,10 @@ console.log('\n...and the page has its four homes, and a clean link to each');
     ARC_TOUR.every((id) => html.includes(`id="${id}"`)) && html.indexOf('id="arc-lave"') < html.indexOf('id="arc-edle"'));
   check('...each with its face', (html.match(/<img src="\/species\//g) ?? []).length === 5);
   check('...every side job, by its summary', m.sideJobs.flatMap((g) => g.jobs).every((j) => html.includes(escapeHtml(j.summary))));
-  check('...every arc\'s summary and its briefing as a quotation',
-    m.arcs.every((a) => html.includes(escapeHtml(a.summary))) && (html.match(/<blockquote class="briefing">/g) ?? []).length === 5);
+  check('...every arc\'s summary, and the patron\'s opening words as a quotation',
+    m.arcs.every((a) => html.includes(escapeHtml(a.summary)) && html.includes(escapeHtml(a.briefing[0])))
+    && (html.match(/<blockquote class="briefing">/g) ?? []).length === 5);
+  check('...and nothing that repeats under every job', !/steps?:|jumps on/.test(html));
   check('...and no shouted order line, and no name from the code',
     !/AT THE TARGET/.test(html) && !/recovery leg|by verb|branch/i.test(html));
   const hostile = tourModel(g1, 1, () => ({

@@ -151,6 +151,15 @@ The test holds the table complete. With one summary blanked, it failed on
 holds that no shouted order line and no name from the code reaches the
 markup.
 
+### M3 — the mission page loses its repeated lines
+
+Chris read the page on the PR and named the fault: a line of steps and a
+line of jumps under every job repeat five times and tell a reader nothing.
+Both are gone, with `stepsLine`. A job now shows who asks, the summary, and
+the patron's opening paragraph alone as the quotation, because the rest of
+the briefing restates the job. The route caption is one line. The test holds
+that nothing repeats under every job.
+
 ### What the plan did not have
 
 - **The constants gate reads an upper-case table as a game rule.**

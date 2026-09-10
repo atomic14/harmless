@@ -6,31 +6,21 @@
 //
 // A VISITOR READS IT, so it carries no name from the code (docs/TODO/199).
 // Each job has one shape. First, who asks. Then what the job is, in the site's
-// voice. Then the steps in words. Then the patron's own briefing, as a
-// quotation. The shouted order lines and the in-game log went with 199. A
-// failure is explained once, at the end, in three sentences.
+// voice. Then the patron's opening words, as a quotation. The shouted order
+// lines and the in-game log went with 199. So did a line of steps and a line
+// of jumps under every job, because a line that repeats five times says
+// nothing (Chris, 2026-09-10). A failure is explained once, at the end.
 
 import { escapeHtml } from '../engine/escape-html.ts';
 import type { TourArc, TourModel } from './tour-page.ts';
-
-/** The steps of a job in words: "Two steps: recover, then hunt." */
-export function stepsLine(a: TourArc): string {
-  const words = ['no', 'one', 'two', 'three', 'four', 'five', 'six'];
-  const happy = a.legs.filter((l) => !l.recovery).map((l) => l.verb.toLowerCase());
-  const n = words[happy.length] ?? String(happy.length);
-  const steps = `${n.charAt(0).toUpperCase()}${n.slice(1)} step${happy.length === 1 ? '' : 's'}: ${happy.join(', then ')}.`;
-  const more = a.legs.some((l) => l.recovery)
-    ? ' If a step goes wrong, there is another way to finish the job.' : '';
-  return steps + more;
-}
 
 function arcHtml(a: TourArc, n: number): string {
   const face = a.patron.portrait
     ? `<img src="/${a.patron.portrait}" alt="${escapeHtml(a.patron.name)}" loading="lazy" />`
     : '';
-  const next = a.next === null
-    ? '<p class="next">This is the last of the five.</p>'
-    : `<p class="next">The next person with work is ${a.jumpsToNext} jumps on.</p>`;
+  // The first paragraph is the patron's voice. The rest restates the job the
+  // summary above already states.
+  const words = a.briefing[0] ?? '';
   return `
       <article class="arc" id="${escapeHtml(a.id)}">
         <div class="arc-head">
@@ -41,11 +31,7 @@ function arcHtml(a: TourArc, n: number): string {
           </div>
         </div>
         <p class="summary">${escapeHtml(a.summary)}</p>
-        <p class="steps">${escapeHtml(stepsLine(a))}</p>
-        <blockquote class="briefing">
-          ${a.briefing.map((p) => `<p>${escapeHtml(p)}</p>`).join('\n          ')}
-        </blockquote>
-        ${next}
+        <blockquote class="briefing"><p>${escapeHtml(words)}</p></blockquote>
       </article>`;
 }
 
@@ -60,8 +46,7 @@ export function tourHtml(m: TourModel): string {
   return `
       <section id="route">
         <h2>The route</h2>
-        <p>Five worlds, each a few jumps farther across the first galaxy than
-          the last. Each job ends near the next person's world.</p>
+        <p>The five worlds, in order.</p>
         <div class="route">${m.routeSvg}</div>
       </section>
 
