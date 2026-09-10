@@ -210,7 +210,7 @@ console.log('\n...and every reader speaks the dossier\'s words, or the skeleton\
       entities: { 'side-rescue#0#pod': { kind: 'capsule', ship: '', hull: 1, lastWorld: 12, alive: true } },
     };
     const r = stepMissions(pod, { kind: 'destroyed', tag: 'side-rescue#0#pod' }, ctx(facts()));
-    const said = says(r.effects).find((e) => e.text.includes('POD LOST'));
+    const said = says(r.effects).find((e) => e.text.includes('POD IS LOST'));
     return said !== undefined && said.word === undefined && r.state.live[0]?.leg === 'data';
   })());
 

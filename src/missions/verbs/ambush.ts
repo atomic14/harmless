@@ -11,7 +11,9 @@ export const ambush: VerbModule = (ctx, input) => {
   if (ctx.leg.verb.kind !== 'ambush') return null;
   const here = ctx.commander.systemIndex;
   const atTarget = ctx.live.target === null || ctx.live.target === here;
-  if (input.kind === 'arrived' && atTarget) return { progress: 1 };
+  if (input.kind === 'arrived' && atTarget) {
+    return { progress: 1, say: 'YOU ARE ON THE LANE TO {TARGET}. FIGHT THROUGH WHATEVER WAITS, AND DOCK AT THE STATION.' };
+  }
   if (input.kind === 'docked' && ctx.live.progress >= 1) return { trigger: 'success' };
   return null;
 };

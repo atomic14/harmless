@@ -285,3 +285,20 @@ console.log('\nambush: the lane has pirates while the leg is live (docs/TODO/203
     { kind: 'docked' }, { ...ctx, commander: facts({ systemIndex: target }) }).state;
   eq('...and they are gone once the lane is cleared', missionSpawns(done, target, [SIDE_AMBUSH]).length, 0);
 }
+
+console.log('\na step that takes no branch still speaks (docs/TODO/203 M4)');
+{
+  const said = (effects: MissionEffect[]): string[] => effects.flatMap((e) => (e.kind === 'say' ? [e.text] : []));
+  const ctx: MissionContext = { commander: facts(), systems: g1, rng: () => 0.5, skeletons: [SIDE_RESCUE, SIDE_AMBUSH] };
+  const st = accept(SIDE_RESCUE, ctx);
+  const tag = st.live[0].tag as string;
+  const target = st.live[0].target as number;
+  const scooped = stepMissions(st, { kind: 'scooped', tag }, moved(ctx, target));
+  eq('the pod scooped says the pilot is aboard and what to do next',
+    said(scooped.effects).join('|'), 'THE PILOT IS ABOARD. DOCK AT ANY STATION AND LAND HER.');
+  const lane = accept(SIDE_AMBUSH, ctx);
+  const world = g1[lane.live[0].target as number].name.toUpperCase();
+  const arrived = stepMissions(lane, { kind: 'arrived' }, moved(ctx, lane.live[0].target as number));
+  eq('the lane reached says to fight through and dock',
+    said(arrived.effects).join('|'), `YOU ARE ON THE LANE TO ${world}. FIGHT THROUGH WHATEVER WAITS, AND DOCK AT THE STATION.`);
+}

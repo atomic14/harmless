@@ -101,7 +101,9 @@ function hail(
     ? { kind: 'say', text: s.hail, command: 'openMissions' }
     : { kind: 'later', text: s.hail }));
   if (side > 0) {
-    const text = `${side} SIDE JOB${side === 1 ? '' : 'S'} ON THE STATION BOARD`;
+    const text = side === 1
+      ? 'THERE IS ONE SIDE JOB ON THE STATION BOARD.'
+      : `THERE ARE ${side} SIDE JOBS ON THE STATION BOARD.`;
     if (arcs.length === 0) effects.push({ kind: 'say', text, command: 'openMissions' });
     else effects.push({ kind: 'later', text });
   }
@@ -197,6 +199,9 @@ function react(
     if (reaction.progress !== undefined) live.progress = reaction.progress;
     if (reaction.passenger && input.kind === 'scooped') {
       st.passengers.push({ tag: input.tag, mission: live.skeleton });
+    }
+    if (reaction.say !== undefined) {
+      effects.push({ kind: 'say', text: fillSlots(reaction.say, lineSlots(ctx.systems, live.target, legPay(leg))) });
     }
     if (reaction.trigger !== undefined) fire(st, live, reaction.trigger, ctx, effects);
   }

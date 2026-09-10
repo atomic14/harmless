@@ -11,7 +11,7 @@
 // ONE OPERATION. The record and its effects land together, before any save,
 // so a reload cannot find the credits paid and the leg still owed.
 
-import { generateGalaxy, type StarSystem } from '../galaxy/galaxy.ts';
+import { COMMODITIES, generateGalaxy, type StarSystem } from '../galaxy/galaxy.ts';
 import { afterDeed } from './character.ts';
 import { cargoCapacity, cargoTonnes, type CommanderData } from './commander.ts';
 import { random } from './rng.ts';
@@ -33,6 +33,9 @@ export interface MissionMessage {
   queued?: boolean;
   command?: Command;
 }
+
+/** `1 TONNE`, `3 TONNES`, for a console line. */
+const tonnes = (n: number): string => `${n} TONNE${n === 1 ? '' : 'S'}`;
 
 /** The facts a rule may read, and nothing the machine could spend. */
 export function missionFacts(c: CommanderData): CommanderFacts {
@@ -97,7 +100,7 @@ export function runMissions(
       case 'lead':
         out.push({
           kind: 'message', queued: true, seconds: 6,
-          text: `A LEAD: ASK AT ${systems[e.world].name.toUpperCase()}`,
+          text: `THERE IS A LEAD. ASK AT ${systems[e.world].name.toUpperCase()}.`,
         });
         break;
       // The patron's goods go aboard, as far as the hold allows. A hold too
@@ -105,7 +108,18 @@ export function runMissions(
       // fails a dock with fewer tonnes than it wants.
       case 'cargo': {
         const room = Math.max(0, cargoCapacity(c) - cargoTonnes(c));
-        c.cargo[e.commodity] += Math.min(room, e.tonnes);
+        const took = Math.min(room, e.tonnes);
+        c.cargo[e.commodity] += took;
+        // Said, because a hold that changed in silence is a hold the player
+        // cannot trust (docs/TODO/203 M4). A short load says what the job
+        // still needs, so the player can make room and try again.
+        const goods = COMMODITIES[e.commodity].name.toUpperCase();
+        out.push({
+          kind: 'message', queued: true, seconds: 6,
+          text: took === e.tonnes
+            ? `${tonnes(took)} OF ${goods} ${took === 1 ? 'IS' : 'ARE'} ABOARD FOR THE RUN.`
+            : `THE HOLD TOOK ONLY ${tonnes(took)} OF THE ${e.tonnes} ${goods} NEEDS. THE JOB NEEDS ALL ${e.tonnes}.`,
+        });
         break;
       }
       // Passengers a finished mission left aboard are survivors now, once.

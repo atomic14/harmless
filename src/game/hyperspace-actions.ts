@@ -35,6 +35,7 @@ import { freshTimers } from './encounters.ts';
 import { random, randomDirection, rngState, seedWorld } from './rng.ts';
 import { boundKey } from '../ui/key-help.ts';
 import { runMissions } from './mission-bridge.ts';
+import { arrivalLines, type Sighting } from './mission-arrival.ts';
 import type { WorldBuild } from './world-build.ts';
 import type { GameState } from './state.ts';
 import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
@@ -189,12 +190,26 @@ export class HyperspaceActions {
     this.state.session.policeScanned = false;
     this.state.encounterTimers = freshTimers();
     this.world.populateSystem('arrival');
-    // The arrival reaches the missions, after the world is built, so a leg
-    // that waits for it can move and a line about the target can follow
+    // The arrival reaches the missions after the world is built. So a leg
+    // that waits for it can move, and a line about the target can follow
     // (docs/TODO/203 M1). Nothing sent it before, and the lane job could
     // never complete.
     for (const m of runMissions(this.state.commander, { kind: 'arrived' }, this.state.systems)) {
       this.host.sayEvent({ ...m, queued: true });   // behind ARRIVED, which the caller says
+    }
+    // ...and then where the target is, in words (docs/TODO/203 M4).
+    const sightings: Sighting[] = [
+      ...this.state.world.npcs
+        .filter((n) => n.state.alive && n.state.missionTag !== null)
+        .map((n) => ({ tag: n.state.missionTag as string, name: n.object.name.toUpperCase(), position: n.object.position })),
+      ...this.state.world.cargo.items
+        .filter((c) => c.missionTag !== null)
+        .map((c) => ({ tag: c.missionTag as string, name: c.kind === 'capsule' ? 'POD' : 'CANISTER', position: c.object.position })),
+    ];
+    const c = this.state.commander;
+    for (const text of arrivalLines(c.missions, this.state.systems, c.systemIndex, sightings,
+      this.state.player.position, this.state.player.quaternion)) {
+      this.host.sayEvent({ text, seconds: 6, queued: true });
     }
     this.host.hyperspaceSound();
     this.host.startTunnel(1.1);

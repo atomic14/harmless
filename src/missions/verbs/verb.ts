@@ -22,6 +22,13 @@ export interface VerbReaction {
   progress?: number;
   /** the scooped pod is this mission's passenger; the machine records it */
   passenger?: boolean;
+  /**
+   * What the console says about a step that takes no branch, with `{TARGET}`
+   * for the leg's world (docs/TODO/203 M4). A branch speaks through its
+   * settlement. A step that only moves progress said nothing before, so the
+   * pilot aboard and the lane reached were silent.
+   */
+  say?: string;
 }
 
 export type VerbModule = (ctx: VerbContext, input: MissionInput) => VerbReaction | null;

@@ -30,7 +30,7 @@ export const SIDE_HUNT: Skeleton = {
     id: 'hunt', verb: { kind: 'hunt', ship: shipDesignIdOf(SOURCE_DESIGN.krait), canEscape: true },
     place: AWAY, line: 'BOUNTY: DESTROY THE KRAIT — LAST SEEN AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
-      { on: 'targetDestroyed', to: 'complete', settle: { pay: SIDE_JOB_PAY.hunt, say: 'KRAIT DESTROYED — {PAY} FROM THE STATION' } },
+      { on: 'targetDestroyed', to: 'complete', settle: { pay: SIDE_JOB_PAY.hunt, say: 'THE KRAIT IS DESTROYED. THE STATION PAYS {PAY}.' } },
       { on: 'targetEscaped', to: 'fail' },
       FAIL,
     ],
@@ -47,7 +47,7 @@ export const SIDE_DELIVER: Skeleton = {
     id: 'run', verb: { kind: 'deliver' }, place: AWAY,
     line: 'DELIVERY: TAKE THE PACKET TO {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
-      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.deliver, say: 'PACKET DELIVERED — {PAY}' } },
+      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.deliver, say: 'THE PACKET IS DELIVERED. THE STATION PAYS {PAY}.' } },
       FAIL,
     ],
   }],
@@ -64,7 +64,7 @@ export const SIDE_RECOVER: Skeleton = {
       id: 'find', verb: { kind: 'recover', item: 'station-canister' }, place: AWAY,
       line: 'RECOVERY: SCOOP THE CANISTER ADRIFT AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
       next: [
-        { on: 'success', to: 'home', settle: { pay: 0, say: 'CANISTER ABOARD — BRING IT HOME' } },
+        { on: 'success', to: 'home', settle: { pay: 0, say: 'THE CANISTER IS ABOARD. BRING IT BACK TO {TARGET}.' } },
         { on: 'targetDestroyed', to: 'fail' },
         FAIL,
       ],
@@ -73,7 +73,7 @@ export const SIDE_RECOVER: Skeleton = {
       id: 'home', verb: { kind: 'deliver' }, place: { kind: 'origin' },
       line: 'RECOVERY: BRING THE CANISTER BACK TO {TARGET}', deadlineDays: SIDE_JOB_DAYS,
       next: [
-        { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.recover, say: 'CANISTER RETURNED — {PAY}' } },
+        { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.recover, say: 'THE CANISTER IS RETURNED. THE STATION PAYS {PAY}.' } },
         FAIL,
       ],
     },
@@ -91,11 +91,11 @@ export const SIDE_RESCUE: Skeleton = {
       id: 'pod', verb: { kind: 'rescue' }, place: AWAY,
       line: 'RESCUE: SCOOP THE POD ADRIFT AT {TARGET} AND DOCK', deadlineDays: SIDE_JOB_DAYS,
       next: [
-        { on: { survivor: 'landed' }, to: 'complete', settle: { pay: SIDE_JOB_PAY.rescue, say: 'PILOT LANDED — {PAY}' } },
+        { on: { survivor: 'landed' }, to: 'complete', settle: { pay: SIDE_JOB_PAY.rescue, say: 'THE PILOT IS LANDED SAFE. THE STATION PAYS {PAY}.' } },
         { on: { survivor: 'sold' }, to: 'fail', settle: { pay: 0, standing: -2 } },
         // The pod is lost, and the survey data reached the ship before it
         // was. The job goes on as a delivery, at a lower fee.
-        { on: 'targetDestroyed', to: 'data', settle: { pay: 0, say: 'POD LOST — THE SURVEY DATA CAME ACROSS FIRST' } },
+        { on: 'targetDestroyed', to: 'data', settle: { pay: 0, say: 'THE POD IS LOST, BUT THE SURVEY DATA CAME ACROSS FIRST. TAKE IT BACK TO {TARGET}.' } },
         FAIL,
       ],
     },
@@ -103,7 +103,7 @@ export const SIDE_RESCUE: Skeleton = {
       id: 'data', verb: { kind: 'deliver' }, place: { kind: 'origin' },
       line: 'RESCUE: TAKE THE SURVEY DATA BACK TO {TARGET}', deadlineDays: SIDE_JOB_DAYS,
       next: [
-        { on: 'success', to: 'complete', settle: { pay: RESCUE_SALVAGE_PAY, say: 'SURVEY DATA DELIVERED — {PAY}' } },
+        { on: 'success', to: 'complete', settle: { pay: RESCUE_SALVAGE_PAY, say: 'THE SURVEY DATA IS DELIVERED. THE STATION PAYS {PAY}.' } },
         FAIL,
       ],
     },
@@ -120,7 +120,7 @@ export const SIDE_AMBUSH: Skeleton = {
     id: 'lane', verb: { kind: 'ambush' }, place: AWAY, spawn: [...LANE_PIRATES],
     line: 'LANE: FLY TO {TARGET} THROUGH WHATEVER WAITS, AND DOCK', deadlineDays: SIDE_JOB_DAYS,
     next: [
-      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.ambush, say: 'LANE CLEARED — {PAY}' } },
+      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.ambush, say: 'THE LANE IS CLEAR. THE STATION PAYS {PAY}.' } },
       FAIL,
     ],
   }],
@@ -136,7 +136,7 @@ export const SIDE_SMUGGLE: Skeleton = {
     id: 'run', verb: { kind: 'smuggle', commodity: NARCOTICS, tonnes: SMUGGLE_TONNES }, place: AWAY,
     line: 'SMUGGLE: LAND THE NARCOTICS AT {TARGET} UNSCANNED', deadlineDays: SIDE_JOB_DAYS,
     next: [
-      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.smuggle, say: 'GOODS LANDED — {PAY}' } },
+      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.smuggle, say: 'THE GOODS ARE LANDED UNSCANNED. YOU ARE PAID {PAY}.' } },
       FAIL,
     ],
   }],
@@ -152,7 +152,7 @@ export const SIDE_ESCORT: Skeleton = {
     id: 'cover', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.python) }, place: AWAY,
     line: 'ESCORT: SEE THE PYTHON INTO STATION RANGE AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
-      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.escort, say: 'PYTHON SAFE — {PAY}' } },
+      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.escort, say: 'THE PYTHON IS SAFE IN STATION RANGE. THE STATION PAYS {PAY}.' } },
       { on: 'targetDestroyed', to: 'fail' },
       { on: 'targetEscaped', to: 'fail' },
       FAIL,
@@ -170,7 +170,7 @@ export const SIDE_SCAN: Skeleton = {
     id: 'watch', verb: { kind: 'scan', ship: shipDesignIdOf(SOURCE_DESIGN.anaconda), seconds: SCAN_SECONDS },
     place: AWAY, line: 'SCAN: HOLD THE ANACONDA AT {TARGET} ON YOUR SCANNER', deadlineDays: SIDE_JOB_DAYS,
     next: [
-      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.scan, say: 'SCAN COMPLETE — {PAY}' } },
+      { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.scan, say: 'THE SCAN IS COMPLETE. THE STATION PAYS {PAY}.' } },
       { on: 'targetDestroyed', to: 'fail', settle: { pay: 0, standing: -2 } },
       { on: 'targetEscaped', to: 'fail' },
       FAIL,

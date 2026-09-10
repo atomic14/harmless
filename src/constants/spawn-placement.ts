@@ -223,9 +223,9 @@ export const GENERATION_SHIP_RANGE_SPAN = 8000;
 export const GENERATION_CARGO_SCATTER = 700;
 
 /**
- * How far from the commander a mission's target waits on arrival: the
- * Constrictor, a hunt's pirate, a scan's ship, an escort's charge, a canister
- * or a pod. It is nearer than any other authored arrival, so a leg becomes a
+ * How far from the commander a mission's target waits on arrival. The target
+ * is the Constrictor, a hunt's pirate, a scan's ship, an escort's charge, a
+ * canister or a pod. It is nearer than any other authored arrival, so a leg becomes a
  * fight, or a find, quickly.
  *
  * It was 4,000 with a span of 4,000, so a target could sit 8,000 out, beyond

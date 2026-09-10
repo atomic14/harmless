@@ -44,7 +44,7 @@ export function scannerContacts(
   legalStatus: number,
   playerToStation: number,
   /** the tags of the things live missions sent the player for; each is a `mission` blip */
-  missionTags: ReadonlySet<string> = NO_TAGS,
+  missionTags: ReadonlySet<string> = noTags,
 ): ScannerContact[] {
   const contacts: ScannerContact[] = [{ position: stationPos, kind: 'station' }];
   for (const npc of npcs) {
@@ -73,7 +73,8 @@ export function scannerContacts(
   return contacts;
 }
 
-const NO_TAGS: ReadonlySet<string> = new Set();
+/** the default: nothing is a mission's, which is every call that predates the marker */
+const noTags: ReadonlySet<string> = new Set();
 
 /**
  * The nearest thing a live mission sent the player for, or null. It is a

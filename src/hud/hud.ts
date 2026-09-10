@@ -507,10 +507,10 @@ export class Hud {
   }
 
   /**
-   * The mission's target: a diamond round it on screen, with its name, and an
-   * amber arrow at the edge when it is out of view (docs/TODO/203 M3). It
-   * answers the question every job left open: where is the thing I was sent
-   * for?
+   * The mission's target. On screen it gets a diamond round it, with its
+   * name. Out of view it gets an amber arrow at the edge (docs/TODO/203 M3).
+   * It answers the question every job left open: where is the thing I was
+   * sent for?
    */
   private drawMissionMarker(marker: HudState['missionMarker']): void {
     if (!marker) return;

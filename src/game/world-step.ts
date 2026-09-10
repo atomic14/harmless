@@ -527,7 +527,15 @@ export class WorldStep {
       if (npc.role === 'trader') {
         const wanted = scanSecondsFor(commander.missions, tag);
         if (wanted !== null) {
+          const before = Math.floor(npc.state.observed);
           if (lock === npc) npc.state.observed += dt;
+          // The count is said aloud once a second while it moves. So the
+          // player knows the watch runs, and how much is left (docs/TODO/203
+          // M4). It says nothing while the count stands still.
+          const now = Math.floor(npc.state.observed);
+          if (now > before && now < wanted) {
+            out.push(say(`SCANNING THE ${npc.object.name.toUpperCase()}. ${now} OF ${wanted} SECONDS DONE.`, 1.5));
+          }
           if (npc.state.observed >= wanted) {
             npc.state.missionReported = true;
             npc.state.tradeTimer = 0;   // watched; it may go about its business now (docs/TODO/203 M2)

@@ -14,7 +14,9 @@ import type { VerbModule } from './verb.ts';
 export const rescue: VerbModule = (ctx, input) => {
   if (ctx.leg.verb.kind !== 'rescue') return null;
   if (!('tag' in input) || input.tag !== ctx.live.tag) return null;
-  if (input.kind === 'scooped') return { progress: 1, passenger: true };
+  if (input.kind === 'scooped') {
+    return { progress: 1, passenger: true, say: 'THE PILOT IS ABOARD. DOCK AT ANY STATION AND LAND HER.' };
+  }
   if (input.kind === 'destroyed' && ctx.live.progress < 1) return { trigger: 'targetDestroyed' };
   if (input.kind === 'survivor') return { trigger: { survivor: input.fate } };
   return null;

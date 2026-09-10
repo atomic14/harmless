@@ -76,7 +76,7 @@ function setup() {
       // and the three side jobs on Lave's board wait behind it as one line
       // (docs/TODO/190 M4).
       'message:THE GOVERNOR OF LAVE HAS A JOB FOR YOU',
-      'message:3 SIDE JOBS ON THE STATION BOARD',
+      'message:THERE ARE 3 SIDE JOBS ON THE STATION BOARD.',
       'message:CONTRACT SETTLED',
     ].join('|'));
   check('dock still changes the core mode synchronously', x.mode() === 'docked');

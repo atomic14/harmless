@@ -189,8 +189,8 @@ export function spawnPopulation(
     ship.state.missionTag = tagged.tag;
     if (tagged.job === 'escort') ship.state.traderPhase = 'arriving';
     // A scan's subject waits until it is scanned (docs/TODO/203 M2). A
-    // trader's clock starts at zero, so it left at once: half docked without
-    // a word, and half jumped out and failed the job before the player could
+    // trader's clock starts at zero, so it left at once. Half docked without
+    // a word. Half jumped out and failed the job before the player could
     // find it. The world step starts its clock when the scan is done.
     if (tagged.job === 'scan') ship.state.tradeTimer = Number.POSITIVE_INFINITY;
     spawned.push(ship);

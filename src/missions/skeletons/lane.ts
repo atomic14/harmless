@@ -6,9 +6,9 @@
 // Both legs name this list, so the lane is the same fight from either patron.
 //
 // Three light hulls, flown as pirates. A Krait pair and a Mamba is a fight a
-// Cobra with pulse lasers can win, and it is a fight, which a lone Sidewinder
-// is not. The tags answer nothing in the machine: a lane pirate is scenery
-// with a gun, and a kill among them settles no branch.
+// Cobra with pulse lasers can win. It is still a fight, which a lone
+// Sidewinder is not. The tags answer nothing in the machine. A lane pirate is
+// scenery with a gun, and a kill among them settles no branch.
 
 import { SOURCE_DESIGN } from '../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../game/ship-identity.ts';

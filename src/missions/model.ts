@@ -159,7 +159,7 @@ export interface Leg {
   override?: { set: BlueprintOverride; where: 'target' | 'everywhere' };
   /**
    * Ships that wait at this leg's world while the leg is live, spawned on
-   * every arrival there (docs/TODO/203 M2). The lane legs name pirates here,
+   * every arrival there (docs/TODO/203 M2). The lane legs list pirates here,
    * because a lane the player must fight through needs somebody on it. They
    * are not the leg's target, so the machine keeps no record of them, and a
    * kill among them moves nothing.
