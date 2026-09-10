@@ -13,7 +13,13 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [197](197-a-docked-screen-fits-a-phone.md) — a docked screen fits a
+   phone.
+
+**197 CAME FROM CHRIS ON 2026-09-10.** He asked for the game on a phone, in
+two halves. The docked screens are the easy half, and they come first. The
+flight screen is a later plan, and the brainstorm for it is in the session
+of the same day.
 
 **ALL THREE ITEMS CAME OUT OF CHRIS'S PLAYTEST ON 2026-09-06.** They are
 GitHub #42, #43 and #41, and triage on 2026-09-07 read each one against the
