@@ -144,3 +144,64 @@ Evidence:
 - `test/hud-model.test.ts` or a new test: a tagged ship is a `mission`
   contact, and the marker points at it.
 - Chris plays the three jobs on the preview.
+
+## Outcome
+
+All six milestones landed on 2026-09-10. 5,619 assertions, from 5,576. The
+ship-data probe ran once and passed, because the spawn band moved the
+Constrictor's arrival nearer.
+
+### M1 — the game reports an arrival and a day
+
+Every jump sends its days, queued behind ARRIVED, and every arrival sends
+`arrived` after the world is built. The tow sends its three days. The
+deadline check speaks three lines: the days left inside the warning, the
+last day, and the day the job is lost. A real Game in `test/mission-game.
+test.ts` jumps to a lane job's world, reads the warning, moves the leg on
+arrival, and completes it on the next dock.
+
+### M2 — a target waits inside the scanner, and the lane has pirates
+
+The band is 2,500 to 4,500 units. A scan's subject keeps an infinite trading
+clock until it is scanned. A leg may list ships that wait at its world, and
+both lane legs list a Krait pair and a Mamba from `skeletons/lane.ts`.
+
+### M3 — the scanner and the screen mark the target
+
+A thing whose tag a live leg names is a `mission` contact: amber, a diamond
+on the scanner, a diamond with the words MISSION TARGET on the screen, and an
+amber arrow at the edge when it is out of view. A lane pirate stays a
+hostile.
+
+### M4 — the console speaks at every change, in full sentences
+
+A verb's reaction may speak. The pod scooped and the lane reached both do.
+On arrival `game/mission-arrival.ts` says where the target is, as a distance
+to the hundred and a bearing in the ship's words, and how many jumps away a
+job at another world is. The goods aboard say their tonnes, and a short load
+says what the job still needs. A scan counts aloud. Every side-job line, the
+board's count and a lead are sentences.
+
+### M5 — a scan needs no missile
+
+The seconds count while the subject sits inside `WATCH_CONE` of the view and
+inside scanner range. The lock still counts. `test/scan-watch.test.ts` flies
+a real Game with no missile armed and gets paid.
+
+### M6 — the manual and the missions page say how a job plays
+
+One paragraph each.
+
+### What the plan did not have
+
+- **A patron's line at the end of a job said AT ANY STATION.** The machine
+  filled the world slot with nothing once the leg was over. The words name
+  the leg's own world now, and a change still lands where she stands.
+- **A line said in the same frame as ARRIVED never showed.** The mission
+  lines queue behind it.
+- **The machine crossed the size ceiling.** What a dock says moved to
+  `hail.ts`.
+- **The key-prose gate would have hunted an empty label**, had M2 of
+  docs/TODO/202 not already left the rows out. Nothing to do.
+- **The dossier lines carry no full stop**, by their own lint. They are full
+  sentences already, and they stay as they are.

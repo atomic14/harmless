@@ -13,8 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [203](203-a-mission-tells-the-player-where-to-go.md) — a mission tells
-   the player where to go.
+The queue is empty.
 
 **203 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He played three side jobs
 and could not tell how to finish any of them. The review found two signals
@@ -22,7 +21,8 @@ the game never sends, an arrival and a day, so one job cannot complete and
 no deadline ever passes. A target can spawn outside the scanner with no
 marker. A scan needs a missile lock that nobody explains, on a ship that
 leaves at once. The console says almost nothing between acceptance and the
-end. He asked for the mechanics and the words, in full sentences.
+end. He asked for the mechanics and the words, in full sentences. **203
+landed the same day**, and it is below.
 
 **202 CAME FROM CHRIS ON 2026-09-10.** He pressed ⇧R and got MISSIONS, and
 the cause was a Shift keydown the game never saw. His call: every menu can
@@ -276,6 +276,17 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-10
+
+**203 — a mission tells the player where to go.** Chris played three side
+jobs and could not tell how to finish any of them. The game never sent the
+machine an arrival or a day, so Clear the Lane could not complete and no
+deadline passed. Both signals are sent now. A target spawns inside the
+scanner and waits, the lane has pirates, and the target is marked on the
+scanner and the screen. The console says where the target is on arrival.
+It says what went aboard, how a scan counts, and when a deadline is near.
+Every line is a full sentence. A scan counts while the subject is in view,
+with no missile. The manual says how a job plays. 5,619 assertions, from
+5,576.
 
 **202 — the station menu takes a tap or the cursor.** Chris pressed ⇧R and
 got MISSIONS, and the cause was a Shift keydown the game never saw. A real
