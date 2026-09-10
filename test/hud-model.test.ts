@@ -11,8 +11,9 @@
 import * as THREE from 'three';
 import { seedWorld } from '../src/game/rng.ts';
 import { NpcShip } from '../src/game/npc.ts';
-import { screenTargets, scannerContacts, dockingAid, shipIdUnderView } from '../src/hud/hud-model.ts';
+import { screenTargets, scannerContacts, dockingAid, shipIdUnderView, nearestMissionTarget } from '../src/hud/hud-model.ts';
 import { CONTACT_COLORS } from '../src/hud/hud.ts';
+import { HUD } from '../src/palette.ts';
 import { dockingOutcome } from '../src/game/docking.ts';
 import { ROLL_TOLERANCE } from '../src/constants/docking.ts';
 import { check, eq } from './harness.ts';
@@ -102,6 +103,34 @@ console.log('\nscanner contacts');
     kinds.filter((k) => k === 'cargo').length === 1);
   check('...each painted its own colour, the capsule in its own mesh\'s',
     CONTACT_COLORS.pod !== CONTACT_COLORS.cargo && CONTACT_COLORS.pod === '#ffd24d');
+}
+
+// --- a mission's target is its own blip, and the marker finds it (docs/TODO/203 M3)
+console.log('\na mission target reads as one on the scanner, and the marker points at the nearest');
+{
+  const origin = new THREE.Vector3(0, 0, 0);
+  const subject = new NpcShip('trader', new THREE.Vector3(0, 0, -3000), 0);
+  subject.state.missionTag = 'side-scan#1#watch';
+  const lanePirate = new NpcShip('pirate', new THREE.Vector3(0, 0, -2500), 0);
+  lanePirate.state.missionTag = 'lane#krait-1';
+  const bystander = new NpcShip('trader', new THREE.Vector3(1000, 0, -1000), 0);
+  const canister = { object: new THREE.Object3D().translateZ(-1500), kind: 'cargo' as const, missionTag: 'side-recover#1#find' };
+  const loose = { object: new THREE.Object3D().translateZ(-500), kind: 'cargo' as const, missionTag: null };
+  const live = new Set(['side-scan#1#watch', 'side-recover#1#find']);
+  const kinds = scannerContacts(new THREE.Vector3(0, 0, 5_000), [subject, lanePirate, bystander], [],
+    [canister, loose], 0, Infinity, live).map((c) => c.kind);
+  eq('the scan subject and the mission canister are mission blips, and nothing else is',
+    kinds.filter((k) => k === 'mission').length, 2);
+  check('...the lane pirate stays a hostile, because no live leg names it',
+    kinds.includes('hostile') && kinds.includes('ship') && kinds.includes('cargo'));
+  check('...painted in the docking marker\'s amber', CONTACT_COLORS.mission === HUD.amber);
+  const nearest = nearestMissionTarget([subject, lanePirate, bystander], [canister, loose], origin, live);
+  check('the marker points at the nearer of the two, the canister at 1,500',
+    nearest !== null && Math.round(nearest.z) === -1500);
+  check('...and at nothing when no mission is live',
+    nearestMissionTarget([subject], [canister], origin, new Set()) === null);
+  check('...and the plain scanner call still reads as before, with no mission blip',
+    !scannerContacts(new THREE.Vector3(0, 0, 5_000), [subject], [], [canister], 0, Infinity).some((c) => c.kind === 'mission'));
 }
 
 // --- green means the dock test would pass (docs/TODO/120) ---------------------

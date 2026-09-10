@@ -40,15 +40,21 @@ export function scannerContacts(
   stationPos: THREE.Vector3,
   npcs: readonly NpcShip[],
   missiles: readonly { object: THREE.Object3D }[],
-  canisters: readonly { object: THREE.Object3D; kind: CanisterKind }[],
+  canisters: readonly { object: THREE.Object3D; kind: CanisterKind; missionTag?: string | null }[],
   legalStatus: number,
   playerToStation: number,
+  /** the tags of the things live missions sent the player for; each is a `mission` blip */
+  missionTags: ReadonlySet<string> = NO_TAGS,
 ): ScannerContact[] {
   const contacts: ScannerContact[] = [{ position: stationPos, kind: 'station' }];
   for (const npc of npcs) {
     if (!npc.state.alive) continue;
+    // A mission's own target reads as one before anything else it is, so the
+    // player can pick it out (docs/TODO/203 M3). A lane pirate carries a tag
+    // too, but no live leg names it, so it stays a hostile.
     const kind =
-      npc.role === 'asteroid' ? 'asteroid'
+      npc.state.missionTag !== null && missionTags.has(npc.state.missionTag) ? 'mission'
+      : npc.role === 'asteroid' ? 'asteroid'
       : npc.role === 'thargoid' || npc.role === 'thargon' ? 'thargoid'
       : isHostileToPlayer(npc, legalStatus, playerToStation) ? 'hostile'
       : 'ship';
@@ -58,11 +64,45 @@ export function scannerContacts(
   // A dead drone is a cargo blip, and that is the point of it: the blip says
   // what is collectable (docs/TODO/196).
   for (const c of canisters) {
+    const mission = c.missionTag !== undefined && c.missionTag !== null && missionTags.has(c.missionTag);
     contacts.push({
-      position: c.object.position, kind: c.kind === 'capsule' ? 'pod' : 'cargo',
+      position: c.object.position,
+      kind: mission ? 'mission' : c.kind === 'capsule' ? 'pod' : 'cargo',
     });
   }
   return contacts;
+}
+
+const NO_TAGS: ReadonlySet<string> = new Set();
+
+/**
+ * The nearest thing a live mission sent the player for, or null. It is a
+ * tagged ship or a tagged canister whose tag a live leg names (docs/TODO/203
+ * M3). The HUD puts a marker on it. When it is out of view, the HUD puts an
+ * arrow at the edge of the screen, as it does for the docking port.
+ */
+export function nearestMissionTarget(
+  npcs: readonly NpcShip[],
+  canisters: readonly { object: THREE.Object3D; missionTag: string | null }[],
+  playerPos: THREE.Vector3,
+  missionTags: ReadonlySet<string>,
+): THREE.Vector3 | null {
+  if (missionTags.size === 0) return null;
+  let best: THREE.Vector3 | null = null;
+  let bestDist = Infinity;
+  const consider = (position: THREE.Vector3): void => {
+    const d = position.distanceTo(playerPos);
+    if (d < bestDist) { bestDist = d; best = position; }
+  };
+  for (const npc of npcs) {
+    if (npc.state.alive && npc.state.missionTag !== null && missionTags.has(npc.state.missionTag)) {
+      consider(npc.object.position);
+    }
+  }
+  for (const c of canisters) {
+    if (c.missionTag !== null && missionTags.has(c.missionTag)) consider(c.object.position);
+  }
+  return best;
 }
 
 /**

@@ -134,7 +134,7 @@ export const SIDE_JOB_DAYS = 14;
 
 /**
  * How many days before a deadline the console starts to say how many are
- * left: three, so a job with a fortnight on it warns for its last fifth. A
+ * left. Three, so a job with a fortnight on it warns for its last fifth. A
  * jump costs one to three days, so a warning at one day would come too late
  * for a job two jumps away (docs/TODO/203 M1).
  *

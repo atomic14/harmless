@@ -20,7 +20,9 @@ import { HUD } from '../palette.ts';
 const { green: GREEN, dim: DIM, amber: AMBER, red: RED } = HUD;
 
 export type ContactKind =
-  'station' | 'ship' | 'hostile' | 'asteroid' | 'missile' | 'cargo' | 'pod' | 'thargoid';
+  'station' | 'ship' | 'hostile' | 'asteroid' | 'missile' | 'cargo' | 'pod' | 'thargoid'
+  /** a ship or a canister a live mission sent the player for (docs/TODO/203 M3) */
+  | 'mission';
 
 export interface ScannerContact {
   position: THREE.Vector3;
@@ -57,6 +59,8 @@ export const CONTACT_COLORS: Record<ContactKind, string> = {
   /** the colour the capsule's own mesh wears, so the blip matches the object */
   pod: '#ffd24d',
   thargoid: '#d05cff',
+  /** the docking marker's amber, because both are things the player is told to fly at */
+  mission: AMBER,
 };
 
 export interface HudState {
@@ -142,6 +146,8 @@ export interface HudState {
   slotMarker: { x: number; y: number; behind: boolean } | null;
   /** nearest hostile, for the off-screen threat arrow; `count` = hostiles near */
   threatMarker: { x: number; y: number; behind: boolean; count: number } | null;
+  /** the nearest thing a live mission sent the player for (docs/TODO/203 M3) */
+  missionMarker: { x: number; y: number; behind: boolean } | null;
   /** combat computer engaged (shown in the view label slot) */
   assist: boolean;
   /** missile armed but not yet locked (yellow pylon) */
@@ -294,6 +300,7 @@ export class Hud {
     this.drawTargets(frame.targets);
     this.drawSlotMarker(frame.slotMarker, frame.dockAid?.port ?? 'off');
     this.drawThreatMarker(frame.threatMarker);
+    this.drawMissionMarker(frame.missionMarker);
     this.drawScanner(frame.playerPos, frame.playerQuat, frame.contacts);
     this.drawCompass(frame.playerPos, frame.playerQuat, frame.compassTarget);
   }
@@ -499,6 +506,38 @@ export class Hud {
     this.drawEdgeArrow(marker, RED, marker.count > 1 ? `THREAT x${marker.count}` : 'THREAT');
   }
 
+  /**
+   * The mission's target: a diamond round it on screen, with its name, and an
+   * amber arrow at the edge when it is out of view (docs/TODO/203 M3). It
+   * answers the question every job left open: where is the thing I was sent
+   * for?
+   */
+  private drawMissionMarker(marker: HudState['missionMarker']): void {
+    if (!marker) return;
+    const ctx = this.reticle;
+    const onScreen = !marker.behind
+      && Math.abs(marker.x) <= 1 && Math.abs(marker.y) <= 1;
+    if (!onScreen) {
+      this.drawEdgeArrow(marker, AMBER, 'MISSION TARGET');
+      return;
+    }
+    const x = (marker.x * 0.5 + 0.5) * ctx.canvas.width;
+    const y = (-marker.y * 0.5 + 0.5) * ctx.canvas.height;
+    const r = 18;
+    ctx.strokeStyle = AMBER;
+    ctx.fillStyle = AMBER;
+    ctx.lineWidth = 1.5;
+    ctx.beginPath();
+    ctx.moveTo(x, y - r);
+    ctx.lineTo(x + r, y);
+    ctx.lineTo(x, y + r);
+    ctx.lineTo(x - r, y);
+    ctx.closePath();
+    ctx.stroke();
+    ctx.font = '10px Menlo, Consolas, monospace';
+    ctx.fillText('MISSION TARGET', x - 42, y + r + 12);
+  }
+
   private drawSlotMarker(marker: HudState['slotMarker'], port: PortState): void {
     if (!marker) return;
     const ctx = this.reticle;
@@ -582,6 +621,15 @@ export class Hud {
       ctx.stroke();
       if (c.kind === 'station') {
         ctx.fillRect(px - 2.5, stickTop - 2.5, 5, 5);
+      } else if (c.kind === 'mission') {
+        // a diamond, so the target reads apart from every round blip
+        ctx.beginPath();
+        ctx.moveTo(px, stickTop - 3.5);
+        ctx.lineTo(px + 3.5, stickTop);
+        ctx.lineTo(px, stickTop + 3.5);
+        ctx.lineTo(px - 3.5, stickTop);
+        ctx.closePath();
+        ctx.fill();
       } else {
         ctx.beginPath();
         ctx.arc(px, stickTop, c.kind === 'missile' ? 1.4 : 2.2, 0, Math.PI * 2);

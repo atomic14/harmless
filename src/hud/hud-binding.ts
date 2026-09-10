@@ -18,7 +18,7 @@ import {
   type HudFrame, type HudState,
 } from './hud.ts';
 import {
-  scannerContacts, projectMarker, shipIdUnderView, nearestHostile, dockingAid,
+  scannerContacts, projectMarker, shipIdUnderView, nearestHostile, nearestMissionTarget, dockingAid,
   screenTargets,
 } from './hud-model.ts';
 import type { NpcShip } from '../game/npc.ts';
@@ -145,6 +145,16 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
       s.camera, { a: scratch.a, b: scratch.b, q: scratch.q }));
   }
 
+  // The tags of the things live missions sent the player for, so the scanner
+  // and the marker can pick them out (docs/TODO/203 M3). Three at most.
+  const missionTags = new Set<string>();
+  for (const live of commander.missions.live) if (live.tag !== null) missionTags.add(live.tag);
+  let missionMarker: HudState['missionMarker'] = null;
+  if (s.inFlight && !s.witchspace) {
+    const target = nearestMissionTarget(world.npcs, s.canisters, playerPos, missionTags);
+    if (target) missionMarker = projectMarker(target, playerPos, s.playerForward, s.camera, scratch.a);
+  }
+
   // the off-screen arrow to the nearest thing that wants you dead
   let threatMarker: HudState['threatMarker'] = null;
   if (s.inFlight && !s.witchspace) {
@@ -171,7 +181,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     playerQuat: s.playerQuat,
     contacts: scannerContacts(
       world.station.position, world.npcs, s.missiles, s.canisters, legal,
-      playerToStation),
+      playerToStation, missionTags),
     targets,
     compassTarget: compassTarget(s),
     speedFrac: s.speedFrac,
@@ -210,6 +220,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     dockAid,
     slotMarker,
     threatMarker,
+    missionMarker,
     assist: s.assist,
     armed: s.missileArmed,
     stationInRange: s.inFlight && !s.witchspace
