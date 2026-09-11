@@ -67,6 +67,12 @@ export class Input {
   mouseX = 0;
   mouseY = 0;
   mouseFire = false;
+  /**
+   * The speed a throttle slider asks for, as a fraction of the ship's top
+   * speed, or null when no slider is set (docs/TODO/204 M1). A speed key
+   * held overrides it, and `flightDemand` ramps toward it otherwise.
+   */
+  wantedSpeed: number | null = null;
   private readonly canvas: HTMLElement | null;
 
   constructor() {
@@ -135,6 +141,20 @@ export class Input {
   keyUp(code: string): void {
     this.down.delete(code);
     if (code === 'Slash') this.down.delete('Question');
+  }
+
+  /**
+   * Hold a key down, as a finger on a button does, until `release`
+   * (docs/TODO/204 M1). It is a held key and never a tap: `held` answers
+   * for it, `pressed` does not, and the carry rule never sees it. So a FIRE
+   * button holds the trigger exactly as the A key does.
+   */
+  press(code: string): void {
+    this.down.add(code);
+  }
+
+  release(code: string): void {
+    this.down.delete(code);
   }
 
   /**
