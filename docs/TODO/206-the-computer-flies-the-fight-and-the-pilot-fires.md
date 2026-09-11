@@ -193,3 +193,19 @@ Evidence:
   pick of another course.
 - Chris flies a fight on his phone. His verdict on whether it is FUN is the one
   measure that no probe reaches.
+
+## What the milestones found
+
+### M1
+
+- **A ship has no stable id, so the pick is a flag on its state.**
+  `NpcState.targeted` is saved with each ship, as every field of that state
+  is. A pick in the session would hold an index into the ships, and the index
+  moves when a ship leaves.
+- **The name a player sees is the scene object's name**, as the arrival
+  lines use it.
+- **The list says what an attack costs in its own words.** `harmVerdict` in
+  `law.ts` still decides whom the law protects. Its words are for the moment
+  of the hit, so the list writes THE LAW PROTECTS THIS SHIP instead. The
+  hermit is not the law's, and the list says what killing him costs.
+- **The suite has 5,746 assertions,** from 5,733.

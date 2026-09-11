@@ -112,6 +112,13 @@ export interface NpcState {
    * names.
    */
   missionTag: string | null;
+  /**
+   * The pilot picked this ship on the target list (docs/TODO/206 M1). One
+   * ship at most carries it. The computer then aims at this ship rather than
+   * at the threat it would choose. It is saved, because it decides what the
+   * computer flies at.
+   */
+  targeted: boolean;
   /** seconds under the scanner lock so far: a scan leg's clock */
   observed: number;
   /** the escort or the scan verdict was sent once; it is never sent again */
@@ -261,7 +268,7 @@ export function freshNpcState(maxEnergy: number): NpcState {
     tumbleAxis: randomDirection(new THREE.Vector3()),
     energy: maxEnergy, regenCarry: 0,
     alive: true, provoked: false, provokedByPlayer: false, missiles: 0,
-    missionTag: null, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
+    missionTag: null, targeted: false, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
     extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
     tactic: 'run', tacticClock: 0, dryFor: 0,
     tradeTimer: 0,

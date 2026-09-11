@@ -410,6 +410,8 @@ const OUTSIDE: readonly Group[] = [
       'game/flight-instruments.ts': ['COURSE_ENDS'],
       'game/courses.ts': ['COURSE_NAMES', 'JUMP_WHY'],
       'game/course-actions.ts': ['KINDS'],
+      // what each role is called on the target list (docs/TODO/206 M1)
+      'game/targets.ts': ['STANDING'],
     },
   },
 

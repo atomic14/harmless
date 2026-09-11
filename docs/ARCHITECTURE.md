@@ -171,6 +171,10 @@ Two quirks are deliberate:
   both callers agree. `combat.ts` takes each ingredient separately, so a test can
   drive it. `combat-player.ts` is the assembly step that builds the player's own
   trigger out of one `GameState`.
+- `src/game/targets.ts` lists what the ship can fight, and holds the pilot's
+  pick (docs/TODO/206). The pick is one flag on the picked ship's own state,
+  so a save carries it. It sits on top of `threat-lock.ts`, and never changes
+  that rule.
 - `src/game/threat.ts` computes the pirate count, the group tier and the
   organisation from the visible value and the reputation. `ship-specs.ts` maps a
   tier to a hull. The campaign simulator calls the same rules.
