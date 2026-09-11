@@ -420,31 +420,6 @@ body.screen-open #message {
 }
 
 /*
- * The key prompts, directly under the message line and quieter than it.
- *
- * Dim rather than amber, and smaller: a prompt is an answer offered, not an
- * event announced, and it must never read as the more urgent of the two lines
- * when both are up. Same centring and the same z-index band as #message, so a
- * prompt raised while a screen is open is not painted underneath it.
- */
-#prompts {
-  position: absolute;
-  left: 50%; bottom: 23vh;
-  transform: translateX(-50%);
-  z-index: 20;
-  font-size: 13px;
-  letter-spacing: 2px;
-  color: var(--hud-dim);
-  pointer-events: none;
-  white-space: nowrap;
-  text-align: center;
-}
-#prompts .prompt-key {
-  color: var(--hud-amber);
-  text-shadow: 0 0 8px rgba(var(--hud-amber-rgb), 0.7);
-}
-
-/*
  * The course buttons (docs/TODO/205 M5): top right of the view, under the
  * topbar, clear of the gunsight and of the console. They take a click and a
  * tap, so each is a real target of at least 40 pixels. Under a screen the
@@ -977,7 +952,6 @@ body.screen-open #exercise { display: none; }
    * which were placed by eye against a console of a fixed height.
    */
   #message { font-size: 13px; letter-spacing: 2px; bottom: calc(var(--console-h, 0px) + 6dvh); }
-  #prompts { bottom: calc(var(--console-h, 0px) + 2dvh); }
   /*
    * The button row of a long table sticks to the bottom of the panel. The
    * market has 17 rows, and on a phone BUY and SELL sat below the fold. The

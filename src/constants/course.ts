@@ -143,3 +143,27 @@ export const COURSE_HERMIT_SPEED = HERMIT_DOCK_SPEED / 2;
  * @rule course.skipSpeed
  */
 export const SKIP_SPEED = 8;
+
+/**
+ * Below this lead in top speed, in world units a second, the run row says the
+ * ship is only a little faster (docs/TODO/206 M5).
+ *
+ * The player's Cobra tops out at 400. The fastest pirate and the fastest
+ * bounty hunter reach 381. A run from one gains 19 u/s. The lasers of both
+ * reach 3,500 units. A lead under 50 u/s takes more than a minute to
+ * open that range, under fire. A police Viper, at 320, falls behind at 80.
+ *
+ * @rule course.runCloseMargin
+ * @domain course
+ */
+export const RUN_CLOSE_MARGIN = 50;
+
+/**
+ * How far ahead the run course aims, in world units, on the line away from
+ * the hostile ships (docs/TODO/206 M5). The point only gives the line a
+ * direction, so it sits far beyond scanner range.
+ *
+ * @rule course.runReach
+ * @domain course
+ */
+export const COURSE_RUN_REACH = 50_000;

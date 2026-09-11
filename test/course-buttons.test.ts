@@ -9,7 +9,7 @@ import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { COURSE_KEYS, COURSE_TOGGLE_KEY } from '../src/game/bindings.ts';
-import { courseButtonsFor } from '../src/game/cockpit-view.ts';
+import { courseButtonsFor } from '../src/game/cockpit-buttons.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe course buttons in flight');

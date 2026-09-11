@@ -251,3 +251,24 @@ Evidence:
 - **The buttons sit bottom right, and the laser is the lowest.** A right
   thumb finds it without a look. The course buttons stay top right.
 - **The suite has 5,774 assertions,** from 5,756.
+
+### M5
+
+- **RUN FOR IT is a course, and it says the margin.** It leads the list while
+  a hostile ship is on the scanner. The ship turns away from the hostile
+  ships, opens the throttle, and runs the torus once the mass lock lets go.
+  The aim waits while the ship runs, and the run ends when the scanner is
+  clear. A run from a police Viper opened the range and got away, in a
+  headless test.
+- **Every offer is a button now.** They sit under the course buttons, each
+  with its key named beneath the words. They are the bribe, the cargo dump,
+  the evidence dump, the distress beacon and the docking computer. The
+  E.C.M.'s offer lights the E.C.M. button instead of showing twice.
+- **The line of prompt text is gone with them.** Nothing painted it but the
+  HUD, and the tests read the offers as data through `keyPrompts`.
+- **The cockpit view crossed the size ceiling, so the buttons moved out.**
+  `cockpit-buttons.ts` holds what each button says, and no world. The
+  cockpit's own header names the split.
+- **Four older constants at 50 and at 8 took their own rule IDs**, as the
+  constants gate asks of a repeated value.
+- **The suite has 5,791 assertions,** from 5,774.

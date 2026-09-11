@@ -21,7 +21,7 @@ import type { checkJump } from './hyperspace.ts';
 import type { GameState } from './state.ts';
 import type { Input } from '../engine/input.ts';
 import { COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY } from './bindings.ts';
-import { hostilesNear } from './hostility.ts';
+import { hostilesNear, hostilesOnScanner } from './hostility.ts';
 import { SKIP_SPEED } from '../constants/course.ts';
 
 /**
@@ -179,6 +179,9 @@ export class CourseActions {
     }
     this.state().session.course = kind;
     this.state().session.handFlown = false;
+    // A run is the one course that flies in a fight, so it takes the stick
+    // from the aim (docs/TODO/206 M5).
+    if (kind === 'run') this.state().session.ccEngaged = false;
     if (kind === 'jump') this.host.startHyperspace();
     return true;
   }
@@ -198,6 +201,19 @@ export class CourseActions {
         : s.world.npcs.filter((n) => n.state.alive).map((n) => n.role),
       mission: null,
       done: new Set(s.session.coursesDone),
+      threat: situation === 'launch' ? null : this.threat(),
+    };
+  }
+
+  /** The fastest hostile ship on the scanner, against the ship's own speed. */
+  private threat(): CourseWorld['threat'] {
+    const s = this.state();
+    const hostile = hostilesOnScanner(s.world.npcs, s.player.position,
+      s.commander.legalStatus, s.player.position.distanceTo(s.world.station.position));
+    if (hostile.length === 0) return null;
+    return {
+      fastest: Math.max(...hostile.map((n) => n.maxSpeed)),
+      own: s.player.maxSpeed,
     };
   }
 }

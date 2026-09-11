@@ -108,7 +108,9 @@ export const LINED_UP_LATERAL = 45;
  * scale. The Coriolis reaches 160 against a 160 slot plane. The Dodo's five
  * tallest vertices reach 243 against a 196 one. 50 clears both, and it does not
  * let a ship slip past a vertex and be reported clear.
- */
+  *
+ * @rule docking.hullBoxMargin
+*/
 export const HULL_BOX_MARGIN = 50;
 
 /** The same cube for every NPC. It is the SAME RULE as the player's, so NPC

@@ -32,7 +32,9 @@ export const TRADER_GAP_JITTER = 60;
  * continuous trader stream, held back only by `MAX_TRADERS`. Live, a median
  * system runs its lane at about 90s plus jitter. The richest runs at about 53s
  * plus jitter.
- */
+  *
+ * @rule encounters.traderGapBusyMax
+*/
 export const TRADER_GAP_BUSY_MAX = 50;
 
 /**

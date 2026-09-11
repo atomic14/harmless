@@ -20,6 +20,7 @@
 // It came out of `game/npc.ts`, where it sat inside a class file of 1,676
 // lines (docs/TODO/169 M2).
 
+import { SCANNER_RANGE } from '../constants/console.ts';
 import type * as THREE from 'three';
 
 import type { NpcRole } from './ship-roles.ts';
@@ -121,6 +122,20 @@ export function hostilesNear(
   playerToStation: number,
 ): boolean {
   return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation));
+}
+
+/**
+ * Every ship that attacks the commander within scanner range (docs/TODO/206).
+ * The run course flies away from them, and its row weighs their speed. It is
+ * the same rule as `hostilesNear`, over the scanner's reach rather than the
+ * condition light's.
+ */
+export function hostilesOnScanner<T extends HostileShip>(
+  npcs: readonly T[], playerPos: THREE.Vector3, legalStatus: number,
+  playerToStation: number,
+): T[] {
+  return npcs.filter((npc) => isHostileToPlayer(npc, legalStatus, playerToStation)
+    && npc.object.position.distanceTo(playerPos) <= SCANNER_RANGE);
 }
 
 /**

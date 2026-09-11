@@ -40,6 +40,7 @@ const view = (station: THREE.Vector3, over: Partial<CourseView> = {}): CourseVie
   derelictSpeed: 0,
   hermitPos: null,
   tankFull: false,
+  threats: [],
   dcEngaged: false,
   ...over,
 });

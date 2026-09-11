@@ -175,6 +175,8 @@ export class Autopilot {
   autoEngage(): AutopilotEvent[] {
     const s = this.state;
     if (s.session.ccEngaged || s.session.handFlown || !this.fightOn()) return [];
+    // A ship that runs does not turn to fight (docs/TODO/206 M5).
+    if (s.session.course === 'run') return [];
     // The LIVE BRAINS row can set the co-pilot to NONE outright.
     if (defenceBrainNameFor(s.brains) === 'scripted') return [];
     s.session.ccEngaged = true;

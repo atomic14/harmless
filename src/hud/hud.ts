@@ -69,19 +69,9 @@ export interface HudState {
   messageText: string;
   messageTimer: number;
   /**
-   * What a key can do about what is happening right now, ALREADY RENDERED —
-   * each entry is the bound key and what it does ("L PAY 141.0 Cr").
-   *
-   * Finished strings for the same reason `messageText` is one: the painter
-   * reads state and paints it. WHICH commands are worth offering is
-   * `game/prompts.ts`. Which letter each is bound to is `controls.ts` through
-   * `boundKey`. Neither is a question a painter may answer.
-   */
-  prompts: readonly string[];
-  /**
    * The course buttons over the view (docs/TODO/205 M5): the list when the
-   * ship has no course, or the one course it flies. Finished, as the prompts
-   * are. Which courses exist is `game/courses.ts`.
+   * ship has no course, or the one course it flies. Finished strings, as the
+   * message is. Which courses exist is `game/courses.ts`.
    */
   courses: readonly HudButton[];
   /**
@@ -243,9 +233,6 @@ export class Hud {
   private readonly creditsEl = byId('credits-display');
   private readonly dayEl = byId('day-display');
   private readonly messageEl = byId('message');
-  private readonly promptsEl = byId('prompts');
-  /** what the prompt line currently says, so a steady list is not repainted */
-  private promptsShown = '';
   private readonly courseStrip = new ButtonStrip(byId('courses'));
   private readonly actionStrip = new ButtonStrip(byId('actions'));
   private readonly flashEl = byId('damage-flash');
@@ -279,7 +266,6 @@ export class Hud {
 
   render(_dt: number, frame: HudFrame): void {
     this.messageEl.textContent = frame.messageTimer > 0 ? frame.messageText : '';
-    this.paintPrompts(frame.prompts);
     this.courseStrip.paint(frame.courses);
     this.actionStrip.paint(frame.actions);
     this.speedEl.style.width = `${frame.speedFrac * 100}%`;
@@ -320,31 +306,6 @@ export class Hud {
     this.drawMissionMarker(frame.missionMarker);
     this.drawScanner(frame.playerPos, frame.playerQuat, frame.contacts);
     this.drawCompass(frame.playerPos, frame.playerQuat, frame.compassTarget);
-  }
-
-  /**
-   * The prompt line: the keys worth pressing about what is happening.
-   *
-   * It is rebuilt only when the list CHANGES. This runs every frame, and the
-   * prompts are steady for seconds at a time. A patrol takes four and a half of
-   * them to cross its warning band.
-   *
-   * The key is separated from the words so the stylesheet can light it. That is
-   * the only reason this is markup rather than `textContent`. The strings
-   * themselves are built upstream, and never here.
-   */
-  private paintPrompts(prompts: readonly string[]): void {
-    const line = prompts.join(' ');   // em space: a gap, not a bullet
-    if (line === this.promptsShown) return;
-    this.promptsShown = line;
-    this.promptsEl.innerHTML = prompts
-      .map((p) => {
-        const gap = p.indexOf(' ');
-        const key = gap < 0 ? p : p.slice(0, gap);
-        const what = gap < 0 ? '' : p.slice(gap);
-        return `<span class="prompt-key">${key}</span>${what}`;
-      })
-      .join(' ');
   }
 
   /**

@@ -10,7 +10,7 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { actionButtonsFor } from '../src/game/cockpit-view.ts';
+import { actionButtonsFor } from '../src/game/cockpit-buttons.ts';
 import { attachHoldButtons } from '../src/engine/hold-buttons.ts';
 import { TARGET_NONE_KEY, TARGETS_KEY } from '../src/game/bindings.ts';
 import { pickedTarget } from '../src/game/targets.ts';
@@ -20,7 +20,7 @@ console.log('\nthe pilot\'s buttons');
 
 const base = {
   fireKey: 'KeyA', missiles: 3, armed: false, locked: false,
-  armKey: 'KeyT', launchKey: 'KeyM', ecmKey: null, targets: null,
+  armKey: 'KeyT', launchKey: 'KeyM', ecmKey: null, targets: null, missileInbound: false,
 };
 {
   const b = actionButtonsFor(base);

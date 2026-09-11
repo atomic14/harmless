@@ -475,6 +475,15 @@ export class Game {
   }
 
   /**
+   * Both button columns as the HUD paints them (docs/TODO/206 M5).
+   *
+   * @internal — a delegate for test/run-and-offers.test.ts.
+   */
+  hudButtons(): ReturnType<CockpitView['buttons']> {
+    return this.cockpit_.buttons();
+  }
+
+  /**
    * What the target buttons show now (docs/TODO/206 M3).
    *
    * @internal — a delegate for test/fight-buttons.test.ts.

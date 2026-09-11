@@ -29,6 +29,7 @@ const world = (over: Partial<CourseWorld> = {}): CourseWorld => ({
   sky: ['asteroid', 'hermit', 'generation', 'trader'],
   mission: null,
   done: new Set(),
+  threat: null,
   ...over,
 });
 
@@ -116,3 +117,15 @@ check('...and witch-space has no star in reach', !kinds(world({ witchspace: true
 // --- witch-space -------------------------------------------------------------
 same('in witch-space, with nothing in the sky, the jump is the only course',
   kinds(world({ witchspace: true, sky: ['thargoid'] })), ['jump']);
+
+// --- a way out of a fight (docs/TODO/206 M5) --------------------------------
+eq('with a hostile ship on the scanner, RUN leads the list',
+  kinds(world({ threat: { fastest: 381, own: 400 } }))[0], 'run');
+eq('...and says how thin the margin is', row(world({ threat: { fastest: 381, own: 400 } }), 'run')?.what,
+  'RUN FOR IT — YOU ARE ONLY A LITTLE FASTER');
+eq('...or that the ship is faster, where it is', row(world({ threat: { fastest: 320, own: 400 } }), 'run')?.what,
+  'RUN FOR IT — YOU ARE FASTER');
+eq('...or that it is not', row(world({ threat: { fastest: 400, own: 400 } }), 'run')?.what,
+  'RUN FOR IT — THEY ARE AS FAST AS YOU');
+check('with no hostile ship on the scanner, there is nothing to run from', !kinds(world()).includes('run'));
+

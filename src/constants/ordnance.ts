@@ -26,7 +26,9 @@ export const MISSILE_LIFE = 25;
 export const HOSTILE_MISSILE_LIFE = 30;
 /** Turn rate while it homes, radians per second. */
 export const MISSILE_TURN = 2.5;
-/** Close enough to detonate. */
+/** Close enough to detonate.  *
+ * @rule ordnance.missileHitRange
+*/
 export const MISSILE_HIT_RANGE = 50;
 
 /** Lock cone: how near the crosshair a ship must be to be locked. */

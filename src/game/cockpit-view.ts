@@ -15,8 +15,13 @@
 //
 //   1. the gunsight lamp;
 //   2. where the laser beams meet;
-//   3. the prompt line;
-//   4. the dashboard frame.
+//   3. the offers the situation raises (`prompts.ts`);
+//   4. the dashboard frame, and the buttons over the view.
+//
+// WHAT A BUTTON SAYS IS `cockpit-buttons.ts`'s, since docs/TODO/206 M5. This
+// file reads the world and hands that file what it read. The split came when
+// this one crossed the size ceiling. The buttons are a subject of their own:
+// three columns of words, and no world.
 //
 // Each one reads the world and returns a picture. Not one of them decides
 // anything.
@@ -34,11 +39,7 @@ import { viewDirection } from './views.ts';
 import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
 import type { HudButton } from '../hud/hud-buttons.ts';
 import type { CoursePanel } from './course-actions.ts';
-import { COURSE_NAMES } from './courses.ts';
-import { SKIP_SPEED } from '../constants/course.ts';
-import {
-  COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY, TARGET_NONE_KEY, TARGETS_KEY,
-} from './bindings.ts';
+import { actionButtonsFor, courseButtonsFor, offerButtons } from './cockpit-buttons.ts';
 import type { TargetPanel } from './target-actions.ts';
 import { keymap } from '../engine/keymap.ts';
 import type { Command, ControlMode } from './controls.ts';
@@ -63,7 +64,7 @@ import { BEAM_Z } from '../engine/render-stack.ts';
  * The fourth is the sight lamp, which lives on the shell.
  *
  * `inFlight` REPLACES THREE READS OF `mode`, and they were the same question
- * asked three times. The sight, the prompt line and the dashboard each tested
+ * asked three times. The sight, the offers and the dashboard each tested
  * `mode === 'flight'`. One host method now, so the three cannot drift apart.
  *
  * `view` IS A METHOD RATHER THAN A CONSTRUCTOR ARGUMENT, and boot order is why.
@@ -86,89 +87,6 @@ export interface CockpitHost {
   coursePanel(): CoursePanel | null;
   /** what the target buttons show, or null where there are none (docs/TODO/206 M3) */
   targetPanel(): TargetPanel | null;
-}
-
-/**
- * The course panel as buttons (docs/TODO/205 M5). With no course, each course
- * is a button, and the galactic chart follows them. Over a course that flies,
- * one lit button names it and opens the list.
- */
-export function courseButtonsFor(p: CoursePanel, chart: string | null): HudButton[] {
-  if (p.rows === null) {
-    return p.current === null ? [] : [
-      { code: COURSE_TOGGLE_KEY, label: COURSE_NAMES[p.current], lit: true, hint: 'CHOOSE SOMEWHERE ELSE' },
-      skipButton(p),
-    ].filter((b): b is HudButton => b !== null);
-  }
-  const out: HudButton[] = p.rows.map((c) => ({
-    code: COURSE_KEYS[c.kind], label: c.what, ...(c.why === null ? {} : { note: c.why }),
-  }));
-  if (chart) out.push({ code: chart, label: 'GALACTIC CHART' });
-  if (p.current !== null) out.push({ code: COURSE_TOGGLE_KEY, label: 'CLOSE' });
-  return out;
-}
-
-/** What the pilot's buttons are built from (docs/TODO/206 M3). */
-export interface ActionSource {
-  /** the fire key of the live layout, which the laser button holds */
-  readonly fireKey: string | null;
-  readonly missiles: number;
-  readonly armed: boolean;
-  readonly locked: boolean;
-  readonly armKey: string | null;
-  readonly launchKey: string | null;
-  /** the E.C.M.'s key, or null when none is fitted */
-  readonly ecmKey: string | null;
-  readonly targets: TargetPanel | null;
-}
-
-/**
- * The pilot's hands as buttons, top to bottom (docs/TODO/206 M3). The target
- * list opens above the rest. The laser comes last, at the bottom, where a
- * thumb finds it without a look.
- */
-export function actionButtonsFor(a: ActionSource): HudButton[] {
-  const out: HudButton[] = [];
-  const t = a.targets;
-  if (t && t.open) {
-    for (const { code, row } of t.rows) {
-      out.push({
-        code, label: row.name, lit: row.picked,
-        hint: `${row.standing} · ${row.range <= LASER_RANGE ? 'IN LASER RANGE' : 'OUT OF LASER RANGE'}`,
-        ...(row.cost ? { note: row.cost } : {}),
-      });
-    }
-    if (t.picked) out.push({ code: TARGET_NONE_KEY, label: 'LET THE COMPUTER CHOOSE' });
-  }
-  if (t && (t.rows.length > 0 || t.open)) {
-    out.push({
-      code: TARGETS_KEY, label: t.open ? 'CLOSE THE TARGETS' : 'TARGETS',
-      hint: t.picked ? `AIMING AT THE ${t.picked.name}` : 'CHOOSE WHAT TO FIGHT',
-    });
-  }
-  if (a.ecmKey) out.push({ code: a.ecmKey, label: 'E.C.M.', hint: 'DESTROYS MISSILES NEARBY' });
-  if (a.missiles > 0 && a.armKey && a.launchKey) {
-    out.push(a.armed
-      ? {
-        code: a.launchKey, label: 'FIRE THE MISSILE', lit: a.locked,
-        hint: a.locked ? 'LOCKED ON' : 'IT LOCKS ON A SHIP IN YOUR SIGHTS',
-      }
-      : { code: a.armKey, label: 'ARM A MISSILE', hint: `${a.missiles} LEFT` });
-  }
-  if (a.fireKey) out.push({ code: a.fireKey, label: 'FIRE LASER', hint: 'HOLD TO FIRE', hold: true });
-  return out;
-}
-
-/** The fast forward button, while a course flies (docs/TODO/205 M7). */
-function skipButton(p: CoursePanel): HudButton | null {
-  if (!p.skip) return null;
-  if (p.skip.on) {
-    return { code: COURSE_SKIP_KEY, label: 'FAST FORWARD IS ON', lit: true, hint: 'BACK TO NORMAL SPEED' };
-  }
-  return {
-    code: COURSE_SKIP_KEY, label: 'FAST FORWARD',
-    ...(p.skip.block === null ? { hint: `TIME RUNS ${SKIP_SPEED} TIMES FASTER` } : { note: p.skip.block }),
-  };
 }
 
 export class CockpitView {
@@ -264,8 +182,9 @@ export class CockpitView {
   }
 
   /**
-   * The prompt line: what a key can do about the situation, with the key the
-   * table really binds in front of it.
+   * The offers as text: what a key can do about the situation, with the key
+   * the table really binds in front of it. The cockpit paints them as buttons
+   * (`promptButtons`), and the tests read them here.
    *
    * The join between a pure rule and invariant 9. `prompts.ts` decides WHICH
    * commands are worth an offer, and what each is worth right now. `boundKey`
@@ -280,6 +199,16 @@ export class CockpitView {
    * scrape of the painted line. `jettisonCargo` is driven directly the same
    * way.
    */
+  /**
+   * Both button columns as the HUD paints them this frame.
+   *
+   * @internal — public so that test/run-and-offers.test.ts reads the buttons
+   * without a scrape of the page.
+   */
+  buttons(): { courses: HudButton[]; actions: HudButton[] } {
+    return { courses: this.courseButtons(), actions: this.actionButtons() };
+  }
+
   /** The pilot's buttons, in flight only (docs/TODO/206 M3). */
   private actionButtons(): HudButton[] {
     const mode = this.host.controlMode();
@@ -293,6 +222,7 @@ export class CockpitView {
       armKey: key('armMissile'),
       launchKey: key('launchMissile'),
       ecmKey: this.state.commander.equipment.ecm ? key('fireEcm') : null,
+      missileInbound: this.ordnance.missileInbound,
       targets: this.host.targetPanel(),
     });
   }
@@ -302,10 +232,21 @@ export class CockpitView {
     const panel = this.host.inFlight() ? this.host.coursePanel() : null;
     if (!panel) return [];
     const mode = this.host.controlMode();
-    return courseButtonsFor(panel, mode ? keyCodeIfBound(mode, 'openChart') : null);
+    return [
+      ...courseButtonsFor(panel, mode ? keyCodeIfBound(mode, 'openChart') : null),
+      ...(mode ? offerButtons(this.offers(), mode) : []),
+    ];
   }
 
   keyPrompts(): string[] {
+    return this.offers().flatMap((p) => {
+      const line = this.renderPrompt(p);
+      return line ? [line] : [];
+    });
+  }
+
+  /** The commands worth an offer right now, in flight only. */
+  private offers(): Prompt[] {
     const mode = this.host.controlMode();
     if (!this.host.inFlight() || !mode) return [];
     return flightPrompts({
@@ -323,9 +264,6 @@ export class CockpitView {
       stationDistance: this.state.player.position
         .distanceTo(this.state.world.station.position),
       dcEngaged: this.state.session.dcEngaged,
-    }).flatMap((p) => {
-      const line = this.renderPrompt(p);
-      return line ? [line] : [];
     });
   }
 
@@ -377,7 +315,6 @@ export class CockpitView {
       ecmDetected: this.state.ecmDetectedTimer > 0,
       messageText: this.state.session.messageText,
       messageTimer: this.state.session.messageTimer,
-      prompts: this.keyPrompts(),
       courses: this.courseButtons(),
       actions: this.actionButtons(),
       // Null in career flight. It is gated on the same `active` that gives the

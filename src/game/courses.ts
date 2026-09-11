@@ -32,10 +32,11 @@ import type { NpcRole } from './ship-roles.ts';
 import type { Refusal } from './hyperspace.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 import { ASTEROIDS_MIN } from '../constants/population.ts';
+import { RUN_CLOSE_MARGIN } from '../constants/course.ts';
 
 /** What the ship can do by itself. */
 export type CourseKind =
-  'jump' | 'mission' | 'station' | 'derelict' | 'mine' | 'hermit' | 'skim';
+  'jump' | 'mission' | 'station' | 'derelict' | 'mine' | 'hermit' | 'skim' | 'run';
 
 /**
  * When the list is asked for. At a launch the ship is still on the pad, and
@@ -55,6 +56,7 @@ export const COURSE_NAMES: Readonly<Record<CourseKind, string>> = {
   mine: 'MINING THE ASTEROIDS',
   hermit: 'HEADING TO THE ROCK HERMIT',
   skim: 'SKIMMING THE STAR FOR FUEL',
+  run: 'RUNNING FOR IT',
 };
 
 /** One row of the list. */
@@ -86,6 +88,12 @@ export interface CourseWorld {
   readonly mission: string | null;
   /** the courses this visit already finished, so they leave the list */
   readonly done: ReadonlySet<CourseKind>;
+  /**
+   * The fight, when there is one (docs/TODO/206 M5): the top speed of the
+   * fastest hostile ship on the scanner, and the ship's own. Null with no
+   * hostile ship on the scanner.
+   */
+  readonly threat: { readonly fastest: number; readonly own: number } | null;
 }
 
 /**
@@ -101,6 +109,7 @@ export function courseList(w: CourseWorld): Course[] {
       .filter((c): c is Course => c !== null);
   }
   return [
+    runRow(w),
     w.mission !== null && !w.done.has('mission')
       ? { kind: 'mission', what: w.mission, why: null } as const : null,
     w.witchspace ? null : { kind: 'station', what: 'FLY TO THE STATION', why: null } as const,
@@ -112,6 +121,21 @@ export function courseList(w: CourseWorld): Course[] {
     skimRow(w),
     jumpRow(w, false),
   ].filter((c): c is Course => c !== null);
+}
+
+/**
+ * A way out of a fight: run (docs/TODO/206 M5). It leads the list while a
+ * hostile ship is on the scanner. Its words say the margin, because a run
+ * from a fast ship is slow. The plan measured it on 2026-09-11. The player's
+ * Cobra beats the fastest pirate by 19 units a second.
+ */
+function runRow(w: CourseWorld): Course | null {
+  if (w.threat === null) return null;
+  const margin = w.threat.own - w.threat.fastest;
+  const words = margin <= 0 ? 'THEY ARE AS FAST AS YOU'
+    : margin < RUN_CLOSE_MARGIN ? 'YOU ARE ONLY A LITTLE FASTER'
+      : 'YOU ARE FASTER';
+  return { kind: 'run', what: `RUN FOR IT — ${words}`, why: null };
 }
 
 /** Is the thing in the sky, and is its course not done yet? */

@@ -41,7 +41,7 @@ import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
 import {
   COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
   COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF, COURSE_PLANET_CLEARANCE,
-  COURSE_SKIM_DISTANCE, COURSE_TORUS_CONE, COURSE_TORUS_DROP,
+  COURSE_RUN_REACH, COURSE_SKIM_DISTANCE, COURSE_TORUS_CONE, COURSE_TORUS_DROP,
 } from '../constants/course.ts';
 
 /** What the course pilot reads for one frame. A flat view, so a test needs no world. */
@@ -64,6 +64,8 @@ export interface CourseView {
   readonly hermitPos: THREE.Vector3 | null;
   /** the tank holds all it can */
   readonly tankFull: boolean;
+  /** where the hostile ships on the scanner are, for the run course */
+  readonly threats: readonly THREE.Vector3[];
   /** the docking computer already has the ship */
   readonly dcEngaged: boolean;
 }
@@ -100,6 +102,7 @@ export class CoursePilot {
   private readonly dir = new THREE.Vector3();
   private readonly fwd = new THREE.Vector3();
   private readonly aim = new THREE.Vector3();
+  private readonly away = new THREE.Vector3();
 
   /** Forget the bank, for a new course. */
   reset(): void { this.mem = freshSteerMemory(); }
@@ -123,8 +126,24 @@ export class CoursePilot {
         // scoops work, until the tank is full.
         return { ...s, done: false };
       }
+      case 'run': return v.threats.length === 0 ? ended() : this.run(v, dt);
       default: return IDLE;
     }
+  }
+
+  /**
+   * Run for it (docs/TODO/206 M5). It turns away from the hostile ships and
+   * opens the throttle. It runs the torus once the mass lock lets go. It aims at a
+   * point straight away from where the hostile ships sit on average. It ends
+   * when no hostile ship is left on the scanner.
+   */
+  private run(v: CourseView, dt: number): CourseStep {
+    this.away.set(0, 0, 0);
+    for (const t of v.threats) this.away.add(this.dir.subVectors(v.position, t).normalize());
+    if (this.away.lengthSq() < 1e-9) this.away.set(0, 0, -1).applyQuaternion(v.quaternion);
+    const target = this.dir.copy(v.position).addScaledVector(this.away.normalize(), COURSE_RUN_REACH);
+    const aim = clearOfPlanet(v.position, target, v.planetPos, v.planetRadius, this.aim);
+    return { ...this.pointAt(v, aim, 1, dt), handOver: false, done: false };
   }
 
   /**

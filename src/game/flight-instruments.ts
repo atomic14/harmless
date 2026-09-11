@@ -24,6 +24,7 @@ import { Autopilot, type AutopilotEvent } from './autopilot.ts';
 import { CoursePilot } from './course-pilot.ts';
 import type { CourseKind } from './courses.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
+import { hostilesOnScanner } from './hostility.ts';
 
 /**
  * What the console says when a course finishes its work. The hermit course
@@ -32,6 +33,7 @@ import { MAX_FUEL } from '../constants/commander.ts';
 const COURSE_ENDS: Partial<Record<CourseKind, string>> = {
   derelict: 'ARRIVED AT THE DERELICT SHIP',
   skim: 'FUEL TANK FULL',
+  run: 'YOU GOT AWAY',
 };
 import { massLocked } from './world-step.ts';
 import { boundKey } from '../ui/key-help.ts';
@@ -155,6 +157,8 @@ export class Instruments {
       derelictSpeed: derelict?.state.speed ?? 0,
       hermitPos: live('hermit')?.object.position ?? null,
       tankFull: this.state.commander.fuel >= MAX_FUEL,
+      threats: hostilesOnScanner(w.npcs, p.position, this.state.commander.legalStatus,
+        p.position.distanceTo(w.station.position)).map((n) => n.object.position),
       dcEngaged: s.dcEngaged,
     }, dt);
     if (step.handOver) this.applyAutopilot(this.autopilot.handOverToDock());

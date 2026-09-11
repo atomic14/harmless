@@ -177,6 +177,8 @@ Two quirks are deliberate:
   so a save carries it. It sits on top of `threat-lock.ts`, and never changes
   that rule. `target-actions.ts` joins the list to its buttons, and gives each
   ship a code that names it for as long as it lives.
+  `cockpit-buttons.ts` says what every button over the flight view reads, in
+  words, and it holds no world (docs/TODO/206 M5).
 - `src/game/threat.ts` computes the pirate count, the group tier and the
   organisation from the visible value and the reputation. `ship-specs.ts` maps a
   tier to a hull. The campaign simulator calls the same rules.
