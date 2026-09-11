@@ -401,6 +401,14 @@ const OUTSIDE: readonly Group[] = [
   },
 
   {
+    why: 'STAYS: words, not a number. What the console says when a course'
+      + ' finishes its work (docs/TODO/205 M3), beside the switch that says it',
+    files: {
+      'game/flight-instruments.ts': ['COURSE_ENDS'],
+    },
+  },
+
+  {
     why: 'STAYS: how the launch/docking tunnel effect LOOKS — the ellipse squash that'
       + ' reads as a bay mouth, and two fractions of the effect\'s own timeline. Pure'
       + ' drawing under the item\'s is-it-the-game-or-how-it-looks test: nothing outside'

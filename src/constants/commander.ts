@@ -9,8 +9,12 @@
  *  every career under it, and the save screens fall back to it. */
 export const DEFAULT_NAME = 'JAMESON';
 
-/** The grubstake, in tenths of a credit — the classic 100.0 Cr. The briefing
- *  interpolates this, so its prose cannot drift from the credits you get. */
+/**
+ * The grubstake, in tenths of a credit — the classic 100.0 Cr. The briefing
+ * interpolates this, so its prose cannot drift from the credits you get.
+ *
+ * @rule commander.startingCredits
+ */
 export const STARTING_CREDITS = 1000;
 
 /**

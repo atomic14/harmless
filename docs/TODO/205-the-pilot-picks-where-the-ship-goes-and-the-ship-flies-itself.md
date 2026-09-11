@@ -342,3 +342,36 @@ Evidence:
   **The step is cheap.** With no graphics, the world step ran about 2,000
   times faster than real time on the development Mac, over 5 trips and over
   10. So a skip at eight times speed costs little. That number led to M7.
+
+### M3, second commit: the derelict, the hermit and the star
+
+- **An arrival flies to a standoff and stops there.** The speed follows the
+  distance that is left. The torus drops 8,000 units short.
+- **Every line goes round the planet.** A launch, the star and a rock far out
+  have no promise that the planet is out of the way. A line that dips below
+  5,000 units of height aims beside the planet instead.
+- **The detour at first trapped a ship.** A hermit sat low over the planet, so
+  the line to it always counted as blocked. The ship circled the detour point.
+  The rule now ignores a line whose nearest point to the planet is the target.
+- **A HERMIT CAN APPEAR INSIDE THE PLANET, and one did.** The scatter round the
+  station never checks the planet. Over 128 systems, at arrival and at launch,
+  2 of about 2,300 ships appeared inside it: a hermit and a police ship. The
+  hermit course then flew the ship into the ground. The traffic placement in
+  `spawning.ts` now lifts such a ship out to `SPAWN_PLANET_ALTITUDE`, which is
+  1,000 units. The lift draws nothing from the seeded stream. After the fix,
+  the same count found none. The rule first went into `World.spawn`. Four
+  combat tests put a ship at the origin, where the planet sits, and the lift
+  moved them. So the rule lives where the traffic is placed.
+- **The derelict drifts at 25 u/s.** A course that asked for a stop beside it
+  trailed it at 19 u/s and never arrived. The arrival now matches the target's
+  own speed.
+- **The measurements, with the arrival's own traffic in the sky:**
+
+| course | sample | arrived | time, median | worst |
+| --- | --- | --- | --- | --- |
+| the hermit | 10 / 20 systems | 10 / 20 | 119 / 114 s | 161 s |
+| the derelict | 10 / 20 systems | 10 / 20 | 26 / 25 s | 32 s |
+| the star | 15 / 40 systems | 15 / 40 | 112 / 105 s | 131 s |
+
+  On the star course, the cabin peaked at 0.489 in every sample, against a
+  fatal 0.99. No ship came within 68,000 units of the star.

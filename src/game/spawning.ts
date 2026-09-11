@@ -20,7 +20,8 @@ import type { World } from './world.ts';
 import type { PopulationPlan } from './population.ts';
 import type { NpcShip } from './npc.ts';
 import { steerQuatToward } from './flight-maths.ts';
-import { pirateSpecForTier, specForDesign } from './ship-specs.ts';
+import { pirateSpecForTier, specForDesign, type NpcSpec } from './ship-specs.ts';
+import type { NpcRole } from './ship-roles.ts';
 import type { TaggedItem, TaggedShip } from '../missions/model.ts';
 import { memberTier } from './threat.ts';
 import { slotNormal } from '../world/slot.ts';
@@ -34,7 +35,7 @@ import {
   MISSION_TARGET_RANGE, MISSION_TARGET_RANGE_SPAN, PIRATE_SCATTER, POLICE_PATROL_RANGE,
   POLICE_SCATTER,
   STATION_DEFENCE_JITTER, STATION_DEFENCE_MIN, STATION_DEFENCE_SPAN,
-  STATION_DEFENCE_STACK, STATION_DEFENCE_STANDOFF, TRADER_SCATTER,
+  SPAWN_PLANET_ALTITUDE, STATION_DEFENCE_STACK, STATION_DEFENCE_STANDOFF, TRADER_SCATTER,
 } from '../constants/spawn-placement.ts';
 
 /** A random offset of up to `range`, biased outward. */
@@ -75,6 +76,26 @@ export interface SpawnResult {
  * @param playerPos where the commander is — the reception is scattered along
  * the corridor between them and the station, not dumped on top of them.
  */
+/**
+ * Where a ship of the traffic may appear. It is the asked position, unless
+ * that position is below `SPAWN_PLANET_ALTITUDE`. Then it is the same line
+ * from the planet's centre, at that height.
+ *
+ * The scatter round the station has no idea where the planet is.
+ * docs/TODO/205 M3 counted 2 ships of about 2,300 inside the planet, over 128
+ * systems: a hermit and a police ship. A course then flew the ship into the
+ * ground after the hermit. The lift draws nothing from the seeded stream, so
+ * no other outcome moves. It returns a new vector.
+ */
+export function aboveGround(world: World, position: THREE.Vector3): THREE.Vector3 {
+  const at = position.clone();
+  const lowest = world.planetRadius + SPAWN_PLANET_ALTITUDE;
+  const up = at.clone().sub(world.planetPos);
+  if (up.length() >= lowest) return at;
+  if (up.lengthSq() < 1e-6) up.set(0, 1, 0);
+  return at.copy(world.planetPos).addScaledVector(up.normalize(), lowest);
+}
+
 export function spawnPopulation(
   world: World,
   plan: PopulationPlan,
@@ -86,6 +107,9 @@ export function spawnPopulation(
 ): SpawnResult {
   const home = world.station.position;
   const arriving = situation === 'arrival';
+  // Every ship of the traffic appears above the ground (docs/TODO/205 M3).
+  const place = (role: NpcRole, pos: THREE.Vector3, seed: number, spec?: NpcSpec): NpcShip =>
+    world.spawn(role, aboveGround(world, pos), seed, spec);
 
   // The lane the commander flies in on. A point `spread` off it, `CORRIDOR_START`
   // to `CORRIDOR_START + CORRIDOR_SPAN` of the way from the witchpoint to the
@@ -105,10 +129,10 @@ export function spawnPopulation(
     // a pirate has somebody to prey on. The `arriving` phase steers them to the
     // station on its own (`stepTrader`, game/trader-flight.ts).
     if (arriving && i % 2 === 0) {
-      const trader = world.spawn('trader', corridorPos(TRADER_SCATTER), i + sys.index);
+      const trader = place('trader', corridorPos(TRADER_SCATTER), i + sys.index);
       trader.state.traderPhase = 'arriving';
     } else {
-      world.spawn('trader', home.clone().add(scatter(TRADER_SCATTER)), i + sys.index);
+      place('trader', home.clone().add(scatter(TRADER_SCATTER)), i + sys.index);
     }
   }
   for (let i = 0; i < plan.police; i++) {
@@ -116,7 +140,7 @@ export function spawnPopulation(
     // Scattered across the system for a launch, and never on the slot itself.
     const pos = arriving ? corridorPos(POLICE_SCATTER)
       : home.clone().add(scatter(POLICE_PATROL_RANGE));
-    world.spawn('police', pos, i);
+    place('police', pos, i);
   }
   for (let i = 0; i < plan.asteroids; i++) {
     // On an arrival the rocks line the lane the commander flies down, so the run
@@ -126,7 +150,7 @@ export function spawnPopulation(
     // rocks on every visit.
     const pos = arriving ? corridorPos(ASTEROID_LANE_SCATTER)
       : home.clone().add(scatter(ASTEROID_SCATTER));
-    world.spawn('asteroid', pos, sys.seed[0] + i * 37);
+    place('asteroid', pos, sys.seed[0] + i * 37);
   }
 
   if (plan.threat && plan.pirates > 0) {
@@ -137,17 +161,17 @@ export function spawnPopulation(
       const tier = memberTier(plan.threat.tier, i);
       // The tier table is the set's, not the catalogue's. This is the pirate
       // band, and a system's blueprint set narrows that band (TODO 138).
-      const npc = world.spawn('pirate', pos, seed, pirateSpecForTier(tier, seed, world.roster));
+      const npc = place('pirate', pos, seed, pirateSpecForTier(tier, seed, world.roster));
       npc.state.organised = plan.threat.organised;
       npc.state.threatTier = tier;
     }
   }
 
   if (plan.hunter) {
-    world.spawn('hunter', home.clone().add(scatter(HUNTER_SCATTER)), sys.index);
+    place('hunter', home.clone().add(scatter(HUNTER_SCATTER)), sys.index);
   }
   if (plan.hermit) {
-    world.spawn('hermit',
+    place('hermit',
       home.clone().add(scatter(HERMIT_SCATTER).addScaledVector(scatter(1), 2)), sys.index);
   }
 
@@ -156,7 +180,7 @@ export function spawnPopulation(
     const pos = playerPos.clone()
       .add(randomDirection(new THREE.Vector3())
         .multiplyScalar(GENERATION_SHIP_RANGE + random() * GENERATION_SHIP_RANGE_SPAN));
-    generationShip = world.spawn('generation', pos, 0);
+    generationShip = place('generation', pos, 0);
     // steerQuatToward, not lookAt. Object3D.lookAt aims +Z at its target, and a
     // hull's nose is -Z (invariant 7). So `lookAt(home)` would point the
     // derelict exactly away from the station.
@@ -185,7 +209,7 @@ export function spawnPopulation(
     const pos = playerPos.clone()
       .add(randomDirection(new THREE.Vector3())
         .multiplyScalar(MISSION_TARGET_RANGE + random() * MISSION_TARGET_RANGE_SPAN));
-    const ship = world.spawn(role, pos, 0, spec);
+    const ship = place(role, pos, 0, spec);
     ship.state.missionTag = tagged.tag;
     if (tagged.job === 'escort') ship.state.traderPhase = 'arriving';
     // A scan's subject waits until it is scanned (docs/TODO/203 M2). A

@@ -322,3 +322,22 @@ export const TRADER_ARRIVED = 900;
  * @domain spawn-placement
  */
 export const TRADER_JUMP_OUT = 2500;
+
+/**
+ * The lowest a ship may appear above the planet's surface, measured to the
+ * ship's centre, in world units.
+ *
+ * The scatter round the station has no idea where the planet is. So a hermit
+ * or a police ship could appear inside it: docs/TODO/205 M3 counted two of
+ * about 2,300 ships over 128 systems. A ship inside the planet then crashed
+ * into it the moment it moved. `aboveGround` in `game/spawning.ts` lifts such
+ * a ship straight out from the planet's centre to this height. The lift draws
+ * nothing from the seeded stream, so no other outcome moves.
+ *
+ * It is far above `PLANET_CRASH_ALTITUDE`, and above the largest hull that
+ * appears near the station.
+ *
+ * @rule spawn.planetAltitude
+ * @domain spawn-placement
+ */
+export const SPAWN_PLANET_ALTITUDE = 1000;

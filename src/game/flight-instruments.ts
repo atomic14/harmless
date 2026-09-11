@@ -22,6 +22,17 @@
 import { sfx } from '../audio.ts';
 import { Autopilot, type AutopilotEvent } from './autopilot.ts';
 import { CoursePilot } from './course-pilot.ts';
+import type { CourseKind } from './courses.ts';
+import { MAX_FUEL } from '../constants/commander.ts';
+
+/**
+ * What the console says when a course finishes its work. The hermit course
+ * says nothing, because the hermit's own trade screen opens on arrival.
+ */
+const COURSE_ENDS: Partial<Record<CourseKind, string>> = {
+  derelict: 'HOLDING BESIDE THE DERELICT',
+  skim: 'TANK FULL — SKIM COMPLETE',
+};
 import { massLocked } from './world-step.ts';
 import { boundKey } from '../ui/key-help.ts';
 import { defenceBrain } from './brains.ts';
@@ -125,18 +136,43 @@ export class Instruments {
       return null;
     }
     const p = this.state.player;
+    const w = this.state.world;
+    const live = (role: string) => w.npcs.find((n) => n.state.alive && n.role === role) ?? null;
+    const derelict = live('generation');
     const step = this.coursePilot.step({
       course: s.course,
       position: p.position,
       quaternion: p.quaternion,
       pitchRate: p.pitchRate,
       rollRate: p.rollRate,
-      stationPos: this.state.world.station.position,
+      speed: p.speed,
+      stationPos: w.station.position,
+      planetPos: w.planetPos,
+      planetRadius: w.planetRadius,
+      sunPos: w.sunPos,
+      derelictPos: derelict?.object.position ?? null,
+      derelictSpeed: derelict?.state.speed ?? 0,
+      hermitPos: live('hermit')?.object.position ?? null,
+      tankFull: this.state.commander.fuel >= MAX_FUEL,
       dcEngaged: s.dcEngaged,
     }, dt);
     if (step.handOver) this.applyAutopilot(this.autopilot.handOverToDock());
     if (step.torus !== s.torusEngaged && (!step.torus || !this.massLocked())) this.toggleTorus();
+    if (step.done) this.endCourse(s.course);
     return step.demand;
+  }
+
+  /**
+   * A course finished its work. It leaves the ship, and it leaves the list
+   * for the rest of the visit. The console says what the ship did.
+   */
+  private endCourse(kind: CourseKind): void {
+    const s = this.state.session;
+    s.course = null;
+    if (!s.coursesDone.includes(kind)) s.coursesDone.push(kind);
+    this.coursePilot.reset();
+    const said = COURSE_ENDS[kind];
+    if (said) this.host.showMessage(said, 3);
   }
 
   /** A hit worth a break: the co-pilot keeps its own record

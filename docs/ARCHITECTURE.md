@@ -38,6 +38,10 @@ rules. This file is a map.
   station or a skim of the star. It follows the shape of `prompts.ts`: a flat
   view in, a ranked list out, and no key. The list is derived state. The code
   saves the course that the pilot picks, and never the list.
+  `course-pilot.ts` flies the picked course, one frame at a time, and it
+  reports a `FlightDemand`. `flight-instruments.ts` throws the switches that a
+  course asks for: the torus drive, the hand-over to the docking computer, and
+  the end of the course.
 - The console is one line, so `SessionState.queued` is the line that waits for it
   (`session.ts`). Some consequences make sense only after their cause: what a
   scan cost your legal record, or what a deed cost your reputation. The console
