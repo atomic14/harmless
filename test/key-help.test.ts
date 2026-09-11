@@ -33,9 +33,9 @@ import {
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import {
-  ALL_BINDINGS, STATION_MENU_NOTE, TOUCH_COMMANDS, boundKey, dockedMenuHtml, guideSections, guideTableHtml,
+  ALL_BINDINGS, STATION_MENU_NOTE, TOUCH_COMMANDS, TOUCH_MENU, boundKey, dockedMenuHtml, guideSections, guideTableHtml,
   isVirtualKey, keyCodeIfBound, keyLabel, manualCommandsHtml, menuRowsHtml, paintCommandGuide,
-  touchCommandsHtml,
+  touchCommandsHtml, touchMenuHtml,
 } from '../src/ui/key-help.ts';
 import {
   BRIEFING,
@@ -231,6 +231,23 @@ console.log('\nthe touch command row presses the flight keys it names (docs/TODO
     keyCodeIfBound('docked', 'openMarket') === null);
   const shifted = keyCodeIfBound('flight', 'openLog');
   check('a shifted key carries its modifier', shifted !== null && shifted.shift && shifted.code === 'KeyR');
+}
+
+console.log('\nthe flight menu\'s rows press the flight keys they name (docs/TODO/204 M4)');
+{
+  const menu = touchMenuHtml();
+  const missing = TOUCH_MENU.filter(({ command }) => {
+    const key = keyCodeIfBound('flight', command);
+    return !key || !menu.includes(`data-command="${command}" data-key="${key.code}"`);
+  });
+  check('every row carries the flight key of its command', missing.length === 0,
+    missing.map((m) => m.command).join(', '));
+  check('a shifted key travels with its row', /data-command="openLog" data-key="KeyR" data-shift="1"/.test(menu));
+  const pod = keyCodeIfBound('flight', 'launchEscapePod');
+  check('the escape pod row asks first, and only YES carries the key',
+    pod !== null && menu.includes('data-ask="pod">ESCAPE POD') && menu.includes(`data-command="launchEscapePod" data-key="${pod.code}"`)
+    && !/data-ask="pod"[^>]*data-key/.test(menu));
+  check('...and the menu closes on CLOSE', menu.includes('data-ask="">CLOSE'));
 }
 
 console.log('\nthe manual page is generated per mode');

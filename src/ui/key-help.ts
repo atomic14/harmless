@@ -125,9 +125,50 @@ export function touchCommandsHtml(): string {
   }).join('');
 }
 
-/** Paint the touch command row at boot, as the guide is painted. Inert with no host. */
+/**
+ * The flight menu a MENU button opens on a phone (docs/TODO/204 M4): the
+ * screens, the views, pause and the escape pod, as rows. Each row carries
+ * the flight key it presses, so a tap takes the path a menu row takes. The
+ * escape pod asks first: its row opens a confirmation, and only YES carries
+ * the key, because the pod costs the ship and the cargo.
+ */
+export const TOUCH_MENU: readonly { command: Command; label: string }[] = [
+  { command: 'openLocalChart', label: 'LOCAL CHART' },
+  { command: 'openChart', label: 'GALACTIC CHART' },
+  { command: 'openStatus', label: 'COMMANDER STATUS' },
+  { command: 'openMissions', label: 'MISSIONS' },
+  { command: 'openLog', label: "COMMANDER'S LOG" },
+  { command: 'openContracts', label: 'CONTRACTS' },
+  { command: 'view0', label: 'FRONT VIEW' },
+  { command: 'view1', label: 'REAR VIEW' },
+  { command: 'view2', label: 'LEFT VIEW' },
+  { command: 'view3', label: 'RIGHT VIEW' },
+  { command: 'togglePause', label: 'PAUSE' },
+];
+
+export function touchMenuHtml(): string {
+  const rows = TOUCH_MENU.map(({ command, label }) => {
+    const key = keyCodeIfBound('flight', command);
+    return key
+      ? `<div class="touch-row" data-command="${command}" data-key="${key.code}"${key.shift ? ' data-shift="1"' : ''}>${label}</div>`
+      : '';
+  }).join('');
+  const pod = keyCodeIfBound('flight', 'launchEscapePod');
+  const podRows = pod ? `
+    <div class="touch-row" data-ask="pod">ESCAPE POD</div>
+    <div class="touch-ask" data-asks="pod">
+      <p>LAUNCH THE ESCAPE POD? YOU LOSE THE SHIP AND EVERYTHING IN THE HOLD.</p>
+      <div class="touch-row" data-command="launchEscapePod" data-key="${pod.code}">YES, LAUNCH THE POD</div>
+      <div class="touch-row" data-ask="">NO, STAY WITH THE SHIP</div>
+    </div>` : '';
+  return `${rows}${podRows}<div class="touch-row" data-ask="">CLOSE</div>`;
+}
+
+/** Paint the touch command row and the flight menu at boot, as the guide is painted. Inert with no host. */
 export function paintTouchCommands(): void {
-  elementById('touch-commands').innerHTML = touchCommandsHtml();
+  elementById('touch-commands').innerHTML = touchCommandsHtml()
+    + '<div class="touch-command" data-menu="1">MENU</div>';
+  elementById('touch-menu').innerHTML = touchMenuHtml();
 }
 
 /** What to print for a `KeyboardEvent.code`, with the modifier the table wants. */

@@ -705,7 +705,10 @@ export class Game {
     // same in both layouts, so the binding table paints them once.
     refreshHelpPanel();
     paintCommandGuide();
-    paintTouchCommands();   // the thumb's five buttons, from the same table (docs/TODO/204 M3)
+    // The thumb's buttons and the flight menu, from the same table
+    // (docs/TODO/204).
+    paintTouchCommands();
+
     // ...and the key this line names comes from that same table rather than
     // from the sentence (docs/TODO/128 M3). The guide is a global binding. The
     // layout toggle is a row on the station menu, so the line points there

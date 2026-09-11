@@ -1072,3 +1072,30 @@ body.screen-open #touch { display: none; }
   #prompts { bottom: calc(var(--console-h, 0px) + 54px); }
   #message { bottom: calc(var(--console-h, 0px) + 110px); }
 }
+
+/*
+ * The flight menu (docs/TODO/204 M4): a list over the view that MENU opens.
+ * Its rows carry flight keys, painted at boot from the binding table. The
+ * escape pod's confirmation is a block inside it that opens on its row.
+ */
+#touch-menu {
+  position: absolute;
+  left: 8px; right: 8px; top: 8%; bottom: 56px;
+  overflow-y: auto;
+  background: rgba(0, 10, 2, 0.92);
+  border: 1px solid var(--hud-dim);
+  padding: 6px;
+}
+#touch-menu.hidden { display: none; }
+.touch-row {
+  padding: 12px 10px;
+  margin: 4px 0;
+  border-left: 2px solid transparent;
+  color: var(--hud-green);
+  font-size: 14px;
+  letter-spacing: 1px;
+}
+.touch-row:active { background: rgba(var(--hud-green-rgb), 0.2); border-left-color: var(--hud-green); }
+.touch-ask { display: none; margin: 4px 0 8px 10px; border-left: 3px solid var(--hud-amber); padding-left: 8px; }
+.touch-ask.open { display: block; }
+.touch-ask p { color: var(--hud-amber); font-size: 12px; margin: 6px 0; }

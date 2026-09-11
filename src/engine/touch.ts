@@ -125,7 +125,33 @@ export function attachTouch(target: TouchTarget, doc: Document): TouchTracker | 
   const fire = doc.getElementById('touch-fire');
   const throttle = doc.getElementById('touch-throttle');
   const commands = doc.getElementById('touch-commands');
+  const menu = doc.getElementById('touch-menu');
   if (!view || !fire || !throttle) return null;
+  // The flight menu (docs/TODO/204 M4). MENU shows it. A row on it presses
+  // its key through the click seam, and hides it. The escape pod row opens
+  // the confirmation inside it first. All of that is show and hide. The keys
+  // travel the same path a station row's do.
+  if (menu) {
+    const show = (on: boolean): void => {
+      menu.classList.toggle('hidden', !on);
+      if (!on) for (const ask of menu.querySelectorAll<HTMLElement>('.touch-ask')) ask.classList.remove('open');
+    };
+    commands?.addEventListener('click', (e) => {
+      if ((e.target as HTMLElement).closest('[data-menu]')) show(menu.classList.contains('hidden'));
+    });
+    menu.addEventListener('click', (e) => {
+      const el = (e.target as HTMLElement).closest<HTMLElement>('[data-ask],[data-key]');
+      if (!el) return;
+      if (el.dataset.ask !== undefined) {
+        for (const ask of menu.querySelectorAll<HTMLElement>('.touch-ask')) {
+          ask.classList.toggle('open', ask.dataset.asks === el.dataset.ask);
+        }
+        if (el.dataset.ask === '') show(false);
+        return;
+      }
+      show(false);   // the key is on its way through the seam
+    });
+  }
   const tracker = new TouchTracker(target, undefined, () => {
     const r = throttle.getBoundingClientRect();
     return { top: r.top, height: r.height };
@@ -135,7 +161,7 @@ export function attachTouch(target: TouchTarget, doc: Document): TouchTracker | 
   const placeOf = (el: EventTarget | null): TouchPlace =>
     within(fire, el) ? 'fire'
       : within(throttle, el) ? 'throttle'
-        : within(commands, el) ? 'command'
+        : within(commands, el) || within(menu, el) ? 'command'
           : 'view';
   view.addEventListener('pointerdown', (e) => {
     const place = placeOf(e.target);
