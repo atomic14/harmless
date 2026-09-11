@@ -50,7 +50,7 @@ export function browserShell(canvas: HTMLCanvasElement, scene: THREE.Scene): She
     // Since docs/TODO/205 M5 it listens on the course buttons too. Each carries
     // a data-key, as a menu row does, so a click takes the same path.
     onScreenClick: (fn) => {
-      for (const id of ['screen', 'courses']) {
+      for (const id of ['screen', 'courses', 'actions']) {
         document.getElementById(id)?.addEventListener('click', (e) => {
           const el = (e.target as HTMLElement).closest('[data-key],[data-row]');
           fn(el ?? e.target, e);

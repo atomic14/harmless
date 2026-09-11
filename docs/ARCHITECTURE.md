@@ -23,7 +23,8 @@ rules. This file is a map.
   on the GPU. The controls read an input interface, not the browser. Two pointer
   seams cross the platform seam. `onScreenClick` is input. `onScreenMove` reports
   only: a screen may repaint what it describes, but it must never select or
-  spend.
+  spend. `engine/hold-buttons.ts` is the third: a button that holds a key down
+  while it is held, such as the laser (docs/TODO/206).
 - The HUD is a read-only painter, and it is four files. `hud/hud-model.ts`
   works out where a marker goes. `hud-binding.ts` turns the state into a
   dashboard. `hud.ts` paints one. `hud-buttons.ts` paints the buttons over the
@@ -174,7 +175,8 @@ Two quirks are deliberate:
 - `src/game/targets.ts` lists what the ship can fight, and holds the pilot's
   pick (docs/TODO/206). The pick is one flag on the picked ship's own state,
   so a save carries it. It sits on top of `threat-lock.ts`, and never changes
-  that rule.
+  that rule. `target-actions.ts` joins the list to its buttons, and gives each
+  ship a code that names it for as long as it lives.
 - `src/game/threat.ts` computes the pirate count, the group tier and the
   organisation from the visible value and the reputation. `ship-specs.ts` maps a
   tier to a hull. The campaign simulator calls the same rules.

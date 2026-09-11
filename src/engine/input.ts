@@ -1,4 +1,5 @@
 import { CARRY_LIMIT } from '../constants/world-clock.ts';
+import { attachHoldButtons } from './hold-buttons.ts';
 
 // Keyboard state with frame-oriented semantics:
 //  - held(codes): live keydown state — every continuous control, the trigger
@@ -79,6 +80,8 @@ export class Input {
       return;
     }
     this.canvas = document.getElementById('scene');
+    // The laser button holds its key as a finger holds it (docs/TODO/206 M3).
+    attachHoldButtons(this, document);
     document.addEventListener('pointerlockchange', () => {
       this.mouseFlight = document.pointerLockElement === this.canvas;
       if (!this.mouseFlight) {

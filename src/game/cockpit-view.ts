@@ -36,8 +36,12 @@ import type { HudButton } from '../hud/hud-buttons.ts';
 import type { CoursePanel } from './course-actions.ts';
 import { COURSE_NAMES } from './courses.ts';
 import { SKIP_SPEED } from '../constants/course.ts';
-import { COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY } from './bindings.ts';
-import type { ControlMode } from './controls.ts';
+import {
+  COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY, TARGET_NONE_KEY, TARGETS_KEY,
+} from './bindings.ts';
+import type { TargetPanel } from './target-actions.ts';
+import { keymap } from '../engine/keymap.ts';
+import type { Command, ControlMode } from './controls.ts';
 import type { ExerciseStrip } from './combat-sim-strip.ts';
 import type { Ordnance } from './ordnance.ts';
 import type { Presentation } from '../engine/shell.ts';
@@ -80,6 +84,8 @@ export interface CockpitHost {
   view(): Presentation;
   /** what the course buttons show, or null where there are none (docs/TODO/205 M5) */
   coursePanel(): CoursePanel | null;
+  /** what the target buttons show, or null where there are none (docs/TODO/206 M3) */
+  targetPanel(): TargetPanel | null;
 }
 
 /**
@@ -99,6 +105,57 @@ export function courseButtonsFor(p: CoursePanel, chart: string | null): HudButto
   }));
   if (chart) out.push({ code: chart, label: 'GALACTIC CHART' });
   if (p.current !== null) out.push({ code: COURSE_TOGGLE_KEY, label: 'CLOSE' });
+  return out;
+}
+
+/** What the pilot's buttons are built from (docs/TODO/206 M3). */
+export interface ActionSource {
+  /** the fire key of the live layout, which the laser button holds */
+  readonly fireKey: string | null;
+  readonly missiles: number;
+  readonly armed: boolean;
+  readonly locked: boolean;
+  readonly armKey: string | null;
+  readonly launchKey: string | null;
+  /** the E.C.M.'s key, or null when none is fitted */
+  readonly ecmKey: string | null;
+  readonly targets: TargetPanel | null;
+}
+
+/**
+ * The pilot's hands as buttons, top to bottom (docs/TODO/206 M3). The target
+ * list opens above the rest. The laser comes last, at the bottom, where a
+ * thumb finds it without a look.
+ */
+export function actionButtonsFor(a: ActionSource): HudButton[] {
+  const out: HudButton[] = [];
+  const t = a.targets;
+  if (t && t.open) {
+    for (const { code, row } of t.rows) {
+      out.push({
+        code, label: row.name, lit: row.picked,
+        hint: `${row.standing} · ${row.range <= LASER_RANGE ? 'IN LASER RANGE' : 'OUT OF LASER RANGE'}`,
+        ...(row.cost ? { note: row.cost } : {}),
+      });
+    }
+    if (t.picked) out.push({ code: TARGET_NONE_KEY, label: 'LET THE COMPUTER CHOOSE' });
+  }
+  if (t && (t.rows.length > 0 || t.open)) {
+    out.push({
+      code: TARGETS_KEY, label: t.open ? 'CLOSE THE TARGETS' : 'TARGETS',
+      hint: t.picked ? `AIMING AT THE ${t.picked.name}` : 'CHOOSE WHAT TO FIGHT',
+    });
+  }
+  if (a.ecmKey) out.push({ code: a.ecmKey, label: 'E.C.M.', hint: 'DESTROYS MISSILES NEARBY' });
+  if (a.missiles > 0 && a.armKey && a.launchKey) {
+    out.push(a.armed
+      ? {
+        code: a.launchKey, label: 'FIRE THE MISSILE', lit: a.locked,
+        hint: a.locked ? 'LOCKED ON' : 'IT LOCKS ON A SHIP IN YOUR SIGHTS',
+      }
+      : { code: a.armKey, label: 'ARM A MISSILE', hint: `${a.missiles} LEFT` });
+  }
+  if (a.fireKey) out.push({ code: a.fireKey, label: 'FIRE LASER', hint: 'HOLD TO FIRE', hold: true });
   return out;
 }
 
@@ -223,6 +280,23 @@ export class CockpitView {
    * scrape of the painted line. `jettisonCargo` is driven directly the same
    * way.
    */
+  /** The pilot's buttons, in flight only (docs/TODO/206 M3). */
+  private actionButtons(): HudButton[] {
+    const mode = this.host.controlMode();
+    if (!this.host.inFlight() || !mode) return [];
+    const key = (c: Command): string | null => keyCodeIfBound(mode, c);
+    return actionButtonsFor({
+      fireKey: keymap().fire[0] ?? null,
+      missiles: this.state.commander.missiles,
+      armed: this.ordnance.armed,
+      locked: this.ordnance.targetLock !== null,
+      armKey: key('armMissile'),
+      launchKey: key('launchMissile'),
+      ecmKey: this.state.commander.equipment.ecm ? key('fireEcm') : null,
+      targets: this.host.targetPanel(),
+    });
+  }
+
   /** The course buttons, in flight only. */
   private courseButtons(): HudButton[] {
     const panel = this.host.inFlight() ? this.host.coursePanel() : null;
@@ -305,6 +379,7 @@ export class CockpitView {
       messageTimer: this.state.session.messageTimer,
       prompts: this.keyPrompts(),
       courses: this.courseButtons(),
+      actions: this.actionButtons(),
       // Null in career flight. It is gated on the same `active` that gives the
       // exercise the keyboard (controlMode). The strip is the exercise's own
       // view of itself, not a second opinion about one.

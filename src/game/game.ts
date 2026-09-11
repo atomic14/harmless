@@ -110,6 +110,7 @@ import { QuitScreen, type QuitContext } from './screens/quit.ts';
 import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
 import { CoursesScreen, type CoursesContext } from './screens/courses.ts';
 import { CourseActions, type CourseHost, type CoursePanel } from './course-actions.ts';
+import { TargetActions, type TargetPanel } from './target-actions.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 
 import { characterVerdict } from './character.ts';
@@ -387,6 +388,9 @@ export class Game {
     refused: () => sfx.refused(),
   } satisfies CourseHost);
 
+  /** The target list's buttons, and the pick applied (docs/TODO/206 M3). */
+  private readonly targets_ = new TargetActions(() => this.state);
+
   /**
    * What a career keeps when a flight ends (docs/TODO/150 M5).
    *
@@ -455,6 +459,9 @@ export class Game {
       // tunnel the cockpit reads no button, so it shows none.
       coursePanel: () => (this.flight_.inSimulator() || this.tunnel.active
         ? null : this.courses_.panel()),
+      // The target buttons, in career flight and in an exercise alike: a
+      // training fight is a real fight (docs/TODO/206 M3).
+      targetPanel: () => (this.tunnel.active ? null : this.targets_.panel()),
     } satisfies CockpitHost);
 
   /**
@@ -465,6 +472,15 @@ export class Game {
    */
   coursePanel(): CoursePanel | null {
     return this.flight_.inSimulator() ? null : this.courses_.panel();
+  }
+
+  /**
+   * What the target buttons show now (docs/TODO/206 M3).
+   *
+   * @internal — a delegate for test/fight-buttons.test.ts.
+   */
+  targetPanel(): TargetPanel {
+    return this.targets_.panel();
   }
 
   /**
@@ -1118,6 +1134,8 @@ export class Game {
     // (docs/TODO/205 M5). The course actions read them, as a screen reads its
     // own. A paused cockpit and an exercise read none.
     if (mode === 'flight' && !pausedOnly) this.courses_.read(i);
+    // ...and so do the target buttons, in an exercise too (docs/TODO/206 M3).
+    if ((mode === 'flight' || mode === 'simulator') && !pausedOnly) this.targets_.read(i);
     for (const c of commandsFor(mode, i)) {
       if (!pausedOnly || WHILE_PAUSED.includes(c)) this.runCommand(c);
     }

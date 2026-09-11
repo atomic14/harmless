@@ -68,6 +68,17 @@ export const COURSE_TOGGLE_KEY = 'VirtCourseToggle';
 /** The fast forward button in flight (docs/TODO/205 M7). It has no key either. */
 export const COURSE_SKIP_KEY = 'VirtCourseSkip';
 
+/**
+ * The target list's buttons in flight (docs/TODO/206 M3). There are three
+ * codes: the button that opens the list, the row that lets the computer
+ * choose, and the prefix of a row's code. A row's code ends in a number that
+ * names one ship for as long as the ship lives (`target-actions.ts`). None of
+ * them has a key.
+ */
+export const TARGETS_KEY = 'VirtTargets';
+export const TARGET_NONE_KEY = 'VirtTargetNone';
+export const TARGET_ROW_PREFIX = 'VirtTarget';
+
 export const GLOBAL_BINDINGS: readonly Binding[] = [
   // ? toggles the controls guide (plain / is the classic decelerate key)
   { key: 'Question', command: 'toggleHelp' },

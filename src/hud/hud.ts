@@ -84,6 +84,11 @@ export interface HudState {
    * are. Which courses exist is `game/courses.ts`.
    */
   courses: readonly HudButton[];
+  /**
+   * The pilot's hands as buttons (docs/TODO/206 M3): the laser, the missile,
+   * the E.C.M. and the target list. Finished, as the courses are.
+   */
+  actions: readonly HudButton[];
   speedFrac: number;
   rollFrac: number; // -1..1
   pitchFrac: number; // -1..1
@@ -242,6 +247,7 @@ export class Hud {
   /** what the prompt line currently says, so a steady list is not repainted */
   private promptsShown = '';
   private readonly courseStrip = new ButtonStrip(byId('courses'));
+  private readonly actionStrip = new ButtonStrip(byId('actions'));
   private readonly flashEl = byId('damage-flash');
   private readonly exerciseEl = byId('exercise');
   private readonly exScenarioEl = byId('ex-scenario');
@@ -275,6 +281,7 @@ export class Hud {
     this.messageEl.textContent = frame.messageTimer > 0 ? frame.messageText : '';
     this.paintPrompts(frame.prompts);
     this.courseStrip.paint(frame.courses);
+    this.actionStrip.paint(frame.actions);
     this.speedEl.style.width = `${frame.speedFrac * 100}%`;
     this.rollEl.style.left = `${50 + clampUnit(frame.rollFrac) * 45}%`;
     this.pitchEl.style.left = `${50 + clampUnit(frame.pitchFrac) * 45}%`;

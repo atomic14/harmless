@@ -476,6 +476,38 @@ body.screen-open #message {
 body.screen-open #courses { visibility: hidden; }
 
 /*
+ * The pilot's buttons (docs/TODO/206 M3): bottom right, above the console,
+ * where a right thumb rests. The laser is the bottom button, the one a thumb
+ * finds without a look. The target list opens upward, above them.
+ */
+#actions {
+  position: absolute;
+  right: 12px; bottom: calc(var(--console-h, 180px) + 14px);
+  z-index: 21;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  width: min(46vw, 260px);
+}
+#actions .hud-button {
+  min-height: 44px;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 4px 12px;
+  font-size: 13px; letter-spacing: 1px;
+  color: var(--hud-green);
+  background: rgba(0, 10, 2, 0.72);
+  border: 1px solid rgba(var(--hud-green-rgb), 0.45);
+  cursor: pointer;
+  user-select: none; -webkit-user-select: none;
+  touch-action: none;
+}
+#actions .hud-button:hover { background: rgba(var(--hud-green-rgb), 0.18); }
+#actions .hud-button.lit { color: var(--hud-amber); border-color: rgba(var(--hud-amber-rgb), 0.55); }
+#actions .hud-button.dim { opacity: 0.6; }
+#actions .hud-button .note { font-size: 10px; color: var(--hud-amber); letter-spacing: 1px; }
+#actions .hud-button .hint { font-size: 10px; color: var(--hud-dim); letter-spacing: 1px; }
+#actions [data-hold] { color: var(--hud-red); border-color: rgba(var(--hud-red-rgb), 0.6); }
+body.screen-open #actions { visibility: hidden; }
+
+/*
  * The exercise strip — top left, under the topbar.
  *
  * Deliberately away from the middle of the screen and away from the bottom:

@@ -22,6 +22,11 @@ export interface HudButton {
   readonly lit?: boolean;
   /** a second, quieter line: what a press does */
   readonly hint?: string;
+  /**
+   * The button holds its code down while it is held, as the laser button
+   * does, rather than sending it once (`engine/hold-buttons.ts`).
+   */
+  readonly hold?: boolean;
 }
 
 /** Plain text only: a label is words, so the markup cannot carry any. */
@@ -39,7 +44,8 @@ export class ButtonStrip {
 
   paint(buttons: readonly HudButton[]): void {
     const html = buttons.map((b) =>
-      `<div data-key="${text(b.code)}" class="hud-button${b.note ? ' dim' : ''}${b.lit ? ' lit' : ''}">`
+      `<div ${b.hold ? 'data-hold' : 'data-key'}="${text(b.code)}"`
+      + ` class="hud-button${b.note ? ' dim' : ''}${b.lit ? ' lit' : ''}">`
       + `${text(b.label)}${b.note ? `<span class="note">${text(b.note)}</span>` : ''}`
       + `${b.hint ? `<span class="hint">${text(b.hint)}</span>` : ''}</div>`).join('');
     if (html === this.shown) return;

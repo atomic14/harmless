@@ -233,3 +233,21 @@ Evidence:
   fight under the new seat is the headless test in `test/aim.test.ts`, and
   Chris's verdict on whether it is fun.
 - **The suite has 5,756 assertions,** from 5,746.
+
+### M3
+
+- **A held button needs its own seam.** A click is one moment, and the laser
+  fires while it is held. `engine/hold-buttons.ts` presses a `data-hold`
+  code on pointer down and releases it on pointer up, through the
+  `Input.press` and `Input.release` that 205 M1 kept. Each pointer is tracked
+  by its id, so a second finger that lifts lets go of its own button only.
+- **A target row's code names a ship, not a place in the list.** The list is
+  in order of range, and the order moves every frame. A code built from a
+  row's place could pick the ship that moved into that place between the
+  paint and the tap. `target-actions.ts` gives each ship a number for as long
+  as it lives, and no save carries it.
+- **The target list works in an exercise too.** A training fight is a real
+  fight, so the trainer has the same buttons.
+- **The buttons sit bottom right, and the laser is the lowest.** A right
+  thumb finds it without a look. The course buttons stay top right.
+- **The suite has 5,774 assertions,** from 5,756.
