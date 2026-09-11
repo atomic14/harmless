@@ -33,8 +33,31 @@
 // menu's rows straight from it.
 
 import type { Binding, Command, ControlMode } from './controls.ts';
+import type { CourseKind } from './courses.ts';
 
 /** Bindings that answer whatever is on screen, overlays included. */
+/**
+ * The code each course row sends (docs/TODO/205 M4).
+ *
+ * A row of the course list is a click target, as a station row is. So each
+ * course has a virtual code: `Virt`, then `Course`, then the course. No
+ * keyboard produces one, so no letter is spent. The launch screen and the
+ * course buttons in flight send the same codes. This record is their one
+ * home, so the two surfaces cannot disagree about a course's code.
+ */
+export const COURSE_KEYS: Readonly<Record<CourseKind, string>> = {
+  jump: 'VirtCourseJump',
+  mission: 'VirtCourseMission',
+  station: 'VirtCourseStation',
+  derelict: 'VirtCourseDerelict',
+  mine: 'VirtCourseMine',
+  hermit: 'VirtCourseHermit',
+  skim: 'VirtCourseSkim',
+};
+
+/** The launch list's row for the galactic chart, where a pilot sets a target. */
+export const COURSE_CHART_KEY = 'VirtCourseChart';
+
 export const GLOBAL_BINDINGS: readonly Binding[] = [
   // ? toggles the controls guide (plain / is the classic decelerate key)
   { key: 'Question', command: 'toggleHelp' },

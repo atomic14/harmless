@@ -155,10 +155,12 @@ where the system has one.
 
 ### M5 — the course list on screen, for every player
 
-The course list is a screen with rows, behind `ui/screen-host.ts`. The world
-keeps flying while it is up, as it does under the charts. A tap picks a row,
-and so does the row cursor with Enter. The screen returns the picked course as
-an outcome, and the Game applies it (invariant 15).
+In flight, the course list is a row of buttons over the view, and not a
+screen. M4 found why. Under any screen the flight world stops stepping, and
+many tests expect flight at once after an arrival. 204 found the same shape
+for its flight menu. Each button sends its course's code from `COURSE_KEYS`,
+the flight binding table answers it, and the Game applies the pick
+(invariant 15).
 
 The screen opens by itself when the ship has no course: at a launch, at an
 arrival, and when a course ends. A key and a button open it at other times.
@@ -375,3 +377,19 @@ Evidence:
 
   On the star course, the cabin peaked at 0.489 in every sample, against a
   fatal 0.99. No ship came within 68,000 units of the star.
+
+### M4
+
+- **The LAUNCH row opens a screen, `screens/courses.ts`.** Each row is a
+  course, and a pick leaves the station on it. A row the ship cannot fly says
+  why, and a pick of it refuses with the reason on the console. The last row
+  opens the galactic chart, and ESC from the chart returns to the list.
+- **`Game.launch()` is still the transition itself.** Only the LAUNCH row's
+  command changed. The tests that press `launch` by name still leave at once.
+- **A course row sends a virtual code, `COURSE_KEYS` in `bindings.ts`.** The
+  launch screen and the flight buttons of M5 share the codes, so the two
+  cannot disagree.
+- **The jump key and the course list ask one question.** `jumpCheck` in
+  `hyperspace-actions.ts` holds the arguments that `startHyperspace` used to
+  pass by hand.
+- **The suite has 5,708 assertions,** from 5,694.

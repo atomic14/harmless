@@ -92,6 +92,18 @@ export class HyperspaceActions {
     this.host = host;
   }
 
+  /**
+   * May the drive spin up now, for the chart's target? The jump key asks it,
+   * and so does the course list (docs/TODO/205 M4), so the two cannot differ.
+   */
+  jumpCheck(): ReturnType<typeof checkJump> {
+    return checkJump(this.state.commander, this.state.systems, this.state.chart.targetIndex,
+      this.state.session.witchspace, this.state.session.hyperCountdown >= 0,
+      // JUMP ANYWHERE (docs/TODO/121): the flag goes IN, and the refusal stays
+      // where it was decided. Nothing here reads the tank.
+      this.state.cheat);
+  }
+
   /** @internal — driven by src/game/game.ts, which delegates to it. */
   startHyperspace(): void {
     // The simulator is a room at the station, not a place you can leave. The
@@ -102,11 +114,7 @@ export class HyperspaceActions {
       this.host.refused();
       return;
     }
-    const check = checkJump(this.state.commander, this.state.systems, this.state.chart.targetIndex,
-      this.state.session.witchspace, this.state.session.hyperCountdown >= 0,
-      // JUMP ANYWHERE (docs/TODO/121): the flag goes IN, and the refusal stays
-      // where it was decided. Nothing here reads the tank.
-      this.state.cheat);
+    const check = this.jumpCheck();
     if (!check.ok) {
       if (check.reason === 'alreadyJumping') return;
       this.host.showMessage(refusalMessage(check.reason, this.state.session.witchspace), 4);

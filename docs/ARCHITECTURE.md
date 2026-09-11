@@ -41,7 +41,9 @@ rules. This file is a map.
   `course-pilot.ts` flies the picked course, one frame at a time, and it
   reports a `FlightDemand`. `flight-instruments.ts` throws the switches that a
   course asks for: the torus drive, the hand-over to the docking computer, and
-  the end of the course.
+  the end of the course. `course-actions.ts` joins the list to the Game: it
+  builds the flat view, and it applies a pick. At the station, the LAUNCH row
+  opens `screens/courses.ts`, and a pick leaves on the course.
 - The console is one line, so `SessionState.queued` is the line that waits for it
   (`session.ts`). Some consequences make sense only after their cause: what a
   scan cost your legal record, or what a deed cost your reputation. The console

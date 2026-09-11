@@ -108,6 +108,8 @@ import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts'
 import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
 import { QuitScreen, type QuitContext } from './screens/quit.ts';
 import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
+import { CoursesScreen, type CoursesContext } from './screens/courses.ts';
+import { CourseActions, type CourseHost } from './course-actions.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 
 import { characterVerdict } from './character.ts';
@@ -371,6 +373,19 @@ export class Game {
     distressBeaconSound: () => sfx.distressBeacon(),
     misjumpArmed: (armed) => { if (armed) sfx.misjumpArmed(); else sfx.misjumpDisarmed(); },
   } satisfies HyperspaceHost);
+
+  /**
+   * The courses a pilot picks from, and the pick applied (docs/TODO/205 M4).
+   * The state is read through a function, because a respawn replaces it.
+   */
+  private readonly courses_ = new CourseActions(() => this.state, {
+    jumpCheck: () => this.jump_.jumpCheck(),
+    launch: () => this.docked_.launch(),
+    startHyperspace: () => this.startHyperspace(),
+    closeScreens: () => this.screens.exit(),
+    showMessage: (text, seconds) => this.showMessage(text, seconds),
+    refused: () => sfx.refused(),
+  } satisfies CourseHost);
 
   /**
    * What a career keeps when a flight ends (docs/TODO/150 M5).
@@ -691,6 +706,10 @@ export class Game {
         sell: () => this.docked_.answerForSurvivors('sold'),
         release: () => this.docked_.answerForSurvivors('released'),
       } satisfies SurvivorsContext)),
+      new CoursesScreen(() => ({
+        rows: () => this.courses_.list('launch'),
+        pick: (kind) => { this.courses_.pick(kind, 'launch'); },
+      } satisfies CoursesContext)),
     ]) this.screens.register(screen);
 
     // A boot enters a system too, so it chooses a roster like any arrival. A
@@ -1118,7 +1137,9 @@ export class Game {
     // --- global -----------------------------------------------------------
     toggleHelp: () => { this.helpOpen = !this.helpOpen; this.shell.toggleHelp(); },
     // --- the station menu -------------------------------------------------
-    launch: () => this.docked_.launch(),
+    // The LAUNCH row asks where to go first (docs/TODO/205 M4). `launch()`
+    // below is still the transition itself, which the tests press by name.
+    launch: () => this.screens.open('courses'),
     openMarket: () => this.screens.open('market'),
     openEquip: () => this.screens.open('equip'),
     openBriefing: () => this.screens.open('briefing'),

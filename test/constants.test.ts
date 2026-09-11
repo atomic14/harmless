@@ -457,9 +457,10 @@ const OUTSIDE: readonly Group[] = [
       // the one sentence the guide and the manual say about the station menu (docs/TODO/202)
       'ui/key-help.ts': ['LABELS', 'ALL_BINDINGS', 'STATION_MENU_NOTE'],
       'game/command-help.ts': ['COMMAND_HELP'],
+      // ...and the codes a course row sends, on both of its surfaces (docs/TODO/205 M4)
       'game/bindings.ts': [
         'GLOBAL_BINDINGS', 'FLIGHT_BINDINGS', 'NOT_IN_THE_SIMULATOR', 'BINDINGS',
-        'WHILE_PAUSED',
+        'WHILE_PAUSED', 'COURSE_KEYS', 'COURSE_CHART_KEY',
       ],
       'game/screens/save-transfer.ts': ['NOT_A_SAVE', 'WRONG_VERSION', 'STORE_FULL'],
       'engine/keymap.ts': ['LAYOUTS', 'STORAGE_KEY'],
