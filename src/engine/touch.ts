@@ -9,10 +9,13 @@
 // code here that reads the DOM. `Input` calls it when the page has the overlay.
 //
 // THE STICK IS THE MOUSE STICK. A finger's offset from where it landed is the
-// same -1..1 pair the mouse fills, and `flightDemand` reads nothing new. Two
+// same -1..1 pair the mouse fills, and `flightDemand` reads nothing new. Three
 // things differ. A held finger holds its deflection, where a still mouse
-// decays: `stickHeld` tells `Input.decayMouse` to wait. And a lifted finger
-// decays to centre through the same decay, so the ship settles.
+// decays: `stickHeld` tells `Input.decayMouse` to wait. A lifted finger
+// decays to centre through the same decay, so the ship settles. And a finger
+// points where it wants to go: a drag up raises the nose. A mouse pulls back
+// to climb, as a stick does, and Chris found that upside down under a thumb
+// on 2026-09-11. The sign flips here, and nowhere else.
 //
 // A FINGER IS TRACKED BY ITS POINTER ID. One steers while another holds FIRE,
 // and lifting either one leaves the other where it is.
@@ -89,7 +92,7 @@ export class TouchTracker {
     if (this.steer?.id === id) {
       const s = stickFromDrag(this.steer.x0, this.steer.y0, x, y);
       this.target.mouseX = s.x;
-      this.target.mouseY = s.y;
+      this.target.mouseY = -s.y;   // up is up, under a finger
     } else if (this.throttle === id) {
       this.setThrottle(y);
     }

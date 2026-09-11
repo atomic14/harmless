@@ -212,3 +212,12 @@ gain a paragraph.
 - **The feel is not measured here.** Chrome drove the overlay with synthetic
   events. Whether the stick's travel and the decay feel right on a phone is
   Chris's to judge.
+
+### After the preview
+
+Chris flew it on 2026-09-11 and named two faults. The overlay stopped at
+the console, so a thumb on the console steered nothing. It covers the whole
+screen now, and the buttons keep their places above the console. A drag
+down raised the nose, as a stick and the mouse do, and that is upside down
+under a thumb. A drag up raises the nose now. The sign flips in the tracker
+and nowhere else, so the mouse keeps its own convention.

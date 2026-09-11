@@ -988,8 +988,7 @@ body.screen-open #exercise { display: none; }
 #touch {
   display: none;
   position: absolute;
-  left: 0; right: 0; top: 0;
-  bottom: var(--console-h, 0px);
+  inset: 0;   /* the whole screen steers, the console included (Chris, 2026-09-11) */
   z-index: 8;
   touch-action: none;
   user-select: none;
@@ -1035,7 +1034,7 @@ body.screen-open #touch { display: none; }
  */
 #touch-commands {
   position: absolute;
-  left: 0; right: 0; bottom: 0;
+  left: 0; right: 0; bottom: var(--console-h, 0px);
   height: 48px;
   display: flex;
   gap: 6px;
@@ -1055,8 +1054,8 @@ body.screen-open #touch { display: none; }
 }
 .touch-command:active { background: rgba(var(--hud-green-rgb), 0.2); }
 .touch-command.lit { border-color: var(--hud-amber); color: var(--hud-amber); }
-#touch-fire { bottom: 62px; }
-#touch-throttle { bottom: 62px; }
+#touch-fire { bottom: calc(var(--console-h, 0px) + 62px); }
+#touch-throttle { bottom: calc(var(--console-h, 0px) + 62px); }
 /* The prompts are buttons on a coarse pointer, above the overlay and the row. */
 @media (pointer: coarse) {
   #prompts { pointer-events: auto; white-space: normal; }
@@ -1080,7 +1079,7 @@ body.screen-open #touch { display: none; }
  */
 #touch-menu {
   position: absolute;
-  left: 8px; right: 8px; top: 8%; bottom: 56px;
+  left: 8px; right: 8px; top: 8%; bottom: calc(var(--console-h, 0px) + 56px);
   overflow-y: auto;
   background: rgba(0, 10, 2, 0.92);
   border: 1px solid var(--hud-dim);

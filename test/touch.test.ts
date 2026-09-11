@@ -28,7 +28,7 @@ console.log('\nthe stick is the finger\'s offset from where it landed');
 {
   eq('half the travel is half deflection', stickFromDrag(100, 100, 100 + TOUCH_STICK_TRAVEL / 2, 100).x, 0.5);
   eq('...and it clamps at one', stickFromDrag(100, 100, 100 + TOUCH_STICK_TRAVEL * 3, 100).x, 1);
-  eq('down is positive, as the mouse stick has it', stickFromDrag(0, 0, 0, TOUCH_STICK_TRAVEL).y, 1);
+  eq('the raw drag reads down as positive; the tracker turns it over for the nose', stickFromDrag(0, 0, 0, TOUCH_STICK_TRAVEL).y, 1);
   eq('the slider is one at its top', sliderFraction(100, 100, 200), 1);
   eq('...zero at its bottom', sliderFraction(300, 100, 200), 0);
   eq('...and clamps past either end', sliderFraction(500, 100, 200), 0);
@@ -42,7 +42,7 @@ console.log('\na finger on the view steers, holds, and lets the stick decay when
   check('a landed finger takes the stick and holds it', t.mouseFlight && t.stickHeld && t.mouseX === 0 && t.mouseY === 0);
   k.move(1, 200 + TOUCH_STICK_TRAVEL / 2, 300 - TOUCH_STICK_TRAVEL / 4);
   eq('a drag right is half a stick right', t.mouseX, 0.5);
-  eq('...and a drag up is a quarter of a stick up', t.mouseY, -0.25);
+  eq('...and a drag up raises the nose a quarter, because a finger points where it wants to go', t.mouseY, 0.25);
   k.down(2, 'view', 50, 50);
   k.move(2, 150, 50);
   eq('a second finger on the view does not take the stick', t.mouseX, 0.5);
