@@ -167,6 +167,12 @@ export function attachTouch(target: TouchTarget, doc: Document): TouchTracker | 
     const place = placeOf(e.target);
     if (place === 'command') return;   // let the click through to the seam
     e.preventDefault();
+    // The first touch on the view asks for the whole screen (docs/TODO/204
+    // M5). A phone's browser bars take a fifth of it otherwise. The browser
+    // may refuse, and a refusal costs nothing.
+    if (!doc.fullscreenElement && doc.documentElement.requestFullscreen) {
+      doc.documentElement.requestFullscreen().catch(() => { /* refused */ });
+    }
     tracker.down(e.pointerId, place, e.clientX, e.clientY);
     if (place === 'throttle') throttle.style.setProperty('--throttle', String(target.wantedSpeed ?? 0));
     // capture, so a drag that leaves the overlay still steers; a synthetic
