@@ -792,16 +792,19 @@ export class Game {
     let accumulator = 0;
     let simTime = 0;
     this.shell.runLoop((now: number): void => {
-      accumulator += Math.min((now - last) / 1000, MAX_FRAME_TIME);
+      // Fast forward runs more steps in each frame, and changes no step
+      // (docs/TODO/205 M7). A device that cannot keep up runs slower.
+      const speed = this.courses_.speed;
+      accumulator += Math.min((now - last) / 1000, MAX_FRAME_TIME) * speed;
       last = now;
       let steps = 0;
-      while (accumulator >= FIXED_DT && steps < MAX_STEPS_PER_FRAME) {
+      while (accumulator >= FIXED_DT && steps < MAX_STEPS_PER_FRAME * speed) {
         simTime += FIXED_DT;
         this.step(FIXED_DT, simTime);
         accumulator -= FIXED_DT;
         steps += 1;
       }
-      if (steps === MAX_STEPS_PER_FRAME) accumulator = 0; // gave up catching up
+      if (steps === MAX_STEPS_PER_FRAME * speed) accumulator = 0; // gave up catching up
       this.draw(FIXED_DT);
     });
   }
@@ -1023,7 +1026,9 @@ export class Game {
    * whatever the frame rate.
    */
   step(dt: number, elapsed: number): void {
-    tickMessage(this.state.session, dt);
+    // A console line keeps its time in the player's seconds under fast
+    // forward, so it can still be read (docs/TODO/205 M7).
+    tickMessage(this.state.session, dt / this.courses_.speed);
     // Flight is the only state that can be paused. While it is paused, route
     // input through the same command table as any other frame, but apply only
     // what a paused cockpit answers — controls.ts's WHILE_PAUSED.
@@ -1045,6 +1050,7 @@ export class Game {
     }
     this.tunnel.update(dt);
     if (this.mode === 'flight') this.flight_.update(dt, elapsed);
+    this.courses_.watchSkip();
     this.finishStep(dt);
   }
 

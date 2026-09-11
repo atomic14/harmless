@@ -65,6 +65,9 @@ export const COURSE_CHART_KEY = 'VirtCourseChart';
  */
 export const COURSE_TOGGLE_KEY = 'VirtCourseToggle';
 
+/** The fast forward button in flight (docs/TODO/205 M7). It has no key either. */
+export const COURSE_SKIP_KEY = 'VirtCourseSkip';
+
 export const GLOBAL_BINDINGS: readonly Binding[] = [
   // ? toggles the controls guide (plain / is the classic decelerate key)
   { key: 'Question', command: 'toggleHelp' },

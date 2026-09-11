@@ -127,3 +127,19 @@ export const COURSE_PLANET_CLEARANCE = MASS_LOCK_PLANET_ALTITUDE * 1.25;
  * @domain course
  */
 export const COURSE_HERMIT_SPEED = HERMIT_DOCK_SPEED / 2;
+
+/**
+ * How much faster the world runs under the fast forward button, as a count of
+ * fixed steps in one screen frame (docs/TODO/205 M7).
+ *
+ * Chris chose one fixed speed on 2026-09-11: *"Fixed speed - let's keep it
+ * simple."* Eight turns the median trip to the station, 148 s, into about
+ * 19 s of the player's time. The world step ran about 2,000 times faster than
+ * real time with no graphics, so eight costs little.
+ *
+ * It equals `TORUS_MULTIPLIER`, and the two rules are independent. That one is
+ * how far the drive carries the ship. This one is how fast time passes.
+ *
+ * @rule course.skipSpeed
+ */
+export const SKIP_SPEED = 8;

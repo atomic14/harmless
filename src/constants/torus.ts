@@ -13,6 +13,8 @@
  * At the commander's 400 this is 3,200 units/s. That is the figure the
  * starfield's streaks are faded against, and roughly a 28-second run from the
  * witchpoint.
+ *
+ * @rule torus.multiplier
  */
 export const TORUS_MULTIPLIER = 8;
 

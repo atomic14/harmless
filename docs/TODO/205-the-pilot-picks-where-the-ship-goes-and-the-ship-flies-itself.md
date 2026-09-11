@@ -183,13 +183,17 @@ runs the same fixed step eight times in each screen frame, and it draws the
 last one. The mass lock, the traffic and the encounters behave as they do at
 normal speed. So the skip shortens the wait and changes no rule.
 
-The button works only while no hostile ship is in scanner range. The skip
-stops by itself in these cases:
+The button works only while no hostile ship is near. The skip stops by
+itself in these cases:
 
-1. a hostile ship comes into scanner range;
+1. a hostile ship comes near, by the rule that turns the condition light red;
 2. the course ends, or no course is picked;
-3. a new line comes to the console;
-4. the pilot presses a flight key, or taps the button again.
+3. the pilot presses a flight key, or taps the button again.
+
+A console line keeps its time in the player's seconds, so it can still be
+read. M7 found that this is better than a stop for each new line. A trip
+says MASS LOCK and TORUS DRIVE ENGAGED at every stop. A stop for each line
+would end the skip at the very waits that it exists to shorten.
 
 The skip works for the whole trip, and that includes the docking computer's
 approach. A key and a button start it, and the key lives in the binding table.
@@ -416,3 +420,21 @@ Evidence:
   keys while one runs, so a button pressed then does nothing. That is the game
   of today, and the test waits for the tunnel.
 - **The suite has 5,721 assertions,** from 5,708.
+
+### M7
+
+- **The skip scales the loop, and nothing else.** The loop banks its frame
+  time times `SKIP_SPEED`, and it caps the steps at five times that. So a
+  frame still banks a bounded amount of world time. A test that reads the
+  loop's source pinned the old clamp, and it now pins the scaled one.
+- **A skipped trip reaches the same world as a normal trip.** The test
+  compares every ship, the commander and the session after 1,200 steps. The
+  console is left out, because it counts the player's seconds. One step more
+  is a different world, which proves that the comparison can fail.
+- **Both games in that test draw from one seeded stream.** Its first draft
+  ran them one after the other, and the second trip saw other numbers. The
+  police ships then differed, and the fault looked like the skip's. The test
+  now restores the stream before each trip.
+- **The skip stops at the condition light's own rule.** `hostilesNear` turns
+  the light red, so the pilot sees the same reason on the dashboard.
+- **The suite has 5,732 assertions,** from 5,721.

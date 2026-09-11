@@ -55,8 +55,8 @@ function press(g: Game, code: string): void {
   press(g, COURSE_KEYS.station);
   eq('the station button picks the station course', g.state.session.course, 'station');
   eq('...and the list folds away', g.coursePanel()?.rows ?? null, null);
-  eq('...leaving one button that says what the ship is doing',
-    courseButtonsFor(g.coursePanel()!, null).map((b) => b.label).join(), 'HEADING TO THE STATION');
+  eq('...leaving a button that says what the ship is doing, and fast forward',
+    courseButtonsFor(g.coursePanel()!, null).map((b) => b.label).join(), 'HEADING TO THE STATION,FAST FORWARD');
 
   press(g, COURSE_TOGGLE_KEY);
   check('that button opens the list again over the course', (g.coursePanel()?.rows?.length ?? 0) > 0);

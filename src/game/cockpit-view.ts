@@ -35,7 +35,8 @@ import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
 import type { HudButton } from '../hud/hud-buttons.ts';
 import type { CoursePanel } from './course-actions.ts';
 import { COURSE_NAMES } from './courses.ts';
-import { COURSE_KEYS, COURSE_TOGGLE_KEY } from './bindings.ts';
+import { SKIP_SPEED } from '../constants/course.ts';
+import { COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY } from './bindings.ts';
 import type { ControlMode } from './controls.ts';
 import type { ExerciseStrip } from './combat-sim-strip.ts';
 import type { Ordnance } from './ordnance.ts';
@@ -88,8 +89,10 @@ export interface CockpitHost {
  */
 export function courseButtonsFor(p: CoursePanel, chart: string | null): HudButton[] {
   if (p.rows === null) {
-    return p.current === null ? []
-      : [{ code: COURSE_TOGGLE_KEY, label: COURSE_NAMES[p.current], lit: true, hint: 'CHOOSE SOMEWHERE ELSE' }];
+    return p.current === null ? [] : [
+      { code: COURSE_TOGGLE_KEY, label: COURSE_NAMES[p.current], lit: true, hint: 'CHOOSE SOMEWHERE ELSE' },
+      skipButton(p),
+    ].filter((b): b is HudButton => b !== null);
   }
   const out: HudButton[] = p.rows.map((c) => ({
     code: COURSE_KEYS[c.kind], label: c.what, ...(c.why === null ? {} : { note: c.why }),
@@ -97,6 +100,18 @@ export function courseButtonsFor(p: CoursePanel, chart: string | null): HudButto
   if (chart) out.push({ code: chart, label: 'GALACTIC CHART' });
   if (p.current !== null) out.push({ code: COURSE_TOGGLE_KEY, label: 'CLOSE' });
   return out;
+}
+
+/** The fast forward button, while a course flies (docs/TODO/205 M7). */
+function skipButton(p: CoursePanel): HudButton | null {
+  if (!p.skip) return null;
+  if (p.skip.on) {
+    return { code: COURSE_SKIP_KEY, label: 'FAST FORWARD IS ON', lit: true, hint: 'BACK TO NORMAL SPEED' };
+  }
+  return {
+    code: COURSE_SKIP_KEY, label: 'FAST FORWARD',
+    ...(p.skip.block === null ? { hint: `TIME RUNS ${SKIP_SPEED} TIMES FASTER` } : { note: p.skip.block }),
+  };
 }
 
 export class CockpitView {

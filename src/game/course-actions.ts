@@ -20,7 +20,9 @@ import { courseList, type Course, type CourseKind, type CourseSituation, type Co
 import type { checkJump } from './hyperspace.ts';
 import type { GameState } from './state.ts';
 import type { Input } from '../engine/input.ts';
-import { COURSE_KEYS, COURSE_TOGGLE_KEY } from './bindings.ts';
+import { COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY } from './bindings.ts';
+import { hostilesNear } from './hostility.ts';
+import { SKIP_SPEED } from '../constants/course.ts';
 
 /**
  * What the course buttons show in flight: the list, or the course under way.
@@ -29,6 +31,12 @@ import { COURSE_KEYS, COURSE_TOGGLE_KEY } from './bindings.ts';
 export interface CoursePanel {
   readonly rows: readonly Course[] | null;
   readonly current: CourseKind | null;
+  /**
+   * The fast forward button, while a course flies: whether it is on, and why
+   * it cannot start, or null when it can. Null for the whole field with no
+   * course.
+   */
+  readonly skip: { readonly on: boolean; readonly block: string | null } | null;
 }
 
 const KINDS = Object.keys(COURSE_KEYS) as CourseKind[];
@@ -54,6 +62,12 @@ export class CourseActions {
    * show, and never what the ship does, so no save carries it.
    */
   private opened = false;
+  /**
+   * The fast forward button is on (docs/TODO/205 M7). Like `opened`, it is
+   * how fast time passes for the player, and never what the world does. So no
+   * save carries it, and a restore starts at normal speed.
+   */
+  private skipping = false;
 
   constructor(state: () => GameState, host: CourseHost) {
     this.state = state;
@@ -69,7 +83,47 @@ export class CourseActions {
     return {
       rows: current === null || this.opened ? this.list('flight') : null,
       current,
+      skip: current === null ? null : { on: this.skipping, block: this.skipBlock() },
     };
+  }
+
+  /**
+   * How many fixed steps one screen frame runs: `SKIP_SPEED` under fast
+   * forward, and one otherwise. The Game's loop multiplies its time by it.
+   */
+  get speed(): number {
+    return this.skipping ? SKIP_SPEED : 1;
+  }
+
+  /**
+   * Why fast forward cannot run now, or null when it can. It runs only while a
+   * course flies, and only while the condition light is not red. So it
+   * shortens a wait, and it never flies a fight.
+   */
+  private skipBlock(): string | null {
+    const s = this.state();
+    if (s.session.course === null) return 'CHOOSE WHERE TO GO FIRST';
+    if (hostilesNear(s.world.npcs, s.player.position, s.commander.legalStatus,
+      s.player.position.distanceTo(s.world.station.position))) {
+      return 'NOT WITH A HOSTILE SHIP NEARBY';
+    }
+    return null;
+  }
+
+  /**
+   * After each step: fast forward stops by itself when it may no longer run.
+   * The console says why when a hostile ship is the reason.
+   *
+   * @internal — driven by src/game/game.ts, once per fixed step.
+   */
+  watchSkip(): void {
+    if (!this.skipping) return;
+    const block = this.skipBlock();
+    if (block === null) return;
+    this.skipping = false;
+    if (this.state().session.course !== null) {
+      this.host.showMessage('HOSTILE SHIP NEARBY — BACK TO NORMAL SPEED', 3);
+    }
   }
 
 
@@ -83,6 +137,14 @@ export class CourseActions {
     // The button that opens the list over a course, and closes it.
     if (i.pressed(COURSE_TOGGLE_KEY)) {
       this.opened = !this.opened;
+      return;
+    }
+    // The fast forward button. A second press stops it.
+    if (i.pressed(COURSE_SKIP_KEY)) {
+      const block = this.skipBlock();
+      if (this.skipping) this.skipping = false;
+      else if (block === null) this.skipping = true;
+      else { this.host.showMessage(block, 3); this.host.refused(); }
       return;
     }
     for (const kind of KINDS) {
