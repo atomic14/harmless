@@ -1,4 +1,5 @@
 import { CARRY_LIMIT } from '../constants/world-clock.ts';
+import { attachTouch } from './touch.ts';
 
 // Keyboard state with frame-oriented semantics:
 //  - held(codes): live keydown state — every continuous control, the trigger
@@ -73,6 +74,12 @@ export class Input {
    * held overrides it, and `flightDemand` ramps toward it otherwise.
    */
   wantedSpeed: number | null = null;
+  /**
+   * A steering finger is down, so the stick holds its deflection and
+   * `decayMouse` waits (docs/TODO/204 M2). A still mouse decays; a still
+   * finger does not.
+   */
+  stickHeld = false;
   private readonly canvas: HTMLElement | null;
 
   constructor() {
@@ -85,6 +92,10 @@ export class Input {
       return;
     }
     this.canvas = document.getElementById('scene');
+    // The touch overlay, where the page has one (docs/TODO/204 M2). It is the
+    // same bargain as the listeners below: platform wiring, here and nowhere
+    // else, and nothing when the page has no overlay.
+    attachTouch(this, document);
     document.addEventListener('pointerlockchange', () => {
       this.mouseFlight = document.pointerLockElement === this.canvas;
       if (!this.mouseFlight) {
@@ -232,8 +243,9 @@ export class Input {
     if (this.mouseFlight) document.exitPointerLock();
   }
 
-  /** The stick centres itself: with no input, it eases back to neutral. */
+  /** The stick centres itself: with no input, it eases back to neutral. A held finger stops it. */
   decayMouse(dt: number): void {
+    if (this.stickHeld) return;
     const k = Math.max(0, 1 - dt * 1.5);
     this.mouseX *= k;
     this.mouseY *= k;

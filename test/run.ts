@@ -169,6 +169,7 @@ import './screen-buttons.test.ts';
 import './key-prose.test.ts';
 import './site-footer.test.ts';
 import './input.test.ts';
+import './touch.test.ts';
 import './hud-binding.test.ts';
 import './console-plate.test.ts';
 import './elapsed-day.test.ts';

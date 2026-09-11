@@ -29,6 +29,16 @@
       </div>
       <div id="message"></div>
       <!--
+        Flying by touch (docs/TODO/204). The overlay covers the view above the
+        console: a drag on it steers, FIRE holds the trigger, and the slider
+        sets the speed. engine/touch.ts binds it, and it shows only on a
+        coarse pointer, and never while a screen is open.
+      -->
+      <div id="touch">
+        <div id="touch-throttle"><div id="touch-throttle-knob"></div></div>
+        <div id="touch-fire">FIRE</div>
+      </div>
+      <!--
         What a key can do about what is happening right now — see
         game/prompts.ts, which decides WHICH commands, and game.ts, which puts
         the bound key in front of each. A line of its own rather than the
