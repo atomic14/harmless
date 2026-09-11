@@ -41,7 +41,8 @@ import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
 import {
   COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
   COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF, COURSE_PLANET_CLEARANCE,
-  COURSE_RUN_REACH, COURSE_SKIM_DISTANCE, COURSE_TORUS_CONE, COURSE_TORUS_DROP,
+  COURSE_COLLECT_SPEED, COURSE_RUN_REACH, COURSE_SKIM_DISTANCE, COURSE_TORUS_CONE,
+  COURSE_TORUS_DROP,
 } from '../constants/course.ts';
 
 /** What the course pilot reads for one frame. A flat view, so a test needs no world. */
@@ -66,6 +67,8 @@ export interface CourseView {
   readonly tankFull: boolean;
   /** where the hostile ships on the scanner are, for the run course */
   readonly threats: readonly THREE.Vector3[];
+  /** where the cargo adrift within scanner range is, nearest first */
+  readonly loot: readonly THREE.Vector3[];
   /** the docking computer already has the ship */
   readonly dcEngaged: boolean;
 }
@@ -127,6 +130,16 @@ export class CoursePilot {
         return { ...s, done: false };
       }
       case 'run': return v.threats.length === 0 ? ended() : this.run(v, dt);
+      case 'collect': {
+        const next = v.loot[0];
+        if (next === undefined) return ended();
+        // Fly onto it. The scoop takes it aboard inside `SCOOP_RANGE`, and
+        // the next one is then the nearest (docs/TODO/206 M6).
+        return { ...this.arrive(v, { target: next, standoff: 0, speed: COURSE_COLLECT_SPEED }, dt), done: false };
+      }
+      // A rock is fought, not flown to: `flight-instruments.ts` picks the next
+      // one as the target, and the computer's aim lines the ship up on it.
+      case 'mine': return IDLE;
       default: return IDLE;
     }
   }

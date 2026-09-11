@@ -167,3 +167,17 @@ export const RUN_CLOSE_MARGIN = 50;
  * @domain course
  */
 export const COURSE_RUN_REACH = 50_000;
+
+/**
+ * How fast the collect course flies onto a canister, in world units a second
+ * (docs/TODO/206 M6).
+ *
+ * The scoop takes a canister inside `SCOOP_RANGE`, which is 45 units. At this
+ * speed the ship covers that in more than half a second, so the scoop has
+ * frames to catch it. A canister drifts, and the course arrives at the speed
+ * the drift needs rather than at a stop.
+ *
+ * @rule course.collectSpeed
+ * @domain course
+ */
+export const COURSE_COLLECT_SPEED = 60;

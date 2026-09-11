@@ -25,6 +25,8 @@ import { CoursePilot } from './course-pilot.ts';
 import type { CourseKind } from './courses.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 import { hostilesOnScanner } from './hostility.ts';
+import { pickTarget, pickedTarget } from './targets.ts';
+import { SCANNER_RANGE } from '../constants/console.ts';
 
 /**
  * What the console says when a course finishes its work. The hermit course
@@ -34,6 +36,8 @@ const COURSE_ENDS: Partial<Record<CourseKind, string>> = {
   derelict: 'ARRIVED AT THE DERELICT SHIP',
   skim: 'FUEL TANK FULL',
   run: 'YOU GOT AWAY',
+  mine: 'NO ROCKS LEFT WITHIN RANGE',
+  collect: 'EVERYTHING IS ABOARD',
 };
 import { massLocked } from './world-step.ts';
 import { boundKey } from '../ui/key-help.ts';
@@ -140,6 +144,12 @@ export class Instruments {
     }
     const p = this.state.player;
     const w = this.state.world;
+    // The mining course fights the rocks: it picks the next one, and the
+    // computer's aim lines the ship up on it (docs/TODO/206 M6).
+    if (s.course === 'mine' && !this.aimAtNextRock()) {
+      this.endCourse('mine');
+      return null;
+    }
     const live = (role: string) => w.npcs.find((n) => n.state.alive && n.role === role) ?? null;
     const derelict = live('generation');
     const step = this.coursePilot.step({
@@ -157,6 +167,10 @@ export class Instruments {
       derelictSpeed: derelict?.state.speed ?? 0,
       hermitPos: live('hermit')?.object.position ?? null,
       tankFull: this.state.commander.fuel >= MAX_FUEL,
+      loot: w.cargo.items
+        .map((c) => c.object.position)
+        .filter((at) => at.distanceTo(p.position) <= SCANNER_RANGE)
+        .sort((a, b) => a.distanceTo(p.position) - b.distanceTo(p.position)),
       threats: hostilesOnScanner(w.npcs, p.position, this.state.commander.legalStatus,
         p.position.distanceTo(w.station.position)).map((n) => n.object.position),
       dcEngaged: s.dcEngaged,
@@ -165,6 +179,26 @@ export class Instruments {
     if (step.torus !== s.torusEngaged && (!step.torus || !this.massLocked())) this.toggleTorus();
     if (step.done) this.endCourse(s.course);
     return step.demand;
+  }
+
+  /**
+   * The mining course keeps a rock picked as the target, so the computer aims
+   * at it and the pilot fires.
+   *
+   * @returns false when no rock is left within scanner range.
+   */
+  private aimAtNextRock(): boolean {
+    const { player, world } = this.state;
+    if (pickedTarget(world.npcs)?.role === 'asteroid') return true;
+    const rocks = world.npcs
+      .filter((n) => n.state.alive && n.role === 'asteroid'
+        && n.object.position.distanceTo(player.position) <= SCANNER_RANGE)
+      .sort((a, b) => a.object.position.distanceTo(player.position)
+        - b.object.position.distanceTo(player.position));
+    if (rocks.length === 0) return false;
+    pickTarget(world.npcs, rocks[0]);
+    this.state.session.handFlown = false;
+    return true;
   }
 
   /**

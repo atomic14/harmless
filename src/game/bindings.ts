@@ -54,6 +54,7 @@ export const COURSE_KEYS: Readonly<Record<CourseKind, string>> = {
   hermit: 'VirtCourseHermit',
   skim: 'VirtCourseSkim',
   run: 'VirtCourseRun',
+  collect: 'VirtCourseCollect',
 };
 
 /** The launch list's row for the galactic chart, where a pilot sets a target. */

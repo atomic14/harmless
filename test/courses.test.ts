@@ -30,6 +30,7 @@ const world = (over: Partial<CourseWorld> = {}): CourseWorld => ({
   mission: null,
   done: new Set(),
   threat: null,
+  loot: 0,
   ...over,
 });
 

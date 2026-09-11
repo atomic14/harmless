@@ -74,9 +74,11 @@ export function actionButtonsFor(a: ActionSource): HudButton[] {
   const t = a.targets;
   if (t && t.open) {
     for (const { code, row } of t.rows) {
+      const reach = row.range <= LASER_RANGE ? 'IN LASER RANGE' : 'OUT OF LASER RANGE';
       out.push({
         code, label: row.name, lit: row.picked,
-        hint: `${row.standing} · ${row.range <= LASER_RANGE ? 'IN LASER RANGE' : 'OUT OF LASER RANGE'}`,
+        // A rock's name IS its standing, so the hint says the range alone.
+        hint: row.name === row.standing ? reach : `${row.standing} · ${reach}`,
         ...(row.cost ? { note: row.cost } : {}),
       });
     }
@@ -84,7 +86,7 @@ export function actionButtonsFor(a: ActionSource): HudButton[] {
   }
   if (t && (t.rows.length > 0 || t.open)) {
     out.push({
-      code: TARGETS_KEY, label: t.open ? 'CLOSE THE TARGETS' : 'TARGETS',
+      code: TARGETS_KEY, label: t.open ? 'CLOSE THE LIST' : 'TARGETS',
       hint: t.picked ? `AIMING AT THE ${t.picked.name}` : 'CHOOSE WHAT TO FIGHT',
     });
   }

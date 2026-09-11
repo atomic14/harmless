@@ -127,7 +127,9 @@ export const NPC_HULL_BOX_MARGIN = HULL_BOX_MARGIN;
 export const SLOT_HALF_ACROSS = 26;
 export const SLOT_HALF_ALONG = 62;
 
-/** How far into the -Z face puts a ship in the channel, in world units. */
+/** How far into the -Z face puts a ship in the channel, in world units.  *
+ * @rule docking.slotDepth
+*/
 export const SLOT_DEPTH = 60;
 
 /**

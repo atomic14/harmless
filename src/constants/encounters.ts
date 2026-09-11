@@ -19,7 +19,9 @@
  */
 export const TRADER_GAP = 100;
 
-/** ...and the jitter on top, drawn flat, so the lane never runs to a metronome. */
+/** ...and the jitter on top, drawn flat, so the lane never runs to a metronome.  *
+ * @rule encounters.traderGapJitter
+*/
 export const TRADER_GAP_JITTER = 60;
 
 /**
@@ -71,7 +73,9 @@ export const TRADER_GAP_FIRST_JITTER = 40;
  * them. It is also the first wave's countdown when you arrive. It is one number,
  * because the first wave is the ladder's bottom rung, with no government term and
  * no jitter.
- */
+  *
+ * @rule encounters.pirateWaveGap
+*/
 export const PIRATE_WAVE_GAP = 60;
 
 /**

@@ -272,3 +272,21 @@ Evidence:
 - **Four older constants at 50 and at 8 took their own rule IDs**, as the
   constants gate asks of a repeated value.
 - **The suite has 5,791 assertions,** from 5,774.
+
+### M6
+
+- **COLLECT EVERYTHING flies onto each canister, nearest first.** It shows
+  only with a clear scanner, because a ship that stops to scoop in a fight is
+  a target. Without fuel scoops the row says so, and the course does not fly.
+- **MINE THE ASTEROIDS is a fight, so the course steps aside.** It keeps the
+  nearest rock picked as the target. The computer then lines the ship up, and
+  the pilot fires. When no rock is left within scanner range, the course ends.
+- **The ore has to be collected, and a held trigger destroys it.** The test
+  found that: it kept firing after the rock broke, and the laser shot the ore
+  adrift. That is the game's own rule, and a pilot meets it too.
+- **A rock has no name, and the browser run showed the blank.** A ship with
+  no name of its own is called what it is, such as ASTEROID. Its row then
+  says the range alone, because the name and the standing are the same word.
+- **Four older constants at 60 took their own rule IDs**, as the constants
+  gate asks.
+- **The suite has 5,804 assertions,** from 5,791.

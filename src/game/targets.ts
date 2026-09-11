@@ -69,12 +69,14 @@ export function targetList(v: TargetView): TargetRow[] {
       && (n.state.targeted || n.object.position.distanceTo(v.playerPos) <= SCANNER_RANGE))
     .map((ship) => {
       const hostile = isHostileToPlayer(ship, v.legalStatus, v.playerToStation);
+      const standing = hostile ? 'HOSTILE' : STANDING[ship.role] ?? 'SHIP';
       return {
         row: {
           ship,
-          name: ship.object.name.toUpperCase(),
+          // A rock carries no name of its own, so it is called what it is.
+          name: (ship.object.name || STANDING[ship.role] || 'SHIP').toUpperCase(),
           range: ship.object.position.distanceTo(v.playerPos),
-          standing: hostile ? 'HOSTILE' : STANDING[ship.role] ?? 'SHIP',
+          standing,
           cost: costOf(ship.role),
           picked: ship.state.targeted,
         },

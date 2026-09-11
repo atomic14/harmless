@@ -36,7 +36,8 @@ import { RUN_CLOSE_MARGIN } from '../constants/course.ts';
 
 /** What the ship can do by itself. */
 export type CourseKind =
-  'jump' | 'mission' | 'station' | 'derelict' | 'mine' | 'hermit' | 'skim' | 'run';
+  'jump' | 'mission' | 'station' | 'derelict' | 'mine' | 'hermit' | 'skim' | 'run'
+  | 'collect';
 
 /**
  * When the list is asked for. At a launch the ship is still on the pad, and
@@ -57,6 +58,7 @@ export const COURSE_NAMES: Readonly<Record<CourseKind, string>> = {
   hermit: 'HEADING TO THE ROCK HERMIT',
   skim: 'SKIMMING THE STAR FOR FUEL',
   run: 'RUNNING FOR IT',
+  collect: 'COLLECTING THE CARGO',
 };
 
 /** One row of the list. */
@@ -94,6 +96,8 @@ export interface CourseWorld {
    * hostile ship on the scanner.
    */
   readonly threat: { readonly fastest: number; readonly own: number } | null;
+  /** how many canisters and capsules drift within scanner range */
+  readonly loot: number;
 }
 
 /**
@@ -115,6 +119,7 @@ export function courseList(w: CourseWorld): Course[] {
     w.witchspace ? null : { kind: 'station', what: 'FLY TO THE STATION', why: null } as const,
     present(w, 'generation', 'derelict')
       ? { kind: 'derelict', what: 'INVESTIGATE THE DERELICT SHIP', why: null } as const : null,
+    collectRow(w),
     mineRow(w, false),
     present(w, 'hermit', 'hermit')
       ? { kind: 'hermit', what: 'VISIT THE ROCK HERMIT', why: null } as const : null,
@@ -169,6 +174,21 @@ const JUMP_WHY: Readonly<Record<Refusal, string>> = {
   noFuel: 'NOT ENOUGH FUEL TO GET THERE',
   alreadyJumping: 'THE JUMP HAS STARTED',
 };
+
+/**
+ * The cargo adrift within scanner range (docs/TODO/206 M6). It shows only
+ * with a clear scanner, because a ship that stops to scoop in a fight is a
+ * target. The scoops are what take a canister aboard. Without them a canister
+ * breaks on the hull (`world-step.ts`), so the row says what the ship needs.
+ */
+function collectRow(w: CourseWorld): Course | null {
+  if (w.loot === 0 || w.threat !== null) return null;
+  return {
+    kind: 'collect',
+    what: w.loot === 1 ? 'COLLECT THE CARGO' : 'COLLECT EVERYTHING',
+    why: w.commander.equipment.scoops ? null : 'NEEDS FUEL SCOOPS',
+  };
+}
 
 /**
  * The rocks. The ore needs a mining laser to cut it and fuel scoops to take it

@@ -23,6 +23,7 @@ import type { Input } from '../engine/input.ts';
 import { COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY } from './bindings.ts';
 import { hostilesNear, hostilesOnScanner } from './hostility.ts';
 import { SKIP_SPEED } from '../constants/course.ts';
+import { SCANNER_RANGE } from '../constants/console.ts';
 
 /**
  * What the course buttons show in flight: the list, or the course under way.
@@ -202,6 +203,8 @@ export class CourseActions {
       mission: null,
       done: new Set(s.session.coursesDone),
       threat: situation === 'launch' ? null : this.threat(),
+      loot: situation === 'launch' ? 0 : s.world.cargo.items
+        .filter((c) => c.object.position.distanceTo(s.player.position) <= SCANNER_RANGE).length,
     };
   }
 
