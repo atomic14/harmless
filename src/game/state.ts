@@ -159,6 +159,7 @@ export function freshSession(): SessionState {
     course: null,
     coursesDone: [],
     handFlown: false,
+    dockTrial: false,
   };
 }
 

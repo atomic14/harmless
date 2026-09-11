@@ -322,6 +322,7 @@ export class Flight {
     if (this.input.mouseFlight) this.input.decayMouse(dt);
     // A fight gives every pilot the computer's aim (docs/TODO/206 M2).
     this.instruments.autoEngage();
+    this.instruments.watchDockTrial();
     // A picked course flies when no co-pilot does (docs/TODO/205 M3). The
     // trigger stays the pilot's, as it does under the co-pilot.
     if (!this.state.session.ccEngaged) {

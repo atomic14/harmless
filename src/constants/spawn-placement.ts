@@ -279,7 +279,9 @@ export const STATION_DEFENCE_STANDOFF = 500;
 /**
  * ...and how much further out each one after it starts, so a pair does not arrive
  * inside each other. It is three times a Viper's 18.75 contact radius.
- */
+  *
+ * @rule spawn.stationDefenceStack
+*/
 export const STATION_DEFENCE_STACK = 120;
 
 /**

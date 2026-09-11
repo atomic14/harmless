@@ -32,7 +32,7 @@ import * as THREE from 'three';
 
 import {
   GATE_HALF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN,
-  SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE,
+  SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE, SLOT_SPEED_LIMIT,
 } from '../constants/docking.ts';
 import { slotNormal } from '../world/slot.ts';
 import { dockPath, makeDockPath } from './dock-path.ts';
@@ -229,12 +229,19 @@ export type DockingOutcome =
   | 'docked'
   /** in the channel but rolled wrong */
   | 'slotMiss'
+  /** in the channel, lined up, and going too fast to be taken (docs/TODO/207) */
+  | 'tooFast'
   /** flew into the hull */
   | 'hull';
 
 /**
- * Where a ship is relative to the slot.
+ * Where a ship is relative to the slot, and whether the slot will take it.
  *
+ * The slot asks two things of a ship in the channel: the roll, and the speed
+ * (docs/TODO/207 M3). It is one answer, so the caller cannot hold half of the
+ * rule.
+ *
+ * @param speed how fast the ship is going, against `SLOT_SPEED_LIMIT`
  * @param scratch a Vector3 and a Quaternion to work in; this runs every frame.
  */
 export function dockingOutcome(
@@ -242,6 +249,7 @@ export function dockingOutcome(
   quat: THREE.Quaternion,
   station: THREE.Object3D,
   dockZ: number,
+  speed: number,
   scratch: { v: THREE.Vector3; q: THREE.Quaternion; r: THREE.Vector3 },
 ): DockingOutcome {
   const box = dockZ + HULL_BOX_MARGIN;
@@ -256,5 +264,6 @@ export function dockingOutcome(
 
   scratch.q.copy(station.quaternion).invert().multiply(quat);
   const right = scratch.r.set(1, 0, 0).applyQuaternion(scratch.q);
-  return rollAlignedWithSlot(right.x, right.y) ? 'docked' : 'slotMiss';
+  if (!rollAlignedWithSlot(right.x, right.y)) return 'slotMiss';
+  return speed > SLOT_SPEED_LIMIT ? 'tooFast' : 'docked';
 }

@@ -191,9 +191,11 @@ const OUTSIDE: readonly Group[] = [
       + ' here). The conversion is done at the call site rather than by adding a'
       + ' second spelling of amber to the palette. Its `ZERO` scratch vector went'
       + ' with the docking computer\'s `lookAt` (docs/TODO/126): the autopilot builds'
-      + ' no orientation of its own any more, so there is nothing to look FROM',
+      + ' no orientation of its own any more, so there is nothing to look FROM.'
+      + ' `SCRAPE_SAID` is words rather than a number: what the console says'
+      + ' about a dock that did not take (docs/TODO/207 M3)',
     files: {
-      'game/world-step.ts': ['WARHEAD_FLASH'],
+      'game/world-step.ts': ['WARHEAD_FLASH', 'SCRAPE_SAID'],
     },
   },
 

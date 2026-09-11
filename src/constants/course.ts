@@ -181,3 +181,17 @@ export const COURSE_RUN_REACH = 50_000;
  * @domain course
  */
 export const COURSE_COLLECT_SPEED = 60;
+
+/**
+ * How far from the station the station course hands the ship to the pilot,
+ * in world units (docs/TODO/207 M1).
+ *
+ * A ship with a docking computer is handed to that computer further out, at
+ * `DOCK_COMPUTER_RANGE`. A pilot flies the last stretch, and 1,500 units is
+ * about four seconds at the speed the approach arrives with. The concepts
+ * page of 2026-09-11 started its trial here, and Chris picked one of them.
+ *
+ * @rule course.dockHandover
+ * @domain course
+ */
+export const COURSE_DOCK_HANDOVER = 1500;

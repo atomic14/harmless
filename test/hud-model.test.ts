@@ -191,7 +191,7 @@ console.log('\ndocking port marker');
   // refuses. Restore `port` to `inSlot ? 'lined' : 'off'` and this goes red.
   const rolled = pose(0, ROLL_TOLERANCE + 0.05);
   const outcome = dockingOutcome(
-    rolled.pos, rolled.quat, station, DOCK_Z,
+    rolled.pos, rolled.quat, station, DOCK_Z, 0,
     { v: new THREE.Vector3(), q: new THREE.Quaternion(), r: new THREE.Vector3() });
   const aid = aidAt(0, ROLL_TOLERANCE + 0.05);
   check('the pose the old marker called LINED UP is the one the slot refuses',

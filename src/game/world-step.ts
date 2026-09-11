@@ -50,7 +50,7 @@ import {
   PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN, THARGON_DEPLOY_RANGE,
   TRADER_ARRIVAL_RANGE,
 } from '../constants/spawn-placement.ts';
-import { planDocking, dockingOutcome } from './docking.ts';
+import { planDocking, dockingOutcome, type DockingOutcome } from './docking.ts';
 import { dockingSticks } from './docking-sticks.ts';
 import { NPC_HULL_BOX_MARGIN } from '../constants/docking.ts';
 import { BOUNCE_STANDOFF } from '../constants/station.ts';
@@ -230,6 +230,13 @@ export interface PilotInput {
  * Holds the state, the missiles and the host — and its own scratch vectors, so
  * stepping at 60Hz allocates nothing.
  */
+/** What the console says about a dock that did not take (docs/TODO/207 M3). */
+const SCRAPE_SAID: Partial<Record<DockingOutcome, string>> = {
+  slotMiss: 'DOCKING FAILURE — MATCH THE SLOT ROTATION',
+  tooFast: 'TOO FAST FOR THE SLOT — SLOW DOWN AND TRY AGAIN',
+  hull: 'COLLISION',
+};
+
 export class WorldStep {
   private readonly state: GameState;
   private readonly ordnance: Ordnance;
@@ -298,7 +305,8 @@ export class WorldStep {
     // used to write the quaternion after the fact. So the demand is decided
     // before the ship flies, rather than applied on top of it. Where it hands
     // the ship back mid-frame, the pilot's own demand stands, as before.
-    const dc = session.dcEngaged ? this.dockingComputerStep(dt, pilot, out) : null;
+    const dc = session.dcEngaged ? this.dockingComputerStep(dt, pilot, out)
+      : session.dockTrial ? this.dockTrialStep(dt, pilot) : null;
     player.update(dt, dc ?? pilot.demand);
 
     // torus drive
@@ -369,6 +377,31 @@ export class WorldStep {
       fire: pilot.demand.fire,
       // ...and it must not sail past the plan's speed while accelerating to it.
       limits: { accel: PLAYER_FLIGHT.accel, maxSpeed: Math.max(1, plan.speed) },
+    };
+  }
+
+  /**
+   * One frame of the pilot's own stretch of the approach (docs/TODO/207).
+   *
+   * The computer holds the ship on the slot axis, which is the pitch. The
+   * pilot owns the roll and the throttle. The slot asks for those two things:
+   * the station's spin, and a speed it will take.
+   *
+   * It is the docking computer's own plan, with two of its three sticks given
+   * back. So the ship follows the same curve to the letterbox, and the last
+   * of the manoeuvre is the pilot's.
+   */
+  private dockTrialStep(dt: number, pilot: PilotInput): FlightDemand {
+    const { player, world } = this.state;
+    const plan = planDocking(player.position, world.station, world.stationDockZ,
+      player.maxSpeed, this.state.dockPlan);
+    const sticks = dockingSticks(player.quaternion, plan, player.rollRate);
+    return {
+      pitchRate: rampFlightRate(
+        player.pitchRate, sticks.pitch * PLAYER_FLIGHT.maxPitch, sticks.pitch !== 0, dt),
+      rollRate: pilot.demand.rollRate,
+      throttle: pilot.demand.throttle,
+      fire: pilot.demand.fire,
     };
   }
 
@@ -815,14 +848,14 @@ export class WorldStep {
   }
 
   /**
-   * Are we down, bounced, or clear? The geometry is docking.ts's; what it
-   * costs is ours.
+   * Are we down, bounced, or clear? The rule is docking.ts's; what it costs is
+   * ours.
    */
   private checkStation(out: StepEvent[]): void {
     const { player, world } = this.state;
     const station = world.station;
     const outcome = dockingOutcome(
-      player.position, player.quaternion, station, world.stationDockZ,
+      player.position, player.quaternion, station, world.stationDockZ, player.speed,
       { v: this.tmp, q: this.tmpQ, r: this.tmp2 });
     if (outcome === 'clear') return;
     if (outcome === 'docked') {
@@ -835,8 +868,7 @@ export class WorldStep {
     player.speed = 0;
     this.host.applyPlayerDamage(
       playerImpactDamage(IMPACT.stationScrape), station.position, 'station');
-    out.push(say(
-      outcome === 'slotMiss' ? 'DOCKING FAILURE — MATCH SLOT ROTATION' : 'COLLISION', 3));
+    out.push(say(SCRAPE_SAID[outcome] ?? 'COLLISION', 3));
   }
 
   /** While armed, lock onto whatever enters the sight. Ordnance reports; we say it. */

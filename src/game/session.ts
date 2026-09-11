@@ -104,6 +104,12 @@ export interface SessionState {
    * decides who flies.
    */
   handFlown: boolean;
+  /**
+   * The pilot flies the last of the approach (docs/TODO/207). The computer
+   * holds the ship on the slot axis, and the pilot matches the station's spin
+   * and the speed. It is saved, because it decides who flies.
+   */
+  dockTrial: boolean;
 }
 
 /**
@@ -114,6 +120,7 @@ export function endVisit(state: SessionState): void {
   state.course = null;
   state.coursesDone = [];
   state.handFlown = false;
+  state.dockTrial = false;
 }
 
 /** Put a message in canonical state; the HUD only paints these fields. */

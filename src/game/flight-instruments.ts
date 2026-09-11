@@ -27,6 +27,8 @@ import { MAX_FUEL } from '../constants/commander.ts';
 import { hostilesOnScanner } from './hostility.ts';
 import { pickTarget, pickedTarget } from './targets.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
+import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
+import { COURSE_DOCK_HANDOVER } from '../constants/course.ts';
 
 /**
  * What the console says when a course finishes its work. The hermit course
@@ -174,11 +176,51 @@ export class Instruments {
       threats: hostilesOnScanner(w.npcs, p.position, this.state.commander.legalStatus,
         p.position.distanceTo(w.station.position)).map((n) => n.object.position),
       dcEngaged: s.dcEngaged,
+      handOverRange: this.state.commander.equipment.dockingComputer
+        ? DOCK_COMPUTER_RANGE : COURSE_DOCK_HANDOVER,
     }, dt);
-    if (step.handOver) this.applyAutopilot(this.autopilot.handOverToDock());
+    if (step.handOver) this.handOver();
     if (step.torus !== s.torusEngaged && (!step.torus || !this.massLocked())) this.toggleTorus();
     if (step.done) this.endCourse(s.course);
     return step.demand;
+  }
+
+  /**
+   * The station course reaches the hand-over, and the ship changes hands
+   * (docs/TODO/207 M1).
+   *
+   * With a docking computer fitted, that computer flies the slot, as it does
+   * today. Without one, the pilot flies the last stretch. The computer holds
+   * the ship on the slot axis. The pilot matches the station's spin, and the
+   * speed.
+   */
+  private handOver(): void {
+    const s = this.state.session;
+    if (this.state.commander.equipment.dockingComputer) {
+      this.applyAutopilot(this.autopilot.handOverToDock());
+      return;
+    }
+    s.dockTrial = true;
+    s.course = null;
+    this.coursePilot.reset();
+    this.host.showMessage('YOU HAVE THE SLOT — MATCH ITS SPIN AND GO IN SLOWLY', 5);
+  }
+
+  /**
+   * The pilot's stretch ends when the ship leaves the docking computer's
+   * range, which is the width of the whole approach. The course list then
+   * offers the station again.
+   *
+   * @internal — driven by src/game/flight.ts, once per fixed step.
+   */
+  watchDockTrial(): void {
+    const s = this.state.session;
+    if (!s.dockTrial) return;
+    const out = this.state.player.position
+      .distanceTo(this.state.world.station.position) > DOCK_COMPUTER_RANGE;
+    if (!out) return;
+    s.dockTrial = false;
+    this.host.showMessage('THE STATION IS BEHIND YOU', 3);
   }
 
   /**

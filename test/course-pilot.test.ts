@@ -19,6 +19,7 @@ import { MAX_FUEL } from '../src/constants/commander.ts';
 import { SPAWN_PLANET_ALTITUDE } from '../src/constants/spawn-placement.ts';
 import { aboveGround } from '../src/game/spawning.ts';
 import { DOCK_COMPUTER_RANGE } from '../src/constants/docking-computer.ts';
+import { COURSE_DOCK_HANDOVER } from '../src/constants/course.ts';
 import { MASS_LOCK_STATION } from '../src/constants/torus.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
@@ -43,6 +44,7 @@ const view = (station: THREE.Vector3, over: Partial<CourseView> = {}): CourseVie
   threats: [],
   loot: [],
   dcEngaged: false,
+  handOverRange: DOCK_COMPUTER_RANGE,
   ...over,
 });
 
@@ -95,7 +97,11 @@ function arrived(seed: number): Game {
 }
 
 {
+  // A fitted docking computer flies the slot, as it does today. Without one,
+  // the course hands the ship to the pilot instead (docs/TODO/207 M1), and
+  // the block below flies that.
   const g = arrived(20_260_911);
+  g.state.commander.equipment.dockingComputer = true;
   const start = g.state.player.position.distanceTo(g.state.world.station.position);
   check('the ship starts far outside the station\'s mass lock', start > MASS_LOCK_STATION * 4,
     `${Math.round(start)} units`);
@@ -117,11 +123,28 @@ function arrived(seed: number): Game {
     }
   });
   check('the course ran the torus on the way in', torusSeen);
-  check('...it handed over inside the docking computer\'s range, with none fitted',
+  check('...it handed over inside the docking computer\'s range',
     handOverAt > 0 && handOverAt <= DOCK_COMPUTER_RANGE + 50, `${Math.round(handOverAt)} units`);
   check('...and the ship docked inside three minutes, with no hand on the stick',
     dockedAt > 0 && g.mode === 'docked', `mode ${g.mode}, ${dockedAt.toFixed(1)} s`);
   eq('...and the dock ends the visit, so no course is left', g.state.session.course, null);
+}
+
+console.log('\nwith no docking computer, the course hands the slot to the pilot');
+{
+  const g = arrived(20_260_935);
+  g.state.session.course = 'station';
+  const dt = 1 / 60;
+  withoutSaving(() => {
+    for (let f = 0, at = 0; f < 240 / dt && !g.state.session.dockTrial; f++) g.step(dt, at += dt);
+  });
+  const range = g.state.player.position.distanceTo(g.state.world.station.position);
+  check('the course flies the ship in and hands it over', g.state.session.dockTrial,
+    `${Math.round(range)} units out`);
+  check('...at the hand-over range', Math.abs(range - COURSE_DOCK_HANDOVER) < 200,
+    `${Math.round(range)} units out`);
+  eq('...and the course is over, because the ship is the pilot\'s now',
+    g.state.session.course, null);
 }
 
 console.log('\n...and a flight key takes the ship back');
@@ -230,6 +253,7 @@ console.log('\nthe star course');
 console.log('\nthe station course goes round a planet in its way');
 {
   const g = arrived(20_260_914);
+  g.state.commander.equipment.dockingComputer = true;
   const w = g.state.world;
   // Put the planet square between the ship and the station.
   const through = w.station.position.clone().sub(w.planetPos).normalize();

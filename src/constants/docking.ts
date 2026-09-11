@@ -142,3 +142,24 @@ export const SLOT_DEPTH = 60;
  * measure again if this tolerance or the half-widths above ever move.
  */
 export const ROLL_TOLERANCE = 0.65;
+
+/**
+ * How fast a ship may be going when it reaches the slot, in world units a
+ * second (docs/TODO/207 M3).
+ *
+ * The slot took any speed at all until now, and the dock was a test of the
+ * roll alone. A pilot flies the last stretch since 207, so the speed is the
+ * second half of the manoeuvre. The docking computer settles at 110 on its
+ * own approach (`planDocking`), so it keeps 10 units a second of room.
+ *
+ * `LAUNCH_SPEED` is also 120, and the two rules are independent. That one is
+ * the push a station gives a ship on the way out.
+ *
+ * It belongs here, with the rest of the slot's rules, and not with the flight
+ * envelopes. The slot decides what it will take, and `dockingOutcome` next
+ * door is the one reader.
+ *
+ * @rule docking.slotSpeedLimit
+ * @domain docking
+ */
+export const SLOT_SPEED_LIMIT = 120;

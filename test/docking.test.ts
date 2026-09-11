@@ -60,7 +60,7 @@ console.log('\ndocking thresholds');
   const quarter = new THREE.Quaternion()
     .setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2);
   const at = (x: number, y: number, z: number, q = quarter): DockingOutcome =>
-    dockingOutcome(new THREE.Vector3(x, y, z), q, station, DOCK_Z, scratch);
+    dockingOutcome(new THREE.Vector3(x, y, z), q, station, DOCK_Z, 0, scratch);
 
   const cube = bisect(DOCK_Z, DOCK_Z + 200, (x) => at(x, 0, 0) !== 'clear');
   check(`the bounding cube ends at dockZ + HULL_BOX_MARGIN (${cube.toFixed(3)})`,

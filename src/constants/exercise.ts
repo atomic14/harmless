@@ -84,7 +84,9 @@ export const IN_VIEW_DEG = 20;
 /** Where the exercise starts you, as a fraction of the ship's top speed. */
 export const ENTRY_THROTTLE = 0.25;
 
-/** Seconds a scenario exercise may run before it times out. */
+/** Seconds a scenario exercise may run before it times out.  *
+ * @rule exercise.scenarioTimeout
+*/
 export const SCENARIO_TIMEOUT = 120;
 
 /**

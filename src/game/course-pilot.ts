@@ -37,7 +37,6 @@ import { rampFlightRate, type FlightDemand } from '../player.ts';
 import { bankToTurn, freshSteerMemory, type SteerMemory } from './pitch-roll-steer.ts';
 import type { CourseKind } from './courses.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
-import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
 import {
   COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
   COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF, COURSE_PLANET_CLEARANCE,
@@ -71,6 +70,11 @@ export interface CourseView {
   readonly loot: readonly THREE.Vector3[];
   /** the docking computer already has the ship */
   readonly dcEngaged: boolean;
+  /**
+   * How near the station the station course hands the ship over. A fitted
+   * docking computer takes the job from further out than a pilot does.
+   */
+  readonly handOverRange: number;
 }
 
 /** What the course pilot asks for this frame. */
@@ -166,7 +170,7 @@ export class CoursePilot {
    */
   private toStation(v: CourseView, dt: number): CourseStep {
     if (v.dcEngaged) return IDLE;
-    if (v.position.distanceTo(v.stationPos) <= DOCK_COMPUTER_RANGE) {
+    if (v.position.distanceTo(v.stationPos) <= v.handOverRange) {
       return { demand: null, torus: false, handOver: true, done: false };
     }
     const aim = clearOfPlanet(v.position, v.stationPos, v.planetPos, v.planetRadius, this.aim);

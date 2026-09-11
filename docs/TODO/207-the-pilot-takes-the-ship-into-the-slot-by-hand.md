@@ -148,3 +148,28 @@ Evidence:
 - A test drives the control of M2 headlessly into a clean dock, and into a
   bounce for each cause.
 - Chris docks on his phone.
+
+## What the milestones found
+
+### M1 and M3
+
+- **The hand-over depends on the ship's kit.** With a docking computer fitted,
+  the course hands over at that computer's own range, 3,500 units, and it
+  flies the slot as it does today. Without one, the course flies on to 1,500
+  units and hands the ship to the pilot.
+- **The pilot's stretch is the docking computer's plan with two sticks given
+  back.** The computer holds the ship on the slot axis, which is the pitch.
+  The pilot owns the roll and the throttle. So the ship follows the same curve
+  to the letterbox, and the last of the manoeuvre is the pilot's.
+- **The stretch ends where it began.** A ship outside the docking computer's
+  range is off the approach. The stretch then ends, and the course list offers
+  the station again.
+- **The slot now checks the speed, and it is one answer.** `dockingOutcome`
+  takes the speed and returns `tooFast`, beside `slotMiss` and `hull`. A
+  caller cannot hold half of the rule. The console says which of the three it
+  was.
+- **The docking computer keeps 10 units a second of room.** Its approach
+  settles at 110 against the limit of 120. The dock probe docked 504 of 504
+  approaches with no scrape after the change.
+- **Two course tests pinned the free dock of the 205 stopgap.** They fit a
+  docking computer now, and a new block flies the hand-over to the pilot.

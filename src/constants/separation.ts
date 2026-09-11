@@ -13,5 +13,7 @@ export const SEPARATION_RANGE = 200;
 /**
  * How hard a ship that closes bends its aim to avoid a mate, in units of offset.
  * How close the mate is scales it. It sits a shade above `PASS_MISS_DISTANCE`.
- */
+  *
+ * @rule separation.push
+*/
 export const SEPARATION_PUSH = 120;
