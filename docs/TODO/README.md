@@ -13,8 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [207](207-the-pilot-takes-the-ship-into-the-slot-by-hand.md) — the pilot takes the ship into the slot by hand.
-2. [208](208-every-kind-of-mission-has-a-way-to-fly-it.md) — every kind of mission has a way to fly it.
+1. [208](208-every-kind-of-mission-has-a-way-to-fly-it.md) — every kind of mission has a way to fly it.
 
 **205 TO 208 CAME FROM CHRIS ON 2026-09-11, the day 204 landed.** He flew
 the touch controls of 204 on a phone, and he could not fly the ship. He
@@ -24,7 +23,7 @@ pilot fires the laser, the missiles and the E.C.M. The dock stays a
 challenge. The missions become part of the flight. 205 also takes out the
 touch controls of 204. He played four docking concepts the same day, and
 he picked Match the spin for 207. The plans are written, and the work waits
-on his word. **205 and 206 landed the same day**, and both are below.
+on his word. **205, 206 and 207 landed the same day**, and each is below.
 
 **204 CAME FROM CHRIS ON 2026-09-10.** The docked screens and the cockpit fit
 a phone, and nothing on the flight screen takes a touch. The brainstorm set
@@ -295,6 +294,14 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-11
+
+**207 — the pilot takes the ship into the slot by hand.** Chris played four
+docking concepts and picked Match the spin. The course flies the approach and
+hands over the last 1,500 units, at the speed the slot takes. The computer
+holds the ship on the axis. The pilot matches the station's spin with a roll
+strip, and the speed with THRUST and BRAKE. The slot now refuses a ship
+that arrives too fast, and a scrape bounces it clear to try again. A docking
+computer still flies the slot. 5,820 assertions, from 5,804.
 
 **206 — the computer flies the fight, and the pilot fires.** When a ship
 attacks, the computer lines you up, and the shooting stays yours. The buttons

@@ -212,3 +212,16 @@ Evidence:
   With a clear sky, 40 of 40 trips reached the hand-over.
 - **The speed bar's mark needed to be a different colour.** It is green over
   the amber fill, so it reads at any speed.
+
+## Outcome
+
+207 landed on 2026-09-11. The station course flies the approach and hands the
+pilot the last 1,500 units, at the speed the slot will take. The computer holds
+the ship on the slot axis. The pilot matches the station's spin with the roll
+strip or the roll keys, and the speed with THRUST and BRAKE. The slot refuses a
+ship that arrives rolled wrong or above 120 units a second, and the console
+says which. A scrape bounces the ship clear, and the pilot tries again.
+
+A docking computer still flies the slot from 3,500 units out, and it skips the
+stretch. The dock probe docked 504 of 504 approaches with no scrape under the
+new speed rule. The suite has 5,820 assertions, from 5,804.
