@@ -21,6 +21,7 @@ console.log('\nthe pilot\'s buttons');
 const base = {
   fireKey: 'KeyA', missiles: 3, armed: false, locked: false,
   armKey: 'KeyT', launchKey: 'KeyM', ecmKey: null, targets: null, missileInbound: false,
+  trial: false, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
 };
 {
   const b = actionButtonsFor(base);

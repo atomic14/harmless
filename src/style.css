@@ -480,6 +480,40 @@ body.screen-open #courses { visibility: hidden; }
 #actions .hud-button .note { font-size: 10px; color: var(--hud-amber); letter-spacing: 1px; }
 #actions .hud-button .hint { font-size: 10px; color: var(--hud-dim); letter-spacing: 1px; }
 #actions [data-hold] { color: var(--hud-red); border-color: rgba(var(--hud-red-rgb), 0.6); }
+
+/*
+ * The roll strip of the last stretch into the slot (docs/TODO/207 M2). It is
+ * wide and short, and the knob follows the pointer, so a thumb can hold a
+ * small roll steady. `engine/strip-control.ts` moves the knob.
+ */
+#actions .hud-strip {
+  position: relative;
+  height: 56px;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid rgba(var(--hud-amber-rgb), 0.55);
+  background: rgba(var(--hud-amber-rgb), 0.08);
+  cursor: ew-resize;
+  user-select: none; -webkit-user-select: none;
+  touch-action: none;
+}
+#actions .hud-strip .knob {
+  position: absolute;
+  width: 34px; height: 34px;
+  border: 2px solid var(--hud-amber);
+  border-radius: 50%;
+}
+.bar .limit {
+  position: absolute;
+  top: -2px; bottom: -2px;
+  width: 2px;
+  background: var(--hud-amber);
+  opacity: 0.85;
+}
+
+#actions .hud-strip .label {
+  font-size: 10px; letter-spacing: 1px; color: var(--hud-dim);
+  position: absolute; bottom: 3px;
+}
 body.screen-open #actions { visibility: hidden; }
 
 /*

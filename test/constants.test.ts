@@ -470,7 +470,7 @@ const OUTSIDE: readonly Group[] = [
       'game/bindings.ts': [
         'GLOBAL_BINDINGS', 'FLIGHT_BINDINGS', 'NOT_IN_THE_SIMULATOR', 'BINDINGS',
         'WHILE_PAUSED', 'COURSE_KEYS', 'COURSE_CHART_KEY', 'COURSE_TOGGLE_KEY', 'COURSE_SKIP_KEY',
-        'TARGETS_KEY', 'TARGET_NONE_KEY', 'TARGET_ROW_PREFIX',
+        'TARGETS_KEY', 'TARGET_NONE_KEY', 'TARGET_ROW_PREFIX', 'ROLL_STRIP_CODE',
       ],
       'game/screens/save-transfer.ts': ['NOT_A_SAVE', 'WRONG_VERSION', 'STORE_FULL'],
       'engine/keymap.ts': ['LAYOUTS', 'STORAGE_KEY'],

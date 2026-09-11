@@ -39,6 +39,7 @@ import { viewDirection } from './views.ts';
 import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
 import type { HudButton } from '../hud/hud-buttons.ts';
 import type { CoursePanel } from './course-actions.ts';
+import { ROLL_STRIP_CODE } from './bindings.ts';
 import { actionButtonsFor, courseButtonsFor, offerButtons } from './cockpit-buttons.ts';
 import type { TargetPanel } from './target-actions.ts';
 import { keymap } from '../engine/keymap.ts';
@@ -223,6 +224,10 @@ export class CockpitView {
       launchKey: key('launchMissile'),
       ecmKey: this.state.commander.equipment.ecm ? key('fireEcm') : null,
       missileInbound: this.ordnance.missileInbound,
+      trial: this.state.session.dockTrial,
+      accelKey: keymap().accel[0] ?? null,
+      decelKey: keymap().decel[0] ?? null,
+      rollStripCode: ROLL_STRIP_CODE,
       targets: this.host.targetPanel(),
     });
   }
@@ -312,6 +317,7 @@ export class CockpitView {
       inFlight: this.host.inFlight(),
       witchspace: this.state.session.witchspace,
       assist: this.state.session.ccEngaged,
+      trial: this.state.session.dockTrial,
       ecmDetected: this.state.ecmDetectedTimer > 0,
       messageText: this.state.session.messageText,
       messageTimer: this.state.session.messageTimer,

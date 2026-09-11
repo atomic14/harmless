@@ -61,7 +61,11 @@
       <div id="damage-flash"></div>
       <div id="hud">
         <div class="hud-panel hud-left">
-          <div class="gauge"><label>FWD SPEED</label><div class="bar"><div id="g-speed" class="fill"></div></div></div>
+          <!--
+            The mark on the speed bar is the fastest the slot will take
+            (docs/TODO/207 M3). hud/hud.ts places it from the rule itself.
+          -->
+          <div class="gauge"><label>FWD SPEED</label><div class="bar"><div id="g-speed" class="fill"></div><div id="g-speed-limit" class="limit"></div></div></div>
           <div class="gauge"><label>ROLL</label><div class="bar centered"><div id="g-roll" class="marker"></div></div></div>
           <div class="gauge"><label>PITCH</label><div class="bar centered"><div id="g-pitch" class="marker"></div></div></div>
           <div class="gauge"><label>FORE SHLD</label><div class="bar"><div id="g-fore" class="fill"></div></div></div>

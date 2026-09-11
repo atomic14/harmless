@@ -27,6 +27,12 @@ export interface HudButton {
    * does, rather than sending it once (`engine/hold-buttons.ts`).
    */
   readonly hold?: boolean;
+  /**
+   * The button is a strip to drag rather than a button to press
+   * (`engine/strip-control.ts`). It reports how far the pointer is from its
+   * middle, which is how much roll the last stretch of a docking asks for.
+   */
+  readonly strip?: boolean;
 }
 
 /** Plain text only: a label is words, so the markup cannot carry any. */
@@ -43,11 +49,14 @@ export class ButtonStrip {
   }
 
   paint(buttons: readonly HudButton[]): void {
-    const html = buttons.map((b) =>
+    const html = buttons.map((b) => (b.strip
+      ? `<div data-strip="${text(b.code)}" class="hud-strip"><div class="knob"></div>`
+        + `<span class="label">${text(b.label)}</span></div>`
+      :
       `<div ${b.hold ? 'data-hold' : 'data-key'}="${text(b.code)}"`
       + ` class="hud-button${b.note ? ' dim' : ''}${b.lit ? ' lit' : ''}">`
       + `${text(b.label)}${b.note ? `<span class="note">${text(b.note)}</span>` : ''}`
-      + `${b.hint ? `<span class="hint">${text(b.hint)}</span>` : ''}</div>`).join('');
+      + `${b.hint ? `<span class="hint">${text(b.hint)}</span>` : ''}</div>`)).join('');
     if (html === this.shown) return;
     this.shown = html;
     this.el.innerHTML = html;

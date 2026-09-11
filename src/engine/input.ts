@@ -1,5 +1,6 @@
 import { CARRY_LIMIT } from '../constants/world-clock.ts';
 import { attachHoldButtons } from './hold-buttons.ts';
+import { attachStripControl } from './strip-control.ts';
 
 // Keyboard state with frame-oriented semantics:
 //  - held(codes): live keydown state — every continuous control, the trigger
@@ -68,6 +69,12 @@ export class Input {
   mouseX = 0;
   mouseY = 0;
   mouseFire = false;
+  /**
+   * The roll strip's stick, -1 to 1, or null when nothing holds it
+   * (docs/TODO/207 M2). A roll key held beats it, as a speed key beats a
+   * throttle slider.
+   */
+  rollStick: number | null = null;
   private readonly canvas: HTMLElement | null;
 
   constructor() {
@@ -82,6 +89,8 @@ export class Input {
     this.canvas = document.getElementById('scene');
     // The laser button holds its key as a finger holds it (docs/TODO/206 M3).
     attachHoldButtons(this, document);
+    // ...and the roll strip of the last stretch of a docking (docs/TODO/207).
+    attachStripControl(this, document);
     document.addEventListener('pointerlockchange', () => {
       this.mouseFlight = document.pointerLockElement === this.canvas;
       if (!this.mouseFlight) {

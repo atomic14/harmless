@@ -29,6 +29,8 @@ export interface FlightControls {
   readonly mouseX: number;
   readonly mouseY: number;
   readonly mouseFire: boolean;
+  /** the roll strip's stick, -1 to 1, or null when nothing holds it (docs/TODO/207) */
+  readonly rollStick?: number | null;
 }
 
 /** The ramped rates the demand continues from — the ship's own, in practice. */
@@ -60,6 +62,10 @@ export function flightDemand(
 ): FlightDemand {
   let rollIn = (c.held(...keys.rollLeft) ? 1 : 0) - (c.held(...keys.rollRight) ? 1 : 0);
   let pitchIn = (c.held(...keys.pitchUp) ? 1 : 0) - (c.held(...keys.pitchDown) ? 1 : 0);
+
+  // The roll strip of a docking (docs/TODO/207 M2): an analogue roll for a
+  // mouse and a finger. A roll key held beats it, as it beats the mouse.
+  if (rollIn === 0 && c.rollStick != null) rollIn = -c.rollStick;
 
   // mouse flight: analogue axes, keyboard still overrides when touched
   if (c.mouseFlight) {

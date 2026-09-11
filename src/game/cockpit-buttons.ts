@@ -61,6 +61,13 @@ export interface ActionSource {
   readonly ecmKey: string | null;
   /** a hostile missile is on its way, so the E.C.M. is the button to press */
   readonly missileInbound: boolean;
+  /** the pilot flies the last stretch into the slot (docs/TODO/207 M2) */
+  readonly trial: boolean;
+  /** the keys that open and close the throttle, for the two held buttons */
+  readonly accelKey: string | null;
+  readonly decelKey: string | null;
+  /** the code the roll strip reports under */
+  readonly rollStripCode: string;
   readonly targets: TargetPanel | null;
 }
 
@@ -70,6 +77,19 @@ export interface ActionSource {
  * thumb finds it without a look.
  */
 export function actionButtonsFor(a: ActionSource): HudButton[] {
+  // The last stretch into the slot asks for two things and nothing else: the
+  // roll, and the speed (docs/TODO/207 M2). So the pilot's buttons are those
+  // two while it runs, and the guns wait.
+  if (a.trial) {
+    const out: HudButton[] = [{ code: a.rollStripCode, label: 'DRAG TO ROLL', strip: true }];
+    if (a.accelKey) {
+      out.push({ code: a.accelKey, label: 'THRUST', hint: 'HOLD TO SPEED UP', hold: true });
+    }
+    if (a.decelKey) {
+      out.push({ code: a.decelKey, label: 'BRAKE', hint: 'HOLD TO SLOW DOWN', hold: true });
+    }
+    return out;
+  }
   const out: HudButton[] = [];
   const t = a.targets;
   if (t && t.open) {

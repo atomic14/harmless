@@ -81,6 +81,14 @@ export const TARGETS_KEY = 'VirtTargets';
 export const TARGET_NONE_KEY = 'VirtTargetNone';
 export const TARGET_ROW_PREFIX = 'VirtTarget';
 
+/**
+ * The roll strip of the last stretch into the slot (docs/TODO/207 M2). It is
+ * not a key at all: `engine/strip-control.ts` reads the pointer's distance
+ * from the strip's middle, and reports a stick. The code names the strip in
+ * the markup, as a button's code names the button.
+ */
+export const ROLL_STRIP_CODE = 'roll';
+
 export const GLOBAL_BINDINGS: readonly Binding[] = [
   // ? toggles the controls guide (plain / is the classic decelerate key)
   { key: 'Question', command: 'toggleHelp' },

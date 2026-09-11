@@ -173,3 +173,18 @@ Evidence:
   approaches with no scrape after the change.
 - **Two course tests pinned the free dock of the 205 stopgap.** They fit a
   docking computer now, and a new block flies the hand-over to the pilot.
+
+### M2
+
+- **The roll strip is a third platform seam**, beside the click and the held
+  button. `engine/strip-control.ts` reads how far a pointer is from the
+  strip's middle, and reports a stick between -1 and 1. A roll key beats it,
+  as a key beats the mouse.
+- **The strip moves its own knob.** The painter rebuilds the buttons only when
+  their words change, and a knob moves every frame a thumb does.
+- **The guns wait during the stretch.** The slot asks for two things, so the
+  pilot's buttons are the strip, THRUST and BRAKE, and nothing else.
+- **The speed bar carries the slot's limit as a mark.** It is placed from the
+  rule itself, so the mark cannot drift from what the slot takes.
+- **The label over the view says MATCH THE SLOT — GO IN SLOWLY** while the
+  stretch runs.

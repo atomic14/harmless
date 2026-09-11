@@ -9,6 +9,8 @@ import {
   SCANNER_RANGE, LASER_GAUGE_WARN, CABIN_GAUGE_WARN,
 } from '../constants/console.ts';
 import { HUD } from '../palette.ts';
+import { SLOT_SPEED_LIMIT } from '../constants/docking.ts';
+import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 
 // The classic console: elliptical 3D scanner (dot + vertical stick per
 // contact), station compass, gauge bars, and the message line.
@@ -152,6 +154,8 @@ export interface HudState {
   missionMarker: { x: number; y: number; behind: boolean } | null;
   /** combat computer engaged (shown in the view label slot) */
   assist: boolean;
+  /** the pilot flies the last stretch into the slot (docs/TODO/207) */
+  trial: boolean;
   /** missile armed but not yet locked (yellow pylon) */
   armed: boolean;
   /** console 'S': the space station is within scanner range */
@@ -247,6 +251,11 @@ export class Hud {
   private readonly invQ = new THREE.Quaternion();
 
   constructor() {
+    // The mark on the speed bar: the fastest the slot will take, as a share of
+    // the ship's own top speed (docs/TODO/207 M3). It is placed from the two
+    // rules rather than written into the page.
+    byId('g-speed-limit').style.left =
+      `${(SLOT_SPEED_LIMIT / PLAYER_FLIGHT.maxSpeed) * 100}%`;
     this.scanner = (byId('scanner') as HTMLCanvasElement).getContext('2d')!;
     this.reticle = (byId('reticle') as HTMLCanvasElement).getContext('2d')!;
     this.compass = (byId('compass') as HTMLCanvasElement).getContext('2d')!;
@@ -279,8 +288,8 @@ export class Hud {
     this.altEl.style.width = `${Math.min(100, frame.altitudeFrac * 100)}%`;
     this.cabinEl.style.width = `${Math.min(100, frame.cabinTemp * 100)}%`;
     this.cabinEl.style.background = frame.cabinTemp > CABIN_GAUGE_WARN ? RED : '';
-    this.viewEl.textContent = frame.assist
-      ? '◆ THE COMPUTER IS AIMING ◆' : (VIEW_NAMES[frame.view] ?? '');
+    this.viewEl.textContent = frame.trial ? '◆ MATCH THE SLOT — GO IN SLOWLY ◆'
+      : frame.assist ? '◆ THE COMPUTER IS AIMING ◆' : (VIEW_NAMES[frame.view] ?? '');
     this.crosshairEl.style.display = frame.hasLaser ? '' : 'none';
     this.shipIdEl.textContent = frame.shipId;
     this.drawEnergy(frame);
