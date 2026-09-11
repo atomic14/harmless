@@ -310,8 +310,8 @@ export class Flight {
   /**
    * Who flies the ship, and what they want.
    *
-   * ONE producer per frame: the hands at the keyboard, or the combat computer
-   * when it is engaged and still holds the ship. The trigger is the union of
+   * ONE producer per frame: the hands at the keyboard, the combat computer
+   * when it is engaged and still holds the ship, or a picked course. The trigger is the union of
    * the two. A fitted combat computer flies the ship. It does not take your gun
    * off you.
    */
@@ -320,7 +320,12 @@ export class Flight {
     // the virtual stick self-centres; the producer is pure, so the mutation
     // is ours to do, immediately after the read
     if (this.input.mouseFlight) this.input.decayMouse(dt);
-    if (!this.state.session.ccEngaged) return hands;
+    // A picked course flies when no co-pilot does (docs/TODO/205 M3). The
+    // trigger stays the pilot's, as it does under the co-pilot.
+    if (!this.state.session.ccEngaged) {
+      const course = this.instruments.course(dt, this.handsOn());
+      return course ? { ...course, fire: hands.fire } : hands;
+    }
     // WHICH co-pilot is the brain selection's answer. Under the shipped
     // 'attack-run' name it is the scripted PURE-PURSUIT co-pilot. Otherwise it
     // is the trained defence seat, which is dormant: defenceBrain() is null and

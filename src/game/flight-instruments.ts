@@ -5,9 +5,10 @@
 // `tools/sizes.mjs` calls its 400-line ceiling a detector rather than
 // a rule, and this is what it detected.
 //
-// ONE RESPONSIBILITY: the instruments a pilot switches on. Five of them:
+// ONE RESPONSIBILITY: the instruments a pilot switches on. Six of them:
 //
 //   - the two computers that fly the ship for her;
+//   - the course she picked, which flies the ship too (docs/TODO/205);
 //   - the drive that crosses the system;
 //   - the mouse she flies with;
 //   - the view she flies by.
@@ -20,6 +21,7 @@
 
 import { sfx } from '../audio.ts';
 import { Autopilot, type AutopilotEvent } from './autopilot.ts';
+import { CoursePilot } from './course-pilot.ts';
 import { massLocked } from './world-step.ts';
 import { boundKey } from '../ui/key-help.ts';
 import { defenceBrain } from './brains.ts';
@@ -68,6 +70,8 @@ export class Instruments {
    * seat.
    */
   private readonly autopilot: Autopilot;
+  /** the seat that flies a picked course (docs/TODO/205 M3) */
+  private readonly coursePilot = new CoursePilot();
   private readonly host: InstrumentHost;
 
   constructor(
@@ -100,6 +104,39 @@ export class Instruments {
         dt, handsOn, defenceBrain(this.state.brains), this.ordnance.hostileMissilePos);
     this.applyAutopilot(auto.events);
     return { demand: auto.demand ?? null, ecm: auto.ecm };
+  }
+
+  /**
+   * The course the pilot picked, flown for one frame, or null for none
+   * (docs/TODO/205 M3).
+   *
+   * `course-pilot.ts` decides. This throws the two switches that a step asks
+   * for: the torus drive, and the hand-over to the docking computer. A flight
+   * key suspends the course, as it drops the two computers. The course list
+   * then offers the course again (Chris, 2026-09-11: *"keep the keys"*).
+   */
+  course(dt: number, handsOn: boolean): FlightDemand | null {
+    const s = this.state.session;
+    if (s.course === null) return null;
+    if (handsOn) {
+      s.course = null;
+      this.coursePilot.reset();
+      this.host.showMessage('COURSE SUSPENDED — MANUAL CONTROL', 2);
+      return null;
+    }
+    const p = this.state.player;
+    const step = this.coursePilot.step({
+      course: s.course,
+      position: p.position,
+      quaternion: p.quaternion,
+      pitchRate: p.pitchRate,
+      rollRate: p.rollRate,
+      stationPos: this.state.world.station.position,
+      dcEngaged: s.dcEngaged,
+    }, dt);
+    if (step.handOver) this.applyAutopilot(this.autopilot.handOverToDock());
+    if (step.torus !== s.torusEngaged && (!step.torus || !this.massLocked())) this.toggleTorus();
+    return step.demand;
   }
 
   /** A hit worth a break: the co-pilot keeps its own record

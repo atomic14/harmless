@@ -38,6 +38,7 @@ import { runMissions } from './mission-bridge.ts';
 import { arrivalLines, type Sighting } from './mission-arrival.ts';
 import type { WorldBuild } from './world-build.ts';
 import type { GameState } from './state.ts';
+import { endVisit } from './session.ts';
 import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
 import { WITCHPOINT_RADII } from '../constants/planet.ts';
 
@@ -174,6 +175,7 @@ export class HyperspaceActions {
     seedWorld(this.state.commander.galaxy * 0x9e3779b1
       ^ (this.state.commander.systemIndex << 8) ^ this.state.commander.day);
     this.state.session.witchspace = false; // any arrival leaves witch-space (incl. galactic jump)
+    endVisit(this.state.session);   // The course and the finished work were the last system's.
     // Before the world is built, because the roster it is built with is this.
     this.world.chooseBlueprintSet();
     this.world.buildWorld();

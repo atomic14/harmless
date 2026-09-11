@@ -156,6 +156,8 @@ export function freshSession(): SessionState {
     ccEngaged: false,
     beamTimer: 0,
     dcEngaged: false,
+    course: null,
+    coursesDone: [],
   };
 }
 

@@ -42,6 +42,7 @@ import { ordersSummary, standingOrders } from './orders.ts';
 import type { Command } from './controls.ts';
 import type { Ordnance } from './ordnance.ts';
 import { repairAtStation } from './systems.ts';
+import { endVisit } from './session.ts';
 import type { GameState } from './state.ts';
 import type { SoundEvent, SoundName } from './sounds.ts';
 
@@ -190,6 +191,7 @@ export class Station {
     s.session.hyperCountdown = -1;
     s.session.torusEngaged = false;
     s.session.ccEngaged = false;
+    endVisit(s.session);
     this.ordnance.armed = false;
     effects.push({ kind: 'presentation', action: 'releaseMouseFlight' });
     // ANYONE YOU PULLED OUT OF A CAPSULE IS NOT RESOLVED HERE any more. A dock

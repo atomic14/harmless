@@ -119,6 +119,26 @@ export class Autopilot {
   }
 
   /**
+   * A course hands the ship to the docking computer (docs/TODO/205 M3).
+   *
+   * It needs no fitted computer, and that is a stopgap. Until docs/TODO/207
+   * gives the pilot a trial at the slot, a course to the station ends in a
+   * free dock. The course asks only inside `DOCK_COMPUTER_RANGE`, so the range
+   * refusal of `toggleDocking` cannot arise here.
+   */
+  handOverToDock(): AutopilotEvent[] {
+    const s = this.state;
+    if (s.session.dcEngaged) return [];
+    s.session.dcEngaged = true;
+    s.dockPlan.phase = 'gate';
+    return [
+      say('DOCKING COMPUTER ENGAGED', 2),
+      { kind: 'sound', name: 'dockingComputerEngaged' },
+      { kind: 'dockingMusic', on: true },
+    ];
+  }
+
+  /**
    * How far the commander is from the station, for the station's truce
    * (`truceHolds`, law.ts).
    *

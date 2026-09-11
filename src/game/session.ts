@@ -5,6 +5,8 @@
 // walks it generically. So a new field here saves itself, and there is no list
 // to keep in step.
 
+import type { CourseKind } from './courses.ts';
+
 /**
  * The flight session: every flag and timer that describes the moment.
  *
@@ -87,6 +89,23 @@ export interface SessionState {
   ccEngaged: boolean;
   beamTimer: number;
   dcEngaged: boolean;
+  /**
+   * The course the pilot picked, or null for none (docs/TODO/205 M3). It is
+   * saved state, because it decides what flies the ship. The list it came
+   * from is derived, and nothing saves that (courses.ts).
+   */
+  course: CourseKind | null;
+  /** the courses this visit already finished, so the list leaves them out */
+  coursesDone: CourseKind[];
+}
+
+/**
+ * A visit to a system ends: at a dock, and at an arrival somewhere else. The
+ * picked course and the finished ones belong to the visit, so both go.
+ */
+export function endVisit(state: SessionState): void {
+  state.course = null;
+  state.coursesDone = [];
 }
 
 /** Put a message in canonical state; the HUD only paints these fields. */

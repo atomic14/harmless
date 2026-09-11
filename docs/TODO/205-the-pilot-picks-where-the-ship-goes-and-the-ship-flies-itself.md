@@ -55,7 +55,7 @@ use "order" for a signed contract or a live mission. One word has one meaning.
 
 ## What to do
 
-Six milestones.
+Seven milestones.
 
 ### M1 — the touch controls leave
 
@@ -126,6 +126,10 @@ from the seeded stream.
 Until 207 lands, the hand-over at the docking range goes to the docking
 computer, free of charge. So a course to the station always ends in a dock.
 
+**M3 is two commits.** The first flies the station course and the jump
+course, and it adds the saved course and the key override. The second flies the
+derelict, the hermit and the star, and it takes the skim measurement below.
+
 **The skim altitude is a measurement, and M3 takes it first.** The heat starts
 to rise at 110,000 units, and the scoop works inside 80,000. A ship inside
 21,000 dies at once. M3 measures a hold distance where the tank fills and the
@@ -169,6 +173,32 @@ Rewrite the flight sections of the manual and of the briefing. Update the
 landing page where it describes how you fly. The player-facing pages keep their
 own style, and the house prose rules do not govern them.
 
+### M7 — the skip forward button
+
+A skip forward button runs the world faster while nothing needs the pilot. It
+runs the same fixed step eight times in each screen frame, and it draws the
+last one. The mass lock, the traffic and the encounters behave as they do at
+normal speed. So the skip shortens the wait and changes no rule.
+
+The button works only while no hostile ship is in scanner range. The skip
+stops by itself in these cases:
+
+1. a hostile ship comes into scanner range;
+2. the course ends, or no course is picked;
+3. a new line comes to the console;
+4. the pilot presses a flight key, or taps the button again.
+
+The skip works for the whole trip, and that includes the docking computer's
+approach. A key and a button start it, and the key lives in the binding table.
+
+**The game loop caps the steps in one frame.** `MAX_STEPS_PER_FRAME` is 5 and
+`MAX_FRAME_TIME` is 0.25 s. The skip needs eight steps in a frame, so it raises
+the cap for its own frames only. A slow device that cannot keep up skips
+slower. It never skips a rule.
+
+`test/skip.test.ts` proves that a skipped trip and a normal trip end in the
+same world state, step for step. It proves each of the four stops above.
+
 ## Decisions already made
 
 - **One flow for every player** (Chris, 2026-09-11). A keyboard player and a
@@ -180,7 +210,14 @@ own style, and the house prose rules do not govern them.
 - **A countdown that starts runs to the jump** (Chris, 2026-09-11), as it does
   today. A fight during the countdown does not stop it.
 - **The torus drive is enough for the trip to the station** (Chris,
-  2026-09-11). No course skips time.
+  2026-09-11). The measurement of M3 then showed a median trip of 148 s, and
+  Chris chose a skip forward button the same day (M7). It runs the fixed step
+  faster, at one fixed speed, and it changes no rule (*"instead of being able
+  to cheat the mass lock we just skip time forward"*). He first chose a "carry
+  on" tap past the mass lock, and the skip replaced it.
+- **The skip has one fixed speed** (Chris, 2026-09-11: *"Fixed speed - let's
+  keep it simple"*). It is eight times normal speed, and it is tuned after he
+  plays it.
 - **"Jump on" is a course when the tank holds the fuel** (Chris, 2026-09-11).
   "Skim the star" needs fuel scoops, and the ship flies to the star.
 - **The home system's work stays, as courses** (Chris, 2026-09-11: *"maybe we
@@ -268,3 +305,40 @@ Evidence:
 - **In flight, a chart with no target shows no jump row.** At a launch, the
   jump row always shows, and its reason answers why the ship cannot leave.
 - **The suite has 5,656 assertions,** from 5,624.
+
+### M3, first commit: the station course and the jump course
+
+- **The course switch lives in `flight-instruments.ts`.** That file already
+  holds the switches that change who flies the ship. `flight.ts` gains four
+  lines, and it stays under its ceiling of 400.
+- **The hand-over needs a new door, `Autopilot.handOverToDock`.** It engages
+  the docking computer with none fitted. It is the stopgap until 207, and its
+  doc comment says so.
+- **A save carries the course with no new code in the snapshot.** The session
+  is walked generically, and an old save restores the field at its default.
+- **The trip is long, and the traffic makes it long.** Measured on 2026-09-11
+  over 20 systems, from the witchpoint to the dock, with no hand on the stick:
+
+| the sky | the trip, p10 / p50 / p90 | the torus runs | a mass lock holds |
+| --- | --- | --- | --- |
+| the arrival's own traffic | 116 / 148 / 164 s | 5 / 9 / 16 s | 73 / 111 / 126 s |
+| an empty sky | 53 / 55 / 60 s | 19 / 21 / 26 s | 4 s |
+
+  The course engages the torus whenever the drive is free. The time with
+  neither is under 3 s at p90. So the lock is the cost, and the lock is any
+  live ship within 4,500 units. The arrival puts traders and police along the
+  corridor. The last 30 s of each trip is the docking computer's approach.
+  All 20 trips docked, and 30 trips in one system docked too.
+
+  **The stops, measured the same day.** A trip stops at a mass lock three
+  times at the median, and five at most. About one stop in three has a hostile
+  ship in it:
+
+| sample | stops per trip, median | most in one trip | stops with a hostile ship |
+| --- | --- | --- | --- |
+| 20 trips | 3 | 4 | 16 of 50 |
+| 40 trips | 3 | 5 | 32 of 103 |
+
+  **The step is cheap.** With no graphics, the world step ran about 2,000
+  times faster than real time on the development Mac, over 5 trips and over
+  10. So a skip at eight times speed costs little. That number led to M7.

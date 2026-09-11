@@ -391,6 +391,16 @@ const OUTSIDE: readonly Group[] = [
   },
 
   {
+    why: 'STAYS: not a number at all. It is the step a course pilot returns when'
+      + ' it asks for nothing, one ready-made object so a frame allocates none'
+      + ' (docs/TODO/205 M3). The one tunable, the torus cone, is'
+      + ' constants/course.ts',
+    files: {
+      'game/course-pilot.ts': ['IDLE'],
+    },
+  },
+
+  {
     why: 'STAYS: how the launch/docking tunnel effect LOOKS — the ellipse squash that'
       + ' reads as a bay mouth, and two fractions of the effect\'s own timeline. Pure'
       + ' drawing under the item\'s is-it-the-game-or-how-it-looks test: nothing outside'
