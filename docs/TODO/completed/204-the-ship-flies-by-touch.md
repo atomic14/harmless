@@ -149,3 +149,66 @@ Evidence:
   ship, hold the trigger and set the speed. Each button opens what it
   names.
 - Chris flies the preview on his phone.
+
+## Outcome
+
+All five milestones landed on 2026-09-11. 5,661 assertions, from 5,619. The
+flight probe ran once and passed, because the throttle rule touches how a
+flight goes.
+
+### M1 — the input takes a wanted speed and a held button
+
+`Input.press` and `Input.release` hold a key as a keyboard does, and never
+make a tap. `Input.wantedSpeed` is a fraction of top speed or null.
+`flightDemand` opens the throttle below it, brakes above it, and coasts
+inside `PLAYER_FLIGHT.throttleBand`. A speed key overrides it.
+
+### M2 — the touch overlay
+
+`engine/touch.ts` is two halves. `TouchTracker` is pure and runs under node.
+`attachTouch` binds the overlay's pointer events, and `Input` calls it when
+the page has the overlay. A drag is the mouse stick, with
+`TOUCH_STICK_TRAVEL` pixels for full deflection. A held finger holds the
+stick through `Input.stickHeld`, which `decayMouse` honours. In the 390 by
+844 frame with synthetic pointer events, the slider took the speed from 30%
+to 93%, a full drag right rolled the ship, FIRE heated the laser while the
+other finger steered, and the stick decayed after the lift.
+
+### M3 — the command row and the tappable prompts
+
+`ui/key-help.ts` paints the five buttons at boot from the binding table, and
+the HUD swaps MISSILE's key once a missile is armed and lights the buttons
+whose state is on. Each prompt carries its code beside its words, through
+`keyCodeIfBound`, and a coarse pointer taps it. The browser shell listens on
+the row, the menu and the prompt line as it does on a screen. In the frame,
+a tap on MISSILE armed one, and a tap on TORUS was refused as MASS LOCKED
+beside the station.
+
+### M4 — the flight menu
+
+A MENU button opens a list of rows over the view, painted from the binding
+table. The escape pod row opens a confirmation inside the list, and only
+YES carries its key. In the frame, LOCAL CHART opened the chart and hid the
+list and the overlay, and the pod's row opened its confirmation, which NO
+closed.
+
+### M5 — fullscreen, and the manual
+
+The first touch asks for the whole screen. The manual and the briefing each
+gain a paragraph.
+
+### What the plan did not have
+
+- **The flight menu is a list, not a screen.** The plan named a screen under
+  the screen host. A list of rows with the keys on them needs no screen, no
+  id in the host's union and no input routing. It uses the seam every
+  button already takes.
+- **A synthetic pointer has no capture to give.** `setPointerCapture` throws
+  for one, and the overlay catches that, so a test can drive it.
+- **Node's strip-only mode refuses a parameter property.** The tracker's
+  constructor assigns its fields by hand.
+- **The travel is 125 pixels, not 120.** Four constants already share 120,
+  and the gate wants each value its own.
+- **The feel is not measured here.** Chrome drove the overlay with synthetic
+  events. Whether the stick's travel and the decay feel right on a phone is
+  Chris's to judge.

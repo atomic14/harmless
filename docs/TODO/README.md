@@ -13,13 +13,13 @@ active context:
 
 ## Execution queue
 
-1. [204](204-the-ship-flies-by-touch.md) — the ship flies by touch.
+The queue is empty.
 
 **204 CAME FROM CHRIS ON 2026-09-10.** The docked screens and the cockpit fit
 a phone, and nothing on the flight screen takes a touch. The brainstorm set
 the shape. Drag anywhere to steer, and hold to fire. A throttle slider, a
 row of command buttons, tappable prompts, and a flight menu of rows. No
-tilt, no swipe and no pinch. The plan is written, and the work waits on his word.
+tilt, no swipe and no pinch. **204 landed on 2026-09-11**, and it is below.
 
 **203 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He played three side jobs
 and could not tell how to finish any of them. The review found two signals
@@ -280,6 +280,19 @@ headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
+
+## What landed on 2026-09-11
+
+**204 — the ship flies by touch.** Nothing on the flight screen took a
+touch. A drag anywhere on the view is the mouse stick now, and a held
+finger holds it. FIRE holds the trigger. A slider sets a wanted speed, and
+the throttle ramps toward it. Five buttons along the console's top edge
+press the flight keys for the missile, the E.C.M., the jump, the torus and
+the docking computer. The prompts are buttons. A MENU button opens the
+charts, the screens, the views, pause and the escape pod, which asks first.
+The first touch asks for the whole screen. Every button carries its key
+from the binding table, and the feel on a phone is Chris's to judge. 5,661
+assertions, from 5,619.
 
 ## What landed on 2026-09-10
 
