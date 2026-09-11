@@ -221,3 +221,15 @@ screen now, and the buttons keep their places above the console. A drag
 down raised the nose, as a stick and the mouse do, and that is upside down
 under a thumb. A drag up raises the nose now. The sign flips in the tracker
 and nowhere else, so the mouse keeps its own convention.
+
+### Retired by 205 M1
+
+Chris flew the whole-screen version on his phone on 2026-09-11, and he still
+could not fly the ship. He wrote `MOBILE_CONVERSION.md` the same day: *"The
+current approach does not work - it's not possible to fly the ship using
+mobile controls."* He chose a different game. The pilot picks a course, and
+the ship flies it (docs/TODO/205).
+
+205 M1 took the code of this plan out on 2026-09-11. It kept one piece:
+`Input.press` and `Input.release`, with their test. A button holds a key with
+them, and 206 and 207 need a held button.

@@ -33,6 +33,8 @@ a phone, and nothing on the flight screen takes a touch. The brainstorm set
 the shape. Drag anywhere to steer, and hold to fire. A throttle slider, a
 row of command buttons, tappable prompts, and a flight menu of rows. No
 tilt, no swipe and no pinch. **204 landed on 2026-09-11**, and it is below.
+**205 M1 retired it the same day**, because a phone still could not fly the
+ship.
 
 **203 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He played three side jobs
 and could not tell how to finish any of them. The review found two signals
@@ -305,7 +307,8 @@ the docking computer. The prompts are buttons. A MENU button opens the
 charts, the screens, the views, pause and the escape pod, which asks first.
 The first touch asks for the whole screen. Every button carries its key
 from the binding table, and the feel on a phone is Chris's to judge. 5,661
-assertions, from 5,619.
+assertions, from 5,619. **205 M1 took it out the same day**, because a phone still could not
+fly the ship. The plan is in `retired/` now.
 
 ## What landed on 2026-09-10
 

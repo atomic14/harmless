@@ -71,10 +71,7 @@ export const BRIEFING: { title: string; body: string }[] = [
       Tap a row on this menu, or move to it with <b>&uarr; &darr;</b> and
       press <b>ENTER</b>. <b>${KEY.help}</b> shows every control, here and in
       flight. <b>${ROW.briefing}</b> on the menu reopens this briefing
-      whenever you want it back.<br/><br/>
-      On a phone, drag anywhere on the screen to steer, up to climb, hold
-      <b>FIRE</b> to fire, and slide the bar at the left edge to set your
-      speed. <b>MENU</b> opens the charts and the rest.`,
+      whenever you want it back.`,
   },
   {
     title: 'MAKE SOME MONEY',

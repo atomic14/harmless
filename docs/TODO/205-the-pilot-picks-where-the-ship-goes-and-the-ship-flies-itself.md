@@ -239,3 +239,14 @@ Evidence:
   says why.
 - A snapshot round trip keeps the course.
 - Chris flies it on his phone. The playtest reports, and it does not block.
+
+## What the milestones found
+
+### M1
+
+- **The code of 204 came out clean.** Every file that 204 touched went back to
+  its state at `81fcb2b`, the commit before 204's code. No later commit on the
+  branch changed those files. After the removal, no file in the tree cites
+  the touch code.
+- **The suite has 5,624 assertions.** That is 5,619 from before 204, plus the
+  five checks of the kept pair.

@@ -46,16 +46,11 @@ export function browserShell(canvas: HTMLCanvasElement, scene: THREE.Scene): She
     // was a listener on `#screen` in the constructor. The listener lives on the
     // persistent overlay container, since screen contents are re-rendered
     // wholesale, and it passes the closest element carrying data-key/data-row.
-    //
-    // Since docs/TODO/204 M3 it listens on the touch command row and the
-    // prompt line too. Their buttons carry a data-key, as a menu row does.
     onScreenClick: (fn) => {
-      for (const id of ['screen', 'touch-commands', 'touch-menu', 'prompts']) {
-        document.getElementById(id)?.addEventListener('click', (e) => {
-          const el = (e.target as HTMLElement).closest('[data-key],[data-row]');
-          fn(el ?? e.target, e);
-        });
-      }
+      document.getElementById('screen')!.addEventListener('click', (e) => {
+        const el = (e.target as HTMLElement).closest('[data-key],[data-row]');
+        fn(el ?? e.target, e);
+      });
     },
 
     // The pointer's twin of the above, on the same persistent container. No

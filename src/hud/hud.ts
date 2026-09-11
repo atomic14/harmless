@@ -77,11 +77,6 @@ export interface HudState {
    * `boundKey`. Neither is a question a painter may answer.
    */
   prompts: readonly string[];
-  /** the same offers with the code each presses; a coarse pointer taps them (docs/TODO/204 M3) */
-  promptButtons: readonly { code: string; shift: boolean; text: string }[];
-  /** the torus drive and the docking computer are engaged: the touch row lights them */
-  torus: boolean;
-  docking: boolean;
   speedFrac: number;
   rollFrac: number; // -1..1
   pitchFrac: number; // -1..1
@@ -237,7 +232,6 @@ export class Hud {
   private readonly dayEl = byId('day-display');
   private readonly messageEl = byId('message');
   private readonly promptsEl = byId('prompts');
-  private readonly touchRowEl = byId('touch-commands');
   /** what the prompt line currently says, so a steady list is not repainted */
   private promptsShown = '';
   private readonly flashEl = byId('damage-flash');
@@ -271,8 +265,7 @@ export class Hud {
 
   render(_dt: number, frame: HudFrame): void {
     this.messageEl.textContent = frame.messageTimer > 0 ? frame.messageText : '';
-    this.paintPrompts(frame.promptButtons);
-    this.paintTouchRow(frame);
+    this.paintPrompts(frame.prompts);
     this.speedEl.style.width = `${frame.speedFrac * 100}%`;
     this.rollEl.style.left = `${50 + clampUnit(frame.rollFrac) * 45}%`;
     this.pitchEl.style.left = `${50 + clampUnit(frame.pitchFrac) * 45}%`;
@@ -323,46 +316,19 @@ export class Hud {
    * the only reason this is markup rather than `textContent`. The strings
    * themselves are built upstream, and never here.
    */
-  private paintPrompts(prompts: readonly { code: string; shift: boolean; text: string }[]): void {
-    const line = prompts.map((p) => p.text).join('\u2003');   // em space: a gap, not a bullet
+  private paintPrompts(prompts: readonly string[]): void {
+    const line = prompts.join(' ');   // em space: a gap, not a bullet
     if (line === this.promptsShown) return;
     this.promptsShown = line;
-    // Each prompt is a button too: `data-key` is the code a tap injects,
-    // through the same click seam a menu row uses (docs/TODO/204 M3). It is
-    // rebuilt only when the words change, so a thumb never lands on a
-    // button that was just repainted.
     this.promptsEl.innerHTML = prompts
       .map((p) => {
-        const gap = p.text.indexOf(' ');
-        const key = gap < 0 ? p.text : p.text.slice(0, gap);
-        const what = gap < 0 ? '' : p.text.slice(gap);
-        return `<span class="prompt" data-key="${p.code}"${p.shift ? ' data-shift="1"' : ''}>`
-          + `<span class="prompt-key">${key}</span>${what}</span>`;
+        const gap = p.indexOf(' ');
+        const key = gap < 0 ? p : p.slice(0, gap);
+        const what = gap < 0 ? '' : p.slice(gap);
+        return `<span class="prompt-key">${key}</span>${what}`;
       })
-      .join('\u2003');
+      .join(' ');
   }
-
-  /**
-   * The touch command row's state (docs/TODO/204 M3). MISSILE presses the
-   * launch key once a missile is armed. A button for a state that can be on
-   * is lit while it is. The row's markup is ui/key-help.ts's, painted at boot.
-   */
-  private paintTouchRow(frame: HudState): void {
-    const row = this.touchRowEl;
-    for (const el of row.querySelectorAll<HTMLElement>('[data-command]')) {
-      const command = el.dataset.command;
-      if (command === 'armMissile') {
-        const armed = frame.armed || frame.locked;
-        el.dataset.key = armed ? (el.dataset.launch ?? el.dataset.key ?? '') : (el.dataset.arm ?? el.dataset.key ?? '');
-        el.classList.toggle('lit', armed);
-      } else if (command === 'toggleTorus') {
-        el.classList.toggle('lit', frame.torus);
-      } else if (command === 'toggleDockingComputer') {
-        el.classList.toggle('lit', frame.docking);
-      }
-    }
-  }
-
 
   /**
    * The energy gauge: one bank per segment, and red once you are into the last.

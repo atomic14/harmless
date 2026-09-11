@@ -54,7 +54,6 @@ console.log('\nflight demands');
     mouseX = 0;
     mouseY = 0;
     mouseFire = false;
-    wantedSpeed: number | null = null;
     constructor(down: string[] = []) { this.down = new Set(down); }
     held(...codes: string[]): boolean { return codes.some((c) => this.down.has(c)); }
     /** Input's own self-centring, copied because Input itself needs a document. */

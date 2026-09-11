@@ -30,16 +30,6 @@ export const PLAYER_FLIGHT = {
   accel: 220,
 
   /**
-   * How far the ship's speed may sit from a wanted speed before the throttle
-   * moves, in world units per second (docs/TODO/204 M1). Twelve is about
-   * one twentieth of a second of thrust, so the ship settles on the slider's
-   * speed and does not hunt round it.
-   *
-   * @rule flight.player.throttleBand
-   */
-  throttleBand: 12,
-
-  /**
    * The player's Cobra turns at these. They are Harmless numbers, not released
    * ones. They are set so that you out-turn a pirate Cobra and a Krait, match a
    * Mamba, and are edged only by a Sidewinder. That is as it should be, because

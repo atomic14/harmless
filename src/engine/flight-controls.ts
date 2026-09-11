@@ -29,19 +29,12 @@ export interface FlightControls {
   readonly mouseX: number;
   readonly mouseY: number;
   readonly mouseFire: boolean;
-  /** the speed a throttle slider asks for, as a fraction of top speed, or null (docs/TODO/204) */
-  readonly wantedSpeed?: number | null;
 }
 
-/**
- * The ramped rates the demand continues from — the ship's own, in practice.
- * `speed` is the ship's, for the wanted-speed rule, and a caller with no
- * throttle slider may leave it out.
- */
+/** The ramped rates the demand continues from — the ship's own, in practice. */
 export interface TurnRates {
   rollRate: number;
   pitchRate: number;
-  speed?: number;
 }
 
 /** The active bindings the flight controls need, supplied by their owner. */
@@ -77,28 +70,11 @@ export function flightDemand(
   // slash only decelerates unshifted — ? opens the controls guide
   const decelHeld = keys.decel.some((k) =>
     c.held(k) && (k !== 'Slash' || !c.held('ShiftLeft', 'ShiftRight')));
-  const accelHeld = c.held(...keys.accel);
 
   return {
     rollRate: rampFlightRate(from.rollRate, rollIn * PLAYER_FLIGHT.maxRoll, rollIn !== 0, dt),
     pitchRate: rampFlightRate(from.pitchRate, pitchIn * PLAYER_FLIGHT.maxPitch, pitchIn !== 0, dt),
-    throttle: accelHeld || decelHeld
-      ? (accelHeld ? 1 : 0) - (decelHeld ? 1 : 0)
-      : throttleToward(c.wantedSpeed ?? null, from.speed),
+    throttle: (c.held(...keys.accel) ? 1 : 0) - (decelHeld ? 1 : 0),
     fire: c.held(...keys.fire) || c.mouseFire,
   };
-}
-
-/**
- * The throttle a wanted speed asks for: open below it, brake above it, and
- * coast inside `PLAYER_FLIGHT.throttleBand` of it (docs/TODO/204 M1). A
- * touch slider sets the wanted speed. A keyboard never does, so with no
- * wanted speed and no key the ship coasts, as it always did.
- */
-export function throttleToward(wanted: number | null, speed: number | undefined): number {
-  if (wanted === null || speed === undefined) return 0;
-  const target = wanted * PLAYER_FLIGHT.maxSpeed;
-  if (speed < target - PLAYER_FLIGHT.throttleBand) return 1;
-  if (speed > target + PLAYER_FLIGHT.throttleBand) return -1;
-  return 0;
 }

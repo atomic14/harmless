@@ -130,7 +130,6 @@ export class Instruments {
   }
 
   toggleMouseFlight(): void {
-    if (this.input.stickHeld) return;   // a finger has the stick, and there is no lock to ask for
     if (this.input.mouseFlight) {
       this.input.releaseMouseFlight();
       this.host.showMessage('MOUSE FLIGHT OFF', 2);

@@ -31,7 +31,7 @@ import { Hud } from '../hud/hud.ts';
 import { flightPrompts, type Prompt } from './prompts.ts';
 import { hitCone } from './gunnery.ts';
 import { viewDirection } from './views.ts';
-import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
+import { keyIfBound } from '../ui/key-help.ts';
 import type { ControlMode } from './controls.ts';
 import type { ExerciseStrip } from './combat-sim-strip.ts';
 import type { Ordnance } from './ordnance.ts';
@@ -185,29 +185,6 @@ export class CockpitView {
    * way.
    */
   keyPrompts(): string[] {
-    return this.offers().flatMap((p) => {
-      const line = this.renderPrompt(p);
-      return line ? [line] : [];
-    });
-  }
-
-  /**
-   * The same offers as buttons: the code each presses beside the line
-   * (docs/TODO/204 M3). A phone taps the prompt, and the tap injects the code
-   * a keyboard would send. Aligned with `keyPrompts`, one for one.
-   */
-  keyPromptButtons(): { code: string; shift: boolean; text: string }[] {
-    const mode = this.host.controlMode();
-    if (!mode) return [];
-    return this.offers().flatMap((p) => {
-      const line = this.renderPrompt(p);
-      const key = keyCodeIfBound(mode, p.command);
-      return line && key ? [{ ...key, text: line }] : [];
-    });
-  }
-
-  /** The commands worth an offer right now, only in flight. */
-  private offers(): Prompt[] {
     const mode = this.host.controlMode();
     if (!this.host.inFlight() || !mode) return [];
     return flightPrompts({
@@ -225,6 +202,9 @@ export class CockpitView {
       stationDistance: this.state.player.position
         .distanceTo(this.state.world.station.position),
       dcEngaged: this.state.session.dcEngaged,
+    }).flatMap((p) => {
+      const line = this.renderPrompt(p);
+      return line ? [line] : [];
     });
   }
 
@@ -277,9 +257,6 @@ export class CockpitView {
       messageText: this.state.session.messageText,
       messageTimer: this.state.session.messageTimer,
       prompts: this.keyPrompts(),
-      promptButtons: this.keyPromptButtons(),
-      torus: this.state.session.torusEngaged,
-      docking: this.state.session.dcEngaged,
       // Null in career flight. It is gated on the same `active` that gives the
       // exercise the keyboard (controlMode). The strip is the exercise's own
       // view of itself, not a second opinion about one.

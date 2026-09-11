@@ -1,5 +1,4 @@
 import { CARRY_LIMIT } from '../constants/world-clock.ts';
-import { attachTouch } from './touch.ts';
 
 // Keyboard state with frame-oriented semantics:
 //  - held(codes): live keydown state — every continuous control, the trigger
@@ -68,18 +67,6 @@ export class Input {
   mouseX = 0;
   mouseY = 0;
   mouseFire = false;
-  /**
-   * The speed a throttle slider asks for, as a fraction of the ship's top
-   * speed, or null when no slider is set (docs/TODO/204 M1). A speed key
-   * held overrides it, and `flightDemand` ramps toward it otherwise.
-   */
-  wantedSpeed: number | null = null;
-  /**
-   * A steering finger is down, so the stick holds its deflection and
-   * `decayMouse` waits (docs/TODO/204 M2). A still mouse decays; a still
-   * finger does not.
-   */
-  stickHeld = false;
   private readonly canvas: HTMLElement | null;
 
   constructor() {
@@ -92,10 +79,6 @@ export class Input {
       return;
     }
     this.canvas = document.getElementById('scene');
-    // The touch overlay, where the page has one (docs/TODO/204 M2). It is the
-    // same bargain as the listeners below: platform wiring, here and nowhere
-    // else, and nothing when the page has no overlay.
-    attachTouch(this, document);
     document.addEventListener('pointerlockchange', () => {
       this.mouseFlight = document.pointerLockElement === this.canvas;
       if (!this.mouseFlight) {
@@ -155,10 +138,14 @@ export class Input {
   }
 
   /**
-   * Hold a key down, as a finger on a button does, until `release`
-   * (docs/TODO/204 M1). It is a held key and never a tap: `held` answers
-   * for it, `pressed` does not, and the carry rule never sees it. So a FIRE
-   * button holds the trigger exactly as the A key does.
+   * Hold a key down, as a finger on a button does, until `release`. It is a
+   * held key and never a tap: `held` answers for it, `pressed` does not, and
+   * the carry rule never sees it. So a laser button holds the trigger exactly
+   * as the A key does.
+   *
+   * docs/TODO/204 M1 added this pair. 205 M1 took the rest of 204 out, and it
+   * kept the pair. 206 holds the laser with it, and 207 holds THRUST and BRAKE
+   * with it.
    */
   press(code: string): void {
     this.down.add(code);
@@ -243,9 +230,8 @@ export class Input {
     if (this.mouseFlight) document.exitPointerLock();
   }
 
-  /** The stick centres itself: with no input, it eases back to neutral. A held finger stops it. */
+  /** The stick centres itself: with no input, it eases back to neutral. */
   decayMouse(dt: number): void {
-    if (this.stickHeld) return;
     const k = Math.max(0, 1 - dt * 1.5);
     this.mouseX *= k;
     this.mouseY *= k;

@@ -151,7 +151,7 @@ const readPerFrame = (i: Input, code: string, frames: number): number => {
   eq('...and drains the carry with it', i.drainPresses().length, 0);
 }
 
-// --- a button holds a key, and is never a tap (docs/TODO/204 M1) ------------
+// --- a button holds a key, and is never a tap (docs/TODO/204 M1, kept by 205 M1)
 {
   const i = new Input();
   i.press('KeyA');
