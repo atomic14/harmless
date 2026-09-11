@@ -188,3 +188,27 @@ Evidence:
   rule itself, so the mark cannot drift from what the slot takes.
 - **The label over the view says MATCH THE SLOT — GO IN SLOWLY** while the
   stretch runs.
+
+### M4, and what the browser run found
+
+- **The manual and the briefing teach the stretch.** The ship flies the
+  approach, hands you the slot, and you match the spin and the speed. Both
+  say that a scrape bounces you clear to try again, and that a docking
+  computer flies the slot for you.
+- **The course list showed during the stretch, and it should not.** The ship
+  is in the station's mouth, and the only things to fly are the roll and the
+  speed. The cockpit shows no course buttons while the stretch runs.
+- **The hand-over at full speed was unfair, and the course now brakes.** The
+  station course arrives at the hand-over on the arrival plan, at the slot's
+  own limit. It was measured over 25 systems with a clear sky. The hand-over
+  comes at 224 to 228 u/s, about 40 s after the arrival, with 1,500 units
+  left. That is half a second of braking, and the rest is the roll.
+- **The hand-over is a range rather than an arrival.** An arrival also waits
+  for the speed to settle. A ship a few units a second over it sailed past the
+  station and into the hull.
+- **A fight now stops a trip, and that is the design.** A measurement with the
+  arrival's traffic left 8 of 20 trips short of the station, because the
+  computer lines the ship up and nobody fires. A pilot fires, runs or pays.
+  With a clear sky, 40 of 40 trips reached the hand-over.
+- **The speed bar's mark needed to be a different colour.** It is green over
+  the amber fill, so it reads at any speed.

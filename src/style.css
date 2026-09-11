@@ -504,10 +504,11 @@ body.screen-open #courses { visibility: hidden; }
 }
 .bar .limit {
   position: absolute;
-  top: -2px; bottom: -2px;
+  top: -3px; bottom: -3px;
   width: 2px;
-  background: var(--hud-amber);
-  opacity: 0.85;
+  z-index: 1;
+  background: var(--hud-green);
+  box-shadow: 0 0 6px rgba(var(--hud-green-rgb), 0.9);
 }
 
 #actions .hud-strip .label {

@@ -37,6 +37,7 @@ import { rampFlightRate, type FlightDemand } from '../player.ts';
 import { bankToTurn, freshSteerMemory, type SteerMemory } from './pitch-roll-steer.ts';
 import type { CourseKind } from './courses.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
+import { SLOT_SPEED_LIMIT } from '../constants/docking.ts';
 import {
   COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
   COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF, COURSE_PLANET_CLEARANCE,
@@ -170,11 +171,18 @@ export class CoursePilot {
    */
   private toStation(v: CourseView, dt: number): CourseStep {
     if (v.dcEngaged) return IDLE;
+    // It ARRIVES at the hand-over, at the speed the slot will take
+    // (docs/TODO/207 M1). A ship handed over at full speed has less than four
+    // seconds to lose 280 units a second. That is no way to meet a pilot.
+    // The hand-over is a RANGE rather than an arrival. An arrival also asks
+    // for the speed to settle. A ship a few units a second over it would sail
+    // past the station while it waited.
     if (v.position.distanceTo(v.stationPos) <= v.handOverRange) {
       return { demand: null, torus: false, handOver: true, done: false };
     }
-    const aim = clearOfPlanet(v.position, v.stationPos, v.planetPos, v.planetRadius, this.aim);
-    return { ...this.pointAt(v, aim, 1, dt), handOver: false, done: false };
+    return this.arrive(v, {
+      target: v.stationPos, standoff: v.handOverRange, speed: SLOT_SPEED_LIMIT,
+    }, dt);
   }
 
   /**

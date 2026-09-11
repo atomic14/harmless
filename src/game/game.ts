@@ -457,8 +457,11 @@ export class Game {
       // The course buttons, in career flight only. An exercise is a room at
       // the station, and it has nowhere to go (docs/TODO/205 M5). During a
       // tunnel the cockpit reads no button, so it shows none.
+      // It shows none while the pilot flies the slot either. The ship is in
+      // the station's mouth then. The only things to fly are the roll and the
+      // speed (docs/TODO/207 M2).
       coursePanel: () => (this.flight_.inSimulator() || this.tunnel.active
-        ? null : this.courses_.panel()),
+        || this.state.session.dockTrial ? null : this.courses_.panel()),
       // The target buttons, in career flight and in an exercise alike: a
       // training fight is a real fight (docs/TODO/206 M3).
       targetPanel: () => (this.tunnel.active ? null : this.targets_.panel()),

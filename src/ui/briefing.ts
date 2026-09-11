@@ -130,15 +130,18 @@ export const BRIEFING: { title: string; body: string }[] = [
   {
     title: 'DOCKING',
     body: `The hard part, and everybody finds it hard at first.<br/><br/>
-      The station <b>rotates</b>, and so does its docking port. An amber marker
-      shows where the port is, with an arrow at the edge of the screen when it
-      is behind you.<br/><br/>
-      Get onto the axis straight out from the port, then <b>roll until you match
-      its rotation</b> — the opening is a letterbox and you must be the same way
-      up as it. Then go in slowly. The marker turns green when you are lined
-      up.<br/><br/>
-      When you can afford one, buy a <b>docking computer</b> and press
-      <b>${KEY.dockingComputer}</b>.`,
+      The station <b>rotates</b>, and so does its docking port. Choose
+      <b>FLY TO THE STATION</b> and the ship flies the approach for you. Near
+      the port it hands you the last stretch, and two things are then
+      yours.<br/><br/>
+      The first is the <b>roll</b>: the opening is a letterbox, and you must be
+      the same way up as it. Drag the strip at the bottom right, or use your
+      roll keys. The second is the <b>speed</b>: hold <b>THRUST</b> or
+      <b>BRAKE</b>, and cross the mark on the speed bar before you go in. The
+      port marker turns green when you are lined up.<br/><br/>
+      Get it wrong and you scrape the hull, bounce clear and try again. When
+      you can afford one, buy a <b>docking computer</b> and press
+      <b>${KEY.dockingComputer}</b>: it flies the slot for you.`,
   },
   {
     title: 'STAYING ALIVE',
