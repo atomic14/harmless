@@ -58,6 +58,13 @@ export const COURSE_KEYS: Readonly<Record<CourseKind, string>> = {
 /** The launch list's row for the galactic chart, where a pilot sets a target. */
 export const COURSE_CHART_KEY = 'VirtCourseChart';
 
+/**
+ * The button in flight that opens the course list over a course, and closes
+ * it (docs/TODO/205 M5). It has no key: Chris, 2026-09-11, *"We don't need to
+ * use the keyboard. We have mouse and touch."*
+ */
+export const COURSE_TOGGLE_KEY = 'VirtCourseToggle';
+
 export const GLOBAL_BINDINGS: readonly Binding[] = [
   // ? toggles the controls guide (plain / is the classic decelerate key)
   { key: 'Question', command: 'toggleHelp' },

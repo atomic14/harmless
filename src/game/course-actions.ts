@@ -19,6 +19,19 @@
 import { courseList, type Course, type CourseKind, type CourseSituation, type CourseWorld } from './courses.ts';
 import type { checkJump } from './hyperspace.ts';
 import type { GameState } from './state.ts';
+import type { Input } from '../engine/input.ts';
+import { COURSE_KEYS, COURSE_TOGGLE_KEY } from './bindings.ts';
+
+/**
+ * What the course buttons show in flight: the list, or the course under way.
+ * `rows` is null while a course flies with the list closed.
+ */
+export interface CoursePanel {
+  readonly rows: readonly Course[] | null;
+  readonly current: CourseKind | null;
+}
+
+const KINDS = Object.keys(COURSE_KEYS) as CourseKind[];
 
 /** What a pick reaches back for. */
 export interface CourseHost {
@@ -36,10 +49,48 @@ export interface CourseHost {
 export class CourseActions {
   private readonly state: () => GameState;
   private readonly host: CourseHost;
+  /**
+   * The pilot opened the list while a course flies. It is what the buttons
+   * show, and never what the ship does, so no save carries it.
+   */
+  private opened = false;
 
   constructor(state: () => GameState, host: CourseHost) {
     this.state = state;
     this.host = host;
+  }
+
+  /**
+   * What the course buttons show in flight. With no course, the list shows by
+   * itself: at an arrival, after a course ends, and after a key takes the ship.
+   */
+  panel(): CoursePanel {
+    const current = this.state().session.course;
+    return {
+      rows: current === null || this.opened ? this.list('flight') : null,
+      current,
+    };
+  }
+
+
+  /**
+   * A course button was pressed in flight. The codes are `COURSE_KEYS` and
+   * `COURSE_TOGGLE_KEY`. The buttons are their only sender, so no key table
+   * spends a letter on them. A screen reads its own codes in the same way
+   * (invariant 13).
+   */
+  read(i: Input): void {
+    // The button that opens the list over a course, and closes it.
+    if (i.pressed(COURSE_TOGGLE_KEY)) {
+      this.opened = !this.opened;
+      return;
+    }
+    for (const kind of KINDS) {
+      if (i.pressed(COURSE_KEYS[kind])) {
+        if (this.pick(kind, 'flight')) this.opened = false;
+        return;
+      }
+    }
   }
 
   /** The courses the situation allows, in order. */

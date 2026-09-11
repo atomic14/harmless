@@ -30,8 +30,8 @@ import { MAX_FUEL } from '../constants/commander.ts';
  * says nothing, because the hermit's own trade screen opens on arrival.
  */
 const COURSE_ENDS: Partial<Record<CourseKind, string>> = {
-  derelict: 'HOLDING BESIDE THE DERELICT',
-  skim: 'TANK FULL — SKIM COMPLETE',
+  derelict: 'ARRIVED AT THE DERELICT SHIP',
+  skim: 'FUEL TANK FULL',
 };
 import { massLocked } from './world-step.ts';
 import { boundKey } from '../ui/key-help.ts';
@@ -132,7 +132,7 @@ export class Instruments {
     if (handsOn) {
       s.course = null;
       this.coursePilot.reset();
-      this.host.showMessage('COURSE SUSPENDED — MANUAL CONTROL', 2);
+      this.host.showMessage('MANUAL CONTROL — AUTOPILOT OFF', 2);
       return null;
     }
     const p = this.state.player;

@@ -51,11 +51,11 @@ same('a jump with fuel names the target and is free to fly',
   row(world(), 'jump'), { kind: 'jump', what: 'JUMP TO LAVE', why: null });
 eq('at a launch, a chart with no target still shows the jump, with the reason',
   row(world({ situation: 'launch', sky: [], jump: { ok: false, reason: 'noTarget' }, targetName: null }), 'jump')?.why,
-  'NO HYPERSPACE TARGET SET');
+  'CHOOSE A SYSTEM ON THE GALACTIC CHART FIRST');
 check('...and in flight, a chart with no target shows no jump',
   !kinds(world({ jump: { ok: false, reason: 'noTarget' }, targetName: null })).includes('jump'));
 eq('a jump the tank cannot cover shows, and says so',
-  row(world({ jump: { ok: false, reason: 'noFuel' } }), 'jump')?.why, 'TARGET OUT OF FUEL RANGE');
+  row(world({ jump: { ok: false, reason: 'noFuel' } }), 'jump')?.why, 'NOT ENOUGH FUEL TO GET THERE');
 check('a jump under way is not a course to pick',
   !kinds(world({ situation: 'launch', sky: [], jump: { ok: false, reason: 'alreadyJumping' } })).includes('jump'));
 

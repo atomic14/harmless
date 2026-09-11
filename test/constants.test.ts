@@ -402,9 +402,14 @@ const OUTSIDE: readonly Group[] = [
 
   {
     why: 'STAYS: words, not a number. What the console says when a course'
-      + ' finishes its work (docs/TODO/205 M3), beside the switch that says it',
+      + ' finishes its work (docs/TODO/205 M3), beside the switch that says it.'
+      + ' What a course button says while it flies, and what a jump row says'
+      + ' when the ship cannot jump, beside the rule that raises them (M5).'
+      + ' KINDS is the list of courses, read off the codes that name them',
     files: {
       'game/flight-instruments.ts': ['COURSE_ENDS'],
+      'game/courses.ts': ['COURSE_NAMES', 'JUMP_WHY'],
+      'game/course-actions.ts': ['KINDS'],
     },
   },
 
@@ -460,7 +465,7 @@ const OUTSIDE: readonly Group[] = [
       // ...and the codes a course row sends, on both of its surfaces (docs/TODO/205 M4)
       'game/bindings.ts': [
         'GLOBAL_BINDINGS', 'FLIGHT_BINDINGS', 'NOT_IN_THE_SIMULATOR', 'BINDINGS',
-        'WHILE_PAUSED', 'COURSE_KEYS', 'COURSE_CHART_KEY',
+        'WHILE_PAUSED', 'COURSE_KEYS', 'COURSE_CHART_KEY', 'COURSE_TOGGLE_KEY',
       ],
       'game/screens/save-transfer.ts': ['NOT_A_SAVE', 'WRONG_VERSION', 'STORE_FULL'],
       'engine/keymap.ts': ['LAYOUTS', 'STORAGE_KEY'],

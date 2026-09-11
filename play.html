@@ -37,6 +37,13 @@
       -->
       <div id="prompts"></div>
       <!--
+        The course buttons (docs/TODO/205 M5): where the ship goes next. A
+        click or a tap sends the button's data-key, as a menu row does, and
+        hud/hud-buttons.ts paints them. They sit outside the console, which is
+        read and never touched.
+      -->
+      <div id="courses"></div>
+      <!--
         The exercise strip: shown for as long as a training exercise is being
         flown, and never in career flight. Painted by hud/hud.ts from the
         exercise's own recorder — see game/combat-sim-strip.ts.

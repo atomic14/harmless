@@ -29,7 +29,7 @@
 
 import type { CommanderData } from './commander.ts';
 import type { NpcRole } from './ship-roles.ts';
-import { refusalMessage, type Refusal } from './hyperspace.ts';
+import type { Refusal } from './hyperspace.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 import { ASTEROIDS_MIN } from '../constants/population.ts';
 
@@ -42,6 +42,20 @@ export type CourseKind =
  * the sky is not built. In flight the sky is there to read.
  */
 export type CourseSituation = 'launch' | 'flight';
+
+/**
+ * What the button says while the ship flies a course. The player never sees
+ * the word "course". The words say what the ship is doing, as a pilot would.
+ */
+export const COURSE_NAMES: Readonly<Record<CourseKind, string>> = {
+  jump: 'JUMPING TO HYPERSPACE',
+  mission: 'ON THE MISSION',
+  station: 'HEADING TO THE STATION',
+  derelict: 'HEADING TO THE DERELICT SHIP',
+  mine: 'MINING THE ASTEROIDS',
+  hermit: 'HEADING TO THE ROCK HERMIT',
+  skim: 'SKIMMING THE STAR FOR FUEL',
+};
 
 /** One row of the list. */
 export interface Course {
@@ -91,10 +105,10 @@ export function courseList(w: CourseWorld): Course[] {
       ? { kind: 'mission', what: w.mission, why: null } as const : null,
     w.witchspace ? null : { kind: 'station', what: 'FLY TO THE STATION', why: null } as const,
     present(w, 'generation', 'derelict')
-      ? { kind: 'derelict', what: 'INVESTIGATE THE DERELICT', why: null } as const : null,
+      ? { kind: 'derelict', what: 'INVESTIGATE THE DERELICT SHIP', why: null } as const : null,
     mineRow(w, false),
     present(w, 'hermit', 'hermit')
-      ? { kind: 'hermit', what: 'VISIT THE HERMIT', why: null } as const : null,
+      ? { kind: 'hermit', what: 'VISIT THE ROCK HERMIT', why: null } as const : null,
     skimRow(w),
     jumpRow(w, false),
   ].filter((c): c is Course => c !== null);
@@ -117,9 +131,20 @@ function jumpRow(w: CourseWorld, launch: boolean): Course | null {
   return {
     kind: 'jump',
     what: w.targetName === null ? 'JUMP' : `JUMP TO ${w.targetName.toUpperCase()}`,
-    why: w.jump.ok ? null : refusalMessage(w.jump.reason, w.witchspace),
+    why: w.jump.ok ? null : JUMP_WHY[w.jump.reason],
   };
 }
+
+/**
+ * What a jump row says when the ship cannot make the jump. The words tell the
+ * player what to do, and not only what is wrong. The hyperspace key keeps its
+ * own shorter refusal, `refusalMessage` in `hyperspace.ts`.
+ */
+const JUMP_WHY: Readonly<Record<Refusal, string>> = {
+  noTarget: 'CHOOSE A SYSTEM ON THE GALACTIC CHART FIRST',
+  noFuel: 'NOT ENOUGH FUEL TO GET THERE',
+  alreadyJumping: 'THE JUMP HAS STARTED',
+};
 
 /**
  * The rocks. The ore needs a mining laser to cut it and fuel scoops to take it

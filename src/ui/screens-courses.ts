@@ -24,11 +24,11 @@ export function renderLaunchCourses(rows: readonly CourseRow[], chartCode: strin
     <h2>LAUNCH</h2>
     <div class="rule"></div>
     <div class="info" style="text-align:center">
-      WHERE DOES THE SHIP GO WHEN IT LEAVES?
+      CHOOSE WHERE TO GO
     </div>
     <div class="menu">
       ${rows.map(line).join('\n      ')}
-      <div data-key="${chartCode}">GALACTIC CHART &mdash; CHOOSE WHERE TO JUMP</div>
+      <div data-key="${chartCode}">GALACTIC CHART &mdash; PICK A SYSTEM TO JUMP TO</div>
     </div>
     <div class="buttons"><button data-key="Escape">STAY DOCKED</button></div>
     <div class="keyline">TAP A ROW &middot; &uarr; &darr; SELECT &middot; ENTER CHOOSE &middot; ESC STAY DOCKED</div>

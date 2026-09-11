@@ -1,4 +1,5 @@
 import { elementById, fillWith } from '../engine/inert-dom.ts';
+import { ButtonStrip, type HudButton } from './hud-buttons.ts';
 import * as THREE from 'three';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { describeSystem } from '../galaxy/galaxy.ts';
@@ -77,6 +78,12 @@ export interface HudState {
    * `boundKey`. Neither is a question a painter may answer.
    */
   prompts: readonly string[];
+  /**
+   * The course buttons over the view (docs/TODO/205 M5): the list when the
+   * ship has no course, or the one course it flies. Finished, as the prompts
+   * are. Which courses exist is `game/courses.ts`.
+   */
+  courses: readonly HudButton[];
   speedFrac: number;
   rollFrac: number; // -1..1
   pitchFrac: number; // -1..1
@@ -234,6 +241,7 @@ export class Hud {
   private readonly promptsEl = byId('prompts');
   /** what the prompt line currently says, so a steady list is not repainted */
   private promptsShown = '';
+  private readonly courseStrip = new ButtonStrip(byId('courses'));
   private readonly flashEl = byId('damage-flash');
   private readonly exerciseEl = byId('exercise');
   private readonly exScenarioEl = byId('ex-scenario');
@@ -266,6 +274,7 @@ export class Hud {
   render(_dt: number, frame: HudFrame): void {
     this.messageEl.textContent = frame.messageTimer > 0 ? frame.messageText : '';
     this.paintPrompts(frame.prompts);
+    this.courseStrip.paint(frame.courses);
     this.speedEl.style.width = `${frame.speedFrac * 100}%`;
     this.rollEl.style.left = `${50 + clampUnit(frame.rollFrac) * 45}%`;
     this.pitchEl.style.left = `${50 + clampUnit(frame.pitchFrac) * 45}%`;

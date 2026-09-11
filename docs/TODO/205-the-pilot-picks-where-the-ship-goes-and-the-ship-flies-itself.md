@@ -162,9 +162,10 @@ for its flight menu. Each button sends its course's code from `COURSE_KEYS`,
 the flight binding table answers it, and the Game applies the pick
 (invariant 15).
 
-The screen opens by itself when the ship has no course: at a launch, at an
-arrival, and when a course ends. A key and a button open it at other times.
-Invariant 9 holds: the key lives in the binding table and nowhere else.
+The list shows by itself when the ship has no course: at an arrival, when a
+course ends, and when a key takes the ship. A button opens it over a course
+that flies. No new key does (Chris, 2026-09-11: *"We don't need to use the
+keyboard. We have mouse and touch."*). The existing flight keys stay.
 
 The course list also carries two fixed rows: the galactic chart and the pause.
 A phone needs the chart in flight to pick the next jump.
@@ -202,6 +203,10 @@ slower. It never skips a rule.
 same world state, step for step. It proves each of the four stops above.
 
 ## Decisions already made
+
+- **A new control takes a mouse click or a tap, and no key** (Chris,
+  2026-09-11: *"We don't need to use the keyboard. We have mouse and
+  touch."*). The flight keys of today stay as they are.
 
 - **One flow for every player** (Chris, 2026-09-11). A keyboard player and a
   phone player pick from the same course list.
@@ -393,3 +398,21 @@ Evidence:
   `hyperspace-actions.ts` holds the arguments that `startHyperspace` used to
   pass by hand.
 - **The suite has 5,708 assertions,** from 5,694.
+
+### M5
+
+- **The course buttons read their codes as a screen reads its own.**
+  `CourseActions.read` takes the codes of `COURSE_KEYS` in flight. So no key
+  table spends a row on a button, and the `?` guide keeps no blank rows.
+- **Chris ruled out a new key the same day.** The first draft bound Z to open
+  the list. His words: *"We don't need to use the keyboard. We have mouse and
+  touch."* The button that opens the list sends its own code instead.
+- **The words on the buttons are the player's, and not the plan's.** Chris
+  asked for plain words the same day: *"A user does not have all our
+  context."* So no button says "course". A button under way says what the
+  ship does, such as HEADING TO THE STATION. A reason says what to do, such as
+  CHOOSE A SYSTEM ON THE GALACTIC CHART FIRST.
+- **A launch and an arrival each play a tunnel.** The cockpit reads only a few
+  keys while one runs, so a button pressed then does nothing. That is the game
+  of today, and the test waits for the tunnel.
+- **The suite has 5,721 assertions,** from 5,708.

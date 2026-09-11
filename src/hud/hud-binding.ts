@@ -69,6 +69,8 @@ export interface HudSources {
    * `ui/`, so a rule module cannot reach it. The dashboard is handed the line.
    */
   readonly prompts: readonly string[];
+  /** the course buttons, finished — see `HudState.courses` */
+  readonly courses: HudState['courses'];
   /**
    * The training exercise in progress, or null in career flight.
    *
@@ -177,6 +179,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     messageText: s.messageText,
     messageTimer: s.messageTimer,
     prompts: s.prompts,
+    courses: s.courses,
     playerPos: s.playerPos,
     playerQuat: s.playerQuat,
     contacts: scannerContacts(

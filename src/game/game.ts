@@ -109,7 +109,7 @@ import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
 import { QuitScreen, type QuitContext } from './screens/quit.ts';
 import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
 import { CoursesScreen, type CoursesContext } from './screens/courses.ts';
-import { CourseActions, type CourseHost } from './course-actions.ts';
+import { CourseActions, type CourseHost, type CoursePanel } from './course-actions.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 
 import { characterVerdict } from './character.ts';
@@ -450,7 +450,20 @@ export class Game {
       exerciseStrip: () => this.flight_.strip,
       setSightLit: (on) => this.shell.setSightLit(on),
       view: () => this.render,
+      // The course buttons, in career flight only. An exercise is a room at
+      // the station, and it has nowhere to go (docs/TODO/205 M5).
+      coursePanel: () => (this.flight_.inSimulator() ? null : this.courses_.panel()),
     } satisfies CockpitHost);
+
+  /**
+   * What the course buttons show now (docs/TODO/205 M5).
+   *
+   * @internal — a delegate for test/course-buttons.test.ts, which reads the
+   * panel without a scrape of the painted buttons.
+   */
+  coursePanel(): CoursePanel | null {
+    return this.flight_.inSimulator() ? null : this.courses_.panel();
+  }
 
   /**
    * What the cockpit is offering right now.
@@ -1093,6 +1106,10 @@ export class Game {
 
     const mode = this.controlMode();
     if (!mode) return;
+    // The course buttons in flight send codes that no key table holds
+    // (docs/TODO/205 M5). The course actions read them, as a screen reads its
+    // own. A paused cockpit and an exercise read none.
+    if (mode === 'flight' && !pausedOnly) this.courses_.read(i);
     for (const c of commandsFor(mode, i)) {
       if (!pausedOnly || WHILE_PAUSED.includes(c)) this.runCommand(c);
     }

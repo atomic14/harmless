@@ -445,6 +445,37 @@ body.screen-open #message {
 }
 
 /*
+ * The course buttons (docs/TODO/205 M5): top right of the view, under the
+ * topbar, clear of the gunsight and of the console. They take a click and a
+ * tap, so each is a real target of at least 40 pixels. Under a screen the
+ * flight world stops, and the buttons hide with the HUD.
+ */
+#courses {
+  position: absolute;
+  top: 44px; right: 12px;
+  z-index: 21;
+  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  max-width: min(46vw, 320px);
+}
+#courses .hud-button {
+  min-height: 40px;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 4px 12px;
+  font-size: 13px; letter-spacing: 1px;
+  color: var(--hud-green);
+  background: rgba(0, 10, 2, 0.72);
+  border: 1px solid rgba(var(--hud-green-rgb), 0.45);
+  cursor: pointer;
+  user-select: none;
+}
+#courses .hud-button:hover { background: rgba(var(--hud-green-rgb), 0.18); }
+#courses .hud-button.lit { color: var(--hud-amber); border-color: rgba(var(--hud-amber-rgb), 0.55); }
+#courses .hud-button.dim { opacity: 0.6; }
+#courses .hud-button .note { font-size: 10px; color: var(--hud-amber); letter-spacing: 1px; }
+#courses .hud-button .hint { font-size: 10px; color: var(--hud-dim); letter-spacing: 1px; }
+body.screen-open #courses { visibility: hidden; }
+
+/*
  * The exercise strip — top left, under the topbar.
  *
  * Deliberately away from the middle of the screen and away from the bottom:

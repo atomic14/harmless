@@ -47,7 +47,8 @@ function reachable(g: Game): number {
 
   press(g, COURSE_KEYS.jump);
   eq('a jump with no target refuses, and the ship stays on the pad', g.mode, 'courses');
-  eq('...and the console says why', g.state.session.messageText, 'NO HYPERSPACE TARGET SET');
+  eq('...and the console says what to do', g.state.session.messageText,
+    'CHOOSE A SYSTEM ON THE GALACTIC CHART FIRST');
 
   press(g, COURSE_CHART_KEY);
   eq('the chart row opens the galactic chart', g.mode, 'chart');

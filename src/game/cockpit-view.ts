@@ -31,7 +31,11 @@ import { Hud } from '../hud/hud.ts';
 import { flightPrompts, type Prompt } from './prompts.ts';
 import { hitCone } from './gunnery.ts';
 import { viewDirection } from './views.ts';
-import { keyIfBound } from '../ui/key-help.ts';
+import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
+import type { HudButton } from '../hud/hud-buttons.ts';
+import type { CoursePanel } from './course-actions.ts';
+import { COURSE_NAMES } from './courses.ts';
+import { COURSE_KEYS, COURSE_TOGGLE_KEY } from './bindings.ts';
 import type { ControlMode } from './controls.ts';
 import type { ExerciseStrip } from './combat-sim-strip.ts';
 import type { Ordnance } from './ordnance.ts';
@@ -73,6 +77,26 @@ export interface CockpitHost {
   setSightLit(on: boolean): void;
   /** the eye and the beams parented to it, from `Shell.view` */
   view(): Presentation;
+  /** what the course buttons show, or null where there are none (docs/TODO/205 M5) */
+  coursePanel(): CoursePanel | null;
+}
+
+/**
+ * The course panel as buttons (docs/TODO/205 M5). With no course, each course
+ * is a button, and the galactic chart follows them. Over a course that flies,
+ * one lit button names it and opens the list.
+ */
+export function courseButtonsFor(p: CoursePanel, chart: string | null): HudButton[] {
+  if (p.rows === null) {
+    return p.current === null ? []
+      : [{ code: COURSE_TOGGLE_KEY, label: COURSE_NAMES[p.current], lit: true, hint: 'CHOOSE SOMEWHERE ELSE' }];
+  }
+  const out: HudButton[] = p.rows.map((c) => ({
+    code: COURSE_KEYS[c.kind], label: c.what, ...(c.why === null ? {} : { note: c.why }),
+  }));
+  if (chart) out.push({ code: chart, label: 'GALACTIC CHART' });
+  if (p.current !== null) out.push({ code: COURSE_TOGGLE_KEY, label: 'CLOSE' });
+  return out;
 }
 
 export class CockpitView {
@@ -184,6 +208,14 @@ export class CockpitView {
    * scrape of the painted line. `jettisonCargo` is driven directly the same
    * way.
    */
+  /** The course buttons, in flight only. */
+  private courseButtons(): HudButton[] {
+    const panel = this.host.inFlight() ? this.host.coursePanel() : null;
+    if (!panel) return [];
+    const mode = this.host.controlMode();
+    return courseButtonsFor(panel, mode ? keyCodeIfBound(mode, 'openChart') : null);
+  }
+
   keyPrompts(): string[] {
     const mode = this.host.controlMode();
     if (!this.host.inFlight() || !mode) return [];
@@ -257,6 +289,7 @@ export class CockpitView {
       messageText: this.state.session.messageText,
       messageTimer: this.state.session.messageTimer,
       prompts: this.keyPrompts(),
+      courses: this.courseButtons(),
       // Null in career flight. It is gated on the same `active` that gives the
       // exercise the keyboard (controlMode). The strip is the exercise's own
       // view of itself, not a second opinion about one.

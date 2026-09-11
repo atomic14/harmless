@@ -24,9 +24,11 @@ rules. This file is a map.
   seams cross the platform seam. `onScreenClick` is input. `onScreenMove` reports
   only: a screen may repaint what it describes, but it must never select or
   spend.
-- The HUD is a read-only painter, and it is three files. `hud/hud-model.ts`
+- The HUD is a read-only painter, and it is four files. `hud/hud-model.ts`
   works out where a marker goes. `hud-binding.ts` turns the state into a
-  dashboard. `hud.ts` paints one. A screen lives behind `ui/screen-host.ts`, and
+  dashboard. `hud.ts` paints one. `hud-buttons.ts` paints the buttons over the
+  flight view, such as the course buttons, and a click on one sends its code
+  (docs/TODO/205). A screen lives behind `ui/screen-host.ts`, and
   it reaches the page through `ui/screen-shell.ts`. A screen owns its own
   rendering, its own input and its own local state.
 - `src/game/prompts.ts` decides what a key can do about the situation right now.
@@ -43,7 +45,9 @@ rules. This file is a map.
   course asks for: the torus drive, the hand-over to the docking computer, and
   the end of the course. `course-actions.ts` joins the list to the Game: it
   builds the flat view, and it applies a pick. At the station, the LAUNCH row
-  opens `screens/courses.ts`, and a pick leaves on the course.
+  opens `screens/courses.ts`, and a pick leaves on the course. In flight, the
+  list is a set of buttons over the view, and not a screen, because the flight
+  world stops under a screen.
 - The console is one line, so `SessionState.queued` is the line that waits for it
   (`session.ts`). Some consequences make sense only after their cause: what a
   scan cost your legal record, or what a deed cost your reputation. The console
