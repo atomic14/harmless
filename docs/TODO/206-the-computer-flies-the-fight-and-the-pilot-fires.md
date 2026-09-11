@@ -83,25 +83,30 @@ units across. The standoff must keep the ship outside
 
 ### M3 — the pilot's hands
 
-Four controls, as buttons on the flight view and as the existing keys:
+Four controls, as buttons on the flight view and as the existing keys. A
+button takes a mouse click on a desktop, and a tap on a phone:
 
 1. the laser, which fires while it is held;
-2. the missile, which arms on one press and launches on the next;
+2. the missile, which arms on one press and launches on the next. It locks on
+   the target that the pilot picked;
 3. the E.C.M.;
 4. the target list, which opens as rows over the view.
 
 The laser heat stays the pilot's to manage. The trigger goes through the path it
 uses today, because a shot has legal consequences, and those are the Game's.
 
-### M4 — the bought combat computer flies all of it
+### M4 — the bought combat computer flies all of it, except the missiles
 
-With `equipment.combatComputer`, the computer also pulls the trigger, launches
-the missiles and picks the targets. The pilot watches. The pilot may still pick
-a target, and the computer then fights that one.
+With `equipment.combatComputer`, the computer also pulls the trigger, reaches
+for the E.C.M. and picks the targets. The pilot watches. The pilot may still
+pick a target, and the computer then fights that one.
 
-The missile launch is new. The rule must say when a missile is worth it, for
-example a hostile inside a range with a missile armed. Measure it with the
-defence probe before the constant is written.
+**The computer never launches a missile.** A missile costs money, so the
+pilot decides when to spend one. The pilot arms it and fires it by hand, at
+the picked target, as in M3.
+
+**A key takes the stick back.** During a fight, a flight key hands the ship
+to the pilot, as it does to the co-pilot today.
 
 ### M5 — the ways out, as courses
 
@@ -130,8 +135,11 @@ without the pick.
 
 - **Timing and tactics are the pilot's** (Chris, 2026-09-11). The pilot owns
   the laser, the missiles, the E.C.M. and the choice of target.
-- **The bought combat computer takes control of everything** (Chris,
-  2026-09-11). The pilot sits back and watches.
+- **The bought combat computer takes control of everything but the missiles**
+  (Chris, 2026-09-11). The pilot sits back and watches. The pilot targets and
+  fires a missile by hand, because *"missiles cost money"*.
+- **A flight key takes control during a fight, and a new button takes a mouse
+  click** (Chris, 2026-09-11).
 - **A trader is on the target list** (Chris, 2026-09-11). No hail or demand
   comes first. The law answers as it does today.
 - **Collection needs fuel scoops** (Chris, 2026-09-11). The ship flies round the
@@ -164,8 +172,8 @@ and the Verification section names it.
 
 ## Verification
 
-The gates always run: `npm run check`. `npm run generate:constants` runs first,
-because M4 adds a constant.
+The gates always run: `npm run check`. `npm run generate:constants` runs first
+when a milestone adds a constant.
 
 The tier: a rule that changes how a fight goes. `survivability`, `aim-probe`,
 `defence-probe` and `ambush-probe` run before M2 and after M4. Each sampled
@@ -177,7 +185,8 @@ Evidence:
   pick.
 - A headless fight shows that the co-pilot follows the pilot's pick, and that
   it fires only when the pilot's trigger is down.
-- A headless fight with a combat computer shows a missile launch.
+- A headless fight with a combat computer shows no missile launch, and a
+  missile that the pilot fires locks on the picked target.
 - A headless run from a police Viper opens the range, and the torus engages
   when the lock clears.
 - A headless collection scoops every canister in range, and it stops on the

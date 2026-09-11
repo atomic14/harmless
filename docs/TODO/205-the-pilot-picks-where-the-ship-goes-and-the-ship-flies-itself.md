@@ -11,7 +11,8 @@ words: *"The current approach does not work - it's not possible to fly the ship
 using mobile controls."* He saw a larger chance in that failure: *"This is chance
 to make the game much more than just a combat space fighting game. We can make
 it an immersive adventure game."* The brainstorm of that day is in the
-conversation. Plans 205 to 208 are its result.
+conversation. Plans 205 to 208 are its result. The note itself is not in the
+repository, so the plans quote it.
 
 **Most of the parts exist already.** Each part below flies the player's ship
 through one `FlightDemand`. A pair of hands makes the same thing, and
@@ -183,13 +184,15 @@ own style, and the house prose rules do not govern them.
 - **"Jump on" is a course when the tank holds the fuel** (Chris, 2026-09-11).
   "Skim the star" needs fuel scoops, and the ship flies to the star.
 - **The home system's work stays, as courses** (Chris, 2026-09-11: *"maybe we
-  keep these, they could be presented as options"*). The rocks, the hermit and
-  the star are launch courses too. That answers the commander with no fuel
-  money.
+  keep these, they could be presented as options"*). The rocks and the star are
+  launch courses too, and the hermit shows in flight (M2). That answers the
+  commander with no fuel money. Chris confirmed this reading the same day.
 - **Camera views wait.** They are GitHub #50.
-- **The flight keys stay as an override on a keyboard.** This plan made that
-  call. The combat trainer, the flight probe and the dock probe fly by those
-  keys. The two computers already hand the ship back on a touch.
+- **The flight keys stay as an override on a keyboard** (Chris, 2026-09-11:
+  *"keep the keys - we'll use mouse for any new buttons and hitting the
+  keyboard will take control during combat"*). So a new button takes a mouse
+  click on a desktop, and a tap on a phone. The two computers already hand the
+  ship back on a key.
 - **M1 lands on the branch of 204.** This plan made that call too. Pull request
   #49 then carries the attempt and its removal together, so the record stays in
   one place.
