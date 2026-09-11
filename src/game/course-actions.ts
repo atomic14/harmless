@@ -24,6 +24,7 @@ import { COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY } from './bindings.ts';
 import { hostilesNear, hostilesOnScanner } from './hostility.ts';
 import { SKIP_SPEED } from '../constants/course.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
+import { missionCourse } from './mission-course.ts';
 
 /**
  * What the course buttons show in flight: the list, or the course under way.
@@ -200,7 +201,9 @@ export class CourseActions {
       // The sky is cleared while the ship is docked (courses.ts).
       sky: situation === 'launch' ? []
         : s.world.npcs.filter((n) => n.state.alive).map((n) => n.role),
-      mission: null,
+      mission: situation === 'launch' ? null
+        : missionCourse(s.commander.missions, s.commander.systemIndex,
+          s.world.npcs, s.world.cargo.items)?.what ?? null,
       done: new Set(s.session.coursesDone),
       threat: situation === 'launch' ? null : this.threat(),
       loot: situation === 'launch' ? 0 : s.world.cargo.items

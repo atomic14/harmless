@@ -41,9 +41,10 @@ import { SLOT_SPEED_LIMIT } from '../constants/docking.ts';
 import {
   COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
   COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF, COURSE_PLANET_CLEARANCE,
-  COURSE_COLLECT_SPEED, COURSE_RUN_REACH, COURSE_SKIM_DISTANCE, COURSE_TORUS_CONE,
-  COURSE_TORUS_DROP,
+  COURSE_COLLECT_SPEED, COURSE_ESCORT_STANDOFF, COURSE_RUN_REACH, COURSE_SKIM_DISTANCE,
+  COURSE_TORUS_CONE, COURSE_TORUS_DROP, COURSE_WATCH_STANDOFF,
 } from '../constants/course.ts';
+import type { MissionHow } from './mission-course.ts';
 
 /** What the course pilot reads for one frame. A flat view, so a test needs no world. */
 export interface CourseView {
@@ -69,6 +70,12 @@ export interface CourseView {
   readonly threats: readonly THREE.Vector3[];
   /** where the cargo adrift within scanner range is, nearest first */
   readonly loot: readonly THREE.Vector3[];
+  /**
+   * What the mission asks for here (docs/TODO/208 M1): where its target is,
+   * how fast it moves, and what the ship does about it. Null when no live leg
+   * has work in this system.
+   */
+  readonly mission: { readonly at: THREE.Vector3; readonly speed: number; readonly how: MissionHow } | null;
   /** the docking computer already has the ship */
   readonly dcEngaged: boolean;
   /**
@@ -145,6 +152,17 @@ export class CoursePilot {
       // A rock is fought, not flown to: `flight-instruments.ts` picks the next
       // one as the target, and the computer's aim lines the ship up on it.
       case 'mine': return IDLE;
+      case 'mission': {
+        const m = v.mission;
+        if (m === null) return ended();
+        // A hunt is a fight: `flight-instruments.ts` picks the ship, and the
+        // computer's aim flies it, as it does for a rock.
+        if (m.how === 'fight') return IDLE;
+        const standoff = m.how === 'hold' ? COURSE_WATCH_STANDOFF
+          : m.how === 'escort' ? COURSE_ESCORT_STANDOFF : 0;
+        const speed = m.how === 'scoop' ? COURSE_COLLECT_SPEED : m.speed;
+        return { ...this.arrive(v, { target: m.at, standoff, speed }, dt), done: false };
+      }
       default: return IDLE;
     }
   }

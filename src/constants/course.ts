@@ -195,3 +195,30 @@ export const COURSE_COLLECT_SPEED = 60;
  * @domain course
  */
 export const COURSE_DOCK_HANDOVER = 1500;
+
+/**
+ * How far from a ship the scan course holds, in world units
+ * (docs/TODO/208 M2).
+ *
+ * A scan counts seconds while the ship is inside `SCANNER_RANGE`, which is
+ * 6,000, and within `WATCH_CONE` of the nose. So the hold sits well inside
+ * the range, and near enough that the ship fills a useful part of the cone.
+ * It is far enough out that a trader's own wandering does not shake it off.
+ *
+ * @rule course.watchStandoff
+ * @domain course
+ */
+export const COURSE_WATCH_STANDOFF = 1200;
+
+/**
+ * How far from its charge the escort course flies, in world units
+ * (docs/TODO/208 M2).
+ *
+ * The escort is safe when no hostile ship is within 3,500 units of the
+ * charge. A pilot who flies this close is inside that ring, and the fight
+ * comes to the pilot rather than to the charge.
+ *
+ * @rule course.escortStandoff
+ * @domain course
+ */
+export const COURSE_ESCORT_STANDOFF = 600;

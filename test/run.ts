@@ -82,6 +82,7 @@ import './fight-buttons.test.ts';
 import './run-and-offers.test.ts';
 import './mine-and-collect.test.ts';
 import './dock-trial.test.ts';
+import './mission-courses.test.ts';
 import './world.test.ts';
 import './docking.test.ts';
 import './docking-computer.test.ts';

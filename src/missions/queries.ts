@@ -14,8 +14,12 @@ import { verbJob, verbNeedsShip } from './verbs/registry.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, legPay, lineSlots } from './text.ts';
 
-function liveLegs(
-  st: MissionState, from: readonly Skeleton[],
+/**
+ * Every live mission with the leg it is on. The game asks it too, to know
+ * what a commander is here to do (docs/TODO/208 M1).
+ */
+export function liveLegs(
+  st: MissionState, from: readonly Skeleton[] = SKELETONS,
 ): { live: LiveMission; leg: Leg }[] {
   const out: { live: LiveMission; leg: Leg }[] = [];
   for (const live of st.live) {

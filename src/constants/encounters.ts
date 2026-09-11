@@ -47,7 +47,9 @@ export const TRADER_GAP_BUSY_MAX = 50;
  * This is therefore the exchange rate between the 1984 figure and a Harmless
  * clock. It is the only place the two scales meet, and that is why neither can be
  * re-based without the other.
- */
+  *
+ * @rule encounters.productivityPerSecond
+*/
 export const PRODUCTIVITY_PER_SECOND = 1200;
 
 /**

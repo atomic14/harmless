@@ -141,3 +141,25 @@ Evidence:
 - A test proves that the smuggle path keeps outside 2,600 units of each Viper
   where such a path exists.
 - Chris plays the arc of one patron on his phone.
+
+## What the milestones found
+
+### M1 and M2
+
+- **Five verbs need a course, and three do not.** A deliver, a smuggle and an
+  ambush all end at the station, and the station course flies there. The
+  other five get the first row of the list, in the job's own words. The rows
+  read HUNT THE KRAIT, SCAN THE ANACONDA, ESCORT THE PYTHON, RECOVER THE
+  CARGO and PICK UP THE SURVIVOR.
+- **Four shapes cover those five.** A hunt is a fight, so the course picks the
+  ship and the computer's aim flies it, exactly as mining does. A scan holds
+  1,200 units off and keeps the nose on the ship. An escort flies 600 units
+  off its charge, inside the ring the escort is judged by, so the fight comes
+  to the pilot. A recover and a rescue are a scoop.
+- **The run leads the list in a hunt, and that is right.** The hunt's own ship
+  is hostile, so RUN FOR IT sits above the mission row (docs/TODO/206 M5).
+- **The whole side-job flight is tested through the machine.** Each job is
+  accepted through `runMissions`, moved to the system the ship is in, and
+  flown by its button alone. A side job is on about a third of the worlds'
+  boards, so the test walks the galaxy until it finds one that offers it.
+- **The suite has 5,831 assertions,** from 5,820.

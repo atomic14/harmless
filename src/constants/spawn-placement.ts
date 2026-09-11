@@ -29,7 +29,9 @@ export const TRADER_SCATTER = 1800;
  * `PIRATE_SCATTER` plays for a gang. The police patrol the lane rather than guard
  * the slot, so a fugitive can still reach the slot to pay a fine (game/law.ts,
  * station.ts).
- */
+  *
+ * @rule spawn.policeScatter
+*/
 export const POLICE_SCATTER = 1200;
 
 /**

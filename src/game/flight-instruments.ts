@@ -26,6 +26,7 @@ import type { CourseKind } from './courses.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 import { hostilesOnScanner } from './hostility.ts';
 import { pickTarget, pickedTarget } from './targets.ts';
+import { missionCourse } from './mission-course.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
 import { COURSE_DOCK_HANDOVER } from '../constants/course.ts';
@@ -152,6 +153,17 @@ export class Instruments {
       this.endCourse('mine');
       return null;
     }
+    // A mission's own work here, and what the ship does about it
+    // (docs/TODO/208 M1). A hunt is a fight, so the ship it names is picked
+    // as the target, exactly as a rock is.
+    const mission = s.course !== 'mission' ? null
+      : missionCourse(this.state.commander.missions, this.state.commander.systemIndex,
+        w.npcs, w.cargo.items);
+    if (mission?.how === 'fight' && mission.ship !== null
+      && pickedTarget(w.npcs) !== mission.ship) {
+      pickTarget(w.npcs, mission.ship);
+      s.handFlown = false;
+    }
     const live = (role: string) => w.npcs.find((n) => n.state.alive && n.role === role) ?? null;
     const derelict = live('generation');
     const step = this.coursePilot.step({
@@ -176,6 +188,8 @@ export class Instruments {
       threats: hostilesOnScanner(w.npcs, p.position, this.state.commander.legalStatus,
         p.position.distanceTo(w.station.position)).map((n) => n.object.position),
       dcEngaged: s.dcEngaged,
+      mission: mission === null ? null
+        : { at: mission.at, speed: mission.speed, how: mission.how },
       handOverRange: this.state.commander.equipment.dockingComputer
         ? DOCK_COMPUTER_RANGE : COURSE_DOCK_HANDOVER,
     }, dt);
