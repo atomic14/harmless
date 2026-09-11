@@ -13,7 +13,20 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [205](205-the-pilot-picks-where-the-ship-goes-and-the-ship-flies-itself.md) — the pilot picks where the ship goes, and the ship flies itself.
+2. [206](206-the-computer-flies-the-fight-and-the-pilot-fires.md) — the computer flies the fight, and the pilot fires.
+3. [207](207-the-pilot-takes-the-ship-into-the-slot-by-hand.md) — the pilot takes the ship into the slot by hand.
+4. [208](208-every-kind-of-mission-has-a-way-to-fly-it.md) — every kind of mission has a way to fly it.
+
+**205 TO 208 CAME FROM CHRIS ON 2026-09-11, the day 204 landed.** He flew
+the touch controls of 204 on a phone, and he could not fly the ship. He
+wrote `MOBILE_CONVERSION.md` and set a new direction. The pilot picks a
+course, and the ship flies itself. In a fight, the computer aims, and the
+pilot fires the laser, the missiles and the E.C.M. The dock stays a
+challenge. The missions become part of the flight. 205 also takes out the
+touch controls of 204. He played four docking concepts the same day, and
+he picked Match the spin for 207. The plans are written, and the work waits
+on his word.
 
 **204 CAME FROM CHRIS ON 2026-09-10.** The docked screens and the cockpit fit
 a phone, and nothing on the flight screen takes a touch. The brainstorm set
