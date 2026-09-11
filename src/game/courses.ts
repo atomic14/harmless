@@ -130,7 +130,7 @@ function jumpRow(w: CourseWorld, launch: boolean): Course | null {
   if (!launch && !w.jump.ok && w.jump.reason === 'noTarget') return null;
   return {
     kind: 'jump',
-    what: w.targetName === null ? 'JUMP' : `JUMP TO ${w.targetName.toUpperCase()}`,
+    what: w.targetName === null ? 'JUMP TO ANOTHER SYSTEM' : `JUMP TO ${w.targetName.toUpperCase()}`,
     why: w.jump.ok ? null : JUMP_WHY[w.jump.reason],
   };
 }

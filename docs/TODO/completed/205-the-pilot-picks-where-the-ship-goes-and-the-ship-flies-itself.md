@@ -438,3 +438,34 @@ Evidence:
 - **The skip stops at the condition light's own rule.** `hostilesNear` turns
   the light red, so the pilot sees the same reason on the dashboard.
 - **The suite has 5,732 assertions,** from 5,721.
+
+### M6
+
+- **The manual and the briefing now teach the buttons.** The launch list,
+  FLY TO THE STATION and FAST FORWARD replace the jump key and the torus key
+  in the first journey. The manual says that a steering key takes the
+  controls back.
+- **The briefing's own test pinned the old journey.** `test/key-help.test.ts`
+  asked the briefing to quote the jump key and the torus key. It now asks it
+  to name the three buttons instead.
+- **The fight text and the docking text wait for 206 and 207.** Those plans
+  change what they describe.
+- **The browser run on 2026-09-11 found two faults, and both are mended.**
+  The station menu's two columns split the launch list, so the list has one
+  column. The course buttons showed during a tunnel, where a press does
+  nothing, so the cockpit shows none then.
+
+## Outcome
+
+205 landed on 2026-09-11. The pilot picks where the ship goes, and the ship
+flies itself. The launch list asks where to go, and a ship with nowhere to go
+stays on the pad. In flight, buttons over the view show the courses: the
+station, the derelict, the hermit and the star. FAST FORWARD runs the world
+eight times faster while nothing hostile is near, and it changes no step. The
+work found and mended a hermit that could appear inside the planet.
+
+The measurements: the station course docked 50 of 50 trips, with a median of
+148 s in the arrival's traffic. The hermit, derelict and star courses arrived
+20 of 20, 20 of 20 and 40 of 40 times. The dock probe docked 504 of 504
+approaches with no scrape. The suite has 5,733 assertions, from 5,619 before
+204.

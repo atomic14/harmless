@@ -292,9 +292,12 @@ console.log('\nthe briefing surfaces the whole first journey');
   // with the key the table actually binds; the pages interpolate `boundKey`,
   // so a REBOUND key rewrites its own prose, and what this holds is that the
   // guidance is not REMOVED — docs/TODO/106 milestone 3.
+  //
+  // The jump and the trip in are buttons since docs/TODO/205: the launch list
+  // and the course buttons in flight. So the briefing names those buttons'
+  // words, and the two keys that used to carry the trip leave this list.
   const journey: [ControlMode, Command][] = [
     ['docked', 'toggleHelp'],
-    ['flight', 'startHyperspace'], ['flight', 'toggleTorus'],
     ['flight', 'armMissile'], ['flight', 'launchMissile'],
     ['flight', 'fireEcm'], ['flight', 'jettison1'],
     ['flight', 'toggleDockingComputer'],
@@ -311,6 +314,10 @@ console.log('\nthe briefing surfaces the whole first journey');
     unnamed.length === 0, unnamed.join(', '));
   check(`every journey command is quoted with its bound key (${journey.length})`,
     unquoted.length === 0, unquoted.join(', '));
+  const buttons = ['JUMP TO', 'FLY TO THE STATION', 'FAST FORWARD'];
+  const untaught = buttons.filter((b) => !text.includes(`<b>${b}</b>`));
+  check(`...and every button of the trip is named (${buttons.length})`,
+    untaught.length === 0, untaught.join(', '));
 
   // The control: a bound key the briefing deliberately does not teach.
   check('...and the check can fail — the briefing does not quote ⇧Y',

@@ -451,8 +451,10 @@ export class Game {
       setSightLit: (on) => this.shell.setSightLit(on),
       view: () => this.render,
       // The course buttons, in career flight only. An exercise is a room at
-      // the station, and it has nowhere to go (docs/TODO/205 M5).
-      coursePanel: () => (this.flight_.inSimulator() ? null : this.courses_.panel()),
+      // the station, and it has nowhere to go (docs/TODO/205 M5). During a
+      // tunnel the cockpit reads no button, so it shows none.
+      coursePanel: () => (this.flight_.inSimulator() || this.tunnel.active
+        ? null : this.courses_.panel()),
     } satisfies CockpitHost);
 
   /**

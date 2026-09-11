@@ -866,6 +866,15 @@ body.screen-open #exercise { display: none; }
 #screen .menu div[data-key] { cursor: pointer; padding: 0 8px; border-left: 2px solid transparent; }
 #screen .menu div[data-key]:hover { background: rgba(var(--hud-green-rgb), 0.14); border-left-color: var(--hud-green); }
 #screen .menu div[data-key].sel { background: rgba(var(--hud-green-rgb), 0.2); border-left-color: var(--hud-green); }
+/*
+ * The launch list (docs/TODO/205 M4): a short list, so one column even where
+ * the station menu takes two. A row the ship cannot fly is dimmed, and its
+ * reason sits on a line of its own under it.
+ */
+#screen .menu.course-list { column-count: 1; margin-left: 14%; margin-right: 14%; line-height: 1.6; }
+#screen .menu.course-list div[data-key] { padding-top: 6px; padding-bottom: 6px; }
+#screen .menu.course-list div.blocked { color: rgba(var(--hud-green-rgb), 0.55); }
+#screen .menu.course-list .why { display: block; font-size: 11px; color: var(--hud-amber); letter-spacing: 1px; }
 #screen tr.pick { cursor: pointer; }
 #screen tr.pick:hover td { background: rgba(var(--hud-green-rgb), 0.14); }
 #screen tr.sel.pick:hover td { background: var(--hud-green); }

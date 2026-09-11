@@ -18,15 +18,15 @@ export interface CourseRow {
 export function renderLaunchCourses(rows: readonly CourseRow[], chartCode: string): void {
   const line = (r: CourseRow): string => r.course.why === null
     ? `<div data-key="${r.code}">${r.course.what}</div>`
-    : `<div data-key="${r.code}" style="opacity:0.55">${r.course.what}`
-      + ` <span style="color:var(--hud-amber); font-size:11px">&mdash; ${r.course.why}</span></div>`;
+    : `<div data-key="${r.code}" class="blocked">${r.course.what}`
+      + `<span class="why">${r.course.why}</span></div>`;
   show(`
     <h2>LAUNCH</h2>
     <div class="rule"></div>
     <div class="info" style="text-align:center">
       CHOOSE WHERE TO GO
     </div>
-    <div class="menu">
+    <div class="menu course-list">
       ${rows.map(line).join('\n      ')}
       <div data-key="${chartCode}">GALACTIC CHART &mdash; PICK A SYSTEM TO JUMP TO</div>
     </div>

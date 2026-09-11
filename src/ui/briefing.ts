@@ -40,8 +40,6 @@ import { COMMAND_HELP } from '../game/command-help.ts';
 // consequences. The complete key map is the `?` guide and the manual.
 const KEY = {
   help: boundKey('docked', 'toggleHelp'),
-  jump: boundKey('flight', 'startHyperspace'),
-  torus: boundKey('flight', 'toggleTorus'),
   dockingComputer: boundKey('flight', 'toggleDockingComputer'),
   jettison: boundKey('flight', 'jettison1'),
   ecm: boundKey('flight', 'fireEcm'),
@@ -89,22 +87,27 @@ export const BRIEFING: { title: string; body: string }[] = [
     body: `Open <b>${ROW.localChart}</b> on the station menu.<br/><br/>
       The dashed circle is how far your fuel will take you — ${MAX_FUEL / 10} light years on a
       full tank. Anything inside it you can reach.<br/><br/>
-      Move the cursor with the <b>arrow keys</b>, press <b>ENTER</b> to set your
-      target, <b>D</b> for a full report on a world, and <b>F</b> to search by
-      name. Look for an economy opposite to this one.`,
+      Click or tap a world to set your target. You can also move the cursor
+      with the <b>arrow keys</b> and press <b>ENTER</b>. <b>D</b> gives a full
+      report on a world, and <b>F</b> searches by name. Look for an economy
+      opposite to this one.`,
   },
   {
     title: 'FLY THERE',
-    body: `<b>${ROW.launch}</b> from the station menu, then <b>${KEY.jump}</b>
-      to jump once you are clear of the station. The game saves on its own: a checkpoint at
-      every docking, and an autosave every ${AUTOSAVE_INTERVAL} seconds in
-      flight.<br/><br/>
-      You come out of hyperspace a long way from the planet. Point at it and
-      press <b>${KEY.torus}</b> for the torus drive — ${TORUS_MULTIPLIER} times speed. It cuts out near
-      anything with mass: a planet, a station, or somebody who has come to meet
-      you.<br/><br/>
+    body: `Press <b>${ROW.launch}</b> on the station menu. The station asks
+      where you want to go: choose <b>JUMP TO</b> your target, and the ship
+      leaves and makes the jump by itself. The game saves on its own: a
+      checkpoint at every docking, and an autosave every ${AUTOSAVE_INTERVAL}
+      seconds in flight.<br/><br/>
+      You come out of hyperspace a long way from the planet. The buttons at
+      the top right show where the ship can go. Choose
+      <b>FLY TO THE STATION</b> and it flies there on the torus drive, at
+      ${TORUS_MULTIPLIER} times speed. The drive cuts out near anything with mass: a planet, a
+      station, or somebody who has come to meet you. <b>FAST FORWARD</b> makes
+      the trip quicker while nothing hostile is near.<br/><br/>
       Watch the scanner in the middle of the console. You are the centre. Red
-      contacts are hostile.`,
+      contacts are hostile. Press a steering key at any time and you fly the
+      ship by hand.`,
   },
   {
     title: 'A FIGHT',
