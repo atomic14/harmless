@@ -13,7 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [208](208-every-kind-of-mission-has-a-way-to-fly-it.md) — every kind of mission has a way to fly it.
+The queue is empty.
 
 **205 TO 208 CAME FROM CHRIS ON 2026-09-11, the day 204 landed.** He flew
 the touch controls of 204 on a phone, and he could not fly the ship. He
@@ -23,7 +23,8 @@ pilot fires the laser, the missiles and the E.C.M. The dock stays a
 challenge. The missions become part of the flight. 205 also takes out the
 touch controls of 204. He played four docking concepts the same day, and
 he picked Match the spin for 207. The plans are written, and the work waits
-on his word. **205, 206 and 207 landed the same day**, and each is below.
+on his word. **205, 206 and 207 landed the same day, and 208 the day after**.
+Each is below.
 
 **204 CAME FROM CHRIS ON 2026-09-10.** The docked screens and the cockpit fit
 a phone, and nothing on the flight screen takes a touch. The brainstorm set
@@ -292,6 +293,16 @@ headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
+
+## What landed on 2026-09-12
+
+**208 — every kind of mission has a way to fly it.** A live job is the first
+button over the view, in the job's own words, and the ship flies it. The rows
+read HUNT, SCAN, ESCORT, RECOVER, PICK UP and SLIP PAST THE POLICE. A delivery
+and an ambush end at the station. The work mended three faults. A scoop row
+trapped a pilot with no fuel scoops. A hunt stayed live when somebody else
+killed its ship. A `fled` branch in three arcs had no sender. A derelict now
+tells what the scan finds. 5,845 assertions, from 5,835.
 
 ## What landed on 2026-09-11
 

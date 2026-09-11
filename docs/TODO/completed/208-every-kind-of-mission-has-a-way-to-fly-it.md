@@ -204,3 +204,28 @@ Evidence:
 - **`flight.ts` was one line over its ceiling for an hour.** The instruments
   hold the state, so they read the world themselves rather than ask the
   flight half for it.
+
+### The manual
+
+- **The manual says how a job is flown now.** A job is the first button over
+  the view, in its own words, and a delivery is the station button.
+
+## Outcome
+
+208 landed on 2026-09-12. A live job is the first row of the course list, in
+the job's own words, and the ship flies it. A hunt picks its ship, and the
+computer's aim lines the ship up while the pilot fires. A scan holds the
+ship 1,200 units off and keeps the nose on it. An escort flies 600 units off
+its charge. A recover and a rescue scoop. A smuggling run flies the station
+course wide of every policeman. A delivery and an ambush end at the station,
+which the station course already flies.
+
+The work mended three faults the review found. A scoop row says NEEDS FUEL
+SCOOPS and refuses, so no course flies into a canister that would break on
+the hull. A hunted ship wrecked by somebody else ends the hunt rather than
+leaving the leg live for ever. A tagged ship that runs sends `fled`, which
+three arcs have waited for a branch on. A derelict now tells what the scan
+finds, in the world's own words.
+
+`ambush-probe` survived 40 of 40 episodes after the work. The suite has 5,845
+assertions, from 5,835.
