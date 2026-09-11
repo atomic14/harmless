@@ -178,6 +178,7 @@ export class CourseActions {
       this.host.launch();
     }
     this.state().session.course = kind;
+    this.state().session.handFlown = false;
     if (kind === 'jump') this.host.startHyperspace();
     return true;
   }

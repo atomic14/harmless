@@ -286,7 +286,8 @@ export class Hud {
     this.altEl.style.width = `${Math.min(100, frame.altitudeFrac * 100)}%`;
     this.cabinEl.style.width = `${Math.min(100, frame.cabinTemp * 100)}%`;
     this.cabinEl.style.background = frame.cabinTemp > CABIN_GAUGE_WARN ? RED : '';
-    this.viewEl.textContent = frame.assist ? '◆ COMBAT COMPUTER ◆' : (VIEW_NAMES[frame.view] ?? '');
+    this.viewEl.textContent = frame.assist
+      ? '◆ THE COMPUTER IS AIMING ◆' : (VIEW_NAMES[frame.view] ?? '');
     this.crosshairEl.style.display = frame.hasLaser ? '' : 'none';
     this.shipIdEl.textContent = frame.shipId;
     this.drawEnergy(frame);

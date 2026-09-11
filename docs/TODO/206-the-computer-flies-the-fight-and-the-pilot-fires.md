@@ -209,3 +209,27 @@ Evidence:
   of the hit, so the list writes THE LAW PROTECTS THIS SHIP instead. The
   hermit is not the law's, and the list says what killing him costs.
 - **The suite has 5,746 assertions,** from 5,733.
+
+### M2, with M4 folded in
+
+- **M4 is one line of M2, so it landed in the same commit.** The seat's
+  trigger and E.C.M. requests pass only with `equipment.combatComputer`. So a
+  ship without one gets the aim, and a ship with one gets the whole fight,
+  except the missiles. The co-pilot never launched a missile, so M4 had
+  nothing to take out.
+- **One flag says who flies: `SessionState.handFlown`.** A flight key sets
+  it, in a fight or on a course. A pick of a course clears it, and so does
+  the aim's key. While it is set, no computer takes the stick back.
+- **The automatic start says nothing on the console.** The first draft said
+  THE COMPUTER IS LINING YOU UP. That line took the console at the moment a
+  fight starts, which is when the lines that matter arrive. Six tests of the
+  law's lines caught it. The label over the view says THE COMPUTER IS AIMING,
+  and a sound marks the moment.
+- **The aim's key no longer refuses an unfitted ship.** Every ship has the
+  aim now. `test/ui.test.ts` pinned the old refusal, and it pins the new one.
+- **The four probes cannot see this change.** `survivability`, `aim-probe`
+  and `defence-probe` build no Game, and `ambush-probe` builds its own
+  co-pilot with no pick. So they fly exactly as before. The measure of a
+  fight under the new seat is the headless test in `test/aim.test.ts`, and
+  Chris's verdict on whether it is fun.
+- **The suite has 5,756 assertions,** from 5,746.

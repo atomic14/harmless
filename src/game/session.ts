@@ -97,6 +97,13 @@ export interface SessionState {
   course: CourseKind | null;
   /** the courses this visit already finished, so the list leaves them out */
   coursesDone: CourseKind[];
+  /**
+   * The pilot took the controls with a flight key (docs/TODO/206 M2). Until
+   * the pilot picks a course or a target, no computer takes the stick back:
+   * not a course, and not the aim in a fight. It is saved, because it
+   * decides who flies.
+   */
+  handFlown: boolean;
 }
 
 /**
@@ -106,6 +113,7 @@ export interface SessionState {
 export function endVisit(state: SessionState): void {
   state.course = null;
   state.coursesDone = [];
+  state.handFlown = false;
 }
 
 /** Put a message in canonical state; the HUD only paints these fields. */

@@ -158,6 +158,7 @@ export function freshSession(): SessionState {
     dcEngaged: false,
     course: null,
     coursesDone: [],
+    handFlown: false,
   };
 }
 

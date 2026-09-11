@@ -131,6 +131,7 @@ export class Instruments {
     if (s.course === null) return null;
     if (handsOn) {
       s.course = null;
+      s.handFlown = true;
       this.coursePilot.reset();
       this.host.showMessage('MANUAL CONTROL — AUTOPILOT OFF', 2);
       return null;
@@ -173,6 +174,14 @@ export class Instruments {
     this.coursePilot.reset();
     const said = COURSE_ENDS[kind];
     if (said) this.host.showMessage(said, 3);
+  }
+
+  /**
+   * A fight starts, and the computer takes the stick, unless the pilot flies
+   * by hand (docs/TODO/206 M2). `autopilot.ts` decides.
+   */
+  autoEngage(): void {
+    this.applyAutopilot(this.autopilot.autoEngage());
   }
 
   /** A hit worth a break: the co-pilot keeps its own record

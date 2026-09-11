@@ -320,6 +320,8 @@ export class Flight {
     // the virtual stick self-centres; the producer is pure, so the mutation
     // is ours to do, immediately after the read
     if (this.input.mouseFlight) this.input.decayMouse(dt);
+    // A fight gives every pilot the computer's aim (docs/TODO/206 M2).
+    this.instruments.autoEngage();
     // A picked course flies when no co-pilot does (docs/TODO/205 M3). The
     // trigger stays the pilot's, as it does under the co-pilot.
     if (!this.state.session.ccEngaged) {
@@ -334,13 +336,15 @@ export class Flight {
     // The trained one flies at its fitted CC_* caps. So the Game flies either
     // the same way, and the HUD reads both.
     const auto = this.instruments.coPilot(dt, this.handsOn());
-    // A co-pilot that can answer a warhead — the same button, the same price
-    // and the same messages as the player's own E.C.M. key (docs/TODO/72). It
-    // is applied here rather than inside the autopilot, because the spend from
-    // the bank is a consequence, and consequences are the orchestrator's.
-    if (auto.ecm) this.weapons.triggerEcm();
+    // ONLY THE BOUGHT COMBAT COMPUTER PULLS THE TRIGGER AND FIRES THE E.C.M.
+    // (docs/TODO/206). Every other pilot gets the aim and keeps the trigger.
+    // Both are applied here rather than inside the autopilot. A shot and a
+    // spend from the bank are consequences, and those are the orchestrator's
+    // (docs/TODO/72).
+    const bought = this.state.commander.equipment.combatComputer;
+    if (auto.ecm && bought) this.weapons.triggerEcm();
     return auto.demand
-      ? { ...auto.demand, fire: auto.demand.fire || hands.fire }
+      ? { ...auto.demand, fire: (bought && auto.demand.fire) || hands.fire }
       : hands;
   }
 

@@ -77,6 +77,7 @@ import './course-launch.test.ts';
 import './course-buttons.test.ts';
 import './skip.test.ts';
 import './targets.test.ts';
+import './aim.test.ts';
 import './world.test.ts';
 import './docking.test.ts';
 import './docking-computer.test.ts';

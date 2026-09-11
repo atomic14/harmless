@@ -99,6 +99,7 @@ export class ScriptedCoPilot {
     manualInput: boolean,
     missilePos: V3 | null,
     playerToStation = Infinity,
+    picked: NpcShip | null = null,
   ): CoPilotStep {
     if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE' };
     this.underFire = Math.max(0, this.underFire - dt);
@@ -106,7 +107,10 @@ export class ScriptedCoPilot {
     const offNose = (npc: NpcShip): number => this.nose.set(0, 0, -1)
       .applyQuaternion(player.quaternion)
       .angleTo(this.toThreat.copy(npc.object.position).sub(player.position));
-    const threat = this.lock.pick(
+    // The pilot's pick comes first (docs/TODO/206 M2). It may be any ship on
+    // the target list, a trader or a rock too. With no pick, the lock chooses,
+    // by its own rule, which two other places share.
+    const threat = picked ?? this.lock.pick(
       dt,
       npcs.filter((npc) => isHostileToPlayer(npc, legalStatus, playerToStation)
         && npc.object.position.distanceTo(player.position) < THREAT_RANGE),
@@ -130,7 +134,7 @@ export class ScriptedCoPilot {
     );
     if (!threat) {
       this.reset();
-      return { kind: 'disengage', reason: 'AREA CLEAR — COMBAT COMPUTER OFF' };
+      return { kind: 'disengage', reason: 'AREA CLEAR' };
     }
     const targetPos = threat.object.position;
     const dist = targetPos.distanceTo(player.position);
