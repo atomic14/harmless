@@ -69,6 +69,11 @@ export interface HudSources {
    * `ui/`, so a rule module cannot reach it. The dashboard is handed the line.
    */
   readonly prompts: readonly string[];
+  /** the same offers with the code each button presses (docs/TODO/204 M3) */
+  readonly promptButtons: readonly { code: string; shift: boolean; text: string }[];
+  /** the torus drive and the docking computer, for the touch row's lit buttons */
+  readonly torus: boolean;
+  readonly docking: boolean;
   /**
    * The training exercise in progress, or null in career flight.
    *
@@ -177,6 +182,9 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     messageText: s.messageText,
     messageTimer: s.messageTimer,
     prompts: s.prompts,
+    promptButtons: s.promptButtons,
+    torus: s.torus,
+    docking: s.docking,
     playerPos: s.playerPos,
     playerQuat: s.playerQuat,
     contacts: scannerContacts(

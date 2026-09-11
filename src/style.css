@@ -1026,3 +1026,49 @@ body.screen-open #touch { display: none; }
   background: var(--hud-amber);
   box-shadow: 0 0 8px var(--hud-amber);
 }
+
+/*
+ * The touch command row, along the top edge of the console (docs/TODO/204
+ * M3). Five buttons, each with the flight key it presses, painted at boot
+ * from the binding table. A lit one says its state is on. The FIRE button and
+ * the throttle sit above the row.
+ */
+#touch-commands {
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 48px;
+  display: flex;
+  gap: 6px;
+  padding: 0 6px;
+  align-items: stretch;
+  background: rgba(0, 14, 2, 0.55);
+  border-top: 1px solid var(--hud-dim);
+}
+.touch-command {
+  flex: 1 1 0;
+  display: flex; align-items: center; justify-content: center;
+  border: 1px solid var(--hud-dim);
+  margin: 4px 0;
+  color: var(--hud-green);
+  font-size: 11px;
+  letter-spacing: 1px;
+}
+.touch-command:active { background: rgba(var(--hud-green-rgb), 0.2); }
+.touch-command.lit { border-color: var(--hud-amber); color: var(--hud-amber); }
+#touch-fire { bottom: 62px; }
+#touch-throttle { bottom: 62px; }
+/* The prompts are buttons on a coarse pointer, above the overlay and the row. */
+@media (pointer: coarse) {
+  #prompts { pointer-events: auto; white-space: normal; }
+  #prompts .prompt {
+    display: inline-block;
+    padding: 8px 12px;
+    margin: 3px;
+    border: 1px solid var(--hud-amber);
+    background: rgba(0, 14, 2, 0.72);
+  }
+}
+@media (max-width: 700px) {
+  #prompts { bottom: calc(var(--console-h, 0px) + 54px); }
+  #message { bottom: calc(var(--console-h, 0px) + 110px); }
+}

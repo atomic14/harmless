@@ -89,6 +89,47 @@ export const isVirtualKey = (code: string): boolean => code.startsWith('Virt');
 export const STATION_MENU_NOTE =
   'At a station, every command is a row on the menu. Tap a row, or move to it with \u2191 \u2193 and press ENTER. ESC goes back.';
 
+/**
+ * The code a button injects for `command` in `mode`'s table, with its
+ * modifier, or null when the mode binds none (docs/TODO/204 M3). A prompt
+ * button and the touch command row press this, as a menu row presses its
+ * own `data-key`. A virtual code is a row already, and answers null.
+ */
+export function keyCodeIfBound(mode: ControlMode, command: Command): { code: string; shift: boolean } | null {
+  const b = [...BINDINGS[mode], ...GLOBAL_BINDINGS].find((x) => x.command === command);
+  return b && !isVirtualKey(b.key) ? { code: b.key, shift: b.shift === true } : null;
+}
+
+/**
+ * The five commands a thumb needs in a fight, as buttons along the top of
+ * the console (docs/TODO/204 M3). Each carries the flight key it presses.
+ * MISSILE carries both of its keys. The arm key is `data-key`, and the
+ * launch key is `data-launch`. The HUD swaps the launch key in once a
+ * missile is armed. So the button does what the two keys do, one tap each.
+ */
+export const TOUCH_COMMANDS: readonly { command: Command; label: string }[] = [
+  { command: 'armMissile', label: 'MISSILE' },
+  { command: 'fireEcm', label: 'E.C.M.' },
+  { command: 'startHyperspace', label: 'JUMP' },
+  { command: 'toggleTorus', label: 'TORUS' },
+  { command: 'toggleDockingComputer', label: 'DOCK' },
+];
+
+export function touchCommandsHtml(): string {
+  const launch = keyCodeIfBound('flight', 'launchMissile');
+  return TOUCH_COMMANDS.map(({ command, label }) => {
+    const key = keyCodeIfBound('flight', command);
+    if (!key) return '';
+    const extra = command === 'armMissile' && launch ? ` data-launch="${launch.code}" data-arm="${key.code}"` : '';
+    return `<div class="touch-command" data-command="${command}" data-key="${key.code}"${key.shift ? ' data-shift="1"' : ''}${extra}>${label}</div>`;
+  }).join('');
+}
+
+/** Paint the touch command row at boot, as the guide is painted. Inert with no host. */
+export function paintTouchCommands(): void {
+  elementById('touch-commands').innerHTML = touchCommandsHtml();
+}
+
 /** What to print for a `KeyboardEvent.code`, with the modifier the table wants. */
 export function keyLabel(code: string, shift = false): string {
   if (isVirtualKey(code)) return '';

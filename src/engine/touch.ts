@@ -31,8 +31,8 @@ export interface TouchTarget {
   release(code: string): void;
 }
 
-/** Where a finger landed: the view, the FIRE button, or the throttle slider. */
-export type TouchPlace = 'view' | 'fire' | 'throttle';
+/** Where a finger landed: the view, the FIRE button, the throttle slider, or a command button. */
+export type TouchPlace = 'view' | 'fire' | 'throttle' | 'command';
 
 /** The stick a drag asks for: the offset from where the finger landed, clamped to -1..1. */
 export function stickFromDrag(x0: number, y0: number, x: number, y: number, travel = TOUCH_STICK_TRAVEL): { x: number; y: number } {
@@ -76,6 +76,7 @@ export class TouchTracker {
       this.setThrottle(y);
       return;
     }
+    if (place === 'command') return;   // a tap, and the click seam answers it
     if (this.steer !== null) return;   // one finger steers; a second on the view is ignored
     this.steer = { id, x0: x, y0: y };
     this.target.mouseFlight = true;
@@ -123,18 +124,23 @@ export function attachTouch(target: TouchTarget, doc: Document): TouchTracker | 
   const view = doc.getElementById('touch');
   const fire = doc.getElementById('touch-fire');
   const throttle = doc.getElementById('touch-throttle');
+  const commands = doc.getElementById('touch-commands');
   if (!view || !fire || !throttle) return null;
   const tracker = new TouchTracker(target, undefined, () => {
     const r = throttle.getBoundingClientRect();
     return { top: r.top, height: r.height };
   });
+  const within = (box: HTMLElement | null, el: EventTarget | null): boolean =>
+    box !== null && (el === box || (el instanceof Node && box.contains(el)));
   const placeOf = (el: EventTarget | null): TouchPlace =>
-    (el === fire || (el instanceof Node && fire.contains(el))) ? 'fire'
-      : (el === throttle || (el instanceof Node && throttle.contains(el))) ? 'throttle'
-        : 'view';
+    within(fire, el) ? 'fire'
+      : within(throttle, el) ? 'throttle'
+        : within(commands, el) ? 'command'
+          : 'view';
   view.addEventListener('pointerdown', (e) => {
-    e.preventDefault();
     const place = placeOf(e.target);
+    if (place === 'command') return;   // let the click through to the seam
+    e.preventDefault();
     tracker.down(e.pointerId, place, e.clientX, e.clientY);
     if (place === 'throttle') throttle.style.setProperty('--throttle', String(target.wantedSpeed ?? 0));
     // capture, so a drag that leaves the overlay still steers; a synthetic

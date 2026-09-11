@@ -114,7 +114,7 @@ import { characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
 import { hideScreen } from '../ui/screens.ts';
 import { renderNewGameConfirm } from '../ui/screens-career.ts';
-import { boundKey, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
+import { boundKey, keyPointer, paintCommandGuide, paintTouchCommands } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
 
 type Mode = 'docked' | 'flight' | 'market' | 'chart' | 'local' | 'equip' | 'status' | 'data' | 'contracts' | 'saves' | 'save-name' | 'naming' | 'briefing' | 'dead';
@@ -705,6 +705,7 @@ export class Game {
     // same in both layouts, so the binding table paints them once.
     refreshHelpPanel();
     paintCommandGuide();
+    paintTouchCommands();   // the thumb's five buttons, from the same table (docs/TODO/204 M3)
     // ...and the key this line names comes from that same table rather than
     // from the sentence (docs/TODO/128 M3). The guide is a global binding. The
     // layout toggle is a row on the station menu, so the line points there

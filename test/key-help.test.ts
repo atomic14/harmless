@@ -33,8 +33,9 @@ import {
 import { COMMAND_HELP } from '../src/game/command-help.ts';
 import { rating, ratingLadder } from '../src/game/rating.ts';
 import {
-  ALL_BINDINGS, STATION_MENU_NOTE, boundKey, dockedMenuHtml, guideSections, guideTableHtml,
-  isVirtualKey, keyLabel, manualCommandsHtml, menuRowsHtml, paintCommandGuide,
+  ALL_BINDINGS, STATION_MENU_NOTE, TOUCH_COMMANDS, boundKey, dockedMenuHtml, guideSections, guideTableHtml,
+  isVirtualKey, keyCodeIfBound, keyLabel, manualCommandsHtml, menuRowsHtml, paintCommandGuide,
+  touchCommandsHtml,
 } from '../src/ui/key-help.ts';
 import {
   BRIEFING,
@@ -211,6 +212,25 @@ console.log('\nthe station menu is every station command, as a row with no lette
     commandsFor('flight', clicks([{ key: 'KeyR', shift: true }])), ['openLog']);
   eqc('...and without it, the plain entry answers',
     commandsFor('flight', clicks([{ key: 'KeyR' }])), ['openMissions']);
+}
+
+console.log('\nthe touch command row presses the flight keys it names (docs/TODO/204 M3)');
+{
+  const row = touchCommandsHtml();
+  const missing = TOUCH_COMMANDS.filter(({ command }) => {
+    const key = keyCodeIfBound('flight', command);
+    return !key || !row.includes(`data-command="${command}" data-key="${key.code}"`);
+  });
+  check('every button carries the flight key of its command', missing.length === 0,
+    missing.map((m) => m.command).join(', '));
+  const launch = keyCodeIfBound('flight', 'launchMissile');
+  check('...and MISSILE carries the launch key too, for the HUD to swap in once armed',
+    launch !== null && row.includes(`data-launch="${launch.code}"`));
+  eq('five buttons', (row.match(/class="touch-command"/g) ?? []).length, 5);
+  check('a station row has no code for a button, because it is a row already',
+    keyCodeIfBound('docked', 'openMarket') === null);
+  const shifted = keyCodeIfBound('flight', 'openLog');
+  check('a shifted key carries its modifier', shifted !== null && shifted.shift && shifted.code === 'KeyR');
 }
 
 console.log('\nthe manual page is generated per mode');
