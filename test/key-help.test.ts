@@ -298,8 +298,7 @@ console.log('\nthe briefing surfaces the whole first journey');
   // words, and the two keys that used to carry the trip leave this list.
   const journey: [ControlMode, Command][] = [
     ['docked', 'toggleHelp'],
-    ['flight', 'armMissile'], ['flight', 'launchMissile'],
-    ['flight', 'fireEcm'], ['flight', 'jettison1'],
+    ['flight', 'jettison1'],
     ['flight', 'toggleDockingComputer'],
   ];
   const text = BRIEFING.map((p) => `${p.title} ${p.body}`).join(' ');
@@ -314,7 +313,10 @@ console.log('\nthe briefing surfaces the whole first journey');
     unnamed.length === 0, unnamed.join(', '));
   check(`every journey command is quoted with its bound key (${journey.length})`,
     unquoted.length === 0, unquoted.join(', '));
-  const buttons = ['JUMP TO', 'FLY TO THE STATION', 'FAST FORWARD'];
+  // The fight is buttons too since docs/TODO/206, so the briefing names them
+  // rather than the missile keys and the E.C.M. key.
+  const buttons = ['JUMP TO', 'FLY TO THE STATION', 'FAST FORWARD',
+    'FIRE LASER', 'TARGETS', 'ARM A MISSILE', 'E.C.M.', 'RUN FOR IT'];
   const untaught = buttons.filter((b) => !text.includes(`<b>${b}</b>`));
   check(`...and every button of the trip is named (${buttons.length})`,
     untaught.length === 0, untaught.join(', '));

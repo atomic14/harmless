@@ -290,3 +290,29 @@ Evidence:
 - **Four older constants at 60 took their own rule IDs**, as the constants
   gate asks.
 - **The suite has 5,804 assertions,** from 5,791.
+
+### M7, which the plan did not have: the words for a player
+
+- **206 changes how a fight reads, so the manual and the briefing say so.**
+  The briefing's fight page and the manual's Trouble section now teach the
+  buttons: FIRE LASER, TARGETS, ARM A MISSILE, E.C.M. and RUN FOR IT. They
+  also say that a missile costs money, and that a steering key takes the ship
+  back.
+- **The briefing's own test pinned the missile keys.** The first journey now
+  names the buttons instead, as 205 M6 did for the trip.
+
+## Outcome
+
+206 landed on 2026-09-11. In a fight the computer lines every pilot's ship up
+on the target, and the pilot fires. The target list says what is out there,
+what it is, and what the law says about shooting it. A pick sends the computer
+after one ship. The bought combat computer fires the laser and the E.C.M. as
+well, and never a missile, because a missile costs money. The ways out are
+buttons: run, pay the police, dump cargo. Mining is the same fight with a
+rock, and COLLECT EVERYTHING takes the cargo aboard.
+
+The probes ran after the work: `ambush-probe` survived 40 of 40 episodes,
+`aim-probe`, `survivability` and `defence-probe` report as before. None of the
+four flies the Game's own seat, so none can measure this plan. The measure is
+`test/aim.test.ts` and Chris's verdict on whether a fight is fun. The suite
+has 5,804 assertions, from 5,733.

@@ -111,15 +111,21 @@ export const BRIEFING: { title: string; body: string }[] = [
   },
   {
     title: 'A FIGHT',
-    body: `Sooner or later somebody opens fire. Your laser shoots straight
-      ahead: put them in the crosshair and hold the trigger — the stick and
-      trigger depend on your keyboard layout, and <b>${KEY.help}</b> shows
-      yours. Lasers overheat; short bursts.<br/><br/>
-      <b>${KEY.armMissile}</b> arms a missile, which locks when a target
-      crosses your sights; <b>${KEY.fireMissile}</b> fires it.<br/><br/>
-      Kills raise your rating toward <b>Elite</b>. If the fight goes badly, run
-      — and if the worst happens, death puts you back at the last station you
-      docked at, without the flight you were on.`,
+    body: `Sooner or later somebody opens fire. The computer takes the stick
+      and lines the ship up. The shooting is yours: hold
+      <b>FIRE LASER</b> at the bottom right, and keep the bursts short,
+      because lasers overheat. <b>TARGETS</b> above it lists what is out
+      there, and a row sends the computer after that one.<br/><br/>
+      <b>ARM A MISSILE</b> arms one, and it locks when a ship crosses your
+      sights. Press it again to fire. A missile costs money, so the computer
+      never spends one for you. <b>E.C.M.</b> destroys a missile coming at
+      you.<br/><br/>
+      Kills raise your rating toward <b>Elite</b>. If the fight goes badly,
+      <b>RUN FOR IT</b> is on the left, with the offers that fit: pay a patrol
+      off, or throw cargo to a pirate. Press a steering key at any time and
+      you fly the ship yourself. If the worst happens,
+      death puts you back at the last station you docked at, without the
+      flight you were on.`,
   },
   {
     title: 'DOCKING',
