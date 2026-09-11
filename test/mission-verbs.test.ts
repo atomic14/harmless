@@ -190,6 +190,12 @@ console.log('\nescort and scan, through the machine');
   eq('the side hunt pays on the kill', paid(stepMissions(hst, { kind: 'destroyed', tag: htag }, hctx).effects), SIDE_JOB_PAY.hunt);
   eq('...and a target that jumps out fails it',
     stepMissions(hst, { kind: 'escaped', tag: htag }, hctx).state.done[SIDE_HUNT.id], 'fail');
+  // A hunted ship can die without the commander: a pirate takes it, or it
+  // flies into a rock. The world sends `escortLost` for that, and the hunt
+  // ignored it until docs/TODO/208 M3. The leg then stayed live with no ship
+  // left to kill.
+  eq('a target wrecked by somebody else still ends the hunt',
+    paid(stepMissions(hst, { kind: 'escortLost', tag: htag }, hctx).effects), SIDE_JOB_PAY.hunt);
 }
 
 console.log('\nescort, through a real world step');

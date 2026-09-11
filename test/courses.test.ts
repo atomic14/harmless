@@ -43,7 +43,7 @@ const row = (w: CourseWorld, kind: CourseKind) => courseList(w).find((c) => c.ki
 
 // --- the order ---------------------------------------------------------------
 same('in flight, the list runs mission, station, derelict, rocks, hermit, star, jump',
-  kinds(world({ mission: 'HUNT THE KRAIT' })),
+  kinds(world({ mission: { what: 'HUNT THE KRAIT', why: null } })),
   ['mission', 'station', 'derelict', 'mine', 'hermit', 'skim', 'jump']);
 same('at a launch, the list runs jump, rocks, star',
   kinds(world({ situation: 'launch', sky: [] })), ['jump', 'mine', 'skim']);
@@ -63,10 +63,14 @@ check('a jump under way is not a course to pick',
 
 // --- the mission -------------------------------------------------------------
 same('a live leg with its target here leads the list, in its own words',
-  courseList(world({ mission: 'SCAN THE COBRA' }))[0], { kind: 'mission', what: 'SCAN THE COBRA', why: null });
+  courseList(world({ mission: { what: 'SCAN THE COBRA', why: null } }))[0],
+  { kind: 'mission', what: 'SCAN THE COBRA', why: null });
+eq('...and it says when the ship cannot do the job',
+  row(world({ mission: { what: 'RECOVER THE CARGO', why: 'NEEDS FUEL SCOOPS' } }), 'mission')?.why,
+  'NEEDS FUEL SCOOPS');
 check('...no leg here, no row', !kinds(world()).includes('mission'));
-check('...and a finished one leaves', !kinds(world({ mission: 'X', done: new Set(['mission']) })).includes('mission'));
-check('...and no mission row at a launch', !kinds(world({ situation: 'launch', sky: [], mission: 'X' })).includes('mission'));
+check('...and a finished one leaves', !kinds(world({ mission: { what: 'X', why: null }, done: new Set(['mission']) })).includes('mission'));
+check('...and no mission row at a launch', !kinds(world({ situation: 'launch', sky: [], mission: { what: 'X', why: null } })).includes('mission'));
 
 // --- the station -------------------------------------------------------------
 check('in flight, the station is a course', kinds(world()).includes('station'));

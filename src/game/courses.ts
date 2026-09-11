@@ -86,8 +86,11 @@ export interface CourseWorld {
   readonly witchspace: boolean;
   /** the role of every ship and rock in the sky. Empty at a launch */
   readonly sky: readonly NpcRole[];
-  /** the objective's words, when a live leg has its target in this system */
-  readonly mission: string | null;
+  /**
+   * The live leg's own row, when a leg has work in this system: its words,
+   * and what stops the ship from flying it (docs/TODO/208).
+   */
+  readonly mission: { readonly what: string; readonly why: string | null } | null;
   /** the courses this visit already finished, so they leave the list */
   readonly done: ReadonlySet<CourseKind>;
   /**
@@ -115,7 +118,7 @@ export function courseList(w: CourseWorld): Course[] {
   return [
     runRow(w),
     w.mission !== null && !w.done.has('mission')
-      ? { kind: 'mission', what: w.mission, why: null } as const : null,
+      ? { kind: 'mission', what: w.mission.what, why: w.mission.why } as const : null,
     w.witchspace ? null : { kind: 'station', what: 'FLY TO THE STATION', why: null } as const,
     present(w, 'generation', 'derelict')
       ? { kind: 'derelict', what: 'INVESTIGATE THE DERELICT SHIP', why: null } as const : null,

@@ -454,10 +454,15 @@ export class WorldStep {
             { count: 10, speed: 120, duration: 0.7 });
         }
         world.despawn(npc);
-        // A tagged ship that jumped out escaped its hunt. The machine decides
-        // whether the leg minds (`canEscape`), and says so in this stream.
+        // A tagged ship that leaves is gone from its leg, and HOW it left
+        // decides what the leg makes of it (docs/TODO/208 M3). A ship that
+        // ran from the commander FLED. Any other one jumped out, and escaped.
+        // Three arcs have a branch for a ship that flees, and nothing sent
+        // that word until now. The machine says what each costs.
         if (npc.state.missionTag !== null && !npc.state.docked) {
-          out.push(...runMissions(s.commander, { kind: 'escaped', tag: npc.state.missionTag }));
+          out.push(...runMissions(s.commander, {
+            kind: npc.state.fleeing ? 'fled' : 'escaped', tag: npc.state.missionTag,
+          }));
         }
         continue;
       }

@@ -163,3 +163,19 @@ Evidence:
   flown by its button alone. A side job is on about a third of the worlds'
   boards, so the test walks the galaxy until it finds one that offers it.
 - **The suite has 5,831 assertions,** from 5,820.
+
+### M3
+
+- **A scoop row says when the ship cannot fly it.** A recover or a rescue
+  needs fuel scoops. Without them the canister breaks on the hull, and the
+  leg hears nothing. The row says NEEDS FUEL SCOOPS, and the pick refuses,
+  so the course never flies into it.
+- **A hunted ship wrecked by somebody else ends the hunt.** The world sends
+  `escortLost` for a tagged ship wrecked with credit to nobody, and the hunt
+  verb ignored it. The leg stayed live with no ship left in the galaxy to
+  kill. It takes it as destroyed now. A branch that paid less for another's
+  kill would be a third outcome, and no skeleton has one.
+- **The `fled` trigger has a sender at last.** Three arcs have a branch for a
+  hunted ship that runs, and nothing ever sent the word. A tagged ship that
+  leaves while it flees counts as fled. Any other one jumped out, and it
+  escaped. So a side hunt no longer fails when its target runs.

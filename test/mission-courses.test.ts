@@ -119,3 +119,21 @@ const words = (g: Game): string | null => missionCourse(
   check('...and the station is on the list',
     g.coursePanel()?.rows?.some((r) => r.kind === 'station') === true);
 }
+
+console.log('\na hunted ship that runs has fled, not escaped');
+{
+  // Before docs/TODO/208 M3 the world sent `escaped` whichever way a tagged
+  // ship left, and a side hunt fails on that. A ship that ran from the
+  // commander has fled, and three arcs have a branch for it.
+  const flown = (fleeing: boolean): string | undefined => {
+    const g = onTheJob('side-hunt', 20_260_945);
+    const ship = g.state.world.npcs.find((n) => n.state.missionTag !== null);
+    if (!ship) throw new Error('the hunt spawned no ship');
+    ship.state.fleeing = fleeing;
+    ship.state.wantsDespawn = true;
+    withoutSaving(() => g.step(1 / 60, 200));
+    return g.state.commander.missions.done['side-hunt'];
+  };
+  eq('a tagged ship that jumps out escapes, and the side hunt fails', flown(false), 'fail');
+  eq('...and one that runs has fled, which a side hunt does not answer', flown(true), undefined);
+}

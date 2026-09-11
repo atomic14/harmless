@@ -201,14 +201,26 @@ export class CourseActions {
       // The sky is cleared while the ship is docked (courses.ts).
       sky: situation === 'launch' ? []
         : s.world.npcs.filter((n) => n.state.alive).map((n) => n.role),
-      mission: situation === 'launch' ? null
-        : missionCourse(s.commander.missions, s.commander.systemIndex,
-          s.world.npcs, s.world.cargo.items)?.what ?? null,
+      mission: situation === 'launch' ? null : this.missionRow(),
       done: new Set(s.session.coursesDone),
       threat: situation === 'launch' ? null : this.threat(),
       loot: situation === 'launch' ? 0 : s.world.cargo.items
         .filter((c) => c.object.position.distanceTo(s.player.position) <= SCANNER_RANGE).length,
     };
+  }
+
+  /**
+   * The live leg's row: its words, and what stops the ship from flying it. A
+   * scoop needs fuel scoops, and without them the canister breaks on the hull
+   * (docs/TODO/208 M3). So the row says so, and the pick refuses.
+   */
+  private missionRow(): CourseWorld['mission'] {
+    const s = this.state();
+    const m = missionCourse(s.commander.missions, s.commander.systemIndex,
+      s.world.npcs, s.world.cargo.items);
+    if (m === null) return null;
+    const needsScoops = m.how === 'scoop' && !s.commander.equipment.scoops;
+    return { what: m.what, why: needsScoops ? 'NEEDS FUEL SCOOPS' : null };
   }
 
   /** The fastest hostile ship on the scanner, against the ship's own speed. */
