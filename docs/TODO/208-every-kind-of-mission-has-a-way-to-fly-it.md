@@ -193,3 +193,14 @@ Evidence:
 - **A leg without a tag is still a leg.** The lookup skipped every leg with no
   tagged ship, and a smuggling run has none. It asks for a way past the
   police, and nothing in the sky is its own.
+
+### M5
+
+- **A derelict says what is there, in the world's own words.** The scan's
+  report is read off the world's seed rather than drawn. So a derelict tells
+  the same story on every visit, and two worlds tell different ones. A draw
+  would move every seeded outcome after it.
+- **The cargo beside it is the collect course's, which 206 M6 already flies.**
+- **`flight.ts` was one line over its ceiling for an hour.** The instruments
+  hold the state, so they read the world themselves rather than ask the
+  flight half for it.

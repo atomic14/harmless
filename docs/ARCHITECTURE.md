@@ -179,8 +179,11 @@ Two quirks are deliberate:
   ship a code that names it for as long as it lives.
   `cockpit-buttons.ts` says what every button over the flight view reads, in
   words, and it holds no world (docs/TODO/206 M5). `game/mission-course.ts`
-  says what a live mission asks the ship to do here, in four shapes: a fight,
-  a hold, an escort and a scoop (docs/TODO/208).
+  says what a live mission asks the ship to do here (docs/TODO/208). There
+  are five shapes: a fight, a hold, an escort, a scoop, and a slip past the
+  police.
+  `game/derelict.ts` says what a scan of a derelict reports, read off the
+  world's own seed.
 - `src/game/threat.ts` computes the pirate count, the group tier and the
   organisation from the visible value and the reputation. `ship-specs.ts` maps a
   tier to a hull. The campaign simulator calls the same rules.

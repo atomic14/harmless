@@ -18,6 +18,8 @@ import { CABIN_TEMP_FATAL } from '../src/constants/sun.ts';
 import { MAX_FUEL } from '../src/constants/commander.ts';
 import { SPAWN_PLANET_ALTITUDE } from '../src/constants/spawn-placement.ts';
 import { aboveGround } from '../src/game/spawning.ts';
+import { derelictReport } from '../src/game/derelict.ts';
+import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { DOCK_COMPUTER_RANGE } from '../src/constants/docking-computer.ts';
 import { COURSE_DOCK_HANDOVER } from '../src/constants/course.ts';
 import { MASS_LOCK_STATION } from '../src/constants/torus.ts';
@@ -222,6 +224,20 @@ console.log('\nthe derelict course');
   check('...at the derelict\'s own drift', Math.abs(g.state.player.speed - gen.state.speed) < 10,
     `${g.state.player.speed.toFixed(1)} u/s against ${gen.state.speed.toFixed(1)}`);
   check('...and the course is done for the visit', g.state.session.coursesDone.includes('derelict'));
+  check('...and the scan says what is there, in the world\'s own words',
+    g.state.session.messageText.length > 20, `said: ${g.state.session.messageText}`);
+}
+
+console.log('\nwhat a derelict\'s scan reports');
+{
+  // The words come off the world's seed, so a derelict tells the same story
+  // on every visit, and two worlds tell different ones (docs/TODO/208 M5).
+  const systems = generateGalaxy(1);
+  const twice = [derelictReport(systems[7]), derelictReport(systems[7])];
+  eq('the same world reports the same thing twice', twice[0], twice[1]);
+  const said = new Set(systems.map((sys) => derelictReport(sys)));
+  check('...and the galaxy tells more than one story', said.size > 3, `${said.size} of them`);
+  check('...each of them a sentence', [...said].every((line) => line.endsWith('.')));
 }
 
 console.log('\nthe hermit course');

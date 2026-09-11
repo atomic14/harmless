@@ -414,6 +414,8 @@ const OUTSIDE: readonly Group[] = [
       'game/course-actions.ts': ['KINDS'],
       // what each role is called on the target list (docs/TODO/206 M1)
       'game/targets.ts': ['STANDING'],
+      // what a derelict's scan reports, read off the world's seed (docs/TODO/208 M5)
+      'game/derelict.ts': ['REPORTS'],
     },
   },
 

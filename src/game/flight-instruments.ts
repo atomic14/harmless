@@ -26,6 +26,8 @@ import type { CourseKind } from './courses.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 import { hostilesOnScanner } from './hostility.ts';
 import { pickTarget, pickedTarget } from './targets.ts';
+import { derelictReport } from './derelict.ts';
+import type { StarSystem } from '../galaxy/galaxy.ts';
 import { missionCourse } from './mission-course.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
@@ -36,7 +38,6 @@ import { COURSE_DOCK_HANDOVER } from '../constants/course.ts';
  * says nothing, because the hermit's own trade screen opens on arrival.
  */
 const COURSE_ENDS: Partial<Record<CourseKind, string>> = {
-  derelict: 'ARRIVED AT THE DERELICT SHIP',
   skim: 'FUEL TANK FULL',
   run: 'YOU GOT AWAY',
   mine: 'NO ROCKS LEFT WITHIN RANGE',
@@ -270,8 +271,11 @@ export class Instruments {
     s.course = null;
     if (!s.coursesDone.includes(kind)) s.coursesDone.push(kind);
     this.coursePilot.reset();
-    const said = COURSE_ENDS[kind];
-    if (said) this.host.showMessage(said, 3);
+    // The derelict's own words, read off the world's seed (docs/TODO/208 M5).
+    const said = kind === 'derelict'
+      ? derelictReport(this.state.systems[this.state.commander.systemIndex] as StarSystem)
+      : COURSE_ENDS[kind];
+    if (said) this.host.showMessage(said, 6);
   }
 
   /**
