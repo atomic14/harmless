@@ -33,6 +33,11 @@ rules. This file is a map.
   It returns a `Command` and words. It never returns a letter. `cockpit-view.ts`
   looks the label up, through `ui/key-help.ts`. That is how invariant 9 reaches
   prose. A prompt is derived state, and the code saves nothing about it.
+- `src/game/courses.ts` decides what the ship can do next with no hand on the
+  stick (docs/TODO/205). A course is one such thing, such as a trip to the
+  station or a skim of the star. It follows the shape of `prompts.ts`: a flat
+  view in, a ranked list out, and no key. The list is derived state. The code
+  saves the course that the pilot picks, and never the list.
 - The console is one line, so `SessionState.queued` is the line that waits for it
   (`session.ts`). Some consequences make sense only after their cause: what a
   scan cost your legal record, or what a deed cost your reputation. The console

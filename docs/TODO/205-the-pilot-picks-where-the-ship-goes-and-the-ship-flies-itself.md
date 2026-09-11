@@ -85,7 +85,7 @@ The course list for each situation:
 
 | situation | courses, in order |
 | --- | --- |
-| a launch | jump to the chosen system; mine the asteroids; visit the hermit; skim the star |
+| a launch | jump to the chosen system; mine the asteroids; skim the star. M2 found that the hermit cannot show here |
 | an arrival | the mission objective; fly to the station; investigate the derelict; mine the asteroids; visit the hermit; skim the star; jump on |
 | a course ends | the arrival list, less the work that is done |
 
@@ -144,8 +144,9 @@ starts the countdown at the launch. A local course launches the ship on that
 course. When no course is available, the launch refuses, and the console says
 why. An example is *"SET A HYPERSPACE TARGET ON THE GALACTIC CHART"*.
 
-A commander with no fuel and no money is not stuck. The local courses offer
-work: the rocks, the hermit and the star.
+A commander with no fuel and no money is not stuck. The launch courses offer
+work: the rocks and the star. Once the ship is in flight, the hermit shows too,
+where the system has one.
 
 ### M5 — the course list on screen, for every player
 
@@ -250,3 +251,17 @@ Evidence:
   the touch code.
 - **The suite has 5,624 assertions.** That is 5,619 from before 204, plus the
   five checks of the kept pair.
+
+### M2
+
+- **The launch list cannot show the hermit.** The station clears the sky
+  while the ship is docked, and the launch builds it again. The hermit is a
+  draw at the launch, on 30% of worlds. So nothing can know about it on the
+  pad. The rocks are certain, because every system holds `ASTEROIDS_MIN` or
+  more. The hermit shows on the list in flight.
+- **A row whose object exists shows, even when the ship cannot fly it.** It
+  then says what the ship needs, for example `NEEDS FUEL SCOOPS`. A row whose
+  object does not exist never shows. The plan did not state this rule.
+- **In flight, a chart with no target shows no jump row.** At a launch, the
+  jump row always shows, and its reason answers why the ship cannot leave.
+- **The suite has 5,656 assertions,** from 5,624.
