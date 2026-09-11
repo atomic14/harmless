@@ -15,14 +15,14 @@ import {
   type FlightDemand,
 } from '../src/player.ts';
 import { PLAYER_FLIGHT } from '../src/constants/player-flight.ts';
-import { flightDemand, throttleToward, type FlightControls } from '../src/engine/flight-controls.ts';
+import { flightDemand, type FlightControls } from '../src/engine/flight-controls.ts';
 import { keymap } from '../src/engine/keymap.ts';
 import { CombatComputer } from '../src/game/combat-computer.ts';
 import {
   CC_ACCEL, CC_MAX_PITCH, CC_MAX_ROLL, CC_MAX_SPEED,
 } from '../src/constants/combat-computer.ts';
 import { freshSystems } from '../src/game/systems.ts';
-import { check, eq } from './harness.ts';
+import { check } from './harness.ts';
 
 // --- flight demands: what the pilot wants, and who wanted it ----------------
 //
@@ -374,28 +374,4 @@ console.log('\nturn ramp');
 
   check('a released rate still snaps to exactly zero',
     rampFlightRate(0.0005, 0, false, 1 / 60) === 0);
-}
-
-console.log('\na wanted speed drives the throttle, and a key overrides it (docs/TODO/204 M1)');
-{
-  // The hands, as the block above shapes them, with a slider on the side.
-  const at = (speed: number, wanted: number | null, ...keys: string[]) => {
-    const down = new Set(keys);
-    const h: FlightControls = {
-      held: (...codes) => codes.some((c) => down.has(c)),
-      mouseFlight: false, mouseX: 0, mouseY: 0, mouseFire: false, wantedSpeed: wanted,
-    };
-    return flightDemand(h, keymap(), { rollRate: 0, pitchRate: 0, speed }, 1 / 60).throttle;
-  };
-  const max = PLAYER_FLIGHT.maxSpeed;
-  const band = PLAYER_FLIGHT.throttleBand;
-  eq('below the wanted speed the throttle opens', at(100, 0.5), 1);
-  eq('above it the throttle brakes', at(300, 0.5), -1);
-  eq('at it the ship coasts', at(max * 0.5, 0.5), 0);
-  eq('...and inside the band, so it does not hunt', at(max * 0.5 - band + 1, 0.5), 0);
-  eq('...but just outside the band it moves', at(max * 0.5 - band - 1, 0.5), 1);
-  eq('with no wanted speed and no key, the ship coasts as it always did', at(100, null), 0);
-  eq('a held speed key overrides the slider', at(100, 0.5, 'Slash'), -1);
-  eq('...and so does the other one', at(300, 0.5, 'Space'), 1);
-  eq('a caller with no speed gets no throttle from the slider', throttleToward(0.5, undefined), 0);
 }

@@ -7,6 +7,9 @@
 import { TouchTracker, sliderFraction, stickFromDrag, type TouchTarget } from '../src/engine/touch.ts';
 import { TOUCH_STICK_TRAVEL } from '../src/constants/touch.ts';
 import { Input } from '../src/engine/input.ts';
+import { flightDemand, throttleToward, type FlightControls } from '../src/engine/flight-controls.ts';
+import { keymap } from '../src/engine/keymap.ts';
+import { PLAYER_FLIGHT } from '../src/constants/player-flight.ts';
 import { check, eq } from './harness.ts';
 
 /** A target that records what the tracker writes, and the keys it holds. */
@@ -83,4 +86,28 @@ console.log('\nthe input holds the stick for a finger, and decays it for a mouse
   i.stickHeld = false;
   i.decayMouse(0.5);
   check('...and a released one does', i.mouseX < 1);
+}
+
+console.log('\na wanted speed drives the throttle, and a key overrides it (docs/TODO/204 M1)');
+{
+  // The hands, as the block above shapes them, with a slider on the side.
+  const at = (speed: number, wanted: number | null, ...keys: string[]) => {
+    const down = new Set(keys);
+    const h: FlightControls = {
+      held: (...codes) => codes.some((c) => down.has(c)),
+      mouseFlight: false, mouseX: 0, mouseY: 0, mouseFire: false, wantedSpeed: wanted,
+    };
+    return flightDemand(h, keymap(), { rollRate: 0, pitchRate: 0, speed }, 1 / 60).throttle;
+  };
+  const max = PLAYER_FLIGHT.maxSpeed;
+  const band = PLAYER_FLIGHT.throttleBand;
+  eq('below the wanted speed the throttle opens', at(100, 0.5), 1);
+  eq('above it the throttle brakes', at(300, 0.5), -1);
+  eq('at it the ship coasts', at(max * 0.5, 0.5), 0);
+  eq('...and inside the band, so it does not hunt', at(max * 0.5 - band + 1, 0.5), 0);
+  eq('...but just outside the band it moves', at(max * 0.5 - band - 1, 0.5), 1);
+  eq('with no wanted speed and no key, the ship coasts as it always did', at(100, null), 0);
+  eq('a held speed key overrides the slider', at(100, 0.5, 'Slash'), -1);
+  eq('...and so does the other one', at(300, 0.5, 'Space'), 1);
+  eq('a caller with no speed gets no throttle from the slider', throttleToward(0.5, undefined), 0);
 }

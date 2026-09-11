@@ -170,6 +170,7 @@ import './key-prose.test.ts';
 import './site-footer.test.ts';
 import './input.test.ts';
 import './touch.test.ts';
+import './touch-controls.test.ts';
 import './hud-binding.test.ts';
 import './console-plate.test.ts';
 import './elapsed-day.test.ts';
