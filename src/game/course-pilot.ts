@@ -42,7 +42,7 @@ import {
   COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
   COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF, COURSE_PLANET_CLEARANCE,
   COURSE_COLLECT_SPEED, COURSE_ESCORT_STANDOFF, COURSE_RUN_REACH, COURSE_SKIM_DISTANCE,
-  COURSE_TORUS_CONE, COURSE_TORUS_DROP, COURSE_WATCH_STANDOFF,
+  COURSE_POLICE_CLEARANCE, COURSE_TORUS_CONE, COURSE_TORUS_DROP, COURSE_WATCH_STANDOFF,
 } from '../constants/course.ts';
 import type { MissionHow } from './mission-course.ts';
 
@@ -68,6 +68,8 @@ export interface CourseView {
   readonly tankFull: boolean;
   /** where the hostile ships on the scanner are, for the run course */
   readonly threats: readonly THREE.Vector3[];
+  /** where the police ships within scanner range are, for the smuggling course */
+  readonly police: readonly THREE.Vector3[];
   /** where the cargo adrift within scanner range is, nearest first */
   readonly loot: readonly THREE.Vector3[];
   /**
@@ -118,6 +120,7 @@ export class CoursePilot {
   private readonly fwd = new THREE.Vector3();
   private readonly aim = new THREE.Vector3();
   private readonly away = new THREE.Vector3();
+  private readonly wideOf = new THREE.Vector3();
 
   /** Forget the bank, for a new course. */
   reset(): void { this.mem = freshSteerMemory(); }
@@ -158,6 +161,9 @@ export class CoursePilot {
         // A hunt is a fight: `flight-instruments.ts` picks the ship, and the
         // computer's aim flies it, as it does for a rock.
         if (m.how === 'fight') return IDLE;
+        // A slip is the station course on a line wide of the police
+        // (docs/TODO/208 M4). It hands the ship over as that course does.
+        if (m.how === 'slip') return this.toStation(v, dt, m.at);
         const standoff = m.how === 'hold' ? COURSE_WATCH_STANDOFF
           : m.how === 'escort' ? COURSE_ESCORT_STANDOFF : 0;
         const speed = m.how === 'scoop' ? COURSE_COLLECT_SPEED : m.speed;
@@ -187,7 +193,7 @@ export class CoursePilot {
    * the docking computer's range, hand over. The docking computer then flies
    * the approach and the slot, and this course asks for nothing more.
    */
-  private toStation(v: CourseView, dt: number): CourseStep {
+  private toStation(v: CourseView, dt: number, wide?: THREE.Vector3): CourseStep {
     if (v.dcEngaged) return IDLE;
     // It ARRIVES at the hand-over, at the speed the slot will take
     // (docs/TODO/207 M1). A ship handed over at full speed has less than four
@@ -198,8 +204,11 @@ export class CoursePilot {
     if (v.position.distanceTo(v.stationPos) <= v.handOverRange) {
       return { demand: null, torus: false, handOver: true, done: false };
     }
+    // A smuggling run keeps wide of the police on the way in (M4 of 208).
+    const aim = wide === undefined ? v.stationPos
+      : clearOfPolice(v.position, v.stationPos, v.police, this.wideOf);
     return this.arrive(v, {
-      target: v.stationPos, standoff: v.handOverRange, speed: SLOT_SPEED_LIMIT,
+      target: aim, standoff: aim === v.stationPos ? v.handOverRange : 0, speed: SLOT_SPEED_LIMIT,
     }, dt);
   }
 
@@ -270,16 +279,10 @@ const seg = new THREE.Vector3();
 const off = new THREE.Vector3();
 
 /**
- * Where to aim, so that the line to the target clears the planet.
- *
- * It finds the nearest point of the line to the planet's centre. That point
- * can be below `COURSE_PLANET_CLEARANCE`. Then it aims beside the planet, on
- * the same side as the line, and half as high again. The line from there
- * clears the planet, and the ship then turns onto the target.
- *
- * A target that is itself the nearest point needs no detour. docs/TODO/205 M3
- * found a hermit low over the planet. The line to it always counted as
- * blocked, and the ship circled the detour point for ever.
+ * Where to aim, so that the line to the target clears the planet
+ * (docs/TODO/205 M3). The clearance is the planet's own radius plus
+ * `COURSE_PLANET_CLEARANCE`, which is above the height the planet holds the
+ * torus drive down at.
  *
  * @returns `out`, holding the point to aim at.
  */
@@ -287,20 +290,71 @@ export function clearOfPlanet(
   from: THREE.Vector3, to: THREE.Vector3, planet: THREE.Vector3, radius: number,
   out: THREE.Vector3,
 ): THREE.Vector3 {
+  return sidestep(from, to, planet, radius + COURSE_PLANET_CLEARANCE, out);
+}
+
+/**
+ * Where to aim, so that the line to the target keeps clear of the police
+ * (docs/TODO/208 M4).
+ *
+ * A police ship reads a hold inside `SCAN_RANGE`, which is 2,600 units, and
+ * the smuggling course must not be read. It aims wide of the nearest
+ * policeman in the way, at `COURSE_POLICE_CLEARANCE`, which is the warning
+ * band. The line from there is clear, and the ship then turns onto the
+ * target. Where no wide line exists, it takes the widest it can find.
+ */
+export function clearOfPolice(
+  from: THREE.Vector3, to: THREE.Vector3, police: readonly THREE.Vector3[],
+  out: THREE.Vector3,
+): THREE.Vector3 {
+  let worst: { at: THREE.Vector3; miss: number } | null = null;
+  for (const at of police) {
+    const miss = distanceToSegment(from, to, at);
+    if (miss >= COURSE_POLICE_CLEARANCE) continue;
+    if (worst === null || miss < worst.miss) worst = { at, miss };
+  }
+  return worst === null ? out.copy(to)
+    : sidestep(from, to, worst.at, COURSE_POLICE_CLEARANCE, out);
+}
+
+/** How near the line from `from` to `to` passes `at`. */
+function distanceToSegment(
+  from: THREE.Vector3, to: THREE.Vector3, at: THREE.Vector3,
+): number {
   seg.subVectors(to, from);
   const len2 = seg.lengthSq();
-  const t = len2 > 0 ? Math.max(0, Math.min(1, off.subVectors(planet, from).dot(seg) / len2)) : 0;
-  // The nearest point is the target itself: the planet is not between. A
-  // target low over the planet is still reached, because the last of the
-  // line runs down to it rather than through the planet.
+  const t = len2 > 0 ? Math.max(0, Math.min(1, off.subVectors(at, from).dot(seg) / len2)) : 0;
+  // The nearest point is the target itself: nothing is between.
+  if (t >= 1) return Infinity;
+  return off.copy(from).addScaledVector(seg, t).sub(at).length();
+}
+
+/**
+ * Where to aim, so that the line keeps `clear` units from one thing in the
+ * way. It aims beside that thing, on the same side as the line, and half as
+ * far again. The line from there is clear, and the ship then turns onto the
+ * target.
+ *
+ * A target that is itself the nearest point needs no detour. docs/TODO/205 M3
+ * found a hermit low over the planet. The line to it always counted as
+ * blocked, and the ship circled the detour point for ever.
+ *
+ * @returns `out`, holding the point to aim at.
+ */
+function sidestep(
+  from: THREE.Vector3, to: THREE.Vector3, at: THREE.Vector3, clear: number,
+  out: THREE.Vector3,
+): THREE.Vector3 {
+  seg.subVectors(to, from);
+  const len2 = seg.lengthSq();
+  const t = len2 > 0 ? Math.max(0, Math.min(1, off.subVectors(at, from).dot(seg) / len2)) : 0;
   if (t >= 1) return out.copy(to);
-  off.copy(from).addScaledVector(seg, t).sub(planet);
-  const clear = radius + COURSE_PLANET_CLEARANCE;
+  off.copy(from).addScaledVector(seg, t).sub(at);
   if (off.length() >= clear) return out.copy(to);
   // A line through the centre has no side. Any direction square to it will do.
   if (off.lengthSq() < 1e-6) {
     off.set(seg.y, -seg.x, 0);
     if (off.lengthSq() < 1e-6) off.set(0, seg.z, -seg.y);
   }
-  return out.copy(planet).addScaledVector(off.normalize(), radius + COURSE_PLANET_CLEARANCE * 1.5);
+  return out.copy(at).addScaledVector(off.normalize(), clear * 1.5);
 }

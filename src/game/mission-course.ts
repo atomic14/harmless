@@ -15,10 +15,11 @@
 //   - a HUNT is a fight, so the course picks the ship and the aim flies it;
 //   - a SCAN is a hold: stay near it, and keep the nose on it;
 //   - an ESCORT flies alongside, and the fight comes to the pilot;
-//   - a RECOVER and a RESCUE are a scoop.
+//   - a RECOVER and a RESCUE are a scoop;
+//   - a SMUGGLE is a slip: the station, on a line wide of every policeman.
 //
-// The other three verbs need no course of their own. A deliver, a smuggle
-// and an ambush all end at the station, and the station course flies there.
+// A deliver and an ambush need no course of their own. Both end at the
+// station, and the station course flies there.
 
 import type * as THREE from 'three';
 import type { NpcShip } from './npc.ts';
@@ -28,7 +29,7 @@ import type { MissionState, Skeleton } from '../missions/model.ts';
 import { SKELETONS } from '../missions/skeletons/index.ts';
 
 /** What the ship does about this leg. */
-export type MissionHow = 'fight' | 'hold' | 'escort' | 'scoop';
+export type MissionHow = 'fight' | 'hold' | 'escort' | 'scoop' | 'slip';
 
 /** The mission's course: its words, what to do, and what to do it to. */
 export interface MissionCourse {
@@ -53,12 +54,18 @@ export function missionCourse(
   here: number,
   npcs: readonly NpcShip[],
   items: readonly Canister[],
+  stationPos: THREE.Vector3,
   skeletons: readonly Skeleton[] = SKELETONS,
 ): MissionCourse | null {
   for (const { live, leg } of liveLegs(st, skeletons)) {
-    if (live.target !== here || live.tag === null) continue;
-    const ship = npcs.find((n) => n.state.alive && n.state.missionTag === live.tag) ?? null;
-    const item = items.find((c) => c.missionTag === live.tag) ?? null;
+    if (live.target !== here) continue;
+    // A smuggling run has no tagged thing in the sky: what it asks for is a
+    // way past the police. Every other course below needs its target, and a
+    // leg with no tag has none.
+    const ship = live.tag === null ? null
+      : npcs.find((n) => n.state.alive && n.state.missionTag === live.tag) ?? null;
+    const item = live.tag === null ? null
+      : items.find((c) => c.missionTag === live.tag) ?? null;
     const name = ship?.object.name.toUpperCase() ?? '';
     switch (leg.verb.kind) {
       case 'hunt':
@@ -86,8 +93,12 @@ export function missionCourse(
           return { what: 'PICK UP THE SURVIVOR', how: 'scoop', ship: null, at: item.object.position, speed: 0 };
         }
         break;
+      case 'smuggle':
+        return {
+          what: 'SLIP PAST THE POLICE', how: 'slip', ship: null, at: stationPos, speed: 0,
+        };
       default:
-        // deliver, smuggle and ambush all end at the station, and the station
+        // A deliver and an ambush both end at the station, and the station
         // course flies there.
         break;
     }

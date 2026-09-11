@@ -9,12 +9,16 @@
 // flown by its button alone. The pilot's own part is the trigger, which the
 // hunt holds down.
 
+import * as THREE from 'three';
 import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { runMissions } from '../src/game/mission-bridge.ts';
 import { missionCourse } from '../src/game/mission-course.ts';
+import { clearOfPolice } from '../src/game/course-pilot.ts';
+import { SCAN_RANGE } from '../src/constants/law.ts';
+import { COURSE_POLICE_CLEARANCE } from '../src/constants/course.ts';
 import { COURSE_KEYS } from '../src/game/bindings.ts';
 import { keymap } from '../src/engine/keymap.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
@@ -72,7 +76,7 @@ function fly(g: Game, seconds: number, until: () => boolean, trigger = false): n
 /** The words the mission's button shows now. */
 const words = (g: Game): string | null => missionCourse(
   g.state.commander.missions, g.state.commander.systemIndex,
-  g.state.world.npcs, g.state.world.cargo.items)?.what ?? null;
+  g.state.world.npcs, g.state.world.cargo.items, g.state.world.station.position)?.what ?? null;
 
 {
   const g = onTheJob('side-hunt', 20_260_940);
@@ -136,4 +140,36 @@ console.log('\na hunted ship that runs has fled, not escaped');
   };
   eq('a tagged ship that jumps out escapes, and the side hunt fails', flown(false), 'fail');
   eq('...and one that runs has fled, which a side hunt does not answer', flown(true), undefined);
+}
+
+console.log('\na smuggling run keeps wide of the police');
+{
+  const from = new THREE.Vector3(0, 0, 0);
+  const to = new THREE.Vector3(0, 0, -20_000);
+  const out = new THREE.Vector3();
+  const onTheLine = new THREE.Vector3(0, 0, -10_000);
+  clearOfPolice(from, to, [onTheLine], out);
+  const miss = out.distanceTo(onTheLine);
+  check('a policeman on the line pushes the aim wide of him', out.z !== to.z);
+  check('...by more than he can read a hold at', miss > SCAN_RANGE, `${Math.round(miss)} units`);
+  check('...and outside his warning band too', miss >= COURSE_POLICE_CLEARANCE,
+    `${Math.round(miss)} units`);
+  clearOfPolice(from, to, [new THREE.Vector3(30_000, 0, -10_000)], out);
+  check('a policeman well off the line changes nothing', out.equals(to));
+}
+
+{
+  const g = onTheJob('side-smuggle', 20_260_946);
+  eq('a smuggling run says what it is', words(g), 'SLIP PAST THE POLICE');
+  // A policeman square in the way, half way to the station.
+  const station = g.state.world.station.position;
+  const half = g.state.player.position.clone().lerp(station, 0.5);
+  const cop = g.state.world.spawn('police', half, 3);
+  let nearest = Infinity;
+  fly(g, 200, () => {
+    nearest = Math.min(nearest, g.state.player.position.distanceTo(cop.object.position));
+    return g.state.player.position.distanceTo(station) < 4000;
+  });
+  check('...and the ship goes round a policeman in the way', nearest > SCAN_RANGE,
+    `${Math.round(nearest)} units at the nearest`);
 }

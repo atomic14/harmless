@@ -179,3 +179,17 @@ Evidence:
   hunted ship that runs, and nothing ever sent the word. A tagged ship that
   leaves while it flees counts as fled. Any other one jumped out, and it
   escaped. So a side hunt no longer fails when its target runs.
+
+### M4
+
+- **The smuggling run is a course of its own: SLIP PAST THE POLICE.** It flies
+  the station course on a line wide of every policeman in the way, at the
+  warning band of 4,400 units. That is outside the 2,600 units a policeman
+  reads a hold at, with a margin.
+- **One rule holds both detours.** `sidestep` aims beside a thing in the way,
+  on the same side as the line, and half as far again. The planet and the
+  police both use it, and a target that is itself the nearest point needs no
+  detour.
+- **A leg without a tag is still a leg.** The lookup skipped every leg with no
+  tagged ship, and a smuggling run has none. It asks for a way past the
+  police, and nothing in the sky is its own.

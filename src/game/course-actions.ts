@@ -217,7 +217,7 @@ export class CourseActions {
   private missionRow(): CourseWorld['mission'] {
     const s = this.state();
     const m = missionCourse(s.commander.missions, s.commander.systemIndex,
-      s.world.npcs, s.world.cargo.items);
+      s.world.npcs, s.world.cargo.items, s.world.station.position);
     if (m === null) return null;
     const needsScoops = m.how === 'scoop' && !s.commander.equipment.scoops;
     return { what: m.what, why: needsScoops ? 'NEEDS FUEL SCOOPS' : null };

@@ -158,7 +158,7 @@ export class Instruments {
     // as the target, exactly as a rock is.
     const mission = s.course !== 'mission' ? null
       : missionCourse(this.state.commander.missions, this.state.commander.systemIndex,
-        w.npcs, w.cargo.items);
+        w.npcs, w.cargo.items, w.station.position);
     if (mission?.how === 'fight' && mission.ship !== null
       && pickedTarget(w.npcs) !== mission.ship) {
       pickTarget(w.npcs, mission.ship);
@@ -181,6 +181,10 @@ export class Instruments {
       derelictSpeed: derelict?.state.speed ?? 0,
       hermitPos: live('hermit')?.object.position ?? null,
       tankFull: this.state.commander.fuel >= MAX_FUEL,
+      police: w.npcs
+        .filter((n) => n.state.alive && n.role === 'police'
+          && n.object.position.distanceTo(p.position) <= SCANNER_RANGE * 2)
+        .map((n) => n.object.position),
       loot: w.cargo.items
         .map((c) => c.object.position)
         .filter((at) => at.distanceTo(p.position) <= SCANNER_RANGE)

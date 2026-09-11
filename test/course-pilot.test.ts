@@ -43,6 +43,7 @@ const view = (station: THREE.Vector3, over: Partial<CourseView> = {}): CourseVie
   tankFull: false,
   threats: [],
   loot: [],
+  police: [],
   mission: null,
   dcEngaged: false,
   handOverRange: DOCK_COMPUTER_RANGE,

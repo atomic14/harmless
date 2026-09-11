@@ -7,6 +7,7 @@ import { HERMIT_DOCK_SPEED } from './hermit-market.ts';
 import { PLAYER_FLIGHT } from './player-flight.ts';
 import { MASS_LOCK_PLANET_ALTITUDE, TORUS_MULTIPLIER } from './torus.ts';
 import { GENERATION_CARGO_SCATTER } from './spawn-placement.ts';
+import { SCAN_WARN_RANGE } from './law.ts';
 
 /**
  * How far off the nose the target may sit, in radians, before the course
@@ -222,3 +223,16 @@ export const COURSE_WATCH_STANDOFF = 1200;
  * @domain course
  */
 export const COURSE_ESCORT_STANDOFF = 600;
+
+/**
+ * How wide of a police ship the smuggling course flies, in world units
+ * (docs/TODO/208 M4).
+ *
+ * A policeman reads a hold inside `SCAN_RANGE`, which is 2,600 units. This is
+ * the warning band, `SCAN_WARN_RANGE`, so the course keeps a margin outside
+ * the range that would end the job. It is the same rule from the other side,
+ * so the two cannot drift apart.
+ *
+ * @domain course
+ */
+export const COURSE_POLICE_CLEARANCE = SCAN_WARN_RANGE;
