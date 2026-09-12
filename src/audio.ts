@@ -209,25 +209,30 @@ export const sfx = {
    * prints no console line, because the lines that matter arrive at the same
    * moment (autopilot.ts).
    *
-   * TWO SOFT BEEPS, and it took three goes (Chris, 2026-09-12: *"The alarm
-   * sound for a pirate is a bit too much"*, then *"I just want a couple of
-   * beeps"*, then *"It back to the horrible beep"*).
+   * WHOOP WHOOP (Chris, 2026-09-12: *"how about a whoop whoop - like a klaxon
+   * just two of them though"*). It took four goes to get here, and the three
+   * before it are worth the record. It was one 1000 Hz square beep. He called
+   * it too much and asked for pings, then for beeps, and the beeps came back
+   * square and were still horrible.
    *
-   * THE VOICE IS WHAT MAKES IT HORRIBLE, and the count never was. A square wave
-   * carries every odd harmonic above its pitch, and near 1000 Hz that lands in
-   * the band the ear is sharpest in. The second attempt kept the square voice
-   * and only shortened it, which changed nothing that mattered.
+   * THE VOICE AND THE SHAPE ARE DIFFERENT LEVERS, and only the second one
+   * makes a klaxon. A square wave carries every odd harmonic above its pitch,
+   * which is what made every earlier version grate. A GLIDE is what makes a
+   * whoop, and it needs no harshness at all. The pitch rises through the sound
+   * rather than sitting on one note.
    *
-   * So these are SINE, which carries no harmonics at all. Two of them, at the
-   * same pitch, the same length apart. A couple of beeps, and nothing else.
+   * So each whoop is a sine rising from 320 to 880 Hz over 0.22 seconds, and
+   * there are two. A klaxon runs until somebody silences it. This one says its
+   * piece twice and stops. The fight it announces is already under way, so it
+   * has nothing left to warn about.
    *
    * It is the one named occasion that is not the house square `tone`. Every
-   * other one is a cockpit acknowledgement the pilot asked for. This one is
-   * the game interrupting the pilot, and it is the only sound that does.
+   * other one is a cockpit acknowledgement the pilot asked for. This one is the
+   * game interrupting the pilot, and it is the only sound that does.
    */
   combatComputerEngaged(): void {
-    sweep('sine', 700, 700, 0.06, 0.08);
-    sweep('sine', 700, 700, 0.06, 0.08, undefined, 0.12);
+    sweep('sine', 320, 880, 0.22, 0.08);
+    sweep('sine', 320, 880, 0.22, 0.08, undefined, 0.28);
   },
   stationDefenceLaunched(): void { tone(300, 0.18); },
   cargoLost(): void { tone(300, 0.12); },

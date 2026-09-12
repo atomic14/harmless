@@ -57,35 +57,46 @@ for (const [name, [frequency, duration]] of Object.entries(expected)) {
   eq(`${name} keeps the standard gain`, peak(tone), 0.08);
 }
 
-// THE FIGHT CUE IS A COUPLE OF BEEPS, and it was one long one. Chris,
-// 2026-09-12: *"The alarm sound for a pirate is a bit too much"*, then *"I just
-// want a couple of beeps"*. It was 1000 Hz for 0.12s, half again as long as the
-// standard beep and near the top of the band the ear is sharpest in.
+// THE FIGHT CUE IS A WHOOP WHOOP, and it took four goes. Chris, 2026-09-12:
+// *"The alarm sound for a pirate is a bit too much"*, then *"I just want a
+// couple of beeps"*, then *"It back to the horrible beep"*, then *"how about a
+// whoop whoop - like a klaxon just two of them though"*.
 //
-// It is the one named occasion made of more than one voice, so it leaves the
-// table above and asserts its own claim. Everything else about it is the house
-// beep: the same square voice, and the same gain.
+// It was one 1000 Hz SQUARE beep for 0.12s. Two levers were confused for one
+// through three of those attempts. The VOICE is what grated, because a square
+// wave carries every odd harmonic above its pitch. The SHAPE is what makes a
+// klaxon, and that is a glide rather than a note.
+//
+// So the claim is both, and the glide is the half a flat cue would pass
+// without. `test/audio-fixtures.ts` records the ramp target from this date for
+// exactly that reason.
 {
   tones.length = 0;
   sfx.combatComputerEngaged();
   const cue = [...tones];
-  eq('the fight cue is two beeps', cue.length, 2);
-  // THE VOICE IS WHAT MADE IT HORRIBLE. A square wave carries every odd
-  // harmonic above its pitch, and this cue sat where the ear is sharpest. It is
-  // the one named occasion that is not the house square voice, because it is
-  // the one that interrupts the pilot rather than answering her.
-  check('...both on the soft voice, not the house square',
+  eq('the fight cue is two whoops', cue.length, 2);
+  check('...each one a GLIDE, which is what makes a whoop',
+    cue.every((t) => t.rampTo !== null && t.rampTo !== t.frequency),
+    cue.map((t) => `${t.frequency}->${t.rampTo}`).join(','));
+  check('...rising, so it reads as an alert rather than a sigh',
+    cue.every((t) => (t.rampTo ?? 0) > t.frequency),
+    cue.map((t) => `${t.frequency}->${t.rampTo}`).join(','));
+  check('...on the soft voice, not the house square that grated',
     cue.every((t) => t.type === 'sine'), cue.map((t) => t.type).join(','));
   check('...at the standard gain, like every other named occasion',
     cue.every((t) => peak(t) === 0.08), cue.map((t) => peak(t)).join(','));
-  check('...the same pitch, so it reads as one cue rather than two events',
-    cue.length === 2 && cue[0].frequency === cue[1].frequency,
-    cue.map((t) => t.frequency).join(' then '));
-  check('...each shorter than the 0.12s beep it replaced',
-    cue.every((t) => t.duration <= 0.08), cue.map((t) => t.duration).join(','));
-  check('...and the second lands after the first, not over it',
+  check('...the same glide twice, so it is one cue and not two events',
+    cue.length === 2 && cue[0].frequency === cue[1].frequency
+      && cue[0].rampTo === cue[1].rampTo,
+    cue.map((t) => `${t.frequency}->${t.rampTo}`).join(' then '));
+  check('...the second after the first, not over it',
     cue.length === 2 && cue[1].at >= cue[0].at + cue[0].duration,
     cue.map((t) => `${t.at}+${t.duration}`).join(' then '));
+  // A klaxon runs until somebody silences it. This one says its piece and
+  // stops, because the fight it announces has already started.
+  check('...and the whole cue is over inside a second',
+    cue.length === 2 && cue[1].at + cue[1].duration < 1,
+    `${(cue[1].at + cue[1].duration).toFixed(2)}s`);
 }
 
 // The countdown blip is the one occasion whose pitch depends on a GAME rule —
