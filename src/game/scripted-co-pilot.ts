@@ -3,15 +3,25 @@
 // A person gets on the opponent's six and shoots it up. She hauls the throttle
 // back to swing the nose round, so that she stays on a target that crosses her.
 //
-// That is pure pursuit. Point the nose AT the target: the laser is hitscan, so
-// there is no lead, and you aim where the target is. The line then curves you
-// onto its tail as it turns and runs. A throttle holds a gun-range standoff
-// behind it, and comes off hard when the nose has a long way to swing.
+// That is pursuit. The aim line curves you onto its tail as it turns and runs.
+// A throttle holds a gun-range standoff behind it, and comes off hard when the
+// nose has a long way to swing.
+//
+// It aims a little AHEAD of the target, and the gun is not the reason. The laser
+// is hitscan, so the SHOT needs no lead. The NOSE needs one. A swing takes time.
+// The target moves while the swing runs. So an aim at where the target IS puts
+// the nose where the target WAS. The swing that is LEFT sets the lead. The lead
+// falls to zero as the nose arrives (`PURSUIT_LEAD_GAIN`).
+//
+// The throttle matches the target's RADIAL speed rather than its whole speed. A
+// ship that circles you barely recedes, so the commander stops and turns like a
+// turret. A ship that runs recedes at its full speed, so the commander chases.
 //
 // It flies `pursuit.ts` rather than the attack run. The pirates fly their own
 // pursuit: hold the six, then break into a fast pass when faced (npc.ts
 // `pursue`). That is a separate ship and a separate decision. The two share
-// `pursuitSpeed`, so they cannot drift.
+// `pursuitSpeed`, so the standoff rule cannot drift. They hand it a different
+// speed to match, and `pursuitThrottle` below says why.
 //
 // It DECIDES and reports, like every module here. What comes back is a
 // `FlightDemand` — ramped pitch and roll rates, a throttle, a trigger — and one
@@ -33,13 +43,16 @@ import { hitCone } from './gunnery.ts';
 import { autopilotEcm } from './ordnance.ts';
 import { bankToTurn, freshSteerMemory, type SteerMemory } from './pitch-roll-steer.ts';
 import { pursuitSpeed } from './pursuit.ts';
+import { velocityOf } from './flight-maths.ts';
 import { rampFlightRate, type FlightDemand } from '../player.ts';
 import { LASER_RANGE } from '../constants/player-gun.ts';
 import { UNDER_FIRE_SECONDS } from '../constants/attack-run.ts';
 import {
   THREAT_RANGE, PURSUIT_SPEED_DEADBAND, ENGAGED_CONE, TARGET_DIST_WEIGHT,
+  PURSUIT_LEAD_GAIN,
 } from '../constants/combat-computer.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
+import { MAX_LEAD_SECONDS } from '../constants/pass-aim.ts';
 import type { V3 } from '../ai-training/observation.ts';
 
 export type CoPilotStep =
@@ -63,6 +76,9 @@ export class ScriptedCoPilot {
   private readonly lock = new ThreatLock<NpcShip>();
   private readonly toThreat = new THREE.Vector3();
   private readonly nose = new THREE.Vector3();
+  /** where the target goes, and where the nose is sent — see `step` */
+  private readonly threatVel = new THREE.Vector3();
+  private readonly aim = new THREE.Vector3();
   /** ramped turn rates, so the co-pilot's turn continues smoothly frame to frame */
   private pitchRate = 0;
   private rollRate = 0;
@@ -143,23 +159,43 @@ export class ScriptedCoPilot {
     // no bank to centre a target that is already inside it.
     const cone = hitCone(threat.radius, dist);
 
-    // PURE PURSUIT: bank-to-turn straight at where the target IS. The gun is
-    // hitscan, so there is nothing to lead. An aim AT the target rather than
-    // ahead of it is what walks the nose onto the six as the target turns and
-    // runs. It ramps through the commander's own envelope (PLAYER_FLIGHT), so
-    // the co-pilot flies your ship as your hands would.
+    // How far off the nose the target is. The steer, the throttle and the
+    // trigger all read it. It is taken before the Game integrates the demand,
+    // so one frame's turn of about 0.02 rad is not in it.
+    this.toThreat.copy(targetPos).sub(player.position);
+    const facing = this.nose.set(0, 0, -1).applyQuaternion(player.quaternion)
+      .angleTo(this.toThreat);
+
+    // Where the target goes. `velocityOf` is the nose-and-thrust rule that the
+    // pirates lead their shots with, and that the HUD's lead marker draws. One
+    // rule, so the aid and the co-pilot cannot come to disagree.
+    velocityOf(threat.object.quaternion, threat.state.speed, this.threatVel);
+
+    // PURSUIT, aimed at where the nose can ARRIVE. See the module header for why
+    // a hitscan gun still wants a lead. The lead is the swing that is LEFT times
+    // `PURSUIT_LEAD_GAIN`, capped, so it falls to zero as the nose closes. A
+    // fixed lead instead fights the radial throttle below, and it measured worse
+    // than no lead at all. The ceiling is the attack run's `MAX_LEAD_SECONDS`,
+    // which is the same rule: how far ahead a ship may aim.
+    this.aim.copy(targetPos).addScaledVector(
+      this.threatVel, Math.min(MAX_LEAD_SECONDS, PURSUIT_LEAD_GAIN * facing));
+    // It ramps through the commander's own envelope (PLAYER_FLIGHT), so the
+    // co-pilot flies your ship as your hands would.
     const cmd = bankToTurn(player.quaternion,
-      this.toThreat.copy(targetPos).sub(player.position), this.steerMem, cone);
+      this.aim.sub(player.position), this.steerMem, cone);
     this.pitchRate = rampFlightRate(
       this.pitchRate, cmd.pitch * PLAYER_FLIGHT.maxPitch, cmd.pitch !== 0, dt);
     this.rollRate = rampFlightRate(
       this.rollRate, cmd.roll * PLAYER_FLIGHT.maxRoll, cmd.roll !== 0, dt);
 
-    // How far off the nose the target is. It is taken AFTER this frame's ramp
-    // is decided, and before the Game integrates it. One frame's turn is
-    // ~0.02 rad, which neither the throttle nor the fire cone can see.
-    const facing = this.nose.set(0, 0, -1).applyQuaternion(player.quaternion)
-      .angleTo(this.toThreat.copy(targetPos).sub(player.position));
+    // How fast the target RECEDES, which is the speed that holds a standoff. Its
+    // whole speed is the wrong number. A ship that circles you holds its range
+    // while it flies at 300. A chase at 300 then carries the commander past it.
+    // Negative means it closes, and the standoff term alone answers that.
+    //
+    // It leaves `toThreat` a UNIT vector. That is the last read of it in this
+    // step. Copy it again before you use it as a distance below this line.
+    const recede = Math.max(0, this.threatVel.dot(this.toThreat.normalize()));
 
     return {
       kind: 'fly',
@@ -172,7 +208,7 @@ export class ScriptedCoPilot {
         // which reads as a ram in the window. The gun below keeps the true
         // distance, because a shot travels to the hull by itself.
         throttle: this.pursuitThrottle(
-          player.speed, threat.state.speed, dist - threat.radius, facing),
+          player.speed, recede, dist - threat.radius, facing),
         // the trigger only when the shot would count: the player gun's own cone
         // and range (gunnery.ts). The laser's heat and cooldown pace it from
         // there, which is what makes this a marksman rather than a sprayer
@@ -191,11 +227,18 @@ export class ScriptedCoPilot {
    * shares it, so the two cannot drift. This turns that speed into the
    * throttle SIGN that `FlightDemand` wants. A deadband makes it coast at the
    * held speed rather than pump around it.
+   *
+   * WHICH speed to match is the CALLER's to choose, and the two callers choose
+   * differently. The pirate matches its target's whole speed. This one matches
+   * how fast the target RECEDES, so a target that circles is met with a stop
+   * rather than with a chase. See `step`.
+   *
+   * @param recede how fast the target opens the range, in world units a second.
    */
   private pursuitThrottle(
-    ownSpeed: number, targetSpeed: number, dist: number, facing: number,
+    ownSpeed: number, recede: number, dist: number, facing: number,
   ): number {
-    const want = pursuitSpeed(targetSpeed, dist, facing, PLAYER_FLIGHT.maxSpeed);
+    const want = pursuitSpeed(recede, dist, facing, PLAYER_FLIGHT.maxSpeed);
     const diff = want - ownSpeed;
     // A STOP IS A STOP (docs/TODO/211). The deadband holds a speed steady, and
     // it must not hold a drift. A target that sits still asks for a wanted

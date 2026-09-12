@@ -204,3 +204,54 @@ export const ENGAGED_CONE = 0.6;
  * @rule copilot.targetDistWeight
  */
 export const TARGET_DIST_WEIGHT = 800;
+
+/**
+ * How many SECONDS the co-pilot aims ahead of a target, per radian that its nose
+ * still has to swing. It is a gain, in seconds per radian.
+ *
+ * The CAP on it is `MAX_LEAD_SECONDS` (constants/pass-aim.ts), which the attack
+ * run already owns. That is one rule, not two. Each is the furthest ahead a ship
+ * aims, and the same pitch rate bounds each. A target dead astern asks for about
+ * pi radians of swing. This gain alone turns that into six seconds of lead. That
+ * aim point is nowhere near the fight.
+ *
+ * WHY A LEAD AT ALL, when the laser is hitscan. The gun needs none. The NOSE
+ * does. A swing takes time. The target moves while the swing runs. So an aim at
+ * where the target IS puts the nose where the target WAS. This lead cancels the
+ * swing time. It is lead for the ship, not for the shot.
+ *
+ * WHY IT SHRINKS WITH THE ERROR. A FIXED lead was measured first, and it is
+ * WORSE THAN NO LEAD AT ALL. A fixed lead is only right while the nose lags.
+ * Once the nose catches up, the lead becomes a standing miss. The nose parks
+ * ahead of the target and waits. The aim point then runs on again each frame. A
+ * lead set by the REMAINING swing falls to zero as the nose arrives. So it never
+ * does that.
+ *
+ * The measurement is a probe of this control law and of `player.ts`'s flight
+ * model. It flies 40 scripted targets, at real pirate speeds and at a real
+ * pirate radius. Each number below is the share of frames with the target inside
+ * the gun cone.
+ *
+ *   27.5% is the pursuit before this rule.
+ *   24.2% is a fixed 0.30 second lead.
+ *   21.1% is a fixed 0.30 second lead, with the radial throttle.
+ *   31.2% is the radial throttle alone.
+ *   41.7% is this lead alone.
+ *   46.7% is this lead, with the radial throttle.
+ *
+ * WHY 2.0. It is a plateau with a hole beside it. On a 13-target probe at 2.0 a
+ * fast, close circler scored 86%, and at 3.0 the same target scored 23%, while
+ * every other target held. Sweep this on the exercise wave harness before you
+ * move it. A 13-target sample and a 40-target sample disagreed about the radial
+ * throttle's worth, so a small sample is not enough to retune on.
+ *
+ * THE HOME IS THIS FILE, and the owner check disagrees. It reads the words
+ * "rule" and "bounded" above and reaches for the law domain. This is a feel
+ * setting of the SCRIPTED co-pilot. It sits in the `PURSUIT_*` block that the
+ * header of this file gives to that pilot. Nothing legal reads it, and no brain
+ * flies through it.
+ *
+ * @rule copilot.leadGain
+ * @domain combat-computer
+ */
+export const PURSUIT_LEAD_GAIN = 2.0;
