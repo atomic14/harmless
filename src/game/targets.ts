@@ -73,8 +73,7 @@ export function targetList(v: TargetView): TargetRow[] {
       return {
         row: {
           ship,
-          // A rock carries no name of its own, so it is called what it is.
-          name: (ship.object.name || STANDING[ship.role] || 'SHIP').toUpperCase(),
+          name: shipName(ship),
           range: ship.object.position.distanceTo(v.playerPos),
           standing,
           cost: costOf(ship.role),
@@ -96,6 +95,26 @@ function costOf(role: string): string | null {
   if (harmVerdict(role) !== null) return 'THE LAW PROTECTS THIS SHIP';
   if (role === 'hermit') return 'KILLING THE HERMIT HURTS YOUR REPUTATION';
   return null;
+}
+
+/**
+ * What the player calls one ship. A rock carries no name of its own, so it
+ * is called what it is.
+ *
+ * The mass lock message also names a ship (docs/TODO/209). It calls this,
+ * so the list and the message cannot use two different words for one ship.
+ */
+export function shipName(ship: NpcShip): string {
+  return (ship.object.name || STANDING[ship.role] || 'SHIP').toUpperCase();
+}
+
+/**
+ * ...and the same name with its article, where the words make a sentence.
+ * The mass lock and the close pass both need one (docs/TODO/209).
+ */
+export function shipArticle(ship: NpcShip): string {
+  const name = shipName(ship);
+  return `${'AEIOU'.includes(name[0]) ? 'AN' : 'A'} ${name}`;
 }
 
 /** The ship the pilot picked, if it still lives. */

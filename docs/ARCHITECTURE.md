@@ -176,7 +176,9 @@ Two quirks are deliberate:
   pick (docs/TODO/206). The pick is one flag on the picked ship's own state,
   so a save carries it. It sits on top of `threat-lock.ts`, and never changes
   that rule. `target-actions.ts` joins the list to its buttons, and gives each
-  ship a code that names it for as long as it lives.
+  ship a code that names it for as long as it lives. `close-pass.ts` names a
+  neutral trader that comes close, one time, so the pilot knows the chance is
+  there (docs/TODO/209). It never stops the ship.
   `cockpit-buttons.ts` says what every button over the flight view reads, in
   words, and it holds no world (docs/TODO/206 M5). `game/mission-course.ts`
   says what a live mission asks the ship to do here (docs/TODO/208). There

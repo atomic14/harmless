@@ -43,6 +43,8 @@ import { CHARACTER_LINE_SECONDS, DISREPUTE_CAUGHT } from '../constants/character
 import { queueMessage } from './session.ts';
 import { playerVsNpcs, npcVsNpcs, npcsVsStation } from './collisions.ts';
 import { assignNpcTargets } from './npc-targeting.ts';
+import { shipArticle } from './targets.ts';
+import { closePassLines } from './close-pass.ts';
 import { stepEncounters } from './encounters.ts';
 import { spawnArrivingTrader, spawnPassingTrader } from './spawning.ts';
 import { STATION_TRUCE } from '../constants/law.ts';
@@ -96,22 +98,36 @@ import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 const WARHEAD_FLASH = rgb24(HUD.amber);
 
 /**
- * Anything close enough to hold the torus drive down.
+ * WHAT is close enough to hold the torus drive down, in the player's words,
+ * or null for a clear sky (docs/TODO/209).
+ *
+ * The lock said only that it happened. Chris flew the trip in. He could not tell
+ * that a neutral trader stopped the drive. So the lock names what
+ * stopped it, and the console line carries the name.
  *
  * A free function over the state, so the flight keys and the step share one
  * rule and `window.__game.massLocked()` keeps working for the harnesses. The
  * three radii live together in constants/torus.ts, beside the drive they cut.
  */
-export function massLocked(state: GameState): boolean {
+export function massLockCause(state: GameState): string | null {
   const { player, world } = state;
-  if (player.position.distanceTo(world.station.position) < MASS_LOCK_STATION) return true;
+  if (player.position.distanceTo(world.station.position) < MASS_LOCK_STATION) return 'THE STATION';
   if (player.position.distanceTo(world.planetPos) - world.planetRadius
-      < MASS_LOCK_PLANET_ALTITUDE) return true;
+      < MASS_LOCK_PLANET_ALTITUDE) return 'THE PLANET';
+  // A ship comes with its article, because the message reads as a sentence.
+  let nearest: { name: string; range: number } | null = null;
   for (const npc of world.npcs) {
-    if (npc.state.alive && npc.role !== 'asteroid' &&
-        npc.object.position.distanceTo(player.position) < MASS_LOCK_SHIP) return true;
+    if (!npc.state.alive || npc.role === 'asteroid') continue;
+    const range = npc.object.position.distanceTo(player.position);
+    if (range >= MASS_LOCK_SHIP) continue;
+    if (nearest === null || range < nearest.range) nearest = { name: shipArticle(npc), range };
   }
-  return false;
+  return nearest?.name ?? null;
+}
+
+/** Is anything close enough to hold the torus drive down? */
+export function massLocked(state: GameState): boolean {
+  return massLockCause(state) !== null;
 }
 
 /**
@@ -311,9 +327,10 @@ export class WorldStep {
 
     // torus drive
     if (session.torusEngaged) {
-      if (this.massLocked()) {
+      const cause = massLockCause(this.state);
+      if (cause !== null) {
         session.torusEngaged = false;
-        out.push(say('MASS LOCK — TORUS DISENGAGED', 3));
+        out.push(say(`TORUS DRIVE OFF — ${cause} IS TOO CLOSE`, 3));
         out.push(heard('torusDropped'));
       } else {
         // ONE LESS THAN THE MULTIPLIER. `player.update()` above already flew
@@ -415,6 +432,15 @@ export class WorldStep {
     // wave is worth a warp-in. Measured twice, the two could disagree about
     // the same frame.
     const playerToStation = player.position.distanceTo(world.station.position);
+
+    // A neutral ship that comes close says so, one time (docs/TODO/209). The
+    // mass lock only spoke with the torus drive running, and the drive is off
+    // for most of a trip. The rule is `close-pass.ts`, and this pushes what it
+    // decided (invariant 15).
+    for (const line of closePassLines({
+      npcs: world.npcs, playerPos: player.position,
+      legalStatus: s.commander.legalStatus, playerToStation,
+    })) out.push(say(line, 4));
 
     // periodic NPC-vs-NPC targeting: pirates prey on traders, the law hunts pirates
     session.npcTargetTimer -= dt;

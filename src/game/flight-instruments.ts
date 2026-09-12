@@ -43,7 +43,7 @@ const COURSE_ENDS: Partial<Record<CourseKind, string>> = {
   mine: 'NO ROCKS LEFT WITHIN RANGE',
   collect: 'EVERYTHING IS ABOARD',
 };
-import { massLocked } from './world-step.ts';
+import { massLocked, massLockCause } from './world-step.ts';
 import { boundKey } from '../ui/key-help.ts';
 import { defenceBrain } from './brains.ts';
 import { defenceBrainNameFor } from './brain-names.ts';
@@ -327,8 +327,12 @@ export class Instruments {
   }
 
   toggleTorus(): void {
-    if (this.massLocked()) {
-      this.host.showMessage('MASS LOCKED', 2);
+    // The refusal names what holds the drive down, as the drop does
+    // (docs/TODO/209). The message said "MASS LOCKED" before. A pilot cannot
+    // tell from those two words that a trader stopped the drive.
+    const cause = massLockCause(this.state);
+    if (cause !== null) {
+      this.host.showMessage(`${cause} IS TOO CLOSE FOR THE TORUS DRIVE`, 2);
       sfx.refused();
       return;
     }

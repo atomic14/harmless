@@ -119,6 +119,13 @@ export interface NpcState {
    * computer flies at.
    */
   targeted: boolean;
+  /**
+   * This ship was already named as a close pass (docs/TODO/209). A neutral
+   * ship inside the mass lock radius is announced one time, so the pilot can
+   * pirate it. `close-pass.ts` owns the rule. It is saved, so a reload does
+   * not repeat the line.
+   */
+  announcedClose: boolean;
   /** seconds under the scanner lock so far: a scan leg's clock */
   observed: number;
   /** the escort or the scan verdict was sent once; it is never sent again */
@@ -268,7 +275,7 @@ export function freshNpcState(maxEnergy: number): NpcState {
     tumbleAxis: randomDirection(new THREE.Vector3()),
     energy: maxEnergy, regenCarry: 0,
     alive: true, provoked: false, provokedByPlayer: false, missiles: 0,
-    missionTag: null, targeted: false, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
+    missionTag: null, targeted: false, announcedClose: false, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
     extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
     tactic: 'run', tacticClock: 0, dryFor: 0,
     tradeTimer: 0,

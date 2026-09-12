@@ -77,6 +77,7 @@ import './course-launch.test.ts';
 import './course-buttons.test.ts';
 import './skip.test.ts';
 import './targets.test.ts';
+import './close-pass.test.ts';
 import './aim.test.ts';
 import './fight-buttons.test.ts';
 import './run-and-offers.test.ts';
