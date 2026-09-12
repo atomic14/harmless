@@ -32,6 +32,57 @@ import { SCAN_WARN_RANGE } from './law.ts';
 export const COURSE_TORUS_CONE = 0.1;
 
 /**
+ * How near the nose a course counts its target as straight ahead, in radians.
+ * Inside this cone the course pilot asks for no pitch and no roll.
+ *
+ * THE SHIP ROLLED ALL THE WAY TO THE STATION WITHOUT IT (Chris, 2026-09-12:
+ * *"we seem to be constantly rotating when heading towards something"*). The
+ * steering is `bankToTurn` (game/pitch-roll-steer.ts). Its roll ask is a
+ * BEARING: how far round the clock the target sits from the vertical. That
+ * bearing stays large for a target a hair off the nose, and the roll fade has
+ * a floor. So the course rolled for ever to chase the last fraction of a
+ * degree. A measurement of 2026-09-12 counted 41 full turns on a median trip
+ * to the station, with the roll moving in 92% of the samples.
+ *
+ * The combat computer never had the fault. It passes the gun's own hit cone,
+ * which is wide up close, and it holds the sticks still inside it.
+ *
+ * 0.02 radians is 1.1 degrees. At the hand-over range of 1,500 units it is 30
+ * units off the line, which the last of the approach closes. It is a fifth of
+ * `COURSE_TORUS_CONE`, so the drive stays engaged inside it.
+ *
+ * @domain course
+ */
+export const COURSE_AIM_DEADZONE = 0.02;
+
+/**
+ * How near its bank a course pilot must be before it pulls the nose, in
+ * radians. Above this angle the steering asks for no pitch at all.
+ *
+ * IT IS WHAT STOPS THE SHIP ROLLING ALL THE WAY THERE. `bankToTurn` gates the
+ * pitch by the cosine of the roll error, which still leaves a little pitch at
+ * a wide bank. Near the nose that little is enough to hold a cone: the nose
+ * circles the target, and the angle never closes. The comment on `bankToTurn`
+ * (game/pitch-roll-steer.ts) holds the measurement.
+ *
+ * 0.05 radians is 2.9 degrees. A sweep of 2026-09-12 over 6 trips to the
+ * station measured the median count of full turns on the way:
+ *
+ * | gate | full turns |
+ * | --- | --- |
+ * | none | 41 |
+ * | 0.2 | 5.5 |
+ * | 0.1 | 2.9 |
+ * | 0.05 | 1.3 |
+ *
+ * A tighter gate costs a little time in a big turn, because the roll must
+ * finish first. The roll is the faster axis, so the cost is small.
+ *
+ * @domain course
+ */
+export const COURSE_ROLL_GATE = 0.05;
+
+/**
  * How far from its target the course pilot drops the torus drive, in world
  * units, before an arrival.
  *

@@ -151,6 +151,30 @@ console.log('\nwith no docking computer, the course hands the slot to the pilot'
     g.state.session.course, null);
 }
 
+// THE SHIP MUST NOT ROLL ALL THE WAY THERE (docs/TODO/210).
+//
+// Chris, 2026-09-12: *"we seem to be constantly rotating when heading towards
+// something"*. The steering held a cone: the nose circled the target at a
+// fixed angle, and the roll never stopped. The measurement is the total roll
+// over a whole trip, in full turns. It was 7.8 turns with a clear sky.
+console.log('\nthe course does not roll the ship all the way there');
+{
+  const g = arrived(20_260_935);
+  g.state.session.course = 'station';
+  const dt = 1 / 60;
+  let rolled = 0;
+  withoutSaving(() => {
+    for (let f = 0, at = 0; f < 240 / dt && !g.state.session.dockTrial; f++) {
+      g.step(dt, at += dt);
+      rolled += Math.abs(g.state.player.rollRate) * dt;
+    }
+  });
+  const turns = rolled / (2 * Math.PI);
+  check('the whole trip to the station costs less than one full turn of roll',
+    turns < 1, `${turns.toFixed(2)} turns`);
+  check('...and the ship still arrives', g.state.session.dockTrial);
+}
+
 console.log('\n...and a flight key takes the ship back');
 {
   const g = arrived(20_260_912);

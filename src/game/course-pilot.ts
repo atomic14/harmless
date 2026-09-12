@@ -39,7 +39,7 @@ import type { CourseKind } from './courses.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { SLOT_SPEED_LIMIT } from '../constants/docking.ts';
 import {
-  COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
+  COURSE_AIM_DEADZONE, COURSE_ROLL_GATE, COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
   COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF, COURSE_PLANET_CLEARANCE,
   COURSE_COLLECT_SPEED, COURSE_ESCORT_STANDOFF, COURSE_RUN_REACH, COURSE_SKIM_DISTANCE,
   COURSE_POLICE_CLEARANCE, COURSE_TORUS_CONE, COURSE_TORUS_DROP, COURSE_WATCH_STANDOFF,
@@ -239,7 +239,12 @@ export class CoursePilot {
     v: CourseView, point: THREE.Vector3, throttle: number, dt: number,
   ): { demand: FlightDemand; torus: boolean } {
     this.dir.subVectors(point, v.position);
-    const stick = bankToTurn(v.quaternion, this.dir, this.mem);
+    // TWO NUMBERS KEEP THE SHIP FROM ROLLING ALL THE WAY THERE. The deadzone
+    // holds the sticks still inside 1.1 degrees of the nose. The roll gate
+    // holds the pitch still until the bank arrives, which is what stops the
+    // nose from circling the target. See both constants.
+    const stick = bankToTurn(
+      v.quaternion, this.dir, this.mem, COURSE_AIM_DEADZONE, COURSE_ROLL_GATE);
     this.fwd.set(0, 0, -1).applyQuaternion(v.quaternion);
     return {
       demand: {
