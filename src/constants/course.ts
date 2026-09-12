@@ -287,3 +287,29 @@ export const COURSE_ESCORT_STANDOFF = 600;
  * @domain course
  */
 export const COURSE_POLICE_CLEARANCE = SCAN_WARN_RANGE;
+
+/**
+ * How far clear of a solid thing's HULL a course flies, in world units.
+ *
+ * Chris, 2026-09-12: *"I visited a rock hermit and then when I left clicked fly
+ * to the station - the computer crashed me straight into the rock hermit - we
+ * need to have some avoidance of obstacles"*. The line went round the planet
+ * and round a policeman, and through everything else. Measured, it killed the
+ * commander outright at 399 units a second.
+ *
+ * IT IS THE SHIP'S OWN TURNING CIRCLE, not a number chosen by eye. At top
+ * speed the tightest circle the commander can fly has a radius of speed over
+ * turn rate. A quarter circle moves a ship one radius sideways. So a line that
+ * passes that far from a hull leaves exactly the room a quarter turn needs.
+ * `sidestep` then aims half as far again, which is the margin.
+ *
+ * It moves with the envelope rather than against it. A faster or less agile
+ * hull needs a wider berth, and this says so without being retuned.
+ *
+ * FROM THE HULL, as the docking standoff is (docs/TODO/211). A hermit is 120
+ * units across the radius, and the derelict is 340. A clearance from the CENTRE
+ * would be a different rule for each of them.
+ *
+ * @domain course
+ */
+export const COURSE_OBSTACLE_CLEARANCE = PLAYER_FLIGHT.maxSpeed / PLAYER_FLIGHT.maxPitch;

@@ -407,9 +407,11 @@ const OUTSIDE: readonly Group[] = [
       + ' finishes its work (docs/TODO/205 M3), beside the switch that says it.'
       + ' What a course button says while it flies, and what a jump row says'
       + ' when the ship cannot jump, beside the rule that raises them (M5).'
-      + ' KINDS is the list of courses, read off the codes that name them',
+      + ' KINDS is the list of courses, read off the codes that name them.'
+      + ' OBSTACLE_ROLES is which NPC roles a course steers round, and a role'
+      + ' is a word rather than a number',
     files: {
-      'game/flight-course.ts': ['COURSE_ENDS'],
+      'game/flight-course.ts': ['COURSE_ENDS', 'OBSTACLE_ROLES'],
       'game/courses.ts': ['COURSE_NAMES', 'JUMP_WHY'],
       'game/course-actions.ts': ['KINDS'],
       // what each role is called on the target list (docs/TODO/206 M1)

@@ -11,7 +11,8 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { CoursePilot, clearOfPlanet, type CourseView } from '../src/game/course-pilot.ts';
+import { CoursePilot, type CourseView } from '../src/game/course-pilot.ts';
+import { clearOfPlanet } from '../src/game/course-clearance.ts';
 import { COURSE_DERELICT_STANDOFF, COURSE_PLANET_CLEARANCE } from '../src/constants/course.ts';
 import { HERMIT_DOCK_SPEED } from '../src/constants/hermit-market.ts';
 import { CABIN_TEMP_FATAL } from '../src/constants/sun.ts';
@@ -44,6 +45,7 @@ const view = (station: THREE.Vector3, over: Partial<CourseView> = {}): CourseVie
   hermitPos: null,
   tankFull: false,
   threats: [],
+  obstacles: [],
   loot: [],
   police: [],
   mission: null,

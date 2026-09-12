@@ -16,7 +16,7 @@ import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { runMissions } from '../src/game/mission-bridge.ts';
 import { missionCourse } from '../src/game/mission-course.ts';
-import { clearOfPolice } from '../src/game/course-pilot.ts';
+import { clearOfPolice } from '../src/game/course-clearance.ts';
 import { SCAN_RANGE } from '../src/constants/law.ts';
 import { COURSE_POLICE_CLEARANCE } from '../src/constants/course.ts';
 import { COURSE_KEYS } from '../src/game/bindings.ts';

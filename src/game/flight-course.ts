@@ -22,6 +22,12 @@
 // holding a second copy of the rule.
 
 import { CoursePilot } from './course-pilot.ts';
+
+/**
+ * The roles a course steers round. See `CourseView.obstacles` for why these
+ * three and no ship.
+ */
+const OBSTACLE_ROLES = new Set(['hermit', 'asteroid', 'generation']);
 import type { CourseKind } from './courses.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
 import { hostilesNear, hostilesOnScanner } from './hostility.ts';
@@ -132,6 +138,15 @@ export class FlightCourse {
         .sort((a, b) => a.distanceTo(p.position) - b.distanceTo(p.position)),
       threats: hostilesOnScanner(w.npcs, p.position, this.state.commander.legalStatus,
         p.position.distanceTo(w.station.position)).map((n) => n.object.position),
+      // THE SOLID THINGS, so a line does not go through one. Three roles sit
+      // still and are big enough to kill the commander. A rock hermit is 120
+      // units across the radius, the derelict is 340, and a rock is 54. Every
+      // other ship moves, and a course that bent round those would bend round
+      // a fight.
+      obstacles: w.npcs
+        .filter((n) => n.state.alive && OBSTACLE_ROLES.has(n.role)
+          && n.object.position.distanceTo(p.position) <= SCANNER_RANGE)
+        .map((n) => ({ at: n.object.position, radius: n.radius })),
       dcEngaged: s.dcEngaged,
       mission: mission === null ? null
         : { at: mission.at, speed: mission.speed, how: mission.how },

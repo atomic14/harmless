@@ -73,6 +73,7 @@ import './bribe-flight.test.ts';
 import './prompts.test.ts';
 import './courses.test.ts';
 import './course-pilot.test.ts';
+import './course-clearance.test.ts';
 import './course-launch.test.ts';
 import './course-buttons.test.ts';
 import './skip.test.ts';
