@@ -235,6 +235,41 @@ export const COURSE_RUN_REACH = 50_000;
 export const COURSE_COLLECT_SPEED = 60;
 
 /**
+ * The furthest ahead of a drifting canister the collect course will aim, in
+ * seconds.
+ *
+ * Chris, 2026-09-12: *"Collecting cargo often seems to be difficult - we miss
+ * it quite a lot - especially when it is moving."* The course aimed at where
+ * the canister WAS. A canister drifts at up to 45 units a second, and the scoop
+ * reaches 45. So an aim at its old place arrives a whole scoop behind it.
+ *
+ * The lead itself is the time to cover the gap at `COURSE_COLLECT_SPEED`, which
+ * is an intercept rather than a guess. THE CAP IS WHAT IS FITTED. `arrive`
+ * flies faster than the collect speed while it is far out, so the raw time
+ * over-leads at range. An uncapped aim then chases a point the canister never
+ * reaches.
+ *
+ * Measured over 80 runs a row, five canisters a run, at four drifts and four
+ * scatter directions. The figure is how many of 240 were aboard inside two
+ * minutes, across the three moving drifts:
+ *
+ *   | cap | collected | mean time |
+ *   |   0 |   191/240 |     75.0s |
+ *   |   2 |   210/240 |     58.6s |
+ *   |   3 |   216/240 |     60.9s |
+ *   |   4 |   217/240 |     55.1s |
+ *   |   5 |   231/240 |     50.8s |
+ *   |   6 |   219/240 |     59.4s |
+ *
+ * Cargo at rest is untouched at every cap, because a still canister has no
+ * velocity to lead on. It was 80 of 80 in 21.6 seconds throughout.
+ *
+ * @rule course.collectLead
+ * @domain course
+ */
+export const COURSE_COLLECT_LEAD = 5;
+
+/**
  * How far from the station the station course hands the ship to the pilot,
  * in world units (docs/TODO/207 M1).
  *

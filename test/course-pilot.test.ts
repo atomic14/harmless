@@ -329,3 +329,60 @@ console.log('\nnothing appears inside the planet');
   check('...and a ship placed well clear of it appears where it was placed (the control)',
     aboveGround(w, high).distanceTo(high) < 1e-6);
 }
+
+// --- THE COLLECT COURSE HOLDS ONE CANISTER, AND LEADS IT -------------------
+//
+// Chris, 2026-09-12: *"Collecting cargo often seems to be difficult - we miss
+// it quite a lot - especially when it is moving."*
+//
+// Two faults, and a probe named them by flying ONE canister against five. One
+// alone was never missed, at any drift. Five were missed seven times with the
+// cargo at rest. So the first fault was the PICK: the course took the nearest
+// every frame, and turned away from a canister it was nearly on when another
+// drifted closer. The second was the AIM, which was where the canister had
+// been.
+//
+// Both are asserted on the RULE rather than through a two-minute flight. The
+// flight is what measured them, and its figures are beside
+// `COURSE_COLLECT_LEAD`: over 80 runs a drift, the led course took 231 of 240
+// canisters against 191 unled.
+console.log('\nthe collect course holds one canister, and leads it');
+{
+  const DT = 1 / 60;
+  const far = new THREE.Vector3(0, 0, -50_000);
+  const still = (at: THREE.Vector3) => ({ at, velocity: new THREE.Vector3() });
+  const ahead = new THREE.Vector3(0, 0, -600);
+  const aside = new THREE.Vector3(1400, 0, -600);
+
+  // THE PICK. A canister dead ahead asks for no turn. One off to the side asks
+  // for a big one. So the demand says which of the two the course is flying at.
+  const turn = (s: { demand: { pitchRate: number; rollRate: number } | null }): number =>
+    Math.abs(s.demand?.pitchRate ?? 0) + Math.abs(s.demand?.rollRate ?? 0);
+
+  const fresh = new CoursePilot();
+  const onAhead = turn(fresh.step(view(far, { course: 'collect', loot: [still(ahead)] }), DT));
+  const onAside = turn(new CoursePilot()
+    .step(view(far, { course: 'collect', loot: [still(aside)] }), DT));
+  check('the fixture can tell the two apart', onAside > onAhead + 0.01,
+    `${onAhead.toFixed(3)} ahead against ${onAside.toFixed(3)} aside`);
+
+  const held = new CoursePilot();
+  held.step(view(far, { course: 'collect', loot: [still(aside)] }), DT);
+  // ...and now a nearer one turns up, first in the list.
+  const kept = turn(held.step(
+    view(far, { course: 'collect', loot: [still(ahead), still(aside)] }), DT));
+  check('a nearer canister does not steal one the course is already on',
+    kept > onAhead + 0.01, `${kept.toFixed(3)}, against ${onAhead.toFixed(3)} for the near one`);
+
+  // ...until it is gone, and then the nearest is the next.
+  const moved = turn(held.step(view(far, { course: 'collect', loot: [still(ahead)] }), DT));
+  check('...and when it is aboard, the course takes the next', moved <= onAhead + 0.01,
+    `${moved.toFixed(3)}`);
+
+  // THE AIM. A canister dead ahead and drifting sideways is not where it was.
+  const drifting = { at: ahead.clone(), velocity: new THREE.Vector3(200, 0, 0) };
+  const led = turn(new CoursePilot()
+    .step(view(far, { course: 'collect', loot: [drifting] }), DT));
+  check('a drifting canister is aimed ahead of, not at', led > onAhead + 0.01,
+    `${led.toFixed(3)}, against ${onAhead.toFixed(3)} for the same place at rest`);
+}

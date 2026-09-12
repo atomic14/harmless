@@ -133,9 +133,9 @@ export class FlightCourse {
           && n.object.position.distanceTo(p.position) <= SCANNER_RANGE * 2)
         .map((n) => n.object.position),
       loot: w.cargo.items
-        .map((c) => c.object.position)
-        .filter((at) => at.distanceTo(p.position) <= SCANNER_RANGE)
-        .sort((a, b) => a.distanceTo(p.position) - b.distanceTo(p.position)),
+        .filter((c) => c.object.position.distanceTo(p.position) <= SCANNER_RANGE)
+        .map((c) => ({ at: c.object.position, velocity: c.velocity }))
+        .sort((a, b) => a.at.distanceTo(p.position) - b.at.distanceTo(p.position)),
       threats: hostilesOnScanner(w.npcs, p.position, this.state.commander.legalStatus,
         p.position.distanceTo(w.station.position)).map((n) => n.object.position),
       // THE SOLID THINGS, so a line does not go through one. Three roles sit

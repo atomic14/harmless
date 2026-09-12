@@ -16,7 +16,9 @@
 //
 // THE STEER MEMORY IS NOT SAVED. It holds which vertical a bank takes, and a
 // restore that starts it fresh costs one bank at most. The scripted co-pilot
-// makes the same bargain.
+// makes the same bargain. The canister the collect course holds is the same
+// bargain again. A restore picks the nearest, and that is the pick it makes
+// from cold anyway.
 //
 // THREE SHAPES OF COURSE fly today:
 //
@@ -51,7 +53,7 @@ import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { SLOT_SPEED_LIMIT } from '../constants/docking.ts';
 import {
   COURSE_AIM_DEADZONE, COURSE_ROLL_GATE, COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
-  COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF,
+  COURSE_COLLECT_LEAD, COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF,
   COURSE_COLLECT_SPEED, COURSE_ESCORT_STANDOFF, COURSE_RUN_REACH, COURSE_SKIM_DISTANCE,
   COURSE_TORUS_CONE, COURSE_TORUS_DROP, COURSE_WATCH_STANDOFF,
 } from '../constants/course.ts';
@@ -94,7 +96,7 @@ export interface CourseView {
   /** where the police ships within scanner range are, for the smuggling course */
   readonly police: readonly THREE.Vector3[];
   /** where the cargo adrift within scanner range is, nearest first */
-  readonly loot: readonly THREE.Vector3[];
+  readonly loot: readonly Adrift[];
   /**
    * What the mission asks for here (docs/TODO/208 M1): where its target is,
    * how fast it moves, and what the ship does about it. Null when no live leg
@@ -108,6 +110,13 @@ export interface CourseView {
    * docking computer takes the job from further out than a pilot does.
    */
   readonly handOverRange: number;
+}
+
+/** A canister the collect course can fly at, and where it is going. */
+export interface Adrift {
+  at: THREE.Vector3;
+  /** its drift, in world units a second — the collect course leads on it */
+  velocity: THREE.Vector3;
 }
 
 /** What the course pilot asks for this frame. */
@@ -139,6 +148,23 @@ interface Arrival {
 
 export class CoursePilot {
   private mem: SteerMemory = freshSteerMemory();
+  /**
+   * The canister the collect course is flying at, held until it is taken or it
+   * leaves the scanner.
+   *
+   * IT USED TO TAKE THE NEAREST, EVERY FRAME. Chris, 2026-09-12: *"Collecting
+   * cargo often seems to be difficult - we miss it quite a lot - especially
+   * when it is moving."* The ship closed on one canister, a second became
+   * nearer as it moved, and the course turned away from the first. Measured
+   * over five canisters, that was 7 missed passes with the cargo at rest and 16
+   * with it adrift. One canister alone was never missed at all, at any drift,
+   * which is what named the fault.
+   *
+   * The identity is the canister's own position vector, which `flight-course.ts`
+   * passes by reference. A canister that is scooped or drifts out of range
+   * leaves the list, and the next pick is the nearest again.
+   */
+  private held: THREE.Vector3 | null = null;
   private readonly dir = new THREE.Vector3();
   private readonly fwd = new THREE.Vector3();
   private readonly aim = new THREE.Vector3();
@@ -146,9 +172,14 @@ export class CoursePilot {
   private readonly wideOf = new THREE.Vector3();
   /** the aim once it is clear of the planet AND of anything solid */
   private readonly clearAim = new THREE.Vector3();
+  /** where a drifting canister will be when the ship gets there */
+  private readonly lead = new THREE.Vector3();
 
   /** Forget the bank, for a new course. */
-  reset(): void { this.mem = freshSteerMemory(); }
+  reset(): void {
+    this.mem = freshSteerMemory();
+    this.held = null;
+  }
 
   step(v: CourseView, dt: number): CourseStep {
     switch (v.course) {
@@ -171,11 +202,22 @@ export class CoursePilot {
       }
       case 'run': return v.threats.length === 0 ? ended() : this.run(v, dt);
       case 'collect': {
-        const next = v.loot[0];
-        if (next === undefined) return ended();
-        // Fly onto it. The scoop takes it aboard inside `SCOOP_RANGE`, and
-        // the next one is then the nearest (docs/TODO/206 M6).
-        return { ...this.arrive(v, { target: next, standoff: 0, speed: COURSE_COLLECT_SPEED }, dt), done: false };
+        const next = this.holdLoot(v.loot);
+        if (next === null) return ended();
+        // FLY ONTO WHERE IT WILL BE. A canister drifts at up to 45 units a
+        // second, and the scoop reaches 45. An aim at where it IS therefore
+        // arrives a whole scoop behind it (Chris, 2026-09-12). The lead is the
+        // time to cover the gap at the speed the course flies. That is the same
+        // shape the co-pilot leads a ship with.
+        const gap = v.position.distanceTo(next.at);
+        this.lead.copy(next.at).addScaledVector(
+          next.velocity, Math.min(COURSE_COLLECT_LEAD, gap / COURSE_COLLECT_SPEED));
+        // The scoop takes it aboard inside `SCOOP_RANGE`, and the next one is
+        // then the nearest (docs/TODO/206 M6).
+        return {
+          ...this.arrive(v, { target: this.lead, standoff: 0, speed: COURSE_COLLECT_SPEED }, dt),
+          done: false,
+        };
       }
       // A rock is fought, not flown to: `flight-instruments.ts` picks the next
       // one as the target, and the computer's aim lines the ship up on it.
@@ -261,6 +303,20 @@ export class CoursePilot {
     const aim = clearOfObstacles(v.position, wide, v.obstacles, this.clearAim);
     const p = this.pointAt(v, aim, throttle, dt);
     return { ...p, torus: p.torus && left > COURSE_TORUS_DROP, handOver: false, done: false };
+  }
+
+  /**
+   * Which canister to fly at: the one already held, while it is still there.
+   *
+   * A pilot who is nearly on a canister does not turn away because another
+   * drifted closer. It is the same rule the combat co-pilot keeps for a target
+   * it is lined up on, and the same fault it was fixed for.
+   */
+  private holdLoot(loot: readonly Adrift[]): Adrift | null {
+    const still = loot.find((c) => c.at === this.held);
+    if (still !== undefined) return still;
+    this.held = loot[0]?.at ?? null;
+    return loot[0] ?? null;
   }
 
   /** Bank and pull the nose onto a point, with this throttle. */
