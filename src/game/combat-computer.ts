@@ -62,6 +62,17 @@ export interface AutopilotShip {
   position: THREE.Vector3;
   quaternion: THREE.Quaternion;
   speed: number;
+  /**
+   * The rates the ship is ACTUALLY turning at.
+   *
+   * The scripted co-pilot ramps from these rather than from a copy of its own
+   * last ask (`scripted-co-pilot.ts`). `PlayerShip.update` writes them from the
+   * demand it flew, so in ordinary flight the two are the same number. They
+   * differ exactly where the review of 2026-09-12 found a defect: after a
+   * manual override, and after a restore.
+   */
+  pitchRate: number;
+  rollRate: number;
 }
 
 /**

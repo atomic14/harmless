@@ -317,7 +317,10 @@ console.log('\nflight demands');
     // the machinery under test, on the fixture genome — there are no shipped
     // defence weights since 2026-08-05
     const brain = defendShaped;
-    const player = { position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), speed: 200 };
+    const player = {
+      position: new THREE.Vector3(), quaternion: new THREE.Quaternion(), speed: 200,
+      pitchRate: 0, rollRate: 0,
+    };
     const sys = freshSystems();
     const pirate = new NpcShip('pirate', new THREE.Vector3(0, 0, -900), 5);
     pirate.state.provoked = true;

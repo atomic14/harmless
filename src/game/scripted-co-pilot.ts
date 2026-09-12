@@ -87,9 +87,6 @@ export class ScriptedCoPilot {
   /** where the target goes, and where the nose is sent — see `step` */
   private readonly threatVel = new THREE.Vector3();
   private readonly aim = new THREE.Vector3();
-  /** ramped turn rates, so the co-pilot's turn continues smoothly frame to frame */
-  private pitchRate = 0;
-  private rollRate = 0;
   /** which vertical the bank-to-turn is committed to — see pitch-roll-steer.ts */
   private readonly steerMem: SteerMemory = freshSteerMemory();
   /**
@@ -107,11 +104,17 @@ export class ScriptedCoPilot {
     this.underFire = UNDER_FIRE_SECONDS;
   }
 
-  /** Let go of the fight entirely — the next step starts from nothing. */
+  /**
+   * Let go of the fight entirely — the next engagement starts from nothing.
+   *
+   * EVERY field goes, and `steerMem.side` used to survive. A reset controller
+   * then banked the opposite way from a fresh one at the same geometry (the
+   * review of 2026-09-12). There is no state here a new engagement should
+   * inherit, so there is nothing to choose between.
+   */
   reset(): void {
     this.lock.clear();
-    this.pitchRate = 0;
-    this.rollRate = 0;
+    this.steerMem.side = freshSteerMemory().side;
     this.underFire = 0;
   }
 
@@ -202,10 +205,17 @@ export class ScriptedCoPilot {
     // co-pilot flies your ship as your hands would.
     const cmd = bankToTurn(player.quaternion,
       this.aim.sub(player.position), this.steerMem, cone, COMBAT_ROLL_GATE);
-    this.pitchRate = rampFlightRate(
-      this.pitchRate, cmd.pitch * PLAYER_FLIGHT.maxPitch, cmd.pitch !== 0, dt);
-    this.rollRate = rampFlightRate(
-      this.rollRate, cmd.roll * PLAYER_FLIGHT.maxRoll, cmd.roll !== 0, dt);
+    // THE RAMP READS THE SHIP, not a copy of the last ask. `PlayerShip.update`
+    // writes these from the demand it flew, so in ordinary flight the two are
+    // the same number. They differ where it matters (the review of
+    // 2026-09-12). A manual override leaves the ship somewhere the co-pilot's
+    // copy does not know about. A restored save puts the ship's own rates back,
+    // while a fresh controller's copy reads zero. So this needs no rate state,
+    // and nothing has to save one.
+    const pitchRate = rampFlightRate(
+      player.pitchRate, cmd.pitch * PLAYER_FLIGHT.maxPitch, cmd.pitch !== 0, dt);
+    const rollRate = rampFlightRate(
+      player.rollRate, cmd.roll * PLAYER_FLIGHT.maxRoll, cmd.roll !== 0, dt);
 
     // How fast the target RECEDES, which is the speed that holds a standoff. Its
     // whole speed is the wrong number. A ship that circles you holds its range
@@ -219,8 +229,8 @@ export class ScriptedCoPilot {
     return {
       kind: 'fly',
       demand: {
-        pitchRate: this.pitchRate,
-        rollRate: this.rollRate,
+        pitchRate,
+        rollRate,
         // THE STANDOFF IS MEASURED FROM THE HULL (docs/TODO/211). A rock is
         // 54 units across the radius, and the derelict is 340. A range held
         // to the centre put the commander 160 units off the derelict's hull,
