@@ -78,14 +78,14 @@ function ac(): AudioContext | null {
  * The skip also means a wreck beyond earshot costs no oscillator and no buffer.
  */
 function env(
-  a: AudioContext, gain: number, duration: number, place?: Place,
+  a: AudioContext, gain: number, duration: number, place?: Place, at = 0,
 ): GainNode | null {
   const floor = 0.001;
   const level = gain * (place ? distanceGain(place.distance) : 1);
   if (level <= floor) return null;
   const g = a.createGain();
-  g.gain.setValueAtTime(level, a.currentTime);
-  g.gain.exponentialRampToValueAtTime(floor, a.currentTime + duration);
+  g.gain.setValueAtTime(level, a.currentTime + at);
+  g.gain.exponentialRampToValueAtTime(floor, a.currentTime + at + duration);
   // Stereo width where the browser has a panner, straight through where it does
   // not. The same rule is already in music.ts for the waltz, and it holds for
   // the sky. An absent StereoPannerNode must cost the placement, not the sound.
@@ -99,21 +99,28 @@ function env(
   return g;
 }
 
+/**
+ * @param at seconds from now to start, for a cue made of more than one voice.
+ * It is SCHEDULED rather than left to a timer, so the whole sound exists the
+ * moment it is asked for. A `setTimeout` would put the second half outside the
+ * call, where `test/audio.test.ts` cannot see it, and where a paused tab can
+ * lose it.
+ */
 function sweep(
   type: OscillatorType, from: number, to: number, duration: number, gain: number,
-  place?: Place,
+  place?: Place, at = 0,
 ): void {
   const a = ac();
   if (!a) return;
-  const g = env(a, gain, duration, place);
+  const g = env(a, gain, duration, place, at);
   if (!g) return;
   const o = a.createOscillator();
   o.type = type;
-  o.frequency.setValueAtTime(from, a.currentTime);
-  o.frequency.exponentialRampToValueAtTime(Math.max(1, to), a.currentTime + duration);
+  o.frequency.setValueAtTime(from, a.currentTime + at);
+  o.frequency.exponentialRampToValueAtTime(Math.max(1, to), a.currentTime + at + duration);
   o.connect(g);
-  o.start();
-  o.stop(a.currentTime + duration);
+  o.start(a.currentTime + at);
+  o.stop(a.currentTime + at + duration);
 }
 
 /** The common square-wave voice used by the named interface sounds below. */
@@ -197,7 +204,25 @@ export const sfx = {
   contractExpired(): void { tone(220, 0.2); },
   contractAccepted(): void { tone(900, 0.1); },
   dockingComputerEngaged(): void { tone(700, 0.12); },
-  combatComputerEngaged(): void { tone(1000, 0.12); },
+  /**
+   * A fight starts, and this is the only thing that says so. `autoEngage`
+   * prints no console line, because the lines that matter arrive at the same
+   * moment (autopilot.ts).
+   *
+   * TWO SOFT PINGS, and it was one hard beep (Chris, 2026-09-12: *"The alarm
+   * sound for a pirate is a bit too much. I think a simple couple of pings
+   * would do."*). It was a 1000 Hz SQUARE wave for 0.12 seconds at the standard
+   * gain. A square wave at 1000 Hz sits in the ear's most sensitive band, and it
+   * carries every odd harmonic above that. So it reads as a klaxon.
+   *
+   * A sine carries no harmonics at all, which is the difference between a buzz
+   * and a ping. Two of them rising a fourth say ATTENTION where one says ALARM,
+   * and each is shorter and quieter than the beep it replaces.
+   */
+  combatComputerEngaged(): void {
+    sweep('sine', 880, 880, 0.05, 0.05);
+    sweep('sine', 1175, 1175, 0.05, 0.05, undefined, 0.09);
+  },
   stationDefenceLaunched(): void { tone(300, 0.18); },
   cargoLost(): void { tone(300, 0.12); },
   equipmentDestroyed(): void { tone(240, 0.2); },

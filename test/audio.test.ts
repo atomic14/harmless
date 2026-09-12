@@ -29,7 +29,6 @@ const expected = {
   contractExpired: [220, 0.2],
   contractAccepted: [900, 0.1],
   dockingComputerEngaged: [700, 0.12],
-  combatComputerEngaged: [1000, 0.12],
   stationDefenceLaunched: [300, 0.18],
   cargoLost: [300, 0.12],
   equipmentDestroyed: [240, 0.2],
@@ -56,6 +55,34 @@ for (const [name, [frequency, duration]] of Object.entries(expected)) {
   check(`${name} keeps its envelope`, Math.abs(tone.duration - duration) < 1e-9);
   eq(`${name} stays a square wave`, tone.type, 'square');
   eq(`${name} keeps the standard gain`, peak(tone), 0.08);
+}
+
+// THE FIGHT CUE IS TWO PINGS, and it was one beep. Chris, 2026-09-12: *"The
+// alarm sound for a pirate is a bit too much. I think a simple couple of pings
+// would do."* It was 1000 Hz square for 0.12s at the standard gain, which is a
+// klaxon: that band is where the ear is sharpest, and a square wave carries
+// every odd harmonic above it.
+//
+// It is the one named occasion that is not a single square tone, so it leaves
+// the table above and asserts its own claim: two SINE voices, each shorter and
+// quieter than the beep, the second after the first rather than over it.
+{
+  tones.length = 0;
+  sfx.combatComputerEngaged();
+  const cue = [...tones];
+  eq('the fight cue is two voices', cue.length, 2);
+  check('...both sine, so neither buzzes', cue.every((t) => t.type === 'sine'),
+    cue.map((t) => t.type).join(','));
+  check('...each well under the 0.12s beep it replaced',
+    cue.every((t) => t.duration <= 0.06), cue.map((t) => t.duration).join(','));
+  check('...and quieter than the standard gain',
+    cue.every((t) => peak(t) < 0.08), cue.map((t) => peak(t)).join(','));
+  check('the second ping rises above the first',
+    cue.length === 2 && cue[1].frequency > cue[0].frequency,
+    cue.map((t) => t.frequency).join(' then '));
+  check('...and lands after it, rather than on top of it',
+    cue.length === 2 && cue[1].at >= cue[0].at + cue[0].duration,
+    cue.map((t) => `${t.at}+${t.duration}`).join(' then '));
 }
 
 // The countdown blip is the one occasion whose pitch depends on a GAME rule —
