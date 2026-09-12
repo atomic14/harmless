@@ -19,22 +19,33 @@
 // one place in the game that moves the commander's ship other than by flying
 // it. `test/docking.test.ts` scans for that, and it names this file.
 //
-// IT IS NOT A TELEPORT. Both corrections are eased. The nose turns by the
-// SHORTEST rotation onto the axis, which carries no twist about the nose. So
-// the pilot's own roll is untouched, and the roll is what the slot measures.
+// IT IS NOT A TELEPORT, AND THE ROTATION USED TO BE ONE. This comment claimed
+// that both corrections were eased. The position was. The rotation went on in
+// full, every frame, so whatever error the hand-over left went in ONE frame.
+// Chris flew it on 2026-09-12: *"we jump to the on rails version before it's
+// actually lined up"*. A trace put that jump at 69.7 degrees.
+//
+// Two things answer it. `railsAligned` holds the hand-over until the nose is
+// near the axis, so the error is small before the rails see it. `RAILS_TURN`
+// then eases what is left, as `RAILS_PULL` always eased the position.
+//
+// The nose turns by the SHORTEST rotation onto the axis, which carries no twist
+// about the nose. An ease along that same arc adds none either. So the pilot's
+// own roll is untouched, and the roll is what the slot measures.
 
 import * as THREE from 'three';
 import type { PlayerShip } from '../player.ts';
 import type { DockPlan } from './docking.ts';
 import { slotNormal } from '../world/slot.ts';
 import {
-  RAILS_LATERAL, RAILS_PULL, RAILS_RANGE, RAILS_STOPPED,
+  RAILS_CONE, RAILS_LATERAL, RAILS_PULL, RAILS_RANGE, RAILS_STOPPED, RAILS_TURN,
 } from '../constants/docking.ts';
 
 const _out = new THREE.Vector3();
 const _rel = new THREE.Vector3();
 const _fwd = new THREE.Vector3();
 const _turn = new THREE.Quaternion();
+const _ease = new THREE.Quaternion();
 
 /**
  * Is the ship at the place where the computer stops it?
@@ -46,6 +57,21 @@ const _turn = new THREE.Quaternion();
 export function railsReached(plan: DockPlan): boolean {
   return plan.phase === 'run' && plan.lateral < RAILS_LATERAL
     && plan.along < RAILS_RANGE;
+}
+
+/**
+ * Is the nose near enough the slot axis for the rails to take the ship?
+ *
+ * THE THIRD QUESTION THE HAND-OVER NEVER ASKED. `railsReached` above is about
+ * WHERE the ship is. This is about WHICH WAY IT POINTS, and without it the
+ * rails turned the ship up to 69.7 degrees in one frame. See `RAILS_CONE`.
+ *
+ * It measures against the slot axis, which is the same line `holdOnRails`
+ * corrects onto. The gate and the correction cannot come to disagree.
+ */
+export function railsAligned(player: PlayerShip, station: THREE.Object3D): boolean {
+  const inward = slotNormal(station, _out).multiplyScalar(-1);
+  return player.getForward(_fwd).angleTo(inward) < RAILS_CONE;
 }
 
 /**
@@ -77,5 +103,9 @@ export function holdOnRails(player: PlayerShip, station: THREE.Object3D, dt: num
   player.position.addScaledVector(rel, -Math.min(1, RAILS_PULL * dt));
   const fwd = player.getForward(_fwd);
   _turn.setFromUnitVectors(fwd, outward.multiplyScalar(-1));
-  player.quaternion.premultiply(_turn).normalize();
+  // ...and EASE it, as the position above is eased. A slerp from no rotation
+  // along that same shortest arc keeps the arc's axis, so it still adds no
+  // twist about the nose. The pilot's roll stays the pilot's.
+  _ease.identity().slerp(_turn, Math.min(1, RAILS_TURN * dt));
+  player.quaternion.premultiply(_ease).normalize();
 }

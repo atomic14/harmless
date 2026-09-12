@@ -116,6 +116,19 @@ export interface SessionState {
    * the computer's, and it lines the ship up. It is saved, as `dockTrial` is.
    */
   dockRails: boolean;
+  /**
+   * The rails hold the ship while the COMPUTER finishes the line-up
+   * (docs/TODO/212). It sits between the two halves of `dockTrial`, and it is
+   * saved as they are.
+   *
+   * The computer cannot make this last turn itself. `dockingSticks` pitches
+   * onto the heading, and a pitch cannot fix a sideways error. It got away with
+   * that while the ship flew, because the motion sweeps the pitch plane round.
+   * The ship is stopped by this point, so the sweep stops too, and the nose
+   * stalls up to 69.7 degrees off the axis (Chris, 2026-09-12). So the rails
+   * take the turn, and `dockRails` waits for `railsAligned`.
+   */
+  dockHold: boolean;
 }
 
 /**
@@ -128,6 +141,7 @@ export function endVisit(state: SessionState): void {
   state.handFlown = false;
   state.dockTrial = false;
   state.dockRails = false;
+  state.dockHold = false;
 }
 
 /** Put a message in canonical state; the HUD only paints these fields. */

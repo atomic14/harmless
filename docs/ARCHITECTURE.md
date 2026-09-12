@@ -45,10 +45,12 @@ rules. This file is a map.
   reports a `FlightDemand`. `flight-instruments.ts` throws the switches that a
   course asks for: the torus drive, the hand-over to the docking computer, and
   the end of the course. A commander with no docking computer gets the docking
-  mini game instead (docs/TODO/212). The computer lines the ship up first.
-  `dock-rails.ts` then holds the ship on the slot axis, and the pilot matches
-  the slot and the speed. It is the one file that moves the commander's ship
-  other than by flying it. `course-actions.ts` joins the list to the Game: it
+  mini game instead (docs/TODO/212). The computer flies the ship to the slot
+  axis and stops it there. `dock-rails.ts` then holds the ship on that axis, and
+  the pilot matches the slot and the speed. It is the one file that moves the
+  commander's ship other than by flying it. It also makes the last turn onto the
+  axis, because the computer cannot. A docking pitch cannot fix a sideways
+  error, and the ship is stopped by then. The pilot waits on that turn. `course-actions.ts` joins the list to the Game: it
   builds the flat view, and it applies a pick. At the station, the LAUNCH row
   opens `screens/courses.ts`, and a pick leaves on the course. In flight, the
   list is a set of buttons over the view, and not a screen, because the flight

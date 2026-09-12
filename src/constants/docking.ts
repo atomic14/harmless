@@ -211,6 +211,47 @@ export const RAILS_RANGE = 900;
 export const RAILS_PULL = 2;
 
 /**
+ * How far off the slot axis the ship's NOSE may point when the PILOT is given
+ * the slot, in radians.
+ *
+ * THE HAND-OVER USED TO IGNORE THE NOSE ALTOGETHER (Chris, 2026-09-12: *"we
+ * jump to the on rails version before it's actually lined up"*). `railsReached`
+ * asked for the last leg, `RAILS_LATERAL` and `RAILS_RANGE`. None of those three
+ * says which way the ship points. A trace of the shipped approach put the nose
+ * 69.7 degrees off the axis on the frame the rails took it.
+ *
+ * THE COMPUTER CANNOT CLOSE THAT LAST TURN, and `SessionState.dockHold` states
+ * why. So the rails close it, at `RAILS_TURN`, while the pilot still reads
+ * LINING UP. This is the angle at which the pilot is given the ship.
+ *
+ * 0.18 rad is about 10 degrees. The rails take the measured 70 degrees down to
+ * it in about half a second, so the wait is short. It is a band rather than a
+ * zero, because the rails hold the line from there on. To wait for zero is to
+ * wait for ever.
+ *
+ * @rule docking.railsCone
+ * @domain docking
+ */
+export const RAILS_CONE = 0.18;
+
+/**
+ * How hard the rails turn the nose onto the axis, per second.
+ *
+ * It is `RAILS_PULL` for the rotation, and it exists for the same reason. The
+ * position was always eased. The rotation was not: it went on in full, every
+ * frame, so any error left at the hand-over went in one frame. The module
+ * comment on `game/dock-rails.ts` claimed both were eased, and only one was.
+ *
+ * 3 a second turns the measured 70 degrees of error down to `RAILS_CONE` in
+ * about half a second. It is faster than `RAILS_PULL`, because the pilot waits
+ * on this turn and does not wait on the line.
+ *
+ * @rule docking.railsTurn
+ * @domain docking
+ */
+export const RAILS_TURN = 3;
+
+/**
  * The speed under which the ship counts as stopped, in world units a second
  * (docs/TODO/212).
  *

@@ -17,7 +17,8 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { RAILS_STOPPED, SLOT_HALF_ACROSS } from '../src/constants/docking.ts';
+import { RAILS_CONE, RAILS_STOPPED, SLOT_HALF_ACROSS } from '../src/constants/docking.ts';
+import { slotNormal } from '../src/world/slot.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe last stretch into the slot');
@@ -195,4 +196,73 @@ console.log('\nthe docking mini game');
   // on 2026-09-12: the pilot must thrust in.
   const idle = fly(arrive(20_260_951), false, false);
   check('a pilot who touches nothing waits there, and never docks', !idle.docked);
+}
+
+// --- THE HAND-OVER WAITS FOR THE NOSE, AND THE TURN IS EASED ---------------
+//
+// Chris, 2026-09-12: *"When docking - we get 'The computer is lining up...' and
+// it starts doing it's job, but we jump to the on rails version before it's
+// actually lined up."*
+//
+// Two faults, one report. `railsReached` asked where the ship was and never
+// which way it pointed, so the rails took it 69.7 degrees off the slot axis.
+// `holdOnRails` then turned it straight inside ONE frame, although the comment
+// on that file claimed both of its corrections were eased. Only the position
+// was.
+//
+// The computer cannot make that last turn itself, and `SessionState.dockHold`
+// says why. So the rails make it, eased, while the pilot still reads LINING UP.
+console.log('\nthe computer finishes the line-up before the pilot gets the slot');
+{
+  const g = withoutSaving(() => {
+    seedWorld(20_260_951);
+    const game = new Game(() => headlessShell());
+    dismissBriefing(game);
+    game.launch();
+    game.arriveInSystem();
+    return game;
+  }).value;
+  g.state.world.clearNpcs();
+  g.state.session.course = 'station';
+
+  const dt = 1 / 60;
+  const out = new THREE.Vector3();
+  const fwd = new THREE.Vector3();
+  const noseOff = (): number => {
+    slotNormal(g.state.world.station, out).multiplyScalar(-1);
+    return g.state.player.getForward(fwd).angleTo(out);
+  };
+
+  let atHandover = -1;
+  let worstJump = 0;
+  let heldFrames = 0;
+  let pilotBeforeHold = false;
+  withoutSaving(() => {
+    let last = noseOff();
+    for (let f = 0, at = 0; f < 120 / dt; f++) {
+      const wasRails = g.state.session.dockRails;
+      g.step(dt, at += dt);
+      const now = noseOff();
+      // the biggest one-frame turn of the nose, over the whole approach
+      if (Math.abs(now - last) > worstJump) worstJump = Math.abs(now - last);
+      last = now;
+      if (g.state.session.dockHold) heldFrames += 1;
+      if (g.state.session.dockRails && !g.state.session.dockHold && heldFrames === 0) {
+        pilotBeforeHold = true;
+      }
+      if (!wasRails && g.state.session.dockRails) { atHandover = now; break; }
+      if (g.mode !== 'flight') break;
+    }
+  });
+
+  check('the rails take the ship only once its nose is near the slot axis',
+    atHandover >= 0 && atHandover < RAILS_CONE,
+    `${(atHandover * 180 / Math.PI).toFixed(1)} degrees off, against a cone of `
+    + `${(RAILS_CONE * 180 / Math.PI).toFixed(1)}`);
+  // The old code turned the ship 69.7 degrees in the hand-over frame.
+  check('...and no single frame turns the nose more than 10 degrees',
+    worstJump < 10 * Math.PI / 180,
+    `worst one-frame turn ${(worstJump * 180 / Math.PI).toFixed(1)} degrees`);
+  check('...having held the ship on the rails first, with the pilot still waiting',
+    heldFrames > 0 && !pilotBeforeHold, `${heldFrames} frames of LINING UP on the rails`);
 }
