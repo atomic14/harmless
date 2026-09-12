@@ -60,6 +60,13 @@ export interface ActionSource {
   readonly ecmKey: string | null;
   /** a hostile missile is on its way, so the E.C.M. is the button to press */
   readonly missileInbound: boolean;
+  /**
+   * The docking computer's key, or null where none is fitted. It is offered as
+   * a button for the whole of the pilot's stretch at the slot (Chris,
+   * 2026-09-12). A commander who paid for the fitting may use it at any point,
+   * rather than fly a line-up she did not ask for.
+   */
+  readonly dockKey: string | null;
   /** the pilot flies the last stretch into the slot (docs/TODO/207 M2) */
   readonly trial: boolean;
   /** ...and the rails have it, so the mini game is on (docs/TODO/212) */
@@ -81,13 +88,23 @@ export function actionButtonsFor(a: ActionSource): HudButton[] {
   // The last stretch into the slot asks for two things and nothing else: the
   // roll, and the speed (docs/TODO/207 M2). So the pilot's buttons are those
   // two while it runs, and the guns wait.
+  // THE FITTING THE COMMANDER PAID FOR, offered for the whole stretch. It
+  // flies the rest of the approach and the slot, and it ends the trial.
+  const handOver = (): HudButton[] => (a.dockKey === null ? []
+    : [{ code: a.dockKey, label: 'DOCKING COMPUTER', hint: 'IT FLIES YOU IN' }]);
   if (a.trial && !a.rails) {
-    // The computer is lining the ship up, and the pilot has nothing to do yet
-    // (docs/TODO/212). A strip that did nothing would be a lie.
-    return [{ code: 'dock-lining-up', label: 'LINING UP', hint: 'STAND BY FOR THE SLOT' }];
+    // The computer is lining the ship up, and the pilot has nothing else to do
+    // yet (docs/TODO/212). A strip that did nothing would be a lie.
+    return [
+      ...handOver(),
+      { code: 'dock-lining-up', label: 'LINING UP', hint: 'STAND BY FOR THE SLOT' },
+    ];
   }
   if (a.trial) {
-    const out: HudButton[] = [{ code: a.rollStripCode, label: 'DRAG TO ROLL', strip: true }];
+    const out: HudButton[] = [
+      ...handOver(),
+      { code: a.rollStripCode, label: 'DRAG TO ROLL', strip: true },
+    ];
     if (a.accelKey) {
       out.push({ code: a.accelKey, label: 'THRUST', hint: 'HOLD TO GO IN', hold: true });
     }

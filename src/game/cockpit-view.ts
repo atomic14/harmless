@@ -224,6 +224,8 @@ export class CockpitView {
       launchKey: key('launchMissile'),
       ecmKey: this.state.commander.equipment.ecm ? key('fireEcm') : null,
       missileInbound: this.ordnance.missileInbound,
+      dockKey: this.state.commander.equipment.dockingComputer
+        ? key('toggleDockingComputer') : null,
       trial: this.state.session.dockTrial,
       rails: this.state.session.dockRails,
       accelKey: keymap().accel[0] ?? null,

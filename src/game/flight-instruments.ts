@@ -161,8 +161,20 @@ export class Instruments {
    */
   massLocked(): boolean { return massLocked(this.state); }
 
+  /**
+   * The docking computer, on or off, from the key or from the button.
+   *
+   * IT ENDS THE TRIAL, because the two cannot both fly the ship. The button is
+   * offered for the whole of the pilot's stretch (`cockpit-buttons.ts`), so a
+   * commander who fumbles the slot can still hand it over. `watchDockTrial`
+   * would clear the flag eventually, on range alone, and the buttons would
+   * read LINING UP while the computer flew.
+   */
   dockingComputer(): void {
+    const s = this.state.session;
+    const was = s.dcEngaged;
     this.applyAutopilot(this.autopilot.toggleDocking());
+    if (!was && s.dcEngaged) { s.dockTrial = false; s.dockRails = false; }
   }
 
   /**

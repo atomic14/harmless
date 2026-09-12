@@ -20,7 +20,7 @@ console.log('\nthe pilot\'s buttons');
 
 const base = {
   fireKey: 'KeyA', missiles: 3, armed: false, locked: false,
-  armKey: 'KeyT', launchKey: 'KeyM', ecmKey: null, targets: null, missileInbound: false,
+  armKey: 'KeyT', launchKey: 'KeyM', ecmKey: null, targets: null, missileInbound: false, dockKey: null,
   trial: false, rails: false, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
 };
 {

@@ -19,6 +19,7 @@ import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { RAILS_CONE, RAILS_STOPPED, SLOT_HALF_ACROSS } from '../src/constants/docking.ts';
 import { slotNormal } from '../src/world/slot.ts';
+import { keyCodeIfBound } from '../src/ui/key-help.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe last stretch into the slot');
@@ -27,7 +28,7 @@ console.log('\nthe last stretch into the slot');
 {
   const trial = actionButtonsFor({
     fireKey: 'KeyA', missiles: 3, armed: false, locked: false, armKey: 'KeyT',
-    launchKey: 'KeyM', ecmKey: 'KeyE', targets: null, missileInbound: false,
+    launchKey: 'KeyM', ecmKey: 'KeyE', targets: null, missileInbound: false, dockKey: null,
     trial: true, rails: true, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });
   eq('the stretch shows a strip and two held buttons, and no guns',
@@ -36,7 +37,7 @@ console.log('\nthe last stretch into the slot');
   // (docs/TODO/212). A strip that did nothing would be a lie.
   const lining = actionButtonsFor({
     fireKey: 'KeyA', missiles: 3, armed: false, locked: false, armKey: 'KeyT',
-    launchKey: 'KeyM', ecmKey: 'KeyE', targets: null, missileInbound: false,
+    launchKey: 'KeyM', ecmKey: 'KeyE', targets: null, missileInbound: false, dockKey: null,
     trial: true, rails: false, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });
   eq('while the computer lines up, the pilot sees one word and no controls',
@@ -291,54 +292,78 @@ console.log('\nthe computer finishes the line-up before the pilot gets the slot'
     + `${(noseAtStop * 180 / Math.PI).toFixed(1)} degrees off`);
 }
 
-// --- ONE LINE-UP, WHOEVER TAKES THE SHIP IN --------------------------------
+// --- THE DOCKING COMPUTER IS A BUTTON, NOT AN AUTOMATIC --------------------
 //
-// Chris, 2026-09-12: *"I think we should merge both paths?"*
+// Chris, 2026-09-12: *"I have a docking computer - but instead of it being
+// activated I still get the lining and only once that is done does the computer
+// activate. I think we should have an options when in range 'Docking Computer'
+// and if you click it activates. Otherwise we have the lining up and manual
+// docking."*
 //
-// The course used to ask who flies the slot BEFORE the line-up. A commander
-// with a docking computer fitted was handed straight to it, and never saw a
-// line-up at all. Now every commander gets the same one: the computer flies to
-// the right distance, stops, and turns the nose onto the axis. Only then does
-// it ask who takes the ship in.
-console.log('\na fitted docking computer takes the ship after the same line-up');
+// The course used to ask who flies the slot BEFORE the line-up, and a fitted
+// computer never saw one. Then it asked AFTER, and a commander who had paid for
+// the fitting still had to sit through a line-up she did not want. Now the
+// question is hers, and it is open for the whole of the stretch.
+console.log('\nthe docking computer is offered, and it takes the ship when asked');
 {
-  const g = withoutSaving(() => {
-    seedWorld(20_260_951);
-    const game = new Game(() => headlessShell());
-    dismissBriefing(game);
-    game.launch();
-    game.arriveInSystem();
-    return game;
-  }).value;
-  g.state.commander.equipment.dockingComputer = true;
-  g.state.world.clearNpcs();
-  g.state.session.course = 'station';
-
-  const dt = 1 / 60;
-  const out = new THREE.Vector3();
-  const fwd = new THREE.Vector3();
-  let noseAtEngage = -1;
-  let sawTrial = false;
-  let railsTaken = false;
-  withoutSaving(() => {
-    for (let f = 0, at = 0; f < 300 / dt; f++) {
-      const was = g.state.session.dcEngaged;
-      if (g.state.session.dockTrial && !was) sawTrial = true;
-      g.step(dt, at += dt);
-      if (g.state.session.dockRails) railsTaken = true;
-      if (!was && g.state.session.dcEngaged) {
-        slotNormal(g.state.world.station, out).multiplyScalar(-1);
-        noseAtEngage = g.state.player.getForward(fwd).angleTo(out);
-      }
-      if (g.mode !== 'flight') break;
-    }
+  const dockKey = keyCodeIfBound('flight', 'toggleDockingComputer') ?? '';
+  // THE BUTTON IS THERE THROUGHOUT, from the first frame of the line-up to the
+  // last of the mini game. A commander who fumbles the slot can still hand it
+  // over.
+  const source = (rails: boolean, fitted: boolean) => ({
+    fireKey: 'KeyA', missiles: 0, armed: false, locked: false, armKey: 'KeyT',
+    launchKey: 'KeyM', ecmKey: null, targets: null, missileInbound: false,
+    dockKey: fitted ? dockKey : null,
+    trial: true, rails, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });
+  check('while the computer lines up, a fitted one is offered',
+    actionButtonsFor(source(false, true)).some((b) => b.label === 'DOCKING COMPUTER'));
+  check('...and during the pilot\'s own run in, too',
+    actionButtonsFor(source(true, true)).some((b) => b.label === 'DOCKING COMPUTER'));
+  check('a commander with none is offered nothing',
+    !actionButtonsFor(source(false, false)).some((b) => b.label === 'DOCKING COMPUTER')
+    && !actionButtonsFor(source(true, false)).some((b) => b.label === 'DOCKING COMPUTER'));
 
-  check('a fitted computer still goes through the line-up first', sawTrial);
-  check('...and takes the ship only once its nose is on the axis',
-    noseAtEngage >= 0 && noseAtEngage < RAILS_CONE,
-    noseAtEngage < 0 ? 'it never took the ship'
-      : `${(noseAtEngage * 180 / Math.PI).toFixed(2)} degrees off`);
-  check('...never through the pilot\'s rails, which it has no use for', !railsTaken);
-  check('...and it flies the ship in from there', g.mode === 'docked');
+  /** Fly the approach, pressing the button when `ask` says to. */
+  const fly = (ask: boolean): { sawTrial: boolean; docked: boolean; engaged: boolean } => {
+    const g = withoutSaving(() => {
+      seedWorld(20_260_951);
+      const game = new Game(() => headlessShell());
+      dismissBriefing(game);
+      game.launch();
+      game.arriveInSystem();
+      return game;
+    }).value;
+    g.state.commander.equipment.dockingComputer = true;
+    g.state.world.clearNpcs();
+    g.state.session.course = 'station';
+    const dt = 1 / 60;
+    let sawTrial = false;
+    let pressed = false;
+    let engaged = false;
+    withoutSaving(() => {
+      for (let f = 0, at = 0; f < 300 / dt; f++) {
+        if (g.state.session.dockTrial) sawTrial = true;
+        if (ask && !pressed && g.state.session.dockTrial) {
+          g.input.injectPress(dockKey);
+          pressed = true;
+        }
+        g.step(dt, at += dt);
+        if (g.state.session.dcEngaged) engaged = true;
+        if (g.mode !== 'flight') break;
+      }
+    });
+    return { sawTrial, docked: g.mode === 'docked', engaged };
+  };
+
+  const asked = fly(true);
+  check('a fitted computer still goes through the line-up first', asked.sawTrial);
+  check('...and pressing it hands the ship over', asked.engaged);
+  check('...and it flies the ship in from there', asked.docked);
+
+  // NOBODY PRESSES IT, and the line-up and the mini game are what she gets.
+  // She flies nothing here, so the slot is never taken.
+  const alone = fly(false);
+  check('a pilot who does not press it keeps the ship', !alone.engaged);
+  check('...and the line-up hands her the slot instead', !alone.docked);
 }
