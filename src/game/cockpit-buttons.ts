@@ -90,7 +90,7 @@ export function actionButtonsFor(a: ActionSource): HudButton[] {
   if (a.trial) {
     const out: HudButton[] = [{ code: a.rollStripCode, label: 'DRAG TO ROLL', strip: true }];
     if (a.accelKey) {
-      out.push({ code: a.accelKey, label: 'THRUST', hint: 'HOLD TO SPEED UP', hold: true });
+      out.push({ code: a.accelKey, label: 'THRUST', hint: 'HOLD TO GO IN', hold: true });
     }
     if (a.decelKey) {
       out.push({ code: a.decelKey, label: 'BRAKE', hint: 'HOLD TO SLOW DOWN', hold: true });

@@ -107,6 +107,21 @@ lines the ship up again. Two of six seeds docked on the second go.
 first frame moves the ship 7 units across the line. The error is gone in about
 two seconds, well before the mouth.
 
+**IT WAS TOO EASY AT FIRST.** Chris flew it (2026-09-12): *"That works - but
+it's a bit too easy I think. Maybe reducing the speed to nothing so the user
+has to thrust forward would be good."* The rails took the ship at 107 units a
+second, so the speed was already made, and a hand on the roll was the whole
+game. The computer brakes the ship to a halt now. It stops 632 units out, on
+the line, and the pilot flies the whole run in.
+
+**The three pilots, measured again over the same seeds:**
+
+| pilot | result |
+| --- | --- |
+| thrusts in and matches the slot | 6 of 6 docked, first go |
+| thrusts in and never matches | scrapes, and takes 2 or 3 goes. One of 8 died |
+| touches nothing | waits there for ever, and never docks |
+
 ## Outcome
 
 Landed on 2026-09-12. `npm run check` passes.

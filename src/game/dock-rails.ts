@@ -27,7 +27,9 @@ import * as THREE from 'three';
 import type { PlayerShip } from '../player.ts';
 import type { DockPlan } from './docking.ts';
 import { slotNormal } from '../world/slot.ts';
-import { RAILS_LATERAL, RAILS_PULL, RAILS_RANGE, SLOT_SPEED_LIMIT } from '../constants/docking.ts';
+import {
+  RAILS_LATERAL, RAILS_PULL, RAILS_RANGE, RAILS_STOPPED,
+} from '../constants/docking.ts';
 
 const _out = new THREE.Vector3();
 const _rel = new THREE.Vector3();
@@ -35,16 +37,28 @@ const _fwd = new THREE.Vector3();
 const _turn = new THREE.Quaternion();
 
 /**
- * Is the ship lined up well enough for the rails to take it?
+ * Is the ship at the place where the computer stops it?
  *
- * Four conditions, and each one matters. The plan must be on its last leg.
- * The ship must be on the axis, inside `RAILS_LATERAL`. It must be slow enough
- * for the slot already, so the mini game starts from a speed that can dock.
- * `RAILS_RANGE` then keeps the game short.
+ * Three conditions, and each one matters. The plan must be on its last leg.
+ * The ship must be on the axis, inside `RAILS_LATERAL`. `RAILS_RANGE` then
+ * keeps the game short.
  */
-export function railsReady(plan: DockPlan, speed: number): boolean {
+export function railsReached(plan: DockPlan): boolean {
   return plan.phase === 'run' && plan.lateral < RAILS_LATERAL
-    && speed <= SLOT_SPEED_LIMIT && plan.along < RAILS_RANGE;
+    && plan.along < RAILS_RANGE;
+}
+
+/**
+ * Is the ship stopped, so the rails can take it?
+ *
+ * THE COMPUTER BRINGS THE SHIP TO A HALT FIRST (Chris, 2026-09-12: *"it's a
+ * bit too easy I think. Maybe reducing the speed to nothing so the user has to
+ * thrust forward would be good."*). The pilot then owns the whole run in, from
+ * a standing start. A ship that arrives with the speed already made needs only
+ * a hand on the roll.
+ */
+export function stopped(speed: number): boolean {
+  return speed <= RAILS_STOPPED;
 }
 
 /**

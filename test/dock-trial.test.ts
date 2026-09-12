@@ -17,7 +17,7 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { SLOT_HALF_ACROSS } from '../src/constants/docking.ts';
+import { RAILS_STOPPED, SLOT_HALF_ACROSS } from '../src/constants/docking.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe last stretch into the slot');
@@ -136,20 +136,35 @@ console.log('\nthe docking mini game');
    * @param match whether the pilot matches the slot. A pilot who does nothing
    * is the control: the slot is only there to meet about two turns in five.
    */
-  const fly = (g: Game, match: boolean): { rails: boolean; docked: boolean; lateral: number } => {
+  const fly = (g: Game, match: boolean, hands = true): {
+    rails: boolean; docked: boolean; lateral: number; handedOver: number;
+  } => {
     const dt = 1 / 60;
     const q = new THREE.Quaternion();
     const right = new THREE.Vector3();
+    const thrust = keymap().accel[0] ?? '';
+    const brake = keymap().decel[0] ?? '';
     let rails = false;
     let lateral = Infinity;
+    let handedOver = -1;
     withoutSaving(() => {
       for (let f = 0, at = 0; f < 200 / dt; f++) {
         const st = g.state.world.station;
         if (g.state.session.dockRails) {
+          if (!rails) handedOver = g.state.player.speed;
           rails = true;
           const local = g.state.player.position.clone();
           st.worldToLocal(local);
           lateral = Math.min(lateral, Math.hypot(local.x, local.y));
+          // The ship is stopped when the rails take it, so the pilot thrusts
+          // the whole way in, and holds the speed the slot will take.
+          if (!hands) {
+            // the control: no hand on anything
+          } else if (g.state.player.speed < SLOT_SPEED_LIMIT * 0.6) {
+            g.input.press(thrust); g.input.release(brake);
+          } else {
+            g.input.release(thrust); g.input.press(brake);
+          }
           if (match) {
             q.copy(st.quaternion).invert().multiply(g.state.player.quaternion);
             right.set(1, 0, 0).applyQuaternion(q);
@@ -164,12 +179,20 @@ console.log('\nthe docking mini game');
         if (g.mode !== 'flight') break;
       }
     });
-    return { rails, docked: g.mode === 'docked', lateral };
+    return { rails, docked: g.mode === 'docked', lateral, handedOver };
   };
 
   const run = fly(arrive(20_260_951), true);
   check('the rails take the ship', run.rails);
-  check('...and a pilot who matches the slot docks', run.docked);
+  check('...with the ship stopped, so the pilot flies the whole run in',
+    run.handedOver <= RAILS_STOPPED, `${run.handedOver.toFixed(1)} units a second`);
+  check('...and a pilot who thrusts in and matches the slot docks', run.docked);
   check('...having been held on the line, inside the channel',
     run.lateral < SLOT_HALF_ACROSS, `${run.lateral.toFixed(0)} units off the axis`);
+
+  // The control: hands off entirely. The ship stops on the axis and stays
+  // there, so nobody docks by accident (docs/TODO/212). Chris asked for that
+  // on 2026-09-12: the pilot must thrust in.
+  const idle = fly(arrive(20_260_951), false, false);
+  check('a pilot who touches nothing waits there, and never docks', !idle.docked);
 }

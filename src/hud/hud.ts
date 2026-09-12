@@ -290,7 +290,7 @@ export class Hud {
     this.altEl.style.width = `${Math.min(100, frame.altitudeFrac * 100)}%`;
     this.cabinEl.style.width = `${Math.min(100, frame.cabinTemp * 100)}%`;
     this.cabinEl.style.background = frame.cabinTemp > CABIN_GAUGE_WARN ? RED : '';
-    this.viewEl.textContent = frame.rails ? '◆ MATCH THE SLOT — GO IN SLOWLY ◆'
+    this.viewEl.textContent = frame.rails ? '◆ THRUST IN, AND MATCH THE SLOT ◆'
       : frame.trial ? '◆ THE COMPUTER IS LINING THE SHIP UP ◆'
         : frame.assist ? '◆ THE COMPUTER IS AIMING ◆' : (VIEW_NAMES[frame.view] ?? '');
     this.crosshairEl.style.display = frame.hasLaser ? '' : 'none';

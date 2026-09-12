@@ -55,7 +55,7 @@ import {
 import {
   planDocking, dockingOutcome, type DockPlan, type DockingOutcome,
 } from './docking.ts';
-import { holdOnRails, railsReady } from './dock-rails.ts';
+import { holdOnRails, railsReached, stopped } from './dock-rails.ts';
 import { dockingSticks } from './docking-sticks.ts';
 import { NPC_HULL_BOX_MARGIN } from '../constants/docking.ts';
 import { BOUNCE_STANDOFF } from '../constants/station.ts';
@@ -437,9 +437,14 @@ export class WorldStep {
     const { player, session } = this.state;
     const plan = this.dockingPlan();
     if (!session.dockRails) {
-      if (!railsReady(plan, player.speed)) return this.dockingDemand(dt, pilot, plan);
+      if (!railsReached(plan)) return this.dockingDemand(dt, pilot, plan);
+      // On the axis, and the computer stops the ship there. The pilot then
+      // flies the whole run in (docs/TODO/212).
+      if (!stopped(player.speed)) {
+        return { ...this.dockingDemand(dt, pilot, plan), throttle: -1 };
+      }
       session.dockRails = true;
-      out.push(say('THE SLOT IS YOURS — MATCH IT, AND GO IN SLOWLY', 4));
+      out.push(say('THE SLOT IS YOURS — THRUST IN, AND MATCH ITS SPIN', 5));
     }
     // ON THE RAILS. The pitch is nobody's: `holdOnRails` owns the line. The
     // roll and the throttle are the pilot's, and they are the whole game.

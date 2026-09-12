@@ -209,3 +209,17 @@ export const RAILS_RANGE = 900;
  * @domain docking
  */
 export const RAILS_PULL = 2;
+
+/**
+ * The speed under which the ship counts as stopped, in world units a second
+ * (docs/TODO/212).
+ *
+ * The computer brakes the ship to a halt on the slot axis, and the rails then
+ * take it. The pilot thrusts in from there. A ship thrusts at 220 units a
+ * second per second, so 2 is under a hundredth of a second of thrust. It is a
+ * band rather than a zero, because the brake is a sign and not a gain.
+ *
+ * @rule docking.railsStopped
+ * @domain docking
+ */
+export const RAILS_STOPPED = 2;
