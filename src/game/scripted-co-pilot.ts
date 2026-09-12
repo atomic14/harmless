@@ -48,8 +48,8 @@ import { rampFlightRate, type FlightDemand } from '../player.ts';
 import { LASER_RANGE } from '../constants/player-gun.ts';
 import { UNDER_FIRE_SECONDS } from '../constants/attack-run.ts';
 import {
-  THREAT_RANGE, PURSUIT_SPEED_DEADBAND, ENGAGED_CONE, TARGET_DIST_WEIGHT,
-  PURSUIT_LEAD_GAIN, COMBAT_ROLL_GATE,
+  THREAT_RANGE, PURSUIT_SPEED_DEADBAND, ENGAGED_CONE, ENGAGED_PATIENCE,
+  TARGET_DIST_WEIGHT, PURSUIT_LEAD_GAIN, COMBAT_ROLL_GATE,
 } from '../constants/combat-computer.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { MAX_LEAD_SECONDS } from '../constants/pass-aim.ts';
@@ -99,6 +99,13 @@ export class ScriptedCoPilot {
    * evasive behaviour needs no new wiring.
    */
   private underFire = 0;
+  /**
+   * Seconds since the held target was last inside the gun cone, and the ship
+   * the count belongs to. Together they are "is this attack going anywhere".
+   * `ENGAGED_PATIENCE` is what reads them.
+   */
+  private sinceGunOn = 0;
+  private counting: NpcShip | null = null;
 
   noteHit(): void {
     this.underFire = UNDER_FIRE_SECONDS;
@@ -116,6 +123,8 @@ export class ScriptedCoPilot {
     this.lock.clear();
     this.steerMem.side = freshSteerMemory().side;
     this.underFire = 0;
+    this.sinceGunOn = 0;
+    this.counting = null;
   }
 
   step(
@@ -159,7 +168,12 @@ export class ScriptedCoPilot {
       // easier (Chris). The ranking hands over a better target only when the
       // co-pilot is NOT engaged, which means the current one ran wide or ran
       // behind.
-      (npc) => offNose(npc) < ENGAGED_CONE,
+      //
+      // ...AND THAT THE KILL IS GOING SOMEWHERE. A cone alone held a target
+      // 3,000 units off at 23 degrees while a second hostile sat 500 units dead
+      // ahead (the review of 2026-09-12). `ENGAGED_PATIENCE` is how long a
+      // target may go unshot and still block the switch.
+      (npc) => offNose(npc) < ENGAGED_CONE && this.sinceGunOn < ENGAGED_PATIENCE,
     );
     if (!threat) {
       this.reset();
@@ -226,6 +240,12 @@ export class ScriptedCoPilot {
     // step. Copy it again before you use it as a distance below this line.
     const recede = Math.max(0, this.threatVel.dot(this.toThreat.normalize()));
 
+    // IS THIS ATTACK GOING ANYWHERE? The count is per target, so a switch
+    // gives the new one a full `ENGAGED_PATIENCE` before it can be dropped.
+    const onGun = dist <= LASER_RANGE && facing < cone;
+    if (threat !== this.counting) { this.counting = threat; this.sinceGunOn = 0; }
+    this.sinceGunOn = onGun ? 0 : this.sinceGunOn + dt;
+
     return {
       kind: 'fly',
       demand: {
@@ -241,7 +261,7 @@ export class ScriptedCoPilot {
         // the trigger only when the shot would count: the player gun's own cone
         // and range (gunnery.ts). The laser's heat and cooldown pace it from
         // there, which is what makes this a marksman rather than a sprayer
-        fire: dist <= LASER_RANGE && facing < cone,
+        fire: onGun,
       },
       // a warhead is always answered. Whether one is on its way is the world's
       // fact, and the gate is the same one every E.C.M. press goes through

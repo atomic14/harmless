@@ -188,6 +188,39 @@ export const PURSUIT_HOLD_CONE = 1.85;
 export const ENGAGED_CONE = 0.6;
 
 /**
+ * How long the co-pilot stays committed to a target it cannot shoot, in
+ * seconds. Past it, `ENGAGED_CONE` no longer vetoes a switch.
+ *
+ * ENGAGED USED TO MEAN ROUGHLY ON THE NOSE, AND NOTHING MORE. The review of
+ * 2026-09-12 held a target 3,000 units away and 23 degrees off, with a second
+ * hostile 500 units dead ahead. Ten seconds later the lock still refused the
+ * easy shot, and a fresh controller took it. A cone says where a ship is. It
+ * does not say the attack is going anywhere.
+ *
+ * So the veto now asks for PROGRESS as well. The target must fall inside the
+ * gun cone within this many seconds. The distance rule still governs the rest, and
+ * `THREAT_MIN_HOLD` and `THREAT_SWITCH_MARGIN` are untouched. A switch still
+ * needs a target much nearer, held for long enough.
+ *
+ * THE VALUE IS NOT PINNED BY MEASUREMENT, and that is worth saying plainly. A
+ * sweep from 1 second to 999 moved nothing. It moved neither the review's 21
+ * prescribed paths, which carry one target and cannot exercise a switch at all,
+ * nor 72 real fights through `npm run combat-aim`. The rule is dormant in
+ * everything this repository can measure. It fires in the case the review
+ * built, where a near hostile is ignored for a far one. That case is a fight a
+ * player can meet.
+ *
+ * So 3 seconds is reasoned rather than fitted. It is about two swings of the
+ * nose at `MAX_LEAD_SECONDS`. It is long enough that a target crossing the
+ * sight is not dropped between passes, and short enough that a chase going
+ * nowhere ends. Measure it on a harness that produces the geometry before you
+ * move it.
+ *
+ * @rule copilot.engagedPatience
+ */
+export const ENGAGED_PATIENCE = 3;
+
+/**
  * How near its bank the co-pilot must be before it pulls the nose, in radians.
  * Above it, `bankToTurn` asks for NO pitch at all.
  *
@@ -296,6 +329,22 @@ export const TARGET_DIST_WEIGHT = 800;
  * every other target held. Sweep this on the exercise wave harness before you
  * move it. A 13-target sample and a 40-target sample disagreed about the radial
  * throttle's worth, so a small sample is not enough to retune on.
+ *
+ * RE-MEASURED AT `COMBAT_ROLL_GATE`, on the review of 2026-09-12. That review
+ * asked for the lead to be revisited once the bank was fixed. A lead cost the
+ * straight-crossing case 74.3%, against 98.7% with none. At the gate this
+ * repository settled on, that trade is gone. The same case scores 89% WITH the
+ * lead. The sweep over the review's two grids and 72 real fights:
+ *
+ *   | gain | 21 paths, 60s | 54 orbits, 90s | 72 fights |
+ *   |    0 |  93.4%, 32.7% |  93.3%, 50.2%  |     33.8% |
+ *   |    1 |  97.8%, 81.7% |  96.9%, 70.3%  |     60.0% |
+ *   |    2 |  98.3%, 88.5% |  97.6%, 77.2%  |     57.5% |
+ *   |    3 |  98.9%, 86.1% |  93.4%,  0.0%  |     59.7% |
+ *
+ * The second figure of each pair is the worst case. 2.0 holds the best worst
+ * case on both grids. At 3.0 one orbit is lost outright, which is the hole the
+ * paragraph above names, found again on a different grid.
  *
  * THE HOME IS THIS FILE, and the owner check disagrees. It reads the words
  * "rule" and "bounded" above and reaches for the law domain. This is a feel
