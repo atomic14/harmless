@@ -53,7 +53,7 @@ import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { SLOT_SPEED_LIMIT } from '../constants/docking.ts';
 import {
   COURSE_AIM_DEADZONE, COURSE_ROLL_GATE, COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
-  COURSE_COLLECT_LEAD, COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF,
+  COURSE_COLLECT_CAP, COURSE_COLLECT_LEAD, COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF,
   COURSE_COLLECT_SPEED, COURSE_ESCORT_STANDOFF, COURSE_RUN_REACH, COURSE_SKIM_DISTANCE,
   COURSE_TORUS_CONE, COURSE_TORUS_DROP, COURSE_WATCH_STANDOFF,
 } from '../constants/course.ts';
@@ -141,6 +141,8 @@ const IDLE: CourseStep = { demand: null, torus: false, handOver: false, done: fa
  * about 19 u/s for ever, and never counted as arrived (docs/TODO/205 M3).
  */
 interface Arrival {
+  /** the fastest it may fly on the way, or undefined for the ship's own top speed */
+  cap?: number;
   readonly target: THREE.Vector3;
   readonly standoff: number;
   readonly speed: number;
@@ -215,7 +217,10 @@ export class CoursePilot {
         // The scoop takes it aboard inside `SCOOP_RANGE`, and the next one is
         // then the nearest (docs/TODO/206 M6).
         return {
-          ...this.arrive(v, { target: this.lead, standoff: 0, speed: COURSE_COLLECT_SPEED }, dt),
+          ...this.arrive(v, {
+            target: this.lead, standoff: 0,
+            speed: COURSE_COLLECT_SPEED, cap: COURSE_COLLECT_CAP,
+          }, dt),
           done: false,
         };
       }
@@ -292,7 +297,7 @@ export class CoursePilot {
     if (Math.abs(left) <= COURSE_ARRIVE_TOLERANCE && v.speed <= a.speed + PLAYER_FLIGHT.accel * dt) {
       return { demand: hold(v, dt), torus: false, handOver: false, done: true };
     }
-    const wanted = Math.min(PLAYER_FLIGHT.maxSpeed,
+    const wanted = Math.min(a.cap ?? PLAYER_FLIGHT.maxSpeed,
       a.speed + Math.sqrt(2 * COURSE_ARRIVE_BRAKE * PLAYER_FLIGHT.accel * Math.max(0, left)));
     const band = PLAYER_FLIGHT.accel * dt;
     const throttle = v.speed < wanted - band ? 1 : v.speed > wanted + band ? -1 : 0;

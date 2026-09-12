@@ -270,6 +270,43 @@ export const COURSE_COLLECT_SPEED = 60;
 export const COURSE_COLLECT_LEAD = 5;
 
 /**
+ * The fastest the collect course flies on its way to a canister, in world
+ * units a second.
+ *
+ * Chris, 2026-09-12: *"collecting cargo seems to be broken sometimes. I seem to
+ * run at maximum speed, then slow down and then miss it and then run at maximum
+ * speed."* That is the trace exactly. `arrive` picks a speed from the braking
+ * curve, which is right for a big target on a straight line. It reached 400
+ * with a canister 250 units off.
+ *
+ * A SHIP THAT FAST CANNOT CORRECT. Its tightest turn has a radius of 276 units,
+ * and the scoop reaches 45. So a lateral error the steering leaves at that
+ * point cannot be closed at all. The ship sails past, and comes round again.
+ * Held on one canister it loops for ever, which is what "broken" looked like.
+ *
+ * It is twice `COURSE_COLLECT_SPEED`, the speed the course settles at. That is
+ * a turn radius of 83 units, which is under twice the scoop's reach.
+ *
+ * Measured over 64 runs, five canisters a run, at four drifts and four scatter
+ * directions. The figure is how many runs left cargo behind after two minutes:
+ *
+ *   | cap | left behind | mean time |
+ *   | 400 |     4 of 64 |     43.5s |
+ *   | 180 |     4 of 64 |     35.9s |
+ *   | 150 |     0 of 64 |     32.0s |
+ *   | 120 |     0 of 64 |     29.8s |
+ *   |  90 |     0 of 64 |     32.6s |
+ *   |  60 |    36 of 64 |          |
+ *
+ * At 60 it is the collect speed itself, and the course can no longer catch a
+ * canister that drifts at 45.
+ *
+ * @rule course.collectCap
+ * @domain course
+ */
+export const COURSE_COLLECT_CAP = COURSE_COLLECT_SPEED * 2;
+
+/**
  * How far from the station the station course hands the ship to the pilot,
  * in world units (docs/TODO/207 M1).
  *
