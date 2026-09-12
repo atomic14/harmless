@@ -111,7 +111,7 @@ import { WorldStep, type StepHost } from '../src/game/world-step.ts';
 import { Ordnance } from '../src/game/ordnance.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { slotRollOffset } from '../src/game/docking.ts';
-import { ROLL_TOLERANCE } from '../src/constants/docking.ts';
+import { COMPUTER_ROLL_TOLERANCE } from '../src/constants/docking.ts';
 
 /** Hands off the stick: the autopilot is the only pilot in these runs. */
 const COAST = { rollRate: 0, pitchRate: 0, throttle: 0, fire: false };
@@ -178,7 +178,7 @@ interface Run {
   /**
    * ...and how far off the slot's LONG AXIS the wings still were, in degrees —
    * the other half of going through a letterbox, and the half the whole roll
-   * axis exists for (`rollAlignedWithSlot`). `ROLL_TOLERANCE` is what fits;
+   * axis exists for (`rollAlignedWithSlot`). `COMPUTER_ROLL_TOLERANCE` is what fits;
    * this is what the autopilot actually arrives with.
    */
   entryRoll: number;
@@ -381,7 +381,7 @@ console.log(`roll reversals: median ${median(rolls)} · worst ${worst(rolls)}`
 console.log(`still pointing this far off the slot axis going in: median ${
   median(entries).toFixed(1)}° · worst ${worst(entries).toFixed(1)}°`);
 console.log(`...and this far off its long axis, against ${
-  (ROLL_TOLERANCE * 180 / Math.PI).toFixed(0)}° of tolerance: median ${
+  (COMPUTER_ROLL_TOLERANCE * 180 / Math.PI).toFixed(0)}° of tolerance: median ${
   median(rolls2).toFixed(1)}° · worst ${worst(rolls2).toFixed(1)}°`);
 console.log(`the plan's own heading jumps: median ${median(jumps).toFixed(1)}°`
   + ` · worst ${worst(jumps).toFixed(1)}° in one frame`

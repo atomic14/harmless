@@ -172,7 +172,7 @@ console.log('\ndocking port marker');
   const aidAt = (x: number, off: number) => {
     const p = pose(x, off);
     return dockingAid(
-      station, DOCK_Z, p.pos, p.quat, p.forward, camera, scratch).dockAid;
+      station, DOCK_Z, p.pos, p.quat, p.forward, camera, scratch, ROLL_TOLERANCE).dockAid;
   };
 
   const straight = aidAt(0, 0);

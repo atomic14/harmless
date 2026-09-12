@@ -30,6 +30,7 @@ import type { World } from '../game/world.ts';
 import type { Missile } from '../game/ordnance.ts';
 import type { Canister } from '../game/cargo.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
+import { COMPUTER_ROLL_TOLERANCE, ROLL_TOLERANCE } from '../constants/docking.ts';
 import {
   SCANNER_RANGE, SUNSKIM_COMPASS_RANGE, STATION_COMPASS_RADII,
 } from '../constants/console.ts';
@@ -57,6 +58,8 @@ export interface HudSources {
   readonly inFlight: boolean;
   readonly witchspace: boolean;
   readonly assist: boolean;
+  /** a bought docking computer holds the stick, so the slot is kinder to it */
+  readonly dockingComputer: boolean;
   /** the pilot flies the last stretch into the slot (docs/TODO/207) */
   readonly trial: boolean;
   readonly rails: boolean;
@@ -140,7 +143,8 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
   if (s.inFlight && !s.witchspace) {
     ({ dockAid, slotMarker } = dockingAid(
       world.station, world.stationDockZ, playerPos, s.playerQuat, s.playerForward,
-      s.camera, { a: scratch.a, b: scratch.b, q: scratch.q }));
+      s.camera, { a: scratch.a, b: scratch.b, q: scratch.q },
+      s.dockingComputer ? COMPUTER_ROLL_TOLERANCE : ROLL_TOLERANCE));
   }
 
   // The tags of the things live missions sent the player for, so the scanner

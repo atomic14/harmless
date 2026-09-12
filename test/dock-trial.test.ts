@@ -139,6 +139,7 @@ console.log('\nthe docking mini game');
    */
   const fly = (g: Game, match: boolean, hands = true): {
     rails: boolean; docked: boolean; lateral: number; handedOver: number;
+    scrapes: number;
   } => {
     const dt = 1 / 60;
     const q = new THREE.Quaternion();
@@ -148,6 +149,8 @@ console.log('\nthe docking mini game');
     let rails = false;
     let lateral = Infinity;
     let handedOver = -1;
+    let scrapes = 0;
+    let wasRails = false;
     withoutSaving(() => {
       for (let f = 0, at = 0; f < 200 / dt; f++) {
         const st = g.state.world.station;
@@ -176,11 +179,15 @@ console.log('\nthe docking mini game');
               Math.atan2(Math.sin(2 * err), Math.cos(2 * err)) / 2 * 4));
           }
         }
+        const held = g.state.session.dockRails;
         g.step(dt, at += dt);
+        // The rails let go on a scrape, and only on a scrape, while in flight.
+        if (wasRails && !g.state.session.dockRails && g.mode === 'flight') scrapes += 1;
+        wasRails = held;
         if (g.mode !== 'flight') break;
       }
     });
-    return { rails, docked: g.mode === 'docked', lateral, handedOver };
+    return { rails, docked: g.mode === 'docked', lateral, handedOver, scrapes };
   };
 
   const run = fly(arrive(20_260_951), true);
@@ -190,6 +197,17 @@ console.log('\nthe docking mini game');
   check('...and a pilot who thrusts in and matches the slot docks', run.docked);
   check('...having been held on the line, inside the channel',
     run.lateral < SLOT_HALF_ACROSS, `${run.lateral.toFixed(0)} units off the axis`);
+
+  check('...first time, with no scrape at all', run.scrapes === 0);
+
+  // THE SPIN IS THE GAME, and it was not (Chris, 2026-09-12: *"I think we're
+  // still too easy on the docking"*). A probe of 20 approaches found that a
+  // pilot who never touched the roll docked every time, after one scrape. The
+  // slot took a roll 37 degrees out, which is 41% of every angle it presents.
+  // `ROLL_TOLERANCE` is now 0.24, and a bought computer keeps the old 0.65.
+  const lazy = fly(arrive(20_260_951), false);
+  check('a pilot who thrusts in but ignores the spin is bounced off',
+    lazy.scrapes > 0, `${lazy.scrapes} scrape(s)`);
 
   // The control: hands off entirely. The ship stops on the axis and stays
   // there, so nobody docks by accident (docs/TODO/212). Chris asked for that

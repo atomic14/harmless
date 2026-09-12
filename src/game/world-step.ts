@@ -59,7 +59,9 @@ import { holdOnRails, railsAligned, railsReached, stopped } from './dock-rails.t
 import { bankToTurn } from './pitch-roll-steer.ts';
 import { slotNormal } from '../world/slot.ts';
 import { dockingSticks } from './docking-sticks.ts';
-import { NPC_HULL_BOX_MARGIN } from '../constants/docking.ts';
+import {
+  NPC_HULL_BOX_MARGIN, COMPUTER_ROLL_TOLERANCE, ROLL_TOLERANCE,
+} from '../constants/docking.ts';
 import { BOUNCE_STANDOFF } from '../constants/station.ts';
 import { regenerate, updateCabinTemp, scoopFuel, energyLow } from './systems.ts';
 import { SUN_KILL_DIST } from '../constants/sun.ts';
@@ -963,11 +965,15 @@ export class WorldStep {
    * ours.
    */
   private checkStation(out: StepEvent[]): void {
-    const { player, world } = this.state;
+    const { player, world, session } = this.state;
     const station = world.station;
+    // WHICH TOLERANCE depends on who holds the stick. A bought docking computer
+    // gets the wider one, and that is the point of buying it
+    // (`COMPUTER_ROLL_TOLERANCE`). A hand gets the hard one.
     const outcome = dockingOutcome(
       player.position, player.quaternion, station, world.stationDockZ, player.speed,
-      { v: this.tmp, q: this.tmpQ, r: this.tmp2 });
+      { v: this.tmp, q: this.tmpQ, r: this.tmp2 },
+      session.dcEngaged ? COMPUTER_ROLL_TOLERANCE : ROLL_TOLERANCE);
     if (outcome === 'clear') return;
     if (outcome === 'docked') {
       this.host.dock();

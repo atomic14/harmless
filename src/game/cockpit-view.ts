@@ -318,6 +318,7 @@ export class CockpitView {
       inFlight: this.host.inFlight(),
       witchspace: this.state.session.witchspace,
       assist: this.state.session.ccEngaged,
+      dockingComputer: this.state.session.dcEngaged,
       trial: this.state.session.dockTrial,
       rails: this.state.session.dockRails,
       ecmDetected: this.state.ecmDetectedTimer > 0,

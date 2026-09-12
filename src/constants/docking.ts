@@ -133,15 +133,50 @@ export const SLOT_HALF_ALONG = 62;
 export const SLOT_DEPTH = 60;
 
 /**
- * The wings against the slot's long axis, in radians: how badly you may be rolled
- * and still fit through the letterbox. It is a quarter turn's tolerance either
- * side, and it is symmetric, so a ship upside down in the slot still fits.
+ * The wings against the slot's long axis, in radians, FOR A HAND ON THE STICK.
+ * It is how badly you may be rolled and still fit through the letterbox. It is
+ * symmetric, so a ship upside down in the slot still fits.
  *
- * What the whole channel is worth, measured: over a uniform sample of approach
- * offsets and rolls, the fraction that docks is 6.68%. That is the number to
- * measure again if this tolerance or the half-widths above ever move.
+ * DOCKING IS SUPPOSED TO BE HARD (Chris, 2026-09-12). It was 0.65, about 37
+ * degrees, which is 41% of every angle the slot can present. A probe of the
+ * mini game flew it 20 times, at a different slot angle each time. A pilot who
+ * matched the spin docked 20 times, first go. A pilot who never touched the
+ * roll ALSO docked 20 times, after one scrape. The skill saved a shield. It was
+ * not what got the ship in.
+ *
+ * What the whole channel is worth, measured at 0.65: over a uniform sample of
+ * approach offsets and rolls, the fraction that docks is 6.68%. That is the
+ * number to measure again if this tolerance or the half-widths above ever move.
+ *
+ * @rule docking.rollTolerance
  */
-export const ROLL_TOLERANCE = 0.65;
+export const ROLL_TOLERANCE = 0.24;
+
+/**
+ * ...and the same angle for a BOUGHT DOCKING COMPUTER, which is wider.
+ *
+ * It is a deliberate cheat (Chris, 2026-09-12: *"we can 'cheat' for the docking
+ * computer and give it more leeway"*). The computer is what a commander buys to
+ * stop docking being hard, so the slot is kinder to it than to a hand.
+ *
+ * 0.65 is what BOTH used to be, so this is the old rule under its own name and
+ * the hand's is the one that moved.
+ *
+ * THE COMPUTER CANNOT MEET THE HAND'S FIGURE. `npm run dock-probe` reports it
+ * arriving up to 13.8 degrees off the slot's long axis. `ROLL_TOLERANCE` at
+ * 0.24 rad is 13.75 degrees, so the worst approach falls outside it. Measured,
+ * the shared constant at that figure cost 2 scrapes over 504 approaches.
+ *
+ * A commander who paid for the computer should not lose a shield to that. So
+ * the licence is wide, and the hand's is not. With the two split, the probe is
+ * back to 504 of 504 with no scrape.
+ *
+ * It has its own rule id, and the two must not be fused. One is a difficulty
+ * setting. The other is the equipment's licence.
+ *
+ * @rule docking.computerRollTolerance
+ */
+export const COMPUTER_ROLL_TOLERANCE = 0.65;
 
 /**
  * How fast a ship may be going when it reaches the slot, in world units a

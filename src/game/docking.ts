@@ -235,8 +235,10 @@ export function inSlotChannel(localX: number, localY: number): boolean {
  * the angle away from it. Both magnitudes are absolute: a ship upside down in
  * the slot still fits through it.
  */
-export function rollAlignedWithSlot(rightX: number, rightY: number): boolean {
-  return slotRollOffset(rightX, rightY) < ROLL_TOLERANCE;
+export function rollAlignedWithSlot(
+  rightX: number, rightY: number, tolerance: number = ROLL_TOLERANCE,
+): boolean {
+  return slotRollOffset(rightX, rightY) < tolerance;
 }
 
 /** How far off the slot's long axis the wings are, in radians. */
@@ -273,6 +275,14 @@ export function dockingOutcome(
   dockZ: number,
   speed: number,
   scratch: { v: THREE.Vector3; q: THREE.Quaternion; r: THREE.Vector3 },
+  /**
+   * How far the wings may be off the slot's long axis, in radians. The CALLER
+   * says, because it depends on who holds the stick: `ROLL_TOLERANCE` for a
+   * hand, and the wider `COMPUTER_ROLL_TOLERANCE` for a bought docking
+   * computer. The default is the hard one, so a caller that forgets is strict
+   * rather than lax.
+   */
+  rollTolerance: number = ROLL_TOLERANCE,
 ): DockingOutcome {
   const box = dockZ + HULL_BOX_MARGIN;
   const local = scratch.v.copy(pos);
@@ -286,6 +296,6 @@ export function dockingOutcome(
 
   scratch.q.copy(station.quaternion).invert().multiply(quat);
   const right = scratch.r.set(1, 0, 0).applyQuaternion(scratch.q);
-  if (!rollAlignedWithSlot(right.x, right.y)) return 'slotMiss';
+  if (!rollAlignedWithSlot(right.x, right.y, rollTolerance)) return 'slotMiss';
   return speed > SLOT_SPEED_LIMIT ? 'tooFast' : 'docked';
 }
