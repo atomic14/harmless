@@ -81,5 +81,7 @@ export const CHART_CANVAS_H = 400;
  * It is smaller than the 28 px a click snaps to a system by. Lanes are long
  * targets, and dozens of them are on screen. A generous radius would pick a
  * neighbouring lane while the pointer sat on a star.
+ *
+ * @rule chart.lanePickPx
  */
 export const LANE_PICK_PX = 8;

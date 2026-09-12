@@ -326,12 +326,14 @@ console.log('\nlive combat — regeneration');
   // A backgrounded tab hands the loop one enormous frame. It never reaches a
   // ship, because game.ts clamps the accumulator and caps the catch-up steps —
   // asserted here against the source, since a regeneration rule that IS
-  // per-frame can only be as safe as the loop that feeds it.
+  // per-frame can only be as safe as the loop that feeds it. Fast forward
+  // (docs/TODO/205 M7) scales the clamp and the cap by one fixed speed, so a
+  // frame still banks a bounded amount of world time.
   const loop = readFileSync(new URL('../src/game/game.ts', import.meta.url), 'utf8');
   check('the frame loop clamps a long frame and gives up catching up',
-    /accumulator \+= Math\.min\(\(now - last\) \/ 1000, MAX_FRAME_TIME\)/.test(loop)
-    && /steps < MAX_STEPS_PER_FRAME/.test(loop)
-    && /if \(steps === MAX_STEPS_PER_FRAME\) accumulator = 0/.test(loop));
+    /accumulator \+= Math\.min\(\(now - last\) \/ 1000, MAX_FRAME_TIME\) \* speed/.test(loop)
+    && /steps < MAX_STEPS_PER_FRAME \* speed/.test(loop)
+    && /if \(steps === MAX_STEPS_PER_FRAME \* speed\) accumulator = 0/.test(loop));
   const twoSteps = ship(60);
   twoSteps.n.regenerate(1 / 60);
   twoSteps.n.regenerate(1 / 60);

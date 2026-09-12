@@ -108,7 +108,9 @@ export const LINED_UP_LATERAL = 45;
  * scale. The Coriolis reaches 160 against a 160 slot plane. The Dodo's five
  * tallest vertices reach 243 against a 196 one. 50 clears both, and it does not
  * let a ship slip past a vertex and be reported clear.
- */
+  *
+ * @rule docking.hullBoxMargin
+*/
 export const HULL_BOX_MARGIN = 50;
 
 /** The same cube for every NPC. It is the SAME RULE as the player's, so NPC
@@ -125,7 +127,9 @@ export const NPC_HULL_BOX_MARGIN = HULL_BOX_MARGIN;
 export const SLOT_HALF_ACROSS = 26;
 export const SLOT_HALF_ALONG = 62;
 
-/** How far into the -Z face puts a ship in the channel, in world units. */
+/** How far into the -Z face puts a ship in the channel, in world units.  *
+ * @rule docking.slotDepth
+*/
 export const SLOT_DEPTH = 60;
 
 /**
@@ -138,3 +142,135 @@ export const SLOT_DEPTH = 60;
  * measure again if this tolerance or the half-widths above ever move.
  */
 export const ROLL_TOLERANCE = 0.65;
+
+/**
+ * How fast a ship may be going when it reaches the slot, in world units a
+ * second (docs/TODO/207 M3).
+ *
+ * The slot took any speed at all until now, and the dock was a test of the
+ * roll alone. A pilot flies the last stretch since 207, so the speed is the
+ * second half of the manoeuvre. The docking computer settles at 110 on its
+ * own approach (`planDocking`), so it keeps 10 units a second of room.
+ *
+ * `LAUNCH_SPEED` is also 120, and the two rules are independent. That one is
+ * the push a station gives a ship on the way out.
+ *
+ * It belongs here, with the rest of the slot's rules, and not with the flight
+ * envelopes. The slot decides what it will take, and `dockingOutcome` next
+ * door is the one reader.
+ *
+ * @rule docking.slotSpeedLimit
+ * @domain docking
+ */
+export const SLOT_SPEED_LIMIT = 120;
+
+/**
+ * How far off the slot axis the ship may be when the rails take it, in world
+ * units (docs/TODO/212).
+ *
+ * THE PILOT USED TO GET THE SHIP AT 1,500 UNITS, AND IT WAS NOT LINED UP. A
+ * measurement of 2026-09-12 put the hand-over 407 to 886 units off the axis,
+ * at 224 units a second. The slot channel is 26 units across the half-width.
+ * So the computer still had the whole of the lining up to do, with the pitch
+ * alone, because the pilot owned the roll. An ideal pilot docked 0 times in 4.
+ *
+ * IT IS A SANITY BOUND, NOT THE LINE ITSELF. The rails close the last of the
+ * error themselves, and that is their job. The docking computer reaches its
+ * last leg 610 units out, with 220 units of error. The error is down to 18
+ * units by 280 units out. To wait for the small number would leave the pilot
+ * two seconds of game. So the rails take the ship at the start of the last leg,
+ * and they pull it onto the line while it flies in.
+ *
+ * @rule docking.railsLateral
+ * @domain docking
+ */
+export const RAILS_LATERAL = 250;
+
+/**
+ * How far out the rails take the ship, in world units (docs/TODO/212).
+ *
+ * It is the length of the mini game. At the slot's speed limit of 120 units a
+ * second, 900 units is about seven seconds. The station turns a half circle in
+ * 12 seconds, so the pilot sees the slot come round at least once.
+ *
+ * @rule docking.railsRange
+ * @domain docking
+ */
+export const RAILS_RANGE = 900;
+
+/**
+ * How hard the rails pull the ship onto the axis, per second (docs/TODO/212).
+ *
+ * The worst error the rails take is about 220 units. At 2 a second the first
+ * frame moves the ship 7 units sideways, and the error is gone in about two
+ * seconds. A hard snap would look like a teleport.
+ *
+ * @rule docking.railsPull
+ * @domain docking
+ */
+export const RAILS_PULL = 2;
+
+/**
+ * How far off the slot axis the ship's NOSE may point when the PILOT is given
+ * the slot, in radians.
+ *
+ * THE HAND-OVER USED TO IGNORE THE NOSE ALTOGETHER (Chris, 2026-09-12: *"we
+ * jump to the on rails version before it's actually lined up"*). `railsReached`
+ * asked for the last leg, `RAILS_LATERAL` and `RAILS_RANGE`. None of those three
+ * says which way the ship points. A trace of the shipped approach put the nose
+ * 69.7 degrees off the axis on the frame the rails took it.
+ *
+ * THE COMPUTER FLIES THE SHIP TO THIS ANGLE. It is the pointing half of the
+ * hand-over, and `RAILS_RANGE` is the distance half. The ship is stopped by
+ * then, so `world-step.ts` steers the last turn with `bankToTurn` rather than
+ * `dockingSticks`. That law spends the roll on the letterbox and pitches onto
+ * the heading, and a pitch alone cannot answer a sideways error from a stop.
+ *
+ * 0.03 rad is about 1.7 degrees. It was 0.18 rad, about 10 degrees, and Chris
+ * called that too wide on 2026-09-12.
+ *
+ * IT SITS JUST ABOVE THE CRAWL. A trace of the turn with the gate as good as
+ * open measured the whole curve. The nose falls from 68 degrees to 1.8 in one
+ * second. It rings once, and it settles near 1.2 degrees by two seconds. Below
+ * that it creeps: 1.2 degrees to 0.6 takes eight more seconds, because the
+ * steering saturates and the roll fades. So a cone under about 1 degree buys
+ * fractions of a degree for whole seconds of wait.
+ *
+ * It is a band rather than a zero, because the rails hold the line from there
+ * on. To wait for zero is to wait for ever.
+ *
+ * @rule docking.railsCone
+ * @domain docking
+ */
+export const RAILS_CONE = 0.03;
+
+/**
+ * How hard the rails turn the nose onto the axis, per second.
+ *
+ * It is `RAILS_PULL` for the rotation, and it exists for the same reason. The
+ * position was always eased. The rotation was not: it went on in full, every
+ * frame, so any error left at the hand-over went in one frame. The module
+ * comment on `game/dock-rails.ts` claimed both were eased, and only one was.
+ *
+ * 3 a second clears what `RAILS_CONE` lets through, which is under 2 degrees,
+ * in a fraction of a second. The computer flies the big turn, so this only ever
+ * answers the residue, and the station's own drift under it.
+ *
+ * @rule docking.railsTurn
+ * @domain docking
+ */
+export const RAILS_TURN = 3;
+
+/**
+ * The speed under which the ship counts as stopped, in world units a second
+ * (docs/TODO/212).
+ *
+ * The computer brakes the ship to a halt on the slot axis, and the rails then
+ * take it. The pilot thrusts in from there. A ship thrusts at 220 units a
+ * second per second, so 2 is under a hundredth of a second of thrust. It is a
+ * band rather than a zero, because the brake is a sign and not a gain.
+ *
+ * @rule docking.railsStopped
+ * @domain docking
+ */
+export const RAILS_STOPPED = 2;

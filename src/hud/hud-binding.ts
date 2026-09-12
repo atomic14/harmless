@@ -57,18 +57,16 @@ export interface HudSources {
   readonly inFlight: boolean;
   readonly witchspace: boolean;
   readonly assist: boolean;
+  /** the pilot flies the last stretch into the slot (docs/TODO/207) */
+  readonly trial: boolean;
+  readonly rails: boolean;
   readonly ecmDetected: boolean;
   readonly messageText: string;
   readonly messageTimer: number;
-  /**
-   * The key prompts, already rendered — see `HudState.prompts`.
-   *
-   * It arrives finished, for the same reason the exercise strip does. WHICH
-   * keys are worth an offer is `game/prompts.ts`. Which letter each is bound to
-   * is the binding table's answer, through `boundKey`. That function lives in
-   * `ui/`, so a rule module cannot reach it. The dashboard is handed the line.
-   */
-  readonly prompts: readonly string[];
+  /** the course buttons, finished — see `HudState.courses` */
+  readonly courses: HudState['courses'];
+  /** the pilot's buttons, finished — see `HudState.actions` */
+  readonly actions: HudState['actions'];
   /**
    * The training exercise in progress, or null in career flight.
    *
@@ -176,7 +174,8 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
   return {
     messageText: s.messageText,
     messageTimer: s.messageTimer,
-    prompts: s.prompts,
+    courses: s.courses,
+    actions: s.actions,
     playerPos: s.playerPos,
     playerQuat: s.playerQuat,
     contacts: scannerContacts(
@@ -222,6 +221,8 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     threatMarker,
     missionMarker,
     assist: s.assist,
+    trial: s.trial,
+    rails: s.rails,
     armed: s.missileArmed,
     stationInRange: s.inFlight && !s.witchspace
       && playerPos.distanceTo(world.station.position) < SCANNER_RANGE,

@@ -1,4 +1,5 @@
 import { elementById, fillWith } from '../engine/inert-dom.ts';
+import { ButtonStrip, type HudButton } from './hud-buttons.ts';
 import * as THREE from 'three';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { describeSystem } from '../galaxy/galaxy.ts';
@@ -8,6 +9,8 @@ import {
   SCANNER_RANGE, LASER_GAUGE_WARN, CABIN_GAUGE_WARN,
 } from '../constants/console.ts';
 import { HUD } from '../palette.ts';
+import { SLOT_SPEED_LIMIT } from '../constants/docking.ts';
+import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 
 // The classic console: elliptical 3D scanner (dot + vertical stick per
 // contact), station compass, gauge bars, and the message line.
@@ -68,15 +71,16 @@ export interface HudState {
   messageText: string;
   messageTimer: number;
   /**
-   * What a key can do about what is happening right now, ALREADY RENDERED —
-   * each entry is the bound key and what it does ("L PAY 141.0 Cr").
-   *
-   * Finished strings for the same reason `messageText` is one: the painter
-   * reads state and paints it. WHICH commands are worth offering is
-   * `game/prompts.ts`. Which letter each is bound to is `controls.ts` through
-   * `boundKey`. Neither is a question a painter may answer.
+   * The course buttons over the view (docs/TODO/205 M5): the list when the
+   * ship has no course, or the one course it flies. Finished strings, as the
+   * message is. Which courses exist is `game/courses.ts`.
    */
-  prompts: readonly string[];
+  courses: readonly HudButton[];
+  /**
+   * The pilot's hands as buttons (docs/TODO/206 M3): the laser, the missile,
+   * the E.C.M. and the target list. Finished, as the courses are.
+   */
+  actions: readonly HudButton[];
   speedFrac: number;
   rollFrac: number; // -1..1
   pitchFrac: number; // -1..1
@@ -150,6 +154,10 @@ export interface HudState {
   missionMarker: { x: number; y: number; behind: boolean } | null;
   /** combat computer engaged (shown in the view label slot) */
   assist: boolean;
+  /** the pilot flies the last stretch into the slot (docs/TODO/207) */
+  trial: boolean;
+  /** ...and the rails have it, so the mini game is on (docs/TODO/212) */
+  rails: boolean;
   /** missile armed but not yet locked (yellow pylon) */
   armed: boolean;
   /** console 'S': the space station is within scanner range */
@@ -231,9 +239,8 @@ export class Hud {
   private readonly creditsEl = byId('credits-display');
   private readonly dayEl = byId('day-display');
   private readonly messageEl = byId('message');
-  private readonly promptsEl = byId('prompts');
-  /** what the prompt line currently says, so a steady list is not repainted */
-  private promptsShown = '';
+  private readonly courseStrip = new ButtonStrip(byId('courses'));
+  private readonly actionStrip = new ButtonStrip(byId('actions'));
   private readonly flashEl = byId('damage-flash');
   private readonly exerciseEl = byId('exercise');
   private readonly exScenarioEl = byId('ex-scenario');
@@ -246,6 +253,11 @@ export class Hud {
   private readonly invQ = new THREE.Quaternion();
 
   constructor() {
+    // The mark on the speed bar: the fastest the slot will take, as a share of
+    // the ship's own top speed (docs/TODO/207 M3). It is placed from the two
+    // rules rather than written into the page.
+    byId('g-speed-limit').style.left =
+      `${(SLOT_SPEED_LIMIT / PLAYER_FLIGHT.maxSpeed) * 100}%`;
     this.scanner = (byId('scanner') as HTMLCanvasElement).getContext('2d')!;
     this.reticle = (byId('reticle') as HTMLCanvasElement).getContext('2d')!;
     this.compass = (byId('compass') as HTMLCanvasElement).getContext('2d')!;
@@ -265,7 +277,8 @@ export class Hud {
 
   render(_dt: number, frame: HudFrame): void {
     this.messageEl.textContent = frame.messageTimer > 0 ? frame.messageText : '';
-    this.paintPrompts(frame.prompts);
+    this.courseStrip.paint(frame.courses);
+    this.actionStrip.paint(frame.actions);
     this.speedEl.style.width = `${frame.speedFrac * 100}%`;
     this.rollEl.style.left = `${50 + clampUnit(frame.rollFrac) * 45}%`;
     this.pitchEl.style.left = `${50 + clampUnit(frame.pitchFrac) * 45}%`;
@@ -277,7 +290,9 @@ export class Hud {
     this.altEl.style.width = `${Math.min(100, frame.altitudeFrac * 100)}%`;
     this.cabinEl.style.width = `${Math.min(100, frame.cabinTemp * 100)}%`;
     this.cabinEl.style.background = frame.cabinTemp > CABIN_GAUGE_WARN ? RED : '';
-    this.viewEl.textContent = frame.assist ? '◆ COMBAT COMPUTER ◆' : (VIEW_NAMES[frame.view] ?? '');
+    this.viewEl.textContent = frame.rails ? '◆ THRUST IN, AND MATCH THE SLOT ◆'
+      : frame.trial ? '◆ THE COMPUTER IS LINING THE SHIP UP ◆'
+        : frame.assist ? '◆ THE COMPUTER IS AIMING ◆' : (VIEW_NAMES[frame.view] ?? '');
     this.crosshairEl.style.display = frame.hasLaser ? '' : 'none';
     this.shipIdEl.textContent = frame.shipId;
     this.drawEnergy(frame);
@@ -303,31 +318,6 @@ export class Hud {
     this.drawMissionMarker(frame.missionMarker);
     this.drawScanner(frame.playerPos, frame.playerQuat, frame.contacts);
     this.drawCompass(frame.playerPos, frame.playerQuat, frame.compassTarget);
-  }
-
-  /**
-   * The prompt line: the keys worth pressing about what is happening.
-   *
-   * It is rebuilt only when the list CHANGES. This runs every frame, and the
-   * prompts are steady for seconds at a time. A patrol takes four and a half of
-   * them to cross its warning band.
-   *
-   * The key is separated from the words so the stylesheet can light it. That is
-   * the only reason this is markup rather than `textContent`. The strings
-   * themselves are built upstream, and never here.
-   */
-  private paintPrompts(prompts: readonly string[]): void {
-    const line = prompts.join(' ');   // em space: a gap, not a bullet
-    if (line === this.promptsShown) return;
-    this.promptsShown = line;
-    this.promptsEl.innerHTML = prompts
-      .map((p) => {
-        const gap = p.indexOf(' ');
-        const key = gap < 0 ? p : p.slice(0, gap);
-        const what = gap < 0 ? '' : p.slice(gap);
-        return `<span class="prompt-key">${key}</span>${what}`;
-      })
-      .join(' ');
   }
 
   /**

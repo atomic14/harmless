@@ -33,8 +33,67 @@
 // menu's rows straight from it.
 
 import type { Binding, Command, ControlMode } from './controls.ts';
+import type { CourseKind } from './courses.ts';
 
 /** Bindings that answer whatever is on screen, overlays included. */
+/**
+ * The code each course row sends (docs/TODO/205 M4).
+ *
+ * A row of the course list is a click target, as a station row is. So each
+ * course has a virtual code: `Virt`, then `Course`, then the course. No
+ * keyboard produces one, so no letter is spent. The launch screen and the
+ * course buttons in flight send the same codes. This record is their one
+ * home, so the two surfaces cannot disagree about a course's code.
+ */
+export const COURSE_KEYS: Readonly<Record<CourseKind, string>> = {
+  jump: 'VirtCourseJump',
+  mission: 'VirtCourseMission',
+  station: 'VirtCourseStation',
+  derelict: 'VirtCourseDerelict',
+  mine: 'VirtCourseMine',
+  hermit: 'VirtCourseHermit',
+  skim: 'VirtCourseSkim',
+  run: 'VirtCourseRun',
+  collect: 'VirtCourseCollect',
+};
+
+/** The launch list's row for the galactic chart, where a pilot sets a target. */
+export const COURSE_CHART_KEY = 'VirtCourseChart';
+
+/**
+ * The button in flight that STOPS the course under way (docs/TODO/205 M5). It
+ * has no key: Chris, 2026-09-11, *"We don't need to use the keyboard. We have
+ * mouse and touch."*
+ *
+ * It used to open the course list over a running course, and close it again.
+ * Chris called that confusing on 2026-09-12: *"I think you should be able to
+ * click it to disengage it."* A lit button reads as ON, so a tap turns it off.
+ * The list then shows by itself, because it always does with no course.
+ */
+export const COURSE_STOP_KEY = 'VirtCourseStop';
+
+/** The fast forward button in flight (docs/TODO/205 M7). It has no key either. */
+export const COURSE_SKIP_KEY = 'VirtCourseSkip';
+
+/**
+ * The target list's buttons in flight (docs/TODO/206 M3). There are three
+ * codes: the button that opens the list, the row that lets the computer
+ * choose, and the prefix of a row's code. A row's code ends in a number that
+ * names one ship for as long as the ship lives (`target-actions.ts`). None of
+ * them has a key.
+ */
+export const TARGETS_KEY = 'VirtTargets';
+export const TARGET_NONE_KEY = 'VirtTargetNone';
+export const TARGET_ROW_PREFIX = 'VirtTarget';
+
+/**
+ * The roll strip of the last stretch into the slot (docs/TODO/207 M2). It is
+ * not a key at all: `engine/strip-control.ts` reads the pointer's distance
+ * from the strip's middle, and reports a stick. The code names the strip in
+ * the markup, as a button's code names the button.
+ */
+export const ROLL_STRIP_CODE = 'roll';
+
 export const GLOBAL_BINDINGS: readonly Binding[] = [
   // ? toggles the controls guide (plain / is the classic decelerate key)
   { key: 'Question', command: 'toggleHelp' },

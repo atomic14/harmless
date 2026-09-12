@@ -205,7 +205,7 @@ console.log('\ndocking');
   const rolledFrom = (off: number) => new THREE.Quaternion()
     .setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2 + off);
   const at = (x: number, y: number, z: number, q = quarter) =>
-    dockingOutcome(new THREE.Vector3(x, y, z), q, station, DOCK_Z, scratch);
+    dockingOutcome(new THREE.Vector3(x, y, z), q, station, DOCK_Z, 0, scratch);
 
   check('far away is clear', at(0, 0, 5000) === 'clear');
   check('lined up in the slot, rolled with it, is docked',

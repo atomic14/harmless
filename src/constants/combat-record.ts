@@ -40,6 +40,12 @@ export const SIX_CONE = Math.PI / 3;
  * passes at this threshold.
  */
 export const PASS_CLOSE = 400;
+/**
+ * ...and the far end of that pair: the range a ship must break back out to
+ * for the pass to count. The comment above explains both.
+ *
+ * @rule combatrecord.passFar
+ */
 export const PASS_FAR = 600;
 
 /**

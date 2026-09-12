@@ -13,6 +13,8 @@
  * At the commander's 400 this is 3,200 units/s. That is the figure the
  * starfield's streaks are faded against, and roughly a 28-second run from the
  * witchpoint.
+ *
+ * @rule torus.multiplier
  */
 export const TORUS_MULTIPLIER = 8;
 
@@ -44,3 +46,20 @@ export const MASS_LOCK_PLANET_ALTITUDE = 4000;
  * @rule torus.massLockShip
  */
 export const MASS_LOCK_SHIP = 4500;
+
+/**
+ * How far a ship must open back out before it can be announced a second time
+ * (game/close-pass.ts). A ship that comes inside `MASS_LOCK_SHIP` is named
+ * one time. A single line would repeat on every wobble across the radius.
+ *
+ * It is 1.5 times the lock radius. The hysteresis is 2,250 units, which is
+ * over 5 seconds of flight at the ordinary top speed. A pair of ships that
+ * hold station together therefore says nothing more.
+ *
+ * It lives here, beside `MASS_LOCK_SHIP`, because it is measured from that
+ * radius. A move would split one pair of numbers over two files.
+ *
+ * @rule torus.closePassClear
+ * @domain torus
+ */
+export const CLOSE_PASS_CLEAR = 6750;

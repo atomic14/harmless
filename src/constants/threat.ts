@@ -129,6 +129,13 @@ export const PRIZE_SATURATION = 25000;
  * the source's.
  */
 export const DEFENCE_WEIGHT = 12;
+/**
+ * The weight on how hard a hull hits back (`laserPower`), the third field of
+ * `sourceThreatScore`. The comment on `DEFENCE_WEIGHT` above explains all
+ * three weights.
+ *
+ * @rule threat.laserWeight
+ */
 export const LASER_WEIGHT = 8;
 
 /**

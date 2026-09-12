@@ -15,8 +15,13 @@
 //
 //   1. the gunsight lamp;
 //   2. where the laser beams meet;
-//   3. the prompt line;
-//   4. the dashboard frame.
+//   3. the offers the situation raises (`prompts.ts`);
+//   4. the dashboard frame, and the buttons over the view.
+//
+// WHAT A BUTTON SAYS IS `cockpit-buttons.ts`'s, since docs/TODO/206 M5. This
+// file reads the world and hands that file what it read. The split came when
+// this one crossed the size ceiling. The buttons are a subject of their own:
+// three columns of words, and no world.
 //
 // Each one reads the world and returns a picture. Not one of them decides
 // anything.
@@ -31,8 +36,14 @@ import { Hud } from '../hud/hud.ts';
 import { flightPrompts, type Prompt } from './prompts.ts';
 import { hitCone } from './gunnery.ts';
 import { viewDirection } from './views.ts';
-import { keyIfBound } from '../ui/key-help.ts';
-import type { ControlMode } from './controls.ts';
+import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
+import type { HudButton } from '../hud/hud-buttons.ts';
+import type { CoursePanel } from './course-actions.ts';
+import { ROLL_STRIP_CODE } from './bindings.ts';
+import { actionButtonsFor, courseButtonsFor, offerButtons } from './cockpit-buttons.ts';
+import type { TargetPanel } from './target-actions.ts';
+import { keymap } from '../engine/keymap.ts';
+import type { Command, ControlMode } from './controls.ts';
 import type { ExerciseStrip } from './combat-sim-strip.ts';
 import type { Ordnance } from './ordnance.ts';
 import type { Presentation } from '../engine/shell.ts';
@@ -54,7 +65,7 @@ import { BEAM_Z } from '../engine/render-stack.ts';
  * The fourth is the sight lamp, which lives on the shell.
  *
  * `inFlight` REPLACES THREE READS OF `mode`, and they were the same question
- * asked three times. The sight, the prompt line and the dashboard each tested
+ * asked three times. The sight, the offers and the dashboard each tested
  * `mode === 'flight'`. One host method now, so the three cannot drift apart.
  *
  * `view` IS A METHOD RATHER THAN A CONSTRUCTOR ARGUMENT, and boot order is why.
@@ -73,6 +84,10 @@ export interface CockpitHost {
   setSightLit(on: boolean): void;
   /** the eye and the beams parented to it, from `Shell.view` */
   view(): Presentation;
+  /** what the course buttons show, or null where there are none (docs/TODO/205 M5) */
+  coursePanel(): CoursePanel | null;
+  /** what the target buttons show, or null where there are none (docs/TODO/206 M3) */
+  targetPanel(): TargetPanel | null;
 }
 
 export class CockpitView {
@@ -168,8 +183,9 @@ export class CockpitView {
   }
 
   /**
-   * The prompt line: what a key can do about the situation, with the key the
-   * table really binds in front of it.
+   * The offers as text: what a key can do about the situation, with the key
+   * the table really binds in front of it. The cockpit paints them as buttons
+   * (`promptButtons`), and the tests read them here.
    *
    * The join between a pure rule and invariant 9. `prompts.ts` decides WHICH
    * commands are worth an offer, and what each is worth right now. `boundKey`
@@ -184,7 +200,59 @@ export class CockpitView {
    * scrape of the painted line. `jettisonCargo` is driven directly the same
    * way.
    */
+  /**
+   * Both button columns as the HUD paints them this frame.
+   *
+   * @internal — public so that test/run-and-offers.test.ts reads the buttons
+   * without a scrape of the page.
+   */
+  buttons(): { courses: HudButton[]; actions: HudButton[] } {
+    return { courses: this.courseButtons(), actions: this.actionButtons() };
+  }
+
+  /** The pilot's buttons, in flight only (docs/TODO/206 M3). */
+  private actionButtons(): HudButton[] {
+    const mode = this.host.controlMode();
+    if (!this.host.inFlight() || !mode) return [];
+    const key = (c: Command): string | null => keyCodeIfBound(mode, c);
+    return actionButtonsFor({
+      fireKey: keymap().fire[0] ?? null,
+      missiles: this.state.commander.missiles,
+      armed: this.ordnance.armed,
+      locked: this.ordnance.targetLock !== null,
+      armKey: key('armMissile'),
+      launchKey: key('launchMissile'),
+      ecmKey: this.state.commander.equipment.ecm ? key('fireEcm') : null,
+      missileInbound: this.ordnance.missileInbound,
+      trial: this.state.session.dockTrial,
+      rails: this.state.session.dockRails,
+      accelKey: keymap().accel[0] ?? null,
+      decelKey: keymap().decel[0] ?? null,
+      rollStripCode: ROLL_STRIP_CODE,
+      targets: this.host.targetPanel(),
+    });
+  }
+
+  /** The course buttons, in flight only. */
+  private courseButtons(): HudButton[] {
+    const panel = this.host.inFlight() ? this.host.coursePanel() : null;
+    if (!panel) return [];
+    const mode = this.host.controlMode();
+    return [
+      ...courseButtonsFor(panel, mode ? keyCodeIfBound(mode, 'openLocalChart') : null),
+      ...(mode ? offerButtons(this.offers(), mode) : []),
+    ];
+  }
+
   keyPrompts(): string[] {
+    return this.offers().flatMap((p) => {
+      const line = this.renderPrompt(p);
+      return line ? [line] : [];
+    });
+  }
+
+  /** The commands worth an offer right now, in flight only. */
+  private offers(): Prompt[] {
     const mode = this.host.controlMode();
     if (!this.host.inFlight() || !mode) return [];
     return flightPrompts({
@@ -202,9 +270,6 @@ export class CockpitView {
       stationDistance: this.state.player.position
         .distanceTo(this.state.world.station.position),
       dcEngaged: this.state.session.dcEngaged,
-    }).flatMap((p) => {
-      const line = this.renderPrompt(p);
-      return line ? [line] : [];
     });
   }
 
@@ -253,10 +318,13 @@ export class CockpitView {
       inFlight: this.host.inFlight(),
       witchspace: this.state.session.witchspace,
       assist: this.state.session.ccEngaged,
+      trial: this.state.session.dockTrial,
+      rails: this.state.session.dockRails,
       ecmDetected: this.state.ecmDetectedTimer > 0,
       messageText: this.state.session.messageText,
       messageTimer: this.state.session.messageTimer,
-      prompts: this.keyPrompts(),
+      courses: this.courseButtons(),
+      actions: this.actionButtons(),
       // Null in career flight. It is gated on the same `active` that gives the
       // exercise the keyboard (controlMode). The strip is the exercise's own
       // view of itself, not a second opinion about one.

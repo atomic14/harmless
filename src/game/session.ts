@@ -5,6 +5,8 @@
 // walks it generically. So a new field here saves itself, and there is no list
 // to keep in step.
 
+import type { CourseKind } from './courses.ts';
+
 /**
  * The flight session: every flag and timer that describes the moment.
  *
@@ -87,6 +89,45 @@ export interface SessionState {
   ccEngaged: boolean;
   beamTimer: number;
   dcEngaged: boolean;
+  /**
+   * The course the pilot picked, or null for none (docs/TODO/205 M3). It is
+   * saved state, because it decides what flies the ship. The list it came
+   * from is derived, and nothing saves that (courses.ts).
+   */
+  course: CourseKind | null;
+  /** the courses this visit already finished, so the list leaves them out */
+  coursesDone: CourseKind[];
+  /**
+   * The pilot took the controls with a flight key (docs/TODO/206 M2). Until
+   * the pilot picks a course or a target, no computer takes the stick back:
+   * not a course, and not the aim in a fight. It is saved, because it
+   * decides who flies.
+   */
+  handFlown: boolean;
+  /**
+   * The pilot flies the last of the approach (docs/TODO/207). The computer
+   * holds the ship on the slot axis, and the pilot matches the station's spin
+   * and the speed. It is saved, because it decides who flies.
+   */
+  dockTrial: boolean;
+  /**
+   * The ship is on the rails, and the pilot flies the mini game
+   * (docs/TODO/212). It is the second half of `dockTrial`. The first half is
+   * the computer's, and it lines the ship up. It is saved, as `dockTrial` is.
+   */
+  dockRails: boolean;
+}
+
+/**
+ * A visit to a system ends: at a dock, and at an arrival somewhere else. The
+ * picked course and the finished ones belong to the visit, so both go.
+ */
+export function endVisit(state: SessionState): void {
+  state.course = null;
+  state.coursesDone = [];
+  state.handFlown = false;
+  state.dockTrial = false;
+  state.dockRails = false;
 }
 
 /** Put a message in canonical state; the HUD only paints these fields. */

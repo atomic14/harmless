@@ -29,13 +29,19 @@
       </div>
       <div id="message"></div>
       <!--
-        What a key can do about what is happening right now — see
-        game/prompts.ts, which decides WHICH commands, and game.ts, which puts
-        the bound key in front of each. A line of its own rather than the
-        message line, because a prompt is true while the situation is and the
-        console is deliberately one line.
+        The course buttons (docs/TODO/205 M5): where the ship goes next. A
+        click or a tap sends the button's data-key, as a menu row does, and
+        hud/hud-buttons.ts paints them. They sit outside the console, which is
+        read and never touched.
       -->
-      <div id="prompts"></div>
+      <div id="courses"></div>
+      <!--
+        The pilot's buttons (docs/TODO/206 M3): the laser, the missile, the
+        E.C.M. and the target list. Bottom right, above the console, where a
+        thumb reaches. The laser button holds its key while it is held
+        (engine/hold-buttons.ts). The rest send their data-key on a click.
+      -->
+      <div id="actions"></div>
       <!--
         The exercise strip: shown for as long as a training exercise is being
         flown, and never in career flight. Painted by hud/hud.ts from the
@@ -55,7 +61,11 @@
       <div id="damage-flash"></div>
       <div id="hud">
         <div class="hud-panel hud-left">
-          <div class="gauge"><label>FWD SPEED</label><div class="bar"><div id="g-speed" class="fill"></div></div></div>
+          <!--
+            The mark on the speed bar is the fastest the slot will take
+            (docs/TODO/207 M3). hud/hud.ts places it from the rule itself.
+          -->
+          <div class="gauge"><label>FWD SPEED</label><div class="bar"><div id="g-speed" class="fill"></div><div id="g-speed-limit" class="limit"></div></div></div>
           <div class="gauge"><label>ROLL</label><div class="bar centered"><div id="g-roll" class="marker"></div></div></div>
           <div class="gauge"><label>PITCH</label><div class="bar centered"><div id="g-pitch" class="marker"></div></div></div>
           <div class="gauge"><label>FORE SHLD</label><div class="bar"><div id="g-fore" class="fill"></div></div></div>

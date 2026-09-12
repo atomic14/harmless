@@ -40,8 +40,6 @@ import { COMMAND_HELP } from '../game/command-help.ts';
 // consequences. The complete key map is the `?` guide and the manual.
 const KEY = {
   help: boundKey('docked', 'toggleHelp'),
-  jump: boundKey('flight', 'startHyperspace'),
-  torus: boundKey('flight', 'toggleTorus'),
   dockingComputer: boundKey('flight', 'toggleDockingComputer'),
   jettison: boundKey('flight', 'jettison1'),
   ecm: boundKey('flight', 'fireEcm'),
@@ -89,47 +87,61 @@ export const BRIEFING: { title: string; body: string }[] = [
     body: `Open <b>${ROW.localChart}</b> on the station menu.<br/><br/>
       The dashed circle is how far your fuel will take you — ${MAX_FUEL / 10} light years on a
       full tank. Anything inside it you can reach.<br/><br/>
-      Move the cursor with the <b>arrow keys</b>, press <b>ENTER</b> to set your
-      target, <b>D</b> for a full report on a world, and <b>F</b> to search by
-      name. Look for an economy opposite to this one.`,
+      Click or tap a world to set your target. You can also move the cursor
+      with the <b>arrow keys</b> and press <b>ENTER</b>. <b>D</b> gives a full
+      report on a world, and <b>F</b> searches by name. Look for an economy
+      opposite to this one.`,
   },
   {
     title: 'FLY THERE',
-    body: `<b>${ROW.launch}</b> from the station menu, then <b>${KEY.jump}</b>
-      to jump once you are clear of the station. The game saves on its own: a checkpoint at
-      every docking, and an autosave every ${AUTOSAVE_INTERVAL} seconds in
-      flight.<br/><br/>
-      You come out of hyperspace a long way from the planet. Point at it and
-      press <b>${KEY.torus}</b> for the torus drive — ${TORUS_MULTIPLIER} times speed. It cuts out near
-      anything with mass: a planet, a station, or somebody who has come to meet
-      you.<br/><br/>
+    body: `Press <b>${ROW.launch}</b> on the station menu. The station asks
+      where you want to go: choose <b>JUMP TO</b> your target, and the ship
+      leaves and makes the jump by itself. The game saves on its own: a
+      checkpoint at every docking, and an autosave every ${AUTOSAVE_INTERVAL}
+      seconds in flight.<br/><br/>
+      You come out of hyperspace a long way from the planet. The buttons at
+      the top right show where the ship can go. Choose
+      <b>FLY TO THE STATION</b> and it flies there on the torus drive, at
+      ${TORUS_MULTIPLIER} times speed. The drive cuts out near anything with mass: a planet, a
+      station, or somebody who has come to meet you. <b>FAST FORWARD</b> makes
+      the trip quicker while nothing hostile is near.<br/><br/>
       Watch the scanner in the middle of the console. You are the centre. Red
-      contacts are hostile.`,
+      contacts are hostile. Press a steering key at any time and you fly the
+      ship by hand.`,
   },
   {
     title: 'A FIGHT',
-    body: `Sooner or later somebody opens fire. Your laser shoots straight
-      ahead: put them in the crosshair and hold the trigger — the stick and
-      trigger depend on your keyboard layout, and <b>${KEY.help}</b> shows
-      yours. Lasers overheat; short bursts.<br/><br/>
-      <b>${KEY.armMissile}</b> arms a missile, which locks when a target
-      crosses your sights; <b>${KEY.fireMissile}</b> fires it.<br/><br/>
-      Kills raise your rating toward <b>Elite</b>. If the fight goes badly, run
-      — and if the worst happens, death puts you back at the last station you
-      docked at, without the flight you were on.`,
+    body: `Sooner or later somebody opens fire. The computer takes the stick
+      and lines the ship up. The shooting is yours: hold
+      <b>FIRE LASER</b> at the bottom right, and keep the bursts short,
+      because lasers overheat. <b>TARGETS</b> above it lists what is out
+      there, and a row sends the computer after that one.<br/><br/>
+      <b>ARM A MISSILE</b> arms one, and it locks when a ship crosses your
+      sights. Press it again to fire. A missile costs money, so the computer
+      never spends one for you. <b>E.C.M.</b> destroys a missile coming at
+      you.<br/><br/>
+      Kills raise your rating toward <b>Elite</b>. If the fight goes badly,
+      <b>RUN FOR IT</b> is on the left, with the offers that fit: pay a patrol
+      off, or throw cargo to a pirate. Press a steering key at any time and
+      you fly the ship yourself. If the worst happens,
+      death puts you back at the last station you docked at, without the
+      flight you were on.`,
   },
   {
     title: 'DOCKING',
     body: `The hard part, and everybody finds it hard at first.<br/><br/>
-      The station <b>rotates</b>, and so does its docking port. An amber marker
-      shows where the port is, with an arrow at the edge of the screen when it
-      is behind you.<br/><br/>
-      Get onto the axis straight out from the port, then <b>roll until you match
-      its rotation</b> — the opening is a letterbox and you must be the same way
-      up as it. Then go in slowly. The marker turns green when you are lined
-      up.<br/><br/>
-      When you can afford one, buy a <b>docking computer</b> and press
-      <b>${KEY.dockingComputer}</b>.`,
+      The station <b>rotates</b>, and so does its docking port. Choose
+      <b>FLY TO THE STATION</b> and the ship flies the approach for you. Near
+      the port it hands you the last stretch, and two things are then
+      yours.<br/><br/>
+      The first is the <b>roll</b>: the opening is a letterbox, and you must be
+      the same way up as it. Drag the strip at the bottom right, or use your
+      roll keys. The second is the <b>speed</b>: hold <b>THRUST</b> or
+      <b>BRAKE</b>, and cross the mark on the speed bar before you go in. The
+      port marker turns green when you are lined up.<br/><br/>
+      Get it wrong and you scrape the hull, bounce clear and try again. When
+      you can afford one, buy a <b>docking computer</b> and press
+      <b>${KEY.dockingComputer}</b>: it flies the slot for you.`,
   },
   {
     title: 'STAYING ALIVE',

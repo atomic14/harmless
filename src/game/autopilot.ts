@@ -36,6 +36,7 @@ import type { FlightDemand } from '../player.ts';
 import type { Brain } from '../ai-training/policy.ts';
 import type { V3 } from '../ai-training/observation.ts';
 import { hostilesNear } from './hostility.ts';
+import { pickedTarget } from './targets.ts';
 import { defenceBrainNameFor } from './brain-names.ts';
 import type { CombatComputer } from './combat-computer.ts';
 import { ScriptedCoPilot } from './scripted-co-pilot.ts';
@@ -119,6 +120,26 @@ export class Autopilot {
   }
 
   /**
+   * A course hands the ship to the docking computer (docs/TODO/205 M3).
+   *
+   * It needs no fitted computer, and that is a stopgap. Until docs/TODO/207
+   * gives the pilot a trial at the slot, a course to the station ends in a
+   * free dock. The course asks only inside `DOCK_COMPUTER_RANGE`, so the range
+   * refusal of `toggleDocking` cannot arise here.
+   */
+  handOverToDock(): AutopilotEvent[] {
+    const s = this.state;
+    if (s.session.dcEngaged) return [];
+    s.session.dcEngaged = true;
+    s.dockPlan.phase = 'gate';
+    return [
+      say('DOCKING COMPUTER ENGAGED', 2),
+      { kind: 'sound', name: 'dockingComputerEngaged' },
+      { kind: 'dockingMusic', on: true },
+    ];
+  }
+
+  /**
    * How far the commander is from the station, for the station's truce
    * (`truceHolds`, law.ts).
    *
@@ -132,24 +153,60 @@ export class Autopilot {
   }
 
   /**
-   * The combat computer, on or off.
+   * Is there a fight for the computer to line the ship up in? A hostile ship
+   * near, by the condition light's own rule, or a target the pilot picked.
+   */
+  private fightOn(): boolean {
+    const s = this.state;
+    return pickedTarget(s.world.npcs) !== null || hostilesNear(
+      s.world.npcs, s.player.position, s.commander.legalStatus, this.playerToStation);
+  }
+
+  /**
+   * A fight starts, and the computer takes the stick to line the ship up
+   * (docs/TODO/206 M2). Every pilot gets the aim now. The bought combat
+   * computer adds the trigger and the E.C.M., and the Game applies those.
+   *
+   * It does nothing while the pilot flies by hand. A flight key set that, and
+   * a pick of a course or a target clears it. So a pilot who takes the stick
+   * keeps it (Chris, 2026-09-11: *"hitting the keyboard will take control
+   * during combat"*).
+   */
+  autoEngage(): AutopilotEvent[] {
+    const s = this.state;
+    if (s.session.ccEngaged || s.session.handFlown || !this.fightOn()) return [];
+    // A ship that runs does not turn to fight (docs/TODO/206 M5).
+    if (s.session.course === 'run') return [];
+    // The LIVE BRAINS row can set the co-pilot to NONE outright.
+    if (defenceBrainNameFor(s.brains) === 'scripted') return [];
+    s.session.ccEngaged = true;
+    s.session.view = 0; // it aims the front laser
+    // NO CONSOLE LINE. A fight starts at the very moment the lines that
+    // matter arrive, such as what a shot cost the commander. The label over
+    // the view says that the computer aims, and the sound marks the moment.
+    return [{ kind: 'sound', name: 'combatComputerEngaged' }];
+  }
+
+  /**
+   * The computer's aim, on or off, on its key.
+   *
+   * Every pilot has the aim since docs/TODO/206, so an unfitted ship no longer
+   * refuses. Off hands the controls to the pilot, and the computer then waits
+   * to be asked. On hands the stick back.
    *
    * It refuses to engage with nothing to fight, and that is not a limitation.
-   * The policy trained to fly a defence. In an empty sky it would merely hold
-   * the ship, while the player wondered why the controls felt odd.
+   * In an empty sky it would merely hold the ship, while the player wondered
+   * why the controls felt odd.
    */
   toggleCombat(): AutopilotEvent[] {
     const s = this.state;
-    if (!s.commander.equipment.combatComputer) {
-      return [say('NO COMBAT COMPUTER FITTED', 3), REFUSED];
-    }
     if (s.session.ccEngaged) {
       s.session.ccEngaged = false;
-      return [say('COMBAT COMPUTER OFF', 2)];
+      s.session.handFlown = true;
+      return [say('YOU HAVE THE CONTROLS', 2)];
     }
-    if (!hostilesNear(
-      s.world.npcs, s.player.position, s.commander.legalStatus, this.playerToStation)) {
-      return [say('NO HOSTILES — COMBAT COMPUTER IDLE', 3), REFUSED];
+    if (!this.fightOn()) {
+      return [say('NOTHING TO FIGHT', 3), REFUSED];
     }
     // The LIVE BRAINS row can set the co-pilot to NONE outright. A refusal
     // here, in the row's own words, beats a pilot that engages and hands back
@@ -158,9 +215,10 @@ export class Autopilot {
       return [say('COMBAT COMPUTER SET TO NONE — SEE THE COMBAT TRAINER', 4), REFUSED];
     }
     s.session.ccEngaged = true;
+    s.session.handFlown = false;
     s.session.view = 0; // it aims the front laser
     return [
-      say('COMBAT COMPUTER ENGAGED — ANY FLIGHT KEY OVERRIDES', 4),
+      say('THE COMPUTER IS LINING YOU UP — A FLIGHT KEY TAKES THE CONTROLS', 4),
       { kind: 'sound', name: 'combatComputerEngaged' },
     ];
   }
@@ -187,6 +245,7 @@ export class Autopilot {
       missilePos, this.playerToStation);
     if (step.kind === 'disengage') {
       s.session.ccEngaged = false;
+      if (handsOn) s.session.handFlown = true;
       return {
         demand: null,
         ecm: false,
@@ -212,9 +271,10 @@ export class Autopilot {
     const s = this.state;
     const step = this.scripted.step(
       dt, s.player, s.world.npcs, s.commander.legalStatus, handsOn, missilePos,
-      this.playerToStation);
+      this.playerToStation, pickedTarget(s.world.npcs));
     if (step.kind === 'disengage') {
       s.session.ccEngaged = false;
+      if (handsOn) s.session.handFlown = true;
       return {
         demand: null,
         ecm: false,

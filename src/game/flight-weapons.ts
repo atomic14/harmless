@@ -190,7 +190,7 @@ export class Weapons {
     if (!reply) return;
     const m = ordnanceMessage(reply);
     // A refusal with an answer names the COMMAND (ordnance.ts); the letter is
-    // this side's business, from the same table the prompt line reads.
+    // this side's business, from the same table the offer buttons read.
     const offer = m.offer ? this.cockpit.renderPrompt(m.offer) : null;
     this.host.showMessage(offer ? `${m.text} — ${offer}` : m.text, m.seconds);
   }

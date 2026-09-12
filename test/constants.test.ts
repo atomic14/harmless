@@ -191,9 +191,11 @@ const OUTSIDE: readonly Group[] = [
       + ' here). The conversion is done at the call site rather than by adding a'
       + ' second spelling of amber to the palette. Its `ZERO` scratch vector went'
       + ' with the docking computer\'s `lookAt` (docs/TODO/126): the autopilot builds'
-      + ' no orientation of its own any more, so there is nothing to look FROM',
+      + ' no orientation of its own any more, so there is nothing to look FROM.'
+      + ' `SCRAPE_SAID` is words rather than a number: what the console says'
+      + ' about a dock that did not take (docs/TODO/207 M3)',
     files: {
-      'game/world-step.ts': ['WARHEAD_FLASH'],
+      'game/world-step.ts': ['WARHEAD_FLASH', 'SCRAPE_SAID'],
     },
   },
 
@@ -391,6 +393,33 @@ const OUTSIDE: readonly Group[] = [
   },
 
   {
+    why: 'STAYS: not a number at all. It is the step a course pilot returns when'
+      + ' it asks for nothing, one ready-made object so a frame allocates none'
+      + ' (docs/TODO/205 M3). The one tunable, the torus cone, is'
+      + ' constants/course.ts',
+    files: {
+      'game/course-pilot.ts': ['IDLE'],
+    },
+  },
+
+  {
+    why: 'STAYS: words, not a number. What the console says when a course'
+      + ' finishes its work (docs/TODO/205 M3), beside the switch that says it.'
+      + ' What a course button says while it flies, and what a jump row says'
+      + ' when the ship cannot jump, beside the rule that raises them (M5).'
+      + ' KINDS is the list of courses, read off the codes that name them',
+    files: {
+      'game/flight-course.ts': ['COURSE_ENDS'],
+      'game/courses.ts': ['COURSE_NAMES', 'JUMP_WHY'],
+      'game/course-actions.ts': ['KINDS'],
+      // what each role is called on the target list (docs/TODO/206 M1)
+      'game/targets.ts': ['STANDING'],
+      // what a derelict's scan reports, read off the world's seed (docs/TODO/208 M5)
+      'game/derelict.ts': ['REPORTS'],
+    },
+  },
+
+  {
     why: 'STAYS: how the launch/docking tunnel effect LOOKS — the ellipse squash that'
       + ' reads as a bay mouth, and two fractions of the effect\'s own timeline. Pure'
       + ' drawing under the item\'s is-it-the-game-or-how-it-looks test: nothing outside'
@@ -439,9 +468,11 @@ const OUTSIDE: readonly Group[] = [
       // the one sentence the guide and the manual say about the station menu (docs/TODO/202)
       'ui/key-help.ts': ['LABELS', 'ALL_BINDINGS', 'STATION_MENU_NOTE'],
       'game/command-help.ts': ['COMMAND_HELP'],
+      // ...and the codes a course row sends, on both of its surfaces (docs/TODO/205 M4)
       'game/bindings.ts': [
         'GLOBAL_BINDINGS', 'FLIGHT_BINDINGS', 'NOT_IN_THE_SIMULATOR', 'BINDINGS',
-        'WHILE_PAUSED',
+        'WHILE_PAUSED', 'COURSE_KEYS', 'COURSE_CHART_KEY', 'COURSE_STOP_KEY', 'COURSE_SKIP_KEY',
+        'TARGETS_KEY', 'TARGET_NONE_KEY', 'TARGET_ROW_PREFIX', 'ROLL_STRIP_CODE',
       ],
       'game/screens/save-transfer.ts': ['NOT_A_SAVE', 'WRONG_VERSION', 'STORE_FULL'],
       'engine/keymap.ts': ['LAYOUTS', 'STORAGE_KEY'],

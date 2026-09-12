@@ -80,7 +80,7 @@ console.log('\nthe console plate goes with its words');
       viewDir: V(0, 0, -1),
       missiles: [], canisters: [], targetLock: null, inFlight: false,
       exercise: null,
-      prompts: [],
+      courses: [], actions: [], trial: false,
       messageText,
       messageTimer,
     } as unknown as Parameters<typeof buildHudFrame>[0], {

@@ -54,6 +54,8 @@ export const MIN_OPENING_RANGE = 2 * PASS_FAR;
  * nose, and the nearest is 4.4. That is inside the canopy, and off-centre enough
  * that a gang is a spread rather than a stack. The 1.45 is
  * `OPPOSITION_CONE_FAR`, the spawner's widest fraction.
+ *
+ * @rule exercise.openingConeDeg
  */
 export const OPENING_CONE_DEG = 8;
 
@@ -82,7 +84,9 @@ export const IN_VIEW_DEG = 20;
 /** Where the exercise starts you, as a fraction of the ship's top speed. */
 export const ENTRY_THROTTLE = 0.25;
 
-/** Seconds a scenario exercise may run before it times out. */
+/** Seconds a scenario exercise may run before it times out.  *
+ * @rule exercise.scenarioTimeout
+*/
 export const SCENARIO_TIMEOUT = 120;
 
 /**
