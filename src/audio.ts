@@ -124,8 +124,8 @@ function sweep(
 }
 
 /** The common square-wave voice used by the named interface sounds below. */
-function tone(frequency: number, duration = 0.08, gain = 0.08): void {
-  sweep('square', frequency, frequency, duration, gain);
+function tone(frequency: number, duration = 0.08, gain = 0.08, at = 0): void {
+  sweep('square', frequency, frequency, duration, gain, undefined, at);
 }
 
 function noiseBurst(duration: number, gain: number, lowpass = 4000, place?: Place): void {
@@ -209,19 +209,18 @@ export const sfx = {
    * prints no console line, because the lines that matter arrive at the same
    * moment (autopilot.ts).
    *
-   * TWO SOFT PINGS, and it was one hard beep (Chris, 2026-09-12: *"The alarm
-   * sound for a pirate is a bit too much. I think a simple couple of pings
-   * would do."*). It was a 1000 Hz SQUARE wave for 0.12 seconds at the standard
-   * gain. A square wave at 1000 Hz sits in the ear's most sensitive band, and it
-   * carries every odd harmonic above that. So it reads as a klaxon.
+   * A COUPLE OF BEEPS, and it was one long one (Chris, 2026-09-12: *"The alarm
+   * sound for a pirate is a bit too much"*, then *"I just want a couple of
+   * beeps"*). It was 1000 Hz for 0.12 seconds. That is half again as long as the
+   * standard beep, near the top of the range the ear is sharpest in.
    *
-   * A sine carries no harmonics at all, which is the difference between a buzz
-   * and a ping. Two of them rising a fourth say ATTENTION where one says ALARM,
-   * and each is shorter and quieter than the beep it replaces.
+   * These are the standard beep, twice, at 800 Hz. Same square voice and same
+   * gain as every other named occasion, so it sits in the family rather than
+   * over it.
    */
   combatComputerEngaged(): void {
-    sweep('sine', 880, 880, 0.05, 0.05);
-    sweep('sine', 1175, 1175, 0.05, 0.05, undefined, 0.09);
+    tone(800, 0.06);
+    tone(800, 0.06, 0.08, 0.12);
   },
   stationDefenceLaunched(): void { tone(300, 0.18); },
   cargoLost(): void { tone(300, 0.12); },

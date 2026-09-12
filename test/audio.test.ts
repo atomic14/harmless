@@ -57,30 +57,29 @@ for (const [name, [frequency, duration]] of Object.entries(expected)) {
   eq(`${name} keeps the standard gain`, peak(tone), 0.08);
 }
 
-// THE FIGHT CUE IS TWO PINGS, and it was one beep. Chris, 2026-09-12: *"The
-// alarm sound for a pirate is a bit too much. I think a simple couple of pings
-// would do."* It was 1000 Hz square for 0.12s at the standard gain, which is a
-// klaxon: that band is where the ear is sharpest, and a square wave carries
-// every odd harmonic above it.
+// THE FIGHT CUE IS A COUPLE OF BEEPS, and it was one long one. Chris,
+// 2026-09-12: *"The alarm sound for a pirate is a bit too much"*, then *"I just
+// want a couple of beeps"*. It was 1000 Hz for 0.12s, half again as long as the
+// standard beep and near the top of the band the ear is sharpest in.
 //
-// It is the one named occasion that is not a single square tone, so it leaves
-// the table above and asserts its own claim: two SINE voices, each shorter and
-// quieter than the beep, the second after the first rather than over it.
+// It is the one named occasion made of more than one voice, so it leaves the
+// table above and asserts its own claim. Everything else about it is the house
+// beep: the same square voice, and the same gain.
 {
   tones.length = 0;
   sfx.combatComputerEngaged();
   const cue = [...tones];
-  eq('the fight cue is two voices', cue.length, 2);
-  check('...both sine, so neither buzzes', cue.every((t) => t.type === 'sine'),
+  eq('the fight cue is two beeps', cue.length, 2);
+  check('...both the house square voice', cue.every((t) => t.type === 'square'),
     cue.map((t) => t.type).join(','));
-  check('...each well under the 0.12s beep it replaced',
-    cue.every((t) => t.duration <= 0.06), cue.map((t) => t.duration).join(','));
-  check('...and quieter than the standard gain',
-    cue.every((t) => peak(t) < 0.08), cue.map((t) => peak(t)).join(','));
-  check('the second ping rises above the first',
-    cue.length === 2 && cue[1].frequency > cue[0].frequency,
+  check('...at the standard gain, like every other named occasion',
+    cue.every((t) => peak(t) === 0.08), cue.map((t) => peak(t)).join(','));
+  check('...the same pitch, so it reads as one cue rather than two events',
+    cue.length === 2 && cue[0].frequency === cue[1].frequency,
     cue.map((t) => t.frequency).join(' then '));
-  check('...and lands after it, rather than on top of it',
+  check('...each shorter than the 0.12s beep it replaced',
+    cue.every((t) => t.duration <= 0.08), cue.map((t) => t.duration).join(','));
+  check('...and the second lands after the first, not over it',
     cue.length === 2 && cue[1].at >= cue[0].at + cue[0].duration,
     cue.map((t) => `${t.at}+${t.duration}`).join(' then '));
 }
