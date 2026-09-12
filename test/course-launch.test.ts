@@ -48,10 +48,11 @@ function reachable(g: Game): number {
   press(g, COURSE_KEYS.jump);
   eq('a jump with no target refuses, and the ship stays on the pad', g.mode, 'courses');
   eq('...and the console says what to do', g.state.session.messageText,
-    'CHOOSE A SYSTEM ON THE GALACTIC CHART FIRST');
+    'CHOOSE A SYSTEM ON THE LOCAL CHART FIRST');
 
   press(g, COURSE_CHART_KEY);
-  eq('the chart row opens the galactic chart', g.mode, 'chart');
+  eq('the chart row opens the local chart, which shows what the tank reaches',
+    g.mode, 'local');
   press(g, 'Escape');
   eq('...and ESC from the chart comes back to the list', g.mode, 'courses');
 

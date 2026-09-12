@@ -238,7 +238,7 @@ export class CockpitView {
     if (!panel) return [];
     const mode = this.host.controlMode();
     return [
-      ...courseButtonsFor(panel, mode ? keyCodeIfBound(mode, 'openChart') : null),
+      ...courseButtonsFor(panel, mode ? keyCodeIfBound(mode, 'openLocalChart') : null),
       ...(mode ? offerButtons(this.offers(), mode) : []),
     ];
   }

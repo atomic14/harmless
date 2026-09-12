@@ -173,7 +173,7 @@ function jumpRow(w: CourseWorld, launch: boolean): Course | null {
  * own shorter refusal, `refusalMessage` in `hyperspace.ts`.
  */
 const JUMP_WHY: Readonly<Record<Refusal, string>> = {
-  noTarget: 'CHOOSE A SYSTEM ON THE GALACTIC CHART FIRST',
+  noTarget: 'CHOOSE A SYSTEM ON THE LOCAL CHART FIRST',
   noFuel: 'NOT ENOUGH FUEL TO GET THERE',
   alreadyJumping: 'THE JUMP HAS STARTED',
 };

@@ -3,7 +3,7 @@
 // The station menu's LAUNCH row opens it. Each row is one course from
 // `courses.ts`, and a pick leaves the station on it. A row the ship cannot fly
 // says why, and a pick of it refuses. So a ship with no target and no work
-// cannot leave. The last row opens the galactic chart, where the pilot sets a
+// cannot leave. The last row opens the local chart, where the pilot sets a
 // target, and ESC from the chart comes back here.
 //
 // The screen decides nothing itself. `course-actions.ts` applies a pick, the
@@ -49,7 +49,10 @@ export class CoursesScreen implements Screen {
         return 'stay';
       }
     }
-    if (i.pressed(COURSE_CHART_KEY)) return { open: 'chart' };
+    // The LOCAL chart, because it shows what the tank can reach (Chris,
+    // 2026-09-12). The galactic chart is the wider view, and a destination
+    // is picked from the short one.
+    if (i.pressed(COURSE_CHART_KEY)) return { open: 'local' };
     if (i.pressed('Escape')) return 'back';
     return 'stay';
   }

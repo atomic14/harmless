@@ -469,3 +469,12 @@ The measurements: the station course docked 50 of 50 trips, with a median of
 20 of 20, 20 of 20 and 40 of 40 times. The dock probe docked 504 of 504
 approaches with no scrape. The suite has 5,733 assertions, from 5,619 before
 204.
+
+## After it landed
+
+**The chart row is the LOCAL chart** (Chris, 2026-09-12: *"The local chart
+should be used for setting a destination, not the galactic chart."*). The
+launch list's row, the button in flight, and the jump row's reason all name
+it now. The local chart shows what the tank can reach, which is the question
+a destination answers. The galactic chart is the wider view, and it keeps its
+own key and its own row on the station menu.

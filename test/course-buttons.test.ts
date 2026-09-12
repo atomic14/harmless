@@ -10,6 +10,7 @@ import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { COURSE_KEYS, COURSE_TOGGLE_KEY } from '../src/game/bindings.ts';
 import { courseButtonsFor } from '../src/game/cockpit-buttons.ts';
+import { keyCodeIfBound } from '../src/ui/key-help.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe course buttons in flight');
@@ -61,13 +62,22 @@ function press(g: Game, code: string): void {
   press(g, COURSE_TOGGLE_KEY);
   check('that button opens the list again over the course', (g.coursePanel()?.rows?.length ?? 0) > 0);
   check('...and the list ends with a button that closes it',
-    courseButtonsFor(g.coursePanel()!, 'KeyG').at(-1)?.label === 'CLOSE');
+    courseButtonsFor(g.coursePanel()!, 'KeyN').at(-1)?.label === 'CLOSE');
 
   g.state.commander.equipment.scoops = true;
   g.state.commander.fuel = 10;
   press(g, COURSE_KEYS.skim);
   eq('another button changes the course', g.state.session.course, 'skim');
   eq('...and folds the list away again', g.coursePanel()?.rows ?? null, null);
+}
+
+{
+  // The chart button opens the LOCAL chart, which shows what the tank can
+  // reach (Chris, 2026-09-12).
+  const g = arrived();
+  const chart = g.hudButtons().courses.find((b) => b.label === 'LOCAL CHART');
+  eq('the list carries a button for the local chart', chart?.code,
+    keyCodeIfBound('flight', 'openLocalChart'));
 }
 
 {

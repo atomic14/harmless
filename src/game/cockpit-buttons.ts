@@ -43,7 +43,7 @@ export function courseButtonsFor(p: CoursePanel, chart: string | null): HudButto
   const out: HudButton[] = p.rows.map((c) => ({
     code: COURSE_KEYS[c.kind], label: c.what, ...(c.why === null ? {} : { note: c.why }),
   }));
-  if (chart) out.push({ code: chart, label: 'GALACTIC CHART' });
+  if (chart) out.push({ code: chart, label: 'LOCAL CHART' });
   if (p.current !== null) out.push({ code: COURSE_TOGGLE_KEY, label: 'CLOSE' });
   return out;
 }

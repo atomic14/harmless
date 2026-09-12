@@ -28,7 +28,7 @@ export function renderLaunchCourses(rows: readonly CourseRow[], chartCode: strin
     </div>
     <div class="menu course-list">
       ${rows.map(line).join('\n      ')}
-      <div data-key="${chartCode}">GALACTIC CHART &mdash; PICK A SYSTEM TO JUMP TO</div>
+      <div data-key="${chartCode}">LOCAL CHART &mdash; PICK A SYSTEM TO JUMP TO</div>
     </div>
     <div class="buttons"><button data-key="Escape">STAY DOCKED</button></div>
     <div class="keyline">TAP A ROW &middot; &uarr; &darr; SELECT &middot; ENTER CHOOSE &middot; ESC STAY DOCKED</div>
