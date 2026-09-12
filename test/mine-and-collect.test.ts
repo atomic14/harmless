@@ -122,3 +122,29 @@ function ahead(g: Game, z: number, x = 0): THREE.Vector3 {
   check('the collect course then takes the ore aboard',
     g.state.commander.cargo.reduce((a, b) => a + b, 0) > held);
 }
+
+// --- THE SHIP STOPS AT THE ROCK, IT DOES NOT DRIFT INTO IT (docs/TODO/211) --
+//
+// Chris, 2026-09-12: *"when targeting asteroids or the derelict. We fly
+// towards - and just keep flying towards until we hit it."* A trace of a
+// picked rock 53,000 units out showed the whole fault: the ship flew in at
+// 397 units a second, braked to 4.3, and then coasted the last 500 units into
+// the hull over two minutes. This flies the real game and watches the gap.
+console.log('\nthe ship stops short of a picked rock');
+{
+  const g = outThere(20_260_941);
+  const rock = g.state.world.spawn('asteroid', ahead(g, 3000), 7);
+  press(g, COURSE_KEYS.mine);
+  eq('the mining course picks the rock', pickedTarget(g.state.world.npcs), rock);
+  run(g, 60 * 90);
+  const gap = g.state.player.position.distanceTo(rock.object.position) - rock.radius;
+  check('the ship holds off the rock rather than arrive at it',
+    rock.state.alive && gap > 100, `${gap.toFixed(0)} units of clear space`);
+  check('...and it is stopped, not still closing',
+    g.state.player.speed < 1, `${g.state.player.speed.toFixed(1)} units a second`);
+  const then = g.state.player.position.distanceTo(rock.object.position);
+  run(g, 60 * 60);
+  const now = g.state.player.position.distanceTo(rock.object.position);
+  check('...and a minute later it is still there', Math.abs(now - then) < 10,
+    `${(now - then).toFixed(1)} units in a minute`);
+}

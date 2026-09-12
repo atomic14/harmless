@@ -166,7 +166,13 @@ export class ScriptedCoPilot {
       demand: {
         pitchRate: this.pitchRate,
         rollRate: this.rollRate,
-        throttle: this.pursuitThrottle(player.speed, threat.state.speed, dist, facing),
+        // THE STANDOFF IS MEASURED FROM THE HULL (docs/TODO/211). A rock is
+        // 54 units across the radius, and the derelict is 340. A range held
+        // to the centre put the commander 160 units off the derelict's hull,
+        // which reads as a ram in the window. The gun below keeps the true
+        // distance, because a shot travels to the hull by itself.
+        throttle: this.pursuitThrottle(
+          player.speed, threat.state.speed, dist - threat.radius, facing),
         // the trigger only when the shot would count: the player gun's own cone
         // and range (gunnery.ts). The laser's heat and cooldown pace it from
         // there, which is what makes this a marksman rather than a sprayer
@@ -191,6 +197,13 @@ export class ScriptedCoPilot {
   ): number {
     const want = pursuitSpeed(targetSpeed, dist, facing, PLAYER_FLIGHT.maxSpeed);
     const diff = want - ownSpeed;
+    // A STOP IS A STOP (docs/TODO/211). The deadband holds a speed steady, and
+    // it must not hold a drift. A target that sits still asks for a wanted
+    // speed of zero inside the standoff. The commander then coasted in at up
+    // to 6 units a second. A rock 500 units away took two minutes to arrive at
+    // the hull (Chris, 2026-09-12). The band applies to a speed the ship is
+    // asked to HOLD, and zero is not one.
+    if (want === 0) return ownSpeed > 0 ? -1 : 0;
     return Math.abs(diff) < PURSUIT_SPEED_DEADBAND ? 0 : Math.sign(diff);
   }
 }

@@ -20,6 +20,7 @@ import { defenceBrain } from '../src/game/brains.ts';
 import { freshState } from '../src/game/state.ts';
 import { newCommander } from '../src/game/commander.ts';
 import { seedWorld } from '../src/game/rng.ts';
+import { PURSUIT_RANGE } from '../src/constants/combat-computer.ts';
 import { check, eq } from './harness.ts';
 
 console.log('\nscripted combat computer');
@@ -174,4 +175,60 @@ console.log('\nscripted combat computer');
     check(`...and closes to gun range, not off in the distance (${finalDist.toFixed(0)} units)`,
       finalDist < LASER_RANGE);
   }
+}
+
+// --- IT STOPS AT THE STANDOFF, AND IT STOPS DEAD (docs/TODO/211) ------------
+//
+// Chris, 2026-09-12: *"when targeting asteroids or the derelict. We fly
+// towards - and just keep flying towards until we hit it. We should probably
+// stop when we are within a certain range."*
+//
+// Two faults, one report. The deadband held a DRIFT as well as a speed, so a
+// ship inside the standoff coasted on at up to 6 units a second. A trace of a
+// picked rock closed 400 units in a minute, and went on to the hull. And the
+// range was held to the target's CENTRE, which put the commander 160 units
+// off the derelict's 340 unit hull.
+console.log('\nthe co-pilot stops at the standoff');
+{
+  seedWorld(4243);
+  const state = freshState(newCommander());
+  state.world.build(state.systems[state.commander.systemIndex]);
+  state.world.clearNpcs();
+  state.player.position.set(0, 0, 0);
+  state.player.quaternion.identity();
+  const legal = state.commander.legalStatus;
+
+  // A rock that sits still, inside the standoff, with the ship drifting on.
+  const rock = state.world.spawn('asteroid', new THREE.Vector3(0, 0, -400), 1);
+  state.player.speed = 4;
+  const cp = new ScriptedCoPilot();
+  const drift = cp.step(1 / 60, state.player, state.world.npcs, legal, false, null, Infinity, rock);
+  check('inside the standoff, a drift is braked rather than held',
+    drift.kind === 'fly' && drift.demand.throttle === -1);
+
+  state.player.speed = 0;
+  const stopped = new ScriptedCoPilot()
+    .step(1 / 60, state.player, state.world.npcs, legal, false, null, Infinity, rock);
+  check('...and a ship already stopped asks for nothing',
+    stopped.kind === 'fly' && stopped.demand.throttle === 0);
+
+  // Outside the standoff it still closes.
+  rock.object.position.set(0, 0, -3000);
+  const far = new ScriptedCoPilot()
+    .step(1 / 60, state.player, state.world.npcs, legal, false, null, Infinity, rock);
+  check('outside it, the ship still closes', far.kind === 'fly' && far.demand.throttle === 1);
+
+  // The standoff clears the HULL, so a big target is not approached as a
+  // small one. The rock's own radius is what the range adds.
+  rock.object.position.set(0, 0, -(PURSUIT_RANGE + rock.radius - 50));
+  state.player.speed = 4;
+  const inside = new ScriptedCoPilot()
+    .step(1 / 60, state.player, state.world.npcs, legal, false, null, Infinity, rock);
+  check('a target 50 units inside the hull standoff is too close',
+    inside.kind === 'fly' && inside.demand.throttle === -1);
+  rock.object.position.set(0, 0, -(PURSUIT_RANGE + rock.radius + 200));
+  const outside = new ScriptedCoPilot()
+    .step(1 / 60, state.player, state.world.npcs, legal, false, null, Infinity, rock);
+  check('...and 200 units outside it is not', outside.kind === 'fly'
+    && outside.demand.throttle === 1);
 }
