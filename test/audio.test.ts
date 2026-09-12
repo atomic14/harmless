@@ -70,8 +70,12 @@ for (const [name, [frequency, duration]] of Object.entries(expected)) {
   sfx.combatComputerEngaged();
   const cue = [...tones];
   eq('the fight cue is two beeps', cue.length, 2);
-  check('...both the house square voice', cue.every((t) => t.type === 'square'),
-    cue.map((t) => t.type).join(','));
+  // THE VOICE IS WHAT MADE IT HORRIBLE. A square wave carries every odd
+  // harmonic above its pitch, and this cue sat where the ear is sharpest. It is
+  // the one named occasion that is not the house square voice, because it is
+  // the one that interrupts the pilot rather than answering her.
+  check('...both on the soft voice, not the house square',
+    cue.every((t) => t.type === 'sine'), cue.map((t) => t.type).join(','));
   check('...at the standard gain, like every other named occasion',
     cue.every((t) => peak(t) === 0.08), cue.map((t) => peak(t)).join(','));
   check('...the same pitch, so it reads as one cue rather than two events',
