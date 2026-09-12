@@ -56,8 +56,16 @@ import { MAX_LEAD_SECONDS } from '../constants/pass-aim.ts';
 import type { V3 } from '../ai-training/observation.ts';
 
 export type CoPilotStep =
-  /** hands off — the reason is for the player */
-  | { kind: 'disengage'; reason: string }
+  /**
+   * Hands off — the reason is for the player.
+   *
+   * IT STILL ANSWERS A WARHEAD. A missile in the air is a threat with or without
+   * a SHIP to steer at. The review of 2026-09-12 found the two fused. With the
+   * last hostile dead and a warhead still closing, the co-pilot said AREA CLEAR
+   * and asked for no E.C.M. One press is a complete answer, because `Ordnance`
+   * caps the sky at one warhead. So the press on this frame clears it.
+   */
+  | { kind: 'disengage'; reason: string; ecm: boolean }
   /**
    * What the pursuit wants this frame. It is the SAME FlightDemand that a pair
    * of hands produces (player.ts): ramped pitch and roll rates, a throttle,
@@ -117,7 +125,9 @@ export class ScriptedCoPilot {
     playerToStation = Infinity,
     picked: NpcShip | null = null,
   ): CoPilotStep {
-    if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE' };
+    // MANUAL OVERRIDE ASKS FOR NO E.C.M. The pilot took the ship, and the
+    // E.C.M. is a key she holds. Every other way out still answers a warhead.
+    if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE', ecm: false };
     this.underFire = Math.max(0, this.underFire - dt);
     // How far off the nose a candidate is — the turn it would cost to lock.
     const offNose = (npc: NpcShip): number => this.nose.set(0, 0, -1)
@@ -150,7 +160,11 @@ export class ScriptedCoPilot {
     );
     if (!threat) {
       this.reset();
-      return { kind: 'disengage', reason: 'AREA CLEAR' };
+      return {
+        kind: 'disengage',
+        reason: 'AREA CLEAR',
+        ecm: autopilotEcm(true, missilePos !== null),
+      };
     }
     const targetPos = threat.object.position;
     const dist = targetPos.distanceTo(player.position);

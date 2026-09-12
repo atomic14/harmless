@@ -141,3 +141,86 @@ function beside(g: Game, role: 'pirate' | 'trader', x: number, seed: number): Np
   run(g, 30);
   check('a course picked mid-fight is dropped too', g.state.session.course === null);
 }
+
+// --- WHAT AUTHORIZES THE COMPUTER'S SHOT ------------------------------------
+//
+// Two findings of the review of 2026-09-12 (`docs/COMBAT-COMPUTER-REVIEW.md`).
+// Each one made the commander an Offender in its own reproduction, for a ship
+// the computer never aimed at.
+//
+// The commander is fitted with a combat computer, because that is the fitting
+// that gives the trigger away. Without it the aim is free and the trigger stays
+// the pilot's, so neither fault can arise.
+console.log('\nthe computer holds its shot unless the shot is its own');
+{
+  // THE VIEW. `autoEngage` turns the front view on when it takes the stick. A
+  // pilot may look astern afterwards, and the trigger then fired the REAR
+  // laser at whatever was behind.
+  const g = open(20_260_930);
+  g.state.commander.equipment.combatComputer = true;
+  const pirate = beside(g, 'pirate', 200, 11);
+  pirate.state.speed = 0;
+  // a trader parked behind, where the rear laser points
+  const behind = g.state.player.position.clone()
+    .add(new THREE.Vector3(0, 0, 900).applyQuaternion(g.state.player.quaternion));
+  const trader = g.state.world.spawn('trader', behind, 12);
+  trader.state.speed = 0;
+  g.state.commander.equipment.rearLaser = true;
+
+  run(g, 120);
+  check('the computer has the stick, with a pirate ahead', g.state.session.ccEngaged);
+  g.state.session.view = 1;      // look astern, as a command key does
+  const before = g.state.sys.laserTemp;
+  run(g, 60);
+  eq('looking astern, the computer fires nothing at all',
+    g.state.sys.laserTemp <= before, true);
+  check('...so the trader behind is not provoked', !trader.state.provokedByPlayer);
+  eq('...and the commander is still clean', g.state.commander.legalStatus, 0);
+}
+
+{
+  // THE LINE. A trader between the commander and the pirate took the shot.
+  const g = open(20_260_931);
+  g.state.commander.equipment.combatComputer = true;
+  const ahead = (d: number) => g.state.player.position.clone()
+    .add(new THREE.Vector3(0, 0, -d).applyQuaternion(g.state.player.quaternion));
+  const pirate = g.state.world.spawn('pirate', ahead(2400), 13);
+  pirate.state.speed = 0;
+  run(g, 180);   // let the nose come onto it
+
+  // Both are put ON the nose, so the shot is one the computer really wants and
+  // the trader is squarely in the beam. Drifting geometry made an earlier
+  // version of this test pass for the wrong reason: the pirate slid a hair
+  // outside the gun cone, so nothing fired either way.
+  const park = (n: typeof pirate, d: number): void => {
+    n.object.position.copy(ahead(d));
+    n.object.updateMatrixWorld(true);
+  };
+  park(pirate, 900);
+  const trader = g.state.world.spawn('trader', ahead(450), 14);
+  trader.state.speed = 0;
+  park(trader, 450);
+  run(g, 30);
+  check('with a trader in the way, the computer holds its fire',
+    g.state.sys.laserTemp === 0,
+    `laser temp ${g.state.sys.laserTemp.toFixed(3)}`);
+  check('...so the trader is not provoked', !trader.state.provokedByPlayer);
+  eq('...and the commander is still clean', g.state.commander.legalStatus, 0);
+
+  // THE CONTROL: with the way clear, the same geometry does fire. Without it,
+  // the two checks above would pass on a computer that never shoots at all.
+  trader.state.alive = false;
+  park(pirate, 900);
+  run(g, 30);
+  check('...and with the way clear, the same shot is taken',
+    g.state.sys.laserTemp > 0, `laser temp ${g.state.sys.laserTemp.toFixed(3)}`);
+
+  // ...and the pilot's OWN pick is hers to shoot at, whatever it is.
+  const picked = g.state.world.spawn('trader', ahead(450), 15);
+  picked.state.speed = 0;
+  park(picked, 450);
+  pickTarget(g.state.world.npcs, picked);
+  run(g, 60);
+  check('a trader the PILOT picked is shot at', picked.state.provokedByPlayer,
+    `provoked ${picked.state.provokedByPlayer}`);
+}

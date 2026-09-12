@@ -344,9 +344,9 @@ export class Flight {
     // (docs/TODO/72).
     const bought = this.state.commander.equipment.combatComputer;
     if (auto.ecm && bought) this.weapons.triggerEcm();
-    return auto.demand
-      ? { ...auto.demand, fire: (bought && auto.demand.fire) || hands.fire }
-      : hands;
+    // The hands are never asked. `autoFireAllowed` holds the computer's rule.
+    const shoots = bought && this.weapons.autoFireAllowed(auto.demand?.fire ?? false);
+    return auto.demand ? { ...auto.demand, fire: shoots || hands.fire } : hands;
   }
 
   /**

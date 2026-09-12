@@ -35,6 +35,10 @@ import { sfx } from '../audio.ts';
 import { Combat, BEAM_FLASH, type DamageSource } from './combat.ts';
 import type { CombatEvent } from './combat-events.ts';
 import { firePlayerLaser, damagePlayer } from './combat-player.ts';
+import { traceShot } from './shot.ts';
+import { viewDirection } from './views.ts';
+import { isHostileToPlayer } from './hostility.ts';
+import { pickedTarget } from './targets.ts';
 import { CombatInstrumentation, type CombatObserver } from './instrumentation.ts';
 import { fireEcm, ordnanceMessage, type Ordnance, type OrdnanceOutcome } from './ordnance.ts';
 import { dealToNpc } from './damage-dealt.ts';
@@ -236,6 +240,49 @@ export class Weapons {
    */
   fireLaser(): void {
     this.applyCombat(firePlayerLaser(this.state, this.combat, this.combatScratch));
+  }
+
+  /**
+   * May the COMPUTER pull the trigger this frame? The human's is never asked.
+   *
+   * @param want whether the co-pilot asked for the trigger at all.
+   *
+   * THE COMPUTER SHOT AT WHATEVER THE BEAM MET FIRST, and the review of
+   * 2026-09-12 found what that costs. A trader flying between the commander and
+   * a pirate took the automatic shot, and the commander became an Offender for
+   * it. The co-pilot works in ANGLES: a target inside the gun cone is a target
+   * it will shoot, and nothing asked what stands in the way.
+   *
+   * So the same trace the shot itself uses answers first (`shot.ts`). Three
+   * rules, and each one has a reason:
+   *
+   *   - A MISS is allowed. The gun grazes a silhouette the ray can pass by
+   *     (gunnery.ts), and to refuse every clean ray would refuse most shots.
+   *   - THE PILOT'S OWN PICK is allowed, whatever it is. She may choose to
+   *     shoot a trader, and the computer aims what she picked (docs/TODO/206).
+   *   - ANYTHING ELSE FIRST holds the shot: another ship that is not hostile,
+   *     the station, or a canister.
+   *
+   * THE VIEW IS THE OTHER HALF of the same finding. `autoEngage` turns the
+   * front view on when it takes the stick. The pilot may look astern
+   * afterwards, and the trigger then fired the REAR laser at whatever was
+   * behind. The computer never aimed at that, and never saw it. So the
+   * automatic shot is the front view's alone, and a pilot who looks away keeps
+   * her own trigger.
+   */
+  autoFireAllowed(want: boolean): boolean {
+    const { commander, player, session, world } = this.state;
+    if (!want || session.view !== 0) return false;
+    const dir = viewDirection(player.quaternion, 0, this.combatScratch.b);
+    const hit = traceShot(
+      player.position, dir, world.npcs, world.cargo.items,
+      session.witchspace ? null : world.station,
+      this.combatScratch.ray, this.combatScratch.a);
+    if (hit.kind === 'miss') return true;
+    if (hit.kind !== 'ship') return false;
+    if (hit.ship === pickedTarget(world.npcs)) return true;
+    return isHostileToPlayer(hit.ship, commander.legalStatus,
+      player.position.distanceTo(world.station.position));
   }
 
   /**

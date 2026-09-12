@@ -38,8 +38,13 @@ import {
 import { ThreatLock } from './threat-lock.ts';
 
 export type AutopilotStep =
-  /** hands off — the reason is for the player */
-  | { kind: 'disengage'; reason: string }
+  /**
+   * Hands off — the reason is for the player.
+   *
+   * `ecm` rides along for the reason `CoPilotStep`'s does. A warhead in the air
+   * is a threat with or without a ship to steer at (the review of 2026-09-12).
+   */
+  | { kind: 'disengage'; reason: string; ecm: boolean }
   /**
    * What it wants — and, separately, whether it reaches for the E.C.M.
    *
@@ -157,7 +162,7 @@ export class CombatComputer {
     missilePos: V3 | null = null,
     playerToStation = Infinity,
   ): AutopilotStep {
-    if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE' };
+    if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE', ecm: false };
 
     // COMMITTED, not merely nearest. A fresh-every-frame pick flipped the
     // fought ship up to 26.8 times a minute, and the brain's bearing slots
@@ -175,7 +180,11 @@ export class CombatComputer {
     );
     if (!threat || !brain) {
       this.threatLock.clear();
-      return { kind: 'disengage', reason: 'AREA CLEAR — COMBAT COMPUTER OFF' };
+      return {
+        kind: 'disengage',
+        reason: 'AREA CLEAR — COMBAT COMPUTER OFF',
+        ecm: autopilotEcm(true, missilePos !== null),
+      };
     }
 
     this.state.timer -= dt;

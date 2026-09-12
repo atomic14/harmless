@@ -98,6 +98,22 @@ console.log('\nscripted combat computer');
       { x: 0, y: 400, z: 0 });
     check('a clear sky gets no E.C.M.', clear.kind === 'fly' && !clear.ecm);
     check('...and a warhead in it always does', loud.kind === 'fly' && loud.ecm);
+
+    // A WARHEAD OUTLIVES THE SHIP THAT FIRED IT. The review of 2026-09-12 found
+    // the two fused: with the last hostile dead and a missile still closing,
+    // the co-pilot said AREA CLEAR and asked for no E.C.M. at all. One press is
+    // a complete answer, because `Ordnance` caps the sky at one warhead.
+    const alone = new ScriptedCoPilot();
+    const gone = alone.step(1 / 60, state.player, [], legal, false, { x: 0, y: 400, z: 0 });
+    check('with the last ship dead, a warhead still gets the E.C.M.',
+      gone.kind === 'disengage' && gone.ecm);
+    const quietly = alone.step(1 / 60, state.player, [], legal, false, null);
+    check('...and an empty sky with no warhead asks for nothing',
+      quietly.kind === 'disengage' && !quietly.ecm);
+    // A pilot who takes the stick keeps her own E.C.M. key.
+    const taken = alone.step(1 / 60, state.player, [], legal, true, { x: 0, y: 400, z: 0 });
+    check('...and a manual override asks for none either',
+      taken.kind === 'disengage' && taken.reason === 'MANUAL OVERRIDE' && !taken.ecm);
   }
 
   // hands and an empty sky both give the ship back, in the co-pilot's words

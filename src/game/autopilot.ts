@@ -246,9 +246,11 @@ export class Autopilot {
     if (step.kind === 'disengage') {
       s.session.ccEngaged = false;
       if (handsOn) s.session.handFlown = true;
+      // THE E.C.M. IS THE STEP'S, EVEN HERE. A warhead still closing is not
+      // answered by a clear area (the review of 2026-09-12).
       return {
         demand: null,
-        ecm: false,
+        ecm: step.ecm,
         events: [say(step.reason, step.reason === 'MANUAL OVERRIDE' ? 2 : 3)],
       };
     }
@@ -275,9 +277,10 @@ export class Autopilot {
     if (step.kind === 'disengage') {
       s.session.ccEngaged = false;
       if (handsOn) s.session.handFlown = true;
+      // ...and the same here — see `combatDemand` above.
       return {
         demand: null,
-        ecm: false,
+        ecm: step.ecm,
         events: [say(step.reason, step.reason === 'MANUAL OVERRIDE' ? 2 : 3)],
       };
     }
