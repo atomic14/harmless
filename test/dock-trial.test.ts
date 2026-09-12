@@ -235,8 +235,8 @@ console.log('\nthe computer finishes the line-up before the pilot gets the slot'
 
   let atHandover = -1;
   let worstJump = 0;
-  let heldFrames = 0;
-  let pilotBeforeHold = false;
+  let noseAtStop = -1;
+  let stoppedFrames = 0;
   withoutSaving(() => {
     let last = noseOff();
     for (let f = 0, at = 0; f < 120 / dt; f++) {
@@ -246,23 +246,29 @@ console.log('\nthe computer finishes the line-up before the pilot gets the slot'
       // the biggest one-frame turn of the nose, over the whole approach
       if (Math.abs(now - last) > worstJump) worstJump = Math.abs(now - last);
       last = now;
-      if (g.state.session.dockHold) heldFrames += 1;
-      if (g.state.session.dockRails && !g.state.session.dockHold && heldFrames === 0) {
-        pilotBeforeHold = true;
+      // the computer's last stretch: stopped, and the pilot has nothing yet
+      if (!g.state.session.dockRails && g.state.player.speed <= RAILS_STOPPED) {
+        if (noseAtStop < 0) noseAtStop = now;
+        stoppedFrames += 1;
       }
       if (!wasRails && g.state.session.dockRails) { atHandover = now; break; }
       if (g.mode !== 'flight') break;
     }
   });
 
-  check('the rails take the ship only once its nose is near the slot axis',
+  check('the pilot is given the slot only once the nose is on the axis',
     atHandover >= 0 && atHandover < RAILS_CONE,
-    `${(atHandover * 180 / Math.PI).toFixed(1)} degrees off, against a cone of `
-    + `${(RAILS_CONE * 180 / Math.PI).toFixed(1)}`);
+    atHandover < 0 ? 'it never handed over at all'
+      : `${(atHandover * 180 / Math.PI).toFixed(1)} degrees off, against a cone of `
+        + `${(RAILS_CONE * 180 / Math.PI).toFixed(1)}`);
   // The old code turned the ship 69.7 degrees in the hand-over frame.
-  check('...and no single frame turns the nose more than 10 degrees',
-    worstJump < 10 * Math.PI / 180,
+  check('...and no single frame turns the nose more than 3 degrees',
+    worstJump < 3 * Math.PI / 180,
     `worst one-frame turn ${(worstJump * 180 / Math.PI).toFixed(1)} degrees`);
-  check('...having held the ship on the rails first, with the pilot still waiting',
-    heldFrames > 0 && !pilotBeforeHold, `${heldFrames} frames of LINING UP on the rails`);
+  // The computer flies this turn. It does not teleport it, and it does not
+  // hand the ship over half way round.
+  check('...and the computer flew it there itself, from a stop',
+    stoppedFrames > 0 && noseAtStop > RAILS_CONE,
+    `${stoppedFrames} frames of LINING UP, from `
+    + `${(noseAtStop * 180 / Math.PI).toFixed(1)} degrees off`);
 }

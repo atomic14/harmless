@@ -25,8 +25,9 @@
 // Chris flew it on 2026-09-12: *"we jump to the on rails version before it's
 // actually lined up"*. A trace put that jump at 69.7 degrees.
 //
-// Two things answer it. `railsAligned` holds the hand-over until the nose is
-// near the axis, so the error is small before the rails see it. `RAILS_TURN`
+// Two things answer it. `railsAligned` holds the hand-over until the ship is
+// the right distance out AND pointed at the port. The COMPUTER flies it to
+// both, with its own sticks, so the error the rails see is small. `RAILS_TURN`
 // then eases what is left, as `RAILS_PULL` always eased the position.
 //
 // The nose turns by the SHORTEST rotation onto the axis, which carries no twist
@@ -60,14 +61,15 @@ export function railsReached(plan: DockPlan): boolean {
 }
 
 /**
- * Is the nose near enough the slot axis for the rails to take the ship?
+ * Is the nose near enough the slot axis to give the ship to the pilot?
  *
- * THE THIRD QUESTION THE HAND-OVER NEVER ASKED. `railsReached` above is about
+ * THE SECOND QUESTION THE HAND-OVER NEVER ASKED. `railsReached` above is about
  * WHERE the ship is. This is about WHICH WAY IT POINTS, and without it the
  * rails turned the ship up to 69.7 degrees in one frame. See `RAILS_CONE`.
  *
- * It measures against the slot axis, which is the same line `holdOnRails`
- * corrects onto. The gate and the correction cannot come to disagree.
+ * Two readers, one line. `world-step.ts` flies the computer's last turn until
+ * this is true. `holdOnRails` below corrects onto the same axis afterward. So
+ * the gate and the correction cannot come to disagree.
  */
 export function railsAligned(player: PlayerShip, station: THREE.Object3D): boolean {
   const inward = slotNormal(station, _out).multiplyScalar(-1);

@@ -161,7 +161,6 @@ export function freshSession(): SessionState {
     handFlown: false,
     dockTrial: false,
     dockRails: false,
-    dockHold: false,
   };
 }
 

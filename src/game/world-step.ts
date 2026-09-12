@@ -56,6 +56,8 @@ import {
   planDocking, dockingOutcome, type DockPlan, type DockingOutcome,
 } from './docking.ts';
 import { holdOnRails, railsAligned, railsReached, stopped } from './dock-rails.ts';
+import { bankToTurn } from './pitch-roll-steer.ts';
+import { slotNormal } from '../world/slot.ts';
 import { dockingSticks } from './docking-sticks.ts';
 import { NPC_HULL_BOX_MARGIN } from '../constants/docking.ts';
 import { BOUNCE_STANDOFF } from '../constants/station.ts';
@@ -270,6 +272,8 @@ export class WorldStep {
   private readonly fire: FireWorld;
 
   private readonly tmp = new THREE.Vector3();
+  /** the slot axis the computer's last turn points down — see `dockTrialStep` */
+  private readonly dockAxis = new THREE.Vector3();
   private readonly tmp2 = new THREE.Vector3();
   private readonly tmpQ = new THREE.Quaternion();
   /** scratch for collisions.ts, so a per-frame call allocates nothing */
@@ -327,10 +331,8 @@ export class WorldStep {
     const dc = session.dcEngaged ? this.dockingComputerStep(dt, pilot, out)
       : session.dockTrial ? this.dockTrialStep(dt, pilot, out) : null;
     player.update(dt, dc ?? pilot.demand);
-    // The rails correct the frame the ship just flew (docs/TODO/212). They run
-    // for the computer's last turn as well as for the pilot's game, because the
-    // computer cannot make that turn itself. See `SessionState.dockHold`.
-    if (session.dockRails || session.dockHold) holdOnRails(player, world.station, dt);
+    // The rails correct the frame the ship just flew (docs/TODO/212).
+    if (session.dockRails) holdOnRails(player, world.station, dt);
 
     // torus drive
     if (session.torusEngaged) {
@@ -436,7 +438,7 @@ export class WorldStep {
    * free for the spin.
    */
   private dockTrialStep(dt: number, pilot: PilotInput, out: StepEvent[]): FlightDemand {
-    const { player, session } = this.state;
+    const { player, session, world } = this.state;
     const plan = this.dockingPlan();
     if (!session.dockRails) {
       if (!railsReached(plan)) return this.dockingDemand(dt, pilot, plan);
@@ -448,20 +450,29 @@ export class WorldStep {
       // STOPPED IS NOT LINED UP. The brake used to end the line-up, and the
       // ship was still up to 69.7 degrees off the axis (Chris, 2026-09-12:
       // *"we jump to the on rails version before it's actually lined up"*).
-      // The rails take that last turn, eased, while the pilot waits. The
-      // buttons and the message still read LINING UP, because `dockRails` is
-      // what they read.
-      session.dockHold = true;
-      if (!railsAligned(player, this.state.world.station)) {
+      //
+      // THE COMPUTER FLIES THIS LAST TURN, with both sticks, through the
+      // commander's own envelope. The nose comes round at the rate the hull
+      // turns. The HUD needles read it. Nothing moves the ship other than by
+      // flying it.
+      //
+      // `bankToTurn` is the law, rather than `dockingSticks`. That one spends
+      // the roll on the letterbox, and it pitches onto the heading. A pitch
+      // alone cannot answer a sideways error from a stop. The slot has no claim
+      // on the roll yet, because the pilot does not hold the ship.
+      if (!railsAligned(player, world.station)) {
+        const axis = slotNormal(world.station, this.dockAxis).multiplyScalar(-1);
+        const cmd = bankToTurn(player.quaternion, axis, this.state.dockPlan.steer);
         return {
-          pitchRate: rampFlightRate(player.pitchRate, 0, false, dt),
-          rollRate: rampFlightRate(player.rollRate, 0, false, dt),
+          pitchRate: rampFlightRate(
+            player.pitchRate, cmd.pitch * PLAYER_FLIGHT.maxPitch, cmd.pitch !== 0, dt),
+          rollRate: rampFlightRate(
+            player.rollRate, cmd.roll * PLAYER_FLIGHT.maxRoll, cmd.roll !== 0, dt),
           throttle: 0,
           fire: pilot.demand.fire,
         };
       }
       session.dockRails = true;
-      session.dockHold = false;
       out.push(say('THE SLOT IS YOURS — THRUST IN, AND MATCH ITS SPIN', 5));
     }
     // ON THE RAILS. The pitch is nobody's: `holdOnRails` owns the line. The

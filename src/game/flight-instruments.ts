@@ -221,7 +221,6 @@ export class Instruments {
     }
     s.dockTrial = true;
     s.dockRails = false;
-    s.dockHold = false;
     s.course = null;
     this.coursePilot.reset();
     this.host.showMessage('THE COMPUTER IS LINING THE SHIP UP — STAND BY', 4);
@@ -242,7 +241,6 @@ export class Instruments {
     if (!out) return;
     s.dockTrial = false;
     s.dockRails = false;
-    s.dockHold = false;
     this.host.showMessage('THE STATION IS BEHIND YOU', 3);
   }
 

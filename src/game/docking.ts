@@ -36,6 +36,7 @@ import {
 } from '../constants/docking.ts';
 import { slotNormal } from '../world/slot.ts';
 import { dockPath, makeDockPath } from './dock-path.ts';
+import { freshSteerMemory, type SteerMemory } from './pitch-roll-steer.ts';
 
 export type DockPhase =
   /** still on the turn — the path decides where the ship goes */
@@ -66,6 +67,19 @@ export interface DockPlan {
    * carries on the way round it already took.
    */
   swing: THREE.Vector3;
+  /**
+   * Which vertical the LAST turn onto the axis banks through
+   * (`pitch-roll-steer.ts`). It is held across frames for the reason `swing`
+   * above is, and it is saved in the same walk.
+   *
+   * `dockingSticks` does not read it. That law spends the roll on the letterbox
+   * and pitches onto the heading, so it cannot answer a sideways error at all.
+   * It never had to while the ship flew, because the motion sweeps the pitch
+   * plane round. The computer makes its last turn from a STOP, so nothing
+   * sweeps. `bankToTurn` is the law that points a yaw-less ship from there
+   * (world-step.ts, docs/TODO/212).
+   */
+  steer: SteerMemory;
 }
 
 const _rel = new THREE.Vector3();
@@ -182,6 +196,7 @@ export function makeDockPlan(): DockPlan {
     heading: new THREE.Vector3(0, 0, -1),
     up: new THREE.Vector3(0, 1, 0),
     speed: 0,
+    steer: freshSteerMemory(),
     phase: 'gate',
     arrived: false,
     lateral: 0,

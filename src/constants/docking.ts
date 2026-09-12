@@ -220,12 +220,14 @@ export const RAILS_PULL = 2;
  * says which way the ship points. A trace of the shipped approach put the nose
  * 69.7 degrees off the axis on the frame the rails took it.
  *
- * THE COMPUTER CANNOT CLOSE THAT LAST TURN, and `SessionState.dockHold` states
- * why. So the rails close it, at `RAILS_TURN`, while the pilot still reads
- * LINING UP. This is the angle at which the pilot is given the ship.
+ * THE COMPUTER FLIES THE SHIP TO THIS ANGLE. It is the pointing half of the
+ * hand-over, and `RAILS_RANGE` is the distance half. The ship is stopped by
+ * then, so `world-step.ts` steers the last turn with `bankToTurn` rather than
+ * `dockingSticks`. That law spends the roll on the letterbox and pitches onto
+ * the heading, and a pitch alone cannot answer a sideways error from a stop.
  *
- * 0.18 rad is about 10 degrees. The rails take the measured 70 degrees down to
- * it in about half a second, so the wait is short. It is a band rather than a
+ * 0.18 rad is about 10 degrees. The measured turn from 70 degrees takes about a
+ * second, at the hull's own pitch and roll rates. It is a band rather than a
  * zero, because the rails hold the line from there on. To wait for zero is to
  * wait for ever.
  *
@@ -242,9 +244,9 @@ export const RAILS_CONE = 0.18;
  * frame, so any error left at the hand-over went in one frame. The module
  * comment on `game/dock-rails.ts` claimed both were eased, and only one was.
  *
- * 3 a second turns the measured 70 degrees of error down to `RAILS_CONE` in
- * about half a second. It is faster than `RAILS_PULL`, because the pilot waits
- * on this turn and does not wait on the line.
+ * 3 a second clears what `RAILS_CONE` lets through, which is about 7 degrees
+ * measured, in under a second. The computer flies the big turn, so this only
+ * ever answers the residue, and the station's own drift under it.
  *
  * @rule docking.railsTurn
  * @domain docking
