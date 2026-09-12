@@ -43,6 +43,7 @@ import { ScriptedCoPilot } from './scripted-co-pilot.ts';
 import type { SoundEvent } from './sounds.ts';
 import type { GameState } from './state.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
+import { THREAT_RANGE } from '../constants/combat-computer.ts';
 
 /** What an autopilot reports for the orchestrator to say and play. */
 export type AutopilotEvent =
@@ -154,12 +155,24 @@ export class Autopilot {
 
   /**
    * Is there a fight for the computer to line the ship up in? A hostile ship
-   * near, by the condition light's own rule, or a target the pilot picked.
+   * inside the CO-PILOT's reach, or a target the pilot picked.
+   *
+   * IT USED TO ASK THE CONDITION LIGHT, which looks 9,000 units out. The
+   * co-pilot only looks `THREAT_RANGE`, which is 6,500. A pirate in that band
+   * engaged the computer, and the co-pilot refused it in the same frame. That
+   * happened on EVERY frame. Measured at a pirate 7,500 units off, it was 300
+   * engagements in 5 seconds. Each one carried its own sound and its own AREA
+   * CLEAR on the console (Chris, 2026-09-12: *"why does it go on for so long?
+   * Several long seconds?"*).
+   *
+   * A picked target has no range test, because the co-pilot has none for one
+   * either. The pilot's pick comes first, at any distance.
    */
   private fightOn(): boolean {
     const s = this.state;
     return pickedTarget(s.world.npcs) !== null || hostilesNear(
-      s.world.npcs, s.player.position, s.commander.legalStatus, this.playerToStation);
+      s.world.npcs, s.player.position, s.commander.legalStatus, this.playerToStation,
+      THREAT_RANGE);
   }
 
   /**

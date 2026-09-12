@@ -37,7 +37,7 @@
 import * as THREE from 'three';
 import { ThreatLock } from './threat-lock.ts';
 import type { NpcShip } from './npc.ts';
-import { isHostileToPlayer } from './hostility.ts';
+import { engaging } from './hostility.ts';
 import type { AutopilotShip } from './combat-computer.ts';
 import { hitCone } from './gunnery.ts';
 import { autopilotEcm } from './ordnance.ts';
@@ -150,8 +150,12 @@ export class ScriptedCoPilot {
     // by its own rule, which two other places share.
     const threat = picked ?? this.lock.pick(
       dt,
-      npcs.filter((npc) => isHostileToPlayer(npc, legalStatus, playerToStation)
-        && npc.object.position.distanceTo(player.position) < THREAT_RANGE),
+      // THE SAME PREDICATE `Autopilot.fightOn` ASKS, at the same range. They
+      // were two spellings of one rule, and they disagreed about the range. The
+      // engage test looked 9,000 units out, and this one 6,500. So a pirate in
+      // that band engaged and was refused every frame.
+      npcs.filter((npc) => engaging(npc, player.position, legalStatus,
+        playerToStation, THREAT_RANGE)),
       // EASIEST to lock, not nearest. It ranks by the off-nose angle, which is
       // the turn it costs to get guns on. Distance is the secondary tiebreak.
       //

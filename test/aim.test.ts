@@ -224,3 +224,55 @@ console.log('\nthe computer holds its shot unless the shot is its own');
   check('a trader the PILOT picked is shot at', picked.state.provokedByPlayer,
     `provoked ${picked.state.provokedByPlayer}`);
 }
+
+// --- IT ENGAGES ONCE, NOT EVERY FRAME --------------------------------------
+//
+// Chris, 2026-09-12: *"why does it go on for so long? Several long seconds?"*
+// He was describing the sound a fight makes. It was not the sound.
+//
+// `autoEngage` asked the CONDITION LIGHT whether there was a fight, and that
+// looks `PLAYER_INTEREST_RANGE` out. The co-pilot only looks `THREAT_RANGE`. A
+// pirate between the two engaged the computer, and the co-pilot refused it in
+// the SAME frame. So the flag reads false at the end of every frame while the
+// cue plays 60 times a second and the console holds AREA CLEAR throughout.
+//
+// That is why this measures the console rather than `ccEngaged`. The flag never
+// survives a frame, so a fixture that sampled it saw nothing at all. The first
+// version of this test did, and passed on the bug.
+console.log('\nthe computer engages once, not once a frame');
+{
+  const engagements = (distance: number): { engaged: number; clear: number } => {
+    const g = open(20_260_932);
+    const at = g.state.player.position.clone()
+      .add(new THREE.Vector3(0, 0, -distance).applyQuaternion(g.state.player.quaternion));
+    const pirate = g.state.world.spawn('pirate', at, 21);
+    pirate.state.provoked = true;
+    pirate.state.provokedByPlayer = true;
+    pirate.state.speed = 0;
+    let engaged = 0;
+    let clear = 0;
+    withoutSaving(() => {
+      for (let f = 0; f < 300; f++) {
+        g.step(1 / 60, 20 + f / 60);
+        pirate.object.position.copy(at);   // hold it still, so only the RULES move
+        if (g.state.session.ccEngaged) engaged += 1;
+        if (g.state.session.messageText === 'AREA CLEAR') clear += 1;
+      }
+    });
+    return { engaged, clear };
+  };
+
+  const close = engagements(4000);
+  check('a pirate inside the co-pilot\'s reach engages the computer', close.engaged === 300,
+    `${close.engaged} of 300 frames`);
+  check('...and it never gives the ship back', close.clear === 0,
+    `${close.clear} frames of AREA CLEAR`);
+
+  // The band that broke it: past what the co-pilot will fly at, inside what the
+  // condition light calls a fight.
+  const band = engagements(7500);
+  check('a pirate the co-pilot will not fly at engages nothing', band.engaged === 0,
+    `${band.engaged} of 300 frames`);
+  check('...and the console is not told AREA CLEAR on every frame of the flight',
+    band.clear === 0, `${band.clear} frames of AREA CLEAR`);
+}

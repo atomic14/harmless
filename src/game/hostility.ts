@@ -99,16 +99,20 @@ export function isHostileToPlayer(
 /**
  * Is this ship both cross with you and close enough to act on it?
  *
- * The same range the ship itself engages at, from
- * `constants/player-interest.ts`. One home for it, because everything that
- * answers "who is in this fight" has to agree. Those are the condition light
- * below, and the bribe key, which may only buy off a ship that is on you.
+ * One home for it, because everything that answers "who is in this fight" has
+ * to agree. The condition light and the bribe key take the default range, which
+ * is the one the ship itself engages at (`constants/player-interest.ts`).
+ *
+ * THE RANGE IS THE CALLER'S, from 2026-09-12, and it had to become one. The
+ * combat computer looks a shorter way out than the light does, and the two
+ * disagreeing cost 60 engagements a second. See `Autopilot.fightOn`.
  */
-function engaging(
+export function engaging(
   npc: HostileShip, playerPos: THREE.Vector3, legalStatus: number, playerToStation: number,
+  range: number = PLAYER_INTEREST_RANGE,
 ): boolean {
   return isHostileToPlayer(npc, legalStatus, playerToStation)
-    && npc.object.position.distanceTo(playerPos) < PLAYER_INTEREST_RANGE;
+    && npc.object.position.distanceTo(playerPos) < range;
 }
 
 /**
@@ -119,9 +123,9 @@ function engaging(
  */
 export function hostilesNear(
   npcs: readonly HostileShip[], playerPos: THREE.Vector3, legalStatus: number,
-  playerToStation: number,
+  playerToStation: number, range?: number,
 ): boolean {
-  return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation));
+  return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation, range));
 }
 
 /**
