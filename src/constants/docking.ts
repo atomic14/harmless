@@ -226,15 +226,23 @@ export const RAILS_PULL = 2;
  * `dockingSticks`. That law spends the roll on the letterbox and pitches onto
  * the heading, and a pitch alone cannot answer a sideways error from a stop.
  *
- * 0.18 rad is about 10 degrees. The measured turn from 70 degrees takes about a
- * second, at the hull's own pitch and roll rates. It is a band rather than a
- * zero, because the rails hold the line from there on. To wait for zero is to
- * wait for ever.
+ * 0.03 rad is about 1.7 degrees. It was 0.18 rad, about 10 degrees, and Chris
+ * called that too wide on 2026-09-12.
+ *
+ * IT SITS JUST ABOVE THE CRAWL. A trace of the turn with the gate as good as
+ * open measured the whole curve. The nose falls from 68 degrees to 1.8 in one
+ * second. It rings once, and it settles near 1.2 degrees by two seconds. Below
+ * that it creeps: 1.2 degrees to 0.6 takes eight more seconds, because the
+ * steering saturates and the roll fades. So a cone under about 1 degree buys
+ * fractions of a degree for whole seconds of wait.
+ *
+ * It is a band rather than a zero, because the rails hold the line from there
+ * on. To wait for zero is to wait for ever.
  *
  * @rule docking.railsCone
  * @domain docking
  */
-export const RAILS_CONE = 0.18;
+export const RAILS_CONE = 0.03;
 
 /**
  * How hard the rails turn the nose onto the axis, per second.
@@ -244,9 +252,9 @@ export const RAILS_CONE = 0.18;
  * frame, so any error left at the hand-over went in one frame. The module
  * comment on `game/dock-rails.ts` claimed both were eased, and only one was.
  *
- * 3 a second clears what `RAILS_CONE` lets through, which is about 7 degrees
- * measured, in under a second. The computer flies the big turn, so this only
- * ever answers the residue, and the station's own drift under it.
+ * 3 a second clears what `RAILS_CONE` lets through, which is under 2 degrees,
+ * in a fraction of a second. The computer flies the big turn, so this only ever
+ * answers the residue, and the station's own drift under it.
  *
  * @rule docking.railsTurn
  * @domain docking

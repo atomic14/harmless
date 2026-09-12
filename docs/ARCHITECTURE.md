@@ -45,11 +45,12 @@ rules. This file is a map.
   reports a `FlightDemand`. `flight-instruments.ts` throws the switches that a
   course asks for: the torus drive, the hand-over to the docking computer, and
   the end of the course. A commander with no docking computer gets the docking
-  mini game instead (docs/TODO/212). The computer flies the ship to the right
-  distance from the station, stops it, and turns it to face the port. Only then
-  does it hand over. A commander who bought the docking computer is flown the
-  whole way in instead. `dock-rails.ts` holds the ship on the slot axis while
-  the pilot matches the slot and the speed. It is the one file that moves the
+  mini game (docs/TODO/212). EVERY commander gets the same line-up first. The
+  computer flies the ship to the right distance from the station, stops it, and
+  turns it to face the port. `world-step.ts` then asks the one question: a
+  fitted docking computer takes the ship in, and a commander with none gets the
+  rails and the game. `dock-rails.ts` holds the ship on the slot axis while the
+  pilot matches the slot and the speed. It is the one file that moves the
   commander's ship other than by flying it, and it only ever takes up a residue.
   The last turn is flown, with `bankToTurn` and both sticks. `course-actions.ts` joins the list to the Game: it
   builds the flat view, and it applies a pick. At the station, the LAUNCH row

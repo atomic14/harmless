@@ -208,17 +208,18 @@ export class Instruments {
    * The station course reaches the hand-over, and the ship changes hands
    * (docs/TODO/207 M1, in the shape docs/TODO/212 gave it).
    *
-   * With a docking computer fitted, that computer flies the slot, as it does
-   * today. Without one, the pilot's own stretch begins. The computer lines the
-   * ship up first. The rails then take the ship, and the pilot matches the
-   * station's spin and the speed.
+   * ONE LINE-UP, WHOEVER FLIES THE SLOT (Chris, 2026-09-12: *"I think we should
+   * merge both paths?"*). The computer flies the ship to the right distance and
+   * turns it to face the port, and it does that for every commander. Only then
+   * does it ask who takes the ship in. A fitted docking computer takes it. A
+   * commander with none gets the rails and the mini game. `world-step.ts`'s
+   * `dockTrialStep` is where that one question is asked.
+   *
+   * It used to branch HERE instead, so a fitted computer flew the whole
+   * approach on its own and never showed a line-up at all.
    */
   private handOver(): void {
     const s = this.state.session;
-    if (this.state.commander.equipment.dockingComputer) {
-      this.applyAutopilot(this.autopilot.handOverToDock());
-      return;
-    }
     s.dockTrial = true;
     s.dockRails = false;
     s.course = null;

@@ -272,3 +272,55 @@ console.log('\nthe computer finishes the line-up before the pilot gets the slot'
     `${stoppedFrames} frames of LINING UP, from `
     + `${(noseAtStop * 180 / Math.PI).toFixed(1)} degrees off`);
 }
+
+// --- ONE LINE-UP, WHOEVER TAKES THE SHIP IN --------------------------------
+//
+// Chris, 2026-09-12: *"I think we should merge both paths?"*
+//
+// The course used to ask who flies the slot BEFORE the line-up. A commander
+// with a docking computer fitted was handed straight to it, and never saw a
+// line-up at all. Now every commander gets the same one: the computer flies to
+// the right distance, stops, and turns the nose onto the axis. Only then does
+// it ask who takes the ship in.
+console.log('\na fitted docking computer takes the ship after the same line-up');
+{
+  const g = withoutSaving(() => {
+    seedWorld(20_260_951);
+    const game = new Game(() => headlessShell());
+    dismissBriefing(game);
+    game.launch();
+    game.arriveInSystem();
+    return game;
+  }).value;
+  g.state.commander.equipment.dockingComputer = true;
+  g.state.world.clearNpcs();
+  g.state.session.course = 'station';
+
+  const dt = 1 / 60;
+  const out = new THREE.Vector3();
+  const fwd = new THREE.Vector3();
+  let noseAtEngage = -1;
+  let sawTrial = false;
+  let railsTaken = false;
+  withoutSaving(() => {
+    for (let f = 0, at = 0; f < 300 / dt; f++) {
+      const was = g.state.session.dcEngaged;
+      if (g.state.session.dockTrial && !was) sawTrial = true;
+      g.step(dt, at += dt);
+      if (g.state.session.dockRails) railsTaken = true;
+      if (!was && g.state.session.dcEngaged) {
+        slotNormal(g.state.world.station, out).multiplyScalar(-1);
+        noseAtEngage = g.state.player.getForward(fwd).angleTo(out);
+      }
+      if (g.mode !== 'flight') break;
+    }
+  });
+
+  check('a fitted computer still goes through the line-up first', sawTrial);
+  check('...and takes the ship only once its nose is on the axis',
+    noseAtEngage >= 0 && noseAtEngage < RAILS_CONE,
+    noseAtEngage < 0 ? 'it never took the ship'
+      : `${(noseAtEngage * 180 / Math.PI).toFixed(2)} degrees off`);
+  check('...never through the pilot\'s rails, which it has no use for', !railsTaken);
+  check('...and it flies the ship in from there', g.mode === 'docked');
+}

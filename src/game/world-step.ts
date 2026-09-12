@@ -472,6 +472,22 @@ export class WorldStep {
           fire: pilot.demand.fire,
         };
       }
+      // LINED UP. Now, and only now, the question of who takes it in.
+      //
+      // A fitted docking computer takes it, and this is the one place that
+      // hand-over is decided (docs/TODO/212). `autopilot.ts`'s
+      // `handOverToDock` still engages it from the pilot's own key. That one
+      // resets the plan phase, which is right from cold. It would be wrong from
+      // here, because the run latch is already earned and the ship is on the
+      // axis.
+      if (this.state.commander.equipment.dockingComputer) {
+        session.dockTrial = false;
+        session.dcEngaged = true;
+        out.push(say('DOCKING COMPUTER ENGAGED', 2));
+        out.push({ kind: 'sound', name: 'dockingComputerEngaged' });
+        out.push({ kind: 'dockingMusic', on: true });
+        return this.dockingDemand(dt, pilot, plan);
+      }
       session.dockRails = true;
       out.push(say('THE SLOT IS YOURS — THRUST IN, AND MATCH ITS SPIN', 5));
     }
