@@ -89,7 +89,9 @@ function wrap(a: number): number {
  *
  * `rollGate` is the angle inside which the BANK counts as finished. Above it
  * this asks for no pitch at all. Zero keeps the soft gate alone, which is the
- * `cos` of the roll error, and every combat caller passes zero.
+ * `cos` of the roll error. The course pilot passes `COURSE_ROLL_GATE`, and the
+ * combat co-pilot passes `COMBAT_ROLL_GATE`. The docking computer does not come
+ * through here at all.
  *
  * THE SOFT GATE ALONE CAN CONE (Chris, 2026-09-12: *"we seem to be constantly
  * rotating when heading towards something"*). A target a hair off the nose
@@ -104,9 +106,12 @@ function wrap(a: number): number {
  * bearing, the bank arrives, and the pitch then closes the angle. On a course
  * to the station it took a median trip from 41 full turns to 1.3.
  *
- * The combat computer must NOT take it. Its target manoeuvres, and a pitch
- * held still while the roll catches up is time off the gun. It also never sees
- * the fault, because it stops steering inside its own wide gun cone.
+ * THE COMBAT COMPUTER TAKES IT TOO, and this comment said the opposite until
+ * 2026-09-12. It held that a target which manoeuvres cannot afford a pitch held
+ * still, and that the wide gun cone hid the fault anyway. A review measured
+ * both claims false. The co-pilot circled a horizontal orbit at 17% time on the
+ * gun, and the gate took the same grid to 98%. `COMBAT_ROLL_GATE` is its value,
+ * and the whole measurement is beside it.
  *
  * That is the seasickness fix. A target that already fills the gun still has a
  * bearing, and that bearing swings as it drifts a hair off centre. A bank to

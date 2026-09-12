@@ -188,6 +188,58 @@ export const PURSUIT_HOLD_CONE = 1.85;
 export const ENGAGED_CONE = 0.6;
 
 /**
+ * How near its bank the co-pilot must be before it pulls the nose, in radians.
+ * Above it, `bankToTurn` asks for NO pitch at all.
+ *
+ * IT WAS ZERO, AND THE COMMENT SAID IT HAD TO BE. `pitch-roll-steer.ts` held
+ * that the combat computer must not take the hard gate. A pitch held still
+ * while the roll catches up is time off the gun, it said, and the wide gun cone
+ * hid the fault anyway. A review of 2026-09-12 measured both claims false
+ * (`docs/COMBAT-COMPUTER-REVIEW.md`).
+ *
+ * WHAT THE SOFT GATE COSTS. Pitch scaled by the cosine of the bank error never
+ * reaches zero. That pitch moves the target's bearing while the roll chases the
+ * same bearing, so the nose can circle the target for ever. A vertical orbit
+ * needs no roll, and it tracked 100%. The horizontal and tilted orbits need
+ * both axes, and they fell to 17%.
+ *
+ * THREE MEASURES CHOSE THE VALUE, and the review's own probe is two of them. It
+ * flies the shipped controller and the real flight model against prescribed
+ * paths. Time on the gun means inside `hitCone` and `LASER_RANGE`, after the
+ * first ten seconds. The third is 72 exercises against real pirate brains, with
+ * real shots. Its figure is the share of engaged frames with a live hostile
+ * inside the gun cone.
+ *
+ *   | gate | 21 paths, 60s | 54 orbits, 90s | 72 fights |
+ *   |    0 |  64.9%,  7.5% |  53.9%,  3.8%  |     39.5% |
+ *   | 0.15 |  98.5%, 87.6% |  98.0%, 80.2%  |     55.4% |
+ *   | 0.20 |  98.5%, 87.8% |  97.9%, 79.2%  |     58.9% |
+ *   | 0.27 |  98.3%, 88.5% |  97.6%, 77.2%  |     57.5% |
+ *   | 0.30 |  98.7%, 90.8% |  97.7%, 78.2%  |     57.8% |
+ *   | 0.40 |  98.4%, 84.4% |  97.1%, 72.4%  |     60.2% |
+ *
+ * The second figure in each pair is the worst case, not the mean.
+ *
+ * WHY 0.27. It is the middle of a plateau rather than a peak. The prescribed
+ * paths hold about 98% from 0.08 to 0.3, and they fall away by 0.4. The fights
+ * rise to about 58% by 0.2 and stay there. Any value from 0.2 to 0.3 measures
+ * the same, so the exact figure inside that band is not load-bearing. It is
+ * about 15 degrees, against the course pilot's `COURSE_ROLL_GATE` of 0.05. A
+ * course has one fixed heading to reach. This one chases a heading that moves.
+ *
+ * WHAT IT COSTS. Acquisition is slower, because the nose waits for the bank.
+ * The worst first lock over the 21 paths went from 3.28 to 3.87 seconds. A gate
+ * of 0.08 pushed the same figure to 8.02 seconds, which is why the band is not
+ * tighter.
+ *
+ * It is a feel setting, and no brain flies through it. The prescribed paths
+ * carry no shots, no damage, and no opponent that fights back.
+ *
+ * @rule copilot.rollGate
+ */
+export const COMBAT_ROLL_GATE = 0.27;
+
+/**
  * How many world units of range weigh as much as one radian of off-nose turn.
  * The co-pilot ranks targets by how easy they are to lock
  * (`game/scripted-co-pilot.ts`). It fights the easiest target to get guns on, so

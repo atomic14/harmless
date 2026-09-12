@@ -49,7 +49,7 @@ import { LASER_RANGE } from '../constants/player-gun.ts';
 import { UNDER_FIRE_SECONDS } from '../constants/attack-run.ts';
 import {
   THREAT_RANGE, PURSUIT_SPEED_DEADBAND, ENGAGED_CONE, TARGET_DIST_WEIGHT,
-  PURSUIT_LEAD_GAIN,
+  PURSUIT_LEAD_GAIN, COMBAT_ROLL_GATE,
 } from '../constants/combat-computer.ts';
 import { PLAYER_FLIGHT } from '../constants/player-flight.ts';
 import { MAX_LEAD_SECONDS } from '../constants/pass-aim.ts';
@@ -179,10 +179,15 @@ export class ScriptedCoPilot {
     // which is the same rule: how far ahead a ship may aim.
     this.aim.copy(targetPos).addScaledVector(
       this.threatVel, Math.min(MAX_LEAD_SECONDS, PURSUIT_LEAD_GAIN * facing));
+    // BANK FIRST, THEN PULL. `COMBAT_ROLL_GATE` holds the pitch still until the
+    // roll arrives. Without it the pitch moves the target's bearing. The roll
+    // then chases that same bearing, and the nose circles the target instead of
+    // closing on it. See the constant for what that cost, measured.
+    //
     // It ramps through the commander's own envelope (PLAYER_FLIGHT), so the
     // co-pilot flies your ship as your hands would.
     const cmd = bankToTurn(player.quaternion,
-      this.aim.sub(player.position), this.steerMem, cone);
+      this.aim.sub(player.position), this.steerMem, cone, COMBAT_ROLL_GATE);
     this.pitchRate = rampFlightRate(
       this.pitchRate, cmd.pitch * PLAYER_FLIGHT.maxPitch, cmd.pitch !== 0, dt);
     this.rollRate = rampFlightRate(

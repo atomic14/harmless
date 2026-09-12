@@ -37,6 +37,7 @@
     "elite-a": "npm run generate:elite-a -- --check && node --experimental-strip-types --no-warnings test/elite-a.ts",
     "campaign": "node --experimental-strip-types --no-warnings test/campaign.ts",
     "survivability": "node --experimental-strip-types --no-warnings train/survivability.ts",
+    "combat-aim": "node --experimental-strip-types --no-warnings train/combat-aim.ts",
     "flight-probe": "node --experimental-strip-types --no-warnings train/flight-probe.ts",
     "aim-probe": "node --experimental-strip-types --no-warnings train/aim-probe.ts",
     "ram-probe": "node --experimental-strip-types --no-warnings train/ram-probe.ts",

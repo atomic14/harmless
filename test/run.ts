@@ -128,6 +128,7 @@ import './separation.test.ts';
 import './tactics.test.ts';
 import './tactic-choice.test.ts';
 import './scripted-co-pilot.test.ts';
+import './co-pilot-tracking.test.ts';
 import './pitch-roll-steer.test.ts';
 import './pursuit.test.ts';
 import './human-shape.test.ts';
