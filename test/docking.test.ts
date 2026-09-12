@@ -16,7 +16,7 @@
 // slotMiss, hull) is test/world.test.ts's docking section; this file is about
 // WHERE the edges are.
 
-import { readFileSync } from 'node:fs';
+import { readFileSync, readdirSync } from 'node:fs';
 import * as THREE from 'three';
 import {
   dockingOutcome, planDocking, makeDockPlan, type DockingOutcome,
@@ -35,7 +35,7 @@ import { newCommander } from '../src/game/commander.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { slotNormal } from '../src/world/slot.ts';
 import type { DamageSource } from '../src/game/combat.ts';
-import { check } from './harness.ts';
+import { check, eq } from './harness.ts';
 
 /** The edge between `inside(lo)` and `!inside(hi)`, to a millionth of a unit. */
 function bisect(lo: number, hi: number, inside: (x: number) => boolean): number {
@@ -269,6 +269,29 @@ function makeRun() {
   // ...and the scan can fail: the call the fix deleted is one of the ones it hunts.
   check('the scan catches the write this item removed',
     !READ_ONLY_QUATERNION.includes('rotateTowards'));
+}
+
+// ...AND ONE FILE IN THE WHOLE GAME MAY MOVE THE SHIP ANOTHER WAY
+// (docs/TODO/212). The rails of the docking mini game hold the ship on the
+// slot axis, and that is not flying. Chris asked for exactly that. The rule
+// above is about STEERING, so it stays. This says where the exception lives,
+// because a reader of the rule above would otherwise believe there is none.
+{
+  const dir = new URL('../src/game/', import.meta.url);
+  const writers = readdirSync(dir)
+    .filter((name) => name.endsWith('.ts'))
+    .filter((name) => {
+      const src = readFileSync(new URL(name, dir), 'utf8')
+        .replace(/^\s*(\/\/|\*|\/\*).*$/gm, '');
+      return [...src.matchAll(/player\.quaternion\s*\.\s*([a-zA-Z]+)/g)]
+        .some((m) => !READ_ONLY_QUATERNION.includes(m[1]));
+    });
+  // The other three PLACE the ship rather than fly it: a new game and a
+  // respawn (game.ts), a restored save (persistence.ts), and the setup of one
+  // training exercise (combat-sim.ts). A fourth name here is a new hand on the
+  // ship, and it must answer for itself.
+  eq('dock-rails.ts is the only file in game/ that turns the ship WHILE it flies',
+    writers.join(', '), 'combat-sim.ts, dock-rails.ts, game.ts, persistence.ts');
 }
 
 // --- what a fluffed slot does to you, through the same step ------------------

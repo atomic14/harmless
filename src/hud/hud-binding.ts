@@ -59,6 +59,7 @@ export interface HudSources {
   readonly assist: boolean;
   /** the pilot flies the last stretch into the slot (docs/TODO/207) */
   readonly trial: boolean;
+  readonly rails: boolean;
   readonly ecmDetected: boolean;
   readonly messageText: string;
   readonly messageTimer: number;
@@ -221,6 +222,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     missionMarker,
     assist: s.assist,
     trial: s.trial,
+    rails: s.rails,
     armed: s.missileArmed,
     stationInRange: s.inFlight && !s.witchspace
       && playerPos.distanceTo(world.station.position) < SCANNER_RANGE,

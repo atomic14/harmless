@@ -110,6 +110,12 @@ export interface SessionState {
    * and the speed. It is saved, because it decides who flies.
    */
   dockTrial: boolean;
+  /**
+   * The ship is on the rails, and the pilot flies the mini game
+   * (docs/TODO/212). It is the second half of `dockTrial`. The first half is
+   * the computer's, and it lines the ship up. It is saved, as `dockTrial` is.
+   */
+  dockRails: boolean;
 }
 
 /**
@@ -121,6 +127,7 @@ export function endVisit(state: SessionState): void {
   state.coursesDone = [];
   state.handFlown = false;
   state.dockTrial = false;
+  state.dockRails = false;
 }
 
 /** Put a message in canonical state; the HUD only paints these fields. */

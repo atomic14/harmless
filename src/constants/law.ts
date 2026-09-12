@@ -104,8 +104,16 @@ export const CONTRABAND: readonly number[] = [3, 6, 10];
 /**
  * The fine for a dock with a record, capped at what you can actually pay. They
  * are in tenths of a credit (invariant 8), so these are 25 Cr and 75 Cr.
+ *
+ * @rule law.offenderFine
  */
 export const OFFENDER_FINE = 250;
+/**
+ * ...and the fine for a fugitive, which is three times as much. The comment
+ * above covers both.
+ *
+ * @rule law.fugitiveFine
+ */
 export const FUGITIVE_FINE = 750;
 
 /**

@@ -160,6 +160,7 @@ export function freshSession(): SessionState {
     coursesDone: [],
     handFlown: false,
     dockTrial: false,
+    dockRails: false,
   };
 }
 

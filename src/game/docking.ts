@@ -56,6 +56,11 @@ export interface DockPlan {
   /** distance off the slot axis, for HUD and tests */
   lateral: number;
   /**
+   * How far along the slot axis the ship is, in front of the station. It is
+   * negative behind it. The rails read it (docs/TODO/212).
+   */
+  along: number;
+  /**
    * The plane this ship turns in, held across frames. `dock-path.ts` reads and
    * writes it. It is saved state, like the phase: a ship restored mid-approach
    * carries on the way round it already took.
@@ -91,6 +96,7 @@ export function planDocking(
   // perpendicular distance from the axis
   const lateral = _rel.addScaledVector(_slotN, -along).length();
   out.lateral = lateral;
+  out.along = along;
   // The station's local X, and not its Y. `lookAt(heading, up)` puts the ship's
   // RIGHT perpendicular to the up-hint. The wings must lie along the slot's
   // LONG axis, which is the station's local Y (see the header). The Y put every
@@ -172,6 +178,7 @@ export function planDocking(
 /** A fresh plan object to hand to `planDocking` each frame. */
 export function makeDockPlan(): DockPlan {
   return {
+    along: 0,
     heading: new THREE.Vector3(0, 0, -1),
     up: new THREE.Vector3(0, 1, 0),
     speed: 0,

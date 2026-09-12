@@ -63,6 +63,8 @@ export interface ActionSource {
   readonly missileInbound: boolean;
   /** the pilot flies the last stretch into the slot (docs/TODO/207 M2) */
   readonly trial: boolean;
+  /** ...and the rails have it, so the mini game is on (docs/TODO/212) */
+  readonly rails: boolean;
   /** the keys that open and close the throttle, for the two held buttons */
   readonly accelKey: string | null;
   readonly decelKey: string | null;
@@ -80,6 +82,11 @@ export function actionButtonsFor(a: ActionSource): HudButton[] {
   // The last stretch into the slot asks for two things and nothing else: the
   // roll, and the speed (docs/TODO/207 M2). So the pilot's buttons are those
   // two while it runs, and the guns wait.
+  if (a.trial && !a.rails) {
+    // The computer is lining the ship up, and the pilot has nothing to do yet
+    // (docs/TODO/212). A strip that did nothing would be a lie.
+    return [{ code: 'dock-lining-up', label: 'LINING UP', hint: 'STAND BY FOR THE SLOT' }];
+  }
   if (a.trial) {
     const out: HudButton[] = [{ code: a.rollStripCode, label: 'DRAG TO ROLL', strip: true }];
     if (a.accelKey) {

@@ -60,6 +60,8 @@ export const MISSILE_LAST_STAND_GATE = Math.PI / 2;
  * Desperation widens the envelope INWARD, but not all the way. Inside this, the
  * missile arrives before the player can reach the E.C.M. or turn, and a weapon
  * you cannot dodge is not a fight.
+ *
+ * @rule ordnance.missileLastStandMinRange
  */
 export const MISSILE_LAST_STAND_MIN_RANGE = 250;
 /**

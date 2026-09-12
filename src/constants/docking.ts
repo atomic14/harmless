@@ -163,3 +163,49 @@ export const ROLL_TOLERANCE = 0.65;
  * @domain docking
  */
 export const SLOT_SPEED_LIMIT = 120;
+
+/**
+ * How far off the slot axis the ship may be when the rails take it, in world
+ * units (docs/TODO/212).
+ *
+ * THE PILOT USED TO GET THE SHIP AT 1,500 UNITS, AND IT WAS NOT LINED UP. A
+ * measurement of 2026-09-12 put the hand-over 407 to 886 units off the axis,
+ * at 224 units a second. The slot channel is 26 units across the half-width.
+ * So the computer still had the whole of the lining up to do, with the pitch
+ * alone, because the pilot owned the roll. An ideal pilot docked 0 times in 4.
+ *
+ * IT IS A SANITY BOUND, NOT THE LINE ITSELF. The rails close the last of the
+ * error themselves, and that is their job. The docking computer reaches its
+ * last leg 610 units out, with 220 units of error. The error is down to 18
+ * units by 280 units out. To wait for the small number would leave the pilot
+ * two seconds of game. So the rails take the ship at the start of the last leg,
+ * and they pull it onto the line while it flies in.
+ *
+ * @rule docking.railsLateral
+ * @domain docking
+ */
+export const RAILS_LATERAL = 250;
+
+/**
+ * How far out the rails take the ship, in world units (docs/TODO/212).
+ *
+ * It is the length of the mini game. At the slot's speed limit of 120 units a
+ * second, 900 units is about seven seconds. The station turns a half circle in
+ * 12 seconds, so the pilot sees the slot come round at least once.
+ *
+ * @rule docking.railsRange
+ * @domain docking
+ */
+export const RAILS_RANGE = 900;
+
+/**
+ * How hard the rails pull the ship onto the axis, per second (docs/TODO/212).
+ *
+ * The worst error the rails take is about 220 units. At 2 a second the first
+ * frame moves the ship 7 units sideways, and the error is gone in about two
+ * seconds. A hard snap would look like a teleport.
+ *
+ * @rule docking.railsPull
+ * @domain docking
+ */
+export const RAILS_PULL = 2;

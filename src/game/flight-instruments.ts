@@ -206,12 +206,12 @@ export class Instruments {
 
   /**
    * The station course reaches the hand-over, and the ship changes hands
-   * (docs/TODO/207 M1).
+   * (docs/TODO/207 M1, in the shape docs/TODO/212 gave it).
    *
    * With a docking computer fitted, that computer flies the slot, as it does
-   * today. Without one, the pilot flies the last stretch. The computer holds
-   * the ship on the slot axis. The pilot matches the station's spin, and the
-   * speed.
+   * today. Without one, the pilot's own stretch begins. The computer lines the
+   * ship up first. The rails then take the ship, and the pilot matches the
+   * station's spin and the speed.
    */
   private handOver(): void {
     const s = this.state.session;
@@ -220,9 +220,10 @@ export class Instruments {
       return;
     }
     s.dockTrial = true;
+    s.dockRails = false;
     s.course = null;
     this.coursePilot.reset();
-    this.host.showMessage('YOU HAVE THE SLOT — MATCH ITS SPIN AND GO IN SLOWLY', 5);
+    this.host.showMessage('THE COMPUTER IS LINING THE SHIP UP — STAND BY', 4);
   }
 
   /**
@@ -239,6 +240,7 @@ export class Instruments {
       .distanceTo(this.state.world.station.position) > DOCK_COMPUTER_RANGE;
     if (!out) return;
     s.dockTrial = false;
+    s.dockRails = false;
     this.host.showMessage('THE STATION IS BEHIND YOU', 3);
   }
 

@@ -13,7 +13,12 @@ import { keymap } from '../src/engine/keymap.ts';
 import { dockingOutcome } from '../src/game/docking.ts';
 import { SLOT_SPEED_LIMIT } from '../src/constants/docking.ts';
 import { PLAYER_FLIGHT } from '../src/constants/player-flight.ts';
-import { check, eq } from './harness.ts';
+import { Game } from '../src/game/game.ts';
+import { headlessShell } from '../src/engine/shell.ts';
+import { withoutSaving } from '../src/game/storage.ts';
+import { seedWorld } from '../src/game/rng.ts';
+import { SLOT_HALF_ACROSS } from '../src/constants/docking.ts';
+import { check, dismissBriefing, eq } from './harness.ts';
 
 console.log('\nthe last stretch into the slot');
 
@@ -22,10 +27,19 @@ console.log('\nthe last stretch into the slot');
   const trial = actionButtonsFor({
     fireKey: 'KeyA', missiles: 3, armed: false, locked: false, armKey: 'KeyT',
     launchKey: 'KeyM', ecmKey: 'KeyE', targets: null, missileInbound: false,
-    trial: true, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
+    trial: true, rails: true, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });
   eq('the stretch shows a strip and two held buttons, and no guns',
     trial.map((b) => b.label).join(), 'DRAG TO ROLL,THRUST,BRAKE');
+  // ...and before the rails take it, the pilot has nothing to do yet
+  // (docs/TODO/212). A strip that did nothing would be a lie.
+  const lining = actionButtonsFor({
+    fireKey: 'KeyA', missiles: 3, armed: false, locked: false, armKey: 'KeyT',
+    launchKey: 'KeyM', ecmKey: 'KeyE', targets: null, missileInbound: false,
+    trial: true, rails: false, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
+  });
+  eq('while the computer lines up, the pilot sees one word and no controls',
+    lining.map((b) => b.label).join(), 'LINING UP');
   check('the strip is dragged, not pressed', trial[0]?.strip === true);
   check('...and the throttle buttons are held', trial[1]?.hold === true && trial[2]?.hold === true);
 }
@@ -86,4 +100,76 @@ console.log('\nthe last stretch into the slot');
   eq('...and one unit over, it does not', outcome(SLOT_SPEED_LIMIT + 1), 'tooFast');
   check('the limit is well under the ship\'s top speed, so it is a real choice',
     SLOT_SPEED_LIMIT < PLAYER_FLIGHT.maxSpeed / 2);
+}
+
+// --- THE MINI GAME: THE COMPUTER LINES UP, THE RAILS HOLD THE LINE ----------
+//
+// Chris flew 207's stretch on a phone (2026-09-12): *"The docking does not
+// seem to work at all... lining up is not actually very accurate until the
+// last few moments. So we aren't actually flying straight and rolling can send
+// you off away from the slot."* He asked for the shape this pins: *"we
+// actually get lined up by the computer and then hand off to a 'mini' docking
+// game. Something that is completely on rails."*
+//
+// The whole game, flown headless: the course, the computer's lining up, and
+// then the rails with a pilot's hand on the strip.
+console.log('\nthe docking mini game');
+{
+  /** A commander at the witchpoint with the station course picked. */
+  const arrive = (seed: number): Game => {
+    const g = withoutSaving(() => {
+      seedWorld(seed);
+      const game = new Game(() => headlessShell());
+      dismissBriefing(game);
+      game.launch();
+      game.arriveInSystem();
+      return game;
+    }).value;
+    g.state.world.clearNpcs();
+    g.state.session.course = 'station';
+    return g;
+  };
+
+  /**
+   * Fly to the rails, then hold the strip as a pilot does.
+   *
+   * @param match whether the pilot matches the slot. A pilot who does nothing
+   * is the control: the slot is only there to meet about two turns in five.
+   */
+  const fly = (g: Game, match: boolean): { rails: boolean; docked: boolean; lateral: number } => {
+    const dt = 1 / 60;
+    const q = new THREE.Quaternion();
+    const right = new THREE.Vector3();
+    let rails = false;
+    let lateral = Infinity;
+    withoutSaving(() => {
+      for (let f = 0, at = 0; f < 200 / dt; f++) {
+        const st = g.state.world.station;
+        if (g.state.session.dockRails) {
+          rails = true;
+          const local = g.state.player.position.clone();
+          st.worldToLocal(local);
+          lateral = Math.min(lateral, Math.hypot(local.x, local.y));
+          if (match) {
+            q.copy(st.quaternion).invert().multiply(g.state.player.quaternion);
+            right.set(1, 0, 0).applyQuaternion(q);
+            // The slot fits either way up, so the error wraps at a quarter
+            // turn rather than a half.
+            const err = Math.atan2(right.x, right.y);
+            g.input.rollStick = Math.max(-1, Math.min(1,
+              Math.atan2(Math.sin(2 * err), Math.cos(2 * err)) / 2 * 4));
+          }
+        }
+        g.step(dt, at += dt);
+        if (g.mode !== 'flight') break;
+      }
+    });
+    return { rails, docked: g.mode === 'docked', lateral };
+  };
+
+  const run = fly(arrive(20_260_951), true);
+  check('the rails take the ship', run.rails);
+  check('...and a pilot who matches the slot docks', run.docked);
+  check('...having been held on the line, inside the channel',
+    run.lateral < SLOT_HALF_ACROSS, `${run.lateral.toFixed(0)} units off the axis`);
 }

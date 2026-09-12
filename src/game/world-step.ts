@@ -52,7 +52,10 @@ import {
   PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN, THARGON_DEPLOY_RANGE,
   TRADER_ARRIVAL_RANGE,
 } from '../constants/spawn-placement.ts';
-import { planDocking, dockingOutcome, type DockingOutcome } from './docking.ts';
+import {
+  planDocking, dockingOutcome, type DockPlan, type DockingOutcome,
+} from './docking.ts';
+import { holdOnRails, railsReady } from './dock-rails.ts';
 import { dockingSticks } from './docking-sticks.ts';
 import { NPC_HULL_BOX_MARGIN } from '../constants/docking.ts';
 import { BOUNCE_STANDOFF } from '../constants/station.ts';
@@ -322,8 +325,10 @@ export class WorldStep {
     // before the ship flies, rather than applied on top of it. Where it hands
     // the ship back mid-frame, the pilot's own demand stands, as before.
     const dc = session.dcEngaged ? this.dockingComputerStep(dt, pilot, out)
-      : session.dockTrial ? this.dockTrialStep(dt, pilot) : null;
+      : session.dockTrial ? this.dockTrialStep(dt, pilot, out) : null;
     player.update(dt, dc ?? pilot.demand);
+    // The rails correct the frame the ship just flew (docs/TODO/212).
+    if (session.dockRails) holdOnRails(player, world.station, dt);
 
     // torus drive
     if (session.torusEngaged) {
@@ -367,15 +372,32 @@ export class WorldStep {
   private dockingComputerStep(
     dt: number, pilot: PilotInput, out: StepEvent[],
   ): FlightDemand | null {
-    const { player, session, world } = this.state;
+    const { session } = this.state;
     if (pilot.handsOn) {
       session.dcEngaged = false;
       out.push({ kind: 'dockingMusic', on: false });
       out.push(say('MANUAL OVERRIDE', 2));
       return null;
     }
-    const plan = planDocking(player.position, world.station, world.stationDockZ,
-      player.maxSpeed, this.state.dockPlan);
+    return this.dockingDemand(dt, pilot, this.dockingPlan());
+  }
+
+  /** The approach the computer is flying this frame. */
+  private dockingPlan(): DockPlan {
+    const s = this.state;
+    return planDocking(s.player.position, s.world.station, s.world.stationDockZ,
+      s.player.maxSpeed, s.dockPlan);
+  }
+
+  /**
+   * What the docking computer asks of the ship this frame: both sticks, and
+   * the plan's own speed.
+   *
+   * The pilot's stretch shares it (docs/TODO/212). The computer lines the ship
+   * up there too, and it hands over only when the ship is ON the axis.
+   */
+  private dockingDemand(dt: number, pilot: PilotInput, plan: DockPlan): FlightDemand {
+    const { player } = this.state;
     const sticks = dockingSticks(player.quaternion, plan, player.rollRate);
     // Bang-bang on the throttle, with a deadband of one frame's thrust. A
     // demand can only ask for full ahead, full astern or coast, because that is
@@ -398,29 +420,37 @@ export class WorldStep {
   }
 
   /**
-   * One frame of the pilot's own stretch of the approach (docs/TODO/207).
+   * One frame of the pilot's own stretch of the approach (docs/TODO/207, and
+   * docs/TODO/212 for its shape).
    *
-   * The computer holds the ship on the slot axis, which is the pitch. The
-   * pilot owns the roll and the throttle. The slot asks for those two things:
-   * the station's spin, and a speed it will take.
+   * IT IS TWO STAGES. The computer lines the ship up first, with both sticks,
+   * exactly as the docking computer does. Then the rails take the ship, and
+   * the pilot plays the mini game: match the slot, and go in slowly.
    *
-   * It is the docking computer's own plan, with two of its three sticks given
-   * back. So the ship follows the same curve to the letterbox, and the last
-   * of the manoeuvre is the pilot's.
+   * Chris asked for that on 2026-09-12: *"I'm wondering if we actually get
+   * lined up by the computer and then hand off to a 'mini' docking game.
+   * Something that is completely on rails."* One stick cannot hold a line and
+   * match a spin at the same time. The rails hold the line, so the stick is
+   * free for the spin.
    */
-  private dockTrialStep(dt: number, pilot: PilotInput): FlightDemand {
-    const { player, world } = this.state;
-    const plan = planDocking(player.position, world.station, world.stationDockZ,
-      player.maxSpeed, this.state.dockPlan);
-    const sticks = dockingSticks(player.quaternion, plan, player.rollRate);
+  private dockTrialStep(dt: number, pilot: PilotInput, out: StepEvent[]): FlightDemand {
+    const { player, session } = this.state;
+    const plan = this.dockingPlan();
+    if (!session.dockRails) {
+      if (!railsReady(plan, player.speed)) return this.dockingDemand(dt, pilot, plan);
+      session.dockRails = true;
+      out.push(say('THE SLOT IS YOURS — MATCH IT, AND GO IN SLOWLY', 4));
+    }
+    // ON THE RAILS. The pitch is nobody's: `holdOnRails` owns the line. The
+    // roll and the throttle are the pilot's, and they are the whole game.
     return {
-      pitchRate: rampFlightRate(
-        player.pitchRate, sticks.pitch * PLAYER_FLIGHT.maxPitch, sticks.pitch !== 0, dt),
+      pitchRate: rampFlightRate(player.pitchRate, 0, false, dt),
       rollRate: pilot.demand.rollRate,
       throttle: pilot.demand.throttle,
       fire: pilot.demand.fire,
     };
   }
+
 
   /** Everyone else: decisions, despawns, collisions, and who else turns up. */
   private stepNpcs(dt: number, out: StepEvent[]): void {
@@ -893,7 +923,9 @@ export class WorldStep {
       this.host.dock();
       return;
     }
-    // hit the hull, or fluffed the slot
+    // hit the hull, or fluffed the slot. The rails let go, so the computer
+    // lines the ship up again for another go (docs/TODO/212).
+    this.state.session.dockRails = false;
     const away = this.tmp2.copy(player.position).sub(station.position).normalize();
     player.position.copy(station.position).addScaledVector(away, BOUNCE_STANDOFF);
     player.speed = 0;
