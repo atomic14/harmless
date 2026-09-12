@@ -113,15 +113,31 @@ function beside(g: Game, role: 'pirate' | 'trader', x: number, seed: number): Np
   check('a pick hands the stick back, and the aim starts again', g.state.session.ccEngaged);
 }
 
+// A FIGHT DROPS THE COURSE (Chris, 2026-09-12: *"it should also be disengaged
+// by combat or other events"*, and *"anything that breaks the journey should
+// let you reconsider what you are doing - at the moment you are stuck on a
+// course"*).
+//
+// The aim already won the stick, because `flight.ts` asks the co-pilot before
+// the course. So the course flew nothing while it waited, the button said the
+// ship was heading somewhere, and the course took the ship back the moment the
+// last pirate died. Now the fight ends it, and the list comes back.
 {
   const g = open(20_260_928);
   g.state.session.course = 'station';
   const pirate = beside(g, 'pirate', 1400, 6);
   run(g, 30);
-  check('a fight on a course: the aim flies, and the course waits', g.state.session.ccEngaged
-    && g.state.session.course === 'station');
+  check('a fight on a course: the aim flies, and the course is dropped',
+    g.state.session.ccEngaged && g.state.session.course === null);
   pirate.state.alive = false;
   run(g, 5);
-  check('...and when the area is clear, the course flies on', !g.state.session.ccEngaged
-    && g.state.session.course === 'station');
+  check('...and a clear area leaves the pilot to choose again, not back on it',
+    !g.state.session.ccEngaged && g.state.session.course === null);
+
+  // ...and a course picked while the fight runs goes the same way. The stick is
+  // already the computer's, so an edge test on the fight starting would miss it.
+  g.state.session.course = 'station';
+  beside(g, 'pirate', 1400, 6);
+  run(g, 30);
+  check('a course picked mid-fight is dropped too', g.state.session.course === null);
 }

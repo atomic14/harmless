@@ -82,6 +82,9 @@ rules. This file is a map.
   - `flight-weapons.ts` — what the ship spends, and what it takes. Laser fire is
     here.
   - `flight-instruments.ts` — the switches that change who flies the ship.
+  - `flight-course.ts` — the course at the controls. Three things end it. The
+    work is done, or the pilot taps the lit button, or a hostile ship turns up.
+    It left `flight-instruments.ts` on 2026-09-12.
 
 A step that ends in a dock, a jump, a tow or a death reports that end to
 `game.ts`. The orchestrator then decides what the game becomes.

@@ -386,6 +386,7 @@ export class Game {
     closeScreens: () => this.screens.exit(),
     showMessage: (text, seconds) => this.showMessage(text, seconds),
     refused: () => sfx.refused(),
+    stopCourse: () => this.flight_.switches.courses.stopCourse(),
   } satisfies CourseHost);
 
   /** The target list's buttons, and the pick applied (docs/TODO/206 M3). */

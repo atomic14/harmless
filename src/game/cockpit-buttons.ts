@@ -22,7 +22,7 @@ import type { Prompt } from './prompts.ts';
 import type { ControlMode } from './controls.ts';
 import { COURSE_NAMES } from './courses.ts';
 import {
-  COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY, TARGET_NONE_KEY, TARGETS_KEY,
+  COURSE_KEYS, COURSE_SKIP_KEY, COURSE_STOP_KEY, TARGET_NONE_KEY, TARGETS_KEY,
 } from './bindings.ts';
 import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
 import { SKIP_SPEED } from '../constants/course.ts';
@@ -36,7 +36,7 @@ import { LASER_RANGE } from '../constants/player-gun.ts';
 export function courseButtonsFor(p: CoursePanel, chart: string | null): HudButton[] {
   if (p.rows === null) {
     return p.current === null ? [] : [
-      { code: COURSE_TOGGLE_KEY, label: COURSE_NAMES[p.current], lit: true, hint: 'CHOOSE SOMEWHERE ELSE' },
+      { code: COURSE_STOP_KEY, label: COURSE_NAMES[p.current], lit: true, hint: 'TAP TO STOP' },
       skipButton(p),
     ].filter((b): b is HudButton => b !== null);
   }
@@ -44,7 +44,6 @@ export function courseButtonsFor(p: CoursePanel, chart: string | null): HudButto
     code: COURSE_KEYS[c.kind], label: c.what, ...(c.why === null ? {} : { note: c.why }),
   }));
   if (chart) out.push({ code: chart, label: 'LOCAL CHART' });
-  if (p.current !== null) out.push({ code: COURSE_TOGGLE_KEY, label: 'CLOSE' });
   return out;
 }
 

@@ -61,11 +61,16 @@ export const COURSE_KEYS: Readonly<Record<CourseKind, string>> = {
 export const COURSE_CHART_KEY = 'VirtCourseChart';
 
 /**
- * The button in flight that opens the course list over a course, and closes
- * it (docs/TODO/205 M5). It has no key: Chris, 2026-09-11, *"We don't need to
- * use the keyboard. We have mouse and touch."*
+ * The button in flight that STOPS the course under way (docs/TODO/205 M5). It
+ * has no key: Chris, 2026-09-11, *"We don't need to use the keyboard. We have
+ * mouse and touch."*
+ *
+ * It used to open the course list over a running course, and close it again.
+ * Chris called that confusing on 2026-09-12: *"I think you should be able to
+ * click it to disengage it."* A lit button reads as ON, so a tap turns it off.
+ * The list then shows by itself, because it always does with no course.
  */
-export const COURSE_TOGGLE_KEY = 'VirtCourseToggle';
+export const COURSE_STOP_KEY = 'VirtCourseStop';
 
 /** The fast forward button in flight (docs/TODO/205 M7). It has no key either. */
 export const COURSE_SKIP_KEY = 'VirtCourseSkip';

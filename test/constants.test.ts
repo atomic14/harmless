@@ -409,7 +409,7 @@ const OUTSIDE: readonly Group[] = [
       + ' when the ship cannot jump, beside the rule that raises them (M5).'
       + ' KINDS is the list of courses, read off the codes that name them',
     files: {
-      'game/flight-instruments.ts': ['COURSE_ENDS'],
+      'game/flight-course.ts': ['COURSE_ENDS'],
       'game/courses.ts': ['COURSE_NAMES', 'JUMP_WHY'],
       'game/course-actions.ts': ['KINDS'],
       // what each role is called on the target list (docs/TODO/206 M1)
@@ -471,7 +471,7 @@ const OUTSIDE: readonly Group[] = [
       // ...and the codes a course row sends, on both of its surfaces (docs/TODO/205 M4)
       'game/bindings.ts': [
         'GLOBAL_BINDINGS', 'FLIGHT_BINDINGS', 'NOT_IN_THE_SIMULATOR', 'BINDINGS',
-        'WHILE_PAUSED', 'COURSE_KEYS', 'COURSE_CHART_KEY', 'COURSE_TOGGLE_KEY', 'COURSE_SKIP_KEY',
+        'WHILE_PAUSED', 'COURSE_KEYS', 'COURSE_CHART_KEY', 'COURSE_STOP_KEY', 'COURSE_SKIP_KEY',
         'TARGETS_KEY', 'TARGET_NONE_KEY', 'TARGET_ROW_PREFIX', 'ROLL_STRIP_CODE',
       ],
       'game/screens/save-transfer.ts': ['NOT_A_SAVE', 'WRONG_VERSION', 'STORE_FULL'],

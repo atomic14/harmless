@@ -322,11 +322,11 @@ export class Flight {
     if (this.input.mouseFlight) this.input.decayMouse(dt);
     // A fight gives every pilot the computer's aim (docs/TODO/206 M2).
     this.instruments.autoEngage();
-    this.instruments.watchDockTrial();
+    this.instruments.courses.watchDockTrial();
     // A picked course flies when no co-pilot does (docs/TODO/205 M3). The
     // trigger stays the pilot's, as it does under the co-pilot.
     if (!this.state.session.ccEngaged) {
-      const course = this.instruments.course(dt, this.handsOn());
+      const course = this.instruments.courses.course(dt, this.handsOn());
       return course ? { ...course, fire: hands.fire } : hands;
     }
     // WHICH co-pilot is the brain selection's answer. Under the shipped

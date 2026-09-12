@@ -98,6 +98,9 @@ function world(g: Game): string {
   eq('a flight key takes the ship, and fast forward stops with the course', g.coursePanel()?.skip ?? null, null);
 }
 
+// A HOSTILE SHIP NOW ENDS THE COURSE ITSELF, and fast forward goes with it
+// (Chris, 2026-09-12). The button used to stay, over a course that flew
+// nothing while the aim fought.
 {
   const g = onCourse(20_260_921);
   for (const s of g.state.world.npcs) if (s.role === 'pirate' || s.role === 'hunter') s.state.alive = false;
@@ -107,8 +110,25 @@ function world(g: Game): string {
     g.state.player.position.clone().add(new THREE.Vector3(0, 0, -1500)), 7);
   pirate.state.provokedByPlayer = true;
   run(g, 2, 7);
-  eq('a hostile ship nearby stops fast forward by itself', g.coursePanel()?.skip?.on, false);
-  eq('...and the console says why', g.state.session.messageText, 'HOSTILE SHIP NEARBY — BACK TO NORMAL SPEED');
+  eq('a hostile ship nearby ends the course', g.state.session.course, null);
+  eq('...so there is no fast forward button left to press', g.coursePanel()?.skip ?? null, null);
+}
+
+// ...and with NO co-pilot, the course is the only pilot there is, so it flies
+// on through the fight. Fast forward is what stops, and it says why.
+{
+  const g = onCourse(20_260_921);
+  for (const s of g.state.world.npcs) if (s.role === 'pirate' || s.role === 'hunter') s.state.alive = false;
+  g.state.brains = { ...g.state.brains, scripted: true };
+  press(g, COURSE_SKIP_KEY);
+  const pirate = g.state.world.spawn('pirate',
+    g.state.player.position.clone().add(new THREE.Vector3(0, 0, -1500)), 7);
+  pirate.state.provokedByPlayer = true;
+  run(g, 2, 7);
+  eq('with no co-pilot the course flies on', g.state.session.course, 'station');
+  eq('...and a hostile ship nearby stops fast forward by itself', g.coursePanel()?.skip?.on, false);
+  eq('...and the console says why', g.state.session.messageText,
+    'HOSTILE SHIP NEARBY — BACK TO NORMAL SPEED');
 
   press(g, COURSE_SKIP_KEY);
   eq('...and with the hostile ship still there, the button refuses', g.coursePanel()?.skip?.on, false);

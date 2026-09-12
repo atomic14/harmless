@@ -20,7 +20,7 @@ import { courseList, type Course, type CourseKind, type CourseSituation, type Co
 import type { checkJump } from './hyperspace.ts';
 import type { GameState } from './state.ts';
 import type { Input } from '../engine/input.ts';
-import { COURSE_KEYS, COURSE_SKIP_KEY, COURSE_TOGGLE_KEY } from './bindings.ts';
+import { COURSE_KEYS, COURSE_SKIP_KEY, COURSE_STOP_KEY } from './bindings.ts';
 import { hostilesNear, hostilesOnScanner } from './hostility.ts';
 import { SKIP_SPEED } from '../constants/course.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
@@ -54,18 +54,15 @@ export interface CourseHost {
   closeScreens(): void;
   showMessage(text: string, seconds: number): void;
   refused(): void;
+  /** the STOP button: drop the course under way, and let go of the ship */
+  stopCourse(): void;
 }
 
 export class CourseActions {
   private readonly state: () => GameState;
   private readonly host: CourseHost;
   /**
-   * The pilot opened the list while a course flies. It is what the buttons
-   * show, and never what the ship does, so no save carries it.
-   */
-  private opened = false;
-  /**
-   * The fast forward button is on (docs/TODO/205 M7). Like `opened`, it is
+   * The fast forward button is on (docs/TODO/205 M7). Like the list itself, it is
    * how fast time passes for the player, and never what the world does. So no
    * save carries it, and a restore starts at normal speed.
    */
@@ -83,7 +80,7 @@ export class CourseActions {
   panel(): CoursePanel {
     const current = this.state().session.course;
     return {
-      rows: current === null || this.opened ? this.list('flight') : null,
+      rows: current === null ? this.list('flight') : null,
       current,
       skip: current === null ? null : { on: this.skipping, block: this.skipBlock() },
     };
@@ -131,14 +128,15 @@ export class CourseActions {
 
   /**
    * A course button was pressed in flight. The codes are `COURSE_KEYS` and
-   * `COURSE_TOGGLE_KEY`. The buttons are their only sender, so no key table
+   * `COURSE_STOP_KEY`. The buttons are their only sender, so no key table
    * spends a letter on them. A screen reads its own codes in the same way
    * (invariant 13).
    */
   read(i: Input): void {
-    // The button that opens the list over a course, and closes it.
-    if (i.pressed(COURSE_TOGGLE_KEY)) {
-      this.opened = !this.opened;
+    // The lit button that stops the course under way. The list then shows by
+    // itself, because it always does with no course.
+    if (i.pressed(COURSE_STOP_KEY)) {
+      this.host.stopCourse();
       return;
     }
     // The fast forward button. A second press stops it.
@@ -151,7 +149,7 @@ export class CourseActions {
     }
     for (const kind of KINDS) {
       if (i.pressed(COURSE_KEYS[kind])) {
-        if (this.pick(kind, 'flight')) this.opened = false;
+        this.pick(kind, 'flight');
         return;
       }
     }

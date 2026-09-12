@@ -4,11 +4,12 @@
 // flight world stops under a screen. Each button sends its code as a menu row
 // does. These press the codes in a real headless Game, as a click would.
 
+import * as THREE from 'three';
 import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { COURSE_KEYS, COURSE_TOGGLE_KEY } from '../src/game/bindings.ts';
+import { COURSE_KEYS, COURSE_STOP_KEY } from '../src/game/bindings.ts';
 import { courseButtonsFor } from '../src/game/cockpit-buttons.ts';
 import { keyCodeIfBound } from '../src/ui/key-help.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
@@ -59,15 +60,21 @@ function press(g: Game, code: string): void {
   eq('...leaving a button that says what the ship is doing, and fast forward',
     courseButtonsFor(g.coursePanel()!, null).map((b) => b.label).join(), 'HEADING TO THE STATION,FAST FORWARD');
 
-  press(g, COURSE_TOGGLE_KEY);
-  check('that button opens the list again over the course', (g.coursePanel()?.rows?.length ?? 0) > 0);
-  check('...and the list ends with a button that closes it',
-    courseButtonsFor(g.coursePanel()!, 'KeyN').at(-1)?.label === 'CLOSE');
+  // A LIT BUTTON READS AS ON, SO A TAP TURNS IT OFF (Chris, 2026-09-12: *"I
+  // think you should be able to click it to disengage it"*). It used to open
+  // the list over the running course instead.
+  eq('...and that button offers to stop the course',
+    courseButtonsFor(g.coursePanel()!, null)[0]?.hint, 'TAP TO STOP');
+  press(g, COURSE_STOP_KEY);
+  eq('pressing it stops the course', g.state.session.course, null);
+  eq('...and the console says so', g.state.session.messageText,
+    'COURSE OFF — CHOOSE WHERE TO GO');
+  check('...and the list shows again by itself', (g.coursePanel()?.rows?.length ?? 0) > 0);
 
   g.state.commander.equipment.scoops = true;
   g.state.commander.fuel = 10;
   press(g, COURSE_KEYS.skim);
-  eq('another button changes the course', g.state.session.course, 'skim');
+  eq('another button picks a new course', g.state.session.course, 'skim');
   eq('...and folds the list away again', g.coursePanel()?.rows ?? null, null);
 }
 
@@ -108,4 +115,38 @@ function press(g: Game, code: string): void {
   g.startExercise({ mode: 'sparring', scenario: 'single-pirate', tier: 1, seed: 1 });
   eq('an exercise shows no course buttons', g.coursePanel(), null);
   g.endExercise();
+}
+
+// --- A FIGHT DROPS THE COURSE ----------------------------------------------
+//
+// Chris, 2026-09-12: *"it should also be disengaged by combat or other
+// events"*. The combat computer already won the stick, because `flight.ts`
+// asks it before the course. So the course sat there flying nothing, and it
+// took the ship back the moment the fight ended. The button meanwhile said the
+// ship was heading somewhere.
+{
+  const g = arrived();
+  press(g, COURSE_KEYS.station);
+  eq('a course is under way', g.state.session.course, 'station');
+
+  // a pirate close enough for the condition light to call it a fight
+  g.state.world.spawn('pirate',
+    g.state.player.position.clone().add(new THREE.Vector3(0, 0, -900)), 1);
+  // The console shows one line at a time, and the torus drive drops in the same
+  // frame, so collect what it said rather than read the last of it.
+  const said: string[] = [];
+  withoutSaving(() => {
+    for (let f = 0, at = 1; f < 240; f++) {
+      g.step(1 / 60, at += 1 / 60);
+      const line = g.state.session.messageText;
+      if (line && said.at(-1) !== line) said.push(line);
+    }
+  });
+
+  check('a fight takes the stick', g.state.session.ccEngaged);
+  eq('...and the course is dropped with it', g.state.session.course, null);
+  check('...and the console says why', said.includes('HOSTILE SHIP — COURSE OFF'),
+    said.join(' / '));
+  check('...so the list shows again, rather than a course that flies nothing',
+    (g.coursePanel()?.rows?.length ?? 0) > 0);
 }
