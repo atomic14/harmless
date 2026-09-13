@@ -45,7 +45,7 @@ export function lintSkeleton(
     const at = `${s.id}/${leg.id}`;
     if (!verbModule(leg.verb.kind)) out.push(`${at}: no module for verb ${leg.verb.kind}`);
     if (verbNeedsShip(leg.verb)) {
-      const role = verbJob(leg.verb) === 'hunt' ? 'pirate' : 'trader';
+      const role = jobRole(verbJob(leg.verb));
       if (!specForDesign(role, leg.verb.ship)) out.push(`${at}: no ${role} row for ${leg.verb.ship}`);
     }
     // A gang's member with no pirate row would be skipped at the arrival,

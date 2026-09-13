@@ -96,6 +96,8 @@ export function applyMissions(
   for (const e of effects) {
     switch (e.kind) {
       case 'pay': c.credits += e.tenths; break;
+      // A fit no shop sells goes on the ship (docs/TODO/219 M4).
+      case 'grant': c.equipment.cloak = true; break;
       case 'deed': c.disrepute = afterDeed(c.disrepute ?? 0, e.deed.disrepute); break;
       case 'legal':
         c.legalStatus = Math.max(0, Math.min(FUGITIVE, c.legalStatus + e.delta));
@@ -181,6 +183,6 @@ export function missionWarning(c: CommanderData, live: LiveMission): string {
   if (!s) return '';
   const verb = legOf(s, live.leg).verb;
   if (verb.kind !== 'hunt') return '';
-  const spec = specForDesign('pirate', verb.ship);
+  const spec = specForDesign(jobRole(verbJob(verb)), verb.ship);
   return spec ? huntWarning(c, spec, s.patron.kind === 'navy' ? 'NAVY' : 'PATRON') : '';
 }

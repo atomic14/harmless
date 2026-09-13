@@ -50,6 +50,11 @@ export interface Equipment {
   energyBomb: boolean;
   miningLaser: boolean;
   combatComputer: boolean;
+  /**
+   * The cloaking device, which no shop sells (docs/TODO/219 M4). The Dark
+   * Wheel's door grants it. A save from before the Wheel reads it as off.
+   */
+  cloak: boolean;
 }
 
 /** Trumbles: cute, cheap, and a catastrophe. Kept outside Equipment
@@ -71,6 +76,7 @@ export function defaultEquipment(): Equipment {
     energyBomb: false,
     miningLaser: false,
     combatComputer: false,
+    cloak: false,
   };
 }
 

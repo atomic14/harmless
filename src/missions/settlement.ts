@@ -34,6 +34,7 @@ export function applySettlement(
     if (s.pay > 0) effects.push({ kind: 'pay', tenths: s.pay });
     if (s.deed) effects.push({ kind: 'deed', deed: s.deed });
     if (s.legal) effects.push({ kind: 'legal', delta: s.legal });
+    if (s.grant) effects.push({ kind: 'grant', fit: s.grant });
     for (const f of s.setFlags ?? []) {
       if (!st.flags.includes(f)) { st.flags.push(f); added.push(f); }
     }

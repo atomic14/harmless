@@ -14,6 +14,11 @@ import { SKELETONS } from '../src/missions/skeletons/index.ts';
 import { WHEEL_MARK } from '../src/missions/skeletons/wheel/mark.ts';
 import { WHEEL_BLOCKADE } from '../src/missions/skeletons/wheel/blockade.ts';
 import { WHEEL_PILOT } from '../src/missions/skeletons/wheel/pilot.ts';
+import { WHEEL_DOOR } from '../src/missions/skeletons/wheel/door.ts';
+import { WHEEL_DOOR_RUNG } from '../src/constants/missions.ts';
+import { newCommander } from '../src/game/commander.ts';
+import { renderStatus } from '../src/ui/screens.ts';
+import { capture } from './screen-capture.ts';
 import { placeLeg } from '../src/missions/placement.ts';
 import { lineSlots } from '../src/missions/text.ts';
 import { missionItems } from '../src/missions/queries.ts';
@@ -193,4 +198,57 @@ console.log('\n...and a mis-jump on the pilot\'s leg finds the pod among the Tha
   check('...among the Thargoids', g.state.world.npcs.some((n) => n.role === 'thargoid' && n.state.alive));
   const words = g.state.commander.missions.live.map((l) => l.target);
   check('...and the standing order names witchspace', words.includes(WITCHSPACE_TARGET));
+}
+
+console.log('\nthe door: a Thargoid guards it, and the cloak is behind it (docs/TODO/219 M4)');
+{
+  const competent = RATINGS[WHEEL_DOOR_RUNG][0];
+  eq('the door waits for Competent', RATINGS[WHEEL_DOOR_RUNG][1], 'Competent');
+  eq('the lint passes the door', lintSkeleton(WHEEL_DOOR, SKELETONS, g1).join('; '), '');
+  eq('a Thargoid job flies as a Thargoid', jobRole('thargoid'), 'thargoid');
+  const proven = { ...emptyMissionState(), flags: ['wheel.marked', 'wheel.trusted', 'wheel.proven'] };
+  const above = { commander: facts(anarchy.index, aboveAverage), systems: g1, rng: () => 0.5 };
+  const ctx = { commander: facts(anarchy.index, competent), systems: g1, rng: () => 0.5 };
+  check('the door waits for the proof and the rung',
+    !canAccept(proven, 'wheel-door', above) && !canAccept({ ...emptyMissionState(), flags: ['wheel.marked'] }, 'wheel-door', ctx)
+    && canAccept(proven, 'wheel-door', ctx));
+  const taken = stepMissions(proven, { kind: 'accept', skeleton: 'wheel-door' }, ctx).state;
+  const tag = taken.live[0].tag as string;
+  check('the guard is a Thargoid on the record, in witchspace',
+    taken.live[0].target === WITCHSPACE_TARGET && missionSpawns(taken, WITCHSPACE_TARGET).some((s) => s.tag === tag && s.job === 'thargoid'));
+  const cleared = stepMissions(taken, { kind: 'destroyed', tag }, ctx);
+  eq('the guard down opens the door', cleared.state.done['wheel-door'], 'complete');
+  check('...which grants the cloak', cleared.effects.some((e) => e.kind === 'grant' && e.fit === 'cloak'));
+  check('...and makes the commander one of the Wheel', cleared.state.flags.includes('wheel.member'));
+  check('...with a word of Raxxla', cleared.effects.some((e) => e.kind === 'say' && /RAXXLA/.test(e.text)));
+  eq('...and pays nothing, because the reward is the fit', paid(cleared.effects), 0);
+
+  // The game puts the fit on the ship, and the status screen says both.
+  const c = newCommander();
+  c.combatScore = competent; c.kills = competent; c.systemIndex = anarchy.index;
+  c.missions.flags.push('wheel.marked', 'wheel.trusted', 'wheel.proven');
+  withoutSaving(() => runMissions(c, { kind: 'accept', skeleton: 'wheel-door' }, g1, () => 0.5));
+  const live = c.missions.live.find((l) => l.skeleton === 'wheel-door');
+  check('the door is accepted on a real commander', live !== undefined);
+  check('...with no cloak yet', !c.equipment.cloak);
+  withoutSaving(() => runMissions(c, { kind: 'destroyed', tag: live?.tag as string }, g1));
+  check('the guard down fits the cloak on the ship', c.equipment.cloak === true);
+  const status = capture(() => renderStatus(g1, c, null, 'Clean'));
+  check('the status screen names the Wheel under the rating', /OF THE DARK WHEEL/.test(status));
+  check('...and lists the cloaking device', /Cloaking Device/.test(status));
+}
+
+console.log('\n...and a mis-jump on the door\'s leg finds the guard');
+{
+  const g = arrived(20_260_972);
+  const c = g.state.commander;
+  c.combatScore = RATINGS[WHEEL_DOOR_RUNG][0]; c.kills = c.combatScore;
+  c.missions.flags.push('wheel.marked', 'wheel.trusted', 'wheel.proven');
+  c.systemIndex = anarchy.index;
+  withoutSaving(() => runMissions(c, { kind: 'accept', skeleton: 'wheel-door' }, g.state.systems, () => 0.5));
+  const live = c.missions.live.find((l) => l.skeleton === 'wheel-door');
+  withoutSaving(() => g.enterWitchspace());
+  const guard = g.state.world.npcs.find((n) => n.state.missionTag === live?.tag);
+  check('the guard is in witchspace, tagged for the leg', guard !== undefined);
+  eq('...and it flies as a Thargoid', guard?.role, 'thargoid');
 }

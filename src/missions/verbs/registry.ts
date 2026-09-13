@@ -37,8 +37,9 @@ export function verbNeedsShip(verb: Verb): verb is Extract<Verb, { ship: string 
 }
 
 /** The role a tagged ship flies with: a hunt's target is a pirate, the rest are traders. */
-export function verbJob(verb: Extract<Verb, { ship: string }>): 'hunt' | 'escort' | 'scan' {
-  return verb.kind === 'hunt' ? 'hunt' : verb.kind === 'escort' ? 'escort' : 'scan';
+export function verbJob(verb: Extract<Verb, { ship: string }>): 'hunt' | 'escort' | 'scan' | 'thargoid' {
+  if (verb.kind === 'hunt') return verb.job ?? 'hunt';
+  return verb.kind === 'escort' ? 'escort' : 'scan';
 }
 
 /**
@@ -46,8 +47,8 @@ export function verbJob(verb: Extract<Verb, { ship: string }>): 'hunt' | 'escort
  * the restore each mapped it alone until docs/TODO/213 M4, and the restore
  * read every tagged ship as a pirate.
  */
-export function jobRole(job: TaggedShip['job']): 'pirate' | 'trader' | 'police' {
-  if (job === 'police') return 'police';
+export function jobRole(job: TaggedShip['job']): 'pirate' | 'trader' | 'police' | 'thargoid' {
+  if (job === 'police' || job === 'thargoid') return job;
   return job === 'hunt' ? 'pirate' : 'trader';
 }
 

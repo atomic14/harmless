@@ -124,6 +124,7 @@ const OUTSIDE: readonly Group[] = [
       'missions/skeletons/wheel/mark.ts': ['WHEEL_MARK', 'AWAY'],
       'missions/skeletons/wheel/blockade.ts': ['WHEEL_BLOCKADE', 'BLOCKADE', 'AWAY'],
       'missions/skeletons/wheel/pilot.ts': ['WHEEL_PILOT'],
+      'missions/skeletons/wheel/door.ts': ['WHEEL_DOOR'],
       'missions/skeletons/wheel/index.ts': ['WHEEL'],
       // the pirates both lane legs name (docs/TODO/203 M2), and the company
       // a job keeps at the jump-in (docs/TODO/214 M1)

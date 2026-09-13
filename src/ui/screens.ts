@@ -108,10 +108,15 @@ export function renderStatus(
     .map((qty, i) => (qty > 0 ? `${COMMODITIES[i].name}: ${qty}${COMMODITIES[i].unit}` : null))
     .filter(Boolean)
     .join(' &middot; ') || 'Empty';
-  const equipmentLines = EQUIPMENT_CATALOGUE
-    .filter((item) => item.id !== 'missile' && equipmentOwned(item.id, c))
-    .map((item) => item.name)
-    .join(' &middot; ') || 'Standard fit';
+  // The cloak is on no shop's list, so it is named here when it is fitted
+  // (docs/TODO/219 M4).
+  const cloak = c.equipment.cloak ? ['Cloaking Device'] : [];
+  const equipmentLines = [
+    ...EQUIPMENT_CATALOGUE
+      .filter((item) => item.id !== 'missile' && equipmentOwned(item.id, c))
+      .map((item) => item.name),
+    ...cloak,
+  ].join(' &middot; ') || 'Standard fit';
   show(`
     <h2>COMMANDER ${c.name}</h2>
     <div class="rule"></div>
@@ -129,6 +134,8 @@ export function renderStatus(
       ${c.trumbles > 0 ? `<span style="color:var(--hud-red)">Trumbles: ${c.trumbles}</span><br/>` : ''}
       Kills: ${c.kills}<br/>
       Rating: <span style="color:var(--hud-amber)">${rating(c.combatScore ?? c.kills).toUpperCase()}</span>
+      ${c.missions.flags.includes('wheel.member')
+        ? '<br/><span style="color:var(--hud-amber)">OF THE DARK WHEEL</span>' : ''}
       ${c.tested ?? false
         ? '<br/><span style="color:var(--hud-amber)">Test mode: used in this career</span>'
         : ''}

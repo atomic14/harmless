@@ -162,6 +162,15 @@ export const LANE_JOB_KILLS = GANG_HUNT_KILLS / 2;
 export const WHEEL_WHISPER_RUNG = RATINGS.findIndex(([, name]) => name === 'Above Average');
 
 /**
+ * The rung the Wheel's door waits for (docs/TODO/219 M4): Competent, 512
+ * kills. Dangerous is 2,560, which is fifty hours of hunting, and the layer
+ * should be reached.
+ *
+ * @rule missions.wheelDoorRung
+ */
+export const WHEEL_DOOR_RUNG = RATINGS.findIndex(([, name]) => name === 'Competent');
+
+/**
  * The governments whose boards carry the Wheel's word (docs/TODO/219 M1),
  * by their 1984 names. The Wheel posts nothing where a government reads
  * the boards. `galaxy.ts` owns the names, and the offers filter compares

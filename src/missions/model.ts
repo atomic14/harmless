@@ -80,7 +80,7 @@ export interface TaggedShip {
    * `police` job flies a Viper as the law (docs/TODO/219 M2): a blockade at
    * a smuggle's far end.
    */
-  job: 'hunt' | 'escort' | 'scan' | 'police';
+  job: 'hunt' | 'escort' | 'scan' | 'police' | 'thargoid';
 }
 
 /** A canister or a capsule the game must spawn, tagged for a leg. */
@@ -95,6 +95,11 @@ export type Verb =
      * dead across an arrival. The leg ends when every ship is gone.
      */
     gang?: readonly ShipId[];
+    /**
+     * The role the target flies with, when it is not a pirate (docs/TODO/219
+     * M4). A Thargoid mothership is hunted under its own roster row.
+     */
+    job?: 'thargoid';
   }
   | { kind: 'deliver'; cargo?: { commodity: number; tonnes: number } }
   | { kind: 'recover'; item: ItemId }
@@ -143,6 +148,11 @@ export interface Settlement {
   setFlags?: string[];
   /** a change to the player's standing with this patron */
   standing?: number;
+  /**
+   * A fit the game puts on the ship, which no shop sells (docs/TODO/219
+   * M4). The Wheel's door grants the cloaking device.
+   */
+  grant?: 'cloak';
   /**
    * A blueprint set forced at the branch's world for `days` (docs/TODO/192
    * M3). The world is the next leg's target, or where the commander stands
@@ -388,4 +398,6 @@ export type MissionEffect =
   /** ships that jump in around the commander now: an ambush a leg sprang */
   | { kind: 'spawn'; ships: TaggedShip[] }
   /** passengers a finished mission leaves in the crew spaces, as survivors */
-  | { kind: 'survivors'; people: number };
+  | { kind: 'survivors'; people: number }
+  /** a fit the settlement grants, and the game puts on the ship (docs/TODO/219 M4) */
+  | { kind: 'grant'; fit: 'cloak' };
