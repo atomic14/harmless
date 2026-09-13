@@ -15,6 +15,11 @@ active context:
 
 1. [219](219-the-dark-wheel-comes-for-a-commander.md) — the Dark Wheel comes for a commander.
 
+**220 CAME FROM CHRIS ON 2026-09-13**, from his phone. A double tap or a
+pinch zooms the page. The address bar takes the top of the view, and the
+short range chart's names are too small. 220 fixes the three, and it went
+first because it is small. **220 landed the same day**, and it is below.
+
 **219 CAME FROM CHRIS ON 2026-09-13**, after 217 measured the authored play
 at four to six hours. He asked for another layer at the higher ratings, a
 secret society. He chose the old names, a first whisper at Above Average,

@@ -55,7 +55,7 @@ import * as THREE from 'three';
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
 import { createStarfield, SpaceDust } from '../world/starfield.ts';
 import { Input } from '../engine/input.ts';
-import { layoutName, toggleLayout, refreshHelpPanel } from '../engine/keymap.ts';
+import { toggleLayout, refreshHelpPanel } from '../engine/keymap.ts';
 import { Hud } from '../hud/hud.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
 import { sfx, type Place } from '../audio.ts';
@@ -118,7 +118,7 @@ import { characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
 import { hideScreen } from '../ui/screens.ts';
 import { renderNewGameConfirm } from '../ui/screens-career.ts';
-import { boundKey, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
+import { keyPointer, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
 
 type Mode = 'docked' | 'flight' | 'market' | 'chart' | 'local' | 'equip' | 'status' | 'data' | 'contracts' | 'saves' | 'save-name' | 'naming' | 'briefing' | 'dead';
@@ -772,14 +772,9 @@ export class Game {
     // same in both layouts, so the binding table paints them once.
     refreshHelpPanel();
     paintCommandGuide();
-    // ...and the key this line names comes from that same table rather than
-    // from the sentence (docs/TODO/128 M3). The guide is a global binding. The
-    // layout toggle is a row on the station menu, so the line points there
-    // (docs/TODO/202).
-    this.showMessage(
-      `PRESS ${boundKey('docked', 'toggleHelp')} FOR CONTROLS`
-      + ` — ${layoutName().toUpperCase()} LAYOUT`
-      + ' (SWITCH IT ON THE STATION MENU)', 8);
+    // No line at boot says PRESS ? FOR CONTROLS any more (Chris, 2026-09-13,
+    // docs/TODO/220). A phone has no ? key, and the station menu carries the
+    // guide and the layout toggle as rows.
 
     // all screens accept mouse input; the shell owns the listener and hands
     // back the element that carries data-key/data-row
