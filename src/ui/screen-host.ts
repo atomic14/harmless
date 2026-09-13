@@ -231,6 +231,12 @@ export class ScreenHost {
    * it take exactly the same path through the screen. `data-row` goes to
    * `select()`. Either way a screen implements ONE input surface.
    *
+   * A BUTTON THAT CARRIES BOTH SELECTS ITS ROW FIRST, and then sends its key
+   * (docs/TODO/216 M3). So an arrow on a row acts on THAT row, and not on the
+   * row the cursor was on. The test mode and the trainer's setup carry one on
+   * each row. A plain row carries no key, and a plain button carries no row,
+   * so neither path changes for them.
+   *
    * @returns true if the click was consumed.
    */
   click(target: unknown, i: Input, event?: unknown): boolean {
@@ -239,6 +245,13 @@ export class ScreenHost {
     // browser type at all. That keeps the orchestrator in the portable bucket.
     const el = target as HTMLElement;
     const e = event as MouseEvent | undefined;
+    const screen = this.top?.screen;
+    const row = el.dataset.row;
+    let picked = false;
+    if (row !== undefined && screen?.select) {
+      screen.select(Number(row));
+      picked = true;
+    }
     const key = el.dataset.key;
     if (key !== undefined) {
       // The row's own modifier travels with the tap. A click is the same
@@ -247,15 +260,7 @@ export class ScreenHost {
       i.injectPress(key, el.dataset.shift === '1');
       return true;
     }
-    const row = el.dataset.row;
-    if (row !== undefined) {
-      const screen = this.top?.screen;
-      if (screen?.select) {
-        screen.select(Number(row));
-        return true;
-      }
-    }
-    const screen = this.top?.screen;
+    if (picked) return true;
     if (screen?.clickAt && e) return screen.clickAt(el, e);
     return false;
   }

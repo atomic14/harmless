@@ -251,9 +251,14 @@ export class CombatSimScreen implements Screen {
       this.record = cycle(this.record, n, right ? 1 : -1);
       return this.repaint();
     }
-    const all = i.held('ShiftLeft', 'ShiftRight');
-    if (i.pressed('KeyC')) return this.copy(this.json(all), plural(all ? n : 1));
-    if (i.pressed('KeyX')) return this.download(this.json(all), this.stem(all), plural(all ? n : 1));
+    // The modifier rides on the tap when a button sent it (docs/TODO/216 M3),
+    // and a Shift key held answers for a key press. `tapShift` peeks, so it
+    // is read before `pressed` consumes the tap.
+    const shift = i.held('ShiftLeft', 'ShiftRight');
+    const allC = i.tapShift('KeyC') || shift;
+    if (i.pressed('KeyC')) return this.copy(this.json(allC), plural(allC ? n : 1));
+    const allX = i.tapShift('KeyX') || shift;
+    if (i.pressed('KeyX')) return this.download(this.json(allX), this.stem(allX), plural(allX ? n : 1));
     return 'stay';
   }
 

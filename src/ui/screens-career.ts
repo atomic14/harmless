@@ -26,6 +26,7 @@ import { saveLabel, type LiveRun, type LoadCost, type SaveSummary } from '../gam
 import { type TestModePanel } from '../game/screens/test-mode.ts';
 import { show } from './screen-shell.ts';
 import { keyGrid } from './key-grid.ts';
+import { rowArrows } from './row-arrows.ts';
 import { reservedNotes } from './reserved-note.ts';
 
 /** What the commander file asks the pilot, if anything. */
@@ -298,11 +299,16 @@ export function renderTestMode(p: TestModePanel): void {
   // The heading is a `<tr>` with NO `data-row`, so a click on it walks up to a
   // table that has none either and is ignored — the row indices stay exactly
   // the panel's. Same construction as the trainer's setup rows.
+  //
+  // Each row carries its two arrows, with its own row index on each. So a
+  // tap selects the row and then steps it, and a phone can step a lever back
+  // (docs/TODO/216 M3). A click on the row itself only selects it.
   const rows = p.rows.map((r, i) => `${r.heading
     ? `<tr class="grouphead"><td colspan="2">${r.heading}</td></tr>` : ''}
       <tr class="${i === p.selected ? 'sel' : ''} pick"
         data-row="${i}" ${r.dim ? 'style="opacity:0.45"' : ''}>
-        <td>${r.label}</td><td class="num">${r.value}</td>
+        <td>${r.label}</td>
+        <td class="num">${rowArrows(i, r.value)}</td>
       </tr>`).join('');
   show(`
     <h2>TEST MODE</h2>

@@ -18,6 +18,7 @@ import { type CompareGroup, type SimComparePanel } from '../game/combat-sim-comp
 import { type SimSetupPanel, type SimSetupRow } from '../game/screens/combat-sim-setup.ts';
 import { show } from './screen-shell.ts';
 import { reservedNotes } from './reserved-note.ts';
+import { rowArrows } from './row-arrows.ts';
 
 /**
  * One line of the setup panel, with its group heading above it if it opens one.
@@ -30,7 +31,7 @@ const simSetupRow = (r: SimSetupRow, i: number, selected: number): string =>
   `${r.heading ? `<tr class="grouphead"><td colspan="2">${r.heading}</td></tr>` : ''}
       <tr class="${i === selected ? 'sel' : ''} pick" data-row="${i}"
         ${r.dim ? 'style="opacity:0.45"' : ''}>
-        <td>${r.label}</td><td class="num">${r.value}</td>
+        <td>${r.label}</td><td class="num">${rowArrows(i, r.value)}</td>
       </tr>`;
 /**
  * The setup panel: a list of rows, and which one the cursor is on.
@@ -59,6 +60,7 @@ export function renderCombatSimSetup(p: SimSetupPanel): void {
     ${reservedNotes(p.brainNote ? [p.brainNote] : [], [p.brainReserve], 'note-brain')}
     <div class="buttons">
       <button data-key="Enter">ENTER &mdash; LAUNCH</button>
+      <button data-key="KeyR">R &mdash; RANDOM SEED</button>
       ${p.hasReport ? '<button data-key="KeyL">L &mdash; LAST REPORT</button>' : ''}
       <button data-key="Escape">ESC &mdash; DONE</button>
     </div>
@@ -215,8 +217,12 @@ export function renderCombatSimReport(
     </table>
     ${r.warnings.map((w) => `<div class="keyline" style="color:var(--hud-amber)">${w}</div>`).join('')}
     <div class="buttons">
+      ${total > 1 ? `<button data-key="ArrowLeft">&larr; PREVIOUS RECORD</button>
+      <button data-key="ArrowRight">NEXT RECORD &rarr;</button>
+      <button data-key="Enter">ENTER &mdash; COMPARE TWO</button>` : ''}
       <button data-key="KeyC">C &mdash; COPY JSON</button>
       <button data-key="KeyX">X &mdash; EXPORT FILE</button>
+      ${total > 1 ? `<button data-key="KeyX" data-shift="1">&#8679;X &mdash; EXPORT ALL ${total}</button>` : ''}
       <button data-key="Escape">ESC &mdash; BACK</button>
     </div>
     <div class="keyline">
@@ -293,6 +299,8 @@ export function renderCombatSimCompare(p: SimComparePanel): void {
       ${table(c.groups.slice(half))}
     </div>
     <div class="buttons">
+      ${p.total > 2 ? `<button data-key="ArrowLeft">&larr; OTHER RECORD</button>
+      <button data-key="ArrowRight">OTHER RECORD &rarr;</button>` : ''}
       <button data-key="KeyC">C &mdash; COPY PAIR</button>
       <button data-key="KeyX">X &mdash; EXPORT PAIR</button>
       <button data-key="Escape">ESC &mdash; BACK</button>
