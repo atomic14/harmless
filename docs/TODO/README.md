@@ -22,7 +22,8 @@ and found the escort broken and the rest too easy. He said *"let's fix the
 broken parts"*, and then *"there should be surprises"*. 213 is the fixes.
 214 is the surprises: an ambush on a scoop, pirates at the jump-in, and an
 escort that needs the commander. **213 landed the same day**, and it is
-below.
+below. **214 M1 to M3 landed the same day too.** M4, the chase, waits for
+a dossier regeneration on Chris's machine, so 214 stays on the queue.
 
 **205 TO 208 CAME FROM CHRIS ON 2026-09-11, the day 204 landed.** He flew
 the touch controls of 204 on a phone, and he could not fly the ship. He
