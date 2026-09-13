@@ -149,7 +149,7 @@ export class FlightCourse {
         .map((n) => ({ at: n.object.position, radius: n.radius })),
       dcEngaged: s.dcEngaged,
       mission: mission === null ? null
-        : { at: mission.at, speed: mission.speed, how: mission.how },
+        : { at: mission.at, speed: mission.speed, how: mission.how, fleeing: mission.fleeing },
       handOverRange: this.state.commander.equipment.dockingComputer
         ? DOCK_COMPUTER_RANGE : COURSE_DOCK_HANDOVER,
     }, dt);

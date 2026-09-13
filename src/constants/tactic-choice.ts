@@ -36,7 +36,11 @@ export const RAM_MIN_SPEED = PLAYER_FLIGHT.maxSpeed * 0.7;
  */
 export const TACTIC_HURT_HEALTH = 0.6;
 
-/** ...and how hurt before a ram is on the table, and nothing else new is. */
+/**
+ * ...and how hurt before a ram is on the table, and nothing else new is.
+ *
+ * @rule tactic.lastStandHealth
+ */
 export const TACTIC_LAST_STAND_HEALTH = 0.25;
 
 /**

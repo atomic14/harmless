@@ -201,13 +201,26 @@ console.log('\na mission target below the clearance is refused');
   const v = view(new THREE.Vector3(0, 0, -50_000));
   const low = v.planetPos.clone().add(new THREE.Vector3(0, -(v.planetRadius + 100), 0));
   const refused = new CoursePilot().step(
-    view(v.stationPos, { course: 'mission', mission: { at: low, speed: 100, how: 'escort' } }), 1 / 60);
+    view(v.stationPos, { course: 'mission', mission: { at: low, speed: 100, how: 'escort', fleeing: false } }), 1 / 60);
   check('a target 100 units above the planet ends the course', refused.done);
   check('...with a reason for the console', typeof refused.why === 'string' && refused.why.length > 0);
   const clear = v.planetPos.clone().add(new THREE.Vector3(0, -(v.planetRadius + COURSE_PLANET_CLEARANCE * 2), 0));
   const flown = new CoursePilot().step(
-    view(v.stationPos, { course: 'mission', mission: { at: clear, speed: 100, how: 'escort' } }), 1 / 60);
+    view(v.stationPos, { course: 'mission', mission: { at: clear, speed: 100, how: 'escort', fleeing: false } }), 1 / 60);
   check('...and one well above it is flown (the control)', !flown.done && flown.demand !== null);
+}
+
+console.log('\na hunt is a fight until the target runs, and then it is a chase (docs/TODO/214 M4)');
+{
+  const v = view(new THREE.Vector3(0, 0, -50_000));
+  const ahead = new THREE.Vector3(0, 0, -6_000);
+  const fight = new CoursePilot().step(
+    view(v.stationPos, { course: 'mission', mission: { at: ahead, speed: 290, how: 'fight', fleeing: false } }), 1 / 60);
+  check('a target that stands and fights is left to the computer\'s aim', fight.demand === null && !fight.done);
+  const chase = new CoursePilot().step(
+    view(v.stationPos, { course: 'mission', mission: { at: ahead, speed: 290, how: 'fight', fleeing: true } }), 1 / 60);
+  check('a target on the run is chased at full throttle', chase.demand?.throttle === 1 && !chase.done);
+  check('...with the nose held on it', chase.demand !== null && chase.demand.pitchRate === 0 && chase.demand.rollRate === 0);
 }
 
 console.log('\nnothing appears inside the planet');

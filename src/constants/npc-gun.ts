@@ -57,6 +57,8 @@ export const NPC_MEAN_COOLDOWN = NPC_COOLDOWN_LO + NPC_COOLDOWN_SPREAD / 2;
  * DESIGN, at 102 and 142 degrees. The legs that want the nose ON her are
  * `closing`, at 64 degrees, and `on your six`, at 37. So a pooled figure is not
  * evidence about this gate, and M3 decided against a wider one.
+ *
+ * @rule npcgun.fireGate
  */
 export const NPC_FIRE_GATE = 0.25;
 

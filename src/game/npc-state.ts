@@ -138,6 +138,15 @@ export interface NpcState {
   holding: boolean;
   /** the console said the charge is holding, once */
   holdSaid: boolean;
+  /**
+   * This ship may run for the edge of the system when it is nearly dead
+   * (docs/TODO/214 M4). The world step stamps it each frame on the target
+   * of a hunt that `canEscape`, and on nothing else. `takeDamage` reads it
+   * against `HUNT_FLEE_FRACTION`.
+   */
+  canFlee: boolean;
+  /** the console said the target is on the run, once */
+  runSaid: boolean;
   fleeing: boolean;
   /** where this ship is in its attack run — see break-off.ts */
   attackPhase: AttackPhase;
@@ -289,7 +298,7 @@ export function freshNpcState(maxEnergy: number): NpcState {
     tumbleAxis: randomDirection(new THREE.Vector3()),
     energy: maxEnergy, regenCarry: 0,
     alive: true, provoked: false, provokedByPlayer: false, missiles: 0,
-    missionTag: null, targeted: false, announcedClose: false, observed: 0, missionReported: false, holding: false, holdSaid: false, fleeing: false, attackPhase: 'closing', underFire: 0, calm: 0, flownBy: 'none',
+    missionTag: null, targeted: false, announcedClose: false, observed: 0, missionReported: false, holding: false, holdSaid: false, canFlee: false, runSaid: false, fleeing: false, attackPhase: 'closing', underFire: 0, calm: 0, flownBy: 'none',
     extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
     tactic: 'run', tacticClock: 0, dryFor: 0,
     tradeTimer: 0,

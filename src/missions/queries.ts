@@ -102,6 +102,20 @@ export function scanSecondsFor(
   return null;
 }
 
+/**
+ * Whether the ship with `tag` is the target of a hunt it may run from
+ * (docs/TODO/214 M4). The world step stamps `canFlee` on it each frame, so
+ * a restored ship carries it again on its first frame.
+ */
+export function huntCanFlee(
+  st: MissionState, tag: string, from: readonly Skeleton[] = SKELETONS,
+): boolean {
+  for (const { live, leg } of liveLegs(st, from)) {
+    if (live.tag === tag && leg.verb.kind === 'hunt') return leg.verb.canEscape;
+  }
+  return false;
+}
+
 /** The standing order for one live mission, in the game's voice. */
 export function orderLine(
   live: LiveMission, systems: readonly StarSystem[], from: readonly Skeleton[] = SKELETONS,

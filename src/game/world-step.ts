@@ -82,7 +82,7 @@ import type { NpcShip, FireEvent, WorldView } from './npc.ts';
 import { nearestNpc } from './hostility.ts';
 import type { SoundEvent, SoundName } from './sounds.ts';
 import { applyMissions, runMissions, type MissionOutcome } from './mission-bridge.ts';
-import { scanSecondsFor } from '../missions/queries.ts';
+import { huntCanFlee, scanSecondsFor } from '../missions/queries.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
 import { ESCORT_ENEMY_ROLES, WATCH_CONE } from '../constants/missions.ts';
 import { ESCORT_LEASH } from '../constants/mission-course.ts';
@@ -678,6 +678,17 @@ export class WorldStep {
     for (const npc of world.npcs) {
       const tag = npc.state.missionTag;
       if (tag === null || npc.state.missionReported || !npc.state.alive) continue;
+      if (npc.role !== 'trader') {
+        // A hunt's target may run for the edge when it is nearly dead
+        // (docs/TODO/214 M4). The stamp is here, each frame, so a restored
+        // ship carries it again at once. The console says the run once.
+        npc.state.canFlee = huntCanFlee(commander.missions, tag);
+        if (npc.state.fleeing && !npc.state.runSaid) {
+          npc.state.runSaid = true;
+          out.push(say(`THE ${npc.object.name.toUpperCase()} IS RUNNING FOR IT. CHASE IT.`, 4));
+        }
+        continue;
+      }
       if (npc.role === 'trader') {
         const wanted = scanSecondsFor(commander.missions, tag);
         if (wanted !== null) {

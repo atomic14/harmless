@@ -41,6 +41,8 @@ export interface MissionCourse {
   readonly at: THREE.Vector3;
   /** how fast that target is moving, so a hold and an escort can match it */
   readonly speed: number;
+  /** the target is on the run, so the course chases it (docs/TODO/214 M4) */
+  readonly fleeing: boolean;
 }
 
 /**
@@ -70,32 +72,37 @@ export function missionCourse(
     switch (leg.verb.kind) {
       case 'hunt':
         if (ship) {
-          return { what: `HUNT THE ${name}`, how: 'fight', ship, at: ship.object.position, speed: ship.state.speed };
+          // A target that runs is chased, and the row says so (docs/TODO/214 M4).
+          const fleeing = ship.state.fleeing;
+          return {
+            what: `${fleeing ? 'CHASE' : 'HUNT'} THE ${name}`, how: 'fight', ship,
+            at: ship.object.position, speed: ship.state.speed, fleeing,
+          };
         }
         break;
       case 'scan':
         if (ship) {
-          return { what: `SCAN THE ${name}`, how: 'hold', ship, at: ship.object.position, speed: ship.state.speed };
+          return { what: `SCAN THE ${name}`, how: 'hold', ship, at: ship.object.position, speed: ship.state.speed, fleeing: false };
         }
         break;
       case 'escort':
         if (ship) {
-          return { what: `ESCORT THE ${name}`, how: 'escort', ship, at: ship.object.position, speed: ship.state.speed };
+          return { what: `ESCORT THE ${name}`, how: 'escort', ship, at: ship.object.position, speed: ship.state.speed, fleeing: false };
         }
         break;
       case 'recover':
         if (item) {
-          return { what: 'RECOVER THE CARGO', how: 'scoop', ship: null, at: item.object.position, speed: 0 };
+          return { what: 'RECOVER THE CARGO', how: 'scoop', ship: null, at: item.object.position, speed: 0, fleeing: false };
         }
         break;
       case 'rescue':
         if (item) {
-          return { what: 'PICK UP THE SURVIVOR', how: 'scoop', ship: null, at: item.object.position, speed: 0 };
+          return { what: 'PICK UP THE SURVIVOR', how: 'scoop', ship: null, at: item.object.position, speed: 0, fleeing: false };
         }
         break;
       case 'smuggle':
         return {
-          what: 'SLIP PAST THE POLICE', how: 'slip', ship: null, at: stationPos, speed: 0,
+          what: 'SLIP PAST THE POLICE', how: 'slip', ship: null, at: stationPos, speed: 0, fleeing: false,
         };
       default:
         // A deliver and an ambush both end at the station, and the station

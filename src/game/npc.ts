@@ -112,7 +112,8 @@ import type { NpcEnergyPoints } from './damage-units.ts';
 import { random, randomDirection, randomQuaternion } from './rng.ts';
 import { PursuitPilot } from './npc-pursuit.ts';
 import type { PilotShip } from './npc-pilot.ts';
-import { MIN_CRUISE_FRACTION, UNDER_FIRE_SECONDS } from '../constants/attack-run.ts';
+import { HUNT_FLEE_FRACTION, MIN_CRUISE_FRACTION, UNDER_FIRE_SECONDS } from '../constants/attack-run.ts';
+import { DEEP_TRADER_RUN } from '../constants/spawn-placement.ts';
 import type { NpcBehaviour } from './npc-behaviour.ts';
 import { derelictIdle, hermitIdle, rockIdle } from './npc-idle.ts';
 import { fighterBehaviour } from './npc-fighter.ts';
@@ -791,16 +792,37 @@ export class NpcShip {
     this.state.underFire = UNDER_FIRE_SECONDS;
     this.state.calm = 0;
     if (byPlayer) this.state.provokedByPlayer = true;
+    this.state.energy = energyAfterDamage(this.state.energy, points);
     if (from && this.role === 'trader') {
       this.state.fleeFrom.copy(from);
       this.state.fleeing = true;
     }
-    this.state.energy = energyAfterDamage(this.state.energy, points);
+    // A HUNT'S TARGET RUNS WHEN IT IS NEARLY DEAD (docs/TODO/214 M4). It runs
+    // once, and it never turns back. `npc-fighter.ts` flies the run.
+    if (from && this.state.canFlee && !this.state.fleeing
+      && this.state.energy < this.maxEnergy * HUNT_FLEE_FRACTION) {
+      this.runOut(from);
+    }
     if (isDestroyed(this.state.energy) && this.state.alive) {
       this.state.alive = false;
       return true;
     }
     return false;
+  }
+
+  /**
+   * Set the run for the edge: away from the shot, `DEEP_TRADER_RUN` out, as
+   * a departing trader flies (docs/TODO/214 M4). `npc-fighter.ts` flies at
+   * the waypoint and jumps out `TRADER_JUMP_OUT` short of it. A shot from the
+   * ship's own place has no direction, so the ship then runs the way it
+   * points. It allocates, and it runs once in a ship's life.
+   */
+  private runOut(from: THREE.Vector3): void {
+    this.state.fleeFrom.copy(from);
+    this.state.fleeing = true;
+    const away = new THREE.Vector3().subVectors(this.object.position, from);
+    if (away.lengthSq() < 1e-6) away.set(0, 0, -1).applyQuaternion(this.object.quaternion);
+    this.state.waypoint.copy(this.object.position).addScaledVector(away.normalize(), DEEP_TRADER_RUN);
   }
 
   /**

@@ -19,7 +19,8 @@ import { missionCourse } from '../src/game/mission-course.ts';
 import { clearOfPolice } from '../src/game/course-clearance.ts';
 import { SCAN_RANGE } from '../src/constants/law.ts';
 import { COURSE_ESCORT_STANDOFF, COURSE_POLICE_CLEARANCE, ESCORT_LEASH } from '../src/constants/mission-course.ts';
-import { TRADER_CALM_SECONDS } from '../src/constants/attack-run.ts';
+import { HUNT_FLEE_FRACTION, TRADER_CALM_SECONDS } from '../src/constants/attack-run.ts';
+import { TRADER_JUMP_OUT } from '../src/constants/spawn-placement.ts';
 import { COURSE_KEYS } from '../src/game/bindings.ts';
 import { keymap } from '../src/engine/keymap.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
@@ -195,7 +196,8 @@ console.log('\na hunted ship that runs has fled, not escaped');
 {
   // Before docs/TODO/208 M3 the world sent `escaped` whichever way a tagged
   // ship left, and a side hunt fails on that. A ship that ran from the
-  // commander has fled, and three arcs have a branch for it.
+  // commander has fled. Three arcs have a branch for it, and the side hunt
+  // has one since docs/TODO/214 M4: it fails, and pays nothing.
   const flown = (fleeing: boolean): string | undefined => {
     const g = onTheJob('side-hunt', 20_260_945);
     // The target, and not the wingman that flies with it since 214 M1.
@@ -208,7 +210,7 @@ console.log('\na hunted ship that runs has fled, not escaped');
     return g.state.commander.missions.done['side-hunt'];
   };
   eq('a tagged ship that jumps out escapes, and the side hunt fails', flown(false), 'fail');
-  eq('...and one that runs has fled, which a side hunt does not answer', flown(true), undefined);
+  eq('...and one that runs has fled, which fails the side hunt too', flown(true), 'fail');
 }
 
 console.log('\na smuggling run keeps wide of the police');
@@ -241,4 +243,53 @@ console.log('\na smuggling run keeps wide of the police');
   });
   check('...and the ship goes round a policeman in the way', nearest > SCAN_RANGE,
     `${Math.round(nearest)} units at the nearest`);
+}
+
+console.log('\nthe hunt is a chase: a Krait that is nearly dead runs, and the station pays nothing (docs/TODO/214 M4)');
+{
+  const g = onTheJob('side-hunt', 20_260_951);
+  const live = g.state.commander.missions.live[0];
+  // The target alone: the wingman of 214 M1 fights to the end, and the run
+  // is the subject.
+  for (const n of g.state.world.npcs) if (n.state.missionTag !== live.tag) n.state.alive = false;
+  const krait = g.state.world.npcs.find((n) => n.state.missionTag === live.tag);
+  if (!krait) throw new Error('the hunt spawned no target');
+  const row = () => missionCourse(g.state.commander.missions, g.state.commander.systemIndex,
+    g.state.world.npcs, g.state.world.cargo.items, g.state.world.station.position);
+  withoutSaving(() => g.step(1 / 60, 100));
+  check('the world step marks the hunt\'s target as one that may run', krait.state.canFlee);
+  eq('...and the course row says HUNT', row()?.what, 'HUNT THE KRAIT');
+
+  // Shot down to the fraction from where the commander stands.
+  krait.state.energy = Math.floor(krait.maxEnergy * HUNT_FLEE_FRACTION);
+  krait.takeLaserHit(1, g.state.player.position.clone(), true);
+  check('a hit that leaves it under the fraction sets it to flight', krait.state.fleeing);
+  eq('...and the course row says CHASE', row()?.what, 'CHASE THE KRAIT');
+  withoutSaving(() => g.step(1 / 60, 101));
+  check('...and the console says so, once', krait.state.runSaid);
+
+  // The edge brought within reach, so the run ends inside the test.
+  const away = krait.state.waypoint.clone().sub(krait.object.position).normalize();
+  krait.state.waypoint.copy(krait.object.position).addScaledVector(away, TRADER_JUMP_OUT + 600);
+  const took = fly(g, 30, () => !g.state.world.npcs.includes(krait));
+  check('the Krait jumps out at the edge', !g.state.world.npcs.includes(krait), `after ${took.toFixed(1)}s`);
+  eq('...and the leg fails', g.state.commander.missions.done['side-hunt'], 'fail');
+  eq('...with nothing paid', g.state.commander.credits, 1000);
+}
+
+console.log('\n...and a commander who chases can still make the kill');
+{
+  const g = onTheJob('side-hunt', 20_260_953);
+  const live = g.state.commander.missions.live[0];
+  for (const n of g.state.world.npcs) if (n.state.missionTag !== live.tag) n.state.alive = false;
+  const krait = g.state.world.npcs.find((n) => n.state.missionTag === live.tag);
+  if (!krait) throw new Error('the hunt spawned no target');
+  withoutSaving(() => g.step(1 / 60, 100));
+  krait.state.energy = Math.floor(krait.maxEnergy * HUNT_FLEE_FRACTION);
+  krait.takeLaserHit(1, g.state.player.position.clone(), true);
+  check('the Krait runs', krait.state.fleeing);
+  // The mission button, and the trigger held: the computer aims, the pilot fires.
+  const took = fly(g, 60, () => !krait.state.alive || !g.state.world.npcs.includes(krait), true);
+  check('the chase ends in a kill before the edge', !krait.state.alive, `after ${took.toFixed(1)}s, alive ${krait.state.alive}, in the sky ${g.state.world.npcs.includes(krait)}`);
+  eq('...and the station pays the bounty', g.state.commander.missions.done['side-hunt'], 'complete');
 }

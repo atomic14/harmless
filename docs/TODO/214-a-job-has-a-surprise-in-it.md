@@ -189,6 +189,38 @@ Evidence:
   blocks, and the lane block from 203, went to
   `test/mission-company.test.ts`. The four helpers every verb test uses
   went to `test/fixtures.ts`, so the two files share one fixture.
-- **M4 waits for Chris.** A branch for a hunted ship that runs needs one
+- **M4 waited for Chris.** A branch for a hunted ship that runs needs one
   dossier regeneration, and the generator runs through the `claude`
   command line on his machine. M1 to M3 stand on their own.
+
+### M4
+
+- **The run is one rule in `takeDamage`.** The world step stamps `canFlee`
+  on the target of a hunt that `canEscape`, each frame, so a restored ship
+  carries it again at once. A hit that leaves the target under
+  `HUNT_FLEE_FRACTION` of its energy sets the run. The fighter behaviour
+  flies it, straight away from the shot. The ship jumps out
+  `TRADER_JUMP_OUT` short of a waypoint `DEEP_TRADER_RUN` out. Nothing ends
+  the run.
+- **The chase is the co-pilot's.** The mission course picks the target, so
+  the computer's aim engages at once, and its throttle matches a target
+  that recedes. The course pilot chases at full speed only while no
+  co-pilot flies. The row says CHASE, and the console says THE KRAIT IS
+  RUNNING FOR IT once.
+- **The run makes no difference to the numbers.** A Krait has 82 energy
+  points, and the laser reaches 3,500 units. The target spawns 2,500 out,
+  so it is under the gun from the first frame. With the trigger held, it
+  turns to run at three seconds and dies at 3.8, at a quarter or at half.
+  A target that ran from the first frame died at three seconds, 1,700
+  units out. The side hunt still takes 7 seconds in the probe, as after
+  M1. The results are in
+  `docs/reviews/missions-2026-09-12/flight-results-after-214-m4.txt`.
+- **So a chase needs a target the gun cannot reach at the arrival**, or one
+  that lives longer than four seconds of fire. Both are balance decisions
+  outside this plan: the spawn range of a hunt's target, or its hull. The
+  rule stands, and the branch is live. A pilot who lets go of the trigger,
+  or who fights the wingman first, loses the bounty.
+- **Six constants gained a rule id**, because the new fraction repeats a
+  quarter five times over.
+- **The side hunt's dossier was written again**, because the branch is in
+  its hash. Chris ran the generator through `claude -p` with Sonnet 5.

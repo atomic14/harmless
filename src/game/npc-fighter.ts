@@ -7,6 +7,10 @@
 //   2. is there another ship worth attacking?
 //   3. otherwise, amble.
 //
+// A SHIP ON THE RUN ANSWERS NONE OF THEM (docs/TODO/214 M4). A hunt's target
+// that is nearly dead runs for the edge and jumps out, and `runOut` below
+// flies that before the three questions are asked.
+//
 // THE ORDER IS LOAD-BEARING. A ship that can reach the commander does that
 // before it looks at an NPC target. So a pirate mid-duel with a trader breaks
 // off for her, rather than the other way about. `game/npc.ts` ran these three in
@@ -35,6 +39,7 @@ import { STATION_TRUCE } from '../constants/law.ts';
 import { AMBLE_ARRIVED, AMBLE_NEAR, AMBLE_SPAN } from '../constants/amble.ts';
 import { PLAYER_INTEREST_RANGE } from '../constants/player-interest.ts';
 import { HUNT_HOLD_RANGE } from '../constants/hunt-ranges.ts';
+import { TRADER_JUMP_OUT } from '../constants/spawn-placement.ts';
 import { approach, velocityOf } from './flight-maths.ts';
 import { random, randomDirection } from './rng.ts';
 import { attack } from './npc-attack-run.ts';
@@ -52,6 +57,7 @@ class Fighter implements NpcBehaviour {
     ship: BehaviourShip, dt: number, player: PlayerRef, view: WorldView,
   ): FireEvent | null {
     const { station, fleet, playerLegal, brains } = view;
+  if (ship.state.fleeing) return runOut(ship, dt);
   const toPlayer = tmpDir.copy(player.position).sub(ship.object.position);
   const distPlayer = toPlayer.length();
 
@@ -105,6 +111,24 @@ class Fighter implements NpcBehaviour {
   ship.advance(dt);
   return null;
   }
+}
+
+/**
+ * The run for the edge of the system (docs/TODO/214 M4). `NpcShip.takeDamage`
+ * set the waypoint `DEEP_TRADER_RUN` away from the shot. The ship flies at
+ * it at full speed, and it jumps out `TRADER_JUMP_OUT` short of it, as a
+ * departing trader does. The world step then sends `fled` for it. Nothing
+ * ends the run. A trader's calm brings a trader back, and this ship is gone.
+ */
+function runOut(ship: BehaviourShip, dt: number): null {
+  ship.state.flownBy = 'fleeing';
+  ship.steerToward(ship.state.waypoint, dt);
+  ship.state.speed = approach(ship.state.speed, ship.maxSpeed, 150 * dt);
+  ship.advance(dt);
+  if (ship.object.position.distanceTo(ship.state.waypoint) < TRADER_JUMP_OUT) {
+    ship.state.wantsDespawn = true;
+  }
+  return null;
 }
 
 /** The behaviour every fighting role flies. */

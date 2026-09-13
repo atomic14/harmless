@@ -105,7 +105,11 @@ export interface CourseView {
    * how fast it moves, and what the ship does about it. Null when no live leg
    * has work in this system.
    */
-  readonly mission: { readonly at: THREE.Vector3; readonly speed: number; readonly how: MissionHow } | null;
+  readonly mission: {
+    readonly at: THREE.Vector3; readonly speed: number; readonly how: MissionHow;
+    /** the target is on the run, so a fight becomes a chase (docs/TODO/214 M4) */
+    readonly fleeing: boolean;
+  } | null;
   /** the docking computer already has the ship */
   readonly dcEngaged: boolean;
   /**
@@ -236,8 +240,13 @@ export class CoursePilot {
         const m = v.mission;
         if (m === null) return ended();
         // A hunt is a fight: `flight-instruments.ts` picks the ship, and the
-        // computer's aim flies it, as it does for a rock.
-        if (m.how === 'fight') return IDLE;
+        // computer's aim flies it, as it does for a rock. A target on the run
+        // is chased at full speed, until the computer takes the stick again
+        // when the target is near (docs/TODO/214 M4).
+        if (m.how === 'fight') {
+          if (!m.fleeing) return IDLE;
+          return { ...this.arrive(v, { target: m.at, standoff: 0, speed: PLAYER_FLIGHT.maxSpeed }, dt), done: false };
+        }
         // A slip is the station course on a line wide of the police
         // (docs/TODO/208 M4). It hands the ship over as that course does.
         if (m.how === 'slip') return this.toStation(v, dt, m.at);

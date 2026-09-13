@@ -53,6 +53,23 @@ export const UNDER_FIRE_SECONDS = 1.2;
 export const TRADER_CALM_SECONDS = 20;
 
 /**
+ * The fraction of its energy under which a hunt's target runs for the edge
+ * of the system: a quarter (docs/TODO/214 M4). A ship that ran at half would
+ * leave most fights. A ship that ran at a tenth would die in the turn. So
+ * the commander sees a fight, and then a chase, and the chase is short.
+ *
+ * It is the target's rule alone. A trader runs on the first hit, and it
+ * comes back to work once calm (`TRADER_CALM_SECONDS`). A wingman fights to
+ * the end. The world step stamps `canFlee` on the target of a hunt that
+ * `canEscape`, and `NpcShip.takeDamage` reads the fraction. The Constrictor
+ * cannot escape, so it never runs.
+ *
+ * @domain attack-run
+ * @rule hunt.fleeFraction
+ */
+export const HUNT_FLEE_FRACTION = 0.25;
+
+/**
  * The slowest that an attacking ship throttles back to in order to turn. There
  * are two literals on purpose. This one sits just above `MIN_CRUISE_FRACTION`, so
  * the flying rule and the backstop never argue. An expression would drag one when

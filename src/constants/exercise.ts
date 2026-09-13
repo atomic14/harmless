@@ -81,7 +81,11 @@ export const AMBUSH_CONE_DEG = 30;
  */
 export const IN_VIEW_DEG = 20;
 
-/** Where the exercise starts you, as a fraction of the ship's top speed. */
+/**
+ * Where the exercise starts you, as a fraction of the ship's top speed.
+ *
+ * @rule exercise.entryThrottle
+ */
 export const ENTRY_THROTTLE = 0.25;
 
 /** Seconds a scenario exercise may run before it times out.  *

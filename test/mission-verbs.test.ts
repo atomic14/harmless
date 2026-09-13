@@ -204,11 +204,14 @@ console.log('\nescort and scan, through the machine');
   // left to kill.
   eq('a target wrecked by somebody else still ends the hunt',
     paid(stepMissions(hst, { kind: 'escortLost', tag: htag }, hctx).effects), SIDE_JOB_PAY.hunt);
-  // A pirate cannot leave a system today, so the side hunt says it ignores
-  // the word, and the lint holds it to that (docs/TODO/213 M5).
-  check('a side hunt says it ignores a target that fled',
-    SIDE_HUNT.legs[0].ignores?.includes('targetFled') === true);
-  eq('...and answers it with nothing', stepMissions(hst, { kind: 'fled', tag: htag }, hctx).state.live.length, 1);
+  // A Krait that is nearly dead runs for the edge (docs/TODO/214 M4). The
+  // side hunt fails on it, and the station says it pays nothing. The leg
+  // said it ignored the word until then (docs/TODO/213 M5).
+  const fled = stepMissions(hst, { kind: 'fled', tag: htag }, hctx);
+  eq('a target that fled fails the side hunt', fled.state.done[SIDE_HUNT.id], 'fail');
+  check('...and the station says it pays nothing',
+    fled.effects.some((e) => e.kind === 'say' && /PAYS NOTHING/.test(e.text)));
+  check('...and the leg no longer says it ignores the word', SIDE_HUNT.legs[0].ignores === undefined);
 }
 
 console.log('\nescort, through a real world step');
