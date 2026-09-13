@@ -224,3 +224,12 @@ Evidence:
   quarter five times over.
 - **The side hunt's dossier was written again**, because the branch is in
   its hash. Chris ran the generator through `claude -p` with Sonnet 5.
+
+## Outcome
+
+Landed 2026-09-13, in four milestones. Pirates wait at the jump-in, a
+scoop springs an ambush, an escort keeps its charge to the commander, and
+a hunt's target runs when it is nearly dead. The run moved no number on
+its own, because a lone Krait dies inside the laser's reach either way.
+Plan 217 made the hunt a gang, and the side hunt's dossier was written
+again on the same run. 6,153 assertions.

@@ -173,4 +173,10 @@ Evidence:
 
 ## Outcome
 
-(filled in at the end)
+Landed 2026-09-13, in three milestones. The hunt verb counts a gang, and
+its members are records that stay dead across an arrival. The side hunt
+is a Fer-de-Lance with an Asp, a Krait and a Mamba, and a gang whose
+leader got away pays half. The board gates the gang hunt, the lane job
+and the escort by kills. The probe chose the gang: three deaths in eight
+for a stock Cobra, and 34 seconds to done. Chris wrote the dossier with
+Sonnet 5. 6,153 assertions.

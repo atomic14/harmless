@@ -13,13 +13,13 @@ active context:
 
 ## Execution queue
 
-1. [214](214-a-job-has-a-surprise-in-it.md) — a job has a surprise in it.
-2. [217](217-the-side-hunt-is-a-gang-and-the-board-gates-the-hard-jobs.md) — the side hunt is a gang, and the board gates the hard jobs.
+Nothing is queued.
 
 **217 CAME FROM CHRIS ON 2026-09-13**, after 214 M4 measured the hunt. A
 lone Krait dies four seconds after the fight starts, whether it runs or
 not. He asked for a gang, a tough one, and for gates on the side jobs by
-kills. 217 makes the hunt count a gang, and it gates the hard jobs.
+kills. 217 makes the hunt count a gang, and it gates the hard jobs. **217
+landed the same day**, and it is below.
 
 **216 CAME FROM CHRIS ON 2026-09-13**, after 215 landed. He asked for a
 review of every docked screen, so that each key has a button on a phone.
@@ -34,7 +34,7 @@ Two icons sit over the sky. The guns are a row at the bottom of the console,
 with the missile as two buttons and the missile squares gone. He then asked
 for the two lists to be closed by default, and to open as one row that
 scrolls sideways. **215 landed the same day**, and it is below. 214's last
-milestone waits on his machine.
+milestone landed the same day, once he wrote a dossier again.
 
 **213 AND 214 CAME FROM CHRIS ON 2026-09-13**, after two reviews of the
 missions. `docs/MISSIONS-REVIEW.md` read the machine and found five rules
@@ -43,8 +43,8 @@ and found the escort broken and the rest too easy. He said *"let's fix the
 broken parts"*, and then *"there should be surprises"*. 213 is the fixes.
 214 is the surprises: an ambush on a scoop, pirates at the jump-in, and an
 escort that needs the commander. **213 landed the same day**, and it is
-below. **214 M1 to M3 landed the same day too.** M4, the chase, waits for
-a dossier regeneration on Chris's machine, so 214 stays on the queue.
+below. **214 M1 to M3 landed the same day too.** **M4 landed the same day
+too**, once Chris wrote the side hunt's dossier again, and 214 is below.
 
 **205 TO 208 CAME FROM CHRIS ON 2026-09-11, the day 204 landed.** He flew
 the touch controls of 204 on a phone, and he could not fly the ship. He
