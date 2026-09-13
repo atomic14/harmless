@@ -453,16 +453,22 @@ body.screen-open #courses { visibility: hidden; }
 /*
  * The pilot's buttons (docs/TODO/206 M3): bottom right, above the console,
  * where a right thumb rests. The laser is the bottom button, the one a thumb
- * finds without a look. The target list opens upward, above them.
+ * finds without a look. The target list is the same column on the LEFT,
+ * where the other thumb rests, and it opens upward there. It opened over
+ * the guns on the right until 2026-09-13, and the two columns together
+ * covered the fight (Chris: "the buttons cover up the area where all the
+ * action is happening").
  */
-#actions {
+#actions, #targets {
   position: absolute;
-  right: 12px; bottom: calc(var(--console-h, 180px) + 14px);
+  bottom: calc(var(--console-h, 180px) + 14px);
   z-index: 21;
   display: flex; flex-direction: column; align-items: stretch; gap: 6px;
   width: min(46vw, 260px);
 }
-#actions .hud-button {
+#actions { right: 12px; }
+#targets { left: 12px; }
+#actions .hud-button, #targets .hud-button {
   min-height: 44px;
   display: flex; flex-direction: column; justify-content: center;
   padding: 4px 12px;
@@ -474,11 +480,11 @@ body.screen-open #courses { visibility: hidden; }
   user-select: none; -webkit-user-select: none;
   touch-action: none;
 }
-#actions .hud-button:hover { background: rgba(var(--hud-green-rgb), 0.18); }
-#actions .hud-button.lit { color: var(--hud-amber); border-color: rgba(var(--hud-amber-rgb), 0.55); }
-#actions .hud-button.dim { opacity: 0.6; }
-#actions .hud-button .note { font-size: 10px; color: var(--hud-amber); letter-spacing: 1px; }
-#actions .hud-button .hint { font-size: 10px; color: var(--hud-dim); letter-spacing: 1px; }
+#actions .hud-button:hover, #targets .hud-button:hover { background: rgba(var(--hud-green-rgb), 0.18); }
+#actions .hud-button.lit, #targets .hud-button.lit { color: var(--hud-amber); border-color: rgba(var(--hud-amber-rgb), 0.55); }
+#actions .hud-button.dim, #targets .hud-button.dim { opacity: 0.6; }
+#actions .hud-button .note, #targets .hud-button .note { font-size: 10px; color: var(--hud-amber); letter-spacing: 1px; }
+#actions .hud-button .hint, #targets .hud-button .hint { font-size: 10px; color: var(--hud-dim); letter-spacing: 1px; }
 #actions [data-hold] { color: var(--hud-red); border-color: rgba(var(--hud-red-rgb), 0.6); }
 
 /*
@@ -515,7 +521,7 @@ body.screen-open #courses { visibility: hidden; }
   font-size: 10px; letter-spacing: 1px; color: var(--hud-dim);
   position: absolute; bottom: 3px;
 }
-body.screen-open #actions { visibility: hidden; }
+body.screen-open #actions, body.screen-open #targets { visibility: hidden; }
 
 /*
  * The exercise strip — top left, under the topbar.

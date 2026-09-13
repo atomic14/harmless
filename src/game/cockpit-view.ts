@@ -40,7 +40,7 @@ import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
 import type { HudButton } from '../hud/hud-buttons.ts';
 import type { CoursePanel } from './course-actions.ts';
 import { ROLL_STRIP_CODE } from './bindings.ts';
-import { actionButtonsFor, courseButtonsFor, offerButtons } from './cockpit-buttons.ts';
+import { actionButtonsFor, courseButtonsFor, offerButtons, targetButtonsFor, type ActionSource } from './cockpit-buttons.ts';
 import type { TargetPanel } from './target-actions.ts';
 import { keymap } from '../engine/keymap.ts';
 import type { Command, ControlMode } from './controls.ts';
@@ -201,21 +201,33 @@ export class CockpitView {
    * way.
    */
   /**
-   * Both button columns as the HUD paints them this frame.
+   * The three button columns as the HUD paints them this frame.
    *
    * @internal — public so that test/run-and-offers.test.ts reads the buttons
    * without a scrape of the page.
    */
-  buttons(): { courses: HudButton[]; actions: HudButton[] } {
-    return { courses: this.courseButtons(), actions: this.actionButtons() };
+  buttons(): { courses: HudButton[]; targetList: HudButton[]; actions: HudButton[] } {
+    return { courses: this.courseButtons(), targetList: this.targetButtons(), actions: this.actionButtons() };
+  }
+
+  /** The target list, bottom left, in flight only. */
+  private targetButtons(): HudButton[] {
+    const source = this.actionSource();
+    return source ? targetButtonsFor(source) : [];
   }
 
   /** The pilot's buttons, in flight only (docs/TODO/206 M3). */
   private actionButtons(): HudButton[] {
+    const source = this.actionSource();
+    return source ? actionButtonsFor(source) : [];
+  }
+
+  /** What both columns of the pilot's buttons are built from, or null out of flight. */
+  private actionSource(): ActionSource | null {
     const mode = this.host.controlMode();
-    if (!this.host.inFlight() || !mode) return [];
+    if (!this.host.inFlight() || !mode) return null;
     const key = (c: Command): string | null => keyCodeIfBound(mode, c);
-    return actionButtonsFor({
+    return {
       fireKey: keymap().fire[0] ?? null,
       missiles: this.state.commander.missiles,
       armed: this.ordnance.armed,
@@ -232,7 +244,7 @@ export class CockpitView {
       decelKey: keymap().decel[0] ?? null,
       rollStripCode: ROLL_STRIP_CODE,
       targets: this.host.targetPanel(),
-    });
+    };
   }
 
   /** The course buttons, in flight only. */
@@ -327,6 +339,7 @@ export class CockpitView {
       messageText: this.state.session.messageText,
       messageTimer: this.state.session.messageTimer,
       courses: this.courseButtons(),
+      targetList: this.targetButtons(),
       actions: this.actionButtons(),
       // Null in career flight. It is gated on the same `active` that gives the
       // exercise the keyboard (controlMode). The strip is the exercise's own

@@ -77,8 +77,13 @@ export interface HudState {
    */
   courses: readonly HudButton[];
   /**
-   * The pilot's hands as buttons (docs/TODO/206 M3): the laser, the missile,
-   * the E.C.M. and the target list. Finished, as the courses are.
+   * The target list as buttons, bottom left. Finished, as the courses are.
+   * `targets` above is the marks over the ships; this is the column of rows.
+   */
+  targetList: readonly HudButton[];
+  /**
+   * The pilot's hands as buttons (docs/TODO/206 M3): the laser, the missile
+   * and the E.C.M. Finished, as the courses are.
    */
   actions: readonly HudButton[];
   speedFrac: number;
@@ -240,6 +245,7 @@ export class Hud {
   private readonly dayEl = byId('day-display');
   private readonly messageEl = byId('message');
   private readonly courseStrip = new ButtonStrip(byId('courses'));
+  private readonly targetStrip = new ButtonStrip(byId('targets'));
   private readonly actionStrip = new ButtonStrip(byId('actions'));
   private readonly flashEl = byId('damage-flash');
   private readonly exerciseEl = byId('exercise');
@@ -278,6 +284,7 @@ export class Hud {
   render(_dt: number, frame: HudFrame): void {
     this.messageEl.textContent = frame.messageTimer > 0 ? frame.messageText : '';
     this.courseStrip.paint(frame.courses);
+    this.targetStrip.paint(frame.targetList);
     this.actionStrip.paint(frame.actions);
     this.speedEl.style.width = `${frame.speedFrac * 100}%`;
     this.rollEl.style.left = `${50 + clampUnit(frame.rollFrac) * 45}%`;

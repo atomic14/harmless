@@ -10,7 +10,7 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { actionButtonsFor } from '../src/game/cockpit-buttons.ts';
+import { actionButtonsFor, targetButtonsFor } from '../src/game/cockpit-buttons.ts';
 import { attachHoldButtons } from '../src/engine/hold-buttons.ts';
 import { TARGET_NONE_KEY, TARGETS_KEY } from '../src/game/bindings.ts';
 import { pickedTarget } from '../src/game/targets.ts';
@@ -35,6 +35,15 @@ const base = {
     !actionButtonsFor({ ...base, missiles: 0 }).some((x) => x.code === 'KeyT' || x.code === 'KeyM'));
   check('with no E.C.M. fitted there is no E.C.M. button', !b.some((x) => x.label === 'E.C.M.'));
   check('...and with one there is', actionButtonsFor({ ...base, ecmKey: 'KeyE' }).some((x) => x.label === 'E.C.M.'));
+  // The target list is its own column, on the left (Chris, 2026-09-13).
+  const row = { code: 'VirtTarget1', row: { ship: {} as never, name: 'KRAIT', range: 1000, standing: 'HOSTILE', picked: false, cost: '' } };
+  const listed = { ...base, targets: { open: false, rows: [row], picked: null } };
+  check('the TARGETS button is in its own column, and not among the guns',
+    targetButtonsFor(listed).some((x) => x.code === TARGETS_KEY) && !actionButtonsFor(listed).some((x) => x.code === TARGETS_KEY));
+  const open = { ...base, targets: { open: true, rows: [row], picked: null } };
+  eq('...and open, the column lists the ship and the button that closes it',
+    targetButtonsFor(open).map((x) => x.label).join('|'), 'KRAIT|CLOSE THE LIST');
+  eq('...and while the pilot flies the slot, the column is empty', targetButtonsFor({ ...open, trial: true }).length, 0);
 }
 
 /** A commander in open space, with a trader and a pirate on the scanner. */

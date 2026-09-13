@@ -1,11 +1,16 @@
 // The buttons over the flight view, built from what the cockpit sees
 // (docs/TODO/205 M5, docs/TODO/206 M3 and M5).
 //
-// Two columns. The courses sit top right: where the ship can go next, the
+// Three columns. The courses sit top right: where the ship can go next, the
 // course it flies now, fast forward, and the offers that the situation
-// raises. The pilot's hands sit bottom right: the target list, the E.C.M.,
-// the missile and the laser. The laser is the lowest of them, where a right
-// thumb finds it without a look.
+// raises. The target list sits bottom LEFT, where a left thumb rests. The
+// pilot's hands sit bottom right: the E.C.M., the missile and the laser. The
+// laser is the lowest of them, where a right thumb finds it without a look.
+//
+// The target list sat on the right with the rest until 2026-09-13, and it
+// opened upward over the action. Chris: *"the buttons cover up the area
+// where all the action is happening"*. A list on the left and the guns on
+// the right leave the middle, where the fight is, to the fight.
 //
 // PURE, and it decides nothing. Each function takes what the cockpit already
 // read and returns `HudButton`s. `hud/hud-buttons.ts` paints them, and a
@@ -80,9 +85,41 @@ export interface ActionSource {
 }
 
 /**
- * The pilot's hands as buttons, top to bottom (docs/TODO/206 M3). The target
- * list opens above the rest. The laser comes last, at the bottom, where a
- * thumb finds it without a look.
+ * The target list as buttons, bottom left (docs/TODO/206 M3). Closed, it is
+ * one button that opens it. Open, it is a row per ship with the range and
+ * the standing. A row lets the computer choose again, and the last button
+ * closes the list. It is empty while the pilot flies the slot, when the guns
+ * wait.
+ */
+export function targetButtonsFor(a: ActionSource): HudButton[] {
+  if (a.trial) return [];
+  const out: HudButton[] = [];
+  const t = a.targets;
+  if (t && t.open) {
+    for (const { code, row } of t.rows) {
+      const reach = row.range <= LASER_RANGE ? 'IN LASER RANGE' : 'OUT OF LASER RANGE';
+      out.push({
+        code, label: row.name, lit: row.picked,
+        // A rock's name IS its standing, so the hint says the range alone.
+        hint: row.name === row.standing ? reach : `${row.standing} · ${reach}`,
+        ...(row.cost ? { note: row.cost } : {}),
+      });
+    }
+    if (t.picked) out.push({ code: TARGET_NONE_KEY, label: 'LET THE COMPUTER CHOOSE' });
+  }
+  if (t && (t.rows.length > 0 || t.open)) {
+    out.push({
+      code: TARGETS_KEY, label: t.open ? 'CLOSE THE LIST' : 'TARGETS',
+      hint: t.picked ? `AIMING AT THE ${t.picked.name}` : 'CHOOSE WHAT TO FIGHT',
+    });
+  }
+  return out;
+}
+
+/**
+ * The pilot's hands as buttons, top to bottom (docs/TODO/206 M3). The laser
+ * comes last, at the bottom, where a thumb finds it without a look. The
+ * target list is its own column, `targetButtonsFor`.
  */
 export function actionButtonsFor(a: ActionSource): HudButton[] {
   // The last stretch into the slot asks for two things and nothing else: the
@@ -114,25 +151,6 @@ export function actionButtonsFor(a: ActionSource): HudButton[] {
     return out;
   }
   const out: HudButton[] = [];
-  const t = a.targets;
-  if (t && t.open) {
-    for (const { code, row } of t.rows) {
-      const reach = row.range <= LASER_RANGE ? 'IN LASER RANGE' : 'OUT OF LASER RANGE';
-      out.push({
-        code, label: row.name, lit: row.picked,
-        // A rock's name IS its standing, so the hint says the range alone.
-        hint: row.name === row.standing ? reach : `${row.standing} · ${reach}`,
-        ...(row.cost ? { note: row.cost } : {}),
-      });
-    }
-    if (t.picked) out.push({ code: TARGET_NONE_KEY, label: 'LET THE COMPUTER CHOOSE' });
-  }
-  if (t && (t.rows.length > 0 || t.open)) {
-    out.push({
-      code: TARGETS_KEY, label: t.open ? 'CLOSE THE LIST' : 'TARGETS',
-      hint: t.picked ? `AIMING AT THE ${t.picked.name}` : 'CHOOSE WHAT TO FIGHT',
-    });
-  }
   if (a.ecmKey) {
     out.push(a.missileInbound
       ? { code: a.ecmKey, label: 'E.C.M.', lit: true, hint: 'A MISSILE IS COMING — PRESS NOW' }

@@ -68,6 +68,8 @@ export interface HudSources {
   readonly messageTimer: number;
   /** the course buttons, finished — see `HudState.courses` */
   readonly courses: HudState['courses'];
+  /** the target list as buttons, finished — see `HudState.targetList` */
+  readonly targetList: HudState['targetList'];
   /** the pilot's buttons, finished — see `HudState.actions` */
   readonly actions: HudState['actions'];
   /**
@@ -179,6 +181,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     messageText: s.messageText,
     messageTimer: s.messageTimer,
     courses: s.courses,
+    targetList: s.targetList,
     actions: s.actions,
     playerPos: s.playerPos,
     playerQuat: s.playerQuat,
