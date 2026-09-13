@@ -480,9 +480,9 @@ export class WorldStep {
       // 2026-09-12: *"I have a docking computer - but instead of it being
       // activated I still get the lining and only once that is done does the
       // computer activate."* A fitting the commander paid for should not wait
-      // on a line-up she did not ask for. It is a BUTTON now, offered for the
-      // whole of the trial (`cockpit-buttons.ts`). The line-up is what she gets
-      // if she does not press it.
+      // on a line-up they did not ask for. It is a BUTTON now, offered for the
+      // whole of the trial (`cockpit-buttons.ts`). The line-up is what they get
+      // if they do not press it.
       session.dockRails = true;
       out.push(say('THE SLOT IS YOURS — THRUST IN, AND MATCH ITS SPIN', 5));
     }
@@ -655,8 +655,8 @@ export class WorldStep {
    * enemy may be. All four at once, and it is sent ONCE.
    * `missionReported` latches, so a fight after the fee cannot undo it. The
    * ship goes on to dock as any trader does. The commander's own place was
-   * not measured until docs/TODO/214 M3, and the escort was a job she
-   * watched. The charge also HOLDS for her beyond `ESCORT_LEASH`, and the
+   * not measured until docs/TODO/214 M3, and the escort was a job they
+   * watched. The charge also HOLDS for them beyond `ESCORT_LEASH`, and the
    * console says so once.
    *
    * A SCAN counts the seconds a tagged ship spends under the scanner lock,

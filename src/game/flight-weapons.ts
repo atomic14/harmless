@@ -258,8 +258,8 @@ export class Weapons {
    *
    *   - A MISS is allowed. The gun grazes a silhouette the ray can pass by
    *     (gunnery.ts), and to refuse every clean ray would refuse most shots.
-   *   - THE PILOT'S OWN PICK is allowed, whatever it is. She may choose to
-   *     shoot a trader, and the computer aims what she picked (docs/TODO/206).
+   *   - THE PILOT'S OWN PICK is allowed, whatever it is. They may choose to
+   *     shoot a trader, and the computer aims what they picked (docs/TODO/206).
    *   - ANYTHING ELSE FIRST holds the shot: another ship that is not hostile,
    *     the station, or a canister.
    *
@@ -268,7 +268,7 @@ export class Weapons {
    * afterwards, and the trigger then fired the REAR laser at whatever was
    * behind. The computer never aimed at that, and never saw it. So the
    * automatic shot is the front view's alone, and a pilot who looks away keeps
-   * her own trigger.
+   * their own trigger.
    */
   autoFireAllowed(want: boolean): boolean {
     const { commander, player, session, world } = this.state;

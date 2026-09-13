@@ -1,7 +1,8 @@
 // The eight side jobs, one per verb, so every verb the machine knows is a
 // job a player can take (docs/TODO/190 M4).
 //
-// Each is a LOCAL job. The patron is whoever runs the station she stands at.
+// Each is a LOCAL job. The patron is whoever runs the station the commander
+// stands at.
 // About a third of the jobs are on any one world's board (offers.ts). Each
 // has a `failed` branch, a deadline, and a fee from `SIDE_JOB_PAY`. None
 // has a cap, so each comes back a week after it ends (failure rule 5). The

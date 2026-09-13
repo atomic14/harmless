@@ -302,8 +302,8 @@ console.log('\nthe computer finishes the line-up before the pilot gets the slot'
 //
 // The course used to ask who flies the slot BEFORE the line-up, and a fitted
 // computer never saw one. Then it asked AFTER, and a commander who had paid for
-// the fitting still had to sit through a line-up she did not want. Now the
-// question is hers, and it is open for the whole of the stretch.
+// the fitting still had to sit through a line-up they did not want. Now the
+// question is theirs, and it is open for the whole of the stretch.
 console.log('\nthe docking computer is offered, and it takes the ship when asked');
 {
   const dockKey = keyCodeIfBound('flight', 'toggleDockingComputer') ?? '';
@@ -361,9 +361,9 @@ console.log('\nthe docking computer is offered, and it takes the ship when asked
   check('...and pressing it hands the ship over', asked.engaged);
   check('...and it flies the ship in from there', asked.docked);
 
-  // NOBODY PRESSES IT, and the line-up and the mini game are what she gets.
-  // She flies nothing here, so the slot is never taken.
+  // NOBODY PRESSES IT, and the line-up and the mini game are what they get.
+  // They fly nothing here, so the slot is never taken.
   const alone = fly(false);
   check('a pilot who does not press it keeps the ship', !alone.engaged);
-  check('...and the line-up hands her the slot instead', !alone.docked);
+  check('...and the line-up hands them the slot instead', !alone.docked);
 }

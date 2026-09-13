@@ -1,4 +1,4 @@
-// How a commander leaves a system, and how she arrives in one.
+// How a commander leaves a system, and how they arrive in one.
 //
 // The ORCHESTRATION half of the jump, split out of `game.ts` by docs/TODO/150
 // M4. `hyperspace.ts` next door owns the RULES, and states them at the head of
@@ -289,9 +289,9 @@ export class HyperspaceActions {
     const from = this.state.commander.galaxy;
     const jump = resolveGalacticJump(this.state.commander, this.host.system());
     this.state.systems = jump.systems;
-    // EVERY HELD MISSION FAILS, and every lead moves with her (docs/TODO/190).
+    // EVERY HELD MISSION FAILS, and every lead moves with them (docs/TODO/190).
     // The machine decides both. It is told the new galaxy's systems, so the
-    // lead it relocates is a world she can reach from where she arrives.
+    // lead it relocates is a world they can reach from where they arrive.
     for (const m of runMissions(this.state.commander,
       { kind: 'galaxyChanged', from, to: jump.galaxy }, jump.systems)) {
       this.host.sayEvent(m);
@@ -318,8 +318,8 @@ export class HyperspaceActions {
    * null when nothing is held and the jump needs no answer.
    *
    * It names the keys off the binding table (invariant 9). A refusal the
-   * drive would give anyway is not asked about. The jump is refused when she
-   * confirms, as it was refused on the one key before.
+   * drive would give anyway is not asked about. The jump is refused when they
+   * confirm, as it was refused on the one key before.
    */
   galacticJumpWarning(): string | null {
     const held = this.state.commander.missions.live.length;

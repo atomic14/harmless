@@ -1,5 +1,5 @@
 // ONE fight, measured from the attacker's side: who was aimed at whom, how
-// often the trigger came back, and what it took off her.
+// often the trigger came back, and what it took off the commander.
 //
 // The pair to `train/defence-fight.ts` and there for the same reason: the fight
 // a table is measured over is a decision, and a decision belongs in one file
@@ -10,15 +10,15 @@
 //
 // ## The fight
 //
-// A fitted commander in her own Cobra — armed, E.C.M. fitted — against a gang
+// A fitted commander in their own Cobra — armed, E.C.M. fitted — against a gang
 // over 45 seconds, with the pools recharging as the game recharges them. TWO
 // AXES, because each of them moves the answer more than the gang size does.
 //
-// SHE FLIES ONE OF TWO BEHAVIOURS, and the difference is not decoration:
+// THE COMMANDER FLIES ONE OF TWO BEHAVIOURS, and the difference is not decoration:
 //
 //   - `knife-fights` is `holding` — turns hard and barely translates, which is
 //     how a human actually fights and is close to Chris's own recorded envelope
-//     (median speed 66, pitch near its cap). A pirate can reach her.
+//     (median speed 66, pitch near its cap). A pirate can reach them.
 //   - `runs` is `scripted`, and it is `train/survivability.ts`'s defender, so
 //     the rows here explain the pools-stripped column there. It ambles until
 //     something shoots it and then runs flat out: `train/ram-probe.ts` measured
@@ -47,7 +47,8 @@
 // SHOTS, HITS and DAMAGE are the episode's own tallies, which are LASER ONLY:
 // `Episode.resolveNpcShot` counts a missile in `missilesFired` and credits a
 // warhead to nobody, and a ram is billed to `hurtSelf`. `taken` beside them is
-// every point she was billed by every cause, so a caller can show the split
+// every point the commander was billed by every cause, so a caller can show
+// the split
 // rather than imply the laser was all of it.
 //
 // THE LEG SPLIT is the same aim angle again, grouped by the leg the ship was
@@ -84,7 +85,7 @@ export const PILOTS = ['pursuit', 'scripted'] as const;
 export type Pilot = (typeof PILOTS)[number];
 
 /**
- * How SHE flies, and the label a row wears — see the header. The knife fight
+ * How THE COMMANDER FLIES, and the label a row wears — see the header. The knife fight
  * comes first because it is the one a player recognises; the runner is
  * survivability's defender and is here so that its rows can be read.
  */
@@ -96,18 +97,18 @@ export type Target = (typeof TARGETS)[number];
 
 /**
  * One LEG of a flight, pooled over the gang: how long the attackers spent in
- * it, and how far off her their noses sat while they were.
+ * it, and how far off the commander their noses sat while they were.
  *
  * It is the split docs/TODO/139 M3 turns on. A mean bearing error over a whole
  * fight pools legs that point the nose for opposite reasons: a run that closes
- * wants the nose ON her, and the extend leg of the same run points AWAY by
+ * wants the nose ON the commander, and the extend leg of the same run points AWAY by
  * design. One number cannot tell a pilot that cannot aim from a pilot that is
  * not aiming yet.
  */
 export interface FlightSlice {
   /** ship-frames in this leg — the denominator `Attacker.frames` counts */
   frames: number;
-  /** their bearing error to her, in RADIANS, summed over those frames */
+  /** their bearing error to the commander, in RADIANS, summed over those frames */
   aimError: number;
 }
 
@@ -124,7 +125,7 @@ export interface FlightSlice {
  *      short and returns it to `closing` — so the leg is always a real one.
  *   2. It drops the tactic prefix. A tactic decides how WIDE a pass steps and
  *      how tight the run-out curves. It does not decide whether the leg points
- *      the nose at her, which is the only question here.
+ *      the nose at the commander, which is the only question here.
  *
  * The pursuit dogfighter runs no attack-run phase at all, so its own word is
  * kept whole, exactly as `describeFlight` keeps it.
@@ -145,12 +146,12 @@ export interface Attacker {
   /** of those, frames the recorder scored it inside its gate and in range */
   linedUp: number;
   inRange: number;
-  /** its bearing error to her, summed over frames — a mean at the end */
+  /** its bearing error to the commander, summed over frames — a mean at the end */
   aimError: number;
   aliveSeconds: number;
   shots: number;
   hits: number;
-  /** her pool points, laser only — see the header */
+  /** the commander's pool points, laser only — see the header */
   damage: number;
   passes: number;
 }
@@ -159,11 +160,11 @@ export interface Attacker {
 export interface Fight {
   attackers: Attacker[];
   seconds: number;
-  /** warheads that reached her — counted, never credited to a pirate */
+  /** warheads that reached the commander — counted, never credited to a pirate */
   warheads: number;
   /** the median range the fight was held at, the recorder's own figure */
   median: number | null;
-  /** every point she was billed, by every cause */
+  /** every point the commander was billed, by every cause */
   taken: number;
   /** survivability's two outcomes: a face at zero at any instant, and death */
   flattened: boolean;
@@ -191,8 +192,8 @@ export function flyAimFight(
   const ep = new Episode({
     seed,
     pirates,
-    // Armed, in the commander's own hull, with her E.C.M. fitted — the fitted
-    // commander survivability models. How she FLIES is the axis.
+    // Armed, in the commander's own hull, with their E.C.M. fitted — the fitted
+    // commander survivability models. How they FLY is the axis.
     trader: { kind: target.how },
     traderArmed: true,
     traderClass: 'playerCobra',
@@ -286,8 +287,9 @@ export function flyAimFight(
     seconds: report.seconds,
     warheads: ep.warheadsTaken,
     median: report.range.median,
-    // Cumulative, and every cause: `damageTaken` is what she was billed, not
-    // what is missing from her pools — which recharge, and that is the point.
+    // Cumulative, and every cause: `damageTaken` is what the commander was
+    // billed, not what is missing from their pools — which recharge, and
+    // that is the point.
     taken: her.damageTaken,
     flattened,
     destroyed: !her.alive,

@@ -61,7 +61,7 @@ export interface ShipSystems {
   laserCooldown: number;
   /**
    * Seconds of `WRECK_BURST_GRACE` left, after the commander's own shot
-   * destroyed a ship. Above zero, her beam registers nothing on a bystander.
+   * destroyed a ship. Above zero, their beam registers nothing on a bystander.
    *
    * THE GUN'S THIRD CLOCK, and it is here because the other two are. The heat,
    * the cadence and this all describe what the trigger just did.

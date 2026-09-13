@@ -16,19 +16,18 @@
 //     the attackers is a re-baselining decision, not a default to drift.
 //   - THE DEFENDER defaults to the training world's scripted armed trader in
 //     the commander's hull: ambles between waypoints, runs flat out once
-//     hurt, and fires her laser only when an attacker crosses her nose. It is
-//     NOT the defence the game sells — the combat computer's co-pilot
+//     hurt, and fires their laser only when an attacker crosses their nose. It
+//     is NOT the defence the game sells — the combat computer's co-pilot
 //     (game/scripted-co-pilot.ts) and the armed trader's defensive attack run
-//     (game/npc.ts) both live behind update paths `Episode` cannot drive. Her
-//     E.C.M. is
-//     fitted but never pressed: only a policy with an E.C.M. head asks, so
+//     (game/npc.ts) both live behind update paths `Episode` cannot drive.
+//     Their E.C.M. is fitted but never pressed: only a policy with an E.C.M. head asks, so
 //     a warhead here always lands. `DEFEND_BRAIN` names a research candidate in
 //     `src/ai-training/brains/` to fly instead; nothing trained ships
 //     (game/brains.ts is an empty socket), so there is no trained default.
 //
 // SO WHAT IS A ROW EVIDENCE OF? A floor: how a gang of each size ends a
 // fight against close to the least defence a fighting-back commander can
-// have, in her own points — how much of her pools a gang can strip, how often
+// have, in their own points — how much of their pools a gang can strip, how often
 // it gets all the way through, and what it costs them. The shipped defence
 // outflies this stand-in, and the real game adds the escape capsule, the
 // torus drive and a station to run to — every difference favours the player,
@@ -51,7 +50,7 @@
 // printed after it.**
 //
 // THE E.C.M. IS FITTED, NOT ROTATED (docs/TODO/72), because the commander
-// being modelled is a fitted one — a warhead is 250 of her 765 points, and a
+// being modelled is a fitted one — a warhead is 250 of their 765 points, and a
 // policy fitted in a world with an E.C.M. and measured in one without is
 // being scored on a distribution nothing trained for. Whether anything
 // PRESSES it is the defender's affair, per the bullet above. **A row printed
@@ -91,9 +90,9 @@ interface Result {
   /** mean seconds to the kill, of the fights that ended in one */
   ttk: number;
   /**
-   * Mean share of her three pools STRIPPED OVER THE FIGHT — cumulative, which
+   * Mean share of their three pools STRIPPED OVER THE FIGHT — cumulative, which
    * is `Episode.targetDamageShare()`. It was `1 - trader.hp` at the end, and
-   * once the pools come back that answers "how recently was she hit" instead.
+   * once the pools come back that answers "how recently was the commander hit" instead.
    */
   poolLost: number;
   /**
@@ -153,4 +152,4 @@ for (const gang of [1, 2, 3, 4]) {
     + `${(r.shieldDown * 100).toFixed(0)}% | ${r.lost.toFixed(2)}/ep |`);
 }
 console.log('\npools stripped = mean share of fore + aft + bank gone when the fight ended');
-console.log('they lost = attackers destroyed per episode, by her guns or their own flying\n');
+console.log('they lost = attackers destroyed per episode, by the commander\'s guns or their own flying\n');

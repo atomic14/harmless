@@ -72,11 +72,11 @@ interface Metrics {
    * THE HEADLINE, and it used to be a kill rate.
    *
    * TODO 29 put the episode's target on the commander's own three 255-point
-   * pools, hit for the source rule's 9 to 21 points a time. Nothing kills her
-   * inside forty-five seconds any more, so a kill rate reads 0 for every
-   * policy including the scripted aimbot, and a column that is always zero
-   * ranks nothing. This is the same quantity with the granularity restored:
-   * the mean share of her pools an attacker took.
+   * pools, hit for the source rule's 9 to 21 points a time. Nothing kills the
+   * commander inside forty-five seconds any more, so a kill rate reads 0 for
+   * every policy including the scripted aimbot, and a column that is always
+   * zero ranks nothing. This is the same quantity with the granularity
+   * restored: the mean share of their pools an attacker took.
    */
   poolShare: number;
   killRate: number; // % episodes the trader died — kept, and now usually 0
@@ -288,10 +288,10 @@ packSection('armed scripted trader (all packs trained on this)', { kind: 'script
   const defends = CANDIDATES.filter((n) => n.startsWith('jameson-defend'))
     .map((key) => [`${key} (candidate)`, key] as [string, string]);
   if (defends.length) {
-    // Two SCRIPTED pirates on her tail — the shipped attack run, the same force
-    // `train/defence-fight.ts` trains against. It was two trained pirates until
-    // they were retired.
-    console.log('\n## the defence policy: two scripted pirates on her tail\n');
+    // Two SCRIPTED pirates on the commander's tail — the shipped attack run,
+    // the same force `train/defence-fight.ts` trains against. It was two
+    // trained pirates until they were retired.
+    console.log('\n## the defence policy: two scripted pirates on the commander\'s tail\n');
     console.log(header);
     const twoScripted = (): Controller[] => [{ kind: 'scripted' }, { kind: 'scripted' }];
     console.log(row('scripted armed trader (floor)', runMatchup(
@@ -303,7 +303,7 @@ packSection('armed scripted trader (all packs trained on this)', { kind: 'script
           twoScripted, { kind: 'policy', brain: b }, true, 45, 'playerCobra')));
       }
     }
-    console.log('(here LOW "hurt" is the defender winning — it is her pools being spent)');
+    console.log('(here LOW "hurt" is the defender winning — it is their pools being spent)');
   }
 }
 
@@ -323,5 +323,5 @@ for (const key of CANDIDATES.filter((n) => n.startsWith('pirate-attack'))) {
   if (brains[key]) printPlayerHullSweep(key);
 }
 
-console.log('\nhurt = share of the commander\'s three pools taken · kill = she was destroyed');
+console.log('\nhurt = share of the commander\'s three pools taken · kill = the commander was destroyed');
 console.log('acc = attacker accuracy · shots/on-six per episode · lost = attackers lost/episode');

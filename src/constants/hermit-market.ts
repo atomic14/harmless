@@ -69,7 +69,8 @@ export const HERMIT_FAVOUR = 0.2;
 /**
  * How near a rock hermit the commander must be to hear its hail.
  *
- * It is also the range she has to LEAVE to hear it again. One number covers
+ * It is also the range the commander has to LEAVE to hear it again. One
+ * number covers
  * both, because a door you enter and a door you leave are the same door. A
  * second radius would give a band where the hail neither fires nor resets.
  *

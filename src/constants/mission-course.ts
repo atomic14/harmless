@@ -52,15 +52,15 @@ export const COURSE_ESCORT_STANDOFF = 600;
 export const COURSE_ESCORT_CLOSING = 60;
 
 /**
- * How far the commander may fall behind her charge before it holds for
- * her, in world units (docs/TODO/214 M3). It is two thirds of the scanner,
+ * How far the commander may fall behind their charge before it holds for
+ * them, in world units (docs/TODO/214 M3). It is two thirds of the scanner,
  * which is four thousand.
  *
  * The charge flew to the station on its own, and the escort was a job the
- * commander watched. It moves while she is inside the leash and holds where
- * it is when she is not. The leash is well outside the escort standoff of
- * 600, so the course never trips it. It derives from the scanner so that a
- * charge that holds is always still on her scanner.
+ * commander watched. It moves while they are inside the leash and holds
+ * where it is when they are not. The leash is well outside the escort
+ * standoff of 600, so the course never trips it. It derives from the
+ * scanner so that a charge that holds is always still on their scanner.
  *
  * @rule course.escortLeash
  * @domain mission-course

@@ -330,6 +330,6 @@ console.log('\nthe chart marks the world the Navy sent you to');
   const between = standing(7, 10);
   between.missions = constrictorAt('report', null);
   eq('between the two legs nothing is marked', orderDestinations(between).size, 0);
-  eq('...and a system nobody sent her to has no verdict',
+  eq('...and a system nobody sent them to has no verdict',
     orderVerdict(between, inside.index, 2, g1), null);
 }

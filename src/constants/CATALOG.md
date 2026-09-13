@@ -172,8 +172,8 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | encounters | <code>PIRATE_WAVE_GAP_JITTER</code> | <code>90</code> | ...and the jitter. |  | [encounters.ts:98](./encounters.ts#L98) |
 | encounters | <code>LAWLESS_GOVERNMENT</code> | <code>3</code> | A government at or below this breeds pirate waves at all. 3 is a dictatorship on the 1984 ladder, so waves stop at communist (4) and above. | <code>encounters.lawlessGovernment</code> | [encounters.ts:110](./encounters.ts#L110) |
 | encounters | <code>ANARCHY_GOVERNMENT</code> | <code>1</code> | ...and a government at or below THIS sends them two at a time: anarchy (0) and feudal (1). | <code>encounters.anarchyGovernment</code> | [encounters.ts:126](./encounters.ts#L126) |
-| encounters | <code>MAX_THARGONS</code> | <code>2</code> | How many drones the Thargoids keep in the sky at once, across every mothership. | <code>encounters.maxThargons</code> | [encounters.ts:146](./encounters.ts#L146) |
-| encounters | <code>THARGON_REDEPLOY</code> | <code>5</code> | Seconds between one drone and the next, and the wait for the first. | <code>encounters.thargonRedeploy</code> | [encounters.ts:161](./encounters.ts#L161) |
+| encounters | <code>MAX_THARGONS</code> | <code>2</code> | How many drones the Thargoids keep in the sky at once, across every mothership. | <code>encounters.maxThargons</code> | [encounters.ts:147](./encounters.ts#L147) |
+| encounters | <code>THARGON_REDEPLOY</code> | <code>5</code> | Seconds between one drone and the next, and the wait for the first. | <code>encounters.thargonRedeploy</code> | [encounters.ts:162](./encounters.ts#L162) |
 | exercise | <code>OPENING_RANGE</code> | <code>4500</code> | The opening range for a fight that you are meant to see coming. | <code>exercise.openingRange</code> | [exercise.ts:33](./exercise.ts#L33) |
 | exercise | <code>AMBUSH_RANGE</code> | <code>2400</code> | An ambush opens INSIDE their gun, because that is what an ambush is. |  | [exercise.ts:40](./exercise.ts#L40) |
 | exercise | <code>MIN_OPENING_RANGE</code> | <code>2 * PASS_FAR</code> | No opening may be closer than this. |  | [exercise.ts:49](./exercise.ts#L49) |
@@ -192,9 +192,9 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | hermit-market | <code>HERMIT_SUPPLY_PRICE</code> | <code>1.3</code> | Supplies cost a third more: nobody else delivers out here. |  | [hermit-market.ts:32](./hermit-market.ts#L32) |
 | hermit-market | <code>HERMIT_REFUSES_AT</code> | <code>CHARACTER.find(([, rung]) =&gt; rung === 'Dodgy')![0]</code> | The character a hermit will not deal with: the ladder's Dodgy rung. |  | [hermit-market.ts:48](./hermit-market.ts#L48) |
 | hermit-market | <code>HERMIT_FAVOUR</code> | <code>0.2</code> | Mates' rates, at the widest. | <code>hermit.favour</code> | [hermit-market.ts:67](./hermit-market.ts#L67) |
-| hermit-market | <code>HERMIT_HAIL_RANGE</code> | <code>900</code> | How near a rock hermit the commander must be to hear its hail. | <code>hermit.hail</code> | [hermit-market.ts:82](./hermit-market.ts#L82) |
-| hermit-market | <code>HERMIT_DOCK_RANGE</code> | <code>320</code> | How near the commander must be to actually trade with a hermit. | <code>hermit.dockRange</code> | [hermit-market.ts:93](./hermit-market.ts#L93) |
-| hermit-market | <code>HERMIT_DOCK_SPEED</code> | <code>40</code> | How slow the commander must be flying to trade with a hermit. | <code>hermit.dockSpeed</code> | [hermit-market.ts:105](./hermit-market.ts#L105) |
+| hermit-market | <code>HERMIT_HAIL_RANGE</code> | <code>900</code> | How near a rock hermit the commander must be to hear its hail. | <code>hermit.hail</code> | [hermit-market.ts:83](./hermit-market.ts#L83) |
+| hermit-market | <code>HERMIT_DOCK_RANGE</code> | <code>320</code> | How near the commander must be to actually trade with a hermit. | <code>hermit.dockRange</code> | [hermit-market.ts:94](./hermit-market.ts#L94) |
+| hermit-market | <code>HERMIT_DOCK_SPEED</code> | <code>40</code> | How slow the commander must be flying to trade with a hermit. | <code>hermit.dockSpeed</code> | [hermit-market.ts:106](./hermit-market.ts#L106) |
 | hull-breach | <code>EQUIPMENT_DAMAGE_CHANCE</code> | <code>0.25</code> | The chance that a hit which reaches the hull wrecks cargo or a fitting. | <code>hullbreach.equipmentDamageChance</code> | [hull-breach.ts:21](./hull-breach.ts#L21) |
 | hull-breach | <code>CARGO_LOSS_CHANCE</code> | <code>0.7</code> | Cargo is lost this often when there is any aboard. | <code>breach.cargoLossChance</code> | [hull-breach.ts:37](./hull-breach.ts#L37) |
 | hull-breach | <code>BREAKABLE</code> | <code>[ ['ecm', 'E.C.M. SYSTEM'], ['scoops', 'FUEL SCOOPS'], ['rearLaser', 'REAR LASER'], ['leftLaser', 'LEFT LASER'], ['rightLaser', 'RIGHT LASER'], ['dockingComputer', 'DOCKING COMPUTER'], ['combatComputer', 'COMBAT COMPUTER'], ] as const</code> | The fittings that a hull breach can knock out, in the order they are offered. |  | [hull-breach.ts:48](./hull-breach.ts#L48) |
@@ -251,7 +251,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | mission-course | <code>COURSE_WATCH_STANDOFF</code> | <code>1200</code> | How far from a ship the scan course holds, in world units (docs/TODO/208 M2). | <code>course.watchStandoff</code> | [mission-course.ts:24](./mission-course.ts#L24) |
 | mission-course | <code>COURSE_ESCORT_STANDOFF</code> | <code>600</code> | How far from its charge the escort course flies, in world units (docs/TODO/208 M2). | <code>course.escortStandoff</code> | [mission-course.ts:37](./mission-course.ts#L37) |
 | mission-course | <code>COURSE_ESCORT_CLOSING</code> | <code>60</code> | How much faster than its charge the escort course may close, in world units a second, once it is inside three standoffs of it: sixty. | <code>course.escortClosing</code> | [mission-course.ts:52](./mission-course.ts#L52) |
-| mission-course | <code>ESCORT_LEASH</code> | <code>SCANNER_RANGE * 2 / 3</code> | How far the commander may fall behind her charge before it holds for her, in world units (docs/TODO/214 M3). | <code>course.escortLeash</code> | [mission-course.ts:68](./mission-course.ts#L68) |
+| mission-course | <code>ESCORT_LEASH</code> | <code>SCANNER_RANGE * 2 / 3</code> | How far the commander may fall behind their charge before it holds for them, in world units (docs/TODO/214 M3). | <code>course.escortLeash</code> | [mission-course.ts:68](./mission-course.ts#L68) |
 | mission-course | <code>COURSE_POLICE_CLEARANCE</code> | <code>SCAN_WARN_RANGE</code> | How wide of a police ship the smuggling course flies, in world units (docs/TODO/208 M4). |  | [mission-course.ts:81](./mission-course.ts#L81) |
 | missions | <code>MISSION_KILL_THRESHOLD</code> | <code>16</code> | Kills before the Navy considers you worth a word: 16, as the original demanded. | <code>missions.killThreshold</code> | [missions.ts:17](./missions.ts#L17) |
 | missions | <code>MISSION_HUNT_RANGE</code> | <code>{ min: 30, max: 80 } as const</code> | The Constrictor hides this far from where you are briefed, in tenths of a light year. |  | [missions.ts:25](./missions.ts#L25) |
@@ -284,13 +284,13 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | npc-gun | <code>NPC_COOLDOWN_LO</code> | <code>0.9</code> | Time between an NPC's shots. |  | [npc-gun.ts:31](./npc-gun.ts#L31) |
 | npc-gun | <code>NPC_COOLDOWN_SPREAD</code> | <code>0.8</code> |  |  | [npc-gun.ts:32](./npc-gun.ts#L32) |
 | npc-gun | <code>NPC_MEAN_COOLDOWN</code> | <code>NPC_COOLDOWN_LO + NPC_COOLDOWN_SPREAD / 2</code> | What a shot costs a gun that never waits to be aimed: the LO plus half the spread, because `npcTriggerPull` draws uniformly across it. |  | [npc-gun.ts:44](./npc-gun.ts#L44) |
-| npc-gun | <code>NPC_FIRE_GATE</code> | <code>0.25</code> | How near the nose a target must be before an NPC pulls the trigger. | <code>npcgun.fireGate</code> | [npc-gun.ts:63](./npc-gun.ts#L63) |
-| npc-gun | <code>THARGOID_FIRE_RATE</code> | <code>0.7</code> | Thargoids reload faster than anything else in the galaxy. | <code>npc.thargoidFireRate</code> | [npc-gun.ts:75](./npc-gun.ts#L75) |
-| npc-gun | <code>NPC_HIT_BASE</code> | <code>0.9</code> | Hit chance falls off with range, clamped at both ends. |  | [npc-gun.ts:78](./npc-gun.ts#L78) |
-| npc-gun | <code>NPC_HIT_FALLOFF</code> | <code>NPC_LASER_RANGE</code> | The slope of the falloff. |  | [npc-gun.ts:86](./npc-gun.ts#L86) |
-| npc-gun | <code>NPC_HIT_CAP</code> | <code>0.85</code> |  |  | [npc-gun.ts:87](./npc-gun.ts#L87) |
-| npc-gun | <code>NPC_HIT_FLOOR</code> | <code>0.15</code> | The far end of that curve. | <code>npc.hitFloor</code> | [npc-gun.ts:97](./npc-gun.ts#L97) |
-| npc-gun | <code>NPC_VS_NPC_HIT</code> | <code>0.5</code> | Whether one ship's shot at another connects: a coin flip. |  | [npc-gun.ts:104](./npc-gun.ts#L104) |
+| npc-gun | <code>NPC_FIRE_GATE</code> | <code>0.25</code> | How near the nose a target must be before an NPC pulls the trigger. | <code>npcgun.fireGate</code> | [npc-gun.ts:64](./npc-gun.ts#L64) |
+| npc-gun | <code>THARGOID_FIRE_RATE</code> | <code>0.7</code> | Thargoids reload faster than anything else in the galaxy. | <code>npc.thargoidFireRate</code> | [npc-gun.ts:76](./npc-gun.ts#L76) |
+| npc-gun | <code>NPC_HIT_BASE</code> | <code>0.9</code> | Hit chance falls off with range, clamped at both ends. |  | [npc-gun.ts:79](./npc-gun.ts#L79) |
+| npc-gun | <code>NPC_HIT_FALLOFF</code> | <code>NPC_LASER_RANGE</code> | The slope of the falloff. |  | [npc-gun.ts:87](./npc-gun.ts#L87) |
+| npc-gun | <code>NPC_HIT_CAP</code> | <code>0.85</code> |  |  | [npc-gun.ts:88](./npc-gun.ts#L88) |
+| npc-gun | <code>NPC_HIT_FLOOR</code> | <code>0.15</code> | The far end of that curve. | <code>npc.hitFloor</code> | [npc-gun.ts:98](./npc-gun.ts#L98) |
+| npc-gun | <code>NPC_VS_NPC_HIT</code> | <code>0.5</code> | Whether one ship's shot at another connects: a coin flip. |  | [npc-gun.ts:105](./npc-gun.ts#L105) |
 | opposition-ring | <code>OPPOSITION_RANGE</code> | <code>3200</code> | The default ring radius, in units. |  | [opposition-ring.ts:19](./opposition-ring.ts#L19) |
 | opposition-ring | <code>OPPOSITION_RANGE_MAX</code> | <code>20_000</code> | A ceiling on the ring radius. |  | [opposition-ring.ts:26](./opposition-ring.ts#L26) |
 | opposition-ring | <code>OPPOSITION_CONE</code> | <code>0.5</code> | Half-angle of the cone, in radians, when a facing is known and the caller says no more. |  | [opposition-ring.ts:35](./opposition-ring.ts#L35) |
@@ -336,7 +336,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | player-gun | <code>ASSIST_FADE_START</code> | <code>900</code> | Where the aim assist begins to fade out, in world units. | <code>gun.assistFadeStart</code> | [player-gun.ts:157](./player-gun.ts#L157) |
 | player-gun | <code>ASSIST_FADE_END</code> | <code>2400</code> |  |  | [player-gun.ts:158](./player-gun.ts#L158) |
 | player-interest | <code>PLAYER_INTEREST_RANGE</code> | <code>9000</code> | A hostile closer than this is engaged with you. |  | [player-interest.ts:21](./player-interest.ts#L21) |
-| player-interest | <code>TURN_AND_FIGHT_RANGE</code> | <code>6000</code> | How close the commander must be before an armed trader on the run turns and fights her, rather than whoever else is shooting at it. | <code>interest.turnAndFight</code> | [player-interest.ts:39](./player-interest.ts#L39) |
+| player-interest | <code>TURN_AND_FIGHT_RANGE</code> | <code>6000</code> | How close the commander must be before an armed trader on the run turns and fights them, rather than whoever else is shooting at it. | <code>interest.turnAndFight</code> | [player-interest.ts:39](./player-interest.ts#L39) |
 | pools | <code>MAX_ENERGY</code> | <code>255</code> | Released capacity of every flyable hull's energy bank and each shield. |  | [pools.ts:6](./pools.ts#L6) |
 | pools | <code>MAX_SHIELD</code> | <code>255</code> |  |  | [pools.ts:7](./pools.ts#L7) |
 | pools | <code>ENERGY_BANKS</code> | <code>4</code> | How many banks the console reads the energy pool as. | <code>pools.energyBanks</code> | [pools.ts:14](./pools.ts#L14) |
@@ -350,7 +350,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | population | <code>GENERATION_SHIP_CHANCE</code> | <code>0.08</code> | The chance that a generation ship crosses, on arrival only. |  | [population.ts:69](./population.ts#L69) |
 | population | <code>ASTEROIDS_MIN</code> | <code>2</code> | The fewest rocks a system holds. | <code>population.asteroidsMin</code> | [population.ts:81](./population.ts#L81) |
 | population | <code>ASTEROIDS_VARIATION</code> | <code>3</code> | ...and how many more it holds, drawn flat: `ASTEROIDS_MIN` plus 0, 1 or 2. | <code>population.asteroidsVariation</code> | [population.ts:90](./population.ts#L90) |
-| population | <code>GENERATION_SIGHT_RANGE</code> | <code>6000</code> | How near a derelict generation ship the commander must be to notice it. | <code>population.generationSight</code> | [population.ts:106](./population.ts#L106) |
+| population | <code>GENERATION_SIGHT_RANGE</code> | <code>6000</code> | How near a derelict generation ship the commander must be to notice it. | <code>population.generationSight</code> | [population.ts:107](./population.ts#L107) |
 | rating | <code>RATINGS</code> | <code>[ [0, 'Harmless'], [8, 'Mostly Harmless'], [16, 'Poor'], [32, 'Below Average'], [64, 'Average'], [128, 'Above Average'], [512, 'Competent'], [2560, 'Dangerous'], [6400, 'Deadly'], [25600, 'E L I T E'], ]</code> | Score thresholds and the name that each one earns, lowest first. |  | [rating.ts:23](./rating.ts#L23) |
 | recharge | <code>ENERGY_REGEN_FRACTION</code> | <code>0.025</code> | The fraction of a full pool that a Cobra Mk III recovers each second. |  | [recharge.ts:41](./recharge.ts#L41) |
 | recharge | <code>SHIELD_REGEN_FRACTION</code> | <code>0.012</code> | The shield's half of the pair above, and the one docs/TODO/139 moved. |  | [recharge.ts:44](./recharge.ts#L44) |
@@ -467,7 +467,7 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | world-clock | <code>MAX_STEPS_PER_FRAME</code> | <code>5</code> | ...and the most steps one frame may run, so a stall cannot spiral. | <code>clock.maxStepsPerFrame</code> | [world-clock.ts:37](./world-clock.ts#L37) |
 | world-clock | <code>CARRY_LIMIT</code> | <code>3</code> | Unread taps of one key that the input carries across busy frames. | <code>clock.carryLimit</code> | [world-clock.ts:47](./world-clock.ts#L47) |
 | wreck | <code>ESCAPE_CHANCE</code> | <code>{ trader: 0.45, other: 0.2 } as const</code> | How often the pilot punches out before the hull goes. |  | [wreck.ts:22](./wreck.ts#L22) |
-| wreck | <code>WRECK_BURST_GRACE</code> | <code>1.0</code> | Seconds the commander's beam registers nothing on a bystander, counted from the moment her own shot destroys a ship (GitHub #35). | <code>wreck.wreckBurstGrace</code> | [wreck.ts:67](./wreck.ts#L67) |
+| wreck | <code>WRECK_BURST_GRACE</code> | <code>1.0</code> | Seconds the commander's beam registers nothing on a bystander, counted from the moment their own shot destroys a ship (GitHub #35). | <code>wreck.wreckBurstGrace</code> | [wreck.ts:67](./wreck.ts#L67) |
 | wreck | <code>POD_LAUNCH_GRACE</code> | <code>1.5</code> | Seconds a fresh capsule cannot be shot, counted from the moment it launches (GitHub #28). | <code>wreck.podLaunchGrace</code> | [wreck.ts:91](./wreck.ts#L91) |
 | wreck | <code>MINING_YIELD_MIN</code> | <code>1</code> | Canisters of ore that a mined asteroid yields: at least the first one, plus a flat draw over the span. | <code>wreck.miningYieldMin</code> | [wreck.ts:110](./wreck.ts#L110) |
 | wreck | <code>MINING_YIELD_SPAN</code> | <code>3</code> | ...and the span above the minimum: one to four canisters in all. | <code>wreck.miningYieldSpan</code> | [wreck.ts:116](./wreck.ts#L116) |

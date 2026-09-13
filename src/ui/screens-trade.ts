@@ -5,9 +5,9 @@
 // what it will pay.
 //
 // `equipRows` is exported beside the painter it feeds, and that is deliberate.
-// What is on the shelf, what it costs, and whether she can afford it are one
-// question. `test/trade.test.ts` and `test/economy.test.ts` both ask it, and
-// neither paints anything.
+// What is on the shelf, what it costs, and whether the commander can afford
+// it are one question. `test/trade.test.ts` and `test/economy.test.ts` both
+// ask it, and neither paints anything.
 
 import { type StarSystem, type MarketEntry, COMMODITIES } from '../galaxy/galaxy.ts';
 import { type CommanderData, cargoTonnes, consignedTonnes, formatCredits, cargoCapacity } from '../game/commander.ts';
@@ -39,7 +39,7 @@ export function renderMarket(
   //
   // The suffix reports the JOB and not a share of the hold, which is what
   // `consignedTonnes` reports. 15t of Food against a 5t consignment reads
-  // `15t · 5 CONSIGNED`, because 10 of those tonnes are hers.
+  // `15t · 5 CONSIGNED`, because 10 of those tonnes are the commander's.
   const consigned = (i: number): string => {
     const tonnes = consignedTonnes(c, i);
     return tonnes > 0

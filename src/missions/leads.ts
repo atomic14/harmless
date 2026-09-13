@@ -11,11 +11,11 @@ import { startWorld } from './lookups.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 
 /**
- * Save a lead, once. A lead to an arc she holds or finished is dropped, as
- * failure rule 3 asks. The effect tells the game to announce it. The lead
- * is in the arc's own galaxy where its gate names one. So an arc that fails
- * on a galactic jump leaves its lead behind, in the galaxy the next arc is
- * offered in (docs/TODO/213 M2).
+ * Save a lead, once. A lead to an arc the commander holds or finished is
+ * dropped, as failure rule 3 asks. The effect tells the game to announce it.
+ * The lead is in the arc's own galaxy where its gate names one. So an arc
+ * that fails on a galactic jump leaves its lead behind, in the galaxy the
+ * next arc is offered in (docs/TODO/213 M2).
  */
 export function offerLead(
   st: MissionState, id: string, ctx: MissionContext, effects: MissionEffect[],

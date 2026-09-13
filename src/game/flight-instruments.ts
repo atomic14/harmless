@@ -7,10 +7,10 @@
 //
 // ONE RESPONSIBILITY: the instruments a pilot switches on. Five of them:
 //
-//   - the two computers that fly the ship for her;
+//   - the two computers that fly the ship for them;
 //   - the drive that crosses the system;
-//   - the mouse she flies with;
-//   - the view she flies by.
+//   - the mouse they fly with;
+//   - the view they fly by.
 //
 // Every one is a switch that changes who or what is at the controls. Not one of
 // them decides anything about the world.

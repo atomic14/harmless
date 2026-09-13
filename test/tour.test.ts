@@ -55,7 +55,7 @@ console.log('\n...the handover placement ends an arc near the next start');
   const picked = pickByJumps(g1, LAVE, goal, ARC_HANDOVER_JUMPS, half) as number;
   const d = routeTable(g1, goal).jumps[picked];
   check(`...inside the band of jumps toward the goal (${d})`, d >= ARC_HANDOVER_JUMPS.min && d <= ARC_HANDOVER_JUMPS.max);
-  check('...and never the world she stands at',
+  check('...and never the world they stand at',
     g1.every((s) => pickByJumps(g1, s.index, goal, ARC_HANDOVER_JUMPS, half) !== s.index));
   // The band counts jumps, not tenths: a world one jump from the goal is
   // outside a band that starts at two, however close it is on the chart.

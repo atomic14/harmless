@@ -235,7 +235,7 @@ console.log('\na lead stays in the galaxy it was saved in (docs/TODO/213 M2)');
   eq('...and the lead it leaves is saved once', r.state.leads.length, 1);
   const lead = r.state.leads[0];
   // The arc is offered in galaxy 1, so the lead points there, and not at
-  // index 12 of the galaxy she arrived in.
+  // index 12 of the galaxy they arrived in.
   eq('the lead is in the galaxy the next arc is offered in', lead.galaxy, 1);
   eq('...at that arc\'s own world', lead.world, 12);
   eq('...and the announcement carries the same galaxy',

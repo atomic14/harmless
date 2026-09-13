@@ -4,9 +4,9 @@
 // investigation. Two ships attack a commander for two different reasons, and
 // the game only ever explained one of them. `recordVerdict` reads
 // `lawTakesInterest`, so at Offender it says BOUNTY HUNTERS. The ship shooting
-// at her may be a police Viper she grazed, and no line said so.
+// at them may be a police Viper they grazed, and no line said so.
 //
-// A **grudge** is that ship's private quarrel with her. `provokedByPlayer`
+// A **grudge** is that ship's private quarrel with them. `provokedByPlayer`
 // carries it, and docs/TODO/175 M1 measured that the flag has no exit: it still
 // holds after 300 seconds, and a record forced back to Clean does not clear it.
 //
@@ -58,24 +58,24 @@ console.log('\nthe roles a record cannot account for');
     fleet: readonly HostileShip[], status: number, toStation = NO_TRUCE,
   ): readonly string[] => grudgeRolesNear(fleet, here, status, toStation);
 
-  // The case the item is named for: her record brings hunters, and the ship on
-  // her is a policeman she shot at.
-  eq('an Offender is told about the police Viper she grazed',
+  // The case the item is named for: their record brings hunters, and the ship on
+  // them is a policeman they shot at.
+  eq('an Offender is told about the police Viper they grazed',
     roles([ship('police', 100, cross)], OFFENDER).join(), 'police');
-  eq('...and about a bounty hunter when she is Clean',
+  eq('...and about a bounty hunter when they are Clean',
     roles([ship('hunter', 100, cross)], CLEAN).join(), 'hunter');
-  eq('...and about both, in one sentence, when both are on her',
+  eq('...and about both, in one sentence, when both are on them',
     roles([ship('police', 100, cross), ship('hunter', 200, cross)], CLEAN).join(),
     'police,hunter');
 
-  // A FUGITIVE HEARS NOTHING, and that is the design rather than a gap. Her
+  // A FUGITIVE HEARS NOTHING, and that is the design rather than a gap. Their
   // record already brings both roles, so the line beside this one is true.
-  eq('a Fugitive is told nothing — her record explains both',
+  eq('a Fugitive is told nothing — their record explains both',
     roles([ship('police', 100, cross), ship('hunter', 200, cross)], FUGITIVE).length, 0);
 
   // Everything `isHostileToPlayer` already refuses, refused here too. The rule
   // has one home, and this proves the sweep spends it rather than the flag.
-  eq('a Viper she never shot at is not a grudge',
+  eq('a Viper they never shot at is not a grudge',
     roles([ship('police', 100)], OFFENDER).length, 0);
   eq('...nor is a dead one',
     roles([ship('police', 100, { ...cross, alive: false })], OFFENDER).length, 0);
@@ -90,11 +90,11 @@ console.log('\nthe roles a record cannot account for');
   // bypassed by the same flag that puts a ship in this set (docs/TODO/158), so
   // the two can never disagree. Held at the port and outside it, because a
   // reader would otherwise expect the station to be a refuge from one.
-  eq('a hunter she shot at is on her at the port',
+  eq('a hunter they shot at is on them at the port',
     roles([ship('hunter', 100, cross)], CLEAN, 0).join(), 'hunter');
   eq('...and outside the truce, where nothing covered it anyway',
     roles([ship('hunter', 100, cross)], CLEAN, STATION_TRUCE + 1).join(), 'hunter');
-  eq('...while the hunter she never shot at is covered inside it',
+  eq('...while the hunter they never shot at is covered inside it',
     roles([ship('hunter', 100)], CLEAN, STATION_TRUCE - 1).length, 0);
 
   // The words, off the roles above.
@@ -109,7 +109,7 @@ console.log('\nthe roles a record cannot account for');
 
 // --- 2. ...and a pilot reads it ---------------------------------------------
 
-console.log('\nthe console says who is on her, beside where she stands');
+console.log('\nthe console says who is on them, beside where they stand');
 {
   /**
    * A commander in flight at the witchpoint with an empty sky.
@@ -150,13 +150,13 @@ console.log('\nthe console says who is on her, beside where she stands');
 
   {
     // ONE GRAZE DOES BOTH THINGS AT ONCE: it provokes the Viper, and it takes
-    // her to Offender. So the record line and the line that corrects it are
+    // them to Offender. So the record line and the line that corrects it are
     // said in the same burst, which is exactly when a pilot is confused.
     const { g, fly } = flying(35_000_175);
     const cop = target(g, 'police');
     g.fireLaser();
     const said = fly(SETTLE);
-    check(`the Viper knows it was her (${said.join(' / ')})`,
+    check(`the Viper knows it was them (${said.join(' / ')})`,
       cop.state.provokedByPlayer);
     eq('...and the record moved to Offender', g.state.commander.legalStatus, OFFENDER);
 
@@ -174,8 +174,8 @@ console.log('\nthe console says who is on her, beside where she stands');
   }
 
   {
-    // The control. A trader takes her to Offender the same way, and no law ship
-    // is on her. Without this, a line said on EVERY record move would pass.
+    // The control. A trader takes them to Offender the same way, and no law ship
+    // is on them. Without this, a line said on EVERY record move would pass.
     const { g, fly } = flying(35_000_176);
     target(g, 'trader');
     g.fireLaser();

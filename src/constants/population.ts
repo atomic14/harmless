@@ -94,7 +94,8 @@ export const ASTEROIDS_VARIATION = 3;
  *
  * IT IS NOT `GENERATION_SHIP_RANGE` ABOVE, and the two are easy to confuse.
  * That one is where the hull is PLACED on an arrival, at 14,000 plus a span.
- * This is how close she has to fly before the console says what it is. So the
+ * This is how close they have to fly before the console says what it is. So
+ * the
  * ship is put out of sight, and finding it is the event.
  *
  * `game/world-step.ts` spends it, once per career, behind `session.genShipSeen`.

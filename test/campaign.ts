@@ -121,7 +121,7 @@ interface CareerResult {
    *
    * A career-long average hides the thing the tier ladder exists to produce.
    * "13% of receptions are gangs" is true and says nothing about whether a
-   * commander meets one on her second leg or her fiftieth, and a change that
+   * commander meets one on their second leg or their fiftieth, and a change that
    * moved every gang to the first third would not move that number at all.
    * These three bands are what TODO 29 asserts against.
    */
@@ -133,9 +133,9 @@ interface CareerResult {
   /** the worst the name ever got — decay means the final score understates it */
   peakDisrepute: number;
   /**
-   * The Navy mission's signposting question (TODO 29): the leg her 16th kill
-   * landed on, what she was worth then, whether she had already docked at a
-   * TL10+ system, and whether she was carrying the only gun that kills a
+   * The Navy mission's signposting question (TODO 29): the leg their 16th kill
+   * landed on, what they were worth then, whether they had already docked at a
+   * TL10+ system, and whether they were carrying the only gun that kills a
    * Constrictor in a reasonable time.
    */
   missionLeg: number | null;
@@ -385,7 +385,7 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
       // purpose — to traders
       if (strategy === 'hunter' && k.kind !== 'bounty') continue;
       // ILLICIT FREIGHT IS A PRIVATEER'S WORK. A trader has a clean record to
-      // protect and a hold that pays without a police scan in it, so she leaves
+      // protect and a hold that pays without a police scan in it, so they leave
       // it on the board; a privateer already wants to be looked at (its cargo is
       // bait) and a scan is one more reason for somebody to come and try. This
       // is the BOT's policy, not a rule of the game — nothing in
@@ -407,7 +407,7 @@ function runCareer(seed: number, systems: StarSystem[], strategy: Strategy = 'tr
       // after it had. With one job at a time it is 6.0 completed to 2.5 failed,
       // and the trader and privateer cohorts move by less than a job either
       // way. Nothing in `game/contracts.ts` changed; this is the simulated
-      // commander no longer accepting work she has no way to do.
+      // commander no longer accepting work they have no way to do.
       if (k.kind === 'bounty' && c.contracts.some((h) => h.kind === 'bounty')) continue;
       // a trader or a privateer takes anything going its way: freight pays,
       // fares pay, and either one doubles as bait
@@ -968,7 +968,7 @@ function report(label: string, careers: CareerResult[], strategy: Strategy): voi
     assert('all three threat tiers are exercised somewhere in a career',
       [0, 1, 2].every((t) => bandRows.reduce((a, b) => a + b.tierSeen[t], 0) > 0));
     // The ladder's whole point: a new commander meets opportunists, and the
-    // professionals and gangs arrive once she is worth the trouble.
+    // professionals and gangs arrive once they are worth the trouble.
     assert('threat escalates from the early band to the late one',
       upper(bandRows[2]) > upper(bandRows[0]),
       `early ${upper(bandRows[0]).toFixed(0)}% tier1+ · late ${upper(bandRows[2]).toFixed(0)}%`);
@@ -981,8 +981,8 @@ function report(label: string, careers: CareerResult[], strategy: Strategy): voi
       `${upper(bandRows[2]).toFixed(1)}% tier1+ in the late band`);
   }
   // ...and the escalation must not outrun the upgrades. The late band throws
-  // twice the tier-1+ receptions and six times the gangs at her, so if the
-  // ladder is working she is nonetheless SAFER by then, not more at risk.
+  // twice the tier-1+ receptions and six times the gangs at them, so if the
+  // ladder is working they are nonetheless SAFER by then, not more at risk.
   // Measured on a 40x60 trader run: 17 deaths early, 16 middle, 0 late.
   assert('a commander who has upgraded is safer, despite the harder receptions',
     bandRows[2].deaths <= bandRows[0].deaths,

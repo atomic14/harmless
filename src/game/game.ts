@@ -11,7 +11,7 @@
 // half takes the frame and the other is reached by keys alone.
 //
 // THE TWO HALVES ARE THE SHAPE (docs/TODO/155). `docked.ts` holds what a
-// commander does once the ship stops. `flight.ts` holds what she does in the
+// commander does once the ship stops. `flight.ts` holds what they do in the
 // sky, over `flight-weapons.ts` and `flight-instruments.ts`. Neither half
 // reaches into the other.
 //
@@ -270,7 +270,7 @@ export class Game {
     this.state, this.ordnance, this.combatComputer, this.persistenceHost());
 
   /**
-   * What a commander does while she is docked (docs/TODO/155 M1).
+   * What a commander does while they are docked (docs/TODO/155 M1).
    *
    * Four collaborators and thirteen host methods. The width is the point rather
    * than a cost. This is half an ORCHESTRATOR, and not a rule module. So what
@@ -550,7 +550,7 @@ export class Game {
   }
 
   /**
-   * What a commander does while she is flying (docs/TODO/155 M2).
+   * What a commander does while they are flying (docs/TODO/155 M2).
    *
    * Six collaborators and seventeen host methods. The width is what a HALF
    * costs, rather than a fault.

@@ -147,12 +147,12 @@ export function hostilesOnScanner<T extends HostileShip>(
  * explain.
  *
  * A **grudge** is one ship's private quarrel with the commander.
- * `NpcShip.takeDamage` sets `provokedByPlayer` for damage from her gun,
+ * `NpcShip.takeDamage` sets `provokedByPlayer` for damage from their gun,
  * whatever the role. The flag never comes down, and the legal record has
  * nothing to do with it.
  *
  * So the console can say `LEGAL STATUS: OFFENDER — BOUNTY HUNTERS WILL ATTACK
- * YOU` while the ship shooting at her is a police Viper she grazed. That is
+ * YOU` while the ship shooting at them is a police Viper they grazed. That is
  * docs/TODO/175, and GitHub #35 reported it in the player's own words.
  *
  * `recordVerdict` is right to read `lawTakesInterest` alone. It is the one home
@@ -165,7 +165,7 @@ export function hostilesOnScanner<T extends HostileShip>(
  *
  * It then drops every role the record already accounts for. So the line it
  * feeds never repeats the line beside it, and a Fugitive hears nothing at all:
- * her record explains both roles already.
+ * their record explains both roles already.
  *
  * The roles come back in `LAW_ROLE_NAMES` order, so one sky gives one sentence.
  */

@@ -1,15 +1,16 @@
-// The MISSIONS screen: what is on offer here, what she holds, and the two
-// keys that change either.
+// The MISSIONS screen: what is on offer here, what the commander holds, and
+// the two keys that change either.
 //
 // The screen GitHub #27 asked for. A briefing said one time, for five seconds,
 // and then unreachable, is the same as no briefing at all. So every live
-// mission has a row here, with its world, its fee and what her gun is worth.
+// mission has a row here, with its world, its fee and what the commander's gun
+// is worth.
 //
 // It is also where a mission STARTS, since docs/TODO/190. Nothing starts on
-// its own any more, the Constrictor included. An offer is a row until she
-// accepts it. Acceptance is the station's, as a contract's is. Abandonment is
-// hers anywhere, because a mission she cannot finish should not hold a slot
-// until she next docks.
+// its own any more, the Constrictor included. An offer is a row until they
+// accept it. Acceptance is the station's, as a contract's is. Abandonment is
+// the commander's anywhere, because a mission they cannot finish should not
+// hold a slot until they next dock.
 //
 // THE PATRONS' ORDERS ONLY, since docs/TODO/145. Board work has its own
 // screen. A contract and a mission are two kinds of thing.
@@ -36,7 +37,7 @@ import type { Input } from '../../engine/input.ts';
 export interface MissionsContext {
   readonly commander: CommanderData;
   readonly systems: StarSystem[];
-  /** the skeletons on offer where she stands; empty in flight */
+  /** the skeletons on offer where the commander stands; empty in flight */
   readonly offers: readonly Skeleton[];
   /** a mission starts at a station, as a contract does */
   readonly atStation: boolean;
@@ -74,7 +75,7 @@ export class MissionsScreen implements Screen {
   /**
    * The rows, each with its patron's name (docs/TODO/191 M1). An offer's
    * local patron runs this station. A held job's ran the station it was
-   * taken at, which is not where she reads the row. An offer shows its
+   * taken at, which is not where they read the row. An offer shows its
    * dossier's title and briefing, with the patron and this world filled in.
    * It shows the skeleton's plain pitch when no dossier exists (M3).
    */
@@ -93,7 +94,7 @@ export class MissionsScreen implements Screen {
     });
     // A held row keeps the offer's title and pages (docs/TODO/201). The
     // `{HERE}` slot is the world it was accepted at, which is where the
-    // patron spoke, and not where she reads the row.
+    // patron spoke, and not where they read the row.
     const heldRows: HeldRow[] = this.held().map((o) => {
       const s = skeletonById(o.live.skeleton);
       const origin = acceptedAt(commander.missions, o.live.skeleton);

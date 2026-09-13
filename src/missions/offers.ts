@@ -1,12 +1,12 @@
-// What a station offers: which skeletons the commander can accept where she
-// stands, and why the rest are shut.
+// What a station offers: which skeletons the commander can accept where they
+// stand, and why the rest are shut.
 //
 // A gate is the skeleton's own conditions. A LEAD opens the offer regardless
 // of the gate, at the lead's world (docs/TODO/190, failure rule 3). Neither
 // opens a slot: `MISSION_LIVE_CAP` holds, and a lead waits for one. A side
 // job comes back after `MISSION_REOFFER_DAYS`, until its `cap` is spent
-// where it has one. An arc she holds or finished never comes back (failure
-// rule 5). No side job had a cap, and absent read as once, so each
+// where it has one. An arc the commander holds or finished never comes back
+// (failure rule 5). No side job had a cap, and absent read as once, so each
 // was offered one time per career until docs/TODO/213 M2.
 //
 // It is read by the machine on `accept` and on `docked`, by the desk that
@@ -106,11 +106,11 @@ export function leadHere(st: MissionState, id: string, c: CommanderFacts): boole
 }
 
 /**
- * Whether the commander can accept this skeleton where she stands.
+ * Whether the commander can accept this skeleton where they stand.
  *
  * A LEAD OPENS THE OFFER regardless of the gate. It does not open a slot, and
- * it does not restart an arc she holds or finished. A side job comes back
- * until its `cap` is spent, where it has one, and not before
+ * it does not restart an arc the commander holds or finished. A side job
+ * comes back until its `cap` is spent, where it has one, and not before
  * `MISSION_REOFFER_DAYS` from the day it last ended.
  */
 export function canAccept(st: MissionState, id: string, ctx: OfferContext): boolean {

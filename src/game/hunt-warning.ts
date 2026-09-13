@@ -1,4 +1,5 @@
-// What her gun is worth against the ship she is sent to kill, in two numbers.
+// What the commander's gun is worth against the ship they are sent to kill,
+// in two numbers.
 //
 // DERIVED, every time, through the same two functions a live shot goes
 // through. The first is the fitted laser's byte (`playerLaser`). The second is
@@ -57,7 +58,7 @@ export function huntGunCheck(commander: CommanderData, target: NpcSpec): GunChec
  * The patron's word on what the job needs, beyond where to go.
  *
  * It states two NUMBERS and lets the commander decide. It issues no
- * instruction. It returns '' when she already holds the best gun for the job.
+ * instruction. It returns '' when they already hold the best gun for the job.
  * So the line means something on the day it appears, rather than a line the
  * player learns to skip.
  */

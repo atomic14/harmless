@@ -91,7 +91,7 @@ console.log('\nwhich tonnes are spoken for');
   // Goods are fungible and the hold keeps no per-contract provenance, so the
   // answer is the JOB and never the pool. test/contracts.test.ts pins the
   // settlement half of the same rule: the station takes its five, and the ten
-  // she paid for stay hers.
+  // they paid for stay theirs.
   eq('a pooled hold reports the consignment, not the pool',
     consignedTonnes(carrying([job({ qty: 5 })], { [FOOD]: 15 }), FOOD), 5);
   eq('...and an empty hold still owes what was accepted',

@@ -61,7 +61,7 @@ console.log('\nthe station course, flown from the witchpoint');
 // THE COMPUTER IS A BUTTON, NOT AN AUTOMATIC (Chris, 2026-09-12: *"I have a
 // docking computer - but instead of it being activated I still get the lining
 // and only once that is done does the computer activate"*). Every commander
-// gets the line-up, and a fitted computer flies the rest when she asks for it.
+// gets the line-up, and a fitted computer flies the rest when they ask for it.
 // The block below flies the same course with nobody pressing anything.
 {
   const g = arrived(20_260_911);
@@ -182,7 +182,7 @@ console.log('\nthe station course goes round a planet in its way');
   let pressed = false;
   fly(g, 400, () => {
     lowest = Math.min(lowest, g.state.player.position.distanceTo(w.planetPos) - w.planetRadius);
-    // The line-up is the pilot's until she asks for the computer.
+    // The line-up is the pilot's until they ask for the computer.
     if (!pressed && g.state.session.dockTrial) {
       g.input.injectPress(keyCodeIfBound('flight', 'toggleDockingComputer') ?? '');
       pressed = true;

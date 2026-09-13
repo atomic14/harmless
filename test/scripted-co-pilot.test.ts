@@ -110,7 +110,7 @@ console.log('\nscripted combat computer');
     const quietly = alone.step(1 / 60, state.player, [], legal, false, null);
     check('...and an empty sky with no warhead asks for nothing',
       quietly.kind === 'disengage' && !quietly.ecm);
-    // A pilot who takes the stick keeps her own E.C.M. key.
+    // A pilot who takes the stick keeps their own E.C.M. key.
     const taken = alone.step(1 / 60, state.player, [], legal, true, { x: 0, y: 400, z: 0 });
     check('...and a manual override asks for none either',
       taken.kind === 'disengage' && taken.reason === 'MANUAL OVERRIDE' && !taken.ecm);

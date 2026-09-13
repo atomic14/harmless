@@ -166,7 +166,7 @@ console.log('\nthe charge holds for a commander who falls behind (docs/TODO/214 
   for (const n of g.state.world.npcs) if (n.state.missionTag !== live.tag) n.state.alive = false;
   const charge = g.state.world.npcs.find((n) => n.state.missionTag === live.tag);
   if (!charge) throw new Error('the escort spawned no charge');
-  // Beyond the leash, with no course picked: she is not coming.
+  // Beyond the leash, with no course picked: the commander is not on the way.
   charge.object.position.copy(g.state.player.position).add(new THREE.Vector3(0, 0, -(ESCORT_LEASH + 1000)));
   const before = charge.object.position.clone();
   withoutSaving(() => { for (let f = 0; f < 10 * 60; f++) g.step(1 / 60, 100 + f / 60); });
@@ -174,7 +174,7 @@ console.log('\nthe charge holds for a commander who falls behind (docs/TODO/214 
     charge.object.position.distanceTo(before) < 200, `${Math.round(charge.object.position.distanceTo(before))} units`);
   check('...and says so', charge.state.holding && charge.state.holdSaid);
   const took = fly(g, 120, () => !charge.state.holding);
-  check('...until the escort course brings her inside the leash', !charge.state.holding, `after ${took.toFixed(0)}s`);
+  check('...until the escort course brings the commander inside the leash', !charge.state.holding, `after ${took.toFixed(0)}s`);
 }
 
 console.log('\nthe canister scooped springs its ambush in the sky (docs/TODO/214 M2)');

@@ -1,8 +1,8 @@
 // The commander's log: the journal told as a story, the route drawn, and
 // the LOG screen that shows both (docs/TODO/190 M5).
 //
-// The story is the path she took. A dossier carries a line for every branch
-// a leg can take, and the page carries the one she took. That is the whole
+// The story is the path they took. A dossier carries a line for every branch
+// a leg can take, and the page carries the one they took. That is the whole
 // assertion of the first block, on a dossier built here, because no dossier
 // ships until the pipeline plan (item 191) writes one.
 
@@ -28,7 +28,7 @@ import { check, cmds, dismissBriefing, eq, eqc } from './harness.ts';
 
 const LAVE = 7;
 
-console.log('\nthe story tells the branch she took, and not the other one');
+console.log('\nthe story tells the branch they took, and not the other one');
 {
   const dossier: Dossier = {
     skeleton: SIDE_RESCUE.id, hash: 'test', title: 'THE SURVEY PILOT',
@@ -61,8 +61,8 @@ console.log('\nthe story tells the branch she took, and not the other one');
   eq('...titled by the dossier', page.title, 'THE SURVEY PILOT');
   const text = page.lines.join(' ');
   check('the opening fills its slots', text.includes('ON DAY 3 THE STATION AT LAVE ASKED'));
-  check('the branch she took is told', text.includes('THE POD BROKE UP OVER ' + g1[12].name.toUpperCase()));
-  check('...and the branch she did not take is not', !text.includes('WALKED OFF THE PAD'));
+  check('the branch they took is told', text.includes('THE POD BROKE UP OVER ' + g1[12].name.toUpperCase()));
+  check('...and the branch they did not take is not', !text.includes('WALKED OFF THE PAD'));
   check('the recovery leg is told', text.includes('THE SURVEY DATA REACHED LAVE ON DAY 7'));
   check('...and the closing', text.includes('THE JOB WAS DONE ON DAY 7'));
   eq('the page ends complete', page.ending, 'complete');
@@ -152,8 +152,8 @@ console.log('\nthe LOG screen, painted and opened');
 
 console.log('\nthe story names a world through the galaxy its entry was written in (docs/TODO/213 M4)');
 {
-  // The log named every world through the galaxy she stood in, so a galactic
-  // jump renamed her whole past. A journal entry carries its galaxy now, and
+  // The log named every world through the galaxy they stood in, so a galactic
+  // jump renamed their whole past. A journal entry carries its galaxy now, and
   // one from before it was written reads as galaxy 1.
   const g2 = generateGalaxy(2);
   const inOne: MissionState = {

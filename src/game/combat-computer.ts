@@ -205,11 +205,11 @@ export class CombatComputer {
       this.me.speed = player.speed;
       this.me.laserTemp = sys.laserTemp;
       this.me.laserCooldown = sys.laserCooldown;
-      // HOW HURT SHE IS, and whether a warhead is on its way. Those are the two
-      // things docs/TODO/71 and /72 found absent. They come from `systems.ts`'s
-      // own expressions, so the game and the trainer cannot come to compute
-      // them differently. A 14-input brain never reads them; `observeFor`
-      // decides.
+      // HOW HURT THE COMMANDER IS, and whether a warhead is on its way. Those
+      // are the two things docs/TODO/71 and /72 found absent. They come from
+      // `systems.ts`'s own expressions, so the game and the trainer cannot
+      // come to compute them differently. A 14-input brain never reads them;
+      // `observeFor` decides.
       this.me.hp = poolsLeft(sys);
       this.me.energy = energyLeft(sys);
       this.me.missileInbound = missilePos !== null;

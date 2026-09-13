@@ -3,9 +3,10 @@
 // Split out of `ui/screens.ts` by docs/TODO/149 — see `chart-galactic.ts` for
 // why the two charts are two files.
 //
-// Centred on where she stands rather than on the galaxy, so this is the chart
-// that answers "where can I go next". It carries the market estimate beside it
-// for that reason: the question a player asks of a neighbour is what it pays.
+// Centred on where the commander stands rather than on the galaxy, so this is
+// the chart that answers "where can I go next". It carries the market
+// estimate beside it for that reason: the question a player asks of a
+// neighbour is what it pays.
 
 import { type StarSystem, ECONOMY_NAMES, GOVERNMENT_NAMES, speciesName } from '../galaxy/galaxy.ts';
 import { planetDescription } from '../galaxy/goatsoup.ts';

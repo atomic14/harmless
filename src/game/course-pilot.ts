@@ -41,7 +41,7 @@
 // A line that dips below the clearance altitude aims at a point beside the
 // planet instead, until the line clears. A solid is the same trick at a smaller
 // scale. It came from a flight, where the station course took the commander
-// straight into the hermit she just left.
+// straight into the hermit they just left.
 // The arrival at the witchpoint already sits on the station's side of the
 // planet. A launch, the star and a rock far out have no such promise.
 

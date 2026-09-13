@@ -159,7 +159,7 @@ console.log('a trader, flown off an object literal');
   }
 
   // 4. A CHARGE THAT HOLDS FOR THE COMMANDER slows to a stop, and goes on
-  //    when she is back (docs/TODO/214 M3).
+  //    when they are back (docs/TODO/214 M3).
   {
     const held = ship(false);
     held.state.traderPhase = 'arriving';

@@ -20,8 +20,8 @@ import { emptyMissionState } from '../missions/state.ts';
 // directly for the headless campaign simulator (test/campaign.ts).
 //
 // The commander's own numbers — the commander's name, the grubstake, the tank, the rails
-// and the two hold sizes — are constants/commander.ts. The shape of a job she
-// holds is contract-record.ts.
+// and the two hold sizes — are constants/commander.ts. The shape of a job they
+// hold is contract-record.ts.
 
 export type LaserType = 'pulse' | 'beam' | 'military';
 

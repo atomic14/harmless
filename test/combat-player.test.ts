@@ -1,4 +1,4 @@
-// The commander's own trigger and her own shields.
+// The commander's own trigger and their own shields.
 //
 // `game/combat-player.ts` assembles two calls out of a `GameState`:
 // `firePlayerLaser` pulls the trigger, and `damagePlayer` spends a hit on the

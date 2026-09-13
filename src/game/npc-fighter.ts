@@ -13,7 +13,7 @@
 //
 // THE ORDER IS LOAD-BEARING. A ship that can reach the commander does that
 // before it looks at an NPC target. So a pirate mid-duel with a trader breaks
-// off for her, rather than the other way about. `game/npc.ts` ran these three in
+// off for them, rather than the other way about. `game/npc.ts` ran these three in
 // this order before docs/TODO/184 M1 moved them.
 //
 // WHICH PILOT FLIES IT is `brain-names.ts`'s answer and not this file's. A live

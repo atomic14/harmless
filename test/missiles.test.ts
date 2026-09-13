@@ -103,12 +103,12 @@ console.log('\nmissiles: one launch rule');
 //
 // The other half of the same shot, and the half that still has two homes: the
 // game bills it through `Combat.hitPlayer` and the episode through
-// `TargetShip.takeDamage`. Both spend `IMPACT.warhead` in her own pool points
+// `TargetShip.takeDamage`. Both spend `IMPACT.warhead` in their own pool points
 // on the face it came in at, and this asserts it as an equivalence rather than
 // as a number — a second warhead constant that merely looked plausible would
 // pass a check against a literal.
 
-console.log('\nmissiles: what a warhead costs her');
+console.log('\nmissiles: what a warhead costs them');
 {
   const warhead = playerImpactDamage(IMPACT.warhead);
   const reference = (fromFront: boolean) => {
@@ -141,7 +141,7 @@ console.log('\nmissiles: what a warhead costs her');
 // --- and it happens inside a real episode ------------------------------------
 //
 // The acceptance test docs/TODO/62 sets, and the one that would have failed
-// before it: a pirate DECIDES to launch, the warhead flies, it can kill her, and
+// before it: a pirate DECIDES to launch, the warhead flies, it can kill them, and
 // the rail runs dry.
 //
 // THE TARGET IS THE KNIFE-FIGHTER, and that is what makes this a test rather
@@ -189,7 +189,7 @@ console.log('\nmissiles: inside a training episode');
   }
   check(`a pirate in a training episode launches (${launched} warheads over ${SEEDS} fights)`,
     launched > 0);
-  check(`...and it can kill her (${destroyed}/${SEEDS} episodes ended destroyed)`,
+  check(`...and it can kill them (${destroyed}/${SEEDS} episodes ended destroyed)`,
     destroyed > 0);
   check(`...and the rail runs dry: nothing fired more than it carried`
     + ` (${launched} of ${carried}, ${left} still racked)`,
@@ -288,16 +288,16 @@ console.log('\nmissiles: in the real game, headless');
   // THE SEED MOVED ON 2026-08-13 and the fixture did not, which is the case the
   // note below the next block describes. docs/TODO/138 M3 draws two random bits
   // from the seeded stream when a system is entered, so every `random()` after
-  // that draw shifted and 62_000_037 stopped killing her inside 400 frames. She
-  // is still hit; she survives. What is NOT negotiable is the replay below, and
+  // that draw shifted and 62_000_037 stopped killing them inside 400 frames. They
+  // are still hit; they survive. What is NOT negotiable is the replay below, and
   // it is unmoved.
   const a = fight(62_000_042, 4, 400);
   check(`a pirate in the GAME launches: ${a.carried - a.left} of ${a.carried} rounds`
     + ` spent, ${a.inSky} in the air at once`,
   a.left < a.carried && a.inSky > 0);
-  check(`...the warhead arrives and is worth ${IMPACT.warhead.commander} of her pools`
+  check(`...the warhead arrives and is worth ${IMPACT.warhead.commander} of their pools`
     + ` (${a.impacts} impacts)`, a.impacts > 0);
-  check(`...and it kills her (mode ${a.mode} inside ${(400 / 60).toFixed(1)}s)`, a.mode === 'dead');
+  check(`...and it kills them (mode ${a.mode} inside ${(400 / 60).toFixed(1)}s)`, a.mode === 'dead');
 
   // Same seed, same fight — the game side of the claim the episode makes below.
   // This is the half of the equivalence check that fits in a test suite: the

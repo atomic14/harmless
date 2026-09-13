@@ -23,7 +23,7 @@ export const ESCAPE_CHANCE = { trader: 0.45, other: 0.2 } as const;
 
 /**
  * Seconds the commander's beam registers nothing on a bystander, counted from
- * the moment her own shot destroys a ship (GitHub #35).
+ * the moment their own shot destroys a ship (GitHub #35).
  *
  * A **bystander** is a ship that `isHostileToPlayer` says is not already in the
  * fight. Only a ship that was minding its own business is covered, and that is

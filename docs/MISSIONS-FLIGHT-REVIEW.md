@@ -25,7 +25,7 @@ Two probes sit beside part one's in
 
 [`flight-probe.ts`](reviews/missions-2026-09-12/flight-probe.ts) runs a real
 headless game. A fresh commander holds one live leg whose work is in the
-system she arrives in. Ordinary traffic stays in the sky. The probe presses
+system the commander arrives in. Ordinary traffic stays in the sky. The probe presses
 the job's own button. It holds the trigger while the computer aims. It
 presses the button again when a fight dropped the course. It presses the
 docking computer when the station course hands over. Scoops are fitted for a scoop.
@@ -163,7 +163,7 @@ Seed 2 met nobody. At twenty seconds the commander's fore shield was 165 of
 255 and the charge was fleeing. The escort course rammed it. The course
 flies to a standoff of 600 units at the charge's own speed, and the approach
 overshoots into the hull. A ram is a hit from the commander, so the charge
-fled from her, and it fled for 580 seconds more.
+fled from the commander, and it fled for 580 seconds more.
 
 Seed 5 ended with CRASHED INTO THE PLANET at 559 seconds. The ship had full
 energy and full shields, 80 units above the surface at 89 units a second. The
@@ -186,7 +186,7 @@ minute, and nothing on the screen says so.
   capped, as the collect course caps its own.
 - A course refuses a target below the planet's clearance altitude, and says
   so, rather than fly the commander after it.
-- The charge waits for the commander, or moves only while she is within some
+- The charge waits for the commander, or moves only while the commander is within some
   distance. Plan 208 named this fault and left it. Until then the escort is
   a job the commander watches.
 - The charge starts nearer the station, or flies at the commander's pace, so
@@ -203,11 +203,11 @@ A new commander starts with 100 credits, a pulse laser and no fuel scoops.
 Fuel scoops cost 525 credits at a world of tech level five or more. Three of
 the eight side jobs are a scoop, and so is the first leg of the Lave arc. The
 Lave arc has no gate, so its hail is the first thing a new commander hears at
-Lave. She accepts it, jumps, and reads NEEDS FUEL SCOOPS on the one button
+Lave. The commander accepts it, jumps, and reads NEEDS FUEL SCOOPS on the one button
 that matters. The row is honest, and the arc holds a slot for thirty days.
 
 The arc has a way round. A canister shot before the scoop turns the leg into
-a scan, and then into a hunt. Nothing tells her that the way round exists,
+a scan, and then into a hunt. Nothing tells the commander that the way round exists,
 and shooting the patron's ledger is not a thing a new player tries.
 
 **Recommended changes.** Gate the arc on the scoops, on a kill count, or on
@@ -276,7 +276,7 @@ Not yet. The pieces are all present, and each one is sound. Together they
 make a loop in which the player decides one thing, and then watches.
 
 - **The decision is the accept.** After it, the player presses the one row
-  the situation offers. She holds a button while the computer aims. She
+  the situation offers. The commander holds a button while the computer aims. The commander
   presses the station row. No job asks a second question.
 - **The threat is gone.** The computer's aim and the auto-engage make every
   fight a matter of the trigger. A fresh commander with a pulse laser
@@ -295,7 +295,7 @@ make a loop in which the player decides one thing, and then watches.
 1. Make the hunt a chase. A target that runs, or that has to be found with
    a scan first, turns four seconds into a pursuit with a scanner.
 2. Make the escort about position. The charge moves while the commander is
-   near, and stops when she is not. Then the escort is hers.
+   near, and stops when the commander is not. Then the escort is the commander's.
 3. Ask a question. The `choice` trigger is built and tested. One choice per
    arc, with a consequence the log tells, is a story.
 4. Let standing mean something. A patron who remembers a failure offers

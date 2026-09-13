@@ -234,7 +234,7 @@ export function spawnPopulation(
  * A mission ship flies the roster row for its design, under the role its
  * job wants. A hunt's target is a pirate, as the Constrictor always was. An
  * escort's charge and a scan's subject are traders. An escort's charge
- * arrives with the commander and flies for the slot, so she can see it in.
+ * arrives with the commander and flies for the slot, so they can see it in.
  * A design the roster cannot fly in that role is skipped, and the skeleton
  * lint is the place to catch that.
  */

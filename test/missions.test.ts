@@ -1,8 +1,8 @@
 // The Navy's gun warning, and the thing breeding in your cabin.
 //
 // Two things that change between docks without the commander deciding
-// anything. The first is what her gun is worth against the ship the Navy sent
-// her after, which the briefing states in two numbers. The second is a
+// anything. The first is what their gun is worth against the ship the Navy sent
+// them after, which the briefing states in two numbers. The second is a
 // stowaway that eats the hold. They were the back half of
 // test/contracts.test.ts, which carried three subjects and crossed the size
 // ceiling when passenger work landed (docs/TODO/109). The Navy's five-stage
@@ -29,7 +29,7 @@ console.log('\nthe Navy gun warning');
   //
   // TODO 29's ruling on the Constrictor: the source-exact halving stays, and
   // what was missing was the signposting. A commander must not fly forty light
-  // years to discover that the upgrade she bought does nothing.
+  // years to discover that the upgrade they bought does nothing.
   {
     const withLaser = (laser: string) => {
       const c = newCommander();

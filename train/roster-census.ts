@@ -90,7 +90,7 @@ export function rosterInForce(system: StarSystem, galaxy: number, randomBits: nu
 
 const weaponByteOf = (spec: NpcSpec): number => npcWeaponByte(spec.profileId);
 
-/** Points off the commander's pools per registered hit, her armour already off. */
+/** Points off the commander's pools per registered hit, their armour already off. */
 export const perHitOf = (spec: NpcSpec): number =>
   npcLaserDamageToPlayer(weaponByteOf(spec), COBRA_MK_3_HULL_ID);
 

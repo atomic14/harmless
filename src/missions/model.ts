@@ -42,7 +42,7 @@ export interface Deed { disrepute: number }
 export type PatronRef =
   | { kind: 'navy' }
   | { kind: 'world'; seedSlot: number }
-  /** whoever runs the station she stands at: a side job's patron, anywhere */
+  /** whoever runs the station the commander stands at: a side job's patron, anywhere */
   | { kind: 'local' };
 
 /**
@@ -129,7 +129,8 @@ export interface Settlement {
   standing?: number;
   /**
    * A blueprint set forced at the branch's world for `days` (docs/TODO/192
-   * M3). The world is the next leg's target, or where she stands at an end.
+   * M3). The world is the next leg's target, or where the commander stands
+   * at an end.
    */
   override?: { set: BlueprintOverride; days: number };
   /** ships that wait at the branch's world for `days`, spawned on every arrival */
@@ -259,7 +260,8 @@ export interface JournalEntry {
   /**
    * The galaxy `world` is an index in. Absent on a record written before
    * docs/TODO/213 M4, and it reads as galaxy 1. The log named every world
-   * through the galaxy she stood in, so a jump renamed her whole past.
+   * through the galaxy the commander stood in, so a jump renamed their whole
+   * past.
    */
   galaxy?: number;
 }

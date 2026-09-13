@@ -19,7 +19,7 @@ export interface ContractsContext {
   /**
    * Is there a board to read? A bulletin board is a station's, and this screen
    * opens in flight too since docs/TODO/145. In flight the ACCEPTED half is
-   * what she came for, and nothing can be signed.
+   * what they came for, and nothing can be signed.
    */
   readonly atStation: boolean;
   /** the board's word about a lead a few jumps out, or null (missions/hints.ts) */

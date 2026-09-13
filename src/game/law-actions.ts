@@ -1,4 +1,4 @@
-// What the law does to a commander, and what she can do about it.
+// What the law does to a commander, and what they can do about it.
 //
 // The ORCHESTRATION half of the law, split out of `game.ts` by docs/TODO/150.
 // `law.ts` next door owns the RULES: what a bribe costs, what a patrol is
@@ -142,8 +142,8 @@ export class LawActions {
    *
    * ONE HOME FOR BOTH LINES, because both call sites above say the first one
    * and both need the second. `raiseLegal` is the case docs/TODO/175 is named
-   * for: the verdict says BOUNTY HUNTERS while a police Viper she grazed is the
-   * ship on her. `lowerLegal` is the sharper one. A commander who works her
+   * for: the verdict says BOUNTY HUNTERS while a police Viper they grazed is the
+   * ship on them. `lowerLegal` is the sharper one. A commander who works their
    * record off over five pirates reads a status that is clean, and the Viper is
    * still there.
    *

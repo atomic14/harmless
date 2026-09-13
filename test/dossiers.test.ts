@@ -51,7 +51,7 @@ export function sampleDossier(s: Skeleton): Dossier {
     news: '{PATRON} is asking after a pilot here.',
     images: {},
     story: {
-      opening: 'On day {DAY} she took the errand at {WORLD}.',
+      opening: 'On day {DAY} they took the errand at {WORLD}.',
       closing: { complete: 'It was done at {WORLD} on day {DAY}.', fail: 'It failed at {WORLD} on day {DAY}.' },
       legs: Object.fromEntries(shape.legs.map((leg) => [leg, Object.fromEntries(
         shape.triggers[leg].map((t) => [t, `On day {DAY}, at {WORLD}, the leg ended by ${t.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/[^a-z ]/gi, ' ').toLowerCase()}.`]),
@@ -100,7 +100,7 @@ console.log('\n...and the validator refuses what the plan says it must');
   check('...and so is a leg the skeleton lacks',
     broken((d) => { d.story.legs.extra = {}; }).some((f) => f.includes('names extra')));
   check('{TARGET} in a story line is a slot the field may not carry',
-    broken((d) => { d.story.opening = 'She left for {TARGET} on day {DAY}.'; })
+    broken((d) => { d.story.opening = 'They left for {TARGET} on day {DAY}.'; })
       .some((f) => f.includes('carries {TARGET}')));
   check('...and {PAY} in a briefing',
     broken((d) => { d.briefing = ['{PATRON} pays {PAY}.']; }).some((f) => f.includes('carries {PAY}')));
@@ -123,7 +123,7 @@ console.log('\n...and the validator refuses what the plan says it must');
   check('...while a briefing may', broken((d) => { d.briefing = ['You will do, pilot.']; }).length === 0);
   check('a banned word is a fault', broken((d) => { d.news = 'A vibrant offer waits.'; }).some((f) => f.includes('vibrant')));
   check('{DAY} needs the word day before it',
-    broken((d) => { d.story.opening = 'On {DAY} she took the errand at {WORLD}.'; }).some((f) => f.includes('without the word "day"')));
+    broken((d) => { d.story.opening = 'On {DAY} they took the errand at {WORLD}.'; }).some((f) => f.includes('without the word "day"')));
   check('a console line needs no full stop', broken((d) => { d.legs.pod.success = 'PILOT LANDED — {PAY}'; }).length === 0);
   check('...but an empty one is a fault', broken((d) => { d.legs.pod.success = ''; }).some((f) => f.includes('is empty')));
   check('...and three sentences are too many',
@@ -258,8 +258,8 @@ console.log('\n...and every reader speaks the dossier\'s words, or the skeleton\
   check('...or the plain pitch', screen(none).includes(SIDE_HUNT.pitch) && !screen(none).includes('ERRAND'));
 
   // A held mission keeps what the offer showed (docs/TODO/201). The order
-  // line follows the pages, so the row reads as what she agreed to, then
-  // where she is in it.
+  // line follows the pages, so the row reads as what they agreed to, then
+  // where they are in it.
   const holding = (dossiers: (id: string) => Dossier | null) => captureById(() => {
     const commander = { ...newCommander(), systemIndex: 12, contracts: [] };
     commander.missions = {

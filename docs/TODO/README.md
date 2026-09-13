@@ -13,7 +13,13 @@ active context:
 
 ## Execution queue
 
-Nothing is queued.
+1. [218](218-the-commander-is-they-not-she.md) — the commander is they, not she.
+
+**218 CAME FROM CHRIS ON 2026-09-13.** The comments, the docs and the
+dossier prompt slipped into "she" for the commander, from the novella.
+The player names the pilot, and the name can carry any gender. 218 sweeps
+the prose to "they" and "the commander", and the dossiers are written
+again.
 
 **217 CAME FROM CHRIS ON 2026-09-13**, after 214 M4 measured the hunt. A
 lone Krait dies four seconds after the fight starts, whether it runs or

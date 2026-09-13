@@ -55,7 +55,7 @@ console.log('\na course goes round what it would hit');
 }
 
 // ...and the flight it came from: the station course past the hermit the
-// commander just left. Without the detour this kills her outright at 399 units
+// commander just left. Without the detour this kills them outright at 399 units
 // a second.
 {
   const g = withoutSaving(() => {

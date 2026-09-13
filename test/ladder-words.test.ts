@@ -272,6 +272,6 @@ console.log('\n...and the COMMANDER screen labels all three ladders');
   // ...and the fifth meaning is still here and still correct, on the same
   // screen, which is what made `characterName(c.disrepute)` beside `c.name` the
   // sharpest case in the item.
-  check('...while the commander still has a name of her own',
+  check('...while the commander still has a name of their own',
     html.includes(`COMMANDER ${c.name}`));
 }

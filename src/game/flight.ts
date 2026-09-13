@@ -1,4 +1,4 @@
-// What a commander does while she flies.
+// What a commander does while they fly.
 //
 // The other half of the orchestrator. docs/TODO/155 M2 split it from
 // `docked.ts`, on Chris's rule of 2026-08-14: *"It makes sense to split docked
@@ -6,7 +6,7 @@
 // machine, the frame skeleton and the routing. This holds everything that only
 // happens with the ship in the sky.
 //
-// ONE RESPONSIBILITY: what a commander does while she flies. That is one slice
+// ONE RESPONSIBILITY: what a commander does while they fly. That is one slice
 // of time advanced, and who is at the controls for it. It is also what the guns
 // and the racks spend, and what the hull takes. The exercise belongs here too,
 // because it is ordinary flight with a different step behind it.
@@ -350,7 +350,7 @@ export class Flight {
   }
 
   /**
-   * Is the human on the controls? Both autopilots let go the moment she is —
+   * Is the human on the controls? Both autopilots let go the moment they are —
    * the combat computer hands the ship back, the docking computer breaks off.
    */
   private handsOn(): boolean {

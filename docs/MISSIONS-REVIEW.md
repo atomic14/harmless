@@ -100,7 +100,7 @@ goods back out. The effect union has no unload, and the settlement asks for
 none.
 
 So the commander keeps the fee and the narcotics, and sells the narcotics at
-the market she just landed at. The probe's success effects are a payment, a
+the market they just landed at. The probe's success effects are a payment, a
 deed and two lines. There is no cargo effect among them. The verb test checks
 the payment and never reads the hold after it.
 
@@ -348,8 +348,8 @@ uses and which wait for a plan.
   the decision. A pirate that kills the Krait earns the commander 800
   credits.
 - An escort's fee needs no presence from the commander. The charge is safe
-  when it reaches station range with no enemy near it, wherever she is.
+  when it reaches station range with no enemy near it, wherever the commander is.
 - Every arrival says YOUR JOB AT X IS N JUMPS AWAY for every held job that is
   elsewhere. Three jobs give three lines behind ARRIVED.
 - The hail says THERE ARE N SIDE JOBS ON THE STATION BOARD on every dock
-  where any are open. It says so whether she read them or not.
+  where any are open. It says so whether the commander read them or not.

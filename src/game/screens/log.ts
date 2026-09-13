@@ -47,7 +47,8 @@ export class LogScreen implements Screen {
   render(): void {
     const { commander, systems } = this.ctx();
     // Every page names its worlds through its own galaxy. The route is the
-    // chart of the galaxy she is in, so it draws the pages from this one.
+    // chart of the galaxy the commander is in, so it draws the pages from this
+    // one.
     const pages = storyPages(commander.missions,
       (galaxy) => (galaxy === commander.galaxy ? systems : galaxySystems(galaxy)));
     const worlds = pages.filter((p) => p.galaxy === commander.galaxy).flatMap((p) => p.worlds);

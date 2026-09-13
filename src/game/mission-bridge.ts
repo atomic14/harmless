@@ -173,8 +173,8 @@ export function missionShipSpec(c: CommanderData, tag: string): NpcSpec | undefi
 }
 
 /**
- * What her gun is worth against a live hunt's target, or '' when it will do
- * or the leg is not a hunt.
+ * What the commander's gun is worth against a live hunt's target, or '' when
+ * it will do or the leg is not a hunt.
  */
 export function missionWarning(c: CommanderData, live: LiveMission): string {
   const s = skeletonById(live.skeleton);

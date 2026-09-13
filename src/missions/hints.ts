@@ -6,7 +6,7 @@
 //
 //   - inside `LEAD_RUMOUR_JUMPS`, a rumour on the bulletin board and a line
 //     on the DATA ON page;
-//   - inside one jump, a message from the patron when she docks;
+//   - inside one jump, a message from the patron when they dock;
 //   - at the world, the offer itself, which `offers.ts` makes.
 //
 // NO MORE THAN ONE HINT PER DOCKING. A dock that makes an offer says nothing

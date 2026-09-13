@@ -96,7 +96,7 @@ const faults: [string, Skeleton, readonly Skeleton[], string][] = [
   ['a final leg placed by a band of tenths',
     arc({ legs: [legs()[0], { ...legs()[1], place: { kind: 'band', min: 30, max: 80 } }] }),
     [b], 'too far from the lead'],
-  ['a final leg placed where she stands',
+  ['a final leg placed where they stand',
     arc({ legs: [legs()[0], { ...legs()[1], place: { kind: 'here' } }] }),
     [b], 'cannot be measured'],
   ['two arcs that force two sets everywhere',

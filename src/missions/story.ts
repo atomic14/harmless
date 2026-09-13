@@ -3,8 +3,9 @@
 // The JOURNAL is the record of what happened: one entry per acceptance, per
 // branch taken, and per ending. This file turns it into pages, one per run
 // of a mission. A dossier's words are used where a dossier exists, and the
-// skeleton's plain words where none does (docs/TODO/190 M5). The path she
-// took is the story. A branch she did not take is never mentioned.
+// skeleton's plain words where none does (docs/TODO/190 M5). The path the
+// commander took is the story. A branch they did not take is never
+// mentioned.
 //
 // It is pure, and it knows nothing about a screen. The LOG screen and the
 // site page (item 193 of docs/TODO/190) both render what it returns.

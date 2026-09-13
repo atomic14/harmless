@@ -44,7 +44,7 @@ console.log('\nwho names a blueprint override (docs/TODO/138 M4)');
     leg === null ? emptyMissionState() : constrictorAt(leg, target);
 
   eq('an idle commander raises no override', missionOverride(at(null, null), 7), null);
-  eq('the hunt raises the Constrictor\'s, at the system she was sent to',
+  eq('the hunt raises the Constrictor\'s, at the system they were sent to',
     missionOverride(at('hunt', 7), 7), 'constrictor');
   eq('...and raises nothing at any other system',
     missionOverride(at('hunt', 8), 7), null);
@@ -85,7 +85,7 @@ console.log('\nwho names a blueprint override (docs/TODO/138 M4)');
   withoutSaving(() => g.launch());
   const s = g.state;
 
-  /** Fly her there and let the arrival choose, as a jump does. */
+  /** Fly the commander there and let the arrival choose, as a jump does. */
   const arriveAt = (
     index: number, leg: 'hunt' | 'courier' | null, target: number | null,
   ): string => {
@@ -103,7 +103,7 @@ console.log('\nwho names a blueprint override (docs/TODO/138 M4)');
     arriveAt(LOW, 'hunt', LOW), CONSTRICTOR_BLUEPRINT_SET);
   check('...and the world is built with it',
     s.world.roster === specsForSet(CONSTRICTOR_BLUEPRINT_SET));
-  check('...but only at the system she was sent to',
+  check('...but only at the system they were sent to',
     ordinary(LOW).includes(arriveAt(LOW, 'hunt', HIGH)));
 
   eq('the plans pick the low-tech Thargoid set at a low-tech system',

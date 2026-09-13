@@ -97,7 +97,7 @@ export interface FitDraft {
   missiles: number;
 }
 
-/** Everything the pilot told the picker, and nothing about how she told it. */
+/** Everything the pilot told the picker, and nothing about how they told it. */
 export interface SimDraft {
   mode: SimMode;
   /** index into SCENARIOS */

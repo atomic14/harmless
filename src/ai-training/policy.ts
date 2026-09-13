@@ -41,7 +41,7 @@ export const OBS_SIZE = 13;
  * The DEFENDER's observation: the solo 13, plus five things a ship under attack
  * by a gang needs and a lone hunter does not.
  *
- * Those five are how hurt she is, the warhead, the fought threat's velocity, the
+ * Those five are how hurt the defender is, the warhead, the fought threat's velocity, the
  * SECOND threat, and the shield split. The layout and the reasoning are
  * `observeDefend`'s.
  *

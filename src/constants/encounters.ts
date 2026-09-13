@@ -133,10 +133,11 @@ export const ANARCHY_GOVERNMENT = 1;
  * IT WAS 4 UNTIL docs/TODO/188, AND CHRIS'S PLAYTEST IS WHY IT MOVED. He flew
  * the ambush and said it was too hard (GitHub #39). `npm run ambush-probe`
  * then measured the shipped defence over the real step, at two sizes. At 4 the
- * co-pilot died in 7% to 15% of ambushes, and she ended with 54% of her pools.
- * The drones dealt 70% of the damage. At 2 she survived every one, and she
- * ended with 76% to 79%. A slower redeploy alone did nearly as well, but it
- * left the peak count at 3.5, and the count was the complaint.
+ * co-pilot died in 7% to 15% of ambushes, and the commander ended with 54% of
+ * their pools. The drones dealt 70% of the damage. At 2 the commander
+ * survived every one, and ended with 76% to 79%. A slower redeploy alone did
+ * nearly as well, but it left the peak count at 3.5, and the count was the
+ * complaint.
  *
  * It has its own rule id. `THARGOID_AMBUSH_MIN` (witchspace.ts) is also 2,
  * and it is a different rule: that one is how many motherships wait.

@@ -308,7 +308,7 @@ export const BINDINGS: Record<ControlMode, readonly Binding[]> = {
 
   /**
    * The galactic drive, with missions held: it swallows every other key until
-   * she answers. Y jumps and fails them. Escape and N stay. The ship flies on
+   * they answer. Y jumps and fails them. Escape and N stay. The ship flies on
    * underneath, because a pause is its own key and this is not one.
    */
   confirmGalacticJump: [

@@ -6,7 +6,7 @@
 // catalogue in behind it.
 //
 // That is not hypothetical. The manual page listed the nine ranks it could
-// remember, and left BELOW AVERAGE out. So a commander could read her own
+// remember, and left BELOW AVERAGE out. So a commander could read their own
 // rating off the status screen, and fail to find it on the chart.
 //
 // The page rendered from the table is the fix. It is the same bargain as the

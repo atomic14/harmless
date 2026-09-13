@@ -47,8 +47,9 @@
 //                  for every policy until docs/TODO/62 put missiles in the sky;
 //                  it is 4 to 6 now, and it is the one thing the outcome will
 //                  not trade for anything.
-//   broke          the share of the attacking force's energy banks she took off
-//                  them — `Episode.attackerDamageShare()`, and 40% of the
+//   broke          the share of the attacking force's energy banks the
+//                  commander took off them — `Episode.attackerDamageShare()`,
+//                  and 40% of the
 //                  outcome `evolve.ts` selects on since docs/TODO/65.
 //   killed         the share of attacking pirates destroyed: the same quantity
 //                  as `broke` with the granularity thrown away, kept because it
@@ -57,11 +58,11 @@
 // TWO OF THESE ARE NOW THE SELECTION METRIC, and until docs/TODO/65 only the
 // first was: a champion was chosen by terminal `hp` alone, at 1000x, with the
 // shaped fitness clamped so hard it contributed 1.9% of the score. Killing was
-// rational only if it cost less than 0.30% of her pools, so the selector
+// rational only if it cost less than 0.30% of their pools, so the selector
 // preferred a policy that never fired — `jameson-defend-t62` fired ZERO shots
 // across 240 of these episodes and still outranked the shipped brain. The
 // outcome is `0.6 x pools kept + 0.4 x broke` now, cumulative rather than
-// terminal, and zero if she dies; `train/selection.ts` is the rule and
+// terminal, and zero if the commander dies; `train/selection.ts` is the rule and
 // `test/selection.test.ts` asserts the ordering it exists to produce.
 //
 // ## The numbers above are on the OLD baseline
@@ -148,7 +149,7 @@ export function probeDefence(brain: Brain, episodes: number): {
         n: 1,
         pools: Math.max(0, ep.trader.hp) * 100,
         died: ep.trader.alive ? 0 : 1,
-        // what her gun took off the whole force — what the selector reads
+        // what the commander's gun took off the whole force — what the selector reads
         broke: ep.attackerDamageShare() * 100,
         // as a SHARE of the ships sent, so four pirates and one are comparable
         killed: (ep.pirates.filter((p) => !p.alive).length / count) * 100,
@@ -200,7 +201,7 @@ export function printDefenceShape(names: string[], episodes: number): void {
     for (const k of [...r.byEnergyUnit.keys()].sort()) row2(k, r.byEnergyUnit.get(k)!);
   }
   console.log('\nthe outcome `evolve.ts` selects on is 0.6 x pools kept (cumulative,');
-  console.log('not the terminal figure above) + 0.4 x broke, and zero if she died.');
+  console.log('not the terminal figure above) + 0.4 x broke, and zero if the commander died.');
   console.log('it was terminal pools alone, at 1000x — a policy that survived by');
   console.log('never engaging topped the first column and bottomed the last, which');
   console.log('is what docs/TODO/65 was and what train/selection.ts changed.');

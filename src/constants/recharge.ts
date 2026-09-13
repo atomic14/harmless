@@ -31,12 +31,12 @@ import { MAX_SHIELD } from './pools.ts';
  * knee and not the floor.
  *
  * THE BANK DID NOT MOVE, and that is a measurement rather than an oversight. 139
- * states the gate: an organised tier-2 gang must be able to drive her to
- * `LOW_ENERGY` in a fight she would otherwise sit through. The shield alone meets
- * it, at 28% of fights before and 50% after, with three attackers. The bank is
- * the pool that keeps her alive. A cut to it compounds a lethality the item did
- * not ask for. 40 seconds is the figure a Cobra flew before the pools
- * grew.
+ * states the gate: an organised tier-2 gang must be able to drive the commander
+ * to `LOW_ENERGY` in a fight they would otherwise sit through. The shield alone
+ * meets it, at 28% of fights before and 50% after, with three attackers. The
+ * bank is the pool that keeps the commander alive. A cut to it compounds a
+ * lethality the item did not ask for. 40 seconds is the figure a Cobra flew
+ * before the pools grew.
  */
 export const ENERGY_REGEN_FRACTION = 0.025;
 

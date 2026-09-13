@@ -156,7 +156,7 @@ check('every narrowed roster is a different narrowing',
 // The two random bits are drawn ONCE, on arrival, from the seeded stream. So the
 // set cannot be re-derived on a reload — the draws are gone — and a save that
 // dropped it would land the commander in a system flying a different reception
-// from the one she saved in. `session` is walked generically, which is what
+// from the one they saved in. `session` is walked generically, which is what
 // carries it; this is the check that the WORLD is then built with what came back.
 {
   const g = withoutSaving(() => new Game(() => headlessShell())).value;

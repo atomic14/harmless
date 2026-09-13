@@ -1,7 +1,8 @@
 // The scripted combat computer: a PURSUIT DOGFIGHTER at the stick of YOUR ship.
 //
-// A person gets on the opponent's six and shoots it up. She hauls the throttle
-// back to swing the nose round, so that she stays on a target that crosses her.
+// A person gets on the opponent's six and shoots it up. They haul the throttle
+// back to swing the nose round, so that they stay on a target that crosses
+// them.
 //
 // That is pursuit. The aim line curves you onto its tail as it turns and runs.
 // A throttle holds a gun-range standoff behind it, and comes off hard when the
@@ -138,7 +139,7 @@ export class ScriptedCoPilot {
     picked: NpcShip | null = null,
   ): CoPilotStep {
     // MANUAL OVERRIDE ASKS FOR NO E.C.M. The pilot took the ship, and the
-    // E.C.M. is a key she holds. Every other way out still answers a warhead.
+    // E.C.M. is a key they hold. Every other way out still answers a warhead.
     if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE', ecm: false };
     this.underFire = Math.max(0, this.underFire - dt);
     // How far off the nose a candidate is — the turn it would cost to lock.
@@ -168,7 +169,7 @@ export class ScriptedCoPilot {
         + npc.object.position.distanceTo(player.position) / TARGET_DIST_WEIGHT,
       // ENGAGED means do not switch. The target is in front and roughly on the
       // nose, so this is the kill in progress, rather than the easiest lock. A
-      // pilot does not drop a ship she is lined up on because another became
+      // pilot does not drop a ship they are lined up on because another became
       // easier (Chris). The ranking hands over a better target only when the
       // co-pilot is NOT engaged, which means the current one ran wide or ran
       // behind.

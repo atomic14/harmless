@@ -77,7 +77,7 @@ export const ecmPresser = (() => {
 /**
  * A commander's mission record with the Constrictor live at one leg.
  *
- * Four files put her on the hunt or the courier run by hand: the chart, the
+ * Four files put them on the hunt or the courier run by hand: the chart, the
  * blueprint override, the standing orders and the trainer's career check. A
  * record built here has the shape the machine writes: the live leg, its tag,
  * the tagged entity, and the acceptance in the journal. A test that needs the

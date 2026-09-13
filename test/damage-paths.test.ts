@@ -394,7 +394,7 @@ console.log('\nthe old scale is gone, and cannot come back');
   check(`every damage call names its rule (${npcCalls} + ${playerCalls} calls)`,
     bad.length === 0, bad.join(' · '));
   // FOUR player-facing calls, where it was five: docs/TODO/64 moved the NPC
-  // laser's out of the step and into `fire-resolution.ts`, where it reaches her
+  // laser's out of the step and into `fire-resolution.ts`, where it reaches them
   // through the `FireTarget` seam and arrives at `applyPlayerDamage` as the
   // forwarded `damage` above. The rule it names is asserted by its own source
   // scan in the crossfire block — an equally precise check at the new address,

@@ -125,8 +125,8 @@ function abandon(
  * The commander left the galaxy. Every live mission fails by its own final
  * outcome, with the departure as the reason. A lead stays where it was
  * saved. An arc is offered in its own galaxy (`Gate.galaxy`), so the LEADS
- * row says IN ANOTHER GALAXY until she returns. The leads used to move to
- * the tour of the new galaxy. The arc they opened there placed its legs by
+ * row says IN ANOTHER GALAXY until the commander returns. The leads used to
+ * move to the tour of the new galaxy. The arc they opened there placed its legs by
  * seed index, which is not the tour (docs/TODO/213 M2).
  */
 function leaveGalaxy(
@@ -246,9 +246,9 @@ function takeBranch(
     ? { skeleton: skeleton.id, leg: leg.id, kind, slots: lineSlots(ctx.systems, target, branch.settle?.pay) }
     : undefined);
   if (branch.to === 'complete' || branch.to === 'fail') {
-    // The world a change lands on is where she stands, so the target is
-    // null. The words still name the leg's own world, or a patron's line
-    // read "at ANY STATION" at the end of every job (docs/TODO/203 M5).
+    // The world a change lands on is where the commander stands, so the
+    // target is null. The words still name the leg's own world, or a
+    // patron's line read "at ANY STATION" at the end of every job (docs/TODO/203 M5).
     settle(st, skeleton, branch.settle, null, ctx, effects, word(live.target), live.target);
     st.journal.push(entry);
     finish(st, live, branch.to, ctx, effects);

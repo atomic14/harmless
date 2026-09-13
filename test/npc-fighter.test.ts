@@ -6,7 +6,7 @@
 // police, the bounty hunter, the Thargoid and its drone.
 //
 // THE ORDER IS THE SUBJECT, and it is the one thing a reader of the file cannot
-// check by eye. A ship that can reach the commander attacks HER, before it
+// check by eye. A ship that can reach the commander attacks THEM, before it
 // looks at whatever NPC it was hunting. Reverse the two and a pirate mid-duel
 // with a trader ignores the commander who just arrived.
 //
@@ -113,7 +113,7 @@ console.log('a fighter asks the commander first, then its target, then ambles');
     //    then for the rail.
     const it = ship(new THREE.Vector3());
     fighterBehaviour().fly(it, DT, commander(-500), view);
-    check(`a fighter in reach of the commander goes for her (${it.reached.join(',')})`,
+    check(`a fighter in reach of the commander goes for them (${it.reached.join(',')})`,
       it.reached.includes('rail'));
   }
 

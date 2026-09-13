@@ -368,7 +368,7 @@ export const EPISODE_SCHEMA = 5;
  * The commander's laser, from the commander's hull — one entry per type.
  *
  * A commander who bought the combat computer almost certainly bought a better
- * laser than the one she launched with. So a policy must be fittable at the
+ * laser than the one they launched with. So a policy must be fittable at the
  * beam and military rate, and not at pulse alone.
  *
  * It matters more than a damage number. `beam` and `military` reload at 0.09s
@@ -408,7 +408,7 @@ export interface EpisodeSetup {
      * ...and the E.C.M., which is the only answer to a warhead there is. It
      * sits beside the laser and the energy unit, because it belongs to the same
      * question: what is this commander FITTED with? It changes a fight more
-     * than either. A missile is 250 of her 765 pool points (docs/TODO/72).
+     * than either. A missile is 250 of their 765 pool points (docs/TODO/72).
      */
     ecm: boolean;
     controller: string;
@@ -713,7 +713,7 @@ export class Episode {
    */
   traderRams = 0;
   /**
-   * Warheads that actually REACHED her.
+   * Warheads that actually REACHED the commander.
    *
    * It is counted where the impact is billed, for the reason `traderRams`
    * above is. It cannot be recovered from `damageTaken`, which holds lasers,
@@ -857,7 +857,8 @@ export class Episode {
    * Read-only, and it is `ordnance.ts`'s own list rather than a copy. Each
    * entry carries the `Object3D` the missile model already flies. So the combat
    * viewer adds it to its scene, and the positions keep themselves. Without
-   * this, the viewer would show a target lose a third of her pools to nothing.
+   * this, the viewer would show a target lose a third of their pools to
+   * nothing.
    */
   get missiles(): readonly Missile[] { return this.ordnance.missiles; }
 
@@ -962,12 +963,11 @@ export class Episode {
         }
         const c = this.traderControl;
         policyWantsFire = c.fire && !!this.opts.traderArmed; // armed policies may shoot
-        // SHE ANSWERS THE WARHEAD, by `ordnance.ts`'s own rule and at its own
-        // price. It goes through the same `fireEcm` the player's key and the
-        // combat computer both press, gated as the co-pilot's is
-        // (docs/TODO/72). Only
-        // a `DEFEND_OUT_SIZE` genome ever asks: `Control.ecm` is false for every
-        // brain without the head.
+        // THE TARGET ANSWERS THE WARHEAD, by `ordnance.ts`'s own rule and at
+        // its own price. It goes through the same `fireEcm` the player's key
+        // and the combat computer both press, gated as the co-pilot's is
+        // (docs/TODO/72). Only a `DEFEND_OUT_SIZE` genome ever asks:
+        // `Control.ecm` is false for every brain without the head.
         if (autopilotEcm(c.ecm, missileInbound)) {
           fireEcm(this.trader, this.trader.sys, this.ordnance);
         }
@@ -1072,8 +1072,8 @@ export class Episode {
    * same ship to carry E.C.M. `expired` is a firework.
    *
    * A hostile warhead that reaches the target is billed exactly as the game
-   * bills it. That is `IMPACT.warhead` in her own pool points, on the face it
-   * came in at.
+   * bills it. That is `IMPACT.warhead` in the target's own pool points, on the
+   * face it came in at.
    *
    * IT IS NOT CREDITED TO A PIRATE'S `damageDealt`, because nothing in the sky
    * remembers who launched it. That holds here and in the game, where a
@@ -1194,7 +1194,7 @@ export class Episode {
    */
   private resolveCollisions(): void {
     // A ram costs a ship the stated `IMPACT.ram` in its own points, and the
-    // commander the stated 115 in hers. Those are the same two calls
+    // commander the stated 115 in theirs. Those are the same two calls
     // world-step.ts makes. There is no third number, and no conversion.
     const ramEnergy = npcImpactDamage(IMPACT.ram);
     if (this.trader.alive) {
@@ -1458,16 +1458,16 @@ export class Episode {
   // silently change meaning.
 
   /**
-   * Share of the target's pools TAKEN OFF HER over the episode, 0..1. It is her
-   * damage from her own side, and it is the same question `pirateDamageShare`
-   * asks of a pirate.
+   * Share of the target's pools TAKEN OFF THEM over the episode, 0..1. It is
+   * their damage from their own side, and it is the same question
+   * `pirateDamageShare` asks of a pirate.
    *
    * It is cumulative damage, and NOT `1 - hp`. The pools recharge
-   * (docs/TODO/63), so the two differ. `1 - hp` answers "how recently was she
-   * hit", which no caller wants. `fitnessAttack` pays 6x this for a pirate's
-   * WORK, `fitnessPack` divides it by the clock for pressure, and `evolve.ts`
-   * selects attack and pack champions on it. Exact points inside, divided by
-   * their own maximum here and nowhere else.
+   * (docs/TODO/63), so the two differ. `1 - hp` answers "how recently were
+   * they hit", which no caller wants. `fitnessAttack` pays 6x this for a
+   * pirate's WORK, `fitnessPack` divides it by the clock for pressure, and
+   * `evolve.ts` selects attack and pack champions on it. Exact points inside,
+   * divided by their own maximum here and nowhere else.
    */
   targetDamageShare(): number {
     return Math.max(0, Math.min(1, this.trader.damageTaken / this.trader.maxPool));
@@ -1477,8 +1477,8 @@ export class Episode {
    * Share of the WHOLE attacking force's banks that the target took off them,
    * 0..1. It is `targetDamageShare` asked from the other side of the fight.
    *
-   * HER gun's work only. A ram bills `hurtSelf`, and a pirate that flies into a
-   * packmate bills both of them. Neither reaches this.
+   * THEIR gun's work only. A ram bills `hurtSelf`, and a pirate that flies
+   * into a packmate bills both of them. Neither reaches this.
    *
    * It is over the banks SUMMED rather than averaged, so 1.0 means the force is
    * gone. It orders like a kill count, and it keeps the granularity a kill

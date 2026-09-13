@@ -1,8 +1,8 @@
 // The contracts screen, and the half of it that travels (docs/TODO/145).
 //
 // A bulletin board is a STATION's: the offers are that station's work, and
-// `state.contractOffers` still holds the last one's the whole time she is in
-// flight. What she SIGNED for is different — it is true wherever she is, and
+// `state.contractOffers` still holds the last one's the whole time they are in
+// flight. What they SIGNED for is different — it is true wherever they are, and
 // until 145 it could only be read at a station, which is the gap GitHub #27
 // reported for the Navy mission and which contracts shared.
 //
@@ -61,13 +61,13 @@ console.log('\nthe contracts screen, docked and in flight');
   check('...and the accept control', docked.includes('ACCEPT SELECTED'));
 
   // The half that travels.
-  check('in flight the work she signed for is still on the screen',
+  check('in flight the work they signed for is still on the screen',
     flying.includes('ACCEPTED')
     && flying.includes(systems[42].name.toUpperCase())
     && flying.includes(systems[11].name.toUpperCase()));
 
   // The half that does not. `state.contractOffers` is the LAST station's board,
-  // so drawing it in flight shows a pilot work she cannot take.
+  // so drawing it in flight shows a pilot work they cannot take.
   check('...but the board is not, because a board is a station\'s',
     !flying.includes('WORK ON OFFER'));
   check('...and neither is the control that signs for one',
@@ -99,7 +99,7 @@ console.log('\n⇧C reaches it from the cockpit, and C is still the docking comp
 
 // The key, not just the button. A control that is not DRAWN but whose key still
 // answers is the "dead control that looks alive" failure inverted: the pilot
-// cannot see it, and it spends her money anyway. So the screen refuses it.
+// cannot see it, and it spends their money anyway. So the screen refuses it.
 
 console.log('\nthe accept key is refused in flight, not merely hidden');
 {

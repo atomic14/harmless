@@ -5,7 +5,7 @@
 // reaches no document and no window. The page's plugin (vite.config.ts)
 // turns it into markup. A test reads it as data.
 //
-// It shows what the game shows a commander before she accepts: each arc's
+// It shows what the game shows a commander before they accept: each arc's
 // title, patron, start world and briefing, and the shape of its legs. It
 // names which legs are recovery legs, because a failure that becomes a
 // branch is the tour's own point (docs/TODO/190). It does not show the

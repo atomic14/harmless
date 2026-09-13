@@ -215,7 +215,7 @@ console.log('\nthe computer holds its shot unless the shot is its own');
   check('...and with the way clear, the same shot is taken',
     g.state.sys.laserTemp > 0, `laser temp ${g.state.sys.laserTemp.toFixed(3)}`);
 
-  // ...and the pilot's OWN pick is hers to shoot at, whatever it is.
+  // ...and the pilot's OWN pick is theirs to shoot at, whatever it is.
   const picked = g.state.world.spawn('trader', ahead(450), 15);
   picked.state.speed = 0;
   park(picked, 450);

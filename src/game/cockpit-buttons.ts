@@ -94,7 +94,7 @@ export interface ActionSource {
    * The docking computer's key, or null where none is fitted. It is offered as
    * a button for the whole of the pilot's stretch at the slot (Chris,
    * 2026-09-12). A commander who paid for the fitting may use it at any point,
-   * rather than fly a line-up she did not ask for.
+   * rather than fly a line-up they did not ask for.
    */
   readonly dockKey: string | null;
   /** the pilot flies the last stretch into the slot (docs/TODO/207 M2) */

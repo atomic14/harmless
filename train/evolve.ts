@@ -634,7 +634,7 @@ if (VALIDATE_SELECT && champions.length) {
   if (bestValidation) {
     const v = bestValidation;
     const metric = (phase === 'evade' || phase === 'defend')
-      ? 'of her pools kept' : 'of her pools taken';
+      ? 'of their pools kept' : 'of their pools taken';
     // WHAT THE SCORE IS MADE OF, because the whole of docs/TODO/65 was a term
     // nobody could see contributing 1.9% of a number everybody could.
     console.log(`selected champion: score ${bestScore.toFixed(4)} = outcome `
@@ -642,7 +642,7 @@ if (VALIDATE_SELECT && champions.length) {
       + `${v.shaped.toFixed(2)} (${(shapedContribution(phase, v.outcome, v.shaped) * 100)
         .toFixed(0)}% of the score)`);
     if (phase === 'defend') {
-      console.log(`  she kept ${(v.kept * 100).toFixed(1)}% ${metric}, broke `
+      console.log(`  the commander kept ${(v.kept * 100).toFixed(1)}% ${metric}, broke `
         + `${(v.broken * 100).toFixed(1)}% of the attacking force, died ${v.died}/`
         + `${VALIDATION_EPISODES}`);
     } else {

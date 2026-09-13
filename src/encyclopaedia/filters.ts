@@ -70,7 +70,7 @@ export function facetsOf(entries: Entry[]): Facets {
   return {
     // Economy and government keep their 1984 order. The game shows that order
     // everywhere else. A reader who moves between the two never has to find
-    // her place again.
+    // their place again.
     economies: [...eco.entries()].sort((a, b) => a[0] - b[0])
       .map(([value, count]) => ({ value, label: ECONOMY_NAMES[value], count })),
     governments: [...gov.entries()].sort((a, b) => a[0] - b[0])

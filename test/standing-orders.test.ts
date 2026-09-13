@@ -70,7 +70,7 @@ console.log('\nstanding orders — every kind the commander holds is named');
     check('...and it says so', between[0].line.includes('REPORT')
       && between[0].kind === 'mission' && between[0].destination === null);
     runMissions(c, { kind: 'docked' }, systems, half);
-    eq('...the machine then hands her the plans', c.missions.live[0]?.leg, 'courier');
+    eq('...the machine then hands them the plans', c.missions.live[0]?.leg, 'courier');
     const orders = standingOrders(c, systems);
     const target = systems[c.missions.live[0].target as number].name.toUpperCase();
     check('...and the courier run names where they go',
@@ -94,7 +94,7 @@ console.log('\nstanding orders — every kind the commander holds is named');
 
     const line = ordersSummary(orders).join(' | ');
     const target = systems[c.missions.live[0].target as number].name.toUpperCase();
-    check('...and the summary still names the system she must fly to',
+    check('...and the summary still names the system they must fly to',
       line.includes(target));
     check('...beside the job that used to hide it', line.includes('SEALED DATA'));
     check('...with the tighter deadline of the two, and a count for the rest',
@@ -119,7 +119,7 @@ console.log('\nstanding orders — every kind the commander holds is named');
 
   // 5. the contracts sort by deadline --------------------------------------
   //
-  // The row at the top decides when she must leave, so the tightest deadline
+  // The row at the top decides when they must leave, so the tightest deadline
   // is the one the summary prices.
   {
     const c = cmdr({
@@ -138,12 +138,12 @@ console.log('\nstanding orders — every kind the commander holds is named');
     c.equipment.laser = 'beam';
     accept(c);
     const orders = standingOrders(c, systems);
-    check('the mission order carries what her gun is worth',
+    check('the mission order carries what their gun is worth',
       orders[0].kind === 'mission' && orders[0].warning.includes('MILITARY'));
     // THE WARNING IS ON THE SUMMARY, on its own line. It was cut by 144 for
     // length alone, and Chris released that constraint: "we don't need to keep
     // it one line". It is the one thing a commander must not learn forty light
-    // years from the dock that briefed her.
+    // years from the dock that briefed them.
     check('...and the summary carries it, on a line of its own',
       ordersSummary(orders).some((l) => l.includes('MILITARY'))
       && !ordersSummary(orders)[0].includes('MILITARY'));
@@ -182,14 +182,14 @@ console.log('\nthe MISSIONS screen draws the held legs, and nothing else');
   const html = paint(c);
   const leg = held(c, systems)[0];
   check('the hunt is on the screen', html.includes(leg?.line ?? 'no leg'));
-  check('...with the world it sends her to',
+  check('...with the world it sends them to',
     html.includes(systems[leg?.destination ?? 0].name));
   check('...what it pays on completion', html.includes(formatCredits(leg?.reward ?? 0)));
   check('...and the gun warning under it', html.includes('MILITARY LASER'));
 
   // The split, asserted rather than assumed. A contract held at the same time
   // belongs to the bulletin board, and drawing it here is what 145 undid.
-  check('a contract she holds is NOT on the missions screen',
+  check('a contract they hold is NOT on the missions screen',
     !html.includes('DELIVER 5T') && !html.includes(systems[11].name));
 
   const idle = paint({ ...newCommander(), contracts: [] });
@@ -317,8 +317,8 @@ console.log('\nthe summary is one line per entry, not one wrapped run');
   const lines = ordersSummary(standingOrders(c, systems));
   eq('a mission, its warning and a job are three lines', lines.length, 3);
   check('the order comes first', lines[0].startsWith('NAVY MISSION'));
-  check('...then what her gun is worth against it', lines[1].includes('MILITARY LASER'));
-  check('...then the work she signed for', lines[2].includes('SEALED DATA'));
+  check('...then what their gun is worth against it', lines[1].includes('MILITARY LASER'));
+  check('...then the work they signed for', lines[2].includes('SEALED DATA'));
   check('no line carries two orders', lines.every((l) => !l.includes(' · NAVY')));
 
   const noWarning: CommanderData = { ...c, equipment: { ...c.equipment, laser: 'military' } };

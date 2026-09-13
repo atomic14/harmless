@@ -79,7 +79,8 @@ export function playerVsNpcs(
  * hunter.
  *
  * Two ships that bumped in a dogfight used to make the player a FUGITIVE. The
- * station then scrambled its Vipers at her, for something she had no part in.
+ * station then scrambled its Vipers at them, for something they had no part
+ * in.
  */
 export function npcVsNpcs(
   npcs: readonly NpcShip[],

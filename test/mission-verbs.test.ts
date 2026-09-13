@@ -272,25 +272,25 @@ console.log('\nescort, through a real world step');
   step(g);
   eq('just outside station range nothing is paid', c.credits, before);
   charge.object.position.copy(station).add({ x: DOCK_COMPUTER_RANGE - 50, y: 0, z: 0 } as never);
-  // The commander is at the witchpoint, far from her charge (docs/TODO/214
-  // M3). The fee needs her there, and the charge holds for her.
+  // The commander is at the witchpoint, far from their charge (docs/TODO/214
+  // M3). The fee needs them there, and the charge holds for them.
   step(g);
   eq('...and inside it with the commander far away, still nothing', c.credits, before);
-  check('...and the charge holds for her', charge.state.holding);
+  check('...and the charge holds for them', charge.state.holding);
   const pirate = g.state.world.spawn('pirate', charge.object.position.clone().add({ x: 200, y: 0, z: 0 } as never), 1);
   g.state.player.position.copy(charge.object.position).add({ x: 0, y: 300, z: 0 } as never);
   step(g);
   check('with the commander beside it, the charge moves again', !charge.state.holding);
-  eq('...and inside it with a pirate beside her, still nothing', c.credits, before);
+  eq('...and inside it with a pirate beside them, still nothing', c.credits, before);
   const trader = g.state.world.spawn('trader', charge.object.position.clone().add({ x: -200, y: 0, z: 0 } as never), 2);
   g.state.world.despawn(pirate);
   step(g);
-  eq('with the pirate gone and a trader beside her, the fee lands', c.credits - before, SIDE_JOB_PAY.escort);
+  eq('with the pirate gone and a trader beside them, the fee lands', c.credits - before, SIDE_JOB_PAY.escort);
   eq('...and the job is complete', c.missions.done[SIDE_ESCORT.id], 'complete');
   check('...and the charge is still in the sky to dock', g.state.world.npcs.includes(charge) && charge.state.alive);
   step(g);
   eq('a further frame pays nothing more', c.credits - before, SIDE_JOB_PAY.escort);
-  check('a trader beside her never blocked it', g.state.world.npcs.includes(trader));
+  check('a trader beside them never blocked it', g.state.world.npcs.includes(trader));
 }
 
 console.log('\nthe survivors prompt counts a passenger, and the loader keeps the tag');

@@ -53,10 +53,10 @@ const N = 60;
  * THE GATE USED TO BE A KILL RATE, and TODO 29 retired it. The episode's target
  * is the commander now — two 255-point shields and a 255-point bank, hit for
  * the source rule's 9 to 21 points a time — and a pirate lands about seven hits
- * in forty-five seconds. So nothing kills her inside an episode and a kill rate
+ * in forty-five seconds. So nothing kills them inside an episode and a kill rate
  * is 0 for every policy including the aimbot, which measures nothing at all.
  *
- * The share of her pools removed is the same quantity with its granularity
+ * The share of their pools removed is the same quantity with its granularity
  * back, and it separates the brains as sharply as the kill rate ever did:
  * measured over these 60 held-out seeds, the shipped brain takes 12.0%, an
  * untrained policy 1.7%, and the scripted aimbot 25.3%.
@@ -82,16 +82,16 @@ const randomPirateHurt = poolShare((seed) => new Episode({
 // policies left the bundle, so the competence floor guards the run the player
 // actually meets against a policy that has learnt nothing.
 check(`the scripted run hurts the commander`
-  + ` (${(scriptedRunHurt * 100).toFixed(1)}% of her pools)`,
+  + ` (${(scriptedRunHurt * 100).toFixed(1)}% of their pools)`,
 scriptedRunHurt >= 0.07);
-check(`untrained policy barely scratches her (${(randomPirateHurt * 100).toFixed(1)}%)`,
+check(`untrained policy barely scratches them (${(randomPirateHurt * 100).toFixed(1)}%)`,
   randomPirateHurt <= 0.05);
 check('the scripted run beats the untrained baseline by a factor of three',
   scriptedRunHurt > randomPirateHurt * 3);
 
 // There is no trained-defender 2v1 gate any more. The block that stood here
 // compared the shipped defence brain against a scripted trader and, in its
-// final form, asserted the brain was WORSE (32.9% of her pools lost against
+// final form, asserted the brain was WORSE (32.9% of their pools lost against
 // 23.5%) pending a v2 that never earned promotion — the v2 champion was a
 // pacifist (docs/TRAINING-LOG.md run 21), and on 2026-08-05 Chris discarded
 // the trained defence line outright. The shipped defence is hand-written code
@@ -248,7 +248,7 @@ console.log('\npurity');
     // the whole world step, as of the extraction out of game.ts — this is the
     // line that says the simulation can advance without a browser
     'world-step.ts',
-    // "a ship fired, what happens", and which of her two shields takes it. Both
+    // "a ship fired, what happens", and which of their two shields takes it. Both
     // are rule modules the TRAINER calls, so a browser reference in either would
     // put the platform inside a training episode (docs/TODO/64)
     'fire-resolution.ts', 'shield-face.ts',

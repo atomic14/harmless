@@ -52,7 +52,7 @@ export function viewDirection(
  *
  * It takes the VIEW rather than the hull, and that is the same argument
  * `viewDirection` makes above. The pilot acts through the window in front of
- * her. So a ship on the left of the screen is on the left in rear view as well.
+ * them. So a ship on the left of the screen is on the left in rear view as well.
  *
  * An ear bolted to the hull would put that ship on the wrong side of the
  * cockpit the moment the pilot turned to it. That reads as a fault rather than

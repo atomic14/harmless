@@ -1,7 +1,7 @@
 // Offers, leads and hints: what a station offers, what it says about the
 // next arc, and how far the word travels (docs/TODO/190 M3).
 //
-// `offers.ts` decides what she can accept. `hints.ts` decides the one line a
+// `offers.ts` decides what the commander can accept. `hints.ts` decides the one line a
 // dock may say about a lead, and what the board and the DATA ON page carry.
 // Both are pure, and the machine asks them on `docked`. The fixture pair here
 // is the same shape test/mission-machine.test.ts builds, because no shipped
@@ -120,7 +120,7 @@ console.log('\nhints: the word travels by distance, one line per dock');
     ...emptyMissionState(), leads: [{ skeleton: 'second', galaxy: 1, world, sinceDay: 0 }],
   });
   // A blooded commander with scoops, so the board's side jobs are open to
-  // her whatever the roster holds (docs/TODO/217 M2).
+  // them whatever the roster holds (docs/TODO/217 M2).
   const dock = (st: MissionState, world: number, skeletons: Skeleton[]) =>
     stepMissions(st, { kind: 'docked' }, { commander: facts({ systemIndex: world, kills: 16, scoops: true }), systems: g1, rng: () => 0.5, skeletons });
   // The first arc at Lave would hail on every dock; a held one keeps it quiet.
@@ -142,7 +142,7 @@ console.log('\nhints: the word travels by distance, one line per dock');
   eq('...and a dock two jumps out still says nothing', said(dock(quiet(lead(near.index)), LAVE, arcs(near.index)).effects).length, 0);
 
   const r = dock(quiet(lead(next.index)), LAVE, arcs(next.index));
-  check('one jump out, the patron writes when she docks',
+  check('one jump out, the patron writes when they dock',
     said(r.effects).some((t) => t.includes('MESSAGE FROM') && t.includes(next.name.toUpperCase())));
   eq('...and once only', said(r.effects).length, 1);
   check('...queued, so it never takes the console from an order',

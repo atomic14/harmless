@@ -271,8 +271,8 @@ export const ARC_HANDOVER_JUMPS = { min: 2, max: 4 } as const;
  *
  * One table, as `SIDE_JOB_PAY` is, and a separate rule. An arc pays more
  * than a side job of the same verb. An arc sends the commander across the
- * galaxy, and a side job sends her one jump out and back. The
- * same order holds inside the table, for the same reasons. The arcs under
+ * galaxy, and a side job sends them one jump out and back. The same order
+ * holds inside the table, for the same reasons. The arcs under
  * `missions/skeletons/arcs/` spend it (docs/TODO/192 M2).
  *
  * @rule missions.arcPay
@@ -285,8 +285,8 @@ export const ARC_PAY = {
 /**
  * Days an arc leg allows before its deadline passes: a month, twice a side
  * job's fortnight, because an arc leg may be four jumps out. A deadline is
- * what makes `failed` reachable on a delivery. So an arc she cannot finish
- * fails on its own rather than holding a slot for good.
+ * what makes `failed` reachable on a delivery. So an arc the commander cannot
+ * finish fails on its own rather than holding a slot for good.
  *
  * @rule missions.arcLegDays
  */

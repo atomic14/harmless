@@ -75,9 +75,9 @@ rules. This file is a map.
 
 **Two halves split what a commander does.** Neither half reaches into the other.
 
-- `docked.ts` — what she does once the ship stops. The arrival, the menu, the
+- `docked.ts` — what the commander does once the ship stops. The arrival, the menu, the
   market, the outfitters and the board are here.
-- `flight.ts` — what she does in the sky. That is one slice of time advanced,
+- `flight.ts` — what the commander does in the sky. That is one slice of time advanced,
   and who is at the controls for it. It has two children of its own:
   - `flight-weapons.ts` — what the ship spends, and what it takes. Laser fire is
     here.
@@ -95,7 +95,7 @@ spends:
 - `world-build.ts` — what is in the sky when you arrive.
 - `cockpit-view.ts` — what the cockpit shows about the world.
 - `law-actions.ts` — what the law does to a commander. It applies a record.
-- `hyperspace-actions.ts` — how a commander leaves a system, and how she arrives
+- `hyperspace-actions.ts` — how a commander leaves a system, and how they arrive
   in one. The jump is here.
 - `career.ts` — what a career keeps when a flight ends.
 - `persistence.ts` — the world written down, and put back.
@@ -240,7 +240,7 @@ Two quirks are deliberate:
   hands the words back, and the caller says them. It hands a spawn order
   back too, and the world step spawns an ambush (docs/TODO/214). `src/game/mission-desk.ts`
   is the MISSIONS screen's two actions, acceptance and abandonment, and the
-  offers it lists. `src/game/hunt-warning.ts` prices her gun against the ship
+  offers it lists. `src/game/hunt-warning.ts` prices the commander's gun against the ship
   a hunt names, through the combat oracle.
 - `src/missions/` is the mission machine (docs/TODO/190). `model.ts` holds the
   types, and `words.ts` the shape of a patron and a dossier. A skeleton under `skeletons/` is one mission's rules, written by a

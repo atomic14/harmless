@@ -1,4 +1,4 @@
-// A commander gives up on a flight: the confirmation, and where it puts her.
+// A commander gives up on a flight: the confirmation, and where it puts them.
 //
 // It is the one way out of the cockpit that is not a dock, a death or the
 // distress beacon. It costs exactly what a death costs — the flight — because
