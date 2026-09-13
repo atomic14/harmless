@@ -114,8 +114,8 @@ export const SIDE_JOB_PAY = {
 /**
  * What the station pays for the whole gang on the side hunt, in tenths of
  * a credit: 1,500 Cr (docs/TODO/217 M1). The gang is a Fer-de-Lance with
- * an Asp, a Cobra Mk III and a Mamba. That is four hulls, three missiles
- * and two E.C.M. fits, against the lone Krait that paid `SIDE_JOB_PAY.hunt`.
+ * an Asp, a Krait and a Mamba. That is four hulls, two missiles and two
+ * E.C.M. fits, against the lone Krait that paid `SIDE_JOB_PAY.hunt`.
  * Each kill pays its own bounty on top, as any kill does.
  *
  * @rule missions.gangBounty

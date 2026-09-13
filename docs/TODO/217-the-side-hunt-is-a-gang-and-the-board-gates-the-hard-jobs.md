@@ -39,9 +39,10 @@ Three milestones. Each is one commit.
   A leader that ran ends it with `targetFled`, once the gang is gone too.
   The machine marks a ship that fled or jumped out as gone from the
   record, and it says which. So the verb can read the leader's fate.
-- The side hunt is a Fer-de-Lance with an Asp, a Cobra Mk III and a
-  Mamba. Four hulls, three missiles, two E.C.M. fits, and 396 energy
-  points against the lone Krait's 82. The leader runs at a quarter, as
+- The side hunt is a Fer-de-Lance with an Asp, a Krait and a Mamba. Four
+  hulls, two missiles, two E.C.M. fits, and 372 energy points against the
+  lone Krait's 82. M1 built it with a Cobra Mk III in the Krait's place,
+  and M3's probe made the choice. The leader runs at a quarter, as
   M4 made it. The whole gang pays 1,500 Cr. A gang whose leader ran pays
   half, and the console says the leader got away.
 - The course row says HUNT THE GANG with the count left. Its target is
@@ -68,6 +69,8 @@ Three milestones. Each is one commit.
 - **A gang, not a lone ship** (Chris, 2026-09-13).
 - **A tough gang** (Chris, 2026-09-13). The hulls are the roster's, at the
   top of the pirate list short of the Python.
+- **The gang is the Asp, the Krait and the Mamba** (Chris, 2026-09-13),
+  from three the probe measured. See M3.
 - **The job ends when the lane is clear.** A kill of the leader alone does
   not end it, because pirates still shoot when the station pays.
 - **A leader that ran halves the pay.** It keeps M4's surprise, and it
@@ -151,6 +154,22 @@ Evidence:
 - **Every test and probe that accepts a gated job now carries sixteen
   kills**, and says so. The shared `boardFor` fixture bloods its commander,
   and a test about the gate passes its own kills.
+
+### M3
+
+- **The probe flew three gangs**, each led by the Fer-de-Lance, against
+  a stock Cobra with a pulse laser. With an Asp, a Cobra Mk III and a
+  Mamba, the commander died six times in eight, and the two that lived
+  took 35 seconds. With an Asp, a Krait and a Mamba, three died, and the
+  five took 34 seconds. With a Krait, a Cobra Mk III and a Mamba, nobody
+  died, the eight took 29 seconds, and the shields ended about half down.
+- **Chris chose the middle gang**, the Asp, the Krait and the Mamba. The
+  bar from plan 214 was about one death in eight. This gang sits over it
+  for a stock ship at eight kills, and the gate is one constant to move.
+  The results are in
+  `docs/reviews/missions-2026-09-12/flight-results-after-217.txt`.
+- **The hunt is a fight now.** The lone Krait took 7 seconds. The gang
+  takes 34, and it costs energy and shields.
 
 ## Outcome
 

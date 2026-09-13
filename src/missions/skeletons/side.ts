@@ -28,7 +28,9 @@ const AWAY = { kind: 'band', ...SIDE_JOB_RANGE } as const;
 /**
  * The side hunt is a gang (docs/TODO/217 M1). Chris, 2026-09-13: *"rather
  * than a single ship - it should be a gang of pirates"*, and *"a tough
- * gang"*. A Fer-de-Lance leads it, with an Asp, a Cobra Mk III and a Mamba.
+ * gang"*. A Fer-de-Lance leads it, with an Asp, a Krait and a Mamba. The
+ * probe chose the three (docs/TODO/217 M3). An Asp with a Cobra Mk III
+ * killed a stock Cobra six times in eight. This gang killed it three.
  * The job ends when the lane is clear. The leader runs when it is nearly
  * dead (docs/TODO/214 M4), and a gang whose leader got away pays half.
  */
@@ -41,7 +43,7 @@ export const SIDE_HUNT: Skeleton = {
     id: 'hunt',
     verb: {
       kind: 'hunt', ship: shipDesignIdOf(SOURCE_DESIGN.ferDeLance), canEscape: true,
-      gang: [shipDesignIdOf(SOURCE_DESIGN.asp), shipDesignIdOf(SOURCE_DESIGN.cobraMk3), shipDesignIdOf(SOURCE_DESIGN.mamba)],
+      gang: [shipDesignIdOf(SOURCE_DESIGN.asp), shipDesignIdOf(SOURCE_DESIGN.krait), shipDesignIdOf(SOURCE_DESIGN.mamba)],
     },
     place: AWAY, line: 'BOUNTY: CLEAR THE GANG — LAST SEEN AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
