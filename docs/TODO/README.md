@@ -13,7 +13,16 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+1. [213](213-the-mission-rules-hold-and-a-hit-trader-goes-back-to-work.md) — the mission rules hold, and a hit trader goes back to work.
+2. [214](214-a-job-has-a-surprise-in-it.md) — a job has a surprise in it.
+
+**213 AND 214 CAME FROM CHRIS ON 2026-09-13**, after two reviews of the
+missions. `docs/MISSIONS-REVIEW.md` read the machine and found five rules
+that do not hold. `docs/MISSIONS-FLIGHT-REVIEW.md` flew every kind of job
+and found the escort broken and the rest too easy. He said *"let's fix the
+broken parts"*, and then *"there should be surprises"*. 213 is the fixes.
+214 is the surprises: an ambush on a scoop, pirates at the jump-in, and an
+escort that needs the commander.
 
 **205 TO 208 CAME FROM CHRIS ON 2026-09-11, the day 204 landed.** He flew
 the touch controls of 204 on a phone, and he could not fly the ship. He

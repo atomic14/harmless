@@ -1,0 +1,45 @@
+flight probe: 8 seeds per case, ordinary traffic in the sky
+
+side-hunt: a Krait, pulse laser
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 4 s, worst 5 s  | fights per run 1.0  | kills 8  | wall 0 s
+  per seed: d5 d4 d4 d5 d4 d4 d5 d4  | ship after: energy 254, shields 255/255  | station 71,626 units from the witchpoint
+arc-lave runner: a Cobra Mk III, pulse laser
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 4 s, worst 5 s  | fights per run 1.0  | kills 8  | wall 0 s
+  per seed: d4 d5 d5 d5 d5 d4 d5 d4  | ship after: energy 254, shields 255/255  | station 63,792 units from the witchpoint
+arc-xeer chase: a Fer-de-Lance, pulse laser
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 8 s, worst 9 s  | fights per run 1.0  | kills 7  | wall 0 s
+  per seed: d6 d9 d8 d9 d9 d7 d9 d6  | ship after: energy 254, shields 162/255  | station 63,958 units from the witchpoint
+arc-edle purge: an Asp, pulse laser
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 12 s, worst 13 s  | fights per run 1.0  | kills 8  | wall 0 s
+  per seed: d11 d13 d11 d12 d13 d13 d11 d11  | ship after: energy 254, shields 105/255  | station 64,040 units from the witchpoint
+constrictor hunt, pulse laser
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 62 s, worst 66 s  | fights per run 1.0  | kills 8  | wall 0 s
+  per seed: d64 d63 d60 d59 d64 d61 d66 d57  | ship after: energy 213, shields 130/219  | station 64,405 units from the witchpoint
+side-scan: an Anaconda for 20 s
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 24 s, worst 27 s  | fights per run 0.1  | kills 1  | wall 0 s
+  per seed: d25 d23 d23 d23 d27 d22 d27 d21  | ship after: energy 255, shields 255/255  | station 69,173 units from the witchpoint
+  escort seed 1: timeout; the charge is alive, phase arriving, 37,845 units from the station, docked false
+  escort seed 2: timeout; the charge is alive, phase arriving, 104,860 units from the station, docked false
+  escort seed 5: dead; the charge is alive, phase arriving, 8,620 units from the station, docked false
+  escort seed 7: timeout; the charge is alive, phase arriving, 28,391 units from the station, docked false
+side-escort: a Python to station range
+  done 4  failed 0  dead 1  timeout 3  of 8  | time to done: mean 497 s, worst 519 s  | fights per run 0.3  | kills 2  | wall 2 s
+  per seed: d516 t900 t900 d519 d490 d559 d464 t900  | ship after: energy 255, shields 255/255  | station 72,080 units from the witchpoint
+side-recover: scoop a canister (scoops fitted)
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 14 s, worst 23 s  | fights per run 0.3  | kills 2  | wall 0 s
+  per seed: d23 d14 d11 d11 d9 d13 d19 d12  | ship after: energy 255, shields 255/255  | station 62,707 units from the witchpoint
+side-rescue: scoop a pod (scoops fitted)
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 13 s, worst 26 s  | fights per run 0.1  | kills 1  | wall 0 s
+  per seed: d8 d18 d13 d10 d13 d6 d26 d8  | ship after: energy 255, shields 255/255  | station 81,801 units from the witchpoint
+side-ambush: the lane, then dock (docking computer)
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 130 s, worst 141 s  | fights per run 3.1  | kills 43  | wall 1 s
+  per seed: d122 d138 d131 d141 d132 d135 d106 d139  | ship after: energy 255, shields 255/255  | station 70,808 units from the witchpoint
+side-deliver: fly to the station and dock (docking computer)
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 125 s, worst 144 s  | fights per run 1.4  | kills 10  | wall 0 s
+  per seed: d106 d144 d141 d121 d113 d137 d144 d98  | ship after: energy 255, shields 255/255  | station 72,080 units from the witchpoint
+side-smuggle: slip past the police and dock (docking computer)
+  done 8  failed 0  dead 0  timeout 0  of 8  | time to done: mean 116 s, worst 134 s  | fights per run 2.6  | kills 27  | scanned 0  | wall 1 s
+  per seed: d117 d111 d98 d134 d123 d124 d104 d111  | ship after: energy 255, shields 255/255  | station 69,173 units from the witchpoint
+
+without fuel scoops, the scoop rows refuse:
+  side-recover row: "RECOVER THE CARGO" why: "NEEDS FUEL SCOOPS"
