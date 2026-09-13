@@ -60,6 +60,11 @@ export function lintSkeleton(
     for (const s of [...(leg.spawn ?? []), ...(leg.ambush?.ships ?? [])]) {
       if (!specForDesign(jobRole(s.job), s.ship)) out.push(`${at}: no ${jobRole(s.job)} row for the spawned ${s.ship}`);
     }
+    // A leg in witchspace has no station, so its verb must end in the sky
+    // (docs/TODO/219 M3).
+    if (leg.place.kind === 'witchspace' && !['hunt', 'recover', 'rescue', 'scan'].includes(leg.verb.kind)) {
+      out.push(`${at}: a ${leg.verb.kind} leg cannot end in witchspace`);
+    }
     if (!leg.next.some((b) => b.on === 'failed')) out.push(`${at}: no failed branch`);
     for (const t of verbModule(leg.verb.kind) ? verbTriggers(leg.verb) : []) {
       const answered = leg.next.some((b) => sameTrigger(b.on, t))

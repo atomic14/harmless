@@ -25,7 +25,7 @@ import type { ListFold } from './list-fold.ts';
 import { hostilesNear, hostilesOnScanner } from './hostility.ts';
 import { SKIP_SPEED } from '../constants/course.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
-import { missionCourse } from './mission-course.ts';
+import { missionCourse, missionHere } from './mission-course.ts';
 
 /**
  * What the course buttons show in flight: the list, or the course under way.
@@ -227,7 +227,7 @@ export class CourseActions {
    */
   private missionRow(): CourseWorld['mission'] {
     const s = this.state();
-    const m = missionCourse(s.commander.missions, s.commander.systemIndex,
+    const m = missionCourse(s.commander.missions, missionHere(s.session, s.commander),
       s.world.npcs, s.world.cargo.items, s.world.station.position, s.player.position);
     if (m === null) return null;
     const needsScoops = m.how === 'scoop' && !s.commander.equipment.scoops;

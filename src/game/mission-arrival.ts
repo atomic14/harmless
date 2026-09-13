@@ -11,6 +11,7 @@
 // It is pure. The arrival (hyperspace-actions.ts) gathers the sightings and
 // hands them in, so a test needs no world.
 
+import { WITCHSPACE_TARGET } from '../constants/missions.ts';
 import type * as THREE from 'three';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { routeTable } from '../galaxy/route.ts';
@@ -77,6 +78,12 @@ export function arrivalLines(
     const s = skeletonById(live.skeleton, skeletons);
     if (!s) continue;
     const leg = legOf(s, live.leg);
+    // A leg in witchspace has no jumps to count: the way there is an armed
+    // mis-jump (docs/TODO/219 M3).
+    if (live.target === WITCHSPACE_TARGET) {
+      out.push('YOUR JOB IS IN WITCHSPACE. PAUSE, ARM THE MIS-JUMP, AND JUMP.');
+      continue;
+    }
     if (live.target !== null && live.target !== here) {
       routes ??= routeTable(systems, here);
       const jumps = routes.jumps[live.target];

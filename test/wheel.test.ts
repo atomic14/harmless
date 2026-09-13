@@ -8,11 +8,17 @@ import { patronFor } from '../src/missions/patrons.ts';
 import { canAccept, offersFor } from '../src/missions/offers.ts';
 import { stepMissions } from '../src/missions/machine.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
-import { missionName } from '../src/missions/queries.ts';
+import { missionName, missionDestinations } from '../src/missions/queries.ts';
 import { lintSkeleton } from '../src/missions/lint.ts';
 import { SKELETONS } from '../src/missions/skeletons/index.ts';
 import { WHEEL_MARK } from '../src/missions/skeletons/wheel/mark.ts';
 import { WHEEL_BLOCKADE } from '../src/missions/skeletons/wheel/blockade.ts';
+import { WHEEL_PILOT } from '../src/missions/skeletons/wheel/pilot.ts';
+import { placeLeg } from '../src/missions/placement.ts';
+import { lineSlots } from '../src/missions/text.ts';
+import { missionItems } from '../src/missions/queries.ts';
+import { WITCHSPACE_TARGET } from '../src/constants/missions.ts';
+import { runMissions } from '../src/game/mission-bridge.ts';
 import { missionSpawns } from '../src/missions/queries.ts';
 import { jobRole } from '../src/missions/verbs/registry.ts';
 import { NARCOTICS } from '../src/constants/commodities.ts';
@@ -137,4 +143,54 @@ console.log('\n...and the world spawns a police job as the law');
   eq('one Viper spawned', ships.length, 1);
   eq('...as police', ships[0].role, 'police');
   eq('...with its tag', ships[0].state.missionTag, 'blockade#viper-1');
+}
+
+console.log('\na leg in witchspace: the pilot (docs/TODO/219 M3)');
+{
+  eq('the lint passes the pilot', lintSkeleton(WHEEL_PILOT, SKELETONS, g1).join('; '), '');
+  const dock = { ...WHEEL_PILOT, id: 'no-dock', legs: [{ ...WHEEL_PILOT.legs[0], verb: { kind: 'deliver' as const } }] };
+  check('...and refuses a leg that must dock in witchspace', /cannot end in witchspace/.test(lintSkeleton(dock, SKELETONS, g1).join('; ')));
+  const placed = placeLeg({ kind: 'witchspace' }, emptyMissionState(), facts(anarchy.index, aboveAverage), g1, () => 0.5, 'wheel-pilot');
+  check('the placement is the witchspace sentinel', placed.ok && placed.target === WITCHSPACE_TARGET);
+  eq('...and the words say WITCHSPACE for it', lineSlots(g1, WITCHSPACE_TARGET).TARGET, 'WITCHSPACE');
+
+  const trusted = { ...emptyMissionState(), flags: ['wheel.marked', 'wheel.trusted'] };
+  const ctx = { commander: facts(anarchy.index, aboveAverage), systems: g1, rng: () => 0.5 };
+  check('the pilot waits for the trust', !canAccept(emptyMissionState(), 'wheel-pilot', ctx) && canAccept(trusted, 'wheel-pilot', ctx));
+  const taken = stepMissions(trusted, { kind: 'accept', skeleton: 'wheel-pilot' }, ctx).state;
+  const live = taken.live[0];
+  const tag = live.tag as string;
+  eq('accepted, with the pod placed in witchspace', live.target, WITCHSPACE_TARGET);
+  check('...and the pod is adrift there, on the record', missionItems(taken, WITCHSPACE_TARGET).some((i) => i.tag === tag && i.kind === 'capsule'));
+  check('...and not on the chart', !missionDestinations(taken).has(WITCHSPACE_TARGET));
+  const scooped = stepMissions(taken, { kind: 'scooped', tag }, ctx);
+  check('the pod scooped puts the pilot aboard', scooped.state.passengers.some((p) => p.tag === tag)
+    && scooped.effects.some((e) => e.kind === 'say' && /LAND THE PILOT/.test(e.text)));
+  const landed = stepMissions(scooped.state, { kind: 'survivor', tag, fate: 'landed' }, ctx);
+  eq('the pilot landed alive completes the trial', landed.state.done['wheel-pilot'], 'complete');
+  eq('...and pays', paid(landed.effects), WHEEL_PAY.pilot);
+  check('...and proves the commander', landed.state.flags.includes('wheel.proven'));
+  const sold = stepMissions(scooped.state, { kind: 'survivor', tag, fate: 'sold' }, ctx);
+  eq('a pilot sold fails it', sold.state.done['wheel-pilot'], 'fail');
+  check('...and the Wheel says it does not sell its own', sold.effects.some((e) => e.kind === 'say' && /DOES NOT SELL ITS OWN/.test(e.text)));
+}
+
+console.log('\n...and a mis-jump on the pilot\'s leg finds the pod among the Thargoids');
+{
+  const g = arrived(20_260_971);
+  const c = g.state.commander;
+  c.combatScore = aboveAverage; c.kills = aboveAverage;
+  c.missions.flags.push('wheel.marked', 'wheel.trusted');
+  const at = g1.find((s) => GOVERNMENT_NAMES[s.government] === 'Anarchy')!;
+  c.systemIndex = at.index;
+  withoutSaving(() => runMissions(c, { kind: 'accept', skeleton: 'wheel-pilot' }, g.state.systems, () => 0.5));
+  const live = c.missions.live.find((l) => l.skeleton === 'wheel-pilot');
+  check('the trial is accepted at the Anarchy', live !== undefined);
+  withoutSaving(() => g.enterWitchspace());
+  check('the ship is in witchspace', g.state.session.witchspace);
+  const pod = g.state.world.cargo.items.find((i) => i.missionTag === live?.tag);
+  check('...and the pod is adrift there, tagged for the leg', pod !== undefined);
+  check('...among the Thargoids', g.state.world.npcs.some((n) => n.role === 'thargoid' && n.state.alive));
+  const words = g.state.commander.missions.live.map((l) => l.target);
+  check('...and the standing order names witchspace', words.includes(WITCHSPACE_TARGET));
 }

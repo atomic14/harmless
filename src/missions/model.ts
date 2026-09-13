@@ -121,7 +121,13 @@ export type Placement =
   | { kind: 'band'; min: number; max: number }
   | { kind: 'world'; seedSlot: number }
   | { kind: 'entity'; tag: string }
-  | { kind: 'handover'; toward: string; min: number; max: number };
+  | { kind: 'handover'; toward: string; min: number; max: number }
+  /**
+   * Witchspace itself (docs/TODO/219 M3): the leg's target is
+   * `WITCHSPACE_TARGET`, not a system, and an armed mis-jump is the way
+   * there. The Thargoids wait there already.
+   */
+  | { kind: 'witchspace' };
 
 export type Trigger =
   | 'success' | 'failed' | 'targetEscaped' | 'targetDestroyed' | 'targetFled'

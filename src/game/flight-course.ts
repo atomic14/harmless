@@ -34,7 +34,7 @@ import { hostilesNear, hostilesOnScanner } from './hostility.ts';
 import { pickTarget, pickedTarget } from './targets.ts';
 import { derelictReport } from './derelict.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
-import { missionCourse } from './mission-course.ts';
+import { missionCourse, missionHere } from './mission-course.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
 import { COURSE_DOCK_HANDOVER } from '../constants/course.ts';
@@ -104,7 +104,7 @@ export class FlightCourse {
     // (docs/TODO/208 M1). A hunt is a fight, so the ship it names is picked
     // as the target, exactly as a rock is.
     const mission = s.course !== 'mission' ? null
-      : missionCourse(this.state.commander.missions, this.state.commander.systemIndex,
+      : missionCourse(this.state.commander.missions, missionHere(s, this.state.commander),
         w.npcs, w.cargo.items, w.station.position, p.position);
     if (mission?.how === 'fight' && mission.ship !== null
       && pickedTarget(w.npcs) !== mission.ship) {

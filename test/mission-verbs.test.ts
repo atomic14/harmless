@@ -335,7 +335,7 @@ console.log('\na step that takes no branch still speaks (docs/TODO/203 M4)');
   const target = st.live[0].target as number;
   const scooped = stepMissions(st, { kind: 'scooped', tag }, moved(ctx, target));
   eq('the pod scooped says the pilot is aboard and what to do next',
-    said(scooped.effects).join('|'), 'THE PILOT IS ABOARD. DOCK AT ANY STATION AND LAND HER.');
+    said(scooped.effects).join('|'), 'THE PILOT IS ABOARD. DOCK AT ANY STATION AND LAND THE PILOT.');
   const lane = accept(SIDE_AMBUSH, ctx);
   const world = g1[lane.live[0].target as number].name.toUpperCase();
   const arrived = stepMissions(lane, { kind: 'arrived' }, moved(ctx, lane.live[0].target as number));

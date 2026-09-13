@@ -184,6 +184,17 @@ export const LAWLESS_GOVERNMENTS: readonly string[] = ['Anarchy', 'Feudal'];
 export const WHEEL_PAY = { mark: 20_000, blockade: 20_000, pilot: 25_000 } as const;
 
 /**
+ * The target a leg placed in witchspace carries (docs/TODO/219 M3). A
+ * system is an index from 0 to 255, and witchspace is none of them. So the
+ * record holds this, and every reader of a target knows the word. A save
+ * carries it as any target.
+ *
+ * @domain missions
+ * @rule missions.witchspaceTarget
+ */
+export const WITCHSPACE_TARGET = -1;
+
+/**
  * The lower fee a rescue pays when the pod is lost and the data still
  * arrives, in tenths of a credit. The scientist example in docs/TODO/190:
  * a failure is a branch, and the branch pays less.

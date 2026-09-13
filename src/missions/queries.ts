@@ -6,6 +6,7 @@
 // answer reads the skeleton through the live leg, so a stage number lives
 // nowhere (docs/TODO/190).
 
+import { WITCHSPACE_TARGET } from '../constants/missions.ts';
 import type { BlueprintOverride } from '../game/blueprint-set.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { legOf } from './lookups.ts';
@@ -170,6 +171,7 @@ export function missionName(
 /** Every world a live leg sends the commander to. */
 export function missionDestinations(st: MissionState): ReadonlySet<number> {
   const out = new Set<number>();
-  for (const l of st.live) if (l.target !== null) out.add(l.target);
+  // Witchspace is on no chart (docs/TODO/219 M3).
+  for (const l of st.live) if (l.target !== null && l.target !== WITCHSPACE_TARGET) out.add(l.target);
   return out;
 }

@@ -5,5 +5,6 @@
 import type { Skeleton } from '../../model.ts';
 import { WHEEL_MARK } from './mark.ts';
 import { WHEEL_BLOCKADE } from './blockade.ts';
+import { WHEEL_PILOT } from './pilot.ts';
 
-export const WHEEL: readonly Skeleton[] = [WHEEL_MARK, WHEEL_BLOCKADE];
+export const WHEEL: readonly Skeleton[] = [WHEEL_MARK, WHEEL_BLOCKADE, WHEEL_PILOT];

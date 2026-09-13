@@ -37,7 +37,7 @@ import { applySettlement } from './settlement.ts';
 import { offerLead } from './leads.ts';
 import { sameTrigger, triggerLabel, wordKind } from './triggers.ts';
 import { verbItem, verbModule, verbNeedsShip } from './verbs/registry.ts';
-import { DEADLINE_WARNING_DAYS } from '../constants/missions.ts';
+import { DEADLINE_WARNING_DAYS, WITCHSPACE_TARGET } from '../constants/missions.ts';
 
 export interface MissionContext {
   commander: CommanderFacts;
@@ -203,7 +203,8 @@ function deadlines(st: MissionState, ctx: MissionContext, effects: MissionEffect
   for (const live of [...st.live]) {
     if (live.deadlineDay === null) continue;
     const left = live.deadlineDay - ctx.commander.day;
-    const where = live.target === null ? 'ANY STATION' : ctx.systems[live.target].name.toUpperCase();
+    const where = live.target === null ? 'ANY STATION'
+      : live.target === WITCHSPACE_TARGET ? 'WITCHSPACE' : ctx.systems[live.target].name.toUpperCase();
     if (left < 0) {
       effects.push({ kind: 'say', text: `THE JOB AT ${where} RAN OUT OF TIME, AND IT IS LOST.` });
       fire(st, live, 'deadlinePassed', ctx, effects);

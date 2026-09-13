@@ -27,6 +27,15 @@ import type { Canister } from './cargo.ts';
 import { liveLegs } from '../missions/queries.ts';
 import type { MissionState, Skeleton } from '../missions/model.ts';
 import { SKELETONS } from '../missions/skeletons/index.ts';
+import { WITCHSPACE_TARGET } from '../constants/missions.ts';
+
+/**
+ * Where the commander is, as a leg's target names it: the system's index,
+ * or the witchspace sentinel while the ship is in limbo (docs/TODO/219 M3).
+ */
+export function missionHere(session: { witchspace: boolean }, commander: { systemIndex: number }): number {
+  return session.witchspace ? WITCHSPACE_TARGET : commander.systemIndex;
+}
 
 /** What the ship does about this leg. */
 export type MissionHow = 'fight' | 'hold' | 'escort' | 'scoop' | 'slip';

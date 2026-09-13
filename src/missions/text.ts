@@ -4,6 +4,7 @@
 // dossier's pages carry more. One filler serves both, so a slot spelt one way
 // in the skeleton cannot be spelt another way in the renderer.
 
+import { WITCHSPACE_TARGET } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { formatCredits } from '../game/commander.ts';
 import type { Leg } from './model.ts';
@@ -18,7 +19,8 @@ export function lineSlots(
   systems: readonly StarSystem[], target: number | null, pay = 0,
 ): Record<string, string> {
   return {
-    TARGET: target === null ? 'ANY STATION' : systems[target].name.toUpperCase(),
+    TARGET: target === null ? 'ANY STATION'
+      : target === WITCHSPACE_TARGET ? 'WITCHSPACE' : systems[target].name.toUpperCase(),
     PAY: formatCredits(pay),
   };
 }

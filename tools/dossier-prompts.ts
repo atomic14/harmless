@@ -128,6 +128,7 @@ export function placeLine(place: Placement): string {
     case 'world': return 'one fixed world, named on screen by the rule';
     case 'entity': return 'wherever the tagged ship was last seen';
     case 'handover': return 'a world on the way toward the next patron';
+    case 'witchspace': return 'witchspace itself, reached by an armed mis-jump, where the Thargoids wait';
   }
 }
 
