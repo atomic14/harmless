@@ -54,6 +54,16 @@ export const LOCAL_SCALE = 15;
 export const LOCAL_CANVAS = 560;
 
 /**
+ * A system's name on the short range chart, in CSS pixels: twelve
+ * (docs/TODO/220). The canvas is 560 wide and a phone shows it at about
+ * 370, so a name drawn in canvas pixels came out under seven tall. The
+ * painter scales the font by the canvas width over its width on the page.
+ *
+ * @rule chart.labelPx
+ */
+export const CHART_LABEL_PX = 12;
+
+/**
  * The galactic chart's canvas, in px. It has its own home because two things
  * now read it. The first is the markup that sizes the canvas. The second is the
  * conversion from pixels to chart units, which decides how near the pointer

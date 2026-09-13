@@ -127,6 +127,8 @@ export const PRIZE_SATURATION = 25000;
  * Speed is deliberately absent: a fast hull is harder to catch,
  * not harder to beat. The weights are Harmless's. The numbers they multiply are
  * the source's.
+ *
+ * @rule threat.defenceWeight
  */
 export const DEFENCE_WEIGHT = 12;
 /**

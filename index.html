@@ -2,7 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- A phone opens the page as an app from its home screen, with no address bar (docs/TODO/220). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#000000" />
     <title>HARMLESS: a browser tribute to Elite (1984)</title>
     <meta name="description" content="HARMLESS is a free browser tribute to Elite (1984). The original 2,048 worlds, wireframe ships, trading, missions and combat. No install and no account. You start at Lave with 100 credits." />
     <link rel="canonical" href="https://harmless.atomic14.com/" />

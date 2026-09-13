@@ -48,6 +48,9 @@ const ALLOWED: Readonly<Record<string, readonly (readonly [number, string])[]>> 
     [60, "training: the speed the episode's trader target coasts below"],
     [300, "training: how near its waypoint that target has arrived"],
   ],
+  'engine/phone-chrome.ts': [
+    [300, "a phone browser's own double tap window, in milliseconds — the platform's, not a rule (docs/TODO/220)"],
+  ],
   'galaxy/galaxy.ts': [
     [256, 'the 1984 galaxy holds 256 systems — the source material, not a rule'],
   ],

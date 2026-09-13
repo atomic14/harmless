@@ -19,7 +19,7 @@ import { leadDestinations, orderDestinations } from '../game/orders.ts';
 import { type MarketEstimate } from '../game/market.ts';
 import { type ChartState } from '../game/chart-state.ts';
 import { type ChartOverlays } from '../game/chart-overlay.ts';
-import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH, LOCAL_SCALE, LOCAL_CANVAS } from '../constants/chart-metric.ts';
+import { TENTHS_PER_CHART_UNIT, CHART_Y_SQUASH, LOCAL_SCALE, LOCAL_CANVAS, CHART_LABEL_PX } from '../constants/chart-metric.ts';
 import { maybeById, show } from './screen-shell.ts';
 import { portraitUrl } from './portrait.ts';
 import { nearestSystem, journey, daysTerm, contractTerm, chartKeyline, chartButtons } from './chart-readout.ts';
@@ -44,6 +44,15 @@ export function renderLocalChart(
   `, true);
   drawLocalChart(systems, c, chart, overlays);
 }
+/**
+ * Canvas pixels per CSS pixel: the canvas width over its width on the page.
+ * One with no width on the page, as under node, scales by one.
+ */
+export function labelScale(canvas: { width: number; clientWidth?: number }): number {
+  const shown = canvas.clientWidth ?? 0;
+  return shown > 0 ? canvas.width / shown : 1;
+}
+
 export function drawLocalChart(
   systems: StarSystem[],
   c: CommanderData,
@@ -83,7 +92,11 @@ export function drawLocalChart(
   // and that reads correctly: freight on its way out of the neighbourhood.
   drawLanes(ctx, overlays, systems, px, py);
 
-  ctx.font = '10px Menlo, Consolas, monospace';
+  // The names are drawn in CSS pixels (docs/TODO/220). So a phone that
+  // shows the canvas at two thirds of its width reads them at the same size
+  // as a desktop does.
+  const k = labelScale(canvas);
+  ctx.font = `${Math.round(CHART_LABEL_PX * k)}px Menlo, Consolas, monospace`;
   for (const s of systems) {
     const x = px(s);
     const y = py(s);
@@ -91,13 +104,18 @@ export function drawLocalChart(
     const within = distanceTenths(current, s) <= c.fuel;
     ctx.fillStyle = within ? HUD.green : TINT.lane;
     ctx.beginPath();
-    ctx.arc(x, y, s.index === c.systemIndex ? 3.5 : 2.5, 0, Math.PI * 2);
+    ctx.arc(x, y, (s.index === c.systemIndex ? 3.5 : 2.5) * k, 0, Math.PI * 2);
     ctx.fill();
     ctx.fillStyle = within ? TINT.liftLabel : TINT.farLabel;
-    ctx.fillText(s.name.toUpperCase(), x + 7, y - 6);
+    // A name that would run off the right edge sits to the left of its dot.
+    // A recording canvas measures nothing, and then the name sits right.
+    const name = s.name.toUpperCase();
+    const wide = ctx.measureText(name)?.width ?? 0;
+    const left = x + 7 * k + wide > w;
+    ctx.fillText(name, left ? x - 7 * k - wide : x + 7 * k, y - 6 * k);
   }
 
-  drawPriceTells(ctx, overlays.prices, systems, px, py, 8);
+  drawPriceTells(ctx, overlays.prices, systems, px, py, Math.round(8 * k));
 
   // Pirate activity, as on the galactic chart. Same cull as the dots above. A
   // ring for a system this zoom left off the edge would land at a coordinate

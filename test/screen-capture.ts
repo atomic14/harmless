@@ -88,6 +88,8 @@ export interface CanvasOp {
   readonly args: readonly unknown[];
   readonly strokeStyle: string;
   readonly fillStyle: string;
+  /** the font in force, for a `fillText` (docs/TODO/220) */
+  readonly font: string;
 }
 
 /**
@@ -136,7 +138,7 @@ function recordingCanvas(width: number, height: number, log: CanvasOp[]): HTMLEl
   const el = inertElement() as unknown as Record<string, unknown>;
   el.width = width;
   el.height = height;
-  const paints = { strokeStyle: '', fillStyle: '' };
+  const paints = { strokeStyle: '', fillStyle: '', font: '' };
   const isPaint = (prop: string): prop is keyof typeof paints => prop in paints;
   const ctx = new Proxy({}, {
     get: (_t, prop) => {

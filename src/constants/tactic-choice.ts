@@ -80,5 +80,7 @@ export const TACTIC_MIN_DWELL = 5;
  * does is not working. It is the anti-degeneracy trigger. 12 seconds is
  * comfortably past a whole attack run, which is 7.2s at the median and 9.98 at
  * the ninetieth.
+ *
+ * @rule tactic.sleeperSeconds
  */
 export const TACTIC_SLEEPER_SECONDS = 12;
