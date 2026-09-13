@@ -177,3 +177,26 @@ Evidence:
   end of the course row.
 - **Three tests read the list through its header now**, and one reads the
   run by name rather than by place.
+
+### M3
+
+- **The desktop had the layout from M1 and M2 already**, because both
+  milestones built one layout. The key names sit under the buttons that
+  have a key, as they did. Nothing changed in code.
+- **The manual's Trouble page says where the guns are**, that the missile
+  is two buttons, and that TARGETS and ACTIONS each open a row. That is
+  Chris's page, and the sentence is a fact about the screen.
+
+## Outcome
+
+215 landed on 2026-09-13, the day Chris drew it. The guns are a row at the
+bottom of the console, always four buttons in the same places, with the
+missile as two. The missile squares are gone. The two lists over the sky
+are two headers, closed by default, and each opens as one row that scrolls
+sideways. A tap that opens one folds the other. The sky is the sky, with
+two small marks on it. The desktop has the same layout. The suite has
+6,072 assertions, from 6,061.
+
+What the plan did not have: the run had to stay under the course header,
+or a fight would start with RUN FOR IT behind a tap. The plan's title
+changed once, because the title gate knows no verb "fold".
