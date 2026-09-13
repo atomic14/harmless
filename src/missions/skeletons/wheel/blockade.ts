@@ -27,7 +27,7 @@ export const WHEEL_BLOCKADE: Skeleton = {
   kind: 'arc',
   anchor: 'local',
   patron: { kind: 'wheel' },
-  hail: 'THE NOTE AGAIN. IT KNOWS YOUR NAME NOW.',
+  hail: 'THE NOTE AGAIN. IT KNOWS WHO YOU ARE NOW.',
   pitch: 'A PARCEL, ONE JUMP OUT, PAST A PATROL THAT READS HOLDS. KEEP YOUR RECORD CLEAN AND THE PARCEL ABOARD, AND YOU ARE ONE OF US.',
   offer: { minRating: WHEEL_WHISPER_RUNG, flags: ['wheel.marked'], legalStatus: 'clean' },
   cap: 2,

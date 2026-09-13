@@ -19,6 +19,10 @@ import d_side_recover from './side-recover.json' with { type: 'json' };
 import d_side_rescue from './side-rescue.json' with { type: 'json' };
 import d_side_scan from './side-scan.json' with { type: 'json' };
 import d_side_smuggle from './side-smuggle.json' with { type: 'json' };
+import d_wheel_blockade from './wheel-blockade.json' with { type: 'json' };
+import d_wheel_door from './wheel-door.json' with { type: 'json' };
+import d_wheel_mark from './wheel-mark.json' with { type: 'json' };
+import d_wheel_pilot from './wheel-pilot.json' with { type: 'json' };
 
 export const DOSSIER_FILES: readonly DossierFile[] = [
   d_arc_edle as DossierFile,
@@ -35,4 +39,8 @@ export const DOSSIER_FILES: readonly DossierFile[] = [
   d_side_rescue as DossierFile,
   d_side_scan as DossierFile,
   d_side_smuggle as DossierFile,
+  d_wheel_blockade as DossierFile,
+  d_wheel_door as DossierFile,
+  d_wheel_mark as DossierFile,
+  d_wheel_pilot as DossierFile,
 ];
