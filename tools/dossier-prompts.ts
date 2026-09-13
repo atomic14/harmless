@@ -132,7 +132,7 @@ function patronLine(s: Skeleton): { line: string; own: string } {
       own: '',
     };
   }
-  const facts = { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [] };
+  const facts = { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], scoops: false };
   const p = patronFor(s.patron, facts, generateGalaxy(1));
   if (s.patron.kind === 'navy') {
     return { line: `Patron: ${p.name}, in service signals: rank, no courtesy, no name, no world. Use neither {PATRON} nor {HERE}.`, own: '' };

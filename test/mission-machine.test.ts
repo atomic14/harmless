@@ -28,7 +28,7 @@ const LAVE = 7;
 
 /** A commander at Lave with `over` on top: the facts, and nothing else. */
 const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], ...over,
+  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [], ...over,
 });
 
 /** A generator that counts its draws, so a test can say how many it made. */

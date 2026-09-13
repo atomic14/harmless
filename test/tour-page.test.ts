@@ -33,7 +33,7 @@ console.log('\nthe tour as data: five arcs in order, each with a patron and a fa
   eq('the arcs are in tour order', m.arcs.map((a) => a.id).join(), ARC_TOUR.join());
   eq('...on the tour\'s worlds', m.arcs.map((a) => a.world.name).join(' > '), 'Lave > Rabedira > Vetitice > Xeer > Edle');
   check('each arc\'s patron is the world patron of its world, with a face',
-    m.arcs.every((a) => a.patron.name === patronFor({ kind: 'world', seedSlot: a.world.index }, { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [] }, g1).name
+    m.arcs.every((a) => a.patron.name === patronFor({ kind: 'world', seedSlot: a.world.index }, { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [] }, g1).name
       && a.patron.portrait.startsWith('species/')));
   const jumps = m.arcs.slice(0, -1).map((a) => a.jumpsToNext);
   check(`each arc's world is ${TOUR_STEP_JUMPS.min} to ${TOUR_STEP_JUMPS.max} jumps from the next (${jumps.join(', ')})`,
@@ -81,7 +81,7 @@ console.log('\n...and the game\'s LOG and the page share one builder');
   c.missions.journal.push({ skeleton: 'side-rescue', leg: 'pod', outcome: 'accepted', day: 3, world: 7 });
   const html = captureById(() => { new LogScreen(() => ({ commander: c, systems: g1 })).render(); }).get('screen') ?? '';
   const pages = storyPages(c.missions, g1);
-  const patron = patronFor({ kind: 'local' }, { galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [] }, g1, 7);
+  const patron = patronFor({ kind: 'local' }, { galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [] }, g1, 7);
   const built = logHtml({ pages, route: routeMapSvg(g1, [7]), portrait: patron.portrait, patron: patron.name });
   check('the screen contains the builder\'s markup verbatim', html.includes(built.trim()));
   check('...with the title and the BACK key around it', html.includes("COMMANDER'S LOG") && html.includes('data-key="Escape"'));

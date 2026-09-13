@@ -200,3 +200,21 @@ Evidence, one per fault:
   the escort closing speed and the police clearance. Their rule ids stay
   under `course.`, and each says `@domain mission-course`.
 - The suite gains 13 checks, to 5,984.
+
+### M2
+
+- **The dossier hash did not move.** A gate and a spawn list are outside
+  it, as the plan said, and `generate:dossiers --check` passes with every
+  skeleton changed.
+- **The lead announcement moved here from M4.** Without the relocation, a
+  lead an arc offers on a galactic jump was recorded in the galaxy she
+  arrived in, at a seed index there. `offerLead` reads the galaxy from the
+  next arc's gate, and the bridge names the world through that galaxy.
+- **Two tests pinned the old rules by accident.** `test/arcs.test.ts` said
+  the first arc opens with no gate. `test/station.test.ts` pinned the dock's
+  hail lines with the Lave arc among them. The first is rewritten. The second
+  fits scoops, because the offers are not its subject.
+- **The review probe needed the new fact.** `probe.ts` builds its own
+  commander facts, and it gained `scoops` so the after-run can read the
+  same blocks.
+- The suite has 6,001 checks.

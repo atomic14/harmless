@@ -24,7 +24,7 @@ import { check, eq } from './harness.ts';
 
 const LAVE = 7;
 const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 10, cargo: [], ...over,
+  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 10, cargo: [], ...over,
 });
 const half = () => 0.5;
 

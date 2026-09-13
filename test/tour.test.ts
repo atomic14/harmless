@@ -15,7 +15,7 @@ import { stepMissions } from '../src/missions/machine.ts';
 import type { Skeleton } from '../src/missions/model.ts';
 import { pickByJumps, placeLeg } from '../src/missions/placement.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
-import { arcStarts, leadWorldIn } from '../src/missions/tour.ts';
+import { arcStarts } from '../src/missions/tour.ts';
 import { g1 } from './fixtures.ts';
 import { check, eq } from './harness.ts';
 
@@ -83,7 +83,7 @@ console.log('\n...the handover placement ends an arc near the next start');
       line: 'END', next: [{ on: 'success', to: 'complete' }, { on: 'failed', to: 'fail' }] }],
     complete: { pay: 0, lead: 'next' }, fail: { pay: 0, lead: 'next' },
   };
-  const facts = { galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [] };
+  const facts = { galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [] };
   const placed = placeLeg(arc.legs[0].place, emptyMissionState(), facts, g1, half, 'arc', [arc, next]);
   check('placeLeg places a handover leg', placed.ok && placed.target !== null);
   const r = stepMissions(emptyMissionState(), { kind: 'accept', skeleton: 'arc' }, {
@@ -94,7 +94,7 @@ console.log('\n...the handover placement ends an arc near the next start');
     routeTable(g1, goal).jumps[target] >= ARC_HANDOVER_JUMPS.min && routeTable(g1, goal).jumps[target] <= ARC_HANDOVER_JUMPS.max);
 }
 
-console.log('\n...and a lead follows a galactic jump to a world she can reach');
+console.log('\n...and a tour from any arrival world of any galaxy is well formed');
 {
   let bad = 0;
   let checked = 0;
@@ -106,11 +106,9 @@ console.log('\n...and a lead follows a galactic jump to a world she can reach');
       checked += 1;
       if (starts.length !== TOUR_ARCS || starts[0] !== arrival) bad += 1;
       if (starts.some((s) => reach[s] === Infinity)) bad += 1;
-      for (let k = 0; k < TOUR_ARCS; k += 1) if (reach[leadWorldIn(systems, arrival, k)] === Infinity) bad += 1;
     }
   }
   eq(`in all eight galaxies, from ${checked} arrival worlds, every start is reachable`, bad, 0);
-  eq('a skeleton outside the tour waits at the arrival world', leadWorldIn(g1, 99, -1), 99);
   // Galaxy 8 strands Oresrati: a tour from there is a tour of one world.
   const g8 = generateGalaxy(8);
   const alone = g8.find((s) => routeTable(g8, s.index).jumps.filter((j) => j !== Infinity).length === 1);

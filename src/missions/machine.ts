@@ -31,9 +31,8 @@ import type {
 import { canAccept } from './offers.ts';
 import { placeLeg } from './placement.ts';
 import { legOf, patronId, startWorld } from './lookups.ts';
-import { ARC_TOUR, SKELETONS, skeletonById } from './skeletons/index.ts';
+import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, legPay, lineSlots } from './text.ts';
-import { leadWorldIn } from './tour.ts';
 import { sameTrigger, triggerLabel, wordKind } from './triggers.ts';
 import { verbItem, verbModule, verbNeedsShip } from './verbs/registry.ts';
 import { DEADLINE_WARNING_DAYS } from '../constants/missions.ts';
@@ -63,7 +62,7 @@ export function stepMissions(
       // A world change holds through its last day, and is gone the day after.
       st.changes = st.changes.filter((ch) => ch.until >= ctx.commander.day);
       break;
-    case 'galaxyChanged': leaveGalaxy(st, input.to, ctx, effects); break;
+    case 'galaxyChanged': leaveGalaxy(st, ctx, effects); break;
     default: react(st, input, ctx, effects);
   }
   if (input.kind === 'docked') hail(st, ctx, effects, st.journal.length !== journalBefore);
@@ -122,23 +121,19 @@ function abandon(
 
 /**
  * The commander left the galaxy. Every live mission fails by its own final
- * outcome, with the departure as the reason. Every lead moves to the world
- * the tour of the new galaxy gives its arc (tour.ts), from the arrival
- * world. Its galaxy moves with it, so a lead never points at an index in a
- * galaxy she is not in. `ctx.systems` is the galaxy she arrives in.
+ * outcome, with the departure as the reason. A lead stays where it was
+ * saved. An arc is offered in its own galaxy (`Gate.galaxy`), so the LEADS
+ * row says IN ANOTHER GALAXY until she returns. The leads used to move to
+ * the tour of the new galaxy. The arc they opened there placed its legs by
+ * seed index, which is not the tour (docs/TODO/213 M2).
  */
 function leaveGalaxy(
-  st: MissionState, to: number, ctx: MissionContext, effects: MissionEffect[],
+  st: MissionState, ctx: MissionContext, effects: MissionEffect[],
 ): void {
   const c = ctx.commander;
   for (const live of [...st.live]) {
     st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome: 'galaxyLeft', day: c.day, world: c.systemIndex });
     finish(st, live, 'fail', ctx, effects);
-  }
-  for (const lead of st.leads) {
-    if (!skeletonById(lead.skeleton, ctx.skeletons ?? SKELETONS)) continue;
-    lead.galaxy = to;
-    lead.world = leadWorldIn(ctx.systems, c.systemIndex, ARC_TOUR.indexOf(lead.skeleton));
   }
 }
 
@@ -168,6 +163,9 @@ function react(
     if (reaction.progress !== undefined) live.progress = reaction.progress;
     if (reaction.passenger && input.kind === 'scooped') {
       st.passengers.push({ tag: input.tag, mission: live.skeleton });
+    }
+    if (reaction.unload && leg.verb.kind === 'smuggle') {
+      effects.push({ kind: 'unload', commodity: leg.verb.commodity, tonnes: leg.verb.tonnes });
     }
     if (reaction.say !== undefined) {
       effects.push({ kind: 'say', text: fillSlots(reaction.say, lineSlots(ctx.systems, live.target, legPay(leg))) });
@@ -368,7 +366,10 @@ function finish(
 
 /**
  * Save a lead, once. A lead to an arc she holds or finished is dropped, as
- * failure rule 3 asks. The effect tells the game to announce it.
+ * failure rule 3 asks. The effect tells the game to announce it. The lead
+ * is in the arc's own galaxy where its gate names one. So an arc that fails
+ * on a galactic jump leaves its lead behind, in the galaxy the next arc is
+ * offered in (docs/TODO/213 M2).
  */
 function offerLead(
   st: MissionState, id: string, ctx: MissionContext, effects: MissionEffect[],
@@ -379,6 +380,7 @@ function offerLead(
   if (st.leads.some((l) => l.skeleton === id)) return;
   const c = ctx.commander;
   const world = startWorld(target, c);
-  st.leads.push({ skeleton: id, galaxy: c.galaxy, world, sinceDay: c.day });
-  effects.push({ kind: 'lead', skeleton: id, galaxy: c.galaxy, world });
+  const galaxy = target.offer.galaxy ?? c.galaxy;
+  st.leads.push({ skeleton: id, galaxy, world, sinceDay: c.day });
+  effects.push({ kind: 'lead', skeleton: id, galaxy, world });
 }

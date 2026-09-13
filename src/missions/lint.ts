@@ -13,6 +13,9 @@
 // docs/TODO/192 adds two. An arc's final leg ends two to four jumps from
 // the lead's start world, measured on the full-tank graph. Two legs that
 // force two different blueprint sets at one world are a conflict.
+//
+// docs/TODO/213 M2 adds one. A world patron's skeleton names the galaxy it
+// is offered in, because a seed slot is an index that every galaxy has.
 
 import { ARC_HANDOVER_JUMPS } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
@@ -29,6 +32,9 @@ export function lintSkeleton(
   const ids = new Set(s.legs.map((l) => l.id));
   if (s.legs.length === 0) out.push(`${s.id}: no legs`);
   if (ids.size !== s.legs.length) out.push(`${s.id}: a leg id repeats`);
+  if (s.patron.kind === 'world' && s.offer.galaxy === undefined) {
+    out.push(`${s.id}: a world patron needs a galaxy gate`);
+  }
 
   for (const leg of s.legs) {
     const at = `${s.id}/${leg.id}`;

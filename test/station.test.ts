@@ -59,6 +59,10 @@ function setup() {
 {
   const x = setup();
   seedWorld(190_019);
+  // The offers this dock hails are the subject of missions/offers.ts, not
+  // this test. Scoops are fitted so the board reads as it did before the
+  // scoop jobs waited for them (docs/TODO/213 M2).
+  x.state.commander.equipment.scoops = true;
   const events = x.station.dock();
   eq('dock reports platform consequences in their former applied order',
     events.map(label).join('|'), [

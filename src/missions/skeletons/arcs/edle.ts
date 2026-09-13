@@ -25,7 +25,7 @@ export const ARC_EDLE: Skeleton = {
   patron: { kind: 'world', seedSlot: 162 },
   hail: 'A COLONEL OF THE STATE GUARD AT EDLE HAS ORDERS FOR YOU',
   pitch: 'A MANIFEST TO CARRY, A TRANSPORTER TO GUARD, AND AN ASP TO PURGE. THE STATE PAYS.',
-  offer: { done: ['arc-xeer'] },
+  offer: { galaxy: 1, done: ['arc-xeer'] },
   legs: [
     {
       id: 'manifest', verb: { kind: 'deliver' }, place: AWAY,

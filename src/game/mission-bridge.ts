@@ -42,7 +42,7 @@ export function missionFacts(c: CommanderData): CommanderFacts {
   return {
     galaxy: c.galaxy, systemIndex: c.systemIndex, kills: c.kills,
     combatScore: c.combatScore, legalStatus: c.legalStatus, day: c.day,
-    cargo: c.cargo,
+    cargo: c.cargo, scoops: c.equipment.scoops,
   };
 }
 
@@ -97,12 +97,16 @@ export function runMissions(
         if (text) out.push({ kind: 'message', text, seconds: 6, queued: true });
         break;
       }
-      case 'lead':
+      // The lead's own galaxy names the world. An arc that fails on a galactic
+      // jump leaves its lead in the galaxy it came from (docs/TODO/213 M2).
+      case 'lead': {
+        const named = e.galaxy === c.galaxy ? systems : systemsOf(e.galaxy);
         out.push({
           kind: 'message', queued: true, seconds: 6,
-          text: `THERE IS A LEAD. ASK AT ${systems[e.world].name.toUpperCase()}.`,
+          text: `THERE IS A LEAD. ASK AT ${named[e.world].name.toUpperCase()}.`,
         });
         break;
+      }
       // The patron's goods go aboard, as far as the hold allows. A hold too
       // full for all of them is a leg that starts short. The smuggle verb then
       // fails a dock with fewer tonnes than it wants.
@@ -122,6 +126,10 @@ export function runMissions(
         });
         break;
       }
+      // The goods delivered leave the hold, and no more than are aboard.
+      case 'unload':
+        c.cargo[e.commodity] = Math.max(0, c.cargo[e.commodity] - e.tonnes);
+        break;
       // Passengers a finished mission left aboard are survivors now, once.
       case 'survivors': c.survivors += e.people; break;
       // A change to a world is kept on the record until its day, and the

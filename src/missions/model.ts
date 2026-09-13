@@ -57,6 +57,8 @@ export interface CommanderFacts {
   day: number;
   /** tonnes per commodity index, read only: a smuggle leg asks what is aboard */
   cargo: readonly number[];
+  /** fuel scoops fitted: a scoop job asks before it is offered (docs/TODO/213 M2) */
+  scoops: boolean;
 }
 
 /** A temporary change to a world that a later mission asks for. */
@@ -180,8 +182,14 @@ export interface Gate {
   /** skeletons that must be finished first, by either outcome */
   done?: string[];
   withinJumps?: number;
-  /** the Navy briefs in galaxy 1 only; a world patron is already in one galaxy */
+  /**
+   * The galaxy the offer stands in. A world patron must name one, because a
+   * seed slot is an index and every galaxy has that index. The lint holds
+   * it (docs/TODO/213 M2). The Navy briefs in galaxy 1 only.
+   */
   galaxy?: number;
+  /** the job needs fuel scoops fitted, so the offer waits for them */
+  scoops?: boolean;
 }
 
 export interface Skeleton {
@@ -200,7 +208,7 @@ export interface Skeleton {
   fail: Outcome;
   /** skeletons this one shuts out, for good */
   excludes?: string[];
-  /** how many times a side job repeats; absent means once */
+  /** how many times a side job repeats; absent means without limit (failure rule 5) */
   cap?: number;
 }
 
@@ -373,5 +381,7 @@ export type MissionEffect =
   | { kind: 'standingSpawn'; world: number; until: number; ships: TaggedShip[] }
   /** the patron's goods go aboard: a smuggle leg starts with them */
   | { kind: 'cargo'; commodity: number; tonnes: number }
+  /** the patron's goods leave the hold: a smuggle leg ends with them delivered */
+  | { kind: 'unload'; commodity: number; tonnes: number }
   /** passengers a finished mission leaves in the crew spaces, as survivors */
   | { kind: 'survivors'; people: number };

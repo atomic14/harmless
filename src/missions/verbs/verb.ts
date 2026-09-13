@@ -22,6 +22,8 @@ export interface VerbReaction {
   progress?: number;
   /** the scooped pod is this mission's passenger; the machine records it */
   passenger?: boolean;
+  /** the leg's goods are delivered, and the machine asks the game to take them off */
+  unload?: boolean;
   /**
    * What the console says about a step that takes no branch, with `{TARGET}`
    * for the leg's world (docs/TODO/203 M4). A branch speaks through its

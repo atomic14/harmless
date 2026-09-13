@@ -124,7 +124,7 @@ export function recoveryLegs(s: Skeleton): Set<string> {
 }
 
 const facts = (galaxy: number, systemIndex: number): CommanderFacts => ({
-  galaxy, systemIndex, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [],
+  galaxy, systemIndex, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], scoops: false,
 });
 
 function arcEntry(

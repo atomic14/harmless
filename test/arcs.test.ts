@@ -39,8 +39,11 @@ console.log('\nthe five arcs sit on the tour');
   check('every arc has two to four legs, and mixes its verbs',
     ARCS.every((a) => a.legs.length >= 2 && a.legs.length <= 4
       && new Set(a.legs.map((l) => l.verb.kind)).size >= 2));
-  check('the first arc opens with no gate, and each later one waits for the one before',
-    Object.keys(ARCS[0].offer).length === 0
+  // The first arc asks for the galaxy and the scoops alone (docs/TODO/213
+  // M2): a scoop breaks on a hull without them. Every arc names its galaxy.
+  check('the first arc opens on the galaxy and the scoops, and each later one waits for the one before',
+    Object.keys(ARCS[0].offer).sort().join() === 'galaxy,scoops'
+    && ARCS.every((a) => a.offer.galaxy === 1)
     && ARCS.slice(1).every((a, i) => a.offer.done?.join() === ARCS[i].id));
   check('every arc is in SKELETONS', ARCS.every((a) => SKELETONS.includes(a)));
 }
@@ -78,7 +81,7 @@ function inputFor(st: MissionState, arc: Skeleton, avoid: readonly string[] | nu
  * would.
  */
 function walk(arc: Skeleton, avoid: readonly string[] | null, done: string[]): { st: MissionState; legs: string[]; c: CommanderFacts } {
-  const c: CommanderFacts = { galaxy: 1, systemIndex: startOf(arc), kills: 0, combatScore: 0, legalStatus: 0, day: 1, cargo: [] };
+  const c: CommanderFacts = { galaxy: 1, systemIndex: startOf(arc), kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 1, cargo: [] };
   const ctx = () => ({ commander: c, systems: g1, rng: () => 0.37 });
   let st = emptyMissionState();
   for (const d of done) st.done[d] = 'complete';
@@ -129,7 +132,7 @@ for (const [i, arc] of ARCS.entries()) {
 
 console.log('\nan arc is offered at its world only');
 {
-  const c: CommanderFacts = { galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 1, cargo: [] };
+  const c: CommanderFacts = { galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 1, cargo: [] };
   check('the first arc is on offer at Lave from the first dock',
     offersFor(emptyMissionState(), { commander: c, systems: g1 }).some((s) => s.id === 'arc-lave'));
   check('...and not at Leesti', !offersFor(emptyMissionState(), { commander: { ...c, systemIndex: 8 }, systems: g1 }).some((s) => s.id === 'arc-lave'));

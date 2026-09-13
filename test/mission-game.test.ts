@@ -15,6 +15,8 @@ import { destroyShip } from '../src/game/combat-wreck.ts';
 import { runMissions } from '../src/game/mission-bridge.ts';
 import { parseSnapshot } from '../src/game/snapshot-parse.ts';
 import { CONSTRICTOR_BLUEPRINT_SET } from '../src/constants/blueprint-set.ts';
+import { NARCOTICS } from '../src/constants/commodities.ts';
+import { SIDE_JOB_PAY, SMUGGLE_TONNES } from '../src/constants/missions.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { routeEstimate } from '../src/galaxy/route.ts';
 import { stepMissions } from '../src/missions/machine.ts';
@@ -200,13 +202,13 @@ console.log('\nthe galactic drive asks before it fails a held mission');
   eq('...and no tagged entity is left behind', Object.keys(c.missions.entities).length, 0);
 }
 
-console.log('\na lead crosses the galaxy with her, to a world she can reach');
+console.log('\na lead stays in the galaxy it was saved in (docs/TODO/213 M2)');
 {
   // No shipped arc leaves a lead yet, so the pair is built here, as
   // test/mission-machine.test.ts builds its own.
   const first: Skeleton = {
     id: 'first', kind: 'arc', anchor: 'local', patron: { kind: 'world', seedSlot: LAVE },
-    hail: 'HAIL', pitch: 'GO', offer: {},
+    hail: 'HAIL', pitch: 'GO', offer: { galaxy: 1 },
     legs: [{
       id: 'go', verb: { kind: 'deliver' }, place: { kind: 'anywhere' }, line: 'GO',
       next: [{ on: 'success', to: 'complete' }, { on: 'failed', to: 'fail' }],
@@ -221,18 +223,22 @@ console.log('\na lead crosses the galaxy with her, to a world she can reach');
   const state: MissionState = {
     ...emptyMissionState(),
     live: [{ skeleton: 'first', leg: 'go', target: null, tag: null, progress: 0, deadlineDay: null }],
-    leads: [{ skeleton: 'second', galaxy: 1, world: 12, sinceDay: 0 }],
   };
   const r = stepMissions(state, { kind: 'galaxyChanged', from: 1, to: 2 }, {
-    commander: { galaxy: 2, systemIndex: arrival, kills: 0, combatScore: 0, legalStatus: 0, day: 5, cargo: [] },
+    commander: { galaxy: 2, systemIndex: arrival, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 5, cargo: [] },
     systems: g2, rng: () => 0.5, skeletons: pair,
   });
   eq('the held arc failed', r.state.done.first, 'fail');
   eq('...and the lead it leaves is saved once', r.state.leads.length, 1);
   const lead = r.state.leads[0];
-  eq('the earlier lead now names the new galaxy', lead.galaxy, 2);
-  check('...and a world a chain of full-tank jumps reaches from the arrival',
-    lead.world === arrival || routeEstimate(g2, g2[arrival], g2[lead.world]) !== null);
+  // The arc is offered in galaxy 1, so the lead points there, and not at
+  // index 12 of the galaxy she arrived in.
+  eq('the lead is in the galaxy the next arc is offered in', lead.galaxy, 1);
+  eq('...at that arc\'s own world', lead.world, 12);
+  eq('...and the announcement carries the same galaxy',
+    (r.effects.find((e) => e.kind === 'lead') as { galaxy: number } | undefined)?.galaxy, 1);
+  check('...and the arrival world of galaxy 2 was not made a lead', arrival !== lead.world || lead.galaxy === 1);
+  check('the pair is well formed (the control)', routeEstimate(g2, g2[arrival], g2[12]) !== undefined);
 
   // A save carries the pair together. An index alone names nothing across
   // galaxies.
@@ -287,4 +293,25 @@ console.log('\na jump reaches the machine as a day and an arrival, and the lane 
   withoutSaving(() => g.enterDocked('arrived'));
   check('...and the next dock completes the lane job through the game',
     c.missions.live.length === 0 && c.missions.done['side-ambush'] === 'complete');
+}
+
+console.log('\na smuggling run leaves the goods at the far end (docs/TODO/213 M2)');
+{
+  // The run paid its fee and left the narcotics aboard to sell. Through the
+  // real bridge: the goods go aboard at the acceptance, and off at the dock.
+  seedWorld(1913);
+  const g = withoutSaving(() => new Game(() => headlessShell())).value;
+  dismissBriefing(g);
+  const c = g.state.commander;
+  for (let world = 0; world < 256 && c.missions.live.length === 0; world++) {
+    c.systemIndex = world;
+    withoutSaving(() => runMissions(c, { kind: 'accept', skeleton: 'side-smuggle' }, g.state.systems, () => 0.5));
+  }
+  eq('the patron\'s goods went aboard', c.cargo[NARCOTICS], SMUGGLE_TONNES);
+  const before = c.credits;
+  c.systemIndex = c.missions.live[0].target as number;
+  withoutSaving(() => runMissions(c, { kind: 'docked' }, g.state.systems));
+  eq('the dock at the far end pays', c.credits - before, SIDE_JOB_PAY.smuggle);
+  eq('...and the goods are off the ship', c.cargo[NARCOTICS], 0);
+  eq('...and the job is complete', c.missions.done['side-smuggle'], 'complete');
 }

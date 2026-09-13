@@ -23,7 +23,7 @@ import { check, eq } from './harness.ts';
 
 const LAVE = 7;
 const facts = (systemIndex: number, galaxy = 1): CommanderFacts => ({
-  galaxy, systemIndex, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [],
+  galaxy, systemIndex, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [],
 });
 
 console.log('\na patron has a name and a face, and the Navy has neither');

@@ -23,7 +23,7 @@ export const ARC_RABEDIRA: Skeleton = {
   patron: { kind: 'world', seedSlot: 6 },
   hail: 'AN ENVOY AT RABEDIRA ASKS FOR YOU',
   pitch: 'A TRUCE PAPER MUST REACH A NEIGHBOUR, AND THEN THE ENVOY MUST REACH THE MEETING ALIVE.',
-  offer: { done: ['arc-lave'] },
+  offer: { galaxy: 1, done: ['arc-lave'] },
   legs: [
     {
       id: 'paper', verb: { kind: 'deliver' }, place: { kind: 'band', ...SIDE_JOB_RANGE },

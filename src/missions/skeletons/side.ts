@@ -3,7 +3,10 @@
 //
 // Each is a LOCAL job. The patron is whoever runs the station she stands at.
 // About a third of the jobs are on any one world's board (offers.ts). Each
-// has a `failed` branch, a deadline, and a fee from `SIDE_JOB_PAY`. The
+// has a `failed` branch, a deadline, and a fee from `SIDE_JOB_PAY`. None
+// has a cap, so each comes back a week after it ends (failure rule 5). The
+// two scoops wait for fuel scoops, because a canister breaks on a hull
+// without them (docs/TODO/213 M2). The
 // rescue is the scientist of docs/TODO/190: a pod shot before the scoop
 // turns the leg into a delivery at a lower fee. The words are plain, and a
 // dossier (item 191) replaces them on screen when one exists.
@@ -58,7 +61,7 @@ export const SIDE_DELIVER: Skeleton = {
 export const SIDE_RECOVER: Skeleton = {
   ...LOCAL, id: 'side-recover', hail: 'THE STATION LOST SOMETHING',
   pitch: 'A CANISTER WENT ADRIFT ONE JUMP OUT. SCOOP IT AND BRING IT BACK.',
-  offer: {},
+  offer: { scoops: true },
   legs: [
     {
       id: 'find', verb: { kind: 'recover', item: 'station-canister' }, place: AWAY,
@@ -85,7 +88,7 @@ export const SIDE_RECOVER: Skeleton = {
 export const SIDE_RESCUE: Skeleton = {
   ...LOCAL, id: 'side-rescue', hail: 'THE STATION HAS A PILOT ADRIFT',
   pitch: 'A SURVEY PILOT IS IN A POD ONE JUMP OUT. BRING HER IN ALIVE.',
-  offer: {},
+  offer: { scoops: true },
   legs: [
     {
       id: 'pod', verb: { kind: 'rescue' }, place: AWAY,

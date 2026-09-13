@@ -23,7 +23,7 @@ export const ARC_XEER: Skeleton = {
   patron: { kind: 'world', seedSlot: 150 },
   hail: 'THE PORT ADMINISTRATOR AT XEER WANTS PROOF',
   pitch: 'AN ANACONDA IS FORGING THE HARVEST. WATCH IT, THEN CATCH THE SHIP THAT CARRIES THE PAPERS.',
-  offer: { done: ['arc-vetitice'] },
+  offer: { galaxy: 1, done: ['arc-vetitice'] },
   legs: [
     {
       id: 'watch', verb: { kind: 'scan', ship: shipDesignIdOf(SOURCE_DESIGN.anaconda), seconds: SCAN_SECONDS },

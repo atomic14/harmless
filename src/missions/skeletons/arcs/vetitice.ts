@@ -22,7 +22,7 @@ export const ARC_VETITICE: Skeleton = {
   patron: { kind: 'world', seedSlot: 100 },
   hail: 'THE PLANNING DIRECTOR AT VETITICE HAS A QUOTA TO MEET',
   pitch: 'PIRATES HOLD THE LANE THE COLLECTIVE\'S SHIPMENT MUST CROSS. CLEAR IT, BRING IN THE SURVEYOR, AND CARRY THE MANIFEST.',
-  offer: { done: ['arc-rabedira'] },
+  offer: { galaxy: 1, done: ['arc-rabedira'] },
   legs: [
     {
       id: 'lane', verb: { kind: 'ambush' }, place: { kind: 'band', ...SIDE_JOB_RANGE }, spawn: [...LANE_PIRATES],

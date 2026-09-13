@@ -30,7 +30,7 @@ import { LANE_PIRATES } from '../src/missions/skeletons/lane.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
 const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], ...over,
+  galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [], ...over,
 });
 const paid = (effects: MissionEffect[]): number =>
   effects.reduce((sum, e) => sum + (e.kind === 'pay' ? e.tenths : 0), 0);
@@ -145,6 +145,8 @@ console.log('\nsmuggle: the goods go aboard, and the patrol is the risk');
   const hold = (tonnes: number): number[] => { const c = new Array(17).fill(0); c[NARCOTICS] = tonnes; return c; };
   const landed = stepMissions(r.state, { kind: 'docked' }, moved(ctx, target, { cargo: hold(SMUGGLE_TONNES) }));
   eq('a dock at the target with the goods aboard pays', paid(landed.effects), SIDE_JOB_PAY.smuggle);
+  check('...and the goods leave the hold (docs/TODO/213 M2)',
+    landed.effects.some((e) => e.kind === 'unload' && e.commodity === NARCOTICS && e.tonnes === SMUGGLE_TONNES));
   const light = stepMissions(r.state, { kind: 'docked' }, moved(ctx, target, { cargo: hold(SMUGGLE_TONNES - 1) }));
   eq('...and with a tonne sold on the way it fails', light.state.done[SIDE_SMUGGLE.id], 'fail');
   const elsewhere = stepMissions(r.state, { kind: 'docked' }, moved(ctx, 7, { cargo: hold(SMUGGLE_TONNES) }));

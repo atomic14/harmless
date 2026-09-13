@@ -8,6 +8,10 @@
 //
 // Each file names its theme in a comment. The words a player reads are the
 // dossier's (docs/TODO/191), and the lines here are the plain fallback.
+//
+// Every arc is gated to galaxy 1 (docs/TODO/213 M2). A world patron is a
+// seed slot, and a seed slot is an index that every galaxy has. Without the
+// gate, galaxy 2's Esrilees offered the governor of Lave's job.
 
 import type { Skeleton } from '../../model.ts';
 import { ARC_EDLE } from './edle.ts';

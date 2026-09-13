@@ -8,6 +8,7 @@
 // arc leaves a lead yet.
 
 import { canAccept, offersFor, sideJobsAt } from '../src/missions/offers.ts';
+import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { stepMissions } from '../src/missions/machine.ts';
 import { boardRumour, leadJumps, leadLine, worldNews } from '../src/missions/hints.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
@@ -31,7 +32,7 @@ import { check, eq } from './harness.ts';
 
 const LAVE = 7;
 const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], ...over,
+  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, scoops: false, day: 0, cargo: [], ...over,
 });
 
 /** An arc at Lave that leads to a second arc at `world`. */
@@ -233,4 +234,37 @@ console.log('\nevery world has a roster of side jobs from the seed');
     && canAccept(st, off.id, { commander: facts({ systemIndex: where }), systems: g1 }));
   check('...and open everywhere with no galaxy to read a roster from',
     canAccept(st, off.id, { commander: facts({ systemIndex: LAVE }) }));
+}
+
+console.log('\nthe shipped side jobs come back, and an arc stays in its galaxy (docs/TODO/213 M2)');
+{
+  // No side job has a cap, and absent read as once. Each was offered one
+  // time per career, and the boards emptied in a few sessions.
+  const g2 = generateGalaxy(2);
+  const escort = sideJobsAt(g1[LAVE], SKELETONS).find((s) => !s.offer.scoops)!;
+  const ctxAt = (day: number) => ({ commander: facts({ day }), systems: g1, rng: () => 0.5 });
+  const held = stepMissions(emptyMissionState(), { kind: 'accept', skeleton: escort.id }, ctxAt(10)).state;
+  const ended = stepMissions(held, { kind: 'abandon', skeleton: escort.id }, ctxAt(10)).state;
+  eq(`${escort.id} ended on day 10`, ended.done[escort.id], 'fail');
+  check('...and it is shut the next day', !canAccept(ended, escort.id, ctxAt(11)));
+  check(`...and open ${MISSION_REOFFER_DAYS} days on, with no cap to spend`,
+    canAccept(ended, escort.id, ctxAt(10 + MISSION_REOFFER_DAYS)));
+  check('...and open again a year on', canAccept(ended, escort.id, ctxAt(400)));
+
+  // Galaxy 2's index 7 is Esrilees, and it offered the governor of Lave's job.
+  check('the Lave arc is offered at Lave, with scoops fitted',
+    canAccept(emptyMissionState(), 'arc-lave', { commander: facts({ scoops: true }), systems: g1 }));
+  check('...and not at index 7 of galaxy 2',
+    !canAccept(emptyMissionState(), 'arc-lave', { commander: facts({ galaxy: 2, scoops: true }), systems: g2 }));
+  eq('...where no arc is offered at all',
+    offersFor(emptyMissionState(), { commander: facts({ galaxy: 2, scoops: true }), systems: g2 })
+      .filter((s) => s.kind === 'arc').length, 0);
+
+  // A scoop breaks on a hull without fuel scoops, so the offer waits for them.
+  check('the Lave arc waits for the scoops',
+    !canAccept(emptyMissionState(), 'arc-lave', { commander: facts(), systems: g1 }));
+  const scoop = sideJobsAt(g1[LAVE], SKELETONS).find((s) => s.offer.scoops)!;
+  check(`...and so does ${scoop.id}`,
+    !canAccept(emptyMissionState(), scoop.id, { commander: facts(), systems: g1 })
+    && canAccept(emptyMissionState(), scoop.id, { commander: facts({ scoops: true }), systems: g1 }));
 }

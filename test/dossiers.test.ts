@@ -174,7 +174,7 @@ console.log('\n...and every reader speaks the dossier\'s words, or the skeleton\
 {
   const LAVE = 7;
   const facts = (day = 0): CommanderFacts => ({
-    galaxy: 1, systemIndex: LAVE, kills: 20, combatScore: 0, legalStatus: 0, day, cargo: [],
+    galaxy: 1, systemIndex: LAVE, kills: 20, combatScore: 0, legalStatus: 0, scoops: true, day, cargo: [],
   });
   const ctx = (c: CommanderFacts): MissionContext => ({ commander: c, systems: g1, rng: () => 0.5 });
   const full = (id: string): Dossier | null => {

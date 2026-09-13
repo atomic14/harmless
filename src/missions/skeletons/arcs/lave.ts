@@ -26,7 +26,7 @@ export const ARC_LAVE: Skeleton = {
   patron: { kind: 'world', seedSlot: 7 },
   hail: 'THE GOVERNOR OF LAVE HAS A JOB FOR YOU',
   pitch: 'THE GRUB EXPORT LEDGER WENT ADRIFT WITH A SMUGGLER. THE GOVERNOR WANTS IT BACK, AND THE SMUGGLER CAUGHT.',
-  offer: {},
+  offer: { galaxy: 1, scoops: true },
   legs: [
     {
       id: 'ledger', verb: { kind: 'recover', item: 'grub-ledger' }, place: { kind: 'band', ...SIDE_JOB_RANGE },

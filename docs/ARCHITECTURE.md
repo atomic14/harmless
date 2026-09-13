@@ -252,7 +252,8 @@ Two quirks are deliberate:
   skeleton: a leg by id, a patron's key, and where a skeleton is offered. `placement.ts` picks a leg's world with one
   draw. A band measures tenths on the chart. A handover measures jumps on
   the full-tank graph. `tour.ts` places the five arc starts from the seed,
-  and a galactic jump moves a lead by the same rule (docs/TODO/192). `queries.ts` answers the game's questions without a change. `lint.ts`
+  and an arc is offered in galaxy 1 alone. So a lead keeps its galaxy across
+  a galactic jump (docs/TODO/213). `queries.ts` answers the game's questions without a change. `lint.ts`
   holds the five failure rules as data checks, and
   `test/mission-skeletons.test.ts` runs it over every skeleton. `repair.ts`
   reads a saved record for both loaders, and drops the old stage number.

@@ -23,7 +23,7 @@ import type { CommanderFacts, MissionState } from '../../../src/missions/model.t
 const g1 = generateGalaxy(1);
 const g2 = generateGalaxy(2);
 const facts = (o: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: new Array(17).fill(0), ...o,
+  galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: new Array(17).fill(0), scoops: true, ...o,
 });
 const ctx = (c: Partial<CommanderFacts> = {}, systems = g1, skeletons?: readonly typeof SKELETONS[number][]) =>
   ({ commander: facts(c), systems, rng: () => 0.5, ...(skeletons ? { skeletons } : {}) });
@@ -49,13 +49,15 @@ console.log('[1] an arc is offered in every galaxy at its seed index');
   let r = stepMissions(emptyMissionState(), { kind: 'accept', skeleton: 'arc-lave' }, ctx());
   r = stepMissions(r.state, { kind: 'galaxyChanged', from: 1, to: 2 }, ctx({ galaxy: 2, systemIndex: 7 }, g2));
   const lead = r.state.leads[0];
-  console.log('  lead after the jump:', JSON.stringify(lead), '| announced world:', (r.effects.find((e) => e.kind === 'lead') as { world: number }).world);
+  console.log('  lead after the jump:', JSON.stringify(lead), '| announced world:', (r.effects.find((e) => e.kind === 'lead') as { world: number } | undefined)?.world);
   r = stepMissions(r.state, { kind: 'accept', skeleton: 'arc-rabedira' }, ctx({ galaxy: 2, systemIndex: lead.world }, g2));
   console.log('  arc-rabedira accepted at the relocated lead:', r.state.live.length === 1);
   const paper = r.state.live[0];
-  r = stepMissions(r.state, { kind: 'docked' }, ctx({ galaxy: 2, systemIndex: paper.target! }, g2));
-  const toGoal = routeTable(g2, 100).jumps;
-  console.log(`  convoy leg placed ${toGoal[r.state.live[0].target!]} jumps from galaxy-2 index 100 (${g2[100].name}), which is not the tour`);
+  if (paper) {
+    r = stepMissions(r.state, { kind: 'docked' }, ctx({ galaxy: 2, systemIndex: paper.target! }, g2));
+    const toGoal = routeTable(g2, 100).jumps;
+    console.log(`  convoy leg placed ${toGoal[r.state.live[0].target!]} jumps from galaxy-2 index 100 (${g2[100].name}), which is not the tour`);
+  }
 }
 
 console.log('\n[2] a side job with no cap is offered once per career');

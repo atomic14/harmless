@@ -4,8 +4,10 @@
 // A gate is the skeleton's own conditions. A LEAD opens the offer regardless
 // of the gate, at the lead's world (docs/TODO/190, failure rule 3). Neither
 // opens a slot: `MISSION_LIVE_CAP` holds, and a lead waits for one. A side
-// job with a `cap` comes back after `MISSION_REOFFER_DAYS`, and an arc she
-// holds or finished never comes back (failure rule 5).
+// job comes back after `MISSION_REOFFER_DAYS`, until its `cap` is spent
+// where it has one. An arc she holds or finished never comes back (failure
+// rule 5). No side job had a cap, and absent read as once, so each
+// was offered one time per career until docs/TODO/213 M2.
 //
 // It is read by the machine on `accept` and on `docked`, by the desk that
 // lists the MISSIONS screen, and by the tests. It changes nothing.
@@ -72,6 +74,7 @@ function gateOpen(gate: Gate, st: MissionState, c: CommanderFacts): boolean {
   if (gate.minKills !== undefined && c.kills < gate.minKills) return false;
   if (gate.minRating !== undefined && ratingRung(c.combatScore) < gate.minRating) return false;
   if (gate.legalStatus === 'clean' && c.legalStatus !== 0) return false;
+  if (gate.scoops && !c.scoops) return false;
   if (gate.flags?.some((f) => !st.flags.includes(f))) return false;
   if (gate.notFlags?.some((f) => st.flags.includes(f))) return false;
   if (gate.done?.some((d) => !(d in st.done))) return false;
@@ -106,9 +109,9 @@ export function leadHere(st: MissionState, id: string, c: CommanderFacts): boole
  * Whether the commander can accept this skeleton where she stands.
  *
  * A LEAD OPENS THE OFFER regardless of the gate. It does not open a slot, and
- * it does not restart an arc she holds or finished. A side job with a `cap`
- * comes back until the cap is spent, and not before `MISSION_REOFFER_DAYS`
- * from the day it last ended.
+ * it does not restart an arc she holds or finished. A side job comes back
+ * until its `cap` is spent, where it has one, and not before
+ * `MISSION_REOFFER_DAYS` from the day it last ended.
  */
 export function canAccept(st: MissionState, id: string, ctx: OfferContext): boolean {
   const from = ctx.skeletons ?? SKELETONS;
@@ -120,7 +123,7 @@ export function canAccept(st: MissionState, id: string, ctx: OfferContext): bool
   // was not written, which a hand-built record can do.
   if (s.kind !== 'side' && id in st.done) return false;
   const ended = endings(st, id);
-  if (ended.count >= (s.kind === 'side' ? (s.cap ?? 1) : 1)) return false;
+  if (ended.count >= (s.kind === 'side' ? (s.cap ?? Infinity) : 1)) return false;
   if (ended.count > 0 && ctx.commander.day < ended.lastDay + MISSION_REOFFER_DAYS) return false;
   if (excluded(st, id, from)) return false;
   if (leadHere(st, id, ctx.commander)) return true;

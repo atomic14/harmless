@@ -26,7 +26,7 @@ check('the Constrictor ships', SKELETONS.some((s) => s.id === 'constrictor'));
 function arc(over: Partial<Skeleton> = {}): Skeleton {
   return {
     id: 'a', kind: 'arc', anchor: 'local', patron: { kind: 'world', seedSlot: 7 },
-    hail: 'HAIL', pitch: 'GO', offer: {},
+    hail: 'HAIL', pitch: 'GO', offer: { galaxy: 1 },
     legs: [
       {
         id: 'one', verb: { kind: 'deliver' }, place: { kind: 'band', min: 30, max: 80 }, line: 'ONE',
@@ -102,6 +102,9 @@ const faults: [string, Skeleton, readonly Skeleton[], string][] = [
   ['a handover toward a skeleton that does not exist',
     arc({ legs: [{ ...legs()[0], place: { kind: 'handover', toward: 'ghost', min: 2, max: 4 } }, legs()[1]] }),
     [b], 'unknown skeleton ghost'],
+  // A seed slot is an index that every galaxy has (docs/TODO/213 M2).
+  ['a world patron with no galaxy gate',
+    arc({ offer: {} }), [b], 'galaxy gate'],
 ];
 for (const [name, s, others, word] of faults) {
   const problems = lintSkeleton(s, [s, ...others], g1);
