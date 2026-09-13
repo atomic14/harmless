@@ -14,6 +14,13 @@ active context:
 ## Execution queue
 
 1. [214](214-a-job-has-a-surprise-in-it.md) — a job has a surprise in it.
+2. [216](216-every-docked-screen-carries-a-button-for-each-key-it-reads.md) — every docked screen carries a button for each key it reads.
+
+**216 CAME FROM CHRIS ON 2026-09-13**, after 215 landed. He asked for a
+review of every docked screen, so that each key has a button on a phone.
+The review found six places with none. They are the three name screens,
+the charts' search and estimate, the test mode's step back, and the
+trainer's three panels. 216 adds a key grid, the chart buttons, and arrows on the rows.
 
 **215 CAME FROM CHRIS ON 2026-09-13**, from his phone. The three columns of
 buttons over the flight view covered the fight. He drew the shape he wants.

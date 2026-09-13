@@ -974,7 +974,7 @@ body.screen-open #exercise { display: none; }
 #screen .buttons { display: flex; gap: 8px; justify-content: center; margin-top: 14px; flex-wrap: wrap; }
 /* A button in a table row (the MISSIONS screen's ACCEPT and ABANDON) wears
    the same face as one in the button row, smaller. */
-#screen .buttons button, #screen table button {
+#screen .buttons button, #screen table button, #screen .keys button {
   background: rgba(0, 30, 6, 0.9);
   border: 1px solid var(--hud-dim);
   color: var(--hud-green);
@@ -987,6 +987,17 @@ body.screen-open #exercise { display: none; }
 #screen .buttons button:hover, #screen table button:hover { border-color: var(--hud-green); background: rgba(var(--hud-green-rgb), 0.16); }
 #screen .buttons button:active, #screen table button:active { background: var(--hud-green); color: #001402; }
 #screen table button { padding: 3px 8px; letter-spacing: 1px; }
+/*
+ * The key grid a name screen and a chart's search carry (docs/TODO/216 M1).
+ * Ten columns, so the digits are one row and the alphabet is three. A wide
+ * key is a word, SPACE, DEL or ENTER, and it spans two columns. The grid is
+ * held to 460 pixels, or a key on a desktop is a bar. The `.hidden` rule is
+ * for a chart, whose grid is in the markup while the search is not.
+ */
+#screen .keys { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin: 12px auto 0; max-width: 460px; }
+#screen .keys button { padding: 8px 0; letter-spacing: 0; font-size: 12px; }
+#screen .keys .wide { grid-column: span 2; }
+#screen .keys:empty { display: none; }
 /* The LOG screen's route map: the chart's 2:1 frame, held to a height that
    leaves the pages and the BACK row on the screen. */
 #screen .route-map { display: block; width: 100%; max-height: 200px; margin: 10px auto 0; }
@@ -1122,4 +1133,5 @@ body.screen-open #exercise { display: none; }
   #screen tr.pick td { padding-top: 15px; padding-bottom: 15px; }
   #screen .buttons button { padding: 15px 18px; }
   #screen table button { padding: 15px 12px; }
+  #screen .keys button { padding: 12px 0; }
 }

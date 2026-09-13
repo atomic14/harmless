@@ -10,6 +10,7 @@
 // key is what the host reads, and a label is free to change.
 
 import { renderBriefing } from '../src/ui/briefing.ts';
+import { renderNaming, renderNewCommander, renderSavePrompt } from '../src/ui/screens-career.ts';
 import { ChartScreen, type ChartContext } from '../src/game/screens/chart.ts';
 import { newCommander } from '../src/game/commander.ts';
 import { g1 } from './fixtures.ts';
@@ -55,4 +56,31 @@ console.log('\nevery docked screen ends in a button a finger can press');
     check(`...and opens the data screen by a button`, hasButton(html, 'KeyD'));
     check(`...and cycles the overlay by a button`, hasButton(html, 'KeyT'));
   }
+}
+
+// --- a typed name, by a grid of keys (docs/TODO/216 M1) ---------------------
+//
+// Three screens read a name through `Input.drainPresses`. A phone sends no
+// letter. So each paints the key grid, whose buttons carry the codes the
+// screens already read. The one with no button at all was the rename.
+
+console.log('\nevery screen that takes a name carries the keys to type it');
+{
+  const NAME_KEYS = ['KeyA', 'KeyZ', 'Digit1', 'Digit0', 'Space', 'Backspace'];
+  const screens: [string, () => void][] = [
+    ['the save prompt', () => renderSavePrompt('JAM', false)],
+    ['the rename', () => renderNaming('JAM', 'JAMESON', 'JAMESON')],
+    ['the new commander', () => renderNewCommander('', 'JAMESON')],
+  ];
+  for (const [name, paint] of screens) {
+    const html = capture(paint);
+    check(`${name} carries a letter, a digit, SPACE and DEL`,
+      NAME_KEYS.every((k) => hasButton(html, k)));
+    check('...one button per key of the alphabet', (html.match(/data-key="Key[A-Z]"/g) ?? []).length === 26);
+    check('...and confirms by a button', hasButton(html, 'Enter'));
+    check('...and leaves by a button', hasButton(html, 'Escape'));
+  }
+  const asking = capture(() => renderSavePrompt('JAM', true));
+  check('the save prompt that asks to replace offers Y and ESC, and no letter',
+    hasButton(asking, 'KeyY') && hasButton(asking, 'Escape') && !hasButton(asking, 'KeyA'));
 }

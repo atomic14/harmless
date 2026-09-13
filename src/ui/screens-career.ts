@@ -25,6 +25,7 @@ import { rating } from '../game/rating.ts';
 import { saveLabel, type LiveRun, type LoadCost, type SaveSummary } from '../game/save-file.ts';
 import { type TestModePanel } from '../game/screens/test-mode.ts';
 import { show } from './screen-shell.ts';
+import { keyGrid } from './key-grid.ts';
 import { reservedNotes } from './reserved-note.ts';
 
 /** What the commander file asks the pilot, if anything. */
@@ -147,6 +148,7 @@ export function renderSavePrompt(buffer: string, confirming: boolean): void {
              LETTERS AND NUMBERS &middot; BACKSPACE &middot; ENTER TO SAVE &middot; ESC TO CANCEL
            </span>`}
     </div>
+    ${confirming ? '' : keyGrid('name')}
     <div class="buttons">
       ${confirming
         ? '<button data-key="KeyY">Y &mdash; REPLACE</button>'
@@ -181,6 +183,11 @@ export function renderNaming(buffer: string, current = '', filedUnder = ''): voi
         LETTERS AND NUMBERS &middot; BACKSPACE &middot; ENTER TO CONFIRM &middot; ESC TO CANCEL
       </span>
     </div>
+    ${keyGrid('name')}
+    <div class="buttons">
+      <button data-key="Enter">ENTER &mdash; CONFIRM</button>
+      <button data-key="Escape">ESC &mdash; ${current ? `KEEP ${current}` : 'CANCEL'}</button>
+    </div>
   `);
 }
 /**
@@ -208,6 +215,7 @@ export function renderNewCommander(buffer: string, leaving = ''): void {
         ESC ${leaving ? `KEEPS FLYING ${leaving}` : 'TO CANCEL'}
       </span>
     </div>
+    ${keyGrid('name')}
     <div class="buttons">
       <button data-key="Enter">ENTER &mdash; BEGIN</button>
       <button data-key="Escape">ESC &mdash; CANCEL</button>
