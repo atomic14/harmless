@@ -991,13 +991,14 @@ body.screen-open #exercise { display: none; }
  * The key grid a name screen and a chart's search carry (docs/TODO/216 M1).
  * Ten columns, so the digits are one row and the alphabet is three. A wide
  * key is a word, SPACE, DEL or ENTER, and it spans two columns. The grid is
- * held to 460 pixels, or a key on a desktop is a bar. The `.hidden` rule is
- * for a chart, whose grid is in the markup while the search is not.
+ * held to 460 pixels, or a key on a desktop is a bar. A chart writes the
+ * grid into an empty element while its search runs (game/screens/chart.ts).
  */
 #screen .keys { display: grid; grid-template-columns: repeat(10, 1fr); gap: 4px; margin: 12px auto 0; max-width: 460px; }
 #screen .keys button { padding: 8px 0; letter-spacing: 0; font-size: 12px; }
 #screen .keys .wide { grid-column: span 2; }
-#screen .keys:empty { display: none; }
+/* A chart's button row steps aside while its search runs (game/screens/chart.ts). */
+#screen .buttons.hidden { display: none; }
 /* The LOG screen's route map: the chart's 2:1 frame, held to a height that
    leaves the pages and the BACK row on the screen. */
 #screen .route-map { display: block; width: 100%; max-height: 200px; margin: 10px auto 0; }

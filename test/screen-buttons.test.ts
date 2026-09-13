@@ -14,7 +14,8 @@ import { renderNaming, renderNewCommander, renderSavePrompt } from '../src/ui/sc
 import { ChartScreen, type ChartContext } from '../src/game/screens/chart.ts';
 import { newCommander } from '../src/game/commander.ts';
 import { g1 } from './fixtures.ts';
-import { capture } from './screen-capture.ts';
+import { capture, captureById } from './screen-capture.ts';
+import { Input } from '../src/engine/input.ts';
 import { check } from './harness.ts';
 
 /** The smallest context a chart paints from, at Tibedied. */
@@ -55,6 +56,41 @@ console.log('\nevery docked screen ends in a button a finger can press');
     check(`the ${name} chart leaves by a button`, hasButton(html, 'Escape'));
     check(`...and opens the data screen by a button`, hasButton(html, 'KeyD'));
     check(`...and cycles the overlay by a button`, hasButton(html, 'KeyT'));
+    check('...and opens the market estimate by a button', hasButton(html, 'KeyM'));
+    check('...and starts a search by a button', hasButton(html, 'KeyF'));
+  }
+}
+
+// --- the search types on the key grid (docs/TODO/216 M2) --------------------
+//
+// The grid is written into an empty element when the search starts, and
+// cleared when it ends. `captureById` reads that element, as the chart
+// tests read the info line.
+
+console.log('\nthe chart search carries its letters while it runs');
+{
+  const press = (screen: ChartScreen, code: string): void => {
+    const i = new Input();
+    i.injectPress(code);
+    screen.input(i);
+  };
+  for (const id of ['chart', 'local'] as const) {
+    const ctx = context();
+    const screen = new ChartScreen(id, () => ctx);
+    const keysId = id === 'chart' ? 'chart-keys' : 'local-keys';
+    const name = id === 'chart' ? 'galactic' : 'short range';
+
+    const idle = captureById(() => screen.open());
+    check(`the ${name} chart opens with no letters on it`, !(idle.get(keysId) ?? '').includes('data-key'));
+
+    const found = captureById(() => { screen.open(); press(screen, 'KeyF'); });
+    const grid = found.get(keysId) ?? '';
+    check('...F puts the letters on it', hasButton(grid, 'KeyA') && hasButton(grid, 'KeyZ'));
+    check('...with DEL and ENTER, and no SPACE',
+      hasButton(grid, 'Backspace') && hasButton(grid, 'Enter') && !hasButton(grid, 'Space'));
+
+    const ended = captureById(() => { screen.open(); press(screen, 'KeyF'); press(screen, 'Enter'); });
+    check('...and ENTER takes them off again', !(ended.get(keysId) ?? '').includes('data-key'));
   }
 }
 

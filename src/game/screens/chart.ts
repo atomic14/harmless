@@ -30,6 +30,7 @@ import {
 } from '../../ui/chart-local.ts';
 import { nearestSystem } from '../../ui/chart-readout.ts';
 import { maybeById } from '../../ui/screen-shell.ts';
+import { keyGrid } from '../../ui/key-grid.ts';
 import type { Screen, ScreenOutcome, ScreenId } from '../../ui/screen-host.ts';
 import type { CommanderData } from '../commander.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
@@ -89,6 +90,12 @@ export class ChartScreen implements Screen {
   /** typed prefix while type-to-find is active, or null when it is not */
   private find: string | null = null;
   /**
+   * Whether the key grid is on the page (docs/TODO/216 M2). A phone types
+   * the search on it. `redraw` runs on every cursor move, so the grid is
+   * written when the search starts and cleared when it ends, not each move.
+   */
+  private keysShown = false;
+  /**
    * Where the mouse last was, in chart coordinates. It is null until the mouse
    * first crosses this canvas.
    *
@@ -125,6 +132,24 @@ export class ChartScreen implements Screen {
     const overlays = this.overlays();
     if (this.local) renderLocalChart(systems, commander, chart, overlays);
     else renderChart(systems, commander, chart, overlays);
+    // A full paint writes the page anew, with an empty grid element.
+    this.keysShown = false;
+    this.paintKeys();
+  }
+
+  /**
+   * The key grid follows the search: on the page while it runs, gone after.
+   * The button row goes the other way. `typeToFind` reads every key as a
+   * letter, so a tap on DATA ON SYSTEM would type a D. The grid's ENTER
+   * ends the search, and the row comes back.
+   */
+  private paintKeys(): void {
+    const wanted = this.find !== null;
+    if (wanted === this.keysShown) return;
+    this.keysShown = wanted;
+    const keys = maybeById(this.local ? 'local-keys' : 'chart-keys');
+    if (keys) keys.innerHTML = wanted ? keyGrid('find') : '';
+    maybeById('chart-buttons')?.classList.toggle('hidden', wanted);
   }
 
   /**
@@ -198,6 +223,7 @@ export class ChartScreen implements Screen {
       const info = maybeById(this.local ? 'local-info' : 'chart-info');
       if (info) info.textContent = `FIND: ${this.find}_`;
     }
+    this.paintKeys();
   }
 
   /** The system under the cursor, if any. */

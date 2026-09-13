@@ -37,6 +37,7 @@ export function renderLocalChart(
       <canvas id="local-canvas" width="${LOCAL_CANVAS}" height="${LOCAL_CANVAS}"></canvas>
       <div class="info" id="local-info"></div>
     </div>
+    <div id="local-keys"></div>
     <div class="keyline">${chartKeyline(overlays.mode)}</div>
     ${chartButtons()}
   `, true);
