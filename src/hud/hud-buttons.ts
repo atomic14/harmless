@@ -23,6 +23,14 @@ export interface HudButton {
   /** a second, quieter line: what a press does */
   readonly hint?: string;
   /**
+   * The button is an icon (docs/TODO/221): a glyph, small, and beside the
+   * header rather than under it. It carries no hint and no note. A refusal
+   * is said on the console when it is pressed, and `dim` shows it.
+   */
+  readonly icon?: boolean;
+  /** the button refuses now, and says why on the console when it is pressed */
+  readonly dim?: boolean;
+  /**
    * The button holds its code down while it is held, as the laser button
    * does, rather than sending it once (`engine/hold-buttons.ts`).
    */
@@ -54,7 +62,7 @@ export class ButtonStrip {
         + `<span class="label">${text(b.label)}</span></div>`
       :
       `<div ${b.hold ? 'data-hold' : 'data-key'}="${text(b.code)}"`
-      + ` class="hud-button${b.note ? ' dim' : ''}${b.lit ? ' lit' : ''}">`
+      + ` class="hud-button${b.note || b.dim ? ' dim' : ''}${b.lit ? ' lit' : ''}${b.icon ? ' icon' : ''}">`
       + `${text(b.label)}${b.note ? `<span class="note">${text(b.note)}</span>` : ''}`
       + `${b.hint ? `<span class="hint">${text(b.hint)}</span>` : ''}</div>`)).join('');
     if (html === this.shown) return;

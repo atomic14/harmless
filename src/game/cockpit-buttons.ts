@@ -33,7 +33,6 @@ import {
   COURSE_KEYS, COURSE_LIST_KEY, COURSE_SKIP_KEY, COURSE_STOP_KEY, TARGET_NONE_KEY, TARGETS_KEY,
 } from './bindings.ts';
 import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
-import { SKIP_SPEED } from '../constants/course.ts';
 import { LASER_RANGE } from '../constants/player-gun.ts';
 
 /** A course as a button: its words, and what stops it, under them. */
@@ -229,14 +228,17 @@ export function gunButtonsFor(a: ActionSource): HudButton[] {
 /** The fast forward button, while a course flies (docs/TODO/205 M7). */
 function skipButton(p: CoursePanel): HudButton | null {
   if (!p.skip) return null;
-  if (p.skip.on) {
-    return { code: COURSE_SKIP_KEY, label: 'FAST FORWARD IS ON', lit: true, hint: 'BACK TO NORMAL SPEED' };
-  }
+  // An icon, and no words (Chris, 2026-09-13: "let's just have it as an
+  // icon", docs/TODO/221). Lit while it runs, dim while it cannot start,
+  // and the console says why on the press.
   return {
-    code: COURSE_SKIP_KEY, label: 'FAST FORWARD',
-    ...(p.skip.block === null ? { hint: `TIME RUNS ${SKIP_SPEED} TIMES FASTER` } : { note: p.skip.block }),
+    code: COURSE_SKIP_KEY, label: skipIcon, icon: true,
+    lit: p.skip.on, dim: !p.skip.on && p.skip.block !== null,
   };
 }
+
+/** Two arrows, the mark on every player since the tape deck. */
+const skipIcon = '\u25B6\u25B6';
 
 
 /**

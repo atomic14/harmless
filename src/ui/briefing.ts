@@ -103,7 +103,7 @@ export const BRIEFING: { title: string; body: string }[] = [
       the top right show where the ship can go. Choose
       <b>FLY TO THE STATION</b> and it flies there on the torus drive, at
       ${TORUS_MULTIPLIER} times speed. The drive cuts out near anything with mass: a planet, a
-      station, or somebody who has come to meet you. <b>FAST FORWARD</b> makes
+      station, or somebody who has come to meet you. The <b>\u25B6\u25B6</b> button makes
       the trip quicker while nothing hostile is near.<br/><br/>
       Watch the scanner in the middle of the console. You are the centre. Red
       contacts are hostile. Press a steering key at any time and you fly the

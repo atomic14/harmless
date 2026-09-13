@@ -446,6 +446,11 @@ body.screen-open #message {
 #courses .hud-button.dim { opacity: 0.6; }
 #courses .hud-button .note { font-size: 10px; color: var(--hud-amber); letter-spacing: 1px; }
 #courses .hud-button .hint { font-size: 10px; color: var(--hud-dim); letter-spacing: 1px; }
+/* An icon button sits small at the right, under the header (docs/TODO/221). */
+#courses .hud-button.icon {
+  align-self: flex-end; min-height: 30px; padding: 2px 12px;
+  font-size: 16px; letter-spacing: 2px;
+}
 body.screen-open #courses { visibility: hidden; }
 
 /*

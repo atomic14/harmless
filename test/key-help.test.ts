@@ -315,7 +315,9 @@ console.log('\nthe briefing surfaces the whole first journey');
     unquoted.length === 0, unquoted.join(', '));
   // The fight is buttons too since docs/TODO/206, so the briefing names them
   // rather than the missile keys and the E.C.M. key.
-  const buttons = ['JUMP TO', 'FLY TO THE STATION', 'FAST FORWARD',
+  // The fast forward button is an icon since docs/TODO/221, so its glyph is
+  // what the briefing teaches.
+  const buttons = ['JUMP TO', 'FLY TO THE STATION', '\u25B6\u25B6',
     'FIRE LASER', 'TARGETS', 'ARM A MISSILE', 'E.C.M.', 'RUN FOR IT'];
   const untaught = buttons.filter((b) => !text.includes(`<b>${b}</b>`));
   check(`...and every button of the trip is named (${buttons.length})`,

@@ -57,8 +57,10 @@ function press(g: Game, code: string): void {
   press(g, COURSE_KEYS.station);
   eq('the station button picks the station course', g.state.session.course, 'station');
   eq('...and the list folds away', g.coursePanel()?.rows ?? null, null);
-  eq('...leaving a button that says what the ship is doing, and fast forward',
-    courseButtonsFor(g.coursePanel()!).map((b) => b.label).join(), 'HEADING TO THE STATION,FAST FORWARD');
+  eq('...leaving a button that says what the ship is doing, and the fast forward icon',
+    courseButtonsFor(g.coursePanel()!).map((b) => b.label).join(), 'HEADING TO THE STATION,\u25B6\u25B6');
+  check('...which is an icon, with no words under it', courseButtonsFor(g.coursePanel()!)[1].icon === true
+    && courseButtonsFor(g.coursePanel()!)[1].hint === undefined);
 
   // A LIT BUTTON READS AS ON, SO A TAP TURNS IT OFF (Chris, 2026-09-12: *"I
   // think you should be able to click it to disengage it"*). It used to open
