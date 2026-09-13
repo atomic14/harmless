@@ -20,7 +20,8 @@ import { renderMissions, type HeldRow, type OfferRow } from '../../ui/screens.ts
 import type { Screen, ScreenOutcome } from '../../ui/screen-host.ts';
 import type { CommanderData } from '../commander.ts';
 import { standingOrders, type MissionOrder } from '../orders.ts';
-import type { Dossier, Skeleton } from '../../missions/model.ts';
+import type { Skeleton } from '../../missions/model.ts';
+import type { Dossier } from '../../missions/words.ts';
 import { dossierFor } from '../../missions/dossiers.ts';
 import { leadLine } from '../../missions/hints.ts';
 import { patronFor } from '../../missions/patrons.ts';

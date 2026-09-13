@@ -9,7 +9,8 @@
 
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { DOSSIER_FILES } from './dossiers/index.ts';
-import type { CommanderFacts, Dossier, DossierWord } from './model.ts';
+import type { CommanderFacts, DossierWord } from './model.ts';
+import type { Dossier } from './words.ts';
 import { patronFor } from './patrons.ts';
 import { skeletonById } from './skeletons/index.ts';
 import { fillSlots } from './text.ts';

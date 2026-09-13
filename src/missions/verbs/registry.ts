@@ -4,8 +4,14 @@
 // `test/mission-skeletons.test.ts` fails on a skeleton that names one. All
 // eight are here since docs/TODO/190 M4. The table stays partial in type, so
 // a ninth verb added to the model is a lint failure until its module lands.
+//
+// `verbTriggers` says what each module can emit, and the lint holds every
+// leg to it. A trigger a verb can emit has a branch, or the leg lists it
+// under `ignores` (docs/TODO/213 M5). Three arcs carried a branch the world
+// could not reach, and one side job dropped a trigger on the floor, and no
+// gate saw either.
 
-import type { TaggedShip, Verb } from '../model.ts';
+import type { TaggedShip, Trigger, Verb } from '../model.ts';
 import { ambush } from './ambush.ts';
 import { deliver } from './deliver.ts';
 import { escort } from './escort.ts';
@@ -42,6 +48,23 @@ export function verbJob(verb: Extract<Verb, { ship: string }>): 'hunt' | 'escort
  */
 export function jobRole(job: TaggedShip['job']): 'pirate' | 'trader' {
   return job === 'hunt' ? 'pirate' : 'trader';
+}
+
+/**
+ * Every trigger a verb's module can emit for a leg with this verb. The
+ * machine adds `failed` and `deadlinePassed` of its own, and failure rule 1
+ * already holds the `failed` branch.
+ */
+export function verbTriggers(verb: Verb): Trigger[] {
+  switch (verb.kind) {
+    case 'hunt': return verb.canEscape
+      ? ['targetDestroyed', 'targetEscaped', 'targetFled'] : ['targetDestroyed'];
+    case 'deliver': case 'ambush': return ['success'];
+    case 'recover': return ['success', 'targetDestroyed'];
+    case 'rescue': return [{ survivor: 'landed' }, { survivor: 'sold' }, 'targetDestroyed'];
+    case 'smuggle': return ['success', 'failed'];
+    case 'escort': case 'scan': return ['success', 'targetDestroyed', 'targetEscaped'];
+  }
 }
 
 /** The item a recover or a rescue leg puts adrift, or null. */

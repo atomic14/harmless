@@ -11,6 +11,11 @@
 // ship is gone either way, so the hunt takes it as destroyed. A branch that
 // paid less for another's kill would be a third outcome, and no skeleton
 // has one.
+//
+// A SHIP THAT CANNOT ESCAPE CANNOT RUN OUT EITHER (docs/TODO/213 M5). The
+// Constrictor is always where the Navy says. `fled` reached this module
+// for any hunt. So the lint's table of what a hunt can emit needed the
+// Constrictor to ignore a word it can never hear.
 
 import type { VerbModule } from './verb.ts';
 
@@ -21,7 +26,8 @@ export const hunt: VerbModule = (ctx, input) => {
   if (input.kind === 'destroyed' || input.kind === 'escortLost') {
     return { trigger: 'targetDestroyed' };
   }
-  if (input.kind === 'escaped' && verb.canEscape) return { trigger: 'targetEscaped' };
+  if (!verb.canEscape) return null;
+  if (input.kind === 'escaped') return { trigger: 'targetEscaped' };
   if (input.kind === 'fled') return { trigger: 'targetFled' };
   return null;
 };

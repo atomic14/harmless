@@ -16,6 +16,9 @@
 //
 // docs/TODO/213 M2 adds one. A world patron's skeleton names the galaxy it
 // is offered in, because a seed slot is an index that every galaxy has.
+//
+// docs/TODO/213 M5 adds one more. Every trigger a verb can emit has a
+// branch on the leg, or the leg lists it under `ignores`.
 
 import { ARC_HANDOVER_JUMPS } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
@@ -23,7 +26,8 @@ import { distanceTenths } from '../galaxy/navigation.ts';
 import { routeTable } from '../galaxy/route.ts';
 import type { Leg, Skeleton } from './model.ts';
 import { specForDesign } from '../game/ship-specs.ts';
-import { verbJob, verbModule, verbNeedsShip } from './verbs/registry.ts';
+import { verbJob, verbModule, verbNeedsShip, verbTriggers } from './verbs/registry.ts';
+import { sameTrigger, triggerLabel } from './triggers.ts';
 import { pickByJumps } from './placement.ts';
 
 export function lintSkeleton(
@@ -45,6 +49,11 @@ export function lintSkeleton(
       if (!specForDesign(role, leg.verb.ship)) out.push(`${at}: no ${role} row for ${leg.verb.ship}`);
     }
     if (!leg.next.some((b) => b.on === 'failed')) out.push(`${at}: no failed branch`);
+    for (const t of verbModule(leg.verb.kind) ? verbTriggers(leg.verb) : []) {
+      const answered = leg.next.some((b) => sameTrigger(b.on, t))
+        || (leg.ignores ?? []).some((i) => sameTrigger(i, t));
+      if (!answered) out.push(`${at}: no branch for ${triggerLabel(t)}, and it is not ignored`);
+    }
     for (const b of leg.next) {
       if (b.to !== 'complete' && b.to !== 'fail' && !ids.has(b.to)) {
         out.push(`${at}: branch to unknown leg ${b.to}`);

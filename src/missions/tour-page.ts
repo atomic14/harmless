@@ -20,7 +20,8 @@
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { routeTable } from '../galaxy/route.ts';
 import { dossierFor } from './dossiers.ts';
-import type { CommanderFacts, Dossier, Patron, Skeleton, Verb } from './model.ts';
+import type { CommanderFacts, Skeleton, Verb } from './model.ts';
+import type { Dossier, Patron } from './words.ts';
 import { patronFor } from './patrons.ts';
 import { routeMapSvg } from './route-map.ts';
 import { ARC_TOUR, SKELETONS, skeletonById } from './skeletons/index.ts';

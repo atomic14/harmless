@@ -12,7 +12,8 @@
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { galaxySystems } from '../galaxy/galaxies.ts';
 import { dossierFor } from './dossiers.ts';
-import type { Dossier, JournalEntry, MissionState } from './model.ts';
+import type { JournalEntry, MissionState } from './model.ts';
+import type { Dossier } from './words.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots } from './text.ts';
 

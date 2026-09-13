@@ -32,9 +32,9 @@ export function liveLegs(
 /**
  * The override a live leg puts in force at `here`, or null.
  *
- * The first live mission that names one wins. Two live legs with two
- * overrides at one world is a conflict the skeleton lint does not see yet.
- * The arc plan, item 192 of docs/TODO/190, decides it when a second arc exists.
+ * The first live mission that names one wins. Two legs of two skeletons
+ * that force two sets at one world are a conflict, and `lint.ts` refuses
+ * the pair before it ships (docs/TODO/192).
  */
 export function missionOverride(
   st: MissionState, here: number, from: readonly Skeleton[] = SKELETONS,

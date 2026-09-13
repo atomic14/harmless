@@ -13,7 +13,7 @@ import { escapeHtml } from '../src/engine/escape-html.ts';
 import config, { FOOTER_MARKER } from '../vite.config.ts';
 import { LogScreen } from '../src/game/screens/log.ts';
 import { newCommander, type CommanderData } from '../src/game/commander.ts';
-import type { Dossier } from '../src/missions/model.ts';
+import type { Dossier } from '../src/missions/words.ts';
 import { patronFor } from '../src/missions/patrons.ts';
 import { routeMapSvg } from '../src/missions/route-map.ts';
 import { ARC_TOUR, SKELETONS } from '../src/missions/skeletons/index.ts';

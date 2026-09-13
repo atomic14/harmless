@@ -9,7 +9,7 @@ import { renderLog } from '../../ui/screens-log.ts';
 import type { CommanderData } from '../commander.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
 import type { Input } from '../../engine/input.ts';
-import type { Patron } from '../../missions/model.ts';
+import type { Patron } from '../../missions/words.ts';
 import { NAVY_PATRON, patronFor } from '../../missions/patrons.ts';
 import { storyPages, type StoryPage } from '../../missions/story.ts';
 import { routeMapSvg } from '../../missions/route-map.ts';

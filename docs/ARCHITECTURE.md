@@ -242,7 +242,7 @@ Two quirks are deliberate:
   offers it lists. `src/game/hunt-warning.ts` prices her gun against the ship
   a hunt names, through the combat oracle.
 - `src/missions/` is the mission machine (docs/TODO/190). `model.ts` holds the
-  types. A skeleton under `skeletons/` is one mission's rules, written by a
+  types, and `words.ts` the shape of a patron and a dossier. A skeleton under `skeletons/` is one mission's rules, written by a
   developer. A dossier is its generated words, and the machine never reads one.
   `machine.ts` is one pure step. It takes the record, one input and the facts
   it may read. It returns a new record with the effects the game applies.

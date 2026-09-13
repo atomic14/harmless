@@ -14,7 +14,8 @@
 //
 // Nothing here runs. The types are the contract between four places. Those
 // are the skeletons under `skeletons/`, the verb modules, the machine, and the
-// game code that sends inputs and applies effects.
+// game code that sends inputs and applies effects. The shape of the words a
+// model writes, a patron and a dossier, is `words.ts` (docs/TODO/213 M5).
 
 import type { BlueprintOverride } from '../game/blueprint-set.ts';
 import type { ShipDesignId } from '../game/ship-identity.ts';
@@ -22,7 +23,7 @@ import type { ShipDesignId } from '../game/ship-identity.ts';
 /** A mission ship names a catalogue design (`ship-identity.ts`). */
 export type ShipId = ShipDesignId;
 
-/** An item a recovery leg wants. The item table arrives with docs/TODO/190 M4. */
+/** An item a recovery leg wants, as a free name. No table of items exists. */
 export type ItemId = string;
 
 /**
@@ -169,6 +170,13 @@ export interface Leg {
   spawn?: TaggedShip[];
   /** true raises the mis-jump chance, as the 1984 courier run did */
   carryingPlans?: boolean;
+  /**
+   * Triggers the verb can emit that this leg answers with nothing, on
+   * purpose. The lint refuses a leg that drops a trigger without saying so
+   * (docs/TODO/213 M5). A side hunt ignores `targetFled`, because a pirate
+   * cannot leave a system today, and 214 revisits that.
+   */
+  ignores?: Trigger[];
   /** the first branch whose trigger matches is the one taken */
   next: Branch[];
 }
@@ -210,57 +218,6 @@ export interface Skeleton {
   excludes?: string[];
   /** how many times a side job repeats; absent means without limit (failure rule 5) */
   cap?: number;
-}
-
-export interface Patron {
-  id: string;
-  world: number | 'navy';
-  name: string;
-  role: string;
-  species: string;
-  voice: string;
-  /** image path; '' uses the world's portrait */
-  portrait: string;
-}
-
-/**
- * A mission's generated words. Each field may carry the slots its comment
- * names and no other, and `tools/dossier-faults.ts` holds that (docs/TODO/191).
- */
-export interface Dossier {
-  skeleton: string;
-  /** the prompt hash it was written from, which covers the skeleton's shape */
-  hash: string;
-  /** a name for the mission, with no slot */
-  title: string;
-  /** pages the patron speaks, with {PATRON} {HERE} */
-  briefing: string[];
-  /** by leg: the console's word on the leg, with {TARGET} {PAY} */
-  legs: Record<string, { arrive: string; success: string; fail: string }>;
-  /** the LEADS row, with {PATRON} {WORLD} */
-  lead: string;
-  /** the board's rumour inside the rumour range, and the message one jump out, with {PATRON} {WORLD} */
-  rumour: { far: string; near: string };
-  /** the DATA ON line, with {PATRON} {WORLD} */
-  news: string;
-  /** paths under `public/`; an absent file degrades to no image */
-  images: { target?: string; place?: string };
-  story: {
-    /** with {WORLD} {DAY} */
-    opening: string;
-    closing: { complete: string; fail: string };
-    /** by leg, then by trigger label (`triggerLabel`, machine.ts), with {WORLD} {DAY} */
-    legs: Record<string, Record<string, string>>;
-  };
-}
-
-/** One committed dossier file, with what the run that wrote it cost. */
-export interface DossierFile {
-  promptVersion: number;
-  model: string;
-  generated: string;
-  usage: { requests: number; inputTokens: number; outputTokens: number };
-  dossier: Dossier;
 }
 
 export interface LiveMission {
@@ -334,7 +291,7 @@ export interface MissionState {
   entities: Record<string, EntityState>;
   passengers: MissionPassenger[];
   journal: JournalEntry[];
-  /** docks since the journal last moved; the second patron message reads it */
+  /** docks since a dock last moved the journal; the second patron message reads it */
   idleDocks: number;
   /** what settlements changed about the worlds, each until a day */
   changes: WorldChangeRecord[];

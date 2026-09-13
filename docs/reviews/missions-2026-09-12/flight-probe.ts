@@ -220,8 +220,11 @@ for (const c of CASES) {
 
 console.log('\nwithout fuel scoops, the scoop rows refuse:');
 {
-  const g = newGame(20_260_950, {});
+  // The offer waits for the scoops since docs/TODO/213 M2, so the job is
+  // taken with them and flown without, as a sale of the scoops would leave it.
+  const g = newGame(20_260_950, { scoops: true });
   onSideJob(g, 'side-recover');
+  g.state.commander.equipment.scoops = false;
   arrive(g);
   const row = g.coursePanel()?.rows?.find((r) => r.kind === 'mission');
   console.log(`  side-recover row: "${row?.what}" why: "${row?.why}"`);

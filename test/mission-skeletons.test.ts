@@ -10,6 +10,8 @@ import { SKELETONS } from '../src/missions/skeletons/index.ts';
 import { lintSkeleton } from '../src/missions/lint.ts';
 import type { Skeleton } from '../src/missions/model.ts';
 import { routeEstimate } from '../src/galaxy/route.ts';
+import { SOURCE_DESIGN } from '../src/game/ship-specs.ts';
+import { shipDesignIdOf } from '../src/game/ship-identity.ts';
 import { g1 } from './fixtures.ts';
 import { check, eq } from './harness.ts';
 
@@ -48,6 +50,7 @@ const b: Skeleton = {
   legs: [{ ...arc().legs[1], id: 'one', place: { kind: 'here' } }],
 };
 const legs = () => arc().legs;
+const cobra = shipDesignIdOf(SOURCE_DESIGN.cobraMk3);
 /** A world eight or more jumps from Rabedira: too far for a final leg. */
 const far = g1.find((s) => (routeEstimate(g1, g1[6], s)?.jumps ?? 0) >= 8)!.index;
 const withOverride = (leg: Skeleton['legs'][number], set: 'constrictor' | 'thargoid', where: 'target' | 'everywhere') =>
@@ -109,7 +112,22 @@ const faults: [string, Skeleton, readonly Skeleton[], string][] = [
   ['a handover with no candidate from some world',
     arc({ legs: [{ ...legs()[0], place: { kind: 'handover', toward: 'b', min: 30, max: 40 } }, legs()[1]] }),
     [b], 'no candidate from'],
+  // Every trigger a verb can emit has a branch, or the leg says it ignores it
+  // (docs/TODO/213 M5).
+  ['a hunt that can escape with no branch for the escape',
+    arc({ legs: [{ ...legs()[0], verb: { kind: 'hunt', ship: cobra, canEscape: true },
+      next: [{ on: 'targetDestroyed', to: 'two' }, { on: 'failed', to: 'fail' }] }, legs()[1]] }),
+    [b], 'no branch for targetEscaped'],
 ];
+{
+  const quiet = arc({ legs: [{ ...legs()[0], verb: { kind: 'hunt', ship: cobra, canEscape: true },
+    ignores: ['targetEscaped', 'targetFled'],
+    next: [{ on: 'targetDestroyed', to: 'two' }, { on: 'failed', to: 'fail' }] }, legs()[1]] });
+  eq('...and the same leg that says it ignores them is clean', lintSkeleton(quiet, [quiet, b], g1).join('; '), '');
+  const still = arc({ legs: [{ ...legs()[0], verb: { kind: 'hunt', ship: cobra, canEscape: false },
+    next: [{ on: 'targetDestroyed', to: 'two' }, { on: 'failed', to: 'fail' }] }, legs()[1]] });
+  eq('...and a hunt that cannot escape needs neither', lintSkeleton(still, [still, b], g1).join('; '), '');
+}
 for (const [name, s, others, word] of faults) {
   const problems = lintSkeleton(s, [s, ...others], g1);
   check(`the gate names ${name}`, problems.some((p) => p.includes(word)), problems.join('; '));

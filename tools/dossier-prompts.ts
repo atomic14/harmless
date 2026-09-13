@@ -15,7 +15,8 @@
 import { COMMODITIES, generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { shipDesign } from '../src/game/ship-identity.ts';
 import { triggerLabel } from '../src/missions/triggers.ts';
-import type { DossierFile, Leg, Placement, Skeleton, Trigger, Verb } from '../src/missions/model.ts';
+import type { Leg, Placement, Skeleton, Trigger, Verb } from '../src/missions/model.ts';
+import type { DossierFile } from '../src/missions/words.ts';
 import { patronFor } from '../src/missions/patrons.ts';
 import { SKELETONS, skeletonById } from '../src/missions/skeletons/index.ts';
 import { fnv1a } from './system-prompts.ts';
@@ -221,7 +222,7 @@ export function indexSource(names: readonly string[]): string {
     '// own to fall out of step with this directory. `--check` fails when a file',
     '// here is missing from this list.',
     '',
-    "import type { DossierFile } from '../model.ts';",
+    "import type { DossierFile } from '../words.ts';",
     ...ids.map((n) => `import ${ident(n)} from './${n}.json' with { type: 'json' };`),
     '',
     ids.length

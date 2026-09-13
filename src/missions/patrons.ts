@@ -17,7 +17,8 @@
 
 import { speciesName, type StarSystem } from '../galaxy/galaxy.ts';
 import { portraitUrl } from '../ui/portrait.ts';
-import type { CommanderFacts, Patron, PatronRef } from './model.ts';
+import type { CommanderFacts, PatronRef } from './model.ts';
+import type { Patron } from './words.ts';
 import galaxy1 from './patrons/galaxy-1.json' with { type: 'json' };
 
 /** One committed patron. `system` is checked against the live galaxy, not trusted. */

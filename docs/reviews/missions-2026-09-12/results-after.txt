@@ -1,0 +1,60 @@
+[1] an arc is offered in every galaxy at its seed index
+  canAccept arc-lave at galaxy 2 index 7: false
+  galaxy-2 world at index 7: Esrilees | patron: THE COMPANY DIRECTOR OF ESRILEES
+  offers there: side-deliver side-smuggle side-escort
+  lead after the jump: {"skeleton":"arc-rabedira","galaxy":1,"world":6,"sinceDay":0} | announced world: 6
+  arc-rabedira accepted at the relocated lead: false
+
+[2] a side job with no cap is offered once per career
+  caps: side-hunt=undefined side-deliver=undefined side-recover=undefined side-rescue=undefined side-ambush=undefined side-smuggle=undefined side-escort=undefined side-scan=undefined
+  canAccept side-recover at its board on day 11: false
+  canAccept side-recover at its board on day 17: true
+  canAccept side-recover at its board on day 18: true
+  canAccept side-recover at its board on day 400: true
+
+[3] a smuggle run pays and leaves the goods aboard
+  effects on success: unload pay(7000) say deed say
+
+[4] what each ship verb makes of the four ways a target can go
+  side-hunt   fled       live=1 done=- entityAlive=true pay=- says=0
+  side-hunt   escaped    live=0 done=fail entityAlive=undefined pay=- says=1
+  side-hunt   escortLost live=0 done=complete entityAlive=undefined pay=8000 says=1
+  side-hunt   destroyed  live=0 done=complete entityAlive=undefined pay=8000 says=1
+  side-scan   fled       live=0 done=fail entityAlive=undefined pay=- says=1
+  side-scan   escaped    live=0 done=fail entityAlive=undefined pay=- says=1
+  side-scan   escortLost live=0 done=fail entityAlive=undefined pay=- says=1
+  side-scan   destroyed  live=0 done=fail entityAlive=undefined pay=- says=1
+  side-escort fled       live=0 done=fail entityAlive=undefined pay=- says=1
+  side-escort escaped    live=0 done=fail entityAlive=undefined pay=- says=1
+  side-escort escortLost live=0 done=fail entityAlive=undefined pay=- says=1
+  side-escort destroyed  live=0 done=fail entityAlive=undefined pay=- says=1
+
+[5] the dock hint is shadowed by the side-job count
+  dock at Leleer, one jump from Rabedira: say:THERE ARE 2 SIDE JOBS ON THE STATION BOARD. | later:A MESSAGE FROM RABEDIRA: COME WHEN YOU CAN. THERE IS WORK.
+  the same dock with the side jobs removed: later:A MESSAGE FROM RABEDIRA: COME WHEN YOU CAN. THERE IS WORK.
+  fourth idle dock at Ontimaxe, three jumps out: say:THERE ARE 3 SIDE JOBS ON THE STATION BOARD. | later:A SECOND MESSAGE FROM RABEDIRA: THE OFFER STANDS.
+
+[6] a saved record that names a ghost skeleton or leg
+  ghost skeleton, docked: THROWS "mission arc-ghost: no such skeleton"
+  ghost skeleton, abandon: THROWS "mission arc-ghost: no such skeleton"
+  ghost leg, docked: THROWS "mission arc-lave: no leg old"
+
+[7] the journal holds no galaxy, so the log misnames a world after a jump
+  the acceptance line, rendered with galaxy 1: On day 0 the commander took the governor's contract at LAVE, to chase down a stolen ledger.
+  the same line, rendered with galaxy 2:     On day 0 the commander took the governor's contract at ESRILEES, to chase down a stolen ledger.
+
+[8] a local patron's standing is keyed by where the branch settles
+  accepted at Tiraor (5), delivered at Edzaon (159), standing: {"world-5":1}
+
+[9] the pirate row a restored mission ship is looked up under
+  python       pirate row: true  trader row: true
+  cobraMk3     pirate row: true  trader row: true
+  anaconda     pirate row: false trader row: true
+  boa          pirate row: false trader row: true
+  transporter  pirate row: false trader row: true
+
+[10] handover placement has a candidate from every world of galaxy 1
+  toward Rabedira  worlds with no candidate: 0
+  toward Vetitice  worlds with no candidate: 0
+  toward Xeer      worlds with no candidate: 0
+  toward Edle      worlds with no candidate: 0

@@ -32,6 +32,10 @@ export const SIDE_HUNT: Skeleton = {
   legs: [{
     id: 'hunt', verb: { kind: 'hunt', ship: shipDesignIdOf(SOURCE_DESIGN.krait), canEscape: true },
     place: AWAY, line: 'BOUNTY: DESTROY THE KRAIT — LAST SEEN AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
+    // A pirate cannot leave a system today, so a Krait that runs is a Krait
+    // that comes back on the next arrival. A branch would change the dossier
+    // hash, and 214 M4 makes the chase real (docs/TODO/213 M5).
+    ignores: ['targetFled'],
     next: [
       { on: 'targetDestroyed', to: 'complete', settle: { pay: SIDE_JOB_PAY.hunt, say: 'THE KRAIT IS DESTROYED. THE STATION PAYS {PAY}.' } },
       { on: 'targetEscaped', to: 'fail' },

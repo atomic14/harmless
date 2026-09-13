@@ -1,9 +1,10 @@
 // The Navy mission, as numbers: what earns the briefing, how far away each leg
 // is laid, and what the Navy pays.
 //
-// The five-stage machine that spends these is game/missions.ts. Money is in
-// tenths of a credit (invariant 8), and distances are in tenths of a light year,
-// as everywhere else.
+// The skeletons under src/missions/skeletons/ spend these, and the machine
+// in src/missions/machine.ts runs them (docs/TODO/190). Money is in tenths
+// of a credit (invariant 8), and distances are in tenths of a light year, as
+// everywhere else.
 
 /**
  * Kills before the Navy considers you worth a word: 16, as the original demanded.

@@ -4,7 +4,7 @@
 // own to fall out of step with this directory. `--check` fails when a file
 // here is missing from this list.
 
-import type { DossierFile } from '../model.ts';
+import type { DossierFile } from '../words.ts';
 import d_arc_edle from './arc-edle.json' with { type: 'json' };
 import d_arc_lave from './arc-lave.json' with { type: 'json' };
 import d_arc_rabedira from './arc-rabedira.json' with { type: 'json' };

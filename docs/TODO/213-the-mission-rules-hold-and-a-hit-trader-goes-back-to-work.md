@@ -245,3 +245,49 @@ Evidence, one per fault:
 - **A test fixture met the ghost rule.** The galaxy-change test saves a lead
   to a fixture skeleton, which the loader now drops. The saved lead names a
   shipped arc instead.
+
+### M5
+
+- **A hunt that cannot escape cannot run out either.** The hunt verb sent
+  `targetFled` for any hunt. So the table of what a hunt can emit needed
+  the Constrictor to ignore a word it can never hear. The verb answers
+  neither `escaped` nor `fled` for a hunt with `canEscape` false. The
+  side hunt alone lists `ignores: ['targetFled']`.
+- **The table lives in the verb registry**, `verbTriggers`, beside the
+  module table, so a ninth verb needs both entries.
+- **The probes ran again.** `results-after.txt` shows a side job open a
+  week on, and the goods unloaded. It shows the standing on the origin, the
+  lead in its own galaxy, and a galaxy-1 journal named in galaxy 1. Block 6 still throws:
+  the probe hands the machine a ghost directly, and the machine still
+  refuses one. The loaders drop it before the machine sees it.
+  `flight-results-after.txt` shows the escort at eight of eight. Every
+  other row reads as before, because the flight itself did not change.
+- **`missions/model.ts` crossed the size ceiling by one line.** The shape of
+  a patron and a dossier, which the machine never reads, left it for
+  `missions/words.ts`. Fourteen importers name the new home, and the
+  generated `dossiers/index.ts` names it through its generator.
+- The suite has 6,029 checks.
+
+## Outcome
+
+213 landed on 2026-09-13. A hit trader goes back to work after twenty calm
+seconds, the escort course closes gently, and a course refuses a target
+below the planet. The escort finishes eight of eight in the flight probe,
+from four. A side job comes back a week after it ends. A smuggling run
+leaves its goods at the far end. Every arc is gated to galaxy 1, and a
+lead keeps its galaxy. A scoop job waits for the scoops. The gun warning
+speaks for the Constrictor alone. A side-job count no longer silences a
+lead. The loaders drop a ghost. The journal names its galaxy, and standing
+is keyed by the origin. A restored mission ship takes its leg's role, and
+a branch that cannot place its next leg still settles. The lint holds a
+galaxy gate, a handover from every world, and every trigger a verb can
+emit. Six comments say what the code does.
+
+Two things the plan did not have. `constants/course.ts` crossed the size
+ceiling, and the four numbers a mission's course spends left it for
+`constants/mission-course.ts`. The lead announcement moved from M4 into
+M2, because the relocation's removal made it wrong at once.
+
+Three decisions stand as the review recommended, and each is one line to
+change. The tour is galaxy 1's. A side job repeats without limit. The first
+arc waits for the scoops. The suite has 6,029 assertions, from 5,972.

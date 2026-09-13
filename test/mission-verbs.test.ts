@@ -220,6 +220,11 @@ console.log('\nescort and scan, through the machine');
   // left to kill.
   eq('a target wrecked by somebody else still ends the hunt',
     paid(stepMissions(hst, { kind: 'escortLost', tag: htag }, hctx).effects), SIDE_JOB_PAY.hunt);
+  // A pirate cannot leave a system today, so the side hunt says it ignores
+  // the word, and the lint holds it to that (docs/TODO/213 M5).
+  check('a side hunt says it ignores a target that fled',
+    SIDE_HUNT.legs[0].ignores?.includes('targetFled') === true);
+  eq('...and answers it with nothing', stepMissions(hst, { kind: 'fled', tag: htag }, hctx).state.live.length, 1);
 }
 
 console.log('\nescort, through a real world step');

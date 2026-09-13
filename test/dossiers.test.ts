@@ -18,8 +18,9 @@ import { DOSSIER_FILES } from '../src/missions/dossiers/index.ts';
 import { boardRumour, dockHint, leadJumps, leadLine, worldNews } from '../src/missions/hints.ts';
 import { stepMissions, type MissionContext } from '../src/missions/machine.ts';
 import type {
-  CommanderFacts, Dossier, MissionEffect, MissionState, Skeleton,
+  CommanderFacts, MissionEffect, MissionState, Skeleton,
 } from '../src/missions/model.ts';
+import type { Dossier } from '../src/missions/words.ts';
 import { patronFor } from '../src/missions/patrons.ts';
 import { SKELETONS, skeletonById } from '../src/missions/skeletons/index.ts';
 import { SIDE_HUNT, SIDE_RESCUE } from '../src/missions/skeletons/side.ts';
