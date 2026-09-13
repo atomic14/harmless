@@ -111,6 +111,7 @@ import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
 import { CoursesScreen, type CoursesContext } from './screens/courses.ts';
 import { CourseActions, type CourseHost, type CoursePanel } from './course-actions.ts';
 import { TargetActions, type TargetPanel } from './target-actions.ts';
+import { ListFold } from './list-fold.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 
 import { characterVerdict } from './character.ts';
@@ -379,6 +380,9 @@ export class Game {
    * The courses a pilot picks from, and the pick applied (docs/TODO/205 M4).
    * The state is read through a function, because a respawn replaces it.
    */
+  /** which of the two lists over the view is open (docs/TODO/215 M2) */
+  private readonly lists_ = new ListFold();
+
   private readonly courses_ = new CourseActions(() => this.state, {
     jumpCheck: () => this.jump_.jumpCheck(),
     launch: () => this.docked_.launch(),
@@ -387,10 +391,10 @@ export class Game {
     showMessage: (text, seconds) => this.showMessage(text, seconds),
     refused: () => sfx.refused(),
     stopCourse: () => this.flight_.switches.courses.stopCourse(),
-  } satisfies CourseHost);
+  } satisfies CourseHost, this.lists_);
 
   /** The target list's buttons, and the pick applied (docs/TODO/206 M3). */
-  private readonly targets_ = new TargetActions(() => this.state);
+  private readonly targets_ = new TargetActions(() => this.state, this.lists_);
 
   /**
    * What a career keeps when a flight ends (docs/TODO/150 M5).

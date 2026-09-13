@@ -446,6 +446,49 @@ body.screen-open #message {
 body.screen-open #courses { visibility: hidden; }
 
 /*
+ * THE TWO ROWS (docs/TODO/215 M2). A list opens as one line of buttons that
+ * scrolls sideways, the full width, with a snap to each button. The course
+ * row sits under its header, and the target row above its header. A row that
+ * stacked downward covered the sky; a row that runs sideways covers one
+ * line of it, and only while it is open. The scrollbar is hidden, because
+ * the row is thumbed, and a bar under a button is a thing to miss.
+ */
+#course-row, #target-row {
+  position: absolute;
+  left: 0; right: 0;
+  z-index: 21;
+  display: flex; flex-direction: row; align-items: stretch; gap: 8px;
+  padding: 0 12px;
+  overflow-x: auto; overflow-y: hidden;
+  scroll-snap-type: x mandatory;
+  scrollbar-width: none;
+  -webkit-overflow-scrolling: touch;
+}
+#course-row::-webkit-scrollbar, #target-row::-webkit-scrollbar { display: none; }
+#course-row { top: 100px; }
+#target-row { bottom: calc(var(--console-h, 180px) + 14px + 58px); }
+#course-row .hud-button, #target-row .hud-button {
+  flex: 0 0 auto;
+  min-width: 150px; max-width: 70vw;
+  min-height: 48px;
+  scroll-snap-align: start;
+  display: flex; flex-direction: column; justify-content: center;
+  padding: 4px 12px;
+  font-size: 13px; letter-spacing: 1px;
+  color: var(--hud-green);
+  background: rgba(0, 10, 2, 0.8);
+  border: 1px solid rgba(var(--hud-green-rgb), 0.45);
+  cursor: pointer;
+  user-select: none; -webkit-user-select: none;
+}
+#course-row .hud-button:hover, #target-row .hud-button:hover { background: rgba(var(--hud-green-rgb), 0.18); }
+#course-row .hud-button.lit, #target-row .hud-button.lit { color: var(--hud-amber); border-color: rgba(var(--hud-amber-rgb), 0.55); }
+#course-row .hud-button.dim, #target-row .hud-button.dim { opacity: 0.6; }
+#course-row .hud-button .note, #target-row .hud-button .note { font-size: 10px; color: var(--hud-amber); letter-spacing: 1px; }
+#course-row .hud-button .hint, #target-row .hud-button .hint { font-size: 10px; color: var(--hud-dim); letter-spacing: 1px; }
+body.screen-open #course-row, body.screen-open #target-row { visibility: hidden; }
+
+/*
  * The target list (docs/TODO/206 M3): bottom left, above the console, where
  * a thumb rests, and it opens upward. It opened over the guns on the right
  * until 2026-09-13, and the two columns together covered the fight (Chris:

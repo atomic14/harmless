@@ -17,6 +17,7 @@ import type { NpcShip } from './npc.ts';
 import type { GameState } from './state.ts';
 import { pickTarget, pickedTarget, targetList, type TargetRow } from './targets.ts';
 import { TARGET_NONE_KEY, TARGET_ROW_PREFIX, TARGETS_KEY } from './bindings.ts';
+import type { ListFold } from './list-fold.ts';
 
 /** What the target buttons show. */
 export interface TargetPanel {
@@ -30,13 +31,14 @@ export interface TargetPanel {
 
 export class TargetActions {
   private readonly state: () => GameState;
-  /** the list is open. It is what the buttons show, so no save carries it */
-  private opened = false;
+  /** the one fold the two lists share: the list is open when it says so (docs/TODO/215 M2) */
+  private readonly fold: ListFold;
   private readonly ids = new WeakMap<NpcShip, number>();
   private next = 1;
 
-  constructor(state: () => GameState) {
+  constructor(state: () => GameState, fold: ListFold) {
     this.state = state;
+    this.fold = fold;
   }
 
   private codeFor(ship: NpcShip): string {
@@ -61,7 +63,7 @@ export class TargetActions {
   panel(): TargetPanel {
     const rows = this.list();
     return {
-      open: this.opened,
+      open: this.fold.isOpen('targets'),
       rows: rows.map((row) => ({ code: this.codeFor(row.ship), row })),
       picked: rows.find((r) => r.picked) ?? null,
     };
@@ -75,19 +77,19 @@ export class TargetActions {
   read(i: Input): void {
     const s = this.state();
     if (i.pressed(TARGETS_KEY)) {
-      this.opened = !this.opened;
+      this.fold.toggle('targets');
       return;
     }
     if (i.pressed(TARGET_NONE_KEY)) {
       pickTarget(s.world.npcs, null);
-      this.opened = false;
+      this.fold.fold();
       return;
     }
     for (const row of this.list()) {
       if (i.pressed(this.codeFor(row.ship))) {
         pickTarget(s.world.npcs, row.ship);
         s.session.handFlown = false;
-        this.opened = false;
+        this.fold.fold();
         return;
       }
     }

@@ -43,9 +43,11 @@ function press(g: Game, code: string): void {
   const { g, viper } = chased(20_260_930);
   withoutSaving(() => g.step(1 / 60, 29));
   const labels = g.hudButtons().courses.map((b) => b.label);
-  check('with a hostile ship on the scanner, the list offers a run', labels[0]?.startsWith('RUN FOR IT'),
-    labels.join(' | '));
-  eq('...and says the ship outruns a police Viper', labels[0], 'RUN FOR IT — YOU ARE FASTER');
+  // The run stays under the header, whether the list is open or not
+  // (docs/TODO/215 M2): a pilot in a fight has no time for a tap.
+  const run = labels.find((l) => l.startsWith('RUN FOR IT'));
+  check('with a hostile ship on the scanner, the run is under the header', run !== undefined, labels.join(' | '));
+  eq('...and says the ship outruns a police Viper', run, 'RUN FOR IT — YOU ARE FASTER');
 
   press(g, COURSE_KEYS.run);
   eq('the run button sets the ship running', g.state.session.course, 'run');

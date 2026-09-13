@@ -1,12 +1,14 @@
 // The buttons over the flight view, built from what the cockpit sees
 // (docs/TODO/205 M5, docs/TODO/206 M3 and M5).
 //
-// Two columns over the sky, and a row in the console. The courses sit top
-// right: where the ship can go next, the course it flies now, fast forward,
-// and the offers that the situation raises. The target list sits bottom
-// left, where a thumb rests. The guns are a row at the bottom of the
-// console (docs/TODO/215 M1): the laser, the missile as two buttons, and the
-// E.C.M. The laser is the wide red button on the left of the row.
+// Two headers over the sky, and a row in the console. The course header sits
+// top right, closed by default, and its list opens as one row under it that
+// scrolls sideways (docs/TODO/215 M2). A course under way is the header, lit,
+// with fast forward beside it. A run from a fight and the offers the
+// situation raises sit under the header at all times, because each is
+// urgent. The target header sits bottom left, and its list opens as one row
+// above it. The guns are a row at the bottom of the console (docs/TODO/215
+// M1): the laser, the missile as two buttons, and the E.C.M.
 //
 // The guns and the target list sat bottom right until 2026-09-13, and the
 // list opened upward over the action. Chris: *"the buttons cover up the
@@ -26,29 +28,49 @@ import type { CoursePanel } from './course-actions.ts';
 import type { TargetPanel } from './target-actions.ts';
 import type { Prompt } from './prompts.ts';
 import type { ControlMode } from './controls.ts';
-import { COURSE_NAMES } from './courses.ts';
+import { COURSE_NAMES, type Course } from './courses.ts';
 import {
-  COURSE_KEYS, COURSE_SKIP_KEY, COURSE_STOP_KEY, TARGET_NONE_KEY, TARGETS_KEY,
+  COURSE_KEYS, COURSE_LIST_KEY, COURSE_SKIP_KEY, COURSE_STOP_KEY, TARGET_NONE_KEY, TARGETS_KEY,
 } from './bindings.ts';
 import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
 import { SKIP_SPEED } from '../constants/course.ts';
 import { LASER_RANGE } from '../constants/player-gun.ts';
 
+/** A course as a button: its words, and what stops it, under them. */
+const courseButton = (c: Course): HudButton =>
+  ({ code: COURSE_KEYS[c.kind], label: c.what, ...(c.why === null ? {} : { note: c.why }) });
+
 /**
- * The course panel as buttons (docs/TODO/205 M5). With no course, each course
- * is a button, and the galactic chart follows them. Over a course that flies,
- * one lit button names it and opens the list.
+ * The course header (docs/TODO/205 M5, docs/TODO/215 M2). Over a course that
+ * flies, one lit button names it, and fast forward sits beside it. With no
+ * course, one header opens the list, closed by default. A run from a fight
+ * stays under it, because a pilot in a fight has no time for a tap.
  */
-export function courseButtonsFor(p: CoursePanel, chart: string | null): HudButton[] {
+export function courseButtonsFor(p: CoursePanel): HudButton[] {
   if (p.rows === null) {
     return p.current === null ? [] : [
       { code: COURSE_STOP_KEY, label: COURSE_NAMES[p.current], lit: true, hint: 'TAP TO STOP' },
       skipButton(p),
     ].filter((b): b is HudButton => b !== null);
   }
-  const out: HudButton[] = p.rows.map((c) => ({
-    code: COURSE_KEYS[c.kind], label: c.what, ...(c.why === null ? {} : { note: c.why }),
-  }));
+  const ways = p.rows.filter((c) => c.kind !== 'run');
+  const out: HudButton[] = [{
+    code: COURSE_LIST_KEY, label: p.open ? 'ACTIONS ▴' : 'ACTIONS ▾', lit: p.open,
+    hint: p.open ? 'TAP TO FOLD' : `${ways.length} WAYS TO GO`,
+  }];
+  const run = p.rows.find((c) => c.kind === 'run');
+  if (run) out.push(courseButton(run));
+  return out;
+}
+
+/**
+ * The course row (docs/TODO/215 M2): every course but the run, and the local
+ * chart, as one row that scrolls sideways under the header. Empty while the
+ * header is closed, or while a course flies.
+ */
+export function courseRowFor(p: CoursePanel, chart: string | null): HudButton[] {
+  if (p.rows === null || !p.open) return [];
+  const out = p.rows.filter((c) => c.kind !== 'run').map(courseButton);
   if (chart) out.push({ code: chart, label: 'LOCAL CHART' });
   return out;
 }
@@ -88,34 +110,40 @@ export interface ActionSource {
 }
 
 /**
- * The target list as buttons, bottom left (docs/TODO/206 M3). Closed, it is
- * one button that opens it. Open, it is a row per ship with the range and
- * the standing. A row lets the computer choose again, and the last button
- * closes the list. It is empty while the pilot flies the slot, when the guns
- * wait.
+ * The target header, bottom left (docs/TODO/206 M3, docs/TODO/215 M2). It
+ * is one button that opens the list and folds it. Its hint is the count, or
+ * the pick. It is empty while the pilot flies the slot, when the guns wait,
+ * and while nothing is on the scanner.
  */
 export function targetButtonsFor(a: ActionSource): HudButton[] {
   if (a.trial) return [];
-  const out: HudButton[] = [];
   const t = a.targets;
-  if (t && t.open) {
-    for (const { code, row } of t.rows) {
-      const reach = row.range <= LASER_RANGE ? 'IN LASER RANGE' : 'OUT OF LASER RANGE';
-      out.push({
-        code, label: row.name, lit: row.picked,
-        // A rock's name IS its standing, so the hint says the range alone.
-        hint: row.name === row.standing ? reach : `${row.standing} · ${reach}`,
-        ...(row.cost ? { note: row.cost } : {}),
-      });
-    }
-    if (t.picked) out.push({ code: TARGET_NONE_KEY, label: 'LET THE COMPUTER CHOOSE' });
-  }
-  if (t && (t.rows.length > 0 || t.open)) {
-    out.push({
-      code: TARGETS_KEY, label: t.open ? 'CLOSE THE LIST' : 'TARGETS',
-      hint: t.picked ? `AIMING AT THE ${t.picked.name}` : 'CHOOSE WHAT TO FIGHT',
-    });
-  }
+  if (!t || (t.rows.length === 0 && !t.open)) return [];
+  const count = `${t.rows.length} ON THE SCANNER`;
+  return [{
+    code: TARGETS_KEY, label: t.open ? 'TARGETS ▴' : 'TARGETS ▾', lit: t.open,
+    hint: t.open ? 'TAP TO FOLD' : t.picked ? `AIMING AT THE ${t.picked.name}` : count,
+  }];
+}
+
+/**
+ * The target row (docs/TODO/215 M2): a button per ship with the range and
+ * the standing, and one that lets the computer choose again. It is one row
+ * that scrolls sideways above the header. Empty while the header is closed.
+ */
+export function targetRowFor(a: ActionSource): HudButton[] {
+  const t = a.targets;
+  if (a.trial || !t || !t.open) return [];
+  const out: HudButton[] = t.rows.map(({ code, row }) => {
+    const reach = row.range <= LASER_RANGE ? 'IN LASER RANGE' : 'OUT OF LASER RANGE';
+    return {
+      code, label: row.name, lit: row.picked,
+      // A rock's name IS its standing, so the hint says the range alone.
+      hint: row.name === row.standing ? reach : `${row.standing} · ${reach}`,
+      ...(row.cost ? { note: row.cost } : {}),
+    };
+  });
+  if (t.picked) out.push({ code: TARGET_NONE_KEY, label: 'LET THE COMPUTER CHOOSE' });
   return out;
 }
 

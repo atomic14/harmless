@@ -9,8 +9,8 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { COURSE_KEYS, COURSE_STOP_KEY } from '../src/game/bindings.ts';
-import { courseButtonsFor } from '../src/game/cockpit-buttons.ts';
+import { COURSE_KEYS, COURSE_LIST_KEY, COURSE_STOP_KEY } from '../src/game/bindings.ts';
+import { courseButtonsFor, courseRowFor } from '../src/game/cockpit-buttons.ts';
 import { keyCodeIfBound } from '../src/ui/key-help.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
@@ -58,13 +58,13 @@ function press(g: Game, code: string): void {
   eq('the station button picks the station course', g.state.session.course, 'station');
   eq('...and the list folds away', g.coursePanel()?.rows ?? null, null);
   eq('...leaving a button that says what the ship is doing, and fast forward',
-    courseButtonsFor(g.coursePanel()!, null).map((b) => b.label).join(), 'HEADING TO THE STATION,FAST FORWARD');
+    courseButtonsFor(g.coursePanel()!).map((b) => b.label).join(), 'HEADING TO THE STATION,FAST FORWARD');
 
   // A LIT BUTTON READS AS ON, SO A TAP TURNS IT OFF (Chris, 2026-09-12: *"I
   // think you should be able to click it to disengage it"*). It used to open
   // the list over the running course instead.
   eq('...and that button offers to stop the course',
-    courseButtonsFor(g.coursePanel()!, null)[0]?.hint, 'TAP TO STOP');
+    courseButtonsFor(g.coursePanel()!)[0]?.hint, 'TAP TO STOP');
   press(g, COURSE_STOP_KEY);
   eq('pressing it stops the course', g.state.session.course, null);
   eq('...and the console says so', g.state.session.messageText,
@@ -82,9 +82,16 @@ function press(g: Game, code: string): void {
   // The chart button opens the LOCAL chart, which shows what the tank can
   // reach (Chris, 2026-09-12).
   const g = arrived();
-  const chart = g.hudButtons().courses.find((b) => b.label === 'LOCAL CHART');
-  eq('the list carries a button for the local chart', chart?.code,
+  // The list is closed by default, behind its header (docs/TODO/215 M2).
+  eq('the list is closed behind its header', g.hudButtons().courses[0]?.label, 'ACTIONS ▾');
+  eq('...and the row is empty', g.hudButtons().courseRow.length, 0);
+  press(g, COURSE_LIST_KEY);
+  eq('the header opens it', g.hudButtons().courses[0]?.label, 'ACTIONS ▴');
+  const chart = g.hudButtons().courseRow.find((b) => b.label === 'LOCAL CHART');
+  eq('...and the row carries a button for the local chart', chart?.code,
     keyCodeIfBound('flight', 'openLocalChart'));
+  press(g, COURSE_LIST_KEY);
+  eq('a second tap folds it', g.hudButtons().courseRow.length, 0);
 }
 
 {
@@ -93,7 +100,8 @@ function press(g: Game, code: string): void {
   eq('a button the ship cannot fly picks nothing', g.state.session.course, null);
   eq('...and the console says what the ship needs', g.state.session.messageText,
     'NEEDS A MINING LASER AND FUEL SCOOPS');
-  const dim = courseButtonsFor(g.coursePanel()!, null).find((b) => b.code === COURSE_KEYS.mine);
+  // The row holds it, once the header is open (docs/TODO/215 M2).
+  const dim = courseRowFor({ ...g.coursePanel()!, open: true }, null).find((b) => b.code === COURSE_KEYS.mine);
   eq('...which its button also says, under its label', dim?.note, 'NEEDS A MINING LASER AND FUEL SCOOPS');
 }
 

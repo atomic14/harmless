@@ -158,3 +158,22 @@ Evidence:
   six left gauges split three and three across the two columns below.
 - **The missile squares are gone**, with their painter and four style
   rules. The S and E letters sit beside the compass.
+
+### M2
+
+- **One fold serves both lists**, `game/list-fold.ts`. It holds which list
+  is open, or neither, and a tap that opens one folds the other. The target
+  list's own flag went into it. No save carries it.
+- **The run stays under the header.** A list closed by default would hide
+  RUN FOR IT behind a tap, and a pilot in a fight has no time for one. The
+  run and the offers sit under the header at all times, and the row holds
+  the rest.
+- **A row scrolls sideways with a snap**, the full width, with the
+  scrollbar hidden. The course row sits under its header at the top. The
+  target row sits above its header at the bottom. So cause and effect stay
+  close. On a phone the second course button is cut at the edge, which is
+  what says the row scrolls.
+- **The chart is a row item.** LOCAL CHART left the header column for the
+  end of the course row.
+- **Three tests read the list through its header now**, and one reads the
+  run by name rather than by place.

@@ -474,7 +474,7 @@ const OUTSIDE: readonly Group[] = [
       // ...and the codes a course row sends, on both of its surfaces (docs/TODO/205 M4)
       'game/bindings.ts': [
         'GLOBAL_BINDINGS', 'FLIGHT_BINDINGS', 'NOT_IN_THE_SIMULATOR', 'BINDINGS',
-        'WHILE_PAUSED', 'COURSE_KEYS', 'COURSE_CHART_KEY', 'COURSE_STOP_KEY', 'COURSE_SKIP_KEY',
+        'WHILE_PAUSED', 'COURSE_KEYS', 'COURSE_CHART_KEY', 'COURSE_STOP_KEY', 'COURSE_SKIP_KEY', 'COURSE_LIST_KEY',
         'TARGETS_KEY', 'TARGET_NONE_KEY', 'TARGET_ROW_PREFIX', 'ROLL_STRIP_CODE',
       ],
       'game/screens/save-transfer.ts': ['NOT_A_SAVE', 'WRONG_VERSION', 'STORE_FULL'],

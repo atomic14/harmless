@@ -68,8 +68,12 @@ export interface HudSources {
   readonly messageTimer: number;
   /** the course buttons, finished — see `HudState.courses` */
   readonly courses: HudState['courses'];
-  /** the target list as buttons, finished — see `HudState.targetList` */
+  /** the course row, finished — see `HudState.courseRow` */
+  readonly courseRow: HudState['courseRow'];
+  /** the target header, finished — see `HudState.targetList` */
   readonly targetList: HudState['targetList'];
+  /** the target row, finished — see `HudState.targetRow` */
+  readonly targetRow: HudState['targetRow'];
   /** the guns, finished — see `HudState.guns` */
   readonly guns: HudState['guns'];
   /**
@@ -181,7 +185,9 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     messageText: s.messageText,
     messageTimer: s.messageTimer,
     courses: s.courses,
+    courseRow: s.courseRow,
     targetList: s.targetList,
+    targetRow: s.targetRow,
     guns: s.guns,
     playerPos: s.playerPos,
     playerQuat: s.playerQuat,

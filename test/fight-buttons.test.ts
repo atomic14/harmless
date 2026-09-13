@@ -10,7 +10,7 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { gunButtonsFor, targetButtonsFor } from '../src/game/cockpit-buttons.ts';
+import { gunButtonsFor, targetButtonsFor, targetRowFor } from '../src/game/cockpit-buttons.ts';
 import { attachHoldButtons } from '../src/engine/hold-buttons.ts';
 import { TARGET_NONE_KEY, TARGETS_KEY } from '../src/game/bindings.ts';
 import { pickedTarget } from '../src/game/targets.ts';
@@ -45,10 +45,13 @@ const base = {
   const listed = { ...base, targets: { open: false, rows: [row], picked: null } };
   check('the TARGETS button is in its own column, and not among the guns',
     targetButtonsFor(listed).some((x) => x.code === TARGETS_KEY) && !gunButtonsFor(listed).some((x) => x.code === TARGETS_KEY));
+  eq('closed, the header says how many are on the scanner', targetButtonsFor(listed)[0]?.hint, '1 ON THE SCANNER');
+  eq('...and the row is empty', targetRowFor(listed).length, 0);
   const open = { ...base, targets: { open: true, rows: [row], picked: null } };
-  eq('...and open, the column lists the ship and the button that closes it',
-    targetButtonsFor(open).map((x) => x.label).join('|'), 'KRAIT|CLOSE THE LIST');
-  eq('...and while the pilot flies the slot, the column is empty', targetButtonsFor({ ...open, trial: true }).length, 0);
+  eq('open, the header folds, and the row lists the ship (docs/TODO/215 M2)',
+    targetButtonsFor(open)[0]?.label + ' / ' + targetRowFor(open).map((x) => x.label).join('|'), 'TARGETS ▴ / KRAIT');
+  eq('...and while the pilot flies the slot, both are empty',
+    targetButtonsFor({ ...open, trial: true }).length + targetRowFor({ ...open, trial: true }).length, 0);
 }
 
 /** A commander in open space, with a trader and a pirate on the scanner. */

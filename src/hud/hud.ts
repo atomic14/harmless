@@ -76,11 +76,15 @@ export interface HudState {
    * message is. Which courses exist is `game/courses.ts`.
    */
   courses: readonly HudButton[];
+  /** the course row under its header, while it is open (docs/TODO/215 M2) */
+  courseRow: readonly HudButton[];
   /**
-   * The target list as buttons, bottom left. Finished, as the courses are.
-   * `targets` above is the marks over the ships; this is the column of rows.
+   * The target header, bottom left. Finished, as the courses are. `targets`
+   * above is the marks over the ships; this is the header of the list.
    */
   targetList: readonly HudButton[];
+  /** the target row above its header, while it is open (docs/TODO/215 M2) */
+  targetRow: readonly HudButton[];
   /**
    * The guns as buttons (docs/TODO/206 M3, docs/TODO/215 M1). They are the
    * laser, the missile as two buttons, and the E.C.M., in a row at the
@@ -245,7 +249,9 @@ export class Hud {
   private readonly dayEl = byId('day-display');
   private readonly messageEl = byId('message');
   private readonly courseStrip = new ButtonStrip(byId('courses'));
+  private readonly courseRowStrip = new ButtonStrip(byId('course-row'));
   private readonly targetStrip = new ButtonStrip(byId('targets'));
+  private readonly targetRowStrip = new ButtonStrip(byId('target-row'));
   private readonly gunStrip = new ButtonStrip(byId('guns'));
   private readonly flashEl = byId('damage-flash');
   private readonly exerciseEl = byId('exercise');
@@ -283,7 +289,9 @@ export class Hud {
   render(_dt: number, frame: HudFrame): void {
     this.messageEl.textContent = frame.messageTimer > 0 ? frame.messageText : '';
     this.courseStrip.paint(frame.courses);
+    this.courseRowStrip.paint(frame.courseRow);
     this.targetStrip.paint(frame.targetList);
+    this.targetRowStrip.paint(frame.targetRow);
     this.gunStrip.paint(frame.guns);
     this.speedEl.style.width = `${frame.speedFrac * 100}%`;
     this.rollEl.style.left = `${50 + clampUnit(frame.rollFrac) * 45}%`;

@@ -76,6 +76,13 @@ export const COURSE_STOP_KEY = 'VirtCourseStop';
 export const COURSE_SKIP_KEY = 'VirtCourseSkip';
 
 /**
+ * The header that opens and folds the course list (docs/TODO/215 M2). The
+ * list is closed by default, and its rows are a row that scrolls sideways
+ * under the header. It has no key, as the rows have none.
+ */
+export const COURSE_LIST_KEY = 'VirtCourseList';
+
+/**
  * The target list's buttons in flight (docs/TODO/206 M3). There are three
  * codes: the button that opens the list, the row that lets the computer
  * choose, and the prefix of a row's code. A row's code ends in a number that

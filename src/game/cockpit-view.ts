@@ -40,7 +40,10 @@ import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
 import type { HudButton } from '../hud/hud-buttons.ts';
 import type { CoursePanel } from './course-actions.ts';
 import { ROLL_STRIP_CODE } from './bindings.ts';
-import { courseButtonsFor, gunButtonsFor, offerButtons, targetButtonsFor, type ActionSource } from './cockpit-buttons.ts';
+import {
+  courseButtonsFor, courseRowFor, gunButtonsFor, offerButtons, targetButtonsFor, targetRowFor,
+  type ActionSource,
+} from './cockpit-buttons.ts';
 import type { TargetPanel } from './target-actions.ts';
 import { keymap } from '../engine/keymap.ts';
 import type { Command, ControlMode } from './controls.ts';
@@ -206,14 +209,33 @@ export class CockpitView {
    * @internal — public so that test/run-and-offers.test.ts reads the buttons
    * without a scrape of the page.
    */
-  buttons(): { courses: HudButton[]; targetList: HudButton[]; guns: HudButton[] } {
-    return { courses: this.courseButtons(), targetList: this.targetButtons(), guns: this.gunButtons() };
+  buttons(): {
+    courses: HudButton[]; courseRow: HudButton[]; targetList: HudButton[]; targetRow: HudButton[]; guns: HudButton[];
+  } {
+    return {
+      courses: this.courseButtons(), courseRow: this.courseRow(),
+      targetList: this.targetButtons(), targetRow: this.targetRow(), guns: this.gunButtons(),
+    };
   }
 
-  /** The target list, bottom left, in flight only. */
+  /** The target header, bottom left, in flight only. */
   private targetButtons(): HudButton[] {
     const source = this.actionSource();
     return source ? targetButtonsFor(source) : [];
+  }
+
+  /** The target row above it, while the header is open (docs/TODO/215 M2). */
+  private targetRow(): HudButton[] {
+    const source = this.actionSource();
+    return source ? targetRowFor(source) : [];
+  }
+
+  /** The course row under its header, while the header is open (docs/TODO/215 M2). */
+  private courseRow(): HudButton[] {
+    const panel = this.host.inFlight() ? this.host.coursePanel() : null;
+    if (!panel) return [];
+    const mode = this.host.controlMode();
+    return courseRowFor(panel, mode ? keyCodeIfBound(mode, 'openLocalChart') : null);
   }
 
   /** The gun row, in flight only (docs/TODO/206 M3, docs/TODO/215 M1). */
@@ -248,13 +270,13 @@ export class CockpitView {
     };
   }
 
-  /** The course buttons, in flight only. */
+  /** The course header and what sits under it, in flight only. */
   private courseButtons(): HudButton[] {
     const panel = this.host.inFlight() ? this.host.coursePanel() : null;
     if (!panel) return [];
     const mode = this.host.controlMode();
     return [
-      ...courseButtonsFor(panel, mode ? keyCodeIfBound(mode, 'openLocalChart') : null),
+      ...courseButtonsFor(panel),
       ...(mode ? offerButtons(this.offers(), mode) : []),
     ];
   }
@@ -340,7 +362,9 @@ export class CockpitView {
       messageText: this.state.session.messageText,
       messageTimer: this.state.session.messageTimer,
       courses: this.courseButtons(),
+      courseRow: this.courseRow(),
       targetList: this.targetButtons(),
+      targetRow: this.targetRow(),
       guns: this.gunButtons(),
       // Null in career flight. It is gated on the same `active` that gives the
       // exercise the keyboard (controlMode). The strip is the exercise's own

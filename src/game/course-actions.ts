@@ -20,7 +20,8 @@ import { courseList, type Course, type CourseKind, type CourseSituation, type Co
 import type { checkJump } from './hyperspace.ts';
 import type { GameState } from './state.ts';
 import type { Input } from '../engine/input.ts';
-import { COURSE_KEYS, COURSE_SKIP_KEY, COURSE_STOP_KEY } from './bindings.ts';
+import { COURSE_KEYS, COURSE_LIST_KEY, COURSE_SKIP_KEY, COURSE_STOP_KEY } from './bindings.ts';
+import type { ListFold } from './list-fold.ts';
 import { hostilesNear, hostilesOnScanner } from './hostility.ts';
 import { SKIP_SPEED } from '../constants/course.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
@@ -32,6 +33,8 @@ import { missionCourse } from './mission-course.ts';
  */
 export interface CoursePanel {
   readonly rows: readonly Course[] | null;
+  /** the list is open under its header (docs/TODO/215 M2) */
+  readonly open: boolean;
   readonly current: CourseKind | null;
   /**
    * The fast forward button, while a course flies: whether it is on, and why
@@ -61,6 +64,8 @@ export interface CourseHost {
 export class CourseActions {
   private readonly state: () => GameState;
   private readonly host: CourseHost;
+  /** the one fold the two lists share (docs/TODO/215 M2) */
+  private readonly fold: ListFold;
   /**
    * The fast forward button is on (docs/TODO/205 M7). Like the list itself, it is
    * how fast time passes for the player, and never what the world does. So no
@@ -68,9 +73,10 @@ export class CourseActions {
    */
   private skipping = false;
 
-  constructor(state: () => GameState, host: CourseHost) {
+  constructor(state: () => GameState, host: CourseHost, fold: ListFold) {
     this.state = state;
     this.host = host;
+    this.fold = fold;
   }
 
   /**
@@ -81,6 +87,7 @@ export class CourseActions {
     const current = this.state().session.course;
     return {
       rows: current === null ? this.list('flight') : null,
+      open: this.fold.isOpen('courses'),
       current,
       skip: current === null ? null : { on: this.skipping, block: this.skipBlock() },
     };
@@ -139,6 +146,11 @@ export class CourseActions {
       this.host.stopCourse();
       return;
     }
+    // The header opens the list, or folds it (docs/TODO/215 M2).
+    if (i.pressed(COURSE_LIST_KEY)) {
+      this.fold.toggle('courses');
+      return;
+    }
     // The fast forward button. A second press stops it.
     if (i.pressed(COURSE_SKIP_KEY)) {
       const block = this.skipBlock();
@@ -177,6 +189,7 @@ export class CourseActions {
       this.host.closeScreens();
       this.host.launch();
     }
+    this.fold.fold();
     this.state().session.course = kind;
     this.state().session.handFlown = false;
     // A run is the one course that flies in a fight, so it takes the stick
