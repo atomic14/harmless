@@ -13,7 +13,7 @@
 
 import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../../../constants/missions.ts';
 import type { Skeleton } from '../../model.ts';
-import { LANE_PIRATES } from '../lane.ts';
+import { LANE_PIRATES, PAIR } from '../lane.ts';
 
 export const ARC_VETITICE: Skeleton = {
   id: 'arc-vetitice',
@@ -51,7 +51,7 @@ export const ARC_VETITICE: Skeleton = {
       ],
     },
     {
-      id: 'manifest', verb: { kind: 'deliver' },
+      id: 'manifest', verb: { kind: 'deliver' }, spawn: [...PAIR],
       place: { kind: 'handover', toward: 'arc-xeer', ...ARC_HANDOVER_JUMPS },
       line: 'DIRECTOR: DELIVER THE MANIFEST TO {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [

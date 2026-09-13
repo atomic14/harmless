@@ -13,6 +13,7 @@ import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../..
 import { SOURCE_DESIGN } from '../../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../../game/ship-identity.ts';
 import type { Skeleton } from '../../model.ts';
+import { PAIR } from '../lane.ts';
 
 const TOWARD = { kind: 'handover', toward: 'arc-vetitice', ...ARC_HANDOVER_JUMPS } as const;
 
@@ -26,7 +27,7 @@ export const ARC_RABEDIRA: Skeleton = {
   offer: { galaxy: 1, done: ['arc-lave'] },
   legs: [
     {
-      id: 'paper', verb: { kind: 'deliver' }, place: { kind: 'band', ...SIDE_JOB_RANGE },
+      id: 'paper', verb: { kind: 'deliver' }, place: { kind: 'band', ...SIDE_JOB_RANGE }, spawn: [...PAIR],
       line: 'ENVOY: TAKE THE TRUCE PAPER TO {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: 'success', to: 'convoy', settle: { pay: ARC_PAY.deliver, say: 'PAPER DELIVERED — {PAY}. NOW THE ENVOY\'S BOA LEAVES FOR {TARGET}.' } },

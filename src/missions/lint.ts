@@ -26,7 +26,7 @@ import { distanceTenths } from '../galaxy/navigation.ts';
 import { routeTable } from '../galaxy/route.ts';
 import type { Leg, Skeleton } from './model.ts';
 import { specForDesign } from '../game/ship-specs.ts';
-import { verbJob, verbModule, verbNeedsShip, verbTriggers } from './verbs/registry.ts';
+import { jobRole, verbJob, verbModule, verbNeedsShip, verbTriggers } from './verbs/registry.ts';
 import { sameTrigger, triggerLabel } from './triggers.ts';
 import { pickByJumps } from './placement.ts';
 
@@ -47,6 +47,11 @@ export function lintSkeleton(
     if (verbNeedsShip(leg.verb)) {
       const role = verbJob(leg.verb) === 'hunt' ? 'pirate' : 'trader';
       if (!specForDesign(role, leg.verb.ship)) out.push(`${at}: no ${role} row for ${leg.verb.ship}`);
+    }
+    // A spawned ship with no row for its role is skipped at the arrival, in
+    // silence, and the surprise never comes (docs/TODO/214 M1).
+    for (const s of leg.spawn ?? []) {
+      if (!specForDesign(jobRole(s.job), s.ship)) out.push(`${at}: no ${jobRole(s.job)} row for the spawned ${s.ship}`);
     }
     if (!leg.next.some((b) => b.on === 'failed')) out.push(`${at}: no failed branch`);
     for (const t of verbModule(leg.verb.kind) ? verbTriggers(leg.verb) : []) {

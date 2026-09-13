@@ -158,7 +158,9 @@ console.log('\na hunted ship that runs has fled, not escaped');
   // commander has fled, and three arcs have a branch for it.
   const flown = (fleeing: boolean): string | undefined => {
     const g = onTheJob('side-hunt', 20_260_945);
-    const ship = g.state.world.npcs.find((n) => n.state.missionTag !== null);
+    // The target, and not the wingman that flies with it since 214 M1.
+    const tag = g.state.commander.missions.live[0].tag;
+    const ship = g.state.world.npcs.find((n) => n.state.missionTag === tag);
     if (!ship) throw new Error('the hunt spawned no ship');
     ship.state.fleeing = fleeing;
     ship.state.wantsDespawn = true;

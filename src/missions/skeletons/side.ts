@@ -19,7 +19,7 @@ import {
 import { SOURCE_DESIGN } from '../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../game/ship-identity.ts';
 import type { Branch, Skeleton } from '../model.ts';
-import { LANE_PIRATES } from './lane.ts';
+import { LANE_PIRATES, LONE_KRAIT, PAIR, wingmanOf } from './lane.ts';
 
 const FAIL: Branch = { on: 'failed', to: 'fail' };
 const LOCAL = { kind: 'side', anchor: 'local', patron: { kind: 'local' } } as const;
@@ -32,6 +32,7 @@ export const SIDE_HUNT: Skeleton = {
   legs: [{
     id: 'hunt', verb: { kind: 'hunt', ship: shipDesignIdOf(SOURCE_DESIGN.krait), canEscape: true },
     place: AWAY, line: 'BOUNTY: DESTROY THE KRAIT — LAST SEEN AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
+    spawn: [...wingmanOf(shipDesignIdOf(SOURCE_DESIGN.krait), 'side-hunt')],
     // A pirate cannot leave a system today, so a Krait that runs is a Krait
     // that comes back on the next arrival. A branch would change the dossier
     // hash, and 214 M4 makes the chase real (docs/TODO/213 M5).
@@ -51,7 +52,7 @@ export const SIDE_DELIVER: Skeleton = {
   pitch: 'A SEALED PACKET FOR A STATION ONE JUMP OUT. NO QUESTIONS, NO HOLD SPACE.',
   offer: {},
   legs: [{
-    id: 'run', verb: { kind: 'deliver' }, place: AWAY,
+    id: 'run', verb: { kind: 'deliver' }, place: AWAY, spawn: [...PAIR],
     line: 'DELIVERY: TAKE THE PACKET TO {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
       { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.deliver, say: 'THE PACKET IS DELIVERED. THE STATION PAYS {PAY}.' } },
@@ -68,7 +69,7 @@ export const SIDE_RECOVER: Skeleton = {
   offer: { scoops: true },
   legs: [
     {
-      id: 'find', verb: { kind: 'recover', item: 'station-canister' }, place: AWAY,
+      id: 'find', verb: { kind: 'recover', item: 'station-canister' }, place: AWAY, spawn: [...LONE_KRAIT],
       line: 'RECOVERY: SCOOP THE CANISTER ADRIFT AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
       next: [
         { on: 'success', to: 'home', settle: { pay: 0, say: 'THE CANISTER IS ABOARD. BRING IT BACK TO {TARGET}.' } },

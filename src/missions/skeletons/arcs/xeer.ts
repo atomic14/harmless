@@ -13,6 +13,7 @@ import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SCAN_SECONDS, SIDE_JOB_RANGE
 import { SOURCE_DESIGN } from '../../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../../game/ship-identity.ts';
 import type { Skeleton } from '../../model.ts';
+import { PAIR, wingmanOf } from '../lane.ts';
 
 const TOWARD = { kind: 'handover', toward: 'arc-edle', ...ARC_HANDOVER_JUMPS } as const;
 
@@ -38,6 +39,7 @@ export const ARC_XEER: Skeleton = {
     },
     {
       id: 'chase', verb: { kind: 'hunt', ship: shipDesignIdOf(SOURCE_DESIGN.ferDeLance), canEscape: true }, place: TOWARD,
+      spawn: [...wingmanOf(shipDesignIdOf(SOURCE_DESIGN.ferDeLance), 'chase')],
       line: 'ADMINISTRATOR: DESTROY THE FER-DE-LANCE — LAST SEEN AT {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: 'targetDestroyed', to: 'complete', settle: { pay: ARC_PAY.hunt, say: 'COURIER DESTROYED — {PAY} FROM XEER' } },
@@ -47,7 +49,7 @@ export const ARC_XEER: Skeleton = {
       ],
     },
     {
-      id: 'trail', verb: { kind: 'deliver' }, place: TOWARD,
+      id: 'trail', verb: { kind: 'deliver' }, place: TOWARD, spawn: [...PAIR],
       line: 'ADMINISTRATOR: REPORT THE COURIER\'S TRAIL AT {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: 'success', to: 'complete', settle: { pay: ARC_PAY.deliver, say: 'TRAIL REPORTED — {PAY} FROM XEER' } },

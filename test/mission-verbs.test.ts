@@ -57,7 +57,9 @@ console.log('\nrecover: a canister adrift, scooped and brought home');
   eq('the job opens on the find leg', live.leg, 'find');
   eq('...with a tagged canister adrift at the target',
     JSON.stringify(missionItems(st, target)), JSON.stringify([{ tag, kind: 'cargo' }]));
-  eq('...and no ship', missionSpawns(st, target).length, 0);
+  // ...and one Krait circling it, which answers to nothing (docs/TODO/214 M1).
+  eq('...and one pirate beside it that is not the leg\'s',
+    missionSpawns(st, target).filter((s) => s.tag !== tag).length, 1);
   const wrong = stepMissions(st, { kind: 'scooped', tag: 'somebody-else' }, moved(ctx, target));
   eq('another canister scooped moves nothing', wrong.state.live[0].leg, 'find');
   const got = stepMissions(st, { kind: 'scooped', tag }, moved(ctx, target));
@@ -153,6 +155,27 @@ console.log('\nsmuggle: the goods go aboard, and the patrol is the risk');
   eq('a dock elsewhere is neither', elsewhere.state.live.length, 1);
   const read = stepMissions(r.state, { kind: 'policeScan' }, moved(ctx, target));
   eq('a police scan on the way fails it', read.state.done[SIDE_SMUGGLE.id], 'fail');
+}
+
+console.log('\npirates wait at the jump-in (docs/TODO/214 M1)');
+{
+  // Chris, 2026-09-13: "there are pirates waiting for you when you jump in".
+  const hctx = boardFor(SIDE_HUNT);
+  const hst = accept(SIDE_HUNT, hctx);
+  const at = missionSpawns(hst, hst.live[0].target as number);
+  eq('a side hunt spawns the Krait and a wingman', at.length, 2);
+  check('...both flown as pirates', at.every((s) => s.job === 'hunt'));
+  check('...and only the target answers to the leg', at.filter((s) => s.tag === hst.live[0].tag).length === 1);
+  const dctx = boardFor(SIDE_DELIVER);
+  const dst = accept(SIDE_DELIVER, dctx);
+  eq('a delivery meets a pair at the far end', missionSpawns(dst, dst.live[0].target as number).length, 2);
+  eq('...and nothing at the world it was taken at', missionSpawns(dst, dctx.commander.systemIndex).length, 0);
+  const rctx = boardFor(SIDE_RECOVER);
+  const rst = accept(SIDE_RECOVER, rctx);
+  eq('a canister adrift has one Krait circling it', missionSpawns(rst, rst.live[0].target as number).length, 1);
+  const sctx = boardFor(SIDE_SCAN);
+  const sst = accept(SIDE_SCAN, sctx);
+  eq('a scan meets nobody but its subject', missionSpawns(sst, sst.live[0].target as number).length, 1);
 }
 
 console.log('\na local patron\'s standing is keyed by the world the job was taken at (docs/TODO/213 M4)');

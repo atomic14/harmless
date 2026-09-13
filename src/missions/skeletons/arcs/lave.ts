@@ -16,6 +16,7 @@ import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../..
 import { SOURCE_DESIGN } from '../../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../../game/ship-identity.ts';
 import type { Skeleton } from '../../model.ts';
+import { wingmanOf } from '../lane.ts';
 
 const COBRA = shipDesignIdOf(SOURCE_DESIGN.cobraMk3);
 
@@ -48,7 +49,7 @@ export const ARC_LAVE: Skeleton = {
       ],
     },
     {
-      id: 'runner', verb: { kind: 'hunt', ship: COBRA, canEscape: true },
+      id: 'runner', verb: { kind: 'hunt', ship: COBRA, canEscape: true }, spawn: [...wingmanOf(COBRA, 'runner')],
       place: { kind: 'handover', toward: 'arc-rabedira', ...ARC_HANDOVER_JUMPS },
       line: 'GOVERNOR: DESTROY THE SMUGGLER\'S COBRA — LAST SEEN AT {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [

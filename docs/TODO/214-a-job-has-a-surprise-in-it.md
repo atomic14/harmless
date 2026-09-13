@@ -133,4 +133,18 @@ Evidence:
 
 ## What the milestones found
 
-Written as each milestone lands.
+### M1
+
+- **The company lives in `skeletons/lane.ts`**, beside the lane pirates:
+  a pair of Sidewinders, a lone Krait, and a wingman of the target's own
+  design. A side hunt flies with a Krait wingman. A delivery meets the pair
+  at the far end, and a canister adrift has the Krait circling it. The arc
+  hunts fly with one of their kind, and the arc deliveries meet the pair.
+- **The lint holds a spawned ship to a roster row.** A design with no row
+  for its job's role was skipped at the arrival in silence.
+- **The flight probe moved.** A side hunt takes 7 seconds, from 4, and an
+  Asp hunt 24, from 12. The Asp pair killed a fresh commander in one run of
+  eight, which is the rate the open question asked for. A delivery meets
+  2.5 fights on the way in, from 1.4. Every other row is as it was.
+- **Two tests read the first tagged ship and met the wingman.** Both read
+  the leg's own tag now.
