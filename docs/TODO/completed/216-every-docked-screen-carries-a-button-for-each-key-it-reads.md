@@ -112,8 +112,32 @@ Evidence:
 
 ## What the milestones found
 
-(filled in as each lands)
+**M1 (2026-09-13).** The grid is 36 buttons in ten columns, and it fits a
+390 pixel frame at 34 pixels a key. A tap on K, I, 7, SPACE, M and DEL
+typed `KI7 ` in the frame, and ESC kept the old name. The rename screen
+had no button at all before this, so a phone could not leave it.
+
+**M2 (2026-09-13).** The first shape put the grid under the button row,
+and the row is sticky on a phone. It covered the grid. The row also reads
+as letters while the search runs, so a tap on DATA typed a D. So the row
+hides while the search runs, and the grid sits under the FIND line. A tap
+on F, L and E put the cursor on the first name that starts with LE, and
+ENTER kept it there.
+
+**M3 (2026-09-13).** A button with a row and a key selects the row first.
+That is one change in `ScreenHost.click`, and both lists share one
+painter for the two arrows. HOME and END keep no button. The trainer's
+report reads the modifier from the tap, as the cockpit does, so the
+shifted X button exports every record.
+
+**After the gate.** The key grid put `screens/chart.ts` at 414 lines. The
+search moved to `screens/chart-search.ts`, and the chart keeps the cursor.
+The two alphabets in the grid took lower-case names, because the constants
+gate read them as rules.
 
 ## Outcome
 
-(filled in at the end)
+Landed 2026-09-13, in four commits. Every docked screen carries a button
+for each key it reads. The three name screens and the chart's search type
+on a key grid. The charts find and estimate by a button. The test mode
+and the trainer step by arrows on each row. 6,114 assertions.
