@@ -28,7 +28,7 @@ console.log('\nthe last stretch into the slot');
 {
   const trial = gunButtonsFor({
     fireKey: 'KeyA', missiles: 3, armed: false, locked: false, armKey: 'KeyT',
-    launchKey: 'KeyM', disarmKey: 'KeyU', ecmKey: 'KeyE', targets: null, missileInbound: false, dockKey: null,
+    launchKey: 'KeyM', disarmKey: 'KeyU', ecmKey: 'KeyE', cloakKey: null, cloaked: false, targets: null, missileInbound: false, dockKey: null,
     trial: true, rails: true, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });
   eq('the stretch shows a strip and two held buttons, and no guns',
@@ -37,7 +37,7 @@ console.log('\nthe last stretch into the slot');
   // (docs/TODO/212). A strip that did nothing would be a lie.
   const lining = gunButtonsFor({
     fireKey: 'KeyA', missiles: 3, armed: false, locked: false, armKey: 'KeyT',
-    launchKey: 'KeyM', disarmKey: 'KeyU', ecmKey: 'KeyE', targets: null, missileInbound: false, dockKey: null,
+    launchKey: 'KeyM', disarmKey: 'KeyU', ecmKey: 'KeyE', cloakKey: null, cloaked: false, targets: null, missileInbound: false, dockKey: null,
     trial: true, rails: false, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });
   eq('while the computer lines up, the pilot sees one word and no controls',
@@ -312,7 +312,7 @@ console.log('\nthe docking computer is offered, and it takes the ship when asked
   // over.
   const source = (rails: boolean, fitted: boolean) => ({
     fireKey: 'KeyA', missiles: 0, armed: false, locked: false, armKey: 'KeyT',
-    launchKey: 'KeyM', disarmKey: 'KeyU', ecmKey: null, targets: null, missileInbound: false,
+    launchKey: 'KeyM', disarmKey: 'KeyU', ecmKey: null, cloakKey: null, cloaked: false, targets: null, missileInbound: false,
     dockKey: fitted ? dockKey : null,
     trial: true, rails, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });

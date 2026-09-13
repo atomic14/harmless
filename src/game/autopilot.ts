@@ -152,7 +152,7 @@ export class Autopilot {
     const s = this.state;
     return pickedTarget(s.world.npcs) !== null || hostilesNear(
       s.world.npcs, s.player.position, s.commander.legalStatus, this.playerToStation,
-      THREAT_RANGE);
+      THREAT_RANGE, s.session.cloaked);
   }
 
   /**

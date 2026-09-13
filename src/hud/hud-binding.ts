@@ -58,6 +58,8 @@ export interface HudSources {
   readonly inFlight: boolean;
   readonly witchspace: boolean;
   readonly assist: boolean;
+  /** the cloak runs (docs/TODO/219 M5) */
+  readonly cloaked: boolean;
   /** a bought docking computer holds the stick, so the slot is kinder to it */
   readonly dockingComputer: boolean;
   /** the pilot flies the last stretch into the slot (docs/TODO/207) */
@@ -234,6 +236,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     threatMarker,
     missionMarker,
     assist: s.assist,
+    cloaked: s.cloaked,
     trial: s.trial,
     rails: s.rails,
     armed: s.missileArmed,

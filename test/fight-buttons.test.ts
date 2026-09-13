@@ -20,12 +20,14 @@ console.log('\nthe gun row (docs/TODO/215 M1)');
 
 const base = {
   fireKey: 'KeyA', missiles: 3, armed: false, locked: false,
-  armKey: 'KeyT', disarmKey: 'KeyU', launchKey: 'KeyM', ecmKey: null, targets: null, missileInbound: false, dockKey: null,
+  armKey: 'KeyT', disarmKey: 'KeyU', launchKey: 'KeyM', ecmKey: null, cloakKey: null, cloaked: false, targets: null, missileInbound: false, dockKey: null,
   trial: false, rails: false, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
 };
 {
   const b = gunButtonsFor(base);
-  eq('the row is four buttons, left to right', b.map((x) => x.label).join('|'), 'FIRE LASER|ARM A MISSILE|FIRE THE MISSILE|E.C.M.');
+  // Five since docs/TODO/219 M5: the cloak, which no shop sells, keeps its place
+  // so a thumb learns the row.
+  eq('the row is five buttons, left to right', b.map((x) => x.label).join('|'), 'FIRE LASER|ARM A MISSILE|FIRE THE MISSILE|E.C.M.|CLOAK');
   check('the laser button is the first, and it holds the fire key rather than tapping it', b[0].hold === true && b[0].code === 'KeyA');
   eq('an unarmed missile button arms one', b.find((x) => x.code === 'KeyT')?.label, 'ARM A MISSILE');
   eq('...and says how many are left', b.find((x) => x.code === 'KeyT')?.hint, '3 LEFT');
@@ -35,11 +37,14 @@ const base = {
   eq('...and it still says how many are left', armed[1].hint, '3 LEFT');
   eq('...and the fire button is live, and says it has a lock', armed[2].code + ' ' + armed[2].hint, 'KeyM LOCKED ON');
   const none = gunButtonsFor({ ...base, missiles: 0 });
-  eq('with no missiles the row keeps its shape', none.length, 4);
+  eq('with no missiles the row keeps its shape', none.length, 5);
   eq('...and the arm button says why it is dim', none[1].note, 'NONE LEFT');
   eq('with no E.C.M. fitted the button says so', b[3].note, 'NOT FITTED');
+  eq('with no cloak fitted the button says so too', b[4].note, 'NOT FITTED');
+  const cloaked = gunButtonsFor({ ...base, cloakKey: 'KeyZ', cloaked: true });
+  check('a cloak that runs is lit, and says what it costs', cloaked[4].lit === true && /DRAINS THE BANK/.test(cloaked[4].hint ?? ''));
   check('...and with one it is live', gunButtonsFor({ ...base, ecmKey: 'KeyE' })[3].code === 'KeyE');
-  check('...and lit while a missile is inbound', gunButtonsFor({ ...base, ecmKey: 'KeyE', missileInbound: true })[3].lit === true);
+  check('...and lit while a missile is inbound', gunButtonsFor({ ...base, ecmKey: 'KeyE', cloakKey: null, cloaked: false, missileInbound: true })[3].lit === true);
   // The target list is its own column, on the left (Chris, 2026-09-13).
   const row = { code: 'VirtTarget1', row: { ship: {} as never, name: 'KRAIT', range: 1000, standing: 'HOSTILE', picked: false, cost: '' } };
   const listed = { ...base, targets: { open: false, rows: [row], picked: null } };

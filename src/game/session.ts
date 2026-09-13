@@ -87,6 +87,12 @@ export interface SessionState {
    */
   view: number;
   ccEngaged: boolean;
+  /**
+   * The cloak runs (docs/TODO/219 M5). No ship is hostile to the commander
+   * while it does, and the bank drains. A shot drops it, and so does the
+   * last bank. It is a session's state, so a restore starts uncloaked.
+   */
+  cloaked: boolean;
   beamTimer: number;
   dcEngaged: boolean;
   /**

@@ -49,7 +49,7 @@ import { ScriptedCoPilot } from '../src/game/scripted-co-pilot.ts';
 import { specsForSet } from '../src/game/set-roster.ts';
 import { blueprintSetFor } from '../src/game/blueprint-set.ts';
 import { random, randomDirection, seedWorld } from '../src/game/rng.ts';
-import { poolsLeft } from '../src/game/systems.ts';
+import { poolsLeft } from '../src/game/pools-left.ts';
 import { mean, quantile } from '../src/game/combat-sim-report.ts';
 import type { PlayerPoolPoints } from '../src/game/damage-units.ts';
 import type { FlightDemand } from '../src/player.ts';

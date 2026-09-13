@@ -137,7 +137,7 @@ export class FlightCourse {
         .map((c) => ({ at: c.object.position, velocity: c.velocity }))
         .sort((a, b) => a.at.distanceTo(p.position) - b.at.distanceTo(p.position)),
       threats: hostilesOnScanner(w.npcs, p.position, this.state.commander.legalStatus,
-        p.position.distanceTo(w.station.position)).map((n) => n.object.position),
+        p.position.distanceTo(w.station.position), s.cloaked).map((n) => n.object.position),
       // THE SOLID THINGS, so a line does not go through one. Three roles sit
       // still and are big enough to kill the commander. A rock hermit is 120
       // units across the radius, the derelict is 340, and a rock is 54. Every
@@ -202,7 +202,7 @@ export class FlightCourse {
     const s = this.state;
     if (!s.session.ccEngaged || s.session.course === null) return;
     if (!hostilesNear(s.world.npcs, s.player.position, s.commander.legalStatus,
-      s.player.position.distanceTo(s.world.station.position))) return;
+      s.player.position.distanceTo(s.world.station.position), undefined, s.session.cloaked)) return;
     s.session.course = null;
     this.coursePilot.reset();
     // QUEUED, not said. The torus drive drops in the same frame, on the same

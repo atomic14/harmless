@@ -92,6 +92,7 @@ export type Command =
   | 'launchMissile'
   | 'disarmMissile'
   | 'fireEcm'
+  | 'toggleCloak'
   | 'detonateEnergyBomb'
   | 'toggleCombatComputer'
   | 'toggleDockingComputer'

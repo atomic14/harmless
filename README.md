@@ -181,6 +181,7 @@ joystick the original supported.
 | 1 2 3 4 | front / rear / left / right view |
 | T / M / U | arm missile (locks in your sights) / fire / unarm |
 | E / TAB | E.C.M. / energy bomb (if fitted) |
+| Z | cloaking device — nobody sees you while it runs (if you ever come by one; no shop sells it) |
 | J | torus jump drive (8×, stars streak; cuts out when mass-locked) |
 | C | docking computer — flies you in; press again or touch the controls to take over |
 | ⇧C | contracts — the work you have signed for; the board itself is a station's |

@@ -132,6 +132,7 @@ export function freshSession(): SessionState {
     messageTimer: 0,
     hyperCountdown: -1,
     torusEngaged: false,
+    cloaked: false,
     witchspace: false,
     // No arrival happened yet, so no set is in force. See SessionState.
     blueprintSet: '',

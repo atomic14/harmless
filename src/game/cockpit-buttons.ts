@@ -88,6 +88,10 @@ export interface ActionSource {
   readonly launchKey: string | null;
   /** the E.C.M.'s key, or null when none is fitted */
   readonly ecmKey: string | null;
+  /** the cloak's key, or null with no cloaking device fitted (docs/TODO/219 M5) */
+  readonly cloakKey: string | null;
+  /** ...and whether it runs */
+  readonly cloaked: boolean;
   /** a hostile missile is on its way, so the E.C.M. is the button to press */
   readonly missileInbound: boolean;
   /**
@@ -209,6 +213,15 @@ export function gunButtonsFor(a: ActionSource): HudButton[] {
       : { code: a.ecmKey, label: 'E.C.M.', hint: 'DESTROYS MISSILES NEARBY' });
   } else {
     out.push({ code: 'ecm-none', label: 'E.C.M.', note: 'NOT FITTED' });
+  }
+  // The cloak, which no shop sells (docs/TODO/219 M5). The button stays, so
+  // a thumb learns the row, and it says why it does nothing.
+  if (a.cloakKey) {
+    out.push(a.cloaked
+      ? { code: a.cloakKey, label: 'CLOAK', lit: true, hint: 'IT DRAINS THE BANK — A SHOT GIVES YOU AWAY' }
+      : { code: a.cloakKey, label: 'CLOAK', hint: 'NOBODY SEES YOU WHILE IT RUNS' });
+  } else {
+    out.push({ code: 'cloak-none', label: 'CLOAK', note: 'NOT FITTED' });
   }
   return out;
 }

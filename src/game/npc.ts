@@ -153,6 +153,8 @@ export interface WorldView {
   fleet: readonly NpcShip[];
   /** 0 clean, 1 offender, 2 fugitive */
   playerLegal: number;
+  /** the commander's cloak runs, so no ship sees the commander (docs/TODO/219 M5) */
+  playerCloaked?: boolean;
   /**
    * Is a hostile missile ALREADY homing on the player?
    *

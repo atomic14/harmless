@@ -193,6 +193,8 @@ export class Docked {
     // the permanent way back (docs/TODO/106).
     const brief = this.state.commander.briefingSeen < BRIEFING_VERSION;
     if (brief) this.state.commander.briefingSeen = BRIEFING_VERSION;
+    // A docked ship is seen. The cloak drops here (docs/TODO/219 M5).
+    this.state.session.cloaked = false;
     this.applyStation(this.station.dock(arrival));
     if (brief) this.host.openScreen('briefing');
     // ...and the question the station will not proceed without an answer to,

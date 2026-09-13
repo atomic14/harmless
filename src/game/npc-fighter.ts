@@ -61,8 +61,9 @@ class Fighter implements NpcBehaviour {
   const toPlayer = tmpDir.copy(player.position).sub(ship.object.position);
   const distPlayer = toPlayer.length();
 
-  const aggressiveToPlayer =
-    isHostileToPlayer(ship, playerLegal, view.playerToStation ?? Infinity)
+  // A cloaked commander is nobody's business (docs/TODO/219 M5).
+  const aggressiveToPlayer = view.playerCloaked !== true
+    && isHostileToPlayer(ship, playerLegal, view.playerToStation ?? Infinity)
     && distPlayer < PLAYER_INTEREST_RANGE;
 
   if (aggressiveToPlayer) {

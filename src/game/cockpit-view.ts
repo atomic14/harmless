@@ -258,6 +258,8 @@ export class CockpitView {
       disarmKey: key('disarmMissile'),
       launchKey: key('launchMissile'),
       ecmKey: this.state.commander.equipment.ecm ? key('fireEcm') : null,
+      cloakKey: this.state.commander.equipment.cloak ? key('toggleCloak') : null,
+      cloaked: this.state.session.cloaked,
       missileInbound: this.ordnance.missileInbound,
       dockKey: this.state.commander.equipment.dockingComputer
         ? key('toggleDockingComputer') : null,
@@ -355,6 +357,7 @@ export class CockpitView {
       inFlight: this.host.inFlight(),
       witchspace: this.state.session.witchspace,
       assist: this.state.session.ccEngaged,
+      cloaked: this.state.session.cloaked,
       dockingComputer: this.state.session.dcEngaged,
       trial: this.state.session.dockTrial,
       rails: this.state.session.dockRails,

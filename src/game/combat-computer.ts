@@ -26,9 +26,8 @@ import {
 import type { NpcShip } from './npc.ts';
 import { isHostileToPlayer } from './hostility.ts';
 import { autopilotEcm } from './ordnance.ts';
-import {
-  aftShieldLeft, energyLeft, foreShieldLeft, poolsLeft, type ShipSystems,
-} from './systems.ts';
+import { type ShipSystems } from './systems.ts';
+import { aftShieldLeft, energyLeft, foreShieldLeft, poolsLeft } from './pools-left.ts';
 import {
   BRAIN_RATE_DECAY, BRAIN_RATE_RAMP, DECISION_INTERVAL,
 } from '../constants/brain-flight.ts';

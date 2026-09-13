@@ -164,6 +164,8 @@ export interface HudState {
   missionMarker: { x: number; y: number; behind: boolean } | null;
   /** combat computer engaged (shown in the view label slot) */
   assist: boolean;
+  /** the cloak runs, and the label says so before anything else (docs/TODO/219 M5) */
+  cloaked: boolean;
   /** the pilot flies the last stretch into the slot (docs/TODO/207) */
   trial: boolean;
   /** ...and the rails have it, so the mini game is on (docs/TODO/212) */
@@ -304,9 +306,10 @@ export class Hud {
     this.altEl.style.width = `${Math.min(100, frame.altitudeFrac * 100)}%`;
     this.cabinEl.style.width = `${Math.min(100, frame.cabinTemp * 100)}%`;
     this.cabinEl.style.background = frame.cabinTemp > CABIN_GAUGE_WARN ? RED : '';
-    this.viewEl.textContent = frame.rails ? '◆ THRUST IN, AND MATCH THE SLOT ◆'
-      : frame.trial ? '◆ THE COMPUTER IS LINING THE SHIP UP ◆'
-        : frame.assist ? '◆ THE COMPUTER IS AIMING ◆' : (VIEW_NAMES[frame.view] ?? '');
+    this.viewEl.textContent = frame.cloaked ? '◆ CLOAKED ◆'
+      : frame.rails ? '◆ THRUST IN, AND MATCH THE SLOT ◆'
+        : frame.trial ? '◆ THE COMPUTER IS LINING THE SHIP UP ◆'
+          : frame.assist ? '◆ THE COMPUTER IS AIMING ◆' : (VIEW_NAMES[frame.view] ?? '');
     this.crosshairEl.style.display = frame.hasLaser ? '' : 'none';
     this.shipIdEl.textContent = frame.shipId;
     this.drawEnergy(frame);

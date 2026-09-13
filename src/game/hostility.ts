@@ -109,8 +109,10 @@ export function isHostileToPlayer(
  */
 export function engaging(
   npc: HostileShip, playerPos: THREE.Vector3, legalStatus: number, playerToStation: number,
-  range: number = PLAYER_INTEREST_RANGE,
+  range: number = PLAYER_INTEREST_RANGE, cloaked = false,
 ): boolean {
+  // A cloaked ship is nobody's business (docs/TODO/219 M5).
+  if (cloaked) return false;
   return isHostileToPlayer(npc, legalStatus, playerToStation)
     && npc.object.position.distanceTo(playerPos) < range;
 }
@@ -123,9 +125,9 @@ export function engaging(
  */
 export function hostilesNear(
   npcs: readonly HostileShip[], playerPos: THREE.Vector3, legalStatus: number,
-  playerToStation: number, range?: number,
+  playerToStation: number, range?: number, cloaked = false,
 ): boolean {
-  return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation, range));
+  return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation, range, cloaked));
 }
 
 /**
@@ -136,8 +138,9 @@ export function hostilesNear(
  */
 export function hostilesOnScanner<T extends HostileShip>(
   npcs: readonly T[], playerPos: THREE.Vector3, legalStatus: number,
-  playerToStation: number,
+  playerToStation: number, cloaked = false,
 ): T[] {
+  if (cloaked) return [];
   return npcs.filter((npc) => isHostileToPlayer(npc, legalStatus, playerToStation)
     && npc.object.position.distanceTo(playerPos) <= SCANNER_RANGE);
 }

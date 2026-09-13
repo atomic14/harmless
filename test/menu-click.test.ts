@@ -42,10 +42,10 @@ console.log('\na click on a row sends the modifier the row prints');
 
   // The false fire, through the click path this time. One shifted click must
   // not arm a DIFFERENT shifted binding in the same frame.
-  // `KeyZ` is bound to nothing in the cockpit, so the scan runs past it and
+  // `KeyX` is bound to nothing in the cockpit, so the scan runs past it and
   // reaches the Y pair. `KeyT` would arm a missile and stop the scan first.
   const both = new Input();
-  host.click(row('KeyZ', true), both);
+  host.click(row('KeyX', true), both);
   host.click(row('KeyY'), both);
   const asked = commandsFor('flight', both);
   check('a shifted click leaves another key unshifted',

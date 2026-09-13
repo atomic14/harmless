@@ -77,10 +77,8 @@ import type { LaserType } from '../game/commander.ts';
 import { pirateSpecForTier } from '../game/ship-specs.ts';
 import { npcVsNpcs, playerVsNpcs } from '../game/collisions.ts';
 import { MAX_ENERGY, MAX_SHIELD } from '../constants/pools.ts';
-import {
-  aftShieldLeft, applyDamage, durability, energyLeft, foreShieldLeft,
-  freshSystems, poolsLeft, regenerate, type RegenOptions, type ShipSystems,
-} from '../game/systems.ts';
+import { applyDamage, freshSystems, regenerate, type RegenOptions, type ShipSystems } from '../game/systems.ts';
+import { aftShieldLeft, durability, energyLeft, foreShieldLeft, poolsLeft } from '../game/pools-left.ts';
 import { seedWorld, random, randomDirection } from '../game/rng.ts';
 import {
   act, makeObs, makeScratch, type Brain, type Control,

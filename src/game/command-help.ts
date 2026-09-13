@@ -133,6 +133,7 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
   launchMissile: { what: 'fire the armed missile', section: 'combat' },
   disarmMissile: { what: 'unarm the missile', section: 'combat' },
   fireEcm: { what: 'E.C.M. — destroys incoming missiles (if fitted)', section: 'combat' },
+  toggleCloak: { what: 'cloaking device — nobody sees you while it runs (if you ever come by one)', section: 'combat' },
   detonateEnergyBomb: {
     what: 'energy bomb — destroys everything close by (if fitted)',
     section: 'combat',

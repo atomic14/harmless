@@ -26,6 +26,7 @@
 // across — no migration path. `test/damage-paths.test.ts` fails if the old
 // rescaling names come back.
 
+import { CLOAK_ENERGY_PER_SECOND, CLOAK_MIN_ENERGY } from '../constants/cloak.ts';
 import { random } from './rng.ts';
 import { LOW_ENERGY, MAX_ENERGY, MAX_SHIELD } from '../constants/pools.ts';
 import {
@@ -112,6 +113,17 @@ export function spendLaserEnergy(sys: ShipSystems): void {
 }
 
 /**
+ * The cloak's draw for one step (docs/TODO/219 M5). The pool is written
+ * here, because this file owns it.
+ *
+ * @returns true when the bank is down to its last one, so the cloak drops.
+ */
+export function spendCloakEnergy(sys: ShipSystems, dt: number): boolean {
+  sys.energy -= CLOAK_ENERGY_PER_SECOND * dt;
+  return sys.energy <= CLOAK_MIN_ENERGY;
+}
+
+/**
  * The recharge rating that `constants/recharge.ts`'s fractions were anchored
  * on. It is read from the catalogue rather than written as `1`. So a hull rated
  * 2 (the Fer-de-Lance) recovers twice as fast as the Cobra, whatever the
@@ -155,65 +167,6 @@ export function repairAtStation(sys: ShipSystems): void {
   sys.aftShieldCarry = 0;
   sys.energyCarry = 0;
   sys.laserTemp = 0;
-}
-
-/**
- * How much damage this ship can absorb before energy reaches zero, in POOL
- * POINTS. It is one shield face plus the whole energy bank. It is both faces
- * for a commander who manoeuvres, so that hits land front and back.
- *
- * There is no multiplier into energy. The facing shield takes a hit, and the
- * remainder spills straight into the bank. So this is a plain sum, and the
- * balance harness reads it.
- */
-export function durability(bothFaces = false): number {
-  return (bothFaces ? MAX_SHIELD * 2 : MAX_SHIELD) + MAX_ENERGY;
-}
-
-/**
- * HOW MUCH OF THIS SHIP IS LEFT, 0..1 — both faces and the bank, over
- * everything they can hold.
- *
- * ONE HOME: it is the number a defence policy observes (`observeDefend` slot
- * 14), observed in two worlds (the trainer's `TargetShip` and the game's combat
- * computer). Written out twice it would drift. The policy would then fly out of
- * the distribution it was fitted in, and no gate would say so.
- */
-export function poolsLeft(sys: ShipSystems): number {
-  return (sys.foreShield + sys.aftShield + sys.energy) / durability(true);
-}
-
-/**
- * The ENERGY BANK alone, 0..1 — `observeDefend` slot 15, and the same one-home
- * argument as `poolsLeft`.
- *
- * It is separate from `poolsLeft`, because the bank is three things at once:
- *
- * 1. what the ship DIES at;
- * 2. what the shields will not recover past (`energyLow`);
- * 3. what the E.C.M. spends a quarter of.
- *
- * A full pair of shields hides an empty one.
- */
-export function energyLeft(sys: ShipSystems): number {
-  return sys.energy / MAX_ENERGY;
-}
-
-/**
- * Each shield FACE alone, 0..1 — `observeDefend` slots 27 and 28, same one-home
- * argument as the two above.
- *
- * The pair exists because `poolsLeft` hides the split. An attacker on your six
- * spends a different face from one head-on (`applyDamage`, `hitFromAhead`). So
- * "keep the good face toward him" is flyable only if the policy can see which
- * face is the good one.
- */
-export function foreShieldLeft(sys: ShipSystems): number {
-  return sys.foreShield / MAX_SHIELD;
-}
-
-export function aftShieldLeft(sys: ShipSystems): number {
-  return sys.aftShield / MAX_SHIELD;
 }
 
 export interface DamageResult {

@@ -302,10 +302,10 @@ console.log('\none shifted tap does not arm every shifted binding in the frame')
   // "shift is down" set by one click would make a plain Y satisfy ⇧Y — five
   // tonnes over the side instead of one, from a click on a menu row.
   //
-  // `KeyZ` is bound to nothing in the cockpit, so the scan runs past it and
+  // `KeyX` is bound to nothing in the cockpit, so the scan runs past it and
   // reaches the Y pair. It stands for whatever row was actually clicked.
   const i = new Input();
-  i.injectPress('KeyZ', true);          // a shifted tap on some other control
+  i.injectPress('KeyX', true);          // a shifted tap on some other control
   i.injectPress('KeyY');                // ...and a plain Y in the same frame
   const asked = commandsFor('flight', i);
   eq('a plain Y still jettisons ONE tonne', asked.join('|'), 'jettison1');

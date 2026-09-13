@@ -12,18 +12,8 @@
 
 import { check, eq } from './harness.ts';
 import { COBRA_MK_3_HULL_ID, PLAYER_HULL_IDS } from '../src/game/ship-identity.ts';
-import {
-  applyDamage,
-  durability,
-  energyRegenPerSecond,
-  freshSystems,
-  regenerate,
-  repairAtStation,
-  scoopFuel,
-  updateCabinTemp,
-  type RegenOptions,
-  type ShipSystems,
-} from '../src/game/systems.ts';
+import { applyDamage, energyRegenPerSecond, freshSystems, regenerate, repairAtStation, scoopFuel, updateCabinTemp, type RegenOptions, type ShipSystems } from '../src/game/systems.ts';
+import { durability } from '../src/game/pools-left.ts';
 import {
   ENERGY_BANKS, LOW_ENERGY, MAX_ENERGY, MAX_SHIELD,
 } from '../src/constants/pools.ts';

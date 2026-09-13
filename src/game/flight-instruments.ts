@@ -187,6 +187,22 @@ export class Instruments {
     this.applyAutopilot(this.autopilot.toggleCombat());
   }
 
+  /**
+   * The cloak, on or off, on its key or its button (docs/TODO/219 M5). A
+   * ship without the fit is told so. The drain and the drop are the world
+   * step's, because they run on time and on the shot.
+   */
+  toggleCloak(): void {
+    const s = this.state;
+    if (!s.commander.equipment.cloak) {
+      this.host.showMessage('NO CLOAKING DEVICE FITTED', 3);
+      return;
+    }
+    s.session.cloaked = !s.session.cloaked;
+    this.host.showMessage(s.session.cloaked
+      ? 'CLOAKED — NOBODY OUT THERE SEES YOU' : 'UNCLOAKED', 3);
+  }
+
   toggleMouseFlight(): void {
     if (this.input.mouseFlight) {
       this.input.releaseMouseFlight();

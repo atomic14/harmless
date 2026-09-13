@@ -1243,6 +1243,7 @@ export class Game {
     launchMissile: () => this.flight_.racks.launchMissile(),
     disarmMissile: () => this.flight_.racks.disarmMissile(),
     fireEcm: () => this.flight_.racks.triggerEcm(),
+    toggleCloak: () => this.flight_.switches.toggleCloak(),
     detonateEnergyBomb: () => this.flight_.racks.detonateEnergyBomb(),
     toggleCombatComputer: () => this.flight_.switches.toggleCombatComputer(),
     toggleDockingComputer: () => this.flight_.switches.dockingComputer(),

@@ -61,7 +61,7 @@
 import { Episode, type Controller } from '../src/ai-training/scenario.ts';
 import { brainFromFile, type Brain, type BrainFile } from '../src/ai-training/policy.ts';
 import { readFileSync } from 'node:fs';
-import { durability } from '../src/game/systems.ts';
+import { durability } from '../src/game/pools-left.ts';
 import { MAX_SHIELD } from '../src/constants/pools.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
 

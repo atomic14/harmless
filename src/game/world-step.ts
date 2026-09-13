@@ -63,7 +63,7 @@ import {
   NPC_HULL_BOX_MARGIN, COMPUTER_ROLL_TOLERANCE, ROLL_TOLERANCE,
 } from '../constants/docking.ts';
 import { BOUNCE_STANDOFF } from '../constants/station.ts';
-import { regenerate, updateCabinTemp, scoopFuel, energyLow } from './systems.ts';
+import { regenerate, updateCabinTemp, scoopFuel, energyLow, spendCloakEnergy } from './systems.ts';
 import { SUN_KILL_DIST } from '../constants/sun.ts';
 import { PLANET_CRASH_ALTITUDE } from '../constants/planet.ts';
 import {
@@ -537,6 +537,7 @@ export class WorldStep {
       dockZ: world.stationDockZ,
       fleet: world.npcs,
       playerLegal: s.commander.legalStatus,
+      playerCloaked: s.session.cloaked,
       brains: s.brains,
       missileInbound: this.ordnance.missileInbound,
       sunPos: world.sunPos,
@@ -834,6 +835,17 @@ export class WorldStep {
     if (demand.fire) this.host.fireLaser();
     regenerate(sys, dt,
       { shipId: commander.shipId, energyUnit: commander.equipment.energyUnit });
+    // THE CLOAK (docs/TODO/219 M5). A shot is a flare, so the trigger drops
+    // it. The bank pays for the rest, and the last bank is never spent on it.
+    if (session.cloaked) {
+      if (demand.fire) {
+        session.cloaked = false;
+        out.push(say('UNCLOAKED — A SHOT IS A FLARE', 3));
+      } else if (spendCloakEnergy(sys, dt)) {
+        session.cloaked = false;
+        out.push(say('THE CLOAK FAILED — ENERGY LOW', 3));
+      }
+    }
 
     const sunDist = player.position.distanceTo(world.sunPos);
     if (updateCabinTemp(sys, dt, sunDist)) {

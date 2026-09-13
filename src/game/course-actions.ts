@@ -110,7 +110,7 @@ export class CourseActions {
     const s = this.state();
     if (s.session.course === null) return 'CHOOSE WHERE TO GO FIRST';
     if (hostilesNear(s.world.npcs, s.player.position, s.commander.legalStatus,
-      s.player.position.distanceTo(s.world.station.position))) {
+      s.player.position.distanceTo(s.world.station.position), undefined, s.session.cloaked)) {
       return 'NOT WITH A HOSTILE SHIP NEARBY';
     }
     return null;
@@ -238,7 +238,7 @@ export class CourseActions {
   private threat(): CourseWorld['threat'] {
     const s = this.state();
     const hostile = hostilesOnScanner(s.world.npcs, s.player.position,
-      s.commander.legalStatus, s.player.position.distanceTo(s.world.station.position));
+      s.commander.legalStatus, s.player.position.distanceTo(s.world.station.position), s.session.cloaked);
     if (hostile.length === 0) return null;
     return {
       fastest: Math.max(...hostile.map((n) => n.maxSpeed)),

@@ -133,6 +133,8 @@ const FLIGHT_BINDINGS: readonly Binding[] = [
   { key: 'KeyM', command: 'launchMissile' },
   { key: 'KeyU', command: 'disarmMissile' },
   { key: 'KeyE', command: 'fireEcm' },
+  // Z, one of the two plain letters that were free (docs/TODO/219 M5).
+  { key: 'KeyZ', command: 'toggleCloak' },
   { key: 'KeyK', command: 'toggleCombatComputer' },
   { key: 'KeyV', command: 'toggleMouseFlight' },
   { key: 'Tab', command: 'detonateEnergyBomb' },
