@@ -23,7 +23,7 @@ import type { CommanderFacts, MissionState } from '../../../src/missions/model.t
 const g1 = generateGalaxy(1);
 const g2 = generateGalaxy(2);
 const facts = (o: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: new Array(17).fill(0), scoops: true, ...o,
+  galaxy: 1, systemIndex: 7, kills: 16, combatScore: 0, legalStatus: 0, day: 0, cargo: new Array(17).fill(0), scoops: true, ...o,
 });
 const ctx = (c: Partial<CommanderFacts> = {}, systems = g1, skeletons?: readonly typeof SKELETONS[number][]) =>
   ({ commander: facts(c), systems, rng: () => 0.5, ...(skeletons ? { skeletons } : {}) });

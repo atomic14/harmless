@@ -49,6 +49,8 @@ function onSideJob(g: Game, skeleton: string): void {
   const c = g.state.commander;
   for (let world = 0; world < 256 && c.missions.live.length === 0; world++) {
     c.systemIndex = world;
+    // Sixteen kills, so the jobs the board gates are on it (docs/TODO/217 M2).
+    c.kills = 16;
     withoutSaving(() => runMissions(c, { kind: 'accept', skeleton }, g.state.systems, () => 0.5));
   }
   if (!c.missions.live[0]) throw new Error(`no world offers ${skeleton}`);
@@ -175,7 +177,7 @@ const asp = shipDesignIdOf(SOURCE_DESIGN.asp);
 const fdl = shipDesignIdOf(SOURCE_DESIGN.ferDeLance);
 
 const CASES: Case[] = [
-  { name: 'side-hunt: a Krait, pulse laser', kit: {}, put: (g) => onSideJob(g, 'side-hunt'),
+  { name: 'side-hunt: a gang of four, pulse laser', kit: {}, put: (g) => onSideJob(g, 'side-hunt'),
     key: COURSE_KEYS.mission, seconds: 300, until: (g) => done(g, 'side-hunt'), failed: (g) => failed(g, 'side-hunt'), trigger: true },
   { name: 'arc-lave runner: a Cobra Mk III, pulse laser', kit: {}, put: (g) => onArcHunt(g, 'arc-lave', 'runner', cobra),
     key: COURSE_KEYS.mission, seconds: 300, until: (g) => leg(g) !== 'runner', failed: (g) => failed(g, 'arc-lave'), trigger: true },

@@ -13,8 +13,8 @@
 
 import { NARCOTICS } from '../../constants/commodities.ts';
 import {
-  GANG_BOUNTY, GANG_BROKEN_BOUNTY, RESCUE_SALVAGE_PAY, SCAN_SECONDS, SIDE_JOB_DAYS, SIDE_JOB_PAY,
-  SIDE_JOB_RANGE, SMUGGLE_TONNES,
+  GANG_BOUNTY, GANG_BROKEN_BOUNTY, GANG_HUNT_KILLS, LANE_JOB_KILLS, RESCUE_SALVAGE_PAY, SCAN_SECONDS,
+  SIDE_JOB_DAYS, SIDE_JOB_PAY, SIDE_JOB_RANGE, SMUGGLE_TONNES,
 } from '../../constants/missions.ts';
 import { SOURCE_DESIGN } from '../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../game/ship-identity.ts';
@@ -35,7 +35,8 @@ const AWAY = { kind: 'band', ...SIDE_JOB_RANGE } as const;
 export const SIDE_HUNT: Skeleton = {
   ...LOCAL, id: 'side-hunt', hail: 'THE STATION HAS A BOUNTY POSTED',
   pitch: 'A GANG HAS BEEN TAKING SHIPS ON THE LANE. THE STATION WANTS EVERY ONE OF THEM GONE.',
-  offer: {},
+  // The board waits for a Mostly Harmless commander (docs/TODO/217 M2).
+  offer: { minKills: GANG_HUNT_KILLS },
   legs: [{
     id: 'hunt',
     verb: {
@@ -132,7 +133,9 @@ export const SIDE_RESCUE: Skeleton = {
 export const SIDE_AMBUSH: Skeleton = {
   ...LOCAL, id: 'side-ambush', hail: 'THE STATION NEEDS A LANE CLEARED',
   pitch: 'PIRATES HOLD THE LANE TO A NEIGHBOUR. FLY IT, FIGHT THROUGH, AND DOCK THERE.',
-  offer: {},
+  // A pack of three on the way, so the board waits for four kills
+  // (docs/TODO/217 M2).
+  offer: { minKills: LANE_JOB_KILLS },
   legs: [{
     id: 'lane', verb: { kind: 'ambush' }, place: AWAY, spawn: [...LANE_PIRATES],
     line: 'LANE: FLY TO {TARGET} THROUGH WHATEVER WAITS, AND DOCK', deadlineDays: SIDE_JOB_DAYS,
@@ -164,7 +167,9 @@ export const SIDE_SMUGGLE: Skeleton = {
 export const SIDE_ESCORT: Skeleton = {
   ...LOCAL, id: 'side-escort', hail: 'A TRADER AT THE STATION WANTS COVER',
   pitch: 'A PYTHON IS LEAVING FOR A NEIGHBOUR AND WANTS A GUN BESIDE HER. SEE HER INTO STATION RANGE.',
-  offer: {},
+  // A pack of three on the way, so the board waits for four kills
+  // (docs/TODO/217 M2).
+  offer: { minKills: LANE_JOB_KILLS },
   legs: [{
     id: 'cover', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.python) }, place: AWAY, spawn: [...PAIR],
     line: 'ESCORT: SEE THE PYTHON INTO STATION RANGE AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,

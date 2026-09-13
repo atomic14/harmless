@@ -6,6 +6,8 @@
 // of a credit (invariant 8), and distances are in tenths of a light year, as
 // everywhere else.
 
+import { RATINGS } from './rating.ts';
+
 /**
  * Kills before the Navy considers you worth a word: 16, as the original demanded.
  * It is the one gate that this game keeps from the 1984 mission structure.
@@ -127,6 +129,28 @@ export const GANG_BOUNTY = 15_000;
  * @rule missions.gangBrokenBounty
  */
 export const GANG_BROKEN_BOUNTY = GANG_BOUNTY / 2;
+
+/**
+ * Kills before the board offers the gang hunt (docs/TODO/217 M2). Chris
+ * asked for gates by kills on 2026-09-13. It is the kills of the second
+ * rung, Mostly Harmless. So a commander who reads that word on the status
+ * screen finds the job on the board. A gang of four kills a Harmless one.
+ * The Navy asks for twice as many (`MISSION_KILL_THRESHOLD`).
+ *
+ * @rule missions.gangHuntKills
+ */
+export const GANG_HUNT_KILLS = RATINGS[1][0];
+
+/**
+ * Kills before the board offers a lane to clear or a trader to cover: half
+ * the gang hunt's (docs/TODO/217 M2). Both jobs meet a pack of three on
+ * the way, and both let a commander choose the range. The delivery, the
+ * scan and the smuggle stay open, and the two scoop jobs ask for scoops.
+ *
+ * @domain missions
+ * @rule missions.laneJobKills
+ */
+export const LANE_JOB_KILLS = GANG_HUNT_KILLS / 2;
 
 /**
  * The lower fee a rescue pays when the pod is lost and the data still

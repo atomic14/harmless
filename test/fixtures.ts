@@ -113,9 +113,12 @@ export const paid = (effects: MissionEffect[]): number =>
 
 /** A world whose board carries `job`, and a context standing there. */
 export function boardFor(job: Skeleton, over: Partial<CommanderFacts> = {}): MissionContext {
+  // A Poor commander, so a job the board gates by kills is on some board
+  // (docs/TODO/217 M2). A test about the gate passes its own kills.
+  const blooded = { kills: 16, ...over };
   const world = g1.find((s) => canAccept(emptyMissionState(), job.id,
-    { commander: facts({ systemIndex: s.index }), skeletons: [job], systems: g1 }))!;
-  return { commander: facts({ systemIndex: world.index, ...over }), systems: g1, rng: () => 0.5, skeletons: [job] };
+    { commander: facts({ systemIndex: s.index, ...blooded }), skeletons: [job], systems: g1 }))!;
+  return { commander: facts({ systemIndex: world.index, ...blooded }), systems: g1, rng: () => 0.5, skeletons: [job] };
 }
 
 /** The same context, moved to another world. */

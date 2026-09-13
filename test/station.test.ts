@@ -77,10 +77,11 @@ function setup() {
       'presentation:tunnel:in',
       'presentation:screen:docked',
       // The governor of Lave's arc hails from the first dock (docs/TODO/192),
-      // and the three side jobs on Lave's board wait behind it as one line
-      // (docs/TODO/190 M4).
+      // and the side jobs on Lave's board wait behind it as one line
+      // (docs/TODO/190 M4). Lave's board holds three, and the gate hides
+      // one from a Harmless commander (docs/TODO/217 M2).
       'message:THE GOVERNOR OF LAVE HAS A JOB FOR YOU',
-      'message:THERE ARE 3 SIDE JOBS ON THE STATION BOARD.',
+      'message:THERE ARE 2 SIDE JOBS ON THE STATION BOARD.',
       'message:CONTRACT SETTLED',
     ].join('|'));
   check('dock still changes the core mode synchronously', x.mode() === 'docked');

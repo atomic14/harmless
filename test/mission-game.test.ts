@@ -362,6 +362,7 @@ console.log('\na restored mission ship takes the role its leg flies it under (do
   const g = withoutSaving(() => new Game(() => headlessShell())).value;
   dismissBriefing(g);
   const c = g.state.commander;
+  c.kills = 16;   // the board gates the escort by kills since docs/TODO/217 M2
   for (let world = 0; world < 256 && c.missions.live.length === 0; world++) {
     c.systemIndex = world;
     withoutSaving(() => runMissions(c, { kind: 'accept', skeleton: 'side-escort' }, g.state.systems, () => 0.5));

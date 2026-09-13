@@ -84,7 +84,8 @@ console.log('\na scoop springs an ambush, and so does the end of a scan (docs/TO
 
 console.log('\nambush: the lane has pirates while the leg is live (docs/TODO/203 M2)');
 {
-  const ctx: MissionContext = { commander: facts(), systems: g1, rng: () => 0.5, skeletons: [SIDE_AMBUSH] };
+  // Four kills, because the board gates the lane job (docs/TODO/217 M2).
+  const ctx: MissionContext = { commander: facts({ kills: 16 }), systems: g1, rng: () => 0.5, skeletons: [SIDE_AMBUSH] };
   const st = accept(SIDE_AMBUSH, ctx);
   const target = st.live[0].target as number;
   eq('the lane job spawns the lane pirates at its world',

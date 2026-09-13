@@ -41,6 +41,8 @@ function onTheJob(skeleton: string, seed: number): Game {
   }).value;
   const c = g.state.commander;
   c.equipment.scoops = true;
+  // Sixteen kills, so the jobs the board gates are on it (docs/TODO/217 M2).
+  c.kills = 16;
   // A side job is on about a third of the worlds' boards (missions/offers.ts).
   // So the commander stands where this one is offered.
   for (let world = 0; world < 256 && c.missions.live.length === 0; world++) {

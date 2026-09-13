@@ -328,7 +328,8 @@ console.log('\nthe survivors prompt counts a passenger, and the loader keeps the
 console.log('\na step that takes no branch still speaks (docs/TODO/203 M4)');
 {
   const said = (effects: MissionEffect[]): string[] => effects.flatMap((e) => (e.kind === 'say' ? [e.text] : []));
-  const ctx: MissionContext = { commander: facts(), systems: g1, rng: () => 0.5, skeletons: [SIDE_RESCUE, SIDE_AMBUSH] };
+  // Sixteen kills, because the board gates the lane job (docs/TODO/217 M2).
+  const ctx: MissionContext = { commander: facts({ kills: 16 }), systems: g1, rng: () => 0.5, skeletons: [SIDE_RESCUE, SIDE_AMBUSH] };
   const st = accept(SIDE_RESCUE, ctx);
   const tag = st.live[0].tag as string;
   const target = st.live[0].target as number;

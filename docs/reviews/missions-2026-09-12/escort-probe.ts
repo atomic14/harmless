@@ -25,6 +25,7 @@ function escortGame(k: number): Game {
   const c = g.state.commander;
   for (let world = 0; world < 256 && c.missions.live.length === 0; world++) {
     c.systemIndex = world;
+    c.kills = 16;   // the board gates the escort by kills since docs/TODO/217 M2
     withoutSaving(() => runMissions(c, { kind: 'accept', skeleton: 'side-escort' }, g.state.systems, () => 0.5));
   }
   c.missions.live[0].target = c.systemIndex;

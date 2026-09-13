@@ -138,6 +138,20 @@ Evidence:
 - **The pay repeats the courier's 1,500 Cr**, so the courier's constant
   gained a rule id.
 
+### M2
+
+- **The gates are two constants**, derived and not typed. The gang hunt
+  asks for the kills of the second rung, Mostly Harmless, and the lane job
+  and the escort ask for half of that. So the numbers hold their reason.
+- **What a fresh commander finds.** Every board holds two or three of the
+  eight side jobs from the seed. Under the gates, a Harmless commander
+  with no scoops finds 69 of the 256 boards empty. With scoops, 6. At four
+  kills with no scoops, 11. At eight kills with scoops, none. The three
+  open jobs are on 90, 73 and 60 boards each.
+- **Every test and probe that accepts a gated job now carries sixteen
+  kills**, and says so. The shared `boardFor` fixture bloods its commander,
+  and a test about the gate passes its own kills.
+
 ## Outcome
 
 (filled in at the end)
