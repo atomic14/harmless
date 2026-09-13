@@ -13,8 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [213](213-the-mission-rules-hold-and-a-hit-trader-goes-back-to-work.md) — the mission rules hold, and a hit trader goes back to work.
-2. [214](214-a-job-has-a-surprise-in-it.md) — a job has a surprise in it.
+1. [214](214-a-job-has-a-surprise-in-it.md) — a job has a surprise in it.
 
 **213 AND 214 CAME FROM CHRIS ON 2026-09-13**, after two reviews of the
 missions. `docs/MISSIONS-REVIEW.md` read the machine and found five rules
@@ -22,7 +21,8 @@ that do not hold. `docs/MISSIONS-FLIGHT-REVIEW.md` flew every kind of job
 and found the escort broken and the rest too easy. He said *"let's fix the
 broken parts"*, and then *"there should be surprises"*. 213 is the fixes.
 214 is the surprises: an ambush on a scoop, pirates at the jump-in, and an
-escort that needs the commander.
+escort that needs the commander. **213 landed the same day**, and it is
+below.
 
 **205 TO 208 CAME FROM CHRIS ON 2026-09-11, the day 204 landed.** He flew
 the touch controls of 204 on a phone, and he could not fly the ship. He
@@ -302,6 +302,19 @@ headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
+
+## What landed on 2026-09-13
+
+**213 — the mission rules hold, and a hit trader goes back to work.** A
+trader that took a hit ran for the rest of its life, so an escort's charge
+that a pirate grazed never reached the station. It goes back to work after
+twenty calm seconds, the escort course cannot ram it, and a course refuses
+a target below the planet. The escort finishes eight of eight in the flight
+probe, from four. A side job comes back a week after it ends. A smuggling
+run leaves its goods at the far end. Every arc is gated to galaxy 1, and a
+scoop job waits for the scoops. The gun warning speaks for the Constrictor
+alone. The loaders drop a ghost, the journal names its galaxy, and the lint
+holds every trigger a verb can emit. 6,029 assertions, from 5,972.
 
 ## What landed on 2026-09-12
 
