@@ -105,6 +105,10 @@ const faults: [string, Skeleton, readonly Skeleton[], string][] = [
   // A seed slot is an index that every galaxy has (docs/TODO/213 M2).
   ['a world patron with no galaxy gate',
     arc({ offer: {} }), [b], 'galaxy gate'],
+  // A handover is measured from every world, as a band is (docs/TODO/213 M4).
+  ['a handover with no candidate from some world',
+    arc({ legs: [{ ...legs()[0], place: { kind: 'handover', toward: 'b', min: 30, max: 40 } }, legs()[1]] }),
+    [b], 'no candidate from'],
 ];
 for (const [name, s, others, word] of faults) {
   const problems = lintSkeleton(s, [s, ...others], g1);

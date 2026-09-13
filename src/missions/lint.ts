@@ -24,6 +24,7 @@ import { routeTable } from '../galaxy/route.ts';
 import type { Leg, Skeleton } from './model.ts';
 import { specForDesign } from '../game/ship-specs.ts';
 import { verbJob, verbModule, verbNeedsShip } from './verbs/registry.ts';
+import { pickByJumps } from './placement.ts';
 
 export function lintSkeleton(
   s: Skeleton, all: readonly Skeleton[], systems: readonly StarSystem[],
@@ -49,8 +50,16 @@ export function lintSkeleton(
         out.push(`${at}: branch to unknown leg ${b.to}`);
       }
     }
-    if (leg.place.kind === 'handover' && !all.some((t) => t.id === (leg.place as { toward: string }).toward)) {
-      out.push(`${at}: handover toward unknown skeleton ${leg.place.toward}`);
+    if (leg.place.kind === 'handover') {
+      const toward = all.find((t) => t.id === (leg.place as { toward: string }).toward);
+      if (!toward) out.push(`${at}: handover toward unknown skeleton ${leg.place.toward}`);
+      // Measured from every world, as a band is (docs/TODO/213 M4). A leg
+      // that cannot be placed starts at any station, and that is a guard.
+      const goal = toward ? startOf(toward) : null;
+      const band = leg.place;
+      const dry = goal === null ? null
+        : systems.find((from) => pickByJumps(systems, from.index, goal, band, () => 0) === null);
+      if (dry) out.push(`${at}: handover ${band.min}-${band.max} has no candidate from ${dry.name}`);
     }
     if (leg.place.kind === 'band') {
       const band = leg.place;

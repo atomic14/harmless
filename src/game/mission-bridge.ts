@@ -11,7 +11,8 @@
 // ONE OPERATION. The record and its effects land together, before any save,
 // so a reload cannot find the credits paid and the leg still owed.
 
-import { COMMODITIES, generateGalaxy, type StarSystem } from '../galaxy/galaxy.ts';
+import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
+import { galaxySystems } from '../galaxy/galaxies.ts';
 import { afterDeed } from './character.ts';
 import { cargoCapacity, cargoTonnes, type CommanderData } from './commander.ts';
 import { random } from './rng.ts';
@@ -20,6 +21,8 @@ import { huntWarning } from './hunt-warning.ts';
 import { dossierWord } from '../missions/dossiers.ts';
 import { stepMissions } from '../missions/machine.ts';
 import { legOf } from '../missions/lookups.ts';
+import { liveLegs } from '../missions/queries.ts';
+import { jobRole, verbJob, verbNeedsShip } from '../missions/verbs/registry.ts';
 import type { CommanderFacts, LiveMission, MissionInput, Skeleton } from '../missions/model.ts';
 import { skeletonById } from '../missions/skeletons/index.ts';
 import { FUGITIVE } from '../constants/law.ts';
@@ -47,19 +50,6 @@ export function missionFacts(c: CommanderData): CommanderFacts {
 }
 
 /**
- * The systems of a galaxy, for a caller that holds only the commander.
- *
- * The wreck resolver and the world step have no `GameState.systems` in reach.
- * The galaxy is a pure function of its number, and a memo of one galaxy at a
- * time keeps the generator off the hot path.
- */
-let memo: { galaxy: number; systems: StarSystem[] } | null = null;
-function systemsOf(galaxy: number): readonly StarSystem[] {
-  if (!memo || memo.galaxy !== galaxy) memo = { galaxy, systems: generateGalaxy(galaxy) };
-  return memo.systems;
-}
-
-/**
  * Run one input through the machine, install the record, apply the costs.
  *
  * @returns the lines to say, in order. A `say` takes the console; a `later`
@@ -67,7 +57,7 @@ function systemsOf(galaxy: number): readonly StarSystem[] {
  */
 export function runMissions(
   c: CommanderData, input: MissionInput,
-  systems: readonly StarSystem[] = systemsOf(c.galaxy), rng: () => number = random,
+  systems: readonly StarSystem[] = galaxySystems(c.galaxy), rng: () => number = random,
   skeletons?: readonly Skeleton[],
 ): MissionMessage[] {
   const { state, effects } = stepMissions(c.missions, input, {
@@ -100,7 +90,7 @@ export function runMissions(
       // The lead's own galaxy names the world. An arc that fails on a galactic
       // jump leaves its lead in the galaxy it came from (docs/TODO/213 M2).
       case 'lead': {
-        const named = e.galaxy === c.galaxy ? systems : systemsOf(e.galaxy);
+        const named = e.galaxy === c.galaxy ? systems : galaxySystems(e.galaxy);
         out.push({
           kind: 'message', queued: true, seconds: 6,
           text: `THERE IS A LEAD. ASK AT ${named[e.world].name.toUpperCase()}.`,
@@ -145,10 +135,17 @@ export function runMissions(
   return out;
 }
 
-/** The roster row for a mission ship, by the design its entity names. */
+/**
+ * The roster row for a mission ship, by the design its entity names and the
+ * role its leg flies it under. Every tagged ship was looked up as a pirate
+ * until docs/TODO/213 M4, so a restored Python escort took a pirate's guns.
+ */
 export function missionShipSpec(c: CommanderData, tag: string): NpcSpec | undefined {
   const e = c.missions.entities[tag];
-  return e ? specForDesign('pirate', e.ship) : undefined;
+  if (!e) return undefined;
+  const leg = liveLegs(c.missions).find(({ live }) => live.tag === tag)?.leg;
+  const role = leg && verbNeedsShip(leg.verb) ? jobRole(verbJob(leg.verb)) : 'pirate';
+  return specForDesign(role, e.ship);
 }
 
 /**

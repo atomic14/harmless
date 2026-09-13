@@ -31,6 +31,7 @@ import type {
 import { canAccept } from './offers.ts';
 import { placeLeg } from './placement.ts';
 import { legOf, patronId, startWorld } from './lookups.ts';
+import { acceptedAt } from './queries.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, legPay, lineSlots } from './text.ts';
 import { sameTrigger, triggerLabel, wordKind } from './triggers.ts';
@@ -90,7 +91,7 @@ function accept(
   const first = skeleton.legs[0];
   const placed = placeLeg(first.place, st, c, ctx.systems, ctx.rng, id, ctx.skeletons ?? SKELETONS);
   if (!placed.ok) return;
-  st.journal.push({ skeleton: id, leg: first.id, outcome: 'accepted', day: c.day, world: c.systemIndex });
+  st.journal.push({ skeleton: id, leg: first.id, outcome: 'accepted', day: c.day, world: c.systemIndex, galaxy: c.galaxy });
   const live: LiveMission = {
     skeleton: id, leg: first.id, target: null, tag: null, progress: 0, deadlineDay: null,
   };
@@ -115,7 +116,7 @@ function abandon(
   const live = st.live.find((l) => l.skeleton === id);
   if (!live) return;
   const c = ctx.commander;
-  st.journal.push({ skeleton: id, leg: live.leg, outcome: 'abandoned', day: c.day, world: c.systemIndex });
+  st.journal.push({ skeleton: id, leg: live.leg, outcome: 'abandoned', day: c.day, world: c.systemIndex, galaxy: c.galaxy });
   finish(st, live, 'fail', ctx, effects);
 }
 
@@ -132,7 +133,7 @@ function leaveGalaxy(
 ): void {
   const c = ctx.commander;
   for (const live of [...st.live]) {
-    st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome: 'galaxyLeft', day: c.day, world: c.systemIndex });
+    st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome: 'galaxyLeft', day: c.day, world: c.systemIndex, galaxy: c.galaxy });
     finish(st, live, 'fail', ctx, effects);
   }
 }
@@ -222,7 +223,7 @@ function takeBranch(
 ): void {
   const skeleton = skeletonOf(live.skeleton, ctx);
   const c = ctx.commander;
-  const entry = { skeleton: live.skeleton, leg: live.leg, outcome: triggerLabel(branch.on), day: c.day, world: c.systemIndex };
+  const entry = { skeleton: live.skeleton, leg: live.leg, outcome: triggerLabel(branch.on), day: c.day, world: c.systemIndex, galaxy: c.galaxy };
   const leg = legOf(skeleton, live.leg);
   const kind = wordKind(leg, branch);
   const word = (target: number | null): DossierWord | undefined => (kind
@@ -239,10 +240,15 @@ function takeBranch(
   }
   const next = legOf(skeleton, branch.to);
   const placed = placeLeg(next.place, st, c, ctx.systems, ctx.rng, live.skeleton, ctx.skeletons ?? SKELETONS);
-  if (!placed.ok) return;
-  settle(st, skeleton, branch.settle, placed.target, ctx, effects, word(placed.target));
+  // A LEG THAT CANNOT BE PLACED STARTS AT ANY STATION. The branch used to
+  // return here, before the settlement and the journal, with the target
+  // already dead. The kill paid nothing and the mission held its slot for
+  // good (docs/TODO/213 M4). The lint measures every band and every
+  // handover from every world, so the path is a guard rather than a rule.
+  const target = placed.ok ? placed.target : null;
+  settle(st, skeleton, branch.settle, target, ctx, effects, word(target));
   st.journal.push(entry);
-  startLeg(st, live, skeleton, next, placed.target, ctx, effects);
+  startLeg(st, live, skeleton, next, target, ctx, effects);
 }
 
 /**
@@ -318,7 +324,7 @@ function settle(
       if (!st.flags.includes(f)) { st.flags.push(f); added.push(f); }
     }
     if (s.standing) {
-      const id = patronId(skeleton, ctx.commander);
+      const id = patronId(skeleton, ctx.commander, acceptedAt(st, skeleton.id));
       st.standing[id] = (st.standing[id] ?? 0) + s.standing;
     }
     // A change to a world is the game's to keep (mission-bridge.ts), at the
@@ -350,7 +356,7 @@ function finish(
   const o = skeleton[outcome];
   settle(st, skeleton, o, null, ctx, effects);
   st.done[live.skeleton] = outcome;
-  st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome, day: c.day, world: c.systemIndex });
+  st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome, day: c.day, world: c.systemIndex, galaxy: c.galaxy });
   st.live = st.live.filter((l) => l !== live);
   for (const tag of Object.keys(st.entities)) {
     if (tag.startsWith(`${live.skeleton}#`)) delete st.entities[tag];

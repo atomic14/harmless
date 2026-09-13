@@ -12,7 +12,10 @@ import { withoutSaving, readSave, writeSave, makeRecord } from '../src/game/stor
 import { seedWorld } from '../src/game/rng.ts';
 import { newCommander, type CommanderData } from '../src/game/commander.ts';
 import { destroyShip } from '../src/game/combat-wreck.ts';
-import { runMissions } from '../src/game/mission-bridge.ts';
+import { missionShipSpec, runMissions } from '../src/game/mission-bridge.ts';
+import { repairMissionState } from '../src/missions/repair.ts';
+import { SOURCE_DESIGN, specForDesign } from '../src/game/ship-specs.ts';
+import { shipDesignIdOf } from '../src/game/ship-identity.ts';
 import { parseSnapshot } from '../src/game/snapshot-parse.ts';
 import { CONSTRICTOR_BLUEPRINT_SET } from '../src/constants/blueprint-set.ts';
 import { NARCOTICS } from '../src/constants/commodities.ts';
@@ -242,13 +245,16 @@ console.log('\na lead stays in the galaxy it was saved in (docs/TODO/213 M2)');
 
   // A save carries the pair together. An index alone names nothing across
   // galaxies.
+  // The loader drops a lead to a skeleton the game does not ship (213 M4),
+  // so the saved lead names a shipped arc with the same galaxy and world.
   seedWorld(1904);
   const g = withoutSaving(() => new Game(() => headlessShell())).value;
   dismissBriefing(g);
-  g.state.commander.missions = r.state;
+  const shipped = { ...r.state, leads: [{ ...r.state.leads[0], skeleton: 'arc-rabedira' }] };
+  g.state.commander.missions = shipped;
   const snap = parseSnapshot(structuredClone(g.captureSnapshot()));
   eq('a save keeps the lead\'s galaxy and world together',
-    JSON.stringify(snap.commander.missions.leads), JSON.stringify(r.state.leads));
+    JSON.stringify(snap.commander.missions.leads), JSON.stringify(shipped.leads));
 }
 
 console.log('\na jump reaches the machine as a day and an arrival, and the lane completes (docs/TODO/203 M1)');
@@ -314,4 +320,55 @@ console.log('\na smuggling run leaves the goods at the far end (docs/TODO/213 M2
   eq('the dock at the far end pays', c.credits - before, SIDE_JOB_PAY.smuggle);
   eq('...and the goods are off the ship', c.cargo[NARCOTICS], 0);
   eq('...and the job is complete', c.missions.done['side-smuggle'], 'complete');
+}
+
+console.log('\na save that names a ghost loads without it (docs/TODO/213 M4)');
+{
+  // A live mission on a skeleton or a leg the code no longer ships threw on
+  // the next dock, and on the abandon that could have freed the slot.
+  const st: MissionState = {
+    ...emptyMissionState(),
+    live: [
+      { skeleton: 'arc-ghost', leg: 'x', target: null, tag: null, progress: 0, deadlineDay: null },
+      { skeleton: 'arc-lave', leg: 'old', target: null, tag: null, progress: 0, deadlineDay: null },
+      { skeleton: 'arc-lave', leg: 'ledger', target: 12, tag: null, progress: 0, deadlineDay: null },
+    ],
+    leads: [
+      { skeleton: 'arc-ghost', galaxy: 1, world: 6, sinceDay: 0 },
+      { skeleton: 'arc-rabedira', galaxy: 1, world: 6, sinceDay: 0 },
+    ],
+    passengers: [{ tag: 'arc-ghost#1#x', mission: 'arc-ghost' }],
+  };
+  const kept = repairMissionState(st);
+  eq('the two ghosts among the live missions are dropped', kept.live.map((l) => l.leg).join(), 'ledger');
+  eq('...and the ghost lead', kept.leads.map((l) => l.skeleton).join(), 'arc-rabedira');
+  eq('...and the ghost passenger', kept.passengers.length, 0);
+  seedWorld(1914);
+  const g = withoutSaving(() => new Game(() => headlessShell())).value;
+  dismissBriefing(g);
+  g.state.commander.missions = st;
+  const parsed = parseSnapshot(structuredClone(g.captureSnapshot()));
+  eq('the world loader drops them too', parsed.commander.missions.live.length, 1);
+  const stepped = stepMissions(parsed.commander.missions, { kind: 'docked' }, {
+    commander: { galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [] },
+    systems: generateGalaxy(1), rng: () => 0.5,
+  });
+  check('...and the machine takes the record it leaves', stepped.state.live.length === 1);
+}
+
+console.log('\na restored mission ship takes the role its leg flies it under (docs/TODO/213 M4)');
+{
+  seedWorld(1915);
+  const g = withoutSaving(() => new Game(() => headlessShell())).value;
+  dismissBriefing(g);
+  const c = g.state.commander;
+  for (let world = 0; world < 256 && c.missions.live.length === 0; world++) {
+    c.systemIndex = world;
+    withoutSaving(() => runMissions(c, { kind: 'accept', skeleton: 'side-escort' }, g.state.systems, () => 0.5));
+  }
+  const tag = c.missions.live[0].tag as string;
+  const python = shipDesignIdOf(SOURCE_DESIGN.python);
+  eq('the Python escort restores from the trader row', missionShipSpec(c, tag), specForDesign('trader', python));
+  check('...which is not the pirate row', specForDesign('pirate', python) !== specForDesign('trader', python));
+  eq('a tag no entity names restores nothing', missionShipSpec(c, 'nobody'), undefined);
 }

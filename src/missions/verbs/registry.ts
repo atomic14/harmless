@@ -5,7 +5,7 @@
 // eight are here since docs/TODO/190 M4. The table stays partial in type, so
 // a ninth verb added to the model is a lint failure until its module lands.
 
-import type { Verb } from '../model.ts';
+import type { TaggedShip, Verb } from '../model.ts';
 import { ambush } from './ambush.ts';
 import { deliver } from './deliver.ts';
 import { escort } from './escort.ts';
@@ -33,6 +33,15 @@ export function verbNeedsShip(verb: Verb): verb is Extract<Verb, { ship: string 
 /** The role a tagged ship flies with: a hunt's target is a pirate, the rest are traders. */
 export function verbJob(verb: Extract<Verb, { ship: string }>): 'hunt' | 'escort' | 'scan' {
   return verb.kind === 'hunt' ? 'hunt' : verb.kind === 'escort' ? 'escort' : 'scan';
+}
+
+/**
+ * The roster role a job's ship is spawned and restored under. The spawn and
+ * the restore each mapped it alone until docs/TODO/213 M4, and the restore
+ * read every tagged ship as a pirate.
+ */
+export function jobRole(job: TaggedShip['job']): 'pirate' | 'trader' {
+  return job === 'hunt' ? 'pirate' : 'trader';
 }
 
 /** The item a recover or a rescue leg puts adrift, or null. */

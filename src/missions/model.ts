@@ -284,6 +284,12 @@ export interface JournalEntry {
   outcome: string;
   day: number;
   world: number;
+  /**
+   * The galaxy `world` is an index in. Absent on a record written before
+   * docs/TODO/213 M4, and it reads as galaxy 1. The log named every world
+   * through the galaxy she stood in, so a jump renamed her whole past.
+   */
+  galaxy?: number;
 }
 
 export interface EntityState {

@@ -61,6 +61,31 @@ console.log('\na gate by jumps: an arc is offered inside withinJumps of its worl
     !canAccept(empty, 'near', { commander: facts({ systemIndex: one }), skeletons: [near, home] }));
 }
 
+console.log('\na leg that cannot be placed starts at any station, and the branch still settles (docs/TODO/213 M4)');
+{
+  // The branch used to return before the settlement, with the target
+  // already dead, so the kill paid nothing and the mission held its slot.
+  const stuck = arc('stuck', {
+    legs: [
+      {
+        id: 'one', verb: { kind: 'deliver' }, place: { kind: 'here' }, line: 'ONE',
+        next: [{ on: 'success', to: 'two', settle: { pay: 100 } }, { on: 'failed', to: 'fail' }],
+      },
+      {
+        id: 'two', verb: { kind: 'deliver' }, place: { kind: 'entity', tag: 'nothing-by-this-name' }, line: 'TWO',
+        next: [{ on: 'success', to: 'complete' }, { on: 'failed', to: 'fail' }],
+      },
+    ],
+  });
+  const ctx: MissionContext = { commander: facts(), systems: g1, rng: half, skeletons: [stuck] };
+  const held = stepMissions(emptyMissionState(), { kind: 'accept', skeleton: 'stuck' }, ctx).state;
+  const r = stepMissions(held, { kind: 'docked' }, ctx);
+  eq('the mission moved to the leg that could not be placed', r.state.live[0]?.leg, 'two');
+  eq('...at any station', r.state.live[0]?.target, null);
+  eq('...and the branch paid', r.effects.filter((e) => e.kind === 'pay').reduce((s, e) => s + (e as { tenths: number }).tenths, 0), 100);
+  eq('...and the journal has the step', r.state.journal.filter((j) => j.outcome === 'success').length, 1);
+}
+
 console.log('\na flag fires the branch that names it, once');
 {
   // `giver` sets the flag when it completes. `waiter` holds a leg that

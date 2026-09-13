@@ -19,6 +19,7 @@ import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { newCommander } from '../src/game/commander.ts';
+import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { CHART_SPAN_X, CHART_SPAN_Y } from '../src/constants/chart-metric.ts';
 import { captureById } from './screen-capture.ts';
 import { constrictorAt, g1 } from './fixtures.ts';
@@ -146,4 +147,29 @@ console.log('\nthe LOG screen, painted and opened');
   g.input.injectPress('Escape');
   g.step(1 / 60, 1 + 1 / 60);
   eq('...and Escape closes it', g.screens.topId, null);
+}
+
+console.log('\nthe story names a world through the galaxy its entry was written in (docs/TODO/213 M4)');
+{
+  // The log named every world through the galaxy she stood in, so a galactic
+  // jump renamed her whole past. A journal entry carries its galaxy now, and
+  // one from before it was written reads as galaxy 1.
+  const g2 = generateGalaxy(2);
+  const inOne: MissionState = {
+    ...emptyMissionState(),
+    journal: [
+      { skeleton: SIDE_RESCUE.id, leg: 'pod', outcome: 'accepted', day: 3, world: LAVE, galaxy: 1 },
+      { skeleton: SIDE_RESCUE.id, leg: 'pod', outcome: 'fail', day: 9, world: 12, galaxy: 1 },
+      { skeleton: 'constrictor', leg: 'hunt', outcome: 'accepted', day: 21, world: LAVE },
+    ],
+  };
+  const none = (): null => null;
+  const readIn2 = storyPages(inOne, (g) => (g === 2 ? g2 : g1), undefined, none);
+  check('a galaxy-1 entry read in galaxy 2 still names the galaxy-1 world',
+    readIn2[0].lines[0].includes(g1[LAVE].name.toUpperCase()) && !readIn2[0].lines[0].includes(g2[LAVE].name.toUpperCase()));
+  eq('...and the page says which galaxy its worlds are in', readIn2[0].galaxy, 1);
+  check('an entry with no galaxy reads as galaxy 1', readIn2[1].lines[0].includes(g1[LAVE].name.toUpperCase()));
+  eq('...on a page in galaxy 1', readIn2[1].galaxy, 1);
+  eq('an array stands for galaxy 1, as every earlier caller meant',
+    storyPages(inOne, g1, undefined, none)[0].lines[1], readIn2[0].lines[1]);
 }

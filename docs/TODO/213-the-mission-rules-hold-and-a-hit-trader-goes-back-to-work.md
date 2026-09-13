@@ -228,3 +228,20 @@ Evidence, one per fault:
 - **A side-job count queues, and the message queues behind it.** The dock
   says THERE IS ONE SIDE JOB ON THE STATION BOARD, and then A MESSAGE FROM
   the patron next door. Only an arc's hail silences the hint now.
+
+### M4
+
+- **One memo of the eight galaxies**, `galaxy/galaxies.ts`. The bridge kept
+  a memo of one galaxy at a time, and a story that names two galaxies
+  thrashes a memo of one. The bridge, the story and the LOG read the one memo.
+- **The LOG draws the route of the galaxy she is in.** A page carries its
+  galaxy, and the route map takes the pages of the commander's galaxy. A
+  page from another galaxy still reads, with its own names.
+- **The loaders have no console**, so a dropped ghost is silent. The header
+  of `repair.ts` says so. A test drives a ghost skeleton, a ghost leg, a
+  ghost lead and a ghost passenger through both loaders.
+- **The role a job's ship flies under has one home**, `jobRole` in the
+  verb registry. The spawn and the restore both read it.
+- **A test fixture met the ghost rule.** The galaxy-change test saves a lead
+  to a fixture skeleton, which the loader now drops. The saved lead names a
+  shipped arc instead.

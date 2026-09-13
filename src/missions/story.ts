@@ -10,6 +10,7 @@
 // site page (item 193 of docs/TODO/190) both render what it returns.
 
 import type { StarSystem } from '../galaxy/galaxy.ts';
+import { galaxySystems } from '../galaxy/galaxies.ts';
 import { dossierFor } from './dossiers.ts';
 import type { Dossier, JournalEntry, MissionState } from './model.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
@@ -21,6 +22,8 @@ export interface StoryPage {
   title: string;
   /** the world the run was accepted at */
   origin: number;
+  /** the galaxy `origin` and `worlds` are indices in (docs/TODO/213 M4) */
+  galaxy: number;
   /** every world the journal names on this run, in order, without repeats */
   worlds: number[];
   lines: string[];
@@ -40,10 +43,13 @@ function plainOutcome(outcome: string): string {
 
 const ENDINGS = new Set(['complete', 'fail', 'abandoned', 'galaxyLeft']);
 
+/** The galaxy an entry's world is an index in: its own, or 1 for a record from before it was written. */
+const galaxyOf = (e: JournalEntry): number => e.galaxy ?? 1;
+
 function lineFor(
-  e: JournalEntry, dossier: Dossier | null, systems: readonly StarSystem[],
+  e: JournalEntry, dossier: Dossier | null, galaxies: (galaxy: number) => readonly StarSystem[],
 ): string {
-  const slots = { WORLD: systems[e.world].name.toUpperCase(), DAY: String(e.day) };
+  const slots = { WORLD: galaxies(galaxyOf(e))[e.world].name.toUpperCase(), DAY: String(e.day) };
   const own = dossier?.story.legs[e.leg]?.[e.outcome];
   if (own) return fillSlots(own, slots);
   if (e.outcome === 'accepted') {
@@ -62,11 +68,17 @@ function lineFor(
 /**
  * The pages, oldest first. A run opens at its `accepted` entry and closes
  * at its ending. A run with no ending yet is the last page for its mission.
+ *
+ * Every world is named through the galaxy its own entry names. `systems`
+ * is galaxy 1's, for a caller that holds one galaxy, or a function of the
+ * galaxy number, which the LOG passes (docs/TODO/213 M4).
  */
 export function storyPages(
-  st: MissionState, systems: readonly StarSystem[],
+  st: MissionState, systems: readonly StarSystem[] | ((galaxy: number) => readonly StarSystem[]),
   skeletons = SKELETONS, dossiers: (id: string) => Dossier | null = dossierFor,
 ): StoryPage[] {
+  const galaxies = typeof systems === 'function' ? systems
+    : (galaxy: number): readonly StarSystem[] => (galaxy === 1 ? systems : galaxySystems(galaxy));
   const pages: StoryPage[] = [];
   const open = new Map<string, StoryPage>();
   for (const e of st.journal) {
@@ -75,14 +87,14 @@ export function storyPages(
       const page: StoryPage = {
         skeleton: e.skeleton,
         title: dossier?.title ?? plainTitle(skeletonById(e.skeleton, skeletons)?.id ?? e.skeleton),
-        origin: e.world, worlds: [], lines: [], ending: null,
+        origin: e.world, galaxy: galaxyOf(e), worlds: [], lines: [], ending: null,
       };
       pages.push(page);
       open.set(e.skeleton, page);
     }
     const page = open.get(e.skeleton);
     if (!page) continue;
-    page.lines.push(lineFor(e, dossiers(e.skeleton), systems));
+    page.lines.push(lineFor(e, dossiers(e.skeleton), galaxies));
     if (page.worlds[page.worlds.length - 1] !== e.world) page.worlds.push(e.world);
     if (e.outcome === 'complete' || e.outcome === 'fail') {
       page.ending = e.outcome;

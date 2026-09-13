@@ -12,7 +12,7 @@ import { missionItems, missionSpawns, scanSecondsFor } from '../src/missions/que
 import { emptyMissionState } from '../src/missions/state.ts';
 import type { CommanderFacts, MissionEffect, MissionState, Skeleton } from '../src/missions/model.ts';
 import {
-  SIDE_ESCORT, SIDE_HUNT, SIDE_RECOVER, SIDE_RESCUE, SIDE_SCAN, SIDE_SMUGGLE,
+  SIDE_DELIVER, SIDE_ESCORT, SIDE_HUNT, SIDE_RECOVER, SIDE_RESCUE, SIDE_SCAN, SIDE_SMUGGLE,
 } from '../src/missions/skeletons/side.ts';
 import {
   RESCUE_SALVAGE_PAY, SCAN_SECONDS, SIDE_JOB_PAY, SMUGGLE_TONNES,
@@ -153,6 +153,20 @@ console.log('\nsmuggle: the goods go aboard, and the patrol is the risk');
   eq('a dock elsewhere is neither', elsewhere.state.live.length, 1);
   const read = stepMissions(r.state, { kind: 'policeScan' }, moved(ctx, target));
   eq('a police scan on the way fails it', read.state.done[SIDE_SMUGGLE.id], 'fail');
+}
+
+console.log('\na local patron\'s standing is keyed by the world the job was taken at (docs/TODO/213 M4)');
+{
+  // A delivery accepted at one world and landed at another credited the far
+  // end's patron, because the key named the world where the branch settled.
+  const dctx = boardFor(SIDE_DELIVER);
+  const dst = accept(SIDE_DELIVER, dctx);
+  const origin = dctx.commander.systemIndex;
+  const target = dst.live[0].target as number;
+  check('the delivery goes to another world', target !== origin);
+  const done = stepMissions(dst, { kind: 'docked' }, moved(dctx, target));
+  eq('the standing lands on the patron who gave the job', done.state.standing[`world-${origin}`], 1);
+  eq('...and none on the world it was delivered to', done.state.standing[`world-${target}`], undefined);
 }
 
 console.log('\nescort and scan, through the machine');

@@ -23,6 +23,7 @@ import { steerQuatToward } from './flight-maths.ts';
 import { pirateSpecForTier, specForDesign, type NpcSpec } from './ship-specs.ts';
 import type { NpcRole } from './ship-roles.ts';
 import type { TaggedItem, TaggedShip } from '../missions/model.ts';
+import { jobRole } from '../missions/verbs/registry.ts';
 import { memberTier } from './threat.ts';
 import { slotNormal } from '../world/slot.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
@@ -203,7 +204,7 @@ export function spawnPopulation(
   // lint is the place to catch that.
   const spawned: NpcShip[] = [];
   for (const tagged of missionShips) {
-    const role = tagged.job === 'hunt' ? 'pirate' : 'trader';
+    const role = jobRole(tagged.job);
     const spec = specForDesign(role, tagged.ship);
     if (!spec) continue;
     const pos = playerPos.clone()
