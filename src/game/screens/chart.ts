@@ -6,7 +6,7 @@
 //   2. which render/draw pair they call;
 //   3. how a click maps to chart coordinates.
 //
-// Everything else is identical: the cursor, the target, type-to-find, and the
+// Everything else is identical: the cursor, the target, the search, and the
 // market estimate. All of it was already written once, and branched on
 // `mode === 'local'` throughout.
 //
@@ -20,6 +20,7 @@
 // market estimate are not places you navigate to. They are states of the chart
 // itself. They swallow the keyboard while active, and Escape leaves the
 // sub-mode rather than the screen. On the stack, Escape would be ambiguous.
+// The search's letters and its page are `chart-search.ts` (docs/TODO/216).
 
 import type { ChartState } from '../chart-state.ts';
 import {
@@ -29,8 +30,7 @@ import {
   renderLocalChart, drawLocalChart, renderMarketEstimate, localCoordsFromClick,
 } from '../../ui/chart-local.ts';
 import { nearestSystem } from '../../ui/chart-readout.ts';
-import { maybeById } from '../../ui/screen-shell.ts';
-import { keyGrid } from '../../ui/key-grid.ts';
+import { ChartSearch } from './chart-search.ts';
 import type { Screen, ScreenOutcome, ScreenId } from '../../ui/screen-host.ts';
 import type { CommanderData } from '../commander.ts';
 import type { StarSystem } from '../../galaxy/galaxy.ts';
@@ -87,14 +87,8 @@ export class ChartScreen implements Screen {
   readonly id: ScreenId;
   private readonly local: boolean;
   private readonly ctx: () => ChartContext;
-  /** typed prefix while type-to-find is active, or null when it is not */
-  private find: string | null = null;
-  /**
-   * Whether the key grid is on the page (docs/TODO/216 M2). A phone types
-   * the search on it. `redraw` runs on every cursor move, so the grid is
-   * written when the search starts and cleared when it ends, not each move.
-   */
-  private keysShown = false;
+  /** type-to-find, a sub-mode: its letters and its page */
+  private readonly search: ChartSearch;
   /**
    * Where the mouse last was, in chart coordinates. It is null until the mouse
    * first crosses this canvas.
@@ -113,11 +107,12 @@ export class ChartScreen implements Screen {
     this.id = id;
     this.local = id === 'local';
     this.ctx = ctx;
+    this.search = new ChartSearch(this.local);
   }
 
   open(): void {
     const { chart, system } = this.ctx();
-    this.find = null;
+    this.search.end();
     this.estimate = false;
     // the mouse never crossed THIS canvas yet, whatever it did on the other
     this.pointer = null;
@@ -132,24 +127,7 @@ export class ChartScreen implements Screen {
     const overlays = this.overlays();
     if (this.local) renderLocalChart(systems, commander, chart, overlays);
     else renderChart(systems, commander, chart, overlays);
-    // A full paint writes the page anew, with an empty grid element.
-    this.keysShown = false;
-    this.paintKeys();
-  }
-
-  /**
-   * The key grid follows the search: on the page while it runs, gone after.
-   * The button row goes the other way. `typeToFind` reads every key as a
-   * letter, so a tap on DATA ON SYSTEM would type a D. The grid's ENTER
-   * ends the search, and the row comes back.
-   */
-  private paintKeys(): void {
-    const wanted = this.find !== null;
-    if (wanted === this.keysShown) return;
-    this.keysShown = wanted;
-    const keys = maybeById(this.local ? 'local-keys' : 'chart-keys');
-    if (keys) keys.innerHTML = wanted ? keyGrid('find') : '';
-    maybeById('chart-buttons')?.classList.toggle('hidden', wanted);
+    this.search.repainted();
   }
 
   /**
@@ -216,14 +194,7 @@ export class ChartScreen implements Screen {
     const overlays = this.overlays();
     if (this.local) drawLocalChart(systems, commander, chart, overlays);
     else drawChart(systems, commander, chart, overlays);
-    if (this.find !== null) {
-      // Through the seam, and not through `document`. The two painters read
-      // these same two ids the same way. A direct lookup here threw under node,
-      // so no headless test could drive type-to-find at all (docs/TODO/163).
-      const info = maybeById(this.local ? 'local-info' : 'chart-info');
-      if (info) info.textContent = `FIND: ${this.find}_`;
-    }
-    this.paintKeys();
+    this.search.paint();
   }
 
   /** The system under the cursor, if any. */
@@ -233,7 +204,7 @@ export class ChartScreen implements Screen {
   }
 
   tick(dt: number, i: Input): void {
-    if (this.find !== null || this.estimate) return;
+    if (this.search.active || this.estimate) return;
     this.moveCursor(dt, i);
   }
 
@@ -245,8 +216,15 @@ export class ChartScreen implements Screen {
       }
       return 'stay';
     }
-    if (this.find !== null) {
-      this.typeToFind(i);
+    if (this.search.active) {
+      // Letters filter, and the cursor jumps to the first match.
+      const { chart, systems } = this.ctx();
+      const { changed, match } = this.search.type(i, systems);
+      if (match) {
+        chart.cursorX = match.x;
+        chart.cursorY = match.y;
+      }
+      if (changed) this.redraw();
       return 'stay';
     }
     if (i.pressed('KeyM')) {
@@ -271,7 +249,7 @@ export class ChartScreen implements Screen {
       return { open: 'data' };
     }
     if (i.pressed('KeyF')) {
-      this.find = '';
+      this.search.begin();
       this.redraw();
       return 'stay';
     }
@@ -302,7 +280,7 @@ export class ChartScreen implements Screen {
    * cursor step.
    */
   hoverAt(target: HTMLElement, e: MouseEvent): void {
-    if (this.estimate || this.find !== null) return;
+    if (this.estimate || this.search.active) return;
     const was = this.described;
     this.pointer = target instanceof HTMLCanvasElement
       ? this.chartCoords(target, e)
@@ -332,7 +310,7 @@ export class ChartScreen implements Screen {
   }
 
   clickAt(target: HTMLElement, e: MouseEvent): boolean {
-    if (this.estimate || this.find !== null) return false;
+    if (this.estimate || this.search.active) return false;
     if (!(target instanceof HTMLCanvasElement)) return false;
     const { chart, system, systems } = this.ctx();
 
@@ -382,32 +360,5 @@ export class ChartScreen implements Screen {
       chart.cursorY = Math.max(0, Math.min(255, chart.cursorY));
       this.redraw();
     }
-  }
-
-  /** Letters filter, the cursor jumps to the first match. */
-  private typeToFind(i: Input): void {
-    const { systems, chart } = this.ctx();
-    let changed = false;
-    for (const code of i.drainPresses()) {
-      if (code.startsWith('Key')) {
-        this.find += code.slice(3);
-        changed = true;
-      } else if (code === 'Backspace') {
-        this.find = this.find!.slice(0, -1);
-        changed = true;
-      } else if (code === 'Enter' || code === 'Escape') {
-        this.find = null;
-        this.redraw();
-        return;
-      }
-    }
-    if (changed && this.find) {
-      const match = systems.find((s) => s.name.toUpperCase().startsWith(this.find!.toUpperCase()));
-      if (match) {
-        chart.cursorX = match.x;
-        chart.cursorY = match.y;
-      }
-    }
-    if (changed) this.redraw();
   }
 }
