@@ -145,8 +145,62 @@ Evidence:
 
 ## What the milestones found
 
-(filled in as each lands)
+### M1
+
+- **The Wheel's boards are the lawless worlds by name.** The encounters
+  file already had a `LAWLESS_GOVERNMENT`, and it reaches a dictatorship,
+  because pirate waves do. The Wheel's line is narrower, so it is a list of
+  the two governments' 1984 names, and not a second number.
+- **A trial comes back after a failure**, as many times as its `cap`
+  allows, and never after a pass. The offers filter reads the last outcome
+  for a Wheel patron, where an arc reads any outcome as the end.
+- **The whisper queues behind the Navy.** A commander with the Wheel's
+  rating has the Navy's kills, so the dock says INCOMING NAVY TRANSMISSION
+  first and the note behind it.
+
+### M2
+
+- **The blockade's world is any world one jump out**, not a Corporate
+  State. A placement picks by distance, and it has no government filter.
+  The three Vipers at the far end are the blockade, wherever it is.
+- **The parcel is a smuggle job's load**, three tonnes, and not five.
+
+### M3
+
+- **The sentinel is a number the record holds**, and eight readers of a
+  target learned it: the line's slot, the deadline, the arrival's line,
+  the chart's marks, the course row's place, the mis-jump's spawn, the
+  lint, and the prompt.
+- **The rescue verb's line names no gender now.** LAND THE PILOT serves
+  the survey pilot, the surveyor and the Wheel's own.
+- **A real mis-jump on the leg finds the pod among the Thargoids**, and the
+  trap is untouched.
+
+### M4
+
+- **A Thargoid is hunted under its own roster row.** The hunt verb names
+  the role its target flies with, and the gun warning prices it there.
+- **The grant is an effect**, so the machine stays pure and the bridge puts
+  the fit on the ship. The cloak is a field of the equipment, and a save
+  from before the Wheel reads it as off.
+
+### M5
+
+- **The cloak's draw had to beat the recharge.** A bank every thirty
+  seconds was under it, and the cloak cost nothing. A bank every six
+  seconds is about four points a second over the recharge, and a full pool
+  cloaks the ship for about forty five seconds.
+- **Two tests used Z as a key bound to nothing.** They use X now.
+- **The pools' file owns every write to a pool**, so the draw lives there,
+  and the five reporters that only read them moved out for the size gate.
+  The mission effects moved out of the model for the same gate.
 
 ## Outcome
 
-(filled in at the end)
+Landed 2026-09-13, in five milestones. The Dark Wheel is a patron with no
+world and no face. Its note reaches a commander at Above Average on the
+lawless boards. Four trials follow: a gang with two Asps, a parcel past
+three Vipers on a clean record, a pod among the Thargoids in witchspace,
+and a Thargoid at the door at Competent. The door grants the cloaking
+device, which no shop sells, and the status screen says OF THE DARK
+WHEEL. The four dossiers follow on a generator run. 6,159 assertions.
