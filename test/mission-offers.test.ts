@@ -150,6 +150,14 @@ console.log('\nhints: the word travels by distance, one line per dock');
   const both = dock(lead(next.index), LAVE, arcs(next.index));
   eq('a dock that makes an offer says nothing about a lead',
     said(both.effects).join('|'), 'A WORD FROM THE GOVERNOR');
+  // ...but a board of side jobs is not an offer of that kind. Most worlds
+  // carry one, and it silenced the message on almost every dock
+  // (docs/TODO/213 M3).
+  const board = dock(quiet(lead(next.index)), LAVE, [...arcs(next.index), ...SIDE_JOBS]);
+  check('a dock with side jobs on the board still passes the message on',
+    said(board.effects).some((t) => t.includes('SIDE JOB'))
+    && said(board.effects).some((t) => t.includes('MESSAGE FROM') && t.includes(next.name.toUpperCase())),
+    said(board.effects).join('|'));
 
   // The second message, after docks with no progress.
   let st = quiet(lead(near.index));

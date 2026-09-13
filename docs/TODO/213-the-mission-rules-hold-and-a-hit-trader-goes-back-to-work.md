@@ -218,3 +218,13 @@ Evidence, one per fault:
   commander facts, and it gained `scoops` so the after-run can read the
   same blocks.
 - The suite has 6,001 checks.
+
+### M3
+
+- **The halving is a field, and the warning reads it.** `playerLaserMultiplier`
+  on the target's energy policy is the Constrictor's half. The warning
+  returns nothing for a policy at 1, before it prices a gun. Every test that
+  read the Constrictor's warning still reads it.
+- **A side-job count queues, and the message queues behind it.** The dock
+  says THERE IS ONE SIDE JOB ON THE STATION BOARD, and then A MESSAGE FROM
+  the patron next door. Only an arc's hail silences the hint now.

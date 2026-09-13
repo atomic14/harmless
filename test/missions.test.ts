@@ -16,7 +16,9 @@ import { newCommander } from '../src/game/commander.ts';
 import type { CommanderData } from '../src/game/commander.ts';
 import { stepTrumbles, trumbleMessage } from '../src/game/trumbles.ts';
 import { BREED_INTERVAL, MAX_TRUMBLES } from '../src/constants/trumbles.ts';
-import { constrictorGunCheck, constrictorWarning } from '../src/game/hunt-warning.ts';
+import { constrictorGunCheck, constrictorWarning, huntWarning } from '../src/game/hunt-warning.ts';
+import { SOURCE_DESIGN, specForDesign } from '../src/game/ship-specs.ts';
+import { shipDesignIdOf } from '../src/game/ship-identity.ts';
 import { check, eq } from './harness.ts';
 
 // --- the Navy's gun warning --------------------------------------------------
@@ -43,6 +45,12 @@ console.log('\nthe Navy gun warning');
       && constrictorWarning(withLaser('beam')).includes('MILITARY'));
     eq('a commander already carrying the right gun is told nothing',
       constrictorWarning(withLaser('military')), '');
+    // A military laser scores more against every hull, so the warning was
+    // said on every hunt. Only a target that halves a hit needs the signpost
+    // (docs/TODO/213 M3).
+    const krait = specForDesign('pirate', shipDesignIdOf(SOURCE_DESIGN.krait))!;
+    eq('...and a Krait, which halves nothing, earns no warning at all',
+      huntWarning(withLaser('pulse'), krait, 'PATRON'), '');
   }
 }
 

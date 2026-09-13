@@ -19,6 +19,12 @@
 // The one thing a commander must not do is fly forty light years to find that
 // out. The beam laser is the trap: it is the upgrade, and it is worse here
 // than the gun it replaced.
+//
+// IT SPEAKS FOR A TARGET THAT HALVES A HIT, AND FOR NO OTHER (docs/TODO/213
+// M3). A military laser scores more than a pulse laser against every hull.
+// So the words TARGET ARMOUR HALVES LASER FIRE were said on every side hunt
+// and every arc hunt. Only the Constrictor's policy halves a player hit, and
+// the numbers are its signpost. A Krait needs no signpost.
 
 import type { CommanderData, LaserType } from './commander.ts';
 import { playerLaser } from './gunnery.ts';
@@ -56,6 +62,7 @@ export function huntGunCheck(commander: CommanderData, target: NpcSpec): GunChec
  * player learns to skip.
  */
 export function huntWarning(commander: CommanderData, target: NpcSpec, patron = 'NAVY'): string {
+  if (npcEnergyPolicy(target.profileId).playerLaserMultiplier >= 1) return '';
   const g = huntGunCheck(commander, target);
   if (g.fitted === g.best) return '';
   return `${patron}: TARGET ARMOUR HALVES LASER FIRE — YOUR ${g.fitted.toUpperCase()} LASER`
