@@ -130,6 +130,14 @@ export interface NpcState {
   observed: number;
   /** the escort or the scan verdict was sent once; it is never sent again */
   missionReported: boolean;
+  /**
+   * A mission's charge waits, because the commander is beyond the leash
+   * (docs/TODO/214 M3). The world step decides it each frame, and the
+   * working life reads it as a speed of zero.
+   */
+  holding: boolean;
+  /** the console said the charge is holding, once */
+  holdSaid: boolean;
   fleeing: boolean;
   /** where this ship is in its attack run — see break-off.ts */
   attackPhase: AttackPhase;
@@ -281,7 +289,7 @@ export function freshNpcState(maxEnergy: number): NpcState {
     tumbleAxis: randomDirection(new THREE.Vector3()),
     energy: maxEnergy, regenCarry: 0,
     alive: true, provoked: false, provokedByPlayer: false, missiles: 0,
-    missionTag: null, targeted: false, announcedClose: false, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, calm: 0, flownBy: 'none',
+    missionTag: null, targeted: false, announcedClose: false, observed: 0, missionReported: false, holding: false, holdSaid: false, fleeing: false, attackPhase: 'closing', underFire: 0, calm: 0, flownBy: 'none',
     extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
     tactic: 'run', tacticClock: 0, dryFor: 0,
     tradeTimer: 0,

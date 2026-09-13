@@ -53,6 +53,7 @@ import './mission-skeletons.test.ts';
 import './mission-game.test.ts';
 import './mission-offers.test.ts';
 import './mission-verbs.test.ts';
+import './mission-company.test.ts';
 import './mission-arrival.test.ts';
 import './scan-watch.test.ts';
 import './mission-story.test.ts';

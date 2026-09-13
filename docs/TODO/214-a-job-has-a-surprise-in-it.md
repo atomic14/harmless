@@ -167,3 +167,28 @@ Evidence:
   the scoop, so the ambush is met. A recover meets 2.9 fights on the way
   home, from 1.4, and finishes eight of eight in 149 seconds. A rescue
   meets 1.4 and docks eight of eight. Nobody died.
+
+### M3
+
+- **The charge holds for her.** `holding` on the ship is decided by the
+  world step each frame, from `ESCORT_LEASH`, and the working life reads it
+  as a speed of zero. The console says THE PYTHON IS HOLDING FOR YOU once,
+  through a second latch. The leash derives from the scanner, two thirds of
+  it, so a charge that holds is still on her scanner.
+- **The fee needs her there.** `escortSafe` asks four things now: the
+  charge alive, inside station range, the commander inside that range of
+  it, and no enemy inside it.
+- **The pirates come with the charge.** A side escort meets a pair of
+  Sidewinders at the jump-in, and the two arc escorts meet the lane pirates.
+  A pirate goes for the commander first, and the leash keeps her beside the
+  charge, so the fight is where the fee is judged.
+- **The flight probe moved.** The escort finishes eight of eight in 500
+  seconds, with 1.5 fights on the way, from 0.3, and 24 kills over the
+  eight. The ship ends with energy 239 and shields 225 and 255.
+- **`test/mission-verbs.test.ts` crossed the size ceiling.** The company
+  blocks, and the lane block from 203, went to
+  `test/mission-company.test.ts`. The four helpers every verb test uses
+  went to `test/fixtures.ts`, so the two files share one fixture.
+- **M4 waits for Chris.** A branch for a hunted ship that runs needs one
+  dossier regeneration, and the generator runs through the `claude`
+  command line on his machine. M1 to M3 stand on their own.

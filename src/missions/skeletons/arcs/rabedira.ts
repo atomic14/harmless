@@ -13,7 +13,7 @@ import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../..
 import { SOURCE_DESIGN } from '../../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../../game/ship-identity.ts';
 import type { Skeleton } from '../../model.ts';
-import { PAIR } from '../lane.ts';
+import { LANE_PIRATES, PAIR } from '../lane.ts';
 
 const TOWARD = { kind: 'handover', toward: 'arc-vetitice', ...ARC_HANDOVER_JUMPS } as const;
 
@@ -35,7 +35,7 @@ export const ARC_RABEDIRA: Skeleton = {
       ],
     },
     {
-      id: 'convoy', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.boa) }, place: TOWARD,
+      id: 'convoy', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.boa) }, place: TOWARD, spawn: [...LANE_PIRATES],
       line: 'ENVOY: SEE THE BOA INTO STATION RANGE AT {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: 'success', to: 'complete', settle: { pay: ARC_PAY.escort, say: 'THE ENVOY IS SAFE — {PAY} FROM RABEDIRA' } },

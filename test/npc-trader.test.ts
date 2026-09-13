@@ -157,4 +157,17 @@ console.log('a trader, flown off an object literal');
     traderBehaviour().fly(hunted, DT, commander, view);
     check('...and so does one that is still hunted, however calm', hunted.state.fleeing);
   }
+
+  // 4. A CHARGE THAT HOLDS FOR THE COMMANDER slows to a stop, and goes on
+  //    when she is back (docs/TODO/214 M3).
+  {
+    const held = ship(false);
+    held.state.traderPhase = 'arriving';
+    held.state.holding = true;
+    for (let f = 0; f < 60; f++) traderBehaviour().fly(held, DT, commander, view);
+    check('a holding trader slows to a stop', held.state.speed < 1, `${held.state.speed.toFixed(1)} u/s`);
+    held.state.holding = false;
+    for (let f = 0; f < 60; f++) traderBehaviour().fly(held, DT, commander, view);
+    check('...and moves again once the hold lifts', held.state.speed > 30, `${held.state.speed.toFixed(1)} u/s`);
+  }
 }

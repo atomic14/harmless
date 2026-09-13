@@ -85,6 +85,7 @@ import { applyMissions, runMissions, type MissionOutcome } from './mission-bridg
 import { scanSecondsFor } from '../missions/queries.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
 import { ESCORT_ENEMY_ROLES, WATCH_CONE } from '../constants/missions.ts';
+import { ESCORT_LEASH } from '../constants/mission-course.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
 import type { GameState } from './state.ts';
@@ -650,9 +651,13 @@ export class WorldStep {
    * The two verdicts only the world can give (docs/TODO/190 M4).
    *
    * An ESCORT is safe when its ship is alive, inside `DOCK_COMPUTER_RANGE` of
-   * the station, and no enemy is inside that same radius of it. All three at
-   * once, and it is sent ONCE. `missionReported` latches, so a fight after
-   * the fee cannot undo it. The ship goes on to dock as any trader does.
+   * the station. The commander must be inside that radius of it, and no
+   * enemy may be. All four at once, and it is sent ONCE.
+   * `missionReported` latches, so a fight after the fee cannot undo it. The
+   * ship goes on to dock as any trader does. The commander's own place was
+   * not measured until docs/TODO/214 M3, and the escort was a job she
+   * watched. The charge also HOLDS for her beyond `ESCORT_LEASH`, and the
+   * console says so once.
    *
    * A SCAN counts the seconds a tagged ship spends under the scanner lock,
    * and sends `scanned` when the leg's seconds are up, once.
@@ -693,7 +698,14 @@ export class WorldStep {
           continue;
         }
         const at = npc.object.position;
+        const away = player.position.distanceTo(at);
+        npc.state.holding = away > ESCORT_LEASH;
+        if (npc.state.holding && !npc.state.holdSaid) {
+          npc.state.holdSaid = true;
+          out.push(say(`THE ${npc.object.name.toUpperCase()} IS HOLDING FOR YOU. STAY WITH IT.`, 4));
+        }
         if (at.distanceTo(world.station.position) > DOCK_COMPUTER_RANGE) continue;
+        if (away > DOCK_COMPUTER_RANGE) continue;
         const threatened = world.npcs.some((other) => other !== npc && other.state.alive
           && ESCORT_ENEMY_ROLES.includes(other.role) && other.object.position.distanceTo(at) <= DOCK_COMPUTER_RANGE);
         if (threatened) continue;

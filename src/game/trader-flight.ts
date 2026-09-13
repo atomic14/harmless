@@ -51,6 +51,8 @@ export interface TraderState {
   waypointTimer: number;
   /** Seconds of business left at the station. */
   tradeTimer: number;
+  /** a mission's charge waits for the commander, so its speed is zero (docs/TODO/214 M3) */
+  holding: boolean;
   /** Decided at spawn: does this one have business at the station? */
   docksHere: boolean;
   /** On final approach into the slot — the station must not shove it away. */
@@ -108,7 +110,7 @@ export function stepTrader(ship: TraderShip, dt: number, world: TraderWorld): vo
   switch (state.traderPhase) {
     case 'arriving': {
       steerToward(ship, home, dt);
-      state.speed = approach(state.speed, ship.maxSpeed * 0.85, 90 * dt);
+      state.speed = approach(state.speed, state.holding ? 0 : ship.maxSpeed * 0.85, 90 * dt);
       if (ship.object.position.distanceTo(home) < TRADER_ARRIVED) {
         state.traderPhase = 'trading';
       }
@@ -131,7 +133,7 @@ export function stepTrader(ship: TraderShip, dt: number, world: TraderWorld): vo
           .add(randomDirection(new THREE.Vector3()).multiplyScalar(600 + random() * 1200));
       }
       steerToward(ship, state.waypoint, dt);
-      state.speed = approach(state.speed, ship.maxSpeed * 0.35, 60 * dt);
+      state.speed = approach(state.speed, state.holding ? 0 : ship.maxSpeed * 0.35, 60 * dt);
       if (state.tradeTimer <= 0) {
         // about half put in at the station; the rest jump out from here
         if (state.docksHere) {

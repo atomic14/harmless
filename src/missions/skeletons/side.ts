@@ -159,7 +159,7 @@ export const SIDE_ESCORT: Skeleton = {
   pitch: 'A PYTHON IS LEAVING FOR A NEIGHBOUR AND WANTS A GUN BESIDE HER. SEE HER INTO STATION RANGE.',
   offer: {},
   legs: [{
-    id: 'cover', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.python) }, place: AWAY,
+    id: 'cover', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.python) }, place: AWAY, spawn: [...PAIR],
     line: 'ESCORT: SEE THE PYTHON INTO STATION RANGE AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
       { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.escort, say: 'THE PYTHON IS SAFE IN STATION RANGE. THE STATION PAYS {PAY}.' } },

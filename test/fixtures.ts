@@ -17,7 +17,9 @@ import { makeRng } from '../src/game/rng.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
 import { CONSTRICTOR_SPEC } from '../src/game/ship-specs.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
-import type { MissionState } from '../src/missions/model.ts';
+import type { CommanderFacts, MissionEffect, MissionState, Skeleton } from '../src/missions/model.ts';
+import { stepMissions, type MissionContext } from '../src/missions/machine.ts';
+import { canAccept } from '../src/missions/offers.ts';
 
 /**
  * Galaxy 1: the canonical universe, and the most-shared fixture in the suite.
@@ -93,3 +95,33 @@ export function constrictorAt(
   }
   return st;
 }
+
+// --- a commander on a side job, for the verb and the company tests ----------
+//
+// They lived in test/mission-verbs.test.ts until docs/TODO/214 M3 pushed it
+// over the size ceiling, and test/mission-company.test.ts needs the same
+// four. A second copy would be two fixtures that drift.
+
+/** The facts a mission rule reads, at Lave with scoops fitted, unless `over` says otherwise. */
+export const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
+  galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [], ...over,
+});
+
+/** What a step paid, in tenths. */
+export const paid = (effects: MissionEffect[]): number =>
+  effects.reduce((sum, e) => sum + (e.kind === 'pay' ? e.tenths : 0), 0);
+
+/** A world whose board carries `job`, and a context standing there. */
+export function boardFor(job: Skeleton, over: Partial<CommanderFacts> = {}): MissionContext {
+  const world = g1.find((s) => canAccept(emptyMissionState(), job.id,
+    { commander: facts({ systemIndex: s.index }), skeletons: [job], systems: g1 }))!;
+  return { commander: facts({ systemIndex: world.index, ...over }), systems: g1, rng: () => 0.5, skeletons: [job] };
+}
+
+/** The same context, moved to another world. */
+export const moved = (ctx: MissionContext, systemIndex: number, over: Partial<CommanderFacts> = {}): MissionContext =>
+  ({ ...ctx, commander: { ...ctx.commander, systemIndex, ...over } });
+
+/** The record after `job` is accepted in `ctx`. */
+export const accept = (job: Skeleton, ctx: MissionContext): MissionState =>
+  stepMissions(emptyMissionState(), { kind: 'accept', skeleton: job.id }, ctx).state;

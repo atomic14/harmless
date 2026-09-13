@@ -80,6 +80,7 @@ console.log('\nthe four phases of a trader, off an object literal');
       turnRate: 1.2,
       state: {
         traderPhase: phase,
+        holding: false,
         speed: 0,
         waypoint: new THREE.Vector3(),
         waypointTimer: 0,

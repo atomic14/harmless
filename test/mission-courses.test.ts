@@ -18,7 +18,7 @@ import { runMissions } from '../src/game/mission-bridge.ts';
 import { missionCourse } from '../src/game/mission-course.ts';
 import { clearOfPolice } from '../src/game/course-clearance.ts';
 import { SCAN_RANGE } from '../src/constants/law.ts';
-import { COURSE_ESCORT_STANDOFF, COURSE_POLICE_CLEARANCE } from '../src/constants/mission-course.ts';
+import { COURSE_ESCORT_STANDOFF, COURSE_POLICE_CLEARANCE, ESCORT_LEASH } from '../src/constants/mission-course.ts';
 import { TRADER_CALM_SECONDS } from '../src/constants/attack-run.ts';
 import { COURSE_KEYS } from '../src/game/bindings.ts';
 import { keymap } from '../src/engine/keymap.ts';
@@ -131,7 +131,11 @@ console.log('\nthe escort course does not ram its charge, and a grazed charge go
   // own at the standoff and overshot into the hull. A ram is a hit from the
   // commander, and a trader that is hit ran for the rest of its life.
   const g = onTheJob('side-escort', 20_260_947);
-  const charge = g.state.world.npcs.find((n) => n.state.missionTag !== null);
+  // The charge alone: the pair that flies with it since 214 M1 would start
+  // a fight, and the approach is the subject.
+  const live = g.state.commander.missions.live[0];
+  for (const n of g.state.world.npcs) if (n.state.missionTag !== live.tag) n.state.alive = false;
+  const charge = g.state.world.npcs.find((n) => n.state.missionTag === live.tag);
   if (!charge) throw new Error('the escort spawned no charge');
   const shields = g.state.sys.foreShield;
   let nearest = Infinity;
@@ -149,6 +153,24 @@ console.log('\nthe escort course does not ram its charge, and a grazed charge go
   fly(g, TRADER_CALM_SECONDS + 5, () => !charge.state.fleeing);
   check('...and it goes back to work once the calm has passed', !charge.state.fleeing);
   eq('...on its way to the station', charge.state.traderPhase, 'arriving');
+}
+
+console.log('\nthe charge holds for a commander who falls behind (docs/TODO/214 M3)');
+{
+  const g = onTheJob('side-escort', 20_260_949);
+  const live = g.state.commander.missions.live[0];
+  for (const n of g.state.world.npcs) if (n.state.missionTag !== live.tag) n.state.alive = false;
+  const charge = g.state.world.npcs.find((n) => n.state.missionTag === live.tag);
+  if (!charge) throw new Error('the escort spawned no charge');
+  // Beyond the leash, with no course picked: she is not coming.
+  charge.object.position.copy(g.state.player.position).add(new THREE.Vector3(0, 0, -(ESCORT_LEASH + 1000)));
+  const before = charge.object.position.clone();
+  withoutSaving(() => { for (let f = 0; f < 10 * 60; f++) g.step(1 / 60, 100 + f / 60); });
+  check('ten seconds on, the charge has held its place',
+    charge.object.position.distanceTo(before) < 200, `${Math.round(charge.object.position.distanceTo(before))} units`);
+  check('...and says so', charge.state.holding && charge.state.holdSaid);
+  const took = fly(g, 120, () => !charge.state.holding);
+  check('...until the escort course brings her inside the leash', !charge.state.holding, `after ${took.toFixed(0)}s`);
 }
 
 console.log('\nthe canister scooped springs its ambush in the sky (docs/TODO/214 M2)');

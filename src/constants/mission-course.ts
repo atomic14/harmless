@@ -7,6 +7,7 @@
 // over the size ceiling, and a mission's course is a subject of its own.
 
 import { SCAN_WARN_RANGE } from './law.ts';
+import { SCANNER_RANGE } from './console.ts';
 
 /**
  * How far from a ship the scan course holds, in world units
@@ -49,6 +50,22 @@ export const COURSE_ESCORT_STANDOFF = 600;
  * @domain mission-course
  */
 export const COURSE_ESCORT_CLOSING = 60;
+
+/**
+ * How far the commander may fall behind her charge before it holds for
+ * her, in world units (docs/TODO/214 M3). It is two thirds of the scanner,
+ * which is four thousand.
+ *
+ * The charge flew to the station on its own, and the escort was a job the
+ * commander watched. It moves while she is inside the leash and holds where
+ * it is when she is not. The leash is well outside the escort standoff of
+ * 600, so the course never trips it. It derives from the scanner so that a
+ * charge that holds is always still on her scanner.
+ *
+ * @rule course.escortLeash
+ * @domain mission-course
+ */
+export const ESCORT_LEASH = SCANNER_RANGE * 2 / 3;
 
 /**
  * How wide of a police ship the smuggling course flies, in world units

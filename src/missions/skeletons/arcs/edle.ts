@@ -15,7 +15,7 @@ import { ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../../../constants/missio
 import { SOURCE_DESIGN } from '../../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../../game/ship-identity.ts';
 import type { Skeleton } from '../../model.ts';
-import { PAIR, wingmanOf } from '../lane.ts';
+import { LANE_PIRATES, PAIR, wingmanOf } from '../lane.ts';
 
 const AWAY = { kind: 'band', ...SIDE_JOB_RANGE } as const;
 
@@ -37,7 +37,7 @@ export const ARC_EDLE: Skeleton = {
       ],
     },
     {
-      id: 'guard', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.transporter) }, place: AWAY,
+      id: 'guard', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.transporter) }, place: AWAY, spawn: [...LANE_PIRATES],
       line: 'COLONEL: SEE THE TRANSPORTER INTO STATION RANGE AT {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: 'success', to: 'purge', settle: { pay: ARC_PAY.escort, say: 'TRANSPORTER SAFE — {PAY}. NOW THE ASP, NEAR {TARGET}.' } },
