@@ -13,15 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [215](215-the-gun-row-lives-in-the-console-and-a-list-runs-sideways.md) — the gun row lives in the console, and a list runs sideways.
-2. [214](214-a-job-has-a-surprise-in-it.md) — a job has a surprise in it.
+1. [214](214-a-job-has-a-surprise-in-it.md) — a job has a surprise in it.
 
 **215 CAME FROM CHRIS ON 2026-09-13**, from his phone. The three columns of
 buttons over the flight view covered the fight. He drew the shape he wants.
 Two icons sit over the sky. The guns are a row at the bottom of the console,
 with the missile as two buttons and the missile squares gone. He then asked
 for the two lists to be closed by default, and to open as one row that
-scrolls sideways. 215 builds it, and it goes first, because 214's last
+scrolls sideways. **215 landed the same day**, and it is below. 214's last
 milestone waits on his machine.
 
 **213 AND 214 CAME FROM CHRIS ON 2026-09-13**, after two reviews of the
@@ -314,6 +313,15 @@ it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
 
 ## What landed on 2026-09-13
+
+**215 — the gun row lives in the console, and a list runs sideways.** Chris
+flew the game on his phone, and three columns of buttons covered the fight.
+He drew the shape. The guns are a row at the bottom of the console, always
+four buttons in the same places, with the missile as two. The missile
+squares are gone. The two lists over the sky are two headers, closed by
+default, and each opens as one row that scrolls sideways. A tap that opens
+one folds the other. The desktop has the same layout. 6,072 assertions,
+from 6,061.
 
 **213 — the mission rules hold, and a hit trader goes back to work.** A
 trader that took a hit ran for the rest of its life, so an escort's charge

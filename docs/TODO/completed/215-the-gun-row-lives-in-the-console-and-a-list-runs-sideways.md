@@ -197,6 +197,6 @@ sideways. A tap that opens one folds the other. The sky is the sky, with
 two small marks on it. The desktop has the same layout. The suite has
 6,072 assertions, from 6,061.
 
-What the plan did not have: the run had to stay under the course header,
-or a fight would start with RUN FOR IT behind a tap. The plan's title
+What the plan did not have: the run had to stay under the course header.
+Without that, a fight would start with RUN FOR IT behind a tap. The plan's title
 changed once, because the title gate knows no verb "fold".
