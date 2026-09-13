@@ -1,49 +1,49 @@
 {
-  "promptVersion": 3,
+  "promptVersion": 4,
   "model": "claude-sonnet-5 via claude -p",
-  "generated": "2026-09-07",
+  "generated": "2026-09-13",
   "usage": {
-    "requests": 21,
-    "inputTokens": 164690,
-    "outputTokens": 100025
+    "requests": 20,
+    "inputTokens": 175941,
+    "outputTokens": 98405
   },
   "dossier": {
     "briefing": [
-      "This is {PATRON}. A Python is lifting off from {HERE} today, and she wants a gun riding beside her.",
-      "Take her out, hold formation, and see her safe into range at the far station.",
-      "Do that, and you will find the credit good when you dock back at {HERE}."
+      "{PATRON} here, calling from the trade floor at {HERE}. One of my regulars is taking a Python out to the neighbour, loaded past good sense, and she wants a gun riding beside her the whole way.",
+      "Stay on her hull until she reads station range at the far end. Once she does, you are paid and she is someone else's worry.",
+      "Lose her out there and I lose a customer, so do not lose her."
     ],
     "legs": {
       "cover": {
-        "arrive": "Escort the Python to {TARGET} and hold formation until she reaches station range",
-        "success": "The Python docked safe at {TARGET}, and {PAY} lands in your account",
-        "fail": "The Python never reached {TARGET}, and the fee of {PAY} stays unpaid"
+        "arrive": "Ride shotgun on the Python until she reads station range at {TARGET}, then claim {PAY}",
+        "success": "The Python reached station range at {TARGET}, and {PAY} is yours",
+        "fail": "The Python never reached station range at {TARGET}, and {PAY} stays unpaid"
       }
     },
-    "lead": "{PATRON} wants a word about work waiting at {WORLD}.",
+    "lead": "{PATRON} wants a word next time the commander docks at {WORLD}.",
     "rumour": {
-      "far": "Word says {PATRON} at {WORLD} still needs a fighter to ride escort.",
-      "near": "{PATRON} sends word from {WORLD} that the Python still waits for her escort."
+      "far": "Word on the board says {PATRON} at {WORLD} is still short a gun for an escort run.",
+      "near": "{PATRON} sends word from {WORLD}: the Python still needs a gun riding beside her."
     },
-    "news": "{PATRON} needs a pilot to fly escort out of {WORLD}.",
+    "news": "Traders at {WORLD} say {PATRON} is still looking for a gun to escort a Python out.",
     "story": {
-      "opening": "On day {DAY}, the commander signed on to escort a Python out of {WORLD}.",
+      "opening": "On day {DAY}, the commander took a job at {WORLD} to escort a Python to a neighbour.",
       "closing": {
-        "complete": "By day {DAY}, the Python reached {WORLD} safe, and the escort job was closed.",
-        "fail": "By day {DAY}, the escort had failed, and the commander left {WORLD} with nothing to show."
+        "complete": "By day {DAY}, the Python sat safe at {WORLD}, and the job was done.",
+        "fail": "By day {DAY}, the escort had failed, and {WORLD} saw no more of that trade."
       },
       "legs": {
         "cover": {
-          "success": "By day {DAY}, the Python docked safe at {WORLD}, and the escort was complete.",
-          "targetDestroyed": "By day {DAY}, the Python was destroyed near {WORLD}, and the escort had failed.",
-          "targetEscaped": "By day {DAY}, the Python jumped clear of {WORLD} alone, and the escort was lost.",
-          "failed": "By day {DAY}, the escort broke down before reaching {WORLD}, and the job was over."
+          "success": "The Python reached station range at {WORLD} on day {DAY}.",
+          "targetDestroyed": "The Python was destroyed short of {WORLD} on day {DAY}.",
+          "targetEscaped": "The Python jumped away before reaching {WORLD} on day {DAY}.",
+          "failed": "The escort ran out of time before {WORLD} on day {DAY}."
         }
       }
     },
-    "title": "A Gun Beside Her",
+    "title": "Gun Beside Her",
     "skeleton": "side-escort",
-    "hash": "13150f98",
+    "hash": "5a77a06a",
     "images": {}
   }
 }

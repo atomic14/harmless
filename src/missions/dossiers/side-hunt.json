@@ -1,49 +1,49 @@
 {
-  "promptVersion": 3,
+  "promptVersion": 4,
   "model": "claude-sonnet-5 via claude -p",
   "generated": "2026-09-13",
   "usage": {
-    "requests": 2,
-    "inputTokens": 16624,
-    "outputTokens": 7414
+    "requests": 20,
+    "inputTokens": 175941,
+    "outputTokens": 98405
   },
   "dossier": {
     "briefing": [
-      "Commander, {PATRON} speaks for this station, and for every hull that trades out of {HERE}.",
-      "A gang has been taking ships on the lane. Their leader flies a Fer-de-Lance, and it runs with an Asp Mk II, a Krait, and a Mamba.",
-      "Find them near the mark and finish it. {HERE} pays on the gang's blood, not on its promises."
+      "A gang has been taking ships on the lane out of {HERE}, and this station has had enough of it.",
+      "My name is {PATRON}, and I run this station. Four raiders hunt together: a Fer-de-Lance leads an Asp, a Krait and a Mamba.",
+      "Find them near the lane and finish every one. The leader may run once it takes damage, so don't let up."
     ],
     "legs": {
       "hunt": {
-        "arrive": "Clear the gang out near {TARGET}, and the station pays {PAY}",
-        "success": "The gang is broken near {TARGET} — {PAY} is paid out",
-        "fail": "No kill near {TARGET} in time, and {PAY} stays unpaid"
+        "arrive": "Hunt down the gang near {TARGET} and collect {PAY} for the kill",
+        "success": "The gang is finished near {TARGET} and {PAY} lands in your account",
+        "fail": "The trail near {TARGET} went cold and {PAY} stays unpaid"
       }
     },
-    "lead": "Word reaches her that {PATRON} at {WORLD} wants a word.",
+    "lead": "{PATRON} has a word for the commander at {WORLD}.",
     "rumour": {
-      "far": "Word on the board says {PATRON} at {WORLD} is paying blood money for a gang on the lane.",
-      "near": "{PATRON} sends word from {WORLD}: the gang still hunts the lane, and the bounty still stands."
+      "far": "Word on the board says {PATRON} at {WORLD} pays well to clear raiders off the lane.",
+      "near": "{PATRON} sends word from {WORLD}: the gang is still out there, and the bounty still stands."
     },
-    "news": "{PATRON} has posted a bounty at {WORLD} for the gang working the trade lane.",
+    "news": "{PATRON} at {WORLD} is offering a bounty on the gang working the lane.",
     "story": {
-      "opening": "On day {DAY} she took a bounty at {WORLD} to clear a gang off the lane.",
+      "opening": "The commander took the bounty on day {DAY}, with a gang loose near {WORLD}.",
       "closing": {
-        "complete": "By day {DAY} the gang off {WORLD} was finished, and the bounty was paid.",
-        "fail": "By day {DAY} the gang off {WORLD} was still loose, and the bounty had lapsed."
+        "complete": "The commander closed the case by day {DAY}, and the lane near {WORLD} was safe again.",
+        "fail": "The commander lost the trail by day {DAY}, and the gang stayed loose near {WORLD}."
       },
       "legs": {
         "hunt": {
-          "targetDestroyed": "Near {WORLD} on day {DAY}, she put the Fer-de-Lance and its gang down for good.",
-          "targetFled": "Near {WORLD} on day {DAY}, the gang broke and its leader ran, but the lane was cleared.",
-          "targetEscaped": "Near {WORLD} on day {DAY}, the Fer-de-Lance jumped clear, but its gang was finished.",
-          "failed": "Near {WORLD} on day {DAY}, the gang slipped free before she could finish the job."
+          "targetDestroyed": "By day {DAY}, the gang near {WORLD} was destroyed to the last ship.",
+          "targetFled": "By day {DAY}, the leader fled the fight near {WORLD}, and the bounty was paid.",
+          "targetEscaped": "By day {DAY}, the leader jumped clear of {WORLD} before the kill was made.",
+          "failed": "By day {DAY}, the gang near {WORLD} was still out there, and the bounty lapsed."
         }
       }
     },
-    "title": "Clean the Trade Lane",
+    "title": "Bounty on the Lane",
     "skeleton": "side-hunt",
-    "hash": "b07519ff",
+    "hash": "276bdfa5",
     "images": {}
   }
 }

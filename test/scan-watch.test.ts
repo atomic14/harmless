@@ -15,6 +15,8 @@ import { SOURCE_DESIGN, specForDesign } from '../src/game/ship-specs.ts';
 import { shipDesignIdOf } from '../src/game/ship-identity.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
 import { SIDE_SCAN } from '../src/missions/skeletons/side.ts';
+import { dossierFor } from '../src/missions/dossiers.ts';
+import { fillSlots } from '../src/missions/text.ts';
 import { SCAN_SECONDS, SIDE_JOB_PAY } from '../src/constants/missions.ts';
 import { check, consoleWatcher, dismissBriefing, eq } from './harness.ts';
 
@@ -64,11 +66,15 @@ console.log('\na scan counts while the subject is in view, with no missile armed
     said.some((t) => /^SCANNING THE ANACONDA\. \d+ OF 20 SECONDS DONE\.$/.test(t)), said.slice(0, 4).join(' / '));
   check('...and the scan completes and pays, with no missile ever armed',
     g.state.commander.missions.live.length === 0 && g.state.commander.credits === before + SIDE_JOB_PAY.scan);
-  // The dossier's own line replaces the skeleton's, and it names the world
-  // the watch was at, not ANY STATION (docs/TODO/203 M5).
+  // The dossier's own line replaces the skeleton's, filled with the world
+  // the watch was at and never ANY STATION (docs/TODO/203 M5). The line is
+  // read from the dossier, because its prose changes on every generation
+  // (docs/TODO/218).
   const world = g.state.systems[g.state.commander.systemIndex].name.toUpperCase();
-  check('...and the patron says so, naming the world',
-    said.some((t) => t === `YOU HELD THE ANACONDA AT ${world} WITHOUT FIRING, AND EARNED 250.0 CR`), said.at(-1) ?? '');
+  const line = dossierFor('side-scan')?.legs.watch?.success ?? '';
+  const expected = fillSlots(line, { TARGET: world, PAY: '250.0 CR' }).toUpperCase();
+  check('...and the patron says so, in the dossier\'s own words',
+    line !== '' && said.some((t) => t === expected) && !said.some((t) => t.includes('ANY STATION')), said.at(-1) ?? '');
 }
 
 console.log('\n...and not while the subject is behind the player');

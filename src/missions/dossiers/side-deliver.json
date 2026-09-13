@@ -1,46 +1,46 @@
 {
-  "promptVersion": 3,
+  "promptVersion": 4,
   "model": "claude-sonnet-5 via claude -p",
-  "generated": "2026-09-07",
+  "generated": "2026-09-13",
   "usage": {
-    "requests": 21,
-    "inputTokens": 164690,
-    "outputTokens": 100025
+    "requests": 20,
+    "inputTokens": 175941,
+    "outputTokens": 98405
   },
   "dossier": {
     "briefing": [
-      "This is {PATRON}. I run things here at {HERE}, and I have a packet that has to move fast.",
-      "Take it to the station one jump out. Do not ask what is inside, and do not ask about the paperwork. Just get it there before anyone notices it moved."
+      "I keep the books here at {HERE}, and some entries need a quiet hand. A sealed packet has to reach a neighbour, and neither end asks questions.",
+      "You don't open it, and you don't sit on it while you run other errands. One jump, one drop, and you're finished with me."
     ],
-    "lead": "{PATRON} sent word from {WORLD} and wants a moment of the commander's time.",
+    "lead": "{PATRON} sends word from {WORLD}, asking for a moment of the commander's time.",
     "legs": {
       "run": {
-        "arrive": "Dock at {TARGET} and hand off the packet for {PAY}",
-        "success": "The packet reached {TARGET} in time, {PAY} is banked",
-        "fail": "The packet missed {TARGET}, {PAY} stays unpaid"
+        "arrive": "Take the packet to {TARGET}, and don't ask what's inside.",
+        "success": "The packet reached {TARGET}, and {PAY} clears the books.",
+        "fail": "The packet never reached {TARGET}, and {PAY} stays uncollected."
       }
     },
+    "news": "Dockhands at {WORLD} say {PATRON} is short a courier and paying well for silence.",
     "rumour": {
-      "far": "Traders say {PATRON} on {WORLD} pays well for a quiet delivery.",
-      "near": "{PATRON} sends word from {WORLD} that the packet is ready and waiting."
+      "far": "Talk on the boards says {PATRON} at {WORLD} has a packet nobody wants opened.",
+      "near": "{PATRON} sends word from {WORLD}: the packet is still waiting, and so is the fee."
     },
-    "news": "Work waits at {WORLD}, where {PATRON} needs a packet moved without delay.",
     "story": {
-      "opening": "The commander picked up a sealed packet at {WORLD} on day {DAY}.",
+      "opening": "On day {DAY}, the commander agreed to carry a sealed packet from {WORLD}.",
       "closing": {
-        "complete": "By day {DAY}, the packet had reached its destination, and the job was done.",
-        "fail": "By day {DAY}, the packet never arrived, and the deal fell through."
+        "complete": "By day {DAY}, the packet had reached its neighbour, and {WORLD} heard nothing more of it.",
+        "fail": "By day {DAY}, the packet had gone nowhere, and {WORLD} was left waiting on it."
       },
       "legs": {
         "run": {
-          "success": "On day {DAY}, the packet reached {WORLD} without incident.",
-          "failed": "On day {DAY}, the packet failed to reach {WORLD} in time."
+          "success": "On day {DAY}, the commander delivered the sealed packet to {WORLD} without incident.",
+          "failed": "On day {DAY}, the packet missed its window, and {WORLD} never saw it arrive."
         }
       }
     },
-    "title": "The Sealed Packet Run",
+    "title": "No Questions Asked",
     "skeleton": "side-deliver",
-    "hash": "37aaca6d",
+    "hash": "45ef4567",
     "images": {}
   }
 }

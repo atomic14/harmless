@@ -1,57 +1,56 @@
 {
-  "promptVersion": 3,
+  "promptVersion": 4,
   "model": "claude-sonnet-5 via claude -p",
-  "generated": "2026-09-07",
+  "generated": "2026-09-13",
   "usage": {
-    "requests": 21,
-    "inputTokens": 164690,
-    "outputTokens": 100025
+    "requests": 20,
+    "inputTokens": 175941,
+    "outputTokens": 98405
   },
   "dossier": {
     "briefing": [
-      "I'm {PATRON}, and I run things here at {HERE}.",
-      "A canister broke loose from the rail and drifted one jump out, and I want it back.",
-      "Scoop it up, bring it home to {HERE}, and I will make it worth your time."
+      "This is {PATRON}, running things at {HERE}. A canister broke free from the station a single jump out, and it is still drifting.",
+      "Scoop it up and bring it back to {HERE}. Do that, and there is good pay waiting for the commander."
     ],
     "legs": {
       "find": {
-        "arrive": "Scoop the canister adrift at {TARGET} for {PAY}",
-        "success": "Scoop complete at {TARGET}, and {PAY} draws closer",
-        "fail": "The canister at {TARGET} is gone, and {PAY} is lost"
+        "arrive": "Scoop the canister adrift near {TARGET} for {PAY}.",
+        "success": "The canister is secured, ready for the run home for {PAY}.",
+        "fail": "The canister is gone, and the job ends without {PAY}."
       },
       "home": {
-        "arrive": "Bring the canister back to {TARGET} for {PAY}",
-        "success": "Delivered to {TARGET}, and {PAY} is paid",
-        "fail": "The run to {TARGET} failed, and {PAY} is lost"
+        "arrive": "Carry the canister back to {TARGET} to collect {PAY}.",
+        "success": "The canister is delivered, and {PAY} is paid in full.",
+        "fail": "The canister never reached {TARGET}, and {PAY} stays unpaid."
       }
     },
-    "lead": "Word reached the commander that {PATRON} wanted her attention at {WORLD}.",
+    "lead": "{PATRON} has left word at {WORLD}, asking for the commander directly.",
     "rumour": {
-      "far": "Some traders say {PATRON} at {WORLD} lost a canister worth chasing.",
-      "near": "{PATRON} sent word from {WORLD}, asking after the missing canister."
+      "far": "Word on the board says {PATRON} at {WORLD} lost a canister and wants it found.",
+      "near": "{PATRON} sends word from {WORLD}: the canister is still out there, and the offer stands."
     },
-    "news": "{PATRON} at {WORLD} has work waiting for a pilot who can scoop and haul.",
+    "news": "{PATRON} confirms a canister is loose off {WORLD}, and salvage work waits for a taker.",
     "story": {
-      "opening": "The commander took on a recovery job at {WORLD} on day {DAY}.",
+      "opening": "On day {DAY}, the commander took on a canister recovery job at {WORLD}.",
       "closing": {
-        "complete": "By day {DAY}, the commander delivered the canister to {WORLD}, and the job was complete.",
-        "fail": "By day {DAY}, the canister never reached {WORLD}, and the mission failed."
+        "complete": "By day {DAY}, the canister was back at {WORLD}, and the job was done.",
+        "fail": "By day {DAY}, the canister was lost for good, and the job failed."
       },
       "legs": {
         "find": {
-          "success": "On day {DAY}, the commander scooped the canister near {WORLD}.",
-          "targetDestroyed": "On day {DAY}, something destroyed the canister near {WORLD} before the commander could scoop it.",
-          "failed": "On day {DAY}, the search near {WORLD} failed, and the canister stayed lost."
+          "success": "On day {DAY}, the commander scooped the canister adrift near {WORLD}.",
+          "targetDestroyed": "On day {DAY}, the canister was destroyed near {WORLD} before it could be scooped.",
+          "failed": "On day {DAY}, the commander lost the trail of the canister near {WORLD}."
         },
         "home": {
           "success": "On day {DAY}, the commander delivered the canister to {WORLD}.",
-          "failed": "On day {DAY}, the return to {WORLD} failed, and the canister never arrived."
+          "failed": "On day {DAY}, the commander failed to bring the canister back to {WORLD}."
         }
       }
     },
-    "title": "The Drifting Canister",
+    "title": "Canister Adrift",
     "skeleton": "side-recover",
-    "hash": "70c27e6e",
+    "hash": "87692d2c",
     "images": {}
   }
 }

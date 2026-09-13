@@ -1,79 +1,79 @@
 {
-  "promptVersion": 3,
+  "promptVersion": 4,
   "model": "claude-sonnet-5 via claude -p",
-  "generated": "2026-09-07",
+  "generated": "2026-09-13",
   "usage": {
-    "requests": 21,
-    "inputTokens": 164690,
-    "outputTokens": 100025
+    "requests": 20,
+    "inputTokens": 175941,
+    "outputTokens": 98405
   },
   "dossier": {
     "briefing": [
-      "Manifest first: sealed transport crates, state guard chain of custody, no exceptions. This is {PATRON}, colonel of the state guard at {HERE}.",
-      "You carry the manifest to the drop point, you see the transporter through to safe range after, and you finish the Asp marked for the guard's justice. The order does not change once given.",
-      "Follow the order as given. The state pays for compliance, not for good intentions."
+      "One manifest, one Transporter, one Asp Mk II marked for destruction. Carry the first, guard the second, finish the third.",
+      "I am {PATRON}, colonel of the state guard at {HERE}. The state pays for a job finished, not for one attempted.",
+      "Take the contract or leave the dock. I will not ask twice."
     ],
+    "lead": "{PATRON} has orders waiting at {WORLD}, and no patience for a pilot who lingers.",
     "legs": {
       "manifest": {
-        "arrive": "Take the manifest to {TARGET} and collect {PAY} on delivery",
-        "success": "Manifest delivered to {TARGET}; the state credits {PAY} at once",
-        "fail": "Manifest undelivered at {TARGET}; the state voids {PAY} and the contract"
+        "arrive": "Take the manifest to {TARGET}. Payment on delivery: {PAY}",
+        "success": "Manifest delivered to {TARGET}. Payment cleared: {PAY}",
+        "fail": "The manifest failed to reach {TARGET}. No payment"
       },
       "guard": {
-        "arrive": "See the transporter into station range at {TARGET} for {PAY}",
-        "success": "Transporter secured at {TARGET}; the state holds {PAY} ready",
-        "fail": "Transporter lost before {TARGET}; the state withdraws {PAY}"
+        "arrive": "Escort the Transporter to {TARGET}. Fee: {PAY}",
+        "success": "The Transporter reached {TARGET} under escort",
+        "fail": "The escort failed before {TARGET}. Contract closed"
       },
       "wreck": {
-        "arrive": "Scoop the transporter's cargo adrift at {TARGET} for {PAY}",
-        "success": "Cargo recovered at {TARGET}; the state keeps {PAY} on the books",
-        "fail": "Cargo unrecovered at {TARGET}; the state cancels {PAY}"
+        "arrive": "Scoop the Transporter's wreckage adrift at {TARGET} for {PAY}",
+        "success": "Cargo recovered from the wreck at {TARGET}",
+        "fail": "The wreck at {TARGET} was lost. No recovery"
       },
       "purge": {
-        "arrive": "Destroy the Asp last seen at {TARGET} and collect {PAY}",
-        "success": "Asp accounted for near {TARGET}; the state closes with {PAY}",
-        "fail": "Asp unaccounted near {TARGET}; the state cancels {PAY}"
+        "arrive": "Find and destroy the Asp last seen at {TARGET} for {PAY}",
+        "success": "The Asp is dealt with. File closed",
+        "fail": "The Asp slipped free of {TARGET}. Contract closed"
       }
     },
-    "lead": "A tight-band signal from {PATRON} reaches the commander, routed through {WORLD}.",
+    "title": "Colonel Adalwyn's Convoy",
     "rumour": {
-      "far": "Traders mutter that {PATRON}'s state guard at {WORLD} still wants a courier for a live contract.",
-      "near": "{PATRON} sends word direct: the manifest waits at {WORLD}, no excuses."
+      "far": "Word on the board says the state guard at {WORLD} is hiring pilots for the colonel's convoy.",
+      "near": "{PATRON} sends word: report to {WORLD} before the manifest waits for someone else."
     },
-    "news": "State guard postings at {WORLD} confirm {PATRON} is hiring a pilot for an active contract.",
+    "news": "The state guard at {WORLD} confirms {PATRON} is contracting pilots for convoy duty.",
     "story": {
-      "opening": "The commander took the colonel's contract at {WORLD} on day {DAY}.",
+      "opening": "On day {DAY} the commander took the colonel's contract at {WORLD}.",
       "closing": {
-        "complete": "The commander closed the colonel's contract out of {WORLD} on day {DAY}.",
-        "fail": "The commander's contract with {WORLD} collapsed on day {DAY}."
+        "complete": "The Asp fell silent near {WORLD}, and the colonel's contract closed clean on day {DAY}.",
+        "fail": "The contract collapsed near {WORLD} on day {DAY}, and the colonel filed no thanks."
       },
       "legs": {
         "manifest": {
-          "success": "On day {DAY}, the commander delivered the manifest to {WORLD}.",
-          "failed": "On day {DAY}, the commander failed to deliver the manifest to {WORLD}."
+          "success": "The manifest reached {WORLD} on day {DAY}, delivered as ordered.",
+          "failed": "The manifest never reached {WORLD}; the deadline broke on day {DAY}."
         },
         "guard": {
-          "success": "On day {DAY}, the commander guided the transporter safely into {WORLD}.",
-          "targetDestroyed": "On day {DAY}, the transporter was destroyed short of {WORLD}.",
-          "targetEscaped": "On day {DAY}, the transporter jumped clear of {WORLD}.",
-          "failed": "On day {DAY}, the commander lost the transporter before {WORLD}."
+          "success": "The Transporter reached station range at {WORLD} on day {DAY}, the escort held.",
+          "targetDestroyed": "The Transporter was destroyed near {WORLD} on day {DAY}, the escort broken.",
+          "targetEscaped": "The Transporter jumped clear of {WORLD} on day {DAY}, lost from the escort's sight.",
+          "failed": "The escort collapsed near {WORLD}; the deadline broke on day {DAY}."
         },
         "wreck": {
-          "success": "On day {DAY}, the commander scooped the transporter's cargo near {WORLD}.",
-          "targetDestroyed": "On day {DAY}, the transporter's cargo was destroyed before {WORLD}.",
-          "failed": "On day {DAY}, the commander failed to recover the cargo near {WORLD}."
+          "success": "The commander scooped the Transporter's cargo adrift at {WORLD} on day {DAY}.",
+          "targetDestroyed": "The canister was destroyed before the scoop near {WORLD} on day {DAY}.",
+          "failed": "The wreck at {WORLD} slipped away before day {DAY} closed the deadline."
         },
         "purge": {
-          "targetDestroyed": "On day {DAY}, the commander destroyed the Asp near {WORLD}.",
-          "targetEscaped": "On day {DAY}, the Asp escaped near {WORLD}.",
-          "targetFled": "On day {DAY}, the Asp fled before {WORLD}.",
-          "failed": "On day {DAY}, the commander failed to run down the Asp near {WORLD}."
+          "targetDestroyed": "The Asp Mk II was destroyed near {WORLD} on day {DAY}, the colonel's order done.",
+          "targetEscaped": "The Asp Mk II jumped clear of {WORLD} on day {DAY}, unfinished business for the state.",
+          "targetFled": "The Asp Mk II fled {WORLD} on day {DAY}, running rather than fighting.",
+          "failed": "The hunt for the Asp died near {WORLD}; the deadline broke on day {DAY}."
         }
       }
     },
-    "title": "The Colonel's Reckoning",
     "skeleton": "arc-edle",
-    "hash": "6a37e590",
+    "hash": "bb0350de",
     "images": {}
   }
 }

@@ -1,64 +1,65 @@
 {
-  "promptVersion": 3,
+  "promptVersion": 4,
   "model": "claude-sonnet-5 via claude -p",
-  "generated": "2026-09-07",
+  "generated": "2026-09-13",
   "usage": {
-    "requests": 21,
-    "inputTokens": 164690,
-    "outputTokens": 100025
+    "requests": 20,
+    "inputTokens": 175941,
+    "outputTokens": 98405
   },
   "dossier": {
     "briefing": [
-      "Commander, a prototype hull was stolen from a Navy yard, and command wants it destroyed, not recovered.",
-      "Accept the contract and you receive its last known position, then report to any station for further orders."
+      "Commander. A prototype hull was stolen from a Navy yard. Designation: Constrictor.",
+      "Command does not want it recovered. Command wants it destroyed, and the drive plans inside it burned with it.",
+      "Accept, and you receive its last known position. Confirm the kill, then stand by for further orders."
     ],
-    "lead": "A fresh Navy transmission awaits her attention.",
+    "lead": "A cold Navy channel opens near {WORLD}, and it wants the commander's answer.",
     "legs": {
       "hunt": {
-        "arrive": "Find and destroy the Constrictor last seen at {TARGET}",
-        "success": "The Constrictor is destroyed and {PAY} is confirmed",
-        "fail": "The Constrictor escaped and the operation failed"
+        "arrive": "Find and destroy the Constrictor near {TARGET}, fee {PAY}",
+        "success": "The Constrictor is wreckage, {PAY} confirmed",
+        "fail": "The Constrictor escaped the search near {TARGET}, no {PAY}"
       },
       "report": {
-        "arrive": "Dock at any station and await further orders",
-        "success": "Contact made, the plans are ready for courier",
-        "fail": "Contact lost and command lost patience"
+        "arrive": "Report to any station for further orders, {PAY} pending",
+        "success": "Orders received, {PAY} still pending",
+        "fail": "No station reported in time, {PAY} lost"
       },
       "courier": {
-        "arrive": "Deliver the plans to {TARGET} for {PAY}",
-        "success": "The plans are delivered and {PAY} is paid in full",
-        "fail": "The plans never arrived and the mission failed"
+        "arrive": "Deliver the recovered plans to {TARGET} for {PAY}",
+        "success": "Plans delivered to {TARGET}, {PAY} banked",
+        "fail": "The plans never reached {TARGET}, {PAY} lost"
       }
     },
-    "news": "The news wire carries a fresh Navy alert about the stolen prototype hull.",
     "rumour": {
-      "far": "Dock talk says the Navy wants a stolen prototype hunted down.",
-      "near": "A tight-band Navy signal warns that the stolen hull must be destroyed, not boarded."
+      "far": "Traders near {WORLD} say a Navy patrol lost a prototype hull, and wants it found.",
+      "near": "A tight Navy beam reaches the commander at {WORLD}, flat and urgent, no name attached."
     },
+    "news": "Dock reports at {WORLD} say a Navy contract stands open for any pilot who can hunt down a stolen hull.",
+    "title": "Last Known Position",
     "story": {
-      "opening": "On day {DAY}, she accepted a Navy order to hunt down a stolen prototype hull.",
+      "opening": "On day {DAY}, at {WORLD}, a Navy signal reached the commander, ordering the destruction of a stolen prototype hull.",
       "closing": {
-        "complete": "By day {DAY}, the Constrictor was scrapped and the Navy's plans reached {WORLD}.",
-        "fail": "By day {DAY}, the hunt for the Constrictor collapsed, and the trail went cold near {WORLD}."
+        "complete": "By day {DAY}, at {WORLD}, the Navy contract closed complete, the Constrictor destroyed and its plans delivered.",
+        "fail": "By day {DAY}, at {WORLD}, the Navy contract lapsed, and the Constrictor's fate stayed unresolved."
       },
       "legs": {
         "hunt": {
-          "targetDestroyed": "On day {DAY}, the Constrictor was destroyed at {WORLD}.",
-          "failed": "On day {DAY}, the Constrictor slipped away near {WORLD}."
+          "targetDestroyed": "At {WORLD}, on day {DAY}, the commander ran down and destroyed the stolen Constrictor hull.",
+          "failed": "At {WORLD}, on day {DAY}, the hunt for the Constrictor broke down."
         },
         "report": {
-          "success": "On day {DAY}, she reported the kill at {WORLD} for new orders.",
-          "failed": "On day {DAY}, she failed to reach {WORLD} in time to report."
+          "success": "At {WORLD}, on day {DAY}, the commander reported in and took fresh Navy orders.",
+          "failed": "At {WORLD}, on day {DAY}, the commander failed to report before the deadline passed."
         },
         "courier": {
-          "success": "On day {DAY}, she delivered the Navy's plans to {WORLD}.",
-          "failed": "On day {DAY}, the Navy's plans never reached {WORLD}."
+          "success": "At {WORLD}, on day {DAY}, the commander handed the recovered plans to Navy hands.",
+          "failed": "At {WORLD}, on day {DAY}, the plans failed to reach their destination."
         }
       }
     },
-    "title": "The Constrictor Directive",
     "skeleton": "constrictor",
-    "hash": "5236c29f",
+    "hash": "cc0cc74d",
     "images": {}
   }
 }

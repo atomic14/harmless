@@ -69,8 +69,27 @@ Evidence:
 
 ## What the milestones found
 
-(filled in as it lands)
+- **The prompt was the root.** Five lines of the dossier prompt said
+  "she" and "her" for the commander, and every dossier followed them. The
+  prompt names the commander as the player now, of any gender.
+- **About 560 lines over 128 files** said "she" or "her" for the
+  commander: comments, doc comments, test labels, the training tools and
+  five reference docs. Three agents swept them in parallel, one per
+  area, and two lines they kept were the commander after all: "the
+  station she stands at" is where the commander stands.
+- **Other characters keep their pronouns.** The patrons, the rescued
+  survey pilot, the surveyor at Vetitice, the administrator at Xeer, and
+  the Python called "her" in the nautical way. The training encoder's
+  "she" was any defender, and it says "the defender" now.
+- **One test pinned the old prose.** The scan test compared the console
+  line to the old dossier's exact words, so any generation broke it. It
+  reads the dossier's own line now, filled with the world.
+- **The run cost about a dollar at batch rates**: twenty requests for
+  fourteen dossiers, with retries the validator asked for.
 
 ## Outcome
 
-(filled in at the end)
+Landed 2026-09-13. The commander is "they" or "the commander" in every
+comment, doc, test and prompt, and the fourteen dossiers were written
+again under prompt version 4, through `claude -p` with Sonnet 5, on
+Chris's word. 6,153 assertions.
