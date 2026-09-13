@@ -10,36 +10,41 @@ import { Game } from '../src/game/game.ts';
 import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
-import { actionButtonsFor, targetButtonsFor } from '../src/game/cockpit-buttons.ts';
+import { gunButtonsFor, targetButtonsFor } from '../src/game/cockpit-buttons.ts';
 import { attachHoldButtons } from '../src/engine/hold-buttons.ts';
 import { TARGET_NONE_KEY, TARGETS_KEY } from '../src/game/bindings.ts';
 import { pickedTarget } from '../src/game/targets.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
 
-console.log('\nthe pilot\'s buttons');
+console.log('\nthe gun row (docs/TODO/215 M1)');
 
 const base = {
   fireKey: 'KeyA', missiles: 3, armed: false, locked: false,
-  armKey: 'KeyT', launchKey: 'KeyM', ecmKey: null, targets: null, missileInbound: false, dockKey: null,
+  armKey: 'KeyT', disarmKey: 'KeyU', launchKey: 'KeyM', ecmKey: null, targets: null, missileInbound: false, dockKey: null,
   trial: false, rails: false, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
 };
 {
-  const b = actionButtonsFor(base);
-  eq('the laser button is the last, at the bottom where a thumb rests', b.at(-1)?.label, 'FIRE LASER');
-  check('...and it holds the fire key rather than tapping it', b.at(-1)?.hold === true && b.at(-1)?.code === 'KeyA');
+  const b = gunButtonsFor(base);
+  eq('the row is four buttons, left to right', b.map((x) => x.label).join('|'), 'FIRE LASER|ARM A MISSILE|FIRE THE MISSILE|E.C.M.');
+  check('the laser button is the first, and it holds the fire key rather than tapping it', b[0].hold === true && b[0].code === 'KeyA');
   eq('an unarmed missile button arms one', b.find((x) => x.code === 'KeyT')?.label, 'ARM A MISSILE');
   eq('...and says how many are left', b.find((x) => x.code === 'KeyT')?.hint, '3 LEFT');
-  const armed = actionButtonsFor({ ...base, armed: true, locked: true });
-  eq('an armed and locked missile button fires it', armed.find((x) => x.code === 'KeyM')?.hint, 'LOCKED ON');
-  check('with no missiles there is no missile button',
-    !actionButtonsFor({ ...base, missiles: 0 }).some((x) => x.code === 'KeyT' || x.code === 'KeyM'));
-  check('with no E.C.M. fitted there is no E.C.M. button', !b.some((x) => x.label === 'E.C.M.'));
-  check('...and with one there is', actionButtonsFor({ ...base, ecmKey: 'KeyE' }).some((x) => x.label === 'E.C.M.'));
+  eq('...and the fire button waits, dim', b[2].note, 'NOT ARMED');
+  const armed = gunButtonsFor({ ...base, armed: true, locked: true });
+  eq('armed, the second button disarms, lit', armed[1].label + (armed[1].lit ? ' lit' : ''), 'DISARM lit');
+  eq('...and it still says how many are left', armed[1].hint, '3 LEFT');
+  eq('...and the fire button is live, and says it has a lock', armed[2].code + ' ' + armed[2].hint, 'KeyM LOCKED ON');
+  const none = gunButtonsFor({ ...base, missiles: 0 });
+  eq('with no missiles the row keeps its shape', none.length, 4);
+  eq('...and the arm button says why it is dim', none[1].note, 'NONE LEFT');
+  eq('with no E.C.M. fitted the button says so', b[3].note, 'NOT FITTED');
+  check('...and with one it is live', gunButtonsFor({ ...base, ecmKey: 'KeyE' })[3].code === 'KeyE');
+  check('...and lit while a missile is inbound', gunButtonsFor({ ...base, ecmKey: 'KeyE', missileInbound: true })[3].lit === true);
   // The target list is its own column, on the left (Chris, 2026-09-13).
   const row = { code: 'VirtTarget1', row: { ship: {} as never, name: 'KRAIT', range: 1000, standing: 'HOSTILE', picked: false, cost: '' } };
   const listed = { ...base, targets: { open: false, rows: [row], picked: null } };
   check('the TARGETS button is in its own column, and not among the guns',
-    targetButtonsFor(listed).some((x) => x.code === TARGETS_KEY) && !actionButtonsFor(listed).some((x) => x.code === TARGETS_KEY));
+    targetButtonsFor(listed).some((x) => x.code === TARGETS_KEY) && !gunButtonsFor(listed).some((x) => x.code === TARGETS_KEY));
   const open = { ...base, targets: { open: true, rows: [row], picked: null } };
   eq('...and open, the column lists the ship and the button that closes it',
     targetButtonsFor(open).map((x) => x.label).join('|'), 'KRAIT|CLOSE THE LIST');

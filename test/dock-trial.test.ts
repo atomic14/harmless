@@ -6,7 +6,7 @@
 // The slot takes the ship only if both are right.
 
 import * as THREE from 'three';
-import { actionButtonsFor } from '../src/game/cockpit-buttons.ts';
+import { gunButtonsFor } from '../src/game/cockpit-buttons.ts';
 import { attachStripControl } from '../src/engine/strip-control.ts';
 import { flightDemand } from '../src/engine/flight-controls.ts';
 import { keymap } from '../src/engine/keymap.ts';
@@ -26,18 +26,18 @@ console.log('\nthe last stretch into the slot');
 
 // --- the two controls, and nothing else --------------------------------------
 {
-  const trial = actionButtonsFor({
+  const trial = gunButtonsFor({
     fireKey: 'KeyA', missiles: 3, armed: false, locked: false, armKey: 'KeyT',
-    launchKey: 'KeyM', ecmKey: 'KeyE', targets: null, missileInbound: false, dockKey: null,
+    launchKey: 'KeyM', disarmKey: 'KeyU', ecmKey: 'KeyE', targets: null, missileInbound: false, dockKey: null,
     trial: true, rails: true, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });
   eq('the stretch shows a strip and two held buttons, and no guns',
     trial.map((b) => b.label).join(), 'DRAG TO ROLL,THRUST,BRAKE');
   // ...and before the rails take it, the pilot has nothing to do yet
   // (docs/TODO/212). A strip that did nothing would be a lie.
-  const lining = actionButtonsFor({
+  const lining = gunButtonsFor({
     fireKey: 'KeyA', missiles: 3, armed: false, locked: false, armKey: 'KeyT',
-    launchKey: 'KeyM', ecmKey: 'KeyE', targets: null, missileInbound: false, dockKey: null,
+    launchKey: 'KeyM', disarmKey: 'KeyU', ecmKey: 'KeyE', targets: null, missileInbound: false, dockKey: null,
     trial: true, rails: false, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });
   eq('while the computer lines up, the pilot sees one word and no controls',
@@ -312,17 +312,17 @@ console.log('\nthe docking computer is offered, and it takes the ship when asked
   // over.
   const source = (rails: boolean, fitted: boolean) => ({
     fireKey: 'KeyA', missiles: 0, armed: false, locked: false, armKey: 'KeyT',
-    launchKey: 'KeyM', ecmKey: null, targets: null, missileInbound: false,
+    launchKey: 'KeyM', disarmKey: 'KeyU', ecmKey: null, targets: null, missileInbound: false,
     dockKey: fitted ? dockKey : null,
     trial: true, rails, accelKey: 'Space', decelKey: 'KeyX', rollStripCode: 'roll',
   });
   check('while the computer lines up, a fitted one is offered',
-    actionButtonsFor(source(false, true)).some((b) => b.label === 'DOCKING COMPUTER'));
+    gunButtonsFor(source(false, true)).some((b) => b.label === 'DOCKING COMPUTER'));
   check('...and during the pilot\'s own run in, too',
-    actionButtonsFor(source(true, true)).some((b) => b.label === 'DOCKING COMPUTER'));
+    gunButtonsFor(source(true, true)).some((b) => b.label === 'DOCKING COMPUTER'));
   check('a commander with none is offered nothing',
-    !actionButtonsFor(source(false, false)).some((b) => b.label === 'DOCKING COMPUTER')
-    && !actionButtonsFor(source(true, false)).some((b) => b.label === 'DOCKING COMPUTER'));
+    !gunButtonsFor(source(false, false)).some((b) => b.label === 'DOCKING COMPUTER')
+    && !gunButtonsFor(source(true, false)).some((b) => b.label === 'DOCKING COMPUTER'));
 
   /** Fly the approach, pressing the button when `ask` says to. */
   const fly = (ask: boolean): { sawTrial: boolean; docked: boolean; engaged: boolean } => {

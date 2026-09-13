@@ -82,10 +82,11 @@ export interface HudState {
    */
   targetList: readonly HudButton[];
   /**
-   * The pilot's hands as buttons (docs/TODO/206 M3): the laser, the missile
-   * and the E.C.M. Finished, as the courses are.
+   * The guns as buttons (docs/TODO/206 M3, docs/TODO/215 M1). They are the
+   * laser, the missile as two buttons, and the E.C.M., in a row at the
+   * bottom of the console. Finished, as the courses are.
    */
-  actions: readonly HudButton[];
+  guns: readonly HudButton[];
   speedFrac: number;
   rollFrac: number; // -1..1
   pitchFrac: number; // -1..1
@@ -236,7 +237,6 @@ export class Hud {
   private readonly energyEl = byId('g-energy');
   /** built on the first frame, from the bank count the frame brings */
   private energySegs: HTMLElement[] = [];
-  private readonly missileEls: HTMLElement[];
   private readonly lockEl = byId('lock');
   private readonly indS = byId('ind-s');
   private readonly indE = byId('ind-e');
@@ -246,7 +246,7 @@ export class Hud {
   private readonly messageEl = byId('message');
   private readonly courseStrip = new ButtonStrip(byId('courses'));
   private readonly targetStrip = new ButtonStrip(byId('targets'));
-  private readonly actionStrip = new ButtonStrip(byId('actions'));
+  private readonly gunStrip = new ButtonStrip(byId('guns'));
   private readonly flashEl = byId('damage-flash');
   private readonly exerciseEl = byId('exercise');
   private readonly exScenarioEl = byId('ex-scenario');
@@ -267,7 +267,6 @@ export class Hud {
     this.scanner = (byId('scanner') as HTMLCanvasElement).getContext('2d')!;
     this.reticle = (byId('reticle') as HTMLCanvasElement).getContext('2d')!;
     this.compass = (byId('compass') as HTMLCanvasElement).getContext('2d')!;
-    this.missileEls = Array.from(byId('missiles').querySelectorAll('span'));
   }
 
   setSystem(system: StarSystem): void {
@@ -285,7 +284,7 @@ export class Hud {
     this.messageEl.textContent = frame.messageTimer > 0 ? frame.messageText : '';
     this.courseStrip.paint(frame.courses);
     this.targetStrip.paint(frame.targetList);
-    this.actionStrip.paint(frame.actions);
+    this.gunStrip.paint(frame.guns);
     this.speedEl.style.width = `${frame.speedFrac * 100}%`;
     this.rollEl.style.left = `${50 + clampUnit(frame.rollFrac) * 45}%`;
     this.pitchEl.style.left = `${50 + clampUnit(frame.pitchFrac) * 45}%`;
@@ -303,12 +302,6 @@ export class Hud {
     this.crosshairEl.style.display = frame.hasLaser ? '' : 'none';
     this.shipIdEl.textContent = frame.shipId;
     this.drawEnergy(frame);
-    this.missileEls.forEach((m, i) => {
-      const active = i === frame.missiles - 1;
-      m.classList.toggle('spent', i >= frame.missiles);
-      m.classList.toggle('armed', frame.armed && active);
-      m.classList.toggle('locked', frame.locked && active);
-    });
     this.indS.classList.toggle('lit', frame.stationInRange);
     this.indE.classList.toggle('lit-amber', frame.ecmDetected);
     this.lockEl.textContent = ''; // lock is shown by the bracket + missile pylon

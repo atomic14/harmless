@@ -40,7 +40,7 @@ import { keyCodeIfBound, keyIfBound } from '../ui/key-help.ts';
 import type { HudButton } from '../hud/hud-buttons.ts';
 import type { CoursePanel } from './course-actions.ts';
 import { ROLL_STRIP_CODE } from './bindings.ts';
-import { actionButtonsFor, courseButtonsFor, offerButtons, targetButtonsFor, type ActionSource } from './cockpit-buttons.ts';
+import { courseButtonsFor, gunButtonsFor, offerButtons, targetButtonsFor, type ActionSource } from './cockpit-buttons.ts';
 import type { TargetPanel } from './target-actions.ts';
 import { keymap } from '../engine/keymap.ts';
 import type { Command, ControlMode } from './controls.ts';
@@ -206,8 +206,8 @@ export class CockpitView {
    * @internal — public so that test/run-and-offers.test.ts reads the buttons
    * without a scrape of the page.
    */
-  buttons(): { courses: HudButton[]; targetList: HudButton[]; actions: HudButton[] } {
-    return { courses: this.courseButtons(), targetList: this.targetButtons(), actions: this.actionButtons() };
+  buttons(): { courses: HudButton[]; targetList: HudButton[]; guns: HudButton[] } {
+    return { courses: this.courseButtons(), targetList: this.targetButtons(), guns: this.gunButtons() };
   }
 
   /** The target list, bottom left, in flight only. */
@@ -216,10 +216,10 @@ export class CockpitView {
     return source ? targetButtonsFor(source) : [];
   }
 
-  /** The pilot's buttons, in flight only (docs/TODO/206 M3). */
-  private actionButtons(): HudButton[] {
+  /** The gun row, in flight only (docs/TODO/206 M3, docs/TODO/215 M1). */
+  private gunButtons(): HudButton[] {
     const source = this.actionSource();
-    return source ? actionButtonsFor(source) : [];
+    return source ? gunButtonsFor(source) : [];
   }
 
   /** What both columns of the pilot's buttons are built from, or null out of flight. */
@@ -233,6 +233,7 @@ export class CockpitView {
       armed: this.ordnance.armed,
       locked: this.ordnance.targetLock !== null,
       armKey: key('armMissile'),
+      disarmKey: key('disarmMissile'),
       launchKey: key('launchMissile'),
       ecmKey: this.state.commander.equipment.ecm ? key('fireEcm') : null,
       missileInbound: this.ordnance.missileInbound,
@@ -340,7 +341,7 @@ export class CockpitView {
       messageTimer: this.state.session.messageTimer,
       courses: this.courseButtons(),
       targetList: this.targetButtons(),
-      actions: this.actionButtons(),
+      guns: this.gunButtons(),
       // Null in career flight. It is gated on the same `active` that gives the
       // exercise the keyboard (controlMode). The strip is the exercise's own
       // view of itself, not a second opinion about one.

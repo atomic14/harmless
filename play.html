@@ -37,18 +37,11 @@
       <div id="courses"></div>
       <!--
         The target list (docs/TODO/206 M3): what the ship can fight, one row
-        each. Bottom left, above the console, where the other thumb rests. It
-        sat on the right with the guns until 2026-09-13, and it opened upward
-        over the action.
+        each. Bottom left, above the console, where a thumb rests. It sat on
+        the right with the guns until 2026-09-13, and it opened upward over
+        the action. The guns are a row in the console now (docs/TODO/215).
       -->
       <div id="targets"></div>
-      <!--
-        The pilot's buttons (docs/TODO/206 M3): the laser, the missile and the
-        E.C.M. Bottom right, above the console, where a thumb reaches. The
-        laser button holds its key while it is held (engine/hold-buttons.ts).
-        The rest send their data-key on a click.
-      -->
-      <div id="actions"></div>
       <!--
         The exercise strip: shown for as long as a training exercise is being
         flown, and never in career flight. Painted by hud/hud.ts from the
@@ -67,6 +60,12 @@
       </div>
       <div id="damage-flash"></div>
       <div id="hud">
+        <!--
+          The three panels are one row, and the guns are the row under them
+          (docs/TODO/215 M1). On a phone the wrapper gives up its box, as the
+          panels do, and the grid places every gauge itself.
+        -->
+        <div class="hud-row">
         <div class="hud-panel hud-left">
           <!--
             The mark on the speed bar is the fastest the slot will take
@@ -94,10 +93,19 @@
               <span id="ind-s" title="space station in range">S</span>
               <span id="ind-e" title="E.C.M. broadcast detected">E</span>
             </div>
-            <div class="missiles" id="missiles"><span></span><span></span><span></span><span></span></div>
             <canvas id="compass" width="60" height="60"></canvas>
           </div>
         </div>
+        </div>
+        <!--
+          The guns (docs/TODO/215 M1): the laser, the missile as two buttons,
+          and the E.C.M., in a row at the bottom of the console. Chris drew it
+          there on 2026-09-13, so the sky is the sky. The laser button holds
+          its key while it is held (engine/hold-buttons.ts). The rest send
+          their data-key on a click. The missile squares that sat beside the
+          compass went with it: the count is on the arm button.
+        -->
+        <div id="guns"></div>
       </div>
       <div id="screen" class="hidden"></div>
       <div id="help" class="hidden">

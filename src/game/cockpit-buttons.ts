@@ -1,16 +1,17 @@
 // The buttons over the flight view, built from what the cockpit sees
 // (docs/TODO/205 M5, docs/TODO/206 M3 and M5).
 //
-// Three columns. The courses sit top right: where the ship can go next, the
-// course it flies now, fast forward, and the offers that the situation
-// raises. The target list sits bottom LEFT, where a left thumb rests. The
-// pilot's hands sit bottom right: the E.C.M., the missile and the laser. The
-// laser is the lowest of them, where a right thumb finds it without a look.
+// Two columns over the sky, and a row in the console. The courses sit top
+// right: where the ship can go next, the course it flies now, fast forward,
+// and the offers that the situation raises. The target list sits bottom
+// left, where a thumb rests. The guns are a row at the bottom of the
+// console (docs/TODO/215 M1): the laser, the missile as two buttons, and the
+// E.C.M. The laser is the wide red button on the left of the row.
 //
-// The target list sat on the right with the rest until 2026-09-13, and it
-// opened upward over the action. Chris: *"the buttons cover up the area
-// where all the action is happening"*. A list on the left and the guns on
-// the right leave the middle, where the fight is, to the fight.
+// The guns and the target list sat bottom right until 2026-09-13, and the
+// list opened upward over the action. Chris: *"the buttons cover up the
+// area where all the action is happening"*, and then *"I think the buttons
+// should be at the bottom"*. He drew the row, with the missile split in two.
 //
 // PURE, and it decides nothing. Each function takes what the cockpit already
 // read and returns `HudButton`s. `hud/hud-buttons.ts` paints them, and a
@@ -60,6 +61,8 @@ export interface ActionSource {
   readonly armed: boolean;
   readonly locked: boolean;
   readonly armKey: string | null;
+  /** the disarm key, so the missile is two buttons: arm or disarm, and fire */
+  readonly disarmKey: string | null;
   readonly launchKey: string | null;
   /** the E.C.M.'s key, or null when none is fitted */
   readonly ecmKey: string | null;
@@ -117,11 +120,14 @@ export function targetButtonsFor(a: ActionSource): HudButton[] {
 }
 
 /**
- * The pilot's hands as buttons, top to bottom (docs/TODO/206 M3). The laser
- * comes last, at the bottom, where a thumb finds it without a look. The
- * target list is its own column, `targetButtonsFor`.
+ * The gun row, left to right (docs/TODO/215 M1). FIRE LASER is held. ARM A
+ * MISSILE or DISARM reads by the missile's state, with the count. FIRE THE
+ * MISSILE is lit on a lock. E.C.M. is lit while a missile is inbound. The
+ * row is always four buttons in the same places. A button the ship cannot
+ * use stays dim and says why, so a thumb can learn the row. During the
+ * pilot's stretch into the slot the row holds the stretch's own buttons.
  */
-export function actionButtonsFor(a: ActionSource): HudButton[] {
+export function gunButtonsFor(a: ActionSource): HudButton[] {
   // The last stretch into the slot asks for two things and nothing else: the
   // roll, and the speed (docs/TODO/207 M2). So the pilot's buttons are those
   // two while it runs, and the guns wait.
@@ -151,20 +157,31 @@ export function actionButtonsFor(a: ActionSource): HudButton[] {
     return out;
   }
   const out: HudButton[] = [];
+  if (a.fireKey) out.push({ code: a.fireKey, label: 'FIRE LASER', hint: 'HOLD TO FIRE', hold: true });
+  // The missile as two buttons (Chris, 2026-09-13): arm or disarm, and fire.
+  const left = `${a.missiles} LEFT`;
+  if (a.missiles === 0 || !a.armKey || !a.disarmKey) {
+    out.push({ code: a.armKey ?? 'missile-none', label: 'ARM A MISSILE', note: 'NONE LEFT' });
+  } else if (a.armed) {
+    out.push({ code: a.disarmKey, label: 'DISARM', lit: true, hint: left });
+  } else {
+    out.push({ code: a.armKey, label: 'ARM A MISSILE', hint: left });
+  }
+  if (a.armed && a.launchKey) {
+    out.push({
+      code: a.launchKey, label: 'FIRE THE MISSILE', lit: a.locked,
+      hint: a.locked ? 'LOCKED ON' : 'IT LOCKS ON A SHIP IN YOUR SIGHTS',
+    });
+  } else {
+    out.push({ code: a.launchKey ?? 'missile-none', label: 'FIRE THE MISSILE', note: 'NOT ARMED' });
+  }
   if (a.ecmKey) {
     out.push(a.missileInbound
       ? { code: a.ecmKey, label: 'E.C.M.', lit: true, hint: 'A MISSILE IS COMING — PRESS NOW' }
       : { code: a.ecmKey, label: 'E.C.M.', hint: 'DESTROYS MISSILES NEARBY' });
+  } else {
+    out.push({ code: 'ecm-none', label: 'E.C.M.', note: 'NOT FITTED' });
   }
-  if (a.missiles > 0 && a.armKey && a.launchKey) {
-    out.push(a.armed
-      ? {
-        code: a.launchKey, label: 'FIRE THE MISSILE', lit: a.locked,
-        hint: a.locked ? 'LOCKED ON' : 'IT LOCKS ON A SHIP IN YOUR SIGHTS',
-      }
-      : { code: a.armKey, label: 'ARM A MISSILE', hint: `${a.missiles} LEFT` });
-  }
-  if (a.fireKey) out.push({ code: a.fireKey, label: 'FIRE LASER', hint: 'HOLD TO FIRE', hold: true });
   return out;
 }
 

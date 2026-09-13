@@ -70,8 +70,8 @@ export interface HudSources {
   readonly courses: HudState['courses'];
   /** the target list as buttons, finished — see `HudState.targetList` */
   readonly targetList: HudState['targetList'];
-  /** the pilot's buttons, finished — see `HudState.actions` */
-  readonly actions: HudState['actions'];
+  /** the guns, finished — see `HudState.guns` */
+  readonly guns: HudState['guns'];
   /**
    * The training exercise in progress, or null in career flight.
    *
@@ -182,7 +182,7 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     messageTimer: s.messageTimer,
     courses: s.courses,
     targetList: s.targetList,
-    actions: s.actions,
+    guns: s.guns,
     playerPos: s.playerPos,
     playerQuat: s.playerQuat,
     contacts: scannerContacts(

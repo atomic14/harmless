@@ -51,7 +51,7 @@ export function browserShell(canvas: HTMLCanvasElement, scene: THREE.Scene): She
     // a data-key, as a menu row does, so a click takes the same path. The
     // target list is its own column since 2026-09-13, so it is listed here.
     onScreenClick: (fn) => {
-      for (const id of ['screen', 'courses', 'targets', 'actions']) {
+      for (const id of ['screen', 'courses', 'targets', 'guns']) {
         document.getElementById(id)?.addEventListener('click', (e) => {
           const el = (e.target as HTMLElement).closest('[data-key],[data-row]');
           fn(el ?? e.target, e);
