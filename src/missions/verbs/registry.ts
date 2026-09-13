@@ -46,7 +46,8 @@ export function verbJob(verb: Extract<Verb, { ship: string }>): 'hunt' | 'escort
  * the restore each mapped it alone until docs/TODO/213 M4, and the restore
  * read every tagged ship as a pirate.
  */
-export function jobRole(job: TaggedShip['job']): 'pirate' | 'trader' {
+export function jobRole(job: TaggedShip['job']): 'pirate' | 'trader' | 'police' {
+  if (job === 'police') return 'police';
   return job === 'hunt' ? 'pirate' : 'trader';
 }
 

@@ -122,6 +122,7 @@ const OUTSIDE: readonly Group[] = [
       'missions/skeletons/index.ts': ['SKELETONS', 'ARC_TOUR'],
       // the Dark Wheel's trials (docs/TODO/219)
       'missions/skeletons/wheel/mark.ts': ['WHEEL_MARK', 'AWAY'],
+      'missions/skeletons/wheel/blockade.ts': ['WHEEL_BLOCKADE', 'BLOCKADE', 'AWAY'],
       'missions/skeletons/wheel/index.ts': ['WHEEL'],
       // the pirates both lane legs name (docs/TODO/203 M2), and the company
       // a job keeps at the jump-in (docs/TODO/214 M1)

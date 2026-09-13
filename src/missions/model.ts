@@ -75,8 +75,12 @@ export interface WorldChange { override: BlueprintOverride }
 export interface TaggedShip {
   ship: ShipId;
   tag: string;
-  /** what the leg wants of it, which picks the role it flies with */
-  job: 'hunt' | 'escort' | 'scan';
+  /**
+   * What the leg wants of it, which picks the role it flies with. A
+   * `police` job flies a Viper as the law (docs/TODO/219 M2): a blockade at
+   * a smuggle's far end.
+   */
+  job: 'hunt' | 'escort' | 'scan' | 'police';
 }
 
 /** A canister or a capsule the game must spawn, tagged for a leg. */
