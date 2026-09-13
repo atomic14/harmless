@@ -13,32 +13,40 @@
 
 import { NARCOTICS } from '../../constants/commodities.ts';
 import {
-  RESCUE_SALVAGE_PAY, SCAN_SECONDS, SIDE_JOB_DAYS, SIDE_JOB_PAY, SIDE_JOB_RANGE,
-  SMUGGLE_TONNES,
+  GANG_BOUNTY, GANG_BROKEN_BOUNTY, RESCUE_SALVAGE_PAY, SCAN_SECONDS, SIDE_JOB_DAYS, SIDE_JOB_PAY,
+  SIDE_JOB_RANGE, SMUGGLE_TONNES,
 } from '../../constants/missions.ts';
 import { SOURCE_DESIGN } from '../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../game/ship-identity.ts';
 import type { Branch, Skeleton } from '../model.ts';
-import { LANE_PIRATES, LONE_KRAIT, PAIR, wingmanOf } from './lane.ts';
+import { LANE_PIRATES, LONE_KRAIT, PAIR } from './lane.ts';
 
 const FAIL: Branch = { on: 'failed', to: 'fail' };
 const LOCAL = { kind: 'side', anchor: 'local', patron: { kind: 'local' } } as const;
 const AWAY = { kind: 'band', ...SIDE_JOB_RANGE } as const;
 
+/**
+ * The side hunt is a gang (docs/TODO/217 M1). Chris, 2026-09-13: *"rather
+ * than a single ship - it should be a gang of pirates"*, and *"a tough
+ * gang"*. A Fer-de-Lance leads it, with an Asp, a Cobra Mk III and a Mamba.
+ * The job ends when the lane is clear. The leader runs when it is nearly
+ * dead (docs/TODO/214 M4), and a gang whose leader got away pays half.
+ */
 export const SIDE_HUNT: Skeleton = {
   ...LOCAL, id: 'side-hunt', hail: 'THE STATION HAS A BOUNTY POSTED',
-  pitch: 'A KRAIT HAS BEEN TAKING SHIPS ON THE LANE. THE STATION WANTS IT GONE.',
+  pitch: 'A GANG HAS BEEN TAKING SHIPS ON THE LANE. THE STATION WANTS EVERY ONE OF THEM GONE.',
   offer: {},
   legs: [{
-    id: 'hunt', verb: { kind: 'hunt', ship: shipDesignIdOf(SOURCE_DESIGN.krait), canEscape: true },
-    place: AWAY, line: 'BOUNTY: DESTROY THE KRAIT — LAST SEEN AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
-    spawn: [...wingmanOf(shipDesignIdOf(SOURCE_DESIGN.krait), 'side-hunt')],
-    // A Krait that is nearly dead runs for the edge, and the chase is the
-    // commander's (docs/TODO/214 M4). One that gets away pays nothing.
+    id: 'hunt',
+    verb: {
+      kind: 'hunt', ship: shipDesignIdOf(SOURCE_DESIGN.ferDeLance), canEscape: true,
+      gang: [shipDesignIdOf(SOURCE_DESIGN.asp), shipDesignIdOf(SOURCE_DESIGN.cobraMk3), shipDesignIdOf(SOURCE_DESIGN.mamba)],
+    },
+    place: AWAY, line: 'BOUNTY: CLEAR THE GANG — LAST SEEN AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
-      { on: 'targetDestroyed', to: 'complete', settle: { pay: SIDE_JOB_PAY.hunt, say: 'THE KRAIT IS DESTROYED. THE STATION PAYS {PAY}.' } },
-      { on: 'targetEscaped', to: 'fail' },
-      { on: 'targetFled', to: 'fail', settle: { pay: 0, say: 'THE KRAIT RAN FOR THE EDGE AND JUMPED. THE STATION PAYS NOTHING.' } },
+      { on: 'targetDestroyed', to: 'complete', settle: { pay: GANG_BOUNTY, say: 'THE GANG IS DESTROYED. THE STATION PAYS {PAY}.' } },
+      { on: 'targetFled', to: 'complete', settle: { pay: GANG_BROKEN_BOUNTY, say: 'THE GANG IS BROKEN, BUT ITS LEADER RAN. THE STATION PAYS {PAY}.' } },
+      { on: 'targetEscaped', to: 'complete', settle: { pay: GANG_BROKEN_BOUNTY, say: 'THE GANG IS BROKEN, BUT ITS LEADER JUMPED. THE STATION PAYS {PAY}.' } },
       FAIL,
     ],
   }],

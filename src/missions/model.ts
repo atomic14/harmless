@@ -77,7 +77,15 @@ export interface TaggedShip {
 export interface TaggedItem { tag: string; kind: 'cargo' | 'capsule' }
 
 export type Verb =
-  | { kind: 'hunt'; ship: ShipId; canEscape: boolean }
+  | {
+    kind: 'hunt'; ship: ShipId; canEscape: boolean;
+    /**
+     * The hulls that fly with the target (docs/TODO/217 M1). The machine
+     * mints a record for each under the leg's tag, so a dead member stays
+     * dead across an arrival. The leg ends when every ship is gone.
+     */
+    gang?: readonly ShipId[];
+  }
   | { kind: 'deliver'; cargo?: { commodity: number; tonnes: number } }
   | { kind: 'recover'; item: ItemId }
   | { kind: 'rescue' }
@@ -265,6 +273,12 @@ export interface EntityState {
   hull: number;
   lastWorld: number;
   alive: boolean;
+  /**
+   * It ran, or it jumped out, and a leg took the word (docs/TODO/217 M1).
+   * So it is gone from the record as a dead ship is, and the gang hunt can
+   * read its leader's fate at the end.
+   */
+  fled?: boolean;
 }
 
 /**

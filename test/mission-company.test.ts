@@ -27,9 +27,12 @@ console.log('\npirates wait at the jump-in (docs/TODO/214 M1)');
   const hctx = boardFor(SIDE_HUNT);
   const hst = accept(SIDE_HUNT, hctx);
   const at = missionSpawns(hst, hst.live[0].target as number);
-  eq('a side hunt spawns the Krait and a wingman', at.length, 2);
-  check('...both flown as pirates', at.every((s) => s.job === 'hunt'));
-  check('...and only the target answers to the leg', at.filter((s) => s.tag === hst.live[0].tag).length === 1);
+  eq('a side hunt spawns the leader and its gang of three (docs/TODO/217 M1)', at.length, 4);
+  check('...all flown as pirates', at.every((s) => s.job === 'hunt'));
+  check('...and only the leader answers to the leg', at.filter((s) => s.tag === hst.live[0].tag).length === 1);
+  const oneDown = stepMissions(hst, { kind: 'destroyed', tag: `${hst.live[0].tag}#gang-2` }, hctx).state;
+  eq('...and a dead member does not come back on the next arrival',
+    missionSpawns(oneDown, hst.live[0].target as number).length, 3);
   const dctx = boardFor(SIDE_DELIVER);
   const dst = accept(SIDE_DELIVER, dctx);
   eq('a delivery meets a pair at the far end', missionSpawns(dst, dst.live[0].target as number).length, 2);

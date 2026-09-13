@@ -14,6 +14,12 @@ active context:
 ## Execution queue
 
 1. [214](214-a-job-has-a-surprise-in-it.md) — a job has a surprise in it.
+2. [217](217-the-side-hunt-is-a-gang-and-the-board-gates-the-hard-jobs.md) — the side hunt is a gang, and the board gates the hard jobs.
+
+**217 CAME FROM CHRIS ON 2026-09-13**, after 214 M4 measured the hunt. A
+lone Krait dies four seconds after the fight starts, whether it runs or
+not. He asked for a gang, a tough one, and for gates on the side jobs by
+kills. 217 makes the hunt count a gang, and it gates the hard jobs.
 
 **216 CAME FROM CHRIS ON 2026-09-13**, after 215 landed. He asked for a
 review of every docked screen, so that each key has a button on a phone.

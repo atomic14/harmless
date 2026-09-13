@@ -66,6 +66,12 @@ export function missionSpawns(
     if (live.tag === null || !verbNeedsShip(leg.verb)) continue;
     const e = st.entities[live.tag];
     if (e && e.alive && e.kind === 'ship') out.push({ ship: e.ship, tag: live.tag, job: verbJob(leg.verb) });
+    // A gang's members come from the record (docs/TODO/217 M1). So a dead
+    // one does not come back on the next arrival, as the untracked company
+    // above does.
+    for (const [tag, m] of Object.entries(st.entities)) {
+      if (tag.startsWith(`${live.tag}#gang-`) && m.alive) out.push({ ship: m.ship, tag, job: 'hunt' });
+    }
   }
   // A standing spawn a settlement left here, on every arrival while it holds.
   for (const ch of st.changes) if (ch.world === here && ch.ships) out.push(...ch.ships);

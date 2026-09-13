@@ -247,6 +247,8 @@ Two quirks are deliberate:
   developer. A dossier is its generated words, and the machine never reads one.
   `machine.ts` is one pure step. It takes the record, one input and the facts
   it may read. It returns a new record with the effects the game applies.
+  `settlement.ts` applies a branch's settlement, and `leads.ts` saves a lead
+  (docs/TODO/217).
   A verb module under `verbs/` decides what an input means for one leg, and
   the machine takes the branch. `triggers.ts` says what a trigger is called,
   and which dossier line a branch may speak with. `lookups.ts` reads a

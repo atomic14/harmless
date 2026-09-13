@@ -30,10 +30,11 @@ import type {
 } from './model.ts';
 import { canAccept } from './offers.ts';
 import { placeLeg } from './placement.ts';
-import { legOf, patronId, startWorld } from './lookups.ts';
-import { acceptedAt } from './queries.ts';
+import { legOf } from './lookups.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, legPay, lineSlots } from './text.ts';
+import { applySettlement } from './settlement.ts';
+import { offerLead } from './leads.ts';
 import { sameTrigger, triggerLabel, wordKind } from './triggers.ts';
 import { verbItem, verbModule, verbNeedsShip } from './verbs/registry.ts';
 import { DEADLINE_WARNING_DAYS } from '../constants/missions.ts';
@@ -159,8 +160,17 @@ function react(
     const leg = legOf(skeleton, live.leg);
     const module = verbModule(leg.verb.kind);
     if (!module) continue;
-    const reaction = module({ live, leg, commander: ctx.commander }, input);
+    const reaction = module({ live, leg, commander: ctx.commander, entities: st.entities }, input);
     if (!reaction) continue;
+    // A ship that ran or jumped out is gone from the record too, once a leg
+    // took the word (docs/TODO/217 M1). The Constrictor cannot leave, and
+    // its verb takes no such word, so it stays and comes back on the next
+    // arrival. The mark says which, so a gang hunt can read its leader's
+    // fate at the end.
+    if ((input.kind === 'fled' || input.kind === 'escaped') && input.tag in st.entities) {
+      st.entities[input.tag].alive = false;
+      st.entities[input.tag].fled = true;
+    }
     if (reaction.progress !== undefined) live.progress = reaction.progress;
     if (reaction.passenger && input.kind === 'scooped') {
       st.passengers.push({ tag: input.tag, mission: live.skeleton });
@@ -300,6 +310,14 @@ function startLeg(
   if (verbNeedsShip(leg.verb)) {
     st.entities[tag] = { kind: 'ship', ship: leg.verb.ship, hull: 1, lastWorld: target ?? c.systemIndex, alive: true };
     live.tag = tag;
+    // The gang flies with the leader, and each member is a record of its
+    // own under the leg's tag (docs/TODO/217 M1). So a dead member stays
+    // dead across an arrival, and the clean-up at the end finds it.
+    if (leg.verb.kind === 'hunt') {
+      (leg.verb.gang ?? []).forEach((ship, i) => {
+        st.entities[`${tag}#gang-${i + 1}`] = { kind: 'ship', ship, hull: 1, lastWorld: target ?? c.systemIndex, alive: true };
+      });
+    }
   } else if (item !== null) {
     st.entities[tag] = { kind: item, ship: '', hull: 1, lastWorld: target ?? c.systemIndex, alive: true };
     live.tag = tag;
@@ -311,9 +329,8 @@ function startLeg(
 }
 
 /**
- * Apply a settlement, and say its word. A silent settlement with a dossier
- * word still says an empty line. The bridge puts the dossier's line in its
- * place, or drops it.
+ * Apply a settlement, and say its word (`settlement.ts`). The flags it newly
+ * set then fire on every live leg that names one.
  */
 function settle(
   st: MissionState, skeleton: Skeleton, s: Settlement | undefined,
@@ -321,30 +338,7 @@ function settle(
   /** the world the words name, when it is not the world a change lands on */
   sayTarget: number | null = target,
 ): void {
-  const added: string[] = [];
-  if (s) {
-    if (s.pay > 0) effects.push({ kind: 'pay', tenths: s.pay });
-    if (s.deed) effects.push({ kind: 'deed', deed: s.deed });
-    if (s.legal) effects.push({ kind: 'legal', delta: s.legal });
-    for (const f of s.setFlags ?? []) {
-      if (!st.flags.includes(f)) { st.flags.push(f); added.push(f); }
-    }
-    if (s.standing) {
-      const id = patronId(skeleton, ctx.commander, acceptedAt(st, skeleton.id));
-      st.standing[id] = (st.standing[id] ?? 0) + s.standing;
-    }
-    // A change to a world is the game's to keep (mission-bridge.ts), at the
-    // branch's world, through its last day.
-    const world = target ?? ctx.commander.systemIndex;
-    if (s.override) {
-      effects.push({ kind: 'worldOverride', world, until: ctx.commander.day + s.override.days, change: { override: s.override.set } });
-    }
-    if (s.spawn) {
-      effects.push({ kind: 'standingSpawn', world, until: ctx.commander.day + s.spawn.days, ships: s.spawn.ships });
-    }
-  }
-  const text = s?.say ? fillSlots(s.say, lineSlots(ctx.systems, sayTarget, s.pay)) : '';
-  if (text || word) effects.push({ kind: 'say', text, word });
+  const added = applySettlement(st, skeleton, s, target, ctx, effects, word, sayTarget);
   fireFlags(st, added, ctx, effects);
 }
 
@@ -374,25 +368,4 @@ function finish(
     effects.push({ kind: 'survivors', people: left });
   }
   if (o.lead) offerLead(st, o.lead, ctx, effects);
-}
-
-/**
- * Save a lead, once. A lead to an arc she holds or finished is dropped, as
- * failure rule 3 asks. The effect tells the game to announce it. The lead
- * is in the arc's own galaxy where its gate names one. So an arc that fails
- * on a galactic jump leaves its lead behind, in the galaxy the next arc is
- * offered in (docs/TODO/213 M2).
- */
-function offerLead(
-  st: MissionState, id: string, ctx: MissionContext, effects: MissionEffect[],
-): void {
-  const target = skeletonById(id, ctx.skeletons ?? SKELETONS);
-  if (!target) return;
-  if (id in st.done || st.live.some((l) => l.skeleton === id)) return;
-  if (st.leads.some((l) => l.skeleton === id)) return;
-  const c = ctx.commander;
-  const world = startWorld(target, c);
-  const galaxy = target.offer.galaxy ?? c.galaxy;
-  st.leads.push({ skeleton: id, galaxy, world, sinceDay: c.day });
-  effects.push({ kind: 'lead', skeleton: id, galaxy, world });
 }

@@ -20,6 +20,7 @@ import { clearOfPolice } from '../src/game/course-clearance.ts';
 import { SCAN_RANGE } from '../src/constants/law.ts';
 import { COURSE_ESCORT_STANDOFF, COURSE_POLICE_CLEARANCE, ESCORT_LEASH } from '../src/constants/mission-course.ts';
 import { HUNT_FLEE_FRACTION, TRADER_CALM_SECONDS } from '../src/constants/attack-run.ts';
+import { GANG_BOUNTY, GANG_BROKEN_BOUNTY } from '../src/constants/missions.ts';
 import { TRADER_JUMP_OUT } from '../src/constants/spawn-placement.ts';
 import { COURSE_KEYS } from '../src/game/bindings.ts';
 import { keymap } from '../src/engine/keymap.ts';
@@ -78,7 +79,7 @@ function fly(g: Game, seconds: number, until: () => boolean, trigger = false): n
 /** The words the mission's button shows now. */
 const words = (g: Game): string | null => missionCourse(
   g.state.commander.missions, g.state.commander.systemIndex,
-  g.state.world.npcs, g.state.world.cargo.items, g.state.world.station.position)?.what ?? null;
+  g.state.world.npcs, g.state.world.cargo.items, g.state.world.station.position, g.state.player.position)?.what ?? null;
 
 {
   const g = onTheJob('side-hunt', 20_260_940);
@@ -192,25 +193,47 @@ console.log('\nthe canister scooped springs its ambush in the sky (docs/TODO/214
       .every((n) => n.object.position.distanceTo(g.state.player.position) > 4000), `after ${took.toFixed(0)}s`);
 }
 
+console.log('\nthe gang is in the sky at the arrival, and a dead member stays dead (docs/TODO/217 M1)');
+{
+  const g = onTheJob('side-hunt', 20_260_955);
+  const tag = g.state.commander.missions.live[0].tag as string;
+  const tagged = () => g.state.world.npcs.filter((n) => n.state.alive && n.state.missionTag !== null);
+  eq('four tagged pirates wait at the jump-in', tagged().length, 4);
+  check('...one of them the leader, and three of them its gang',
+    tagged().filter((n) => n.state.missionTag === tag).length === 1
+    && tagged().filter((n) => n.state.missionTag?.startsWith(`${tag}#gang-`)).length === 3);
+  const member = tagged().find((n) => n.state.missionTag !== tag);
+  if (!member) throw new Error('no member');
+  member.state.alive = false;
+  withoutSaving(() => runMissions(g.state.commander, { kind: 'destroyed', tag: member.state.missionTag as string }));
+  // Out, and back in: the arrival spawns the gang from the record.
+  withoutSaving(() => { g.arriveInSystem(); });
+  eq('...and the next arrival brings three', tagged().length, 3);
+}
+
 console.log('\na hunted ship that runs has fled, not escaped');
 {
   // Before docs/TODO/208 M3 the world sent `escaped` whichever way a tagged
-  // ship left, and a side hunt fails on that. A ship that ran from the
-  // commander has fled. Three arcs have a branch for it, and the side hunt
-  // has one since docs/TODO/214 M4: it fails, and pays nothing.
-  const flown = (fleeing: boolean): string | undefined => {
+  // ship left. A ship that ran from the commander has fled. The side hunt
+  // is a gang since docs/TODO/217 M1, so a leader that left leaves the gang
+  // live, and the record says the leader is gone and why.
+  const flown = (fleeing: boolean) => {
     const g = onTheJob('side-hunt', 20_260_945);
-    // The target, and not the wingman that flies with it since 214 M1.
-    const tag = g.state.commander.missions.live[0].tag;
+    const tag = g.state.commander.missions.live[0].tag as string;
     const ship = g.state.world.npcs.find((n) => n.state.missionTag === tag);
     if (!ship) throw new Error('the hunt spawned no ship');
     ship.state.fleeing = fleeing;
     ship.state.wantsDespawn = true;
     withoutSaving(() => g.step(1 / 60, 200));
-    return g.state.commander.missions.done['side-hunt'];
+    const m = g.state.commander.missions;
+    return { done: m.done['side-hunt'], fled: m.entities[tag]?.fled === true, alive: m.entities[tag]?.alive, row: words(g) };
   };
-  eq('a tagged ship that jumps out escapes, and the side hunt fails', flown(false), 'fail');
-  eq('...and one that runs has fled, which fails the side hunt too', flown(true), 'fail');
+  const jumped = flown(false);
+  check('a leader that jumps out is gone from the record, and the gang hunt goes on',
+    jumped.done === undefined && jumped.fled && jumped.alive === false);
+  eq('...and the row counts the three that are left', jumped.row, 'HUNT THE GANG — 3 LEFT');
+  const ran = flown(true);
+  check('...and one that ran is gone the same way', ran.done === undefined && ran.fled && ran.alive === false);
 }
 
 console.log('\na smuggling run keeps wide of the police');
@@ -245,51 +268,66 @@ console.log('\na smuggling run keeps wide of the police');
     `${Math.round(nearest)} units at the nearest`);
 }
 
-console.log('\nthe hunt is a chase: a Krait that is nearly dead runs, and the station pays nothing (docs/TODO/214 M4)');
+console.log('\nthe hunt is a chase: a leader that is nearly dead runs, and a gang whose leader got away pays half (docs/TODO/214 M4, 217 M1)');
 {
   const g = onTheJob('side-hunt', 20_260_951);
-  const live = g.state.commander.missions.live[0];
-  // The target alone: the wingman of 214 M1 fights to the end, and the run
-  // is the subject.
-  for (const n of g.state.world.npcs) if (n.state.missionTag !== live.tag) n.state.alive = false;
-  const krait = g.state.world.npcs.find((n) => n.state.missionTag === live.tag);
-  if (!krait) throw new Error('the hunt spawned no target');
+  const tag = g.state.commander.missions.live[0].tag as string;
+  // The leader alone in the sky, and its gang reported dead, so the run is
+  // the subject and the record agrees.
+  gangDown(g, tag);
+  const leader = g.state.world.npcs.find((n) => n.state.missionTag === tag);
+  if (!leader) throw new Error('the hunt spawned no leader');
   const row = () => missionCourse(g.state.commander.missions, g.state.commander.systemIndex,
-    g.state.world.npcs, g.state.world.cargo.items, g.state.world.station.position);
+    g.state.world.npcs, g.state.world.cargo.items, g.state.world.station.position, g.state.player.position);
   withoutSaving(() => g.step(1 / 60, 100));
-  check('the world step marks the hunt\'s target as one that may run', krait.state.canFlee);
-  eq('...and the course row says HUNT', row()?.what, 'HUNT THE KRAIT');
+  check('the world step marks the hunt\'s leader as one that may run', leader.state.canFlee);
+  eq('...and the course row counts the leader alone', row()?.what, 'HUNT THE GANG — 1 LEFT');
 
-  // Shot down to the fraction from where the commander stands.
-  krait.state.energy = Math.floor(krait.maxEnergy * HUNT_FLEE_FRACTION);
-  krait.takeLaserHit(1, g.state.player.position.clone(), true);
-  check('a hit that leaves it under the fraction sets it to flight', krait.state.fleeing);
-  eq('...and the course row says CHASE', row()?.what, 'CHASE THE KRAIT');
+  // Shot to under the fraction from where the commander stands.
+  leader.state.energy = Math.floor(leader.maxEnergy * HUNT_FLEE_FRACTION) - 1;
+  leader.takeLaserHit(1, g.state.player.position.clone(), true);
+  check('a hit that leaves it under the fraction sets it to flight', leader.state.fleeing);
+  eq('...and the course row says CHASE', row()?.what, 'CHASE THE LEADER — 1 LEFT');
   withoutSaving(() => g.step(1 / 60, 101));
-  check('...and the console says so, once', krait.state.runSaid);
+  check('...and the console says so, once', leader.state.runSaid);
 
   // The edge brought within reach, so the run ends inside the test.
-  const away = krait.state.waypoint.clone().sub(krait.object.position).normalize();
-  krait.state.waypoint.copy(krait.object.position).addScaledVector(away, TRADER_JUMP_OUT + 600);
-  const took = fly(g, 30, () => !g.state.world.npcs.includes(krait));
-  check('the Krait jumps out at the edge', !g.state.world.npcs.includes(krait), `after ${took.toFixed(1)}s`);
-  eq('...and the leg fails', g.state.commander.missions.done['side-hunt'], 'fail');
-  eq('...with nothing paid', g.state.commander.credits, 1000);
+  const away = leader.state.waypoint.clone().sub(leader.object.position).normalize();
+  leader.state.waypoint.copy(leader.object.position).addScaledVector(away, TRADER_JUMP_OUT + 600);
+  const took = fly(g, 30, () => !g.state.world.npcs.includes(leader));
+  check('the leader jumps out at the edge', !g.state.world.npcs.includes(leader), `after ${took.toFixed(1)}s`);
+  eq('...and the gang is broken, so the job completes', g.state.commander.missions.done['side-hunt'], 'complete');
+  eq('...at half the gang bounty', g.state.commander.credits, 1000 + GANG_BROKEN_BOUNTY);
 }
 
 console.log('\n...and a commander who chases can still make the kill');
 {
   const g = onTheJob('side-hunt', 20_260_953);
-  const live = g.state.commander.missions.live[0];
-  for (const n of g.state.world.npcs) if (n.state.missionTag !== live.tag) n.state.alive = false;
-  const krait = g.state.world.npcs.find((n) => n.state.missionTag === live.tag);
-  if (!krait) throw new Error('the hunt spawned no target');
+  const tag = g.state.commander.missions.live[0].tag as string;
+  gangDown(g, tag);
+  const leader = g.state.world.npcs.find((n) => n.state.missionTag === tag);
+  if (!leader) throw new Error('the hunt spawned no leader');
   withoutSaving(() => g.step(1 / 60, 100));
-  krait.state.energy = Math.floor(krait.maxEnergy * HUNT_FLEE_FRACTION);
-  krait.takeLaserHit(1, g.state.player.position.clone(), true);
-  check('the Krait runs', krait.state.fleeing);
+  leader.state.energy = Math.floor(leader.maxEnergy * HUNT_FLEE_FRACTION) - 1;
+  leader.takeLaserHit(1, g.state.player.position.clone(), true);
+  check('the leader runs', leader.state.fleeing);
   // The mission button, and the trigger held: the computer aims, the pilot fires.
-  const took = fly(g, 60, () => !krait.state.alive || !g.state.world.npcs.includes(krait), true);
-  check('the chase ends in a kill before the edge', !krait.state.alive, `after ${took.toFixed(1)}s, alive ${krait.state.alive}, in the sky ${g.state.world.npcs.includes(krait)}`);
-  eq('...and the station pays the bounty', g.state.commander.missions.done['side-hunt'], 'complete');
+  const took = fly(g, 60, () => !leader.state.alive || !g.state.world.npcs.includes(leader), true);
+  check('the chase ends in a kill before the edge', !leader.state.alive,
+    `after ${took.toFixed(1)}s, alive ${leader.state.alive}, in the sky ${g.state.world.npcs.includes(leader)}`);
+  eq('...and the station pays the whole gang', g.state.commander.missions.done['side-hunt'], 'complete');
+  check('...in full', g.state.commander.credits >= 1000 + GANG_BOUNTY, `${g.state.commander.credits} tenths`);
+}
+
+/**
+ * The gang reported dead, through the machine, so the record agrees with an
+ * empty sky. A member set dead by hand would still count as left to do.
+ */
+function gangDown(g: Game, leaderTag: string): void {
+  for (const n of g.state.world.npcs) {
+    const t = n.state.missionTag;
+    if (t === null || t === leaderTag) continue;
+    n.state.alive = false;
+    withoutSaving(() => runMissions(g.state.commander, { kind: 'destroyed', tag: t }));
+  }
 }

@@ -14,7 +14,7 @@ import {
   SIDE_DELIVER, SIDE_ESCORT, SIDE_HUNT, SIDE_RECOVER, SIDE_RESCUE, SIDE_SCAN, SIDE_SMUGGLE,
 } from '../src/missions/skeletons/side.ts';
 import {
-  RESCUE_SALVAGE_PAY, SCAN_SECONDS, SIDE_JOB_PAY, SMUGGLE_TONNES,
+  GANG_BOUNTY, GANG_BROKEN_BOUNTY, RESCUE_SALVAGE_PAY, SCAN_SECONDS, SIDE_JOB_PAY, SMUGGLE_TONNES,
 } from '../src/constants/missions.ts';
 import { NARCOTICS } from '../src/constants/commodities.ts';
 import { DOCK_COMPUTER_RANGE } from '../src/constants/docking-computer.ts';
@@ -192,26 +192,50 @@ console.log('\nescort and scan, through the machine');
   eq('a subject that ran from a hit has escaped',
     stepMissions(sst, { kind: 'fled', tag: stag }, sctx).state.done[SIDE_SCAN.id], 'fail');
 
+  // The side hunt is a gang since docs/TODO/217 M1: a leader with three
+  // members, and the job ends when every one is gone.
   const hctx = boardFor(SIDE_HUNT);
   const hst = accept(SIDE_HUNT, hctx);
   const htag = hst.live[0].tag as string;
-  eq('the side hunt pays on the kill', paid(stepMissions(hst, { kind: 'destroyed', tag: htag }, hctx).effects), SIDE_JOB_PAY.hunt);
-  eq('...and a target that jumps out fails it',
-    stepMissions(hst, { kind: 'escaped', tag: htag }, hctx).state.done[SIDE_HUNT.id], 'fail');
-  // A hunted ship can die without the commander: a pirate takes it, or it
-  // flies into a rock. The world sends `escortLost` for that, and the hunt
-  // ignored it until docs/TODO/208 M3. The leg then stayed live with no ship
-  // left to kill.
-  eq('a target wrecked by somebody else still ends the hunt',
-    paid(stepMissions(hst, { kind: 'escortLost', tag: htag }, hctx).effects), SIDE_JOB_PAY.hunt);
-  // A Krait that is nearly dead runs for the edge (docs/TODO/214 M4). The
-  // side hunt fails on it, and the station says it pays nothing. The leg
-  // said it ignored the word until then (docs/TODO/213 M5).
-  const fled = stepMissions(hst, { kind: 'fled', tag: htag }, hctx);
-  eq('a target that fled fails the side hunt', fled.state.done[SIDE_HUNT.id], 'fail');
-  check('...and the station says it pays nothing',
-    fled.effects.some((e) => e.kind === 'say' && /PAYS NOTHING/.test(e.text)));
-  check('...and the leg no longer says it ignores the word', SIDE_HUNT.legs[0].ignores === undefined);
+  const members = [1, 2, 3].map((i) => `${htag}#gang-${i}`);
+  const said = (r: { effects: MissionEffect[] }, text: RegExp): boolean =>
+    r.effects.some((e) => e.kind === 'say' && text.test(e.text));
+  check('a gang hunt mints a record for the leader and each member',
+    hst.entities[htag]?.alive === true && members.every((t) => hst.entities[t]?.alive === true));
+  const one = stepMissions(hst, { kind: 'destroyed', tag: members[1] }, hctx);
+  check('a member killed is one of the gang down, and the console counts the rest',
+    said(one, /^ONE OF THE GANG IS DOWN\. 3 LEFT\.$/) && paid(one.effects) === 0 && one.state.live.length === 1);
+  eq('...and the record says so', one.state.entities[members[1]]?.alive, false);
+  const two = stepMissions(one.state, { kind: 'destroyed', tag: htag }, hctx);
+  check('the leader killed with members left says so, and pays nothing yet',
+    said(two, /^THE LEADER IS DOWN\. 2 OF THE GANG LEFT\.$/) && paid(two.effects) === 0);
+  const three = stepMissions(two.state, { kind: 'escortLost', tag: members[0] }, hctx);
+  eq('a member wrecked by somebody else is down all the same', three.state.live[0].progress, 3);
+  const done = stepMissions(three.state, { kind: 'destroyed', tag: members[2] }, hctx);
+  eq('the last one gone pays the gang', paid(done.effects), GANG_BOUNTY);
+  eq('...and the job is complete', done.state.done[SIDE_HUNT.id], 'complete');
+  check('...with the gang\'s line', said(done, /THE GANG IS DESTROYED/));
+
+  // The leader runs (docs/TODO/214 M4). The gang goes on, and the pay halves.
+  const ran = stepMissions(hst, { kind: 'fled', tag: htag }, hctx);
+  check('a leader that ran is gone from the record, and the record says it ran',
+    ran.state.entities[htag]?.alive === false && ran.state.entities[htag]?.fled === true);
+  check('...and the console says the gang is still there', said(ran, /^THE LEADER RAN FOR IT\. 3 OF THE GANG LEFT\.$/));
+  const broken = members.reduce((r, t) => stepMissions(r.state, { kind: 'destroyed', tag: t }, hctx), ran);
+  eq('the gang gone after its leader ran pays half', paid(broken.effects), GANG_BROKEN_BOUNTY);
+  check('...and says the leader got away', said(broken, /BUT ITS LEADER RAN/));
+  eq('a member never runs, so the word is ignored',
+    stepMissions(hst, { kind: 'fled', tag: members[0] }, hctx).state.live[0].progress, 0);
+  const jumped = members.reduce((r, t) => stepMissions(r.state, { kind: 'destroyed', tag: t }, hctx),
+    stepMissions(hst, { kind: 'escaped', tag: htag }, hctx));
+  eq('a leader that jumped out pays half too', paid(jumped.effects), GANG_BROKEN_BOUNTY);
+  check('...and says the leader got away', said(jumped, /BUT ITS LEADER (RAN|JUMPED)/));
+  // The record holds one mark for a ship that left, so the words say how
+  // only when the leader is the last to go.
+  let rest = hst;
+  for (const t of members) rest = stepMissions(rest, { kind: 'destroyed', tag: t }, hctx).state;
+  const last = stepMissions(rest, { kind: 'escaped', tag: htag }, hctx);
+  check('...and a leader that jumps out last says it jumped', said(last, /BUT ITS LEADER JUMPED/) && paid(last.effects) === GANG_BROKEN_BOUNTY);
 }
 
 console.log('\nescort, through a real world step');

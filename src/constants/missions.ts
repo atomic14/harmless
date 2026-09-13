@@ -28,7 +28,11 @@ export const MISSION_COURIER_RANGE = { min: 50, max: 90 } as const;
 /** What a kill of the Constrictor pays — 2,500 Cr, in tenths of a credit. */
 export const CONSTRICTOR_BOUNTY = 25_000;
 
-/** ...and what a delivery of the plans pays: 1,500 Cr. */
+/**
+ * ...and what a delivery of the plans pays: 1,500 Cr.
+ *
+ * @rule missions.courierPayment
+ */
 export const COURIER_PAYMENT = 15_000;
 
 /**
@@ -104,6 +108,25 @@ export const SIDE_JOB_PAY = {
   hunt: 8_000, deliver: 3_000, recover: 4_000, rescue: 5_000,
   ambush: 6_000, smuggle: 7_000, escort: 6_000, scan: 2_500,
 } as const;
+
+/**
+ * What the station pays for the whole gang on the side hunt, in tenths of
+ * a credit: 1,500 Cr (docs/TODO/217 M1). The gang is a Fer-de-Lance with
+ * an Asp, a Cobra Mk III and a Mamba. That is four hulls, three missiles
+ * and two E.C.M. fits, against the lone Krait that paid `SIDE_JOB_PAY.hunt`.
+ * Each kill pays its own bounty on top, as any kill does.
+ *
+ * @rule missions.gangBounty
+ */
+export const GANG_BOUNTY = 15_000;
+
+/**
+ * ...and half of it when the gang is gone but its leader ran (docs/TODO/217
+ * M1). The leader keeps its head, and the commander keeps three kills.
+ *
+ * @rule missions.gangBrokenBounty
+ */
+export const GANG_BROKEN_BOUNTY = GANG_BOUNTY / 2;
 
 /**
  * The lower fee a rescue pays when the pod is lost and the data still

@@ -5,12 +5,14 @@
 // reports, and the machine resolves. A module never pays, never moves a leg,
 // and never reads the commander's purse.
 
-import type { CommanderFacts, Leg, LiveMission, MissionInput, Trigger } from '../model.ts';
+import type { CommanderFacts, Leg, LiveMission, MissionInput, Trigger, EntityState } from '../model.ts';
 
 export interface VerbContext {
   readonly live: LiveMission;
   readonly leg: Leg;
   readonly commander: CommanderFacts;
+  /** the tagged things on record, read only: a gang hunt reads its leader's fate */
+  readonly entities: Readonly<Record<string, EntityState>>;
 }
 
 /**

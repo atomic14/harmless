@@ -105,7 +105,7 @@ export class FlightCourse {
     // as the target, exactly as a rock is.
     const mission = s.course !== 'mission' ? null
       : missionCourse(this.state.commander.missions, this.state.commander.systemIndex,
-        w.npcs, w.cargo.items, w.station.position);
+        w.npcs, w.cargo.items, w.station.position, p.position);
     if (mission?.how === 'fight' && mission.ship !== null
       && pickedTarget(w.npcs) !== mission.ship) {
       pickTarget(w.npcs, mission.ship);

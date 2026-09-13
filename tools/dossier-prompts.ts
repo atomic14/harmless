@@ -67,8 +67,17 @@ export function shipNameOf(id: string): string {
 /** What a leg asks, in plain English. */
 export function verbLine(verb: Verb): string {
   switch (verb.kind) {
-    case 'hunt':
+    case 'hunt': {
+      // A gang's line names every hull (docs/TODO/217 M1). A lone hunt's line
+      // is as it was, so no other dossier drifts.
+      if (verb.gang && verb.gang.length > 0) {
+        const names = verb.gang.map(shipNameOf);
+        const list = `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+        return `find and destroy the ${shipNameOf(verb.ship)} and its gang, ${list}, near the target; `
+          + `the job ends when every one of them is dead${verb.canEscape ? ', and the leader may run when it is hurt' : ''}`;
+      }
       return `find and destroy the ${shipNameOf(verb.ship)} near the target${verb.canEscape ? '; it may jump away' : ''}`;
+    }
     case 'deliver': return verb.cargo
       ? `carry ${verb.cargo.tonnes} tonnes of ${COMMODITIES[verb.cargo.commodity].name} to the target and dock`
       : 'dock at the target';

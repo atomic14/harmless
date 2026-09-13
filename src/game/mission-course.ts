@@ -57,6 +57,8 @@ export function missionCourse(
   npcs: readonly NpcShip[],
   items: readonly Canister[],
   stationPos: THREE.Vector3,
+  /** where the commander is, so a gang's row can point at the nearest member */
+  playerPos: THREE.Vector3,
   skeletons: readonly Skeleton[] = SKELETONS,
 ): MissionCourse | null {
   for (const { live, leg } of liveLegs(st, skeletons)) {
@@ -70,7 +72,26 @@ export function missionCourse(
       : items.find((c) => c.missionTag === live.tag) ?? null;
     const name = ship?.object.name.toUpperCase() ?? '';
     switch (leg.verb.kind) {
-      case 'hunt':
+      case 'hunt': {
+        // A gang's row counts what the record still holds, and it points at
+        // the leader while it lives, then at the nearest member
+        // (docs/TODO/217 M1).
+        if (leg.verb.gang !== undefined && leg.verb.gang.length > 0 && live.tag !== null) {
+          const prefix = `${live.tag}#gang-`;
+          const left = Object.entries(st.entities)
+            .filter(([tag, e]) => (tag === live.tag || tag.startsWith(prefix)) && e.alive).length;
+          const members = npcs.filter((n) => n.state.alive && n.state.missionTag !== null
+            && n.state.missionTag.startsWith(prefix));
+          const target = ship ?? members.reduce<NpcShip | null>((best, n) => (
+            best === null || n.object.position.distanceTo(playerPos) < best.object.position.distanceTo(playerPos) ? n : best
+          ), null);
+          if (!target) break;
+          const fleeing = target.state.fleeing;
+          return {
+            what: `${fleeing ? 'CHASE THE LEADER' : 'HUNT THE GANG'} — ${left} LEFT`, how: 'fight', ship: target,
+            at: target.object.position, speed: target.state.speed, fleeing,
+          };
+        }
         if (ship) {
           // A target that runs is chased, and the row says so (docs/TODO/214 M4).
           const fleeing = ship.state.fleeing;
@@ -80,6 +101,7 @@ export function missionCourse(
           };
         }
         break;
+      }
       case 'scan':
         if (ship) {
           return { what: `SCAN THE ${name}`, how: 'hold', ship, at: ship.object.position, speed: ship.state.speed, fleeing: false };

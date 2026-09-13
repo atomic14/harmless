@@ -48,6 +48,13 @@ export function lintSkeleton(
       const role = verbJob(leg.verb) === 'hunt' ? 'pirate' : 'trader';
       if (!specForDesign(role, leg.verb.ship)) out.push(`${at}: no ${role} row for ${leg.verb.ship}`);
     }
+    // A gang's member with no pirate row would be skipped at the arrival,
+    // and the leg could never end (docs/TODO/217 M1).
+    if (leg.verb.kind === 'hunt') {
+      for (const hull of leg.verb.gang ?? []) {
+        if (!specForDesign('pirate', hull)) out.push(`${at}: no pirate row for the gang's ${hull}`);
+      }
+    }
     // A spawned ship with no row for its role is skipped at the arrival, in
     // silence, and the surprise never comes (docs/TODO/214 M1).
     for (const s of [...(leg.spawn ?? []), ...(leg.ambush?.ships ?? [])]) {
