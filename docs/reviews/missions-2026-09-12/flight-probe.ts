@@ -102,6 +102,7 @@ interface Run {
  */
 function fly(
   g: Game, key: string, seconds: number, until: () => boolean, failed: () => boolean, trigger: boolean,
+  then: Phase[] = [],
 ): Run {
   const s = g.state;
   const kills0 = s.commander.kills;
@@ -110,9 +111,14 @@ function fly(
   let flown = 0;
   let outcome: Run['outcome'] = 'timeout';
   const stationAway = s.player.position.distanceTo(s.world.station.position);
+  // The phases still to fly: the first is the case's own, and the rest follow.
+  const phases: Phase[] = [{ key, until: () => until(), trigger }, ...then.map((p) => ({ ...p, until: () => p.until(g) }))];
+  let phase = 0;
   withoutSaving(() => {
     g.input.injectPress(key);
     for (let f = 0; f < seconds * 60; f++) {
+      key = phases[phase].key;
+      trigger = phases[phase].trigger;
       const hostile = hostilesNear(s.world.npcs, s.player.position, s.commander.legalStatus,
         s.player.position.distanceTo(s.world.station.position));
       if (hostile && !inFight) fights += 1;
@@ -130,7 +136,11 @@ function fly(
       flown = f * DT;
       if (g.mode === 'dead') { outcome = 'dead'; break; }
       if (failed()) { outcome = 'failed'; break; }
-      if (until()) { outcome = 'done'; break; }
+      if (phases[phase].until()) {
+        if (phase === phases.length - 1) { outcome = 'done'; break; }
+        phase += 1;
+        g.input.injectPress(phases[phase].key);
+      }
     }
   });
   g.input.release(FIRE);
@@ -145,6 +155,8 @@ const failed = (g: Game, id: string) => g.state.commander.missions.done[id] === 
 const leg = (g: Game) => g.state.commander.missions.live[0]?.leg;
 const isDocked = (g: Game) => g.mode !== 'flight' && g.mode !== 'dead';
 
+interface Phase { key: string; until: (g: Game) => boolean; trigger: boolean }
+
 interface Case {
   name: string;
   kit: Kit;
@@ -154,6 +166,8 @@ interface Case {
   until: (g: Game) => boolean;
   failed: (g: Game) => boolean;
   trigger: boolean;
+  /** further phases after `until`: a second key, and what ends it (docs/TODO/214 M2) */
+  then?: Phase[];
 }
 
 const cobra = shipDesignIdOf(SOURCE_DESIGN.cobraMk3);
@@ -179,6 +193,12 @@ const CASES: Case[] = [
     key: COURSE_KEYS.mission, seconds: 240, until: (g) => leg(g) === 'home', failed: (g) => failed(g, 'side-recover'), trigger: true },
   { name: 'side-rescue: scoop a pod (scoops fitted)', kit: { scoops: true }, put: (g) => onSideJob(g, 'side-rescue'),
     key: COURSE_KEYS.mission, seconds: 240, until: (g) => (g.state.commander.missions.live[0]?.progress ?? 0) > 0, failed: (g) => failed(g, 'side-rescue'), trigger: true },
+  { name: 'side-recover: scoop, then fly home and dock (docking computer)', kit: { scoops: true, dc: true }, put: (g) => onSideJob(g, 'side-recover'),
+    key: COURSE_KEYS.mission, seconds: 480, until: (g) => leg(g) === 'home', failed: (g) => failed(g, 'side-recover'), trigger: true,
+    then: [{ key: COURSE_KEYS.station, until: (g) => done(g, 'side-recover'), trigger: true }] },
+  { name: 'side-rescue: scoop, then dock (docking computer)', kit: { scoops: true, dc: true }, put: (g) => onSideJob(g, 'side-rescue'),
+    key: COURSE_KEYS.mission, seconds: 480, until: (g) => (g.state.commander.missions.live[0]?.progress ?? 0) > 0, failed: (g) => failed(g, 'side-rescue'), trigger: true,
+    then: [{ key: COURSE_KEYS.station, until: (g) => isDocked(g), trigger: true }] },
   { name: 'side-ambush: the lane, then dock (docking computer)', kit: { dc: true }, put: (g) => onSideJob(g, 'side-ambush'),
     key: COURSE_KEYS.station, seconds: 480, until: (g) => done(g, 'side-ambush'), failed: (g) => failed(g, 'side-ambush'), trigger: true },
   { name: 'side-deliver: fly to the station and dock (docking computer)', kit: { dc: true }, put: (g) => onSideJob(g, 'side-deliver'),
@@ -195,7 +215,7 @@ for (const c of CASES) {
     const g = newGame(20_260_950 + k, c.kit);
     c.put(g);
     arrive(g, k);
-    runs.push(fly(g, c.key, c.seconds, () => c.until(g), () => c.failed(g), c.trigger));
+    runs.push(fly(g, c.key, c.seconds, () => c.until(g), () => c.failed(g), c.trigger, c.then));
     if (c.name.startsWith('side-escort') && runs[k].outcome !== 'done') {
       const charge = g.state.world.npcs.find((n) => n.state.missionTag !== null);
       const st = g.state.world.station.position;

@@ -237,7 +237,8 @@ Two quirks are deliberate:
 - `src/game/mission-bridge.ts` is the game's side of the mission machine. It
   runs one input, installs the record on the commander, and applies the
   effects that are the commander's: credits, reputation and legal status. It
-  hands the words back, and the caller says them. `src/game/mission-desk.ts`
+  hands the words back, and the caller says them. It hands a spawn order
+  back too, and the world step spawns an ambush (docs/TODO/214). `src/game/mission-desk.ts`
   is the MISSIONS screen's two actions, acceptance and abandonment, and the
   offers it lists. `src/game/hunt-warning.ts` prices her gun against the ship
   a hunt names, through the combat oracle.

@@ -151,6 +151,24 @@ console.log('\nthe escort course does not ram its charge, and a grazed charge go
   eq('...on its way to the station', charge.state.traderPhase, 'arriving');
 }
 
+console.log('\nthe canister scooped springs its ambush in the sky (docs/TODO/214 M2)');
+{
+  const g = onTheJob('side-recover', 20_260_948);
+  const live = g.state.commander.missions.live[0];
+  // The Krait that circles the canister stays out of it, so the scoop is the
+  // only thing that can spring the pair.
+  for (const n of g.state.world.npcs) if (n.state.missionTag !== live.tag) n.state.alive = false;
+  const pirates = () => g.state.world.npcs.filter((n) => n.state.alive && n.role === 'pirate').length;
+  eq('the sky is clear of pirates before the scoop', pirates(), 0);
+  // No trigger: a laser held on a canister breaks it, and the job fails.
+  const took = fly(g, 240, () => g.state.commander.missions.live[0]?.leg === 'home');
+  eq('the ship scoops the canister', g.state.commander.missions.live[0]?.leg, 'home');
+  eq('...and the pair jumps in', pirates(), 2, );
+  check('...at a pirate wave\'s reach, not on top of the ship',
+    g.state.world.npcs.filter((n) => n.state.alive && n.role === 'pirate')
+      .every((n) => n.object.position.distanceTo(g.state.player.position) > 4000), `after ${took.toFixed(0)}s`);
+}
+
 console.log('\na hunted ship that runs has fled, not escaped');
 {
   // Before docs/TODO/208 M3 the world sent `escaped` whichever way a tagged

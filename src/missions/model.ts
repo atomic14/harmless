@@ -168,6 +168,13 @@ export interface Leg {
    * kill among them moves nothing.
    */
   spawn?: TaggedShip[];
+  /**
+   * Ships that jump in when the leg makes progress, and what the console
+   * says of them (docs/TODO/214 M2). A scoop springs it for a recover and a
+   * rescue, and the scan's end for a scan. They are untracked, as `spawn`
+   * is, so a kill among them settles nothing. The words never tell it.
+   */
+  ambush?: { ships: TaggedShip[]; say: string };
   /** true raises the mis-jump chance, as the 1984 courier run did */
   carryingPlans?: boolean;
   /**
@@ -346,5 +353,7 @@ export type MissionEffect =
   | { kind: 'cargo'; commodity: number; tonnes: number }
   /** the patron's goods leave the hold: a smuggle leg ends with them delivered */
   | { kind: 'unload'; commodity: number; tonnes: number }
+  /** ships that jump in around the commander now: an ambush a leg sprang */
+  | { kind: 'spawn'; ships: TaggedShip[] }
   /** passengers a finished mission leaves in the crew spaces, as survivors */
   | { kind: 'survivors'; people: number };

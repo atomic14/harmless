@@ -178,6 +178,33 @@ console.log('\npirates wait at the jump-in (docs/TODO/214 M1)');
   eq('a scan meets nobody but its subject', missionSpawns(sst, sst.live[0].target as number).length, 1);
 }
 
+console.log('\na scoop springs an ambush, and so does the end of a scan (docs/TODO/214 M2)');
+{
+  // Chris, 2026-09-13: "collecting a canister triggers an ambush".
+  const spawned = (effects: MissionEffect[]): number =>
+    effects.reduce((n, e) => n + (e.kind === 'spawn' ? e.ships.length : 0), 0);
+  const rctx = boardFor(SIDE_RECOVER);
+  const rst = accept(SIDE_RECOVER, rctx);
+  const scooped = stepMissions(rst, { kind: 'scooped', tag: rst.live[0].tag as string }, moved(rctx, rst.live[0].target as number));
+  eq('the canister scooped asks the game for the pair', spawned(scooped.effects), 2);
+  check('...and says so, behind the leg\'s own line',
+    scooped.effects.some((e) => e.kind === 'later' && e.text === SIDE_RECOVER.legs[0].ambush?.say));
+  eq('...and the leg still moved on', scooped.state.live[0]?.leg, 'home');
+  const pctx = boardFor(SIDE_RESCUE);
+  const pst = accept(SIDE_RESCUE, pctx);
+  eq('the pod scooped asks for the Krait',
+    spawned(stepMissions(pst, { kind: 'scooped', tag: pst.live[0].tag as string }, moved(pctx, pst.live[0].target as number)).effects), 1);
+  const sctx = boardFor(SIDE_SCAN);
+  const sst = accept(SIDE_SCAN, sctx);
+  eq('the scan done asks for the escort', spawned(stepMissions(sst, { kind: 'scanned', tag: sst.live[0].tag as string }, sctx).effects), 2);
+  eq('...and a subject destroyed springs nothing',
+    spawned(stepMissions(sst, { kind: 'destroyed', tag: sst.live[0].tag as string }, sctx).effects), 0);
+  const dctx = boardFor(SIDE_DELIVER);
+  const dst = accept(SIDE_DELIVER, dctx);
+  eq('a delivery has no ambush to spring',
+    spawned(stepMissions(dst, { kind: 'docked' }, moved(dctx, dst.live[0].target as number)).effects), 0);
+}
+
 console.log('\na local patron\'s standing is keyed by the world the job was taken at (docs/TODO/213 M4)');
 {
   // A delivery accepted at one world and landed at another credited the far

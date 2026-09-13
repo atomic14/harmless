@@ -148,3 +148,22 @@ Evidence:
   2.5 fights on the way in, from 1.4. Every other row is as it was.
 - **Two tests read the first tagged ship and met the wingman.** Both read
   the leg's own tag now.
+
+### M2
+
+- **The spawn of a tagged ship has one home**, `spawnTaggedShips` in
+  `spawning.ts`. The arrival calls it at the mission target's reach, and
+  the ambush calls it at a pirate wave's reach.
+- **The bridge returns two things now.** `applyMissions` returns the lines
+  and the spawn orders, and `runMissions` is the lines alone. Two callers
+  hold the world and hear the order: the scoop, and the scan's end.
+- **An ambush line queues behind the settlement's own.** THE CANISTER IS
+  ABOARD reads first, and THEY WERE WAITING FOR THE CANISTER after it.
+  PIRATE SIGNATURES DETECTED is said at once.
+- **A laser held on a canister breaks it.** The real-game test flies the
+  scoop with no trigger. The flight probe fires only while the computer
+  aims, and that is the rule a pilot follows too.
+- **The flight probe gained two cases** that go on to the station after
+  the scoop, so the ambush is met. A recover meets 2.9 fights on the way
+  home, from 1.4, and finishes eight of eight in 149 seconds. A rescue
+  meets 1.4 and docks eight of eight. Nobody died.

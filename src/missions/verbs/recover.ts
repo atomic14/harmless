@@ -9,7 +9,7 @@ import type { VerbModule } from './verb.ts';
 export const recover: VerbModule = (ctx, input) => {
   if (ctx.leg.verb.kind !== 'recover') return null;
   if (!('tag' in input) || input.tag !== ctx.live.tag) return null;
-  if (input.kind === 'scooped') return { trigger: 'success' };
+  if (input.kind === 'scooped') return { trigger: 'success', sprung: true };
   if (input.kind === 'destroyed') return { trigger: 'targetDestroyed' };
   return null;
 };

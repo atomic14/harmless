@@ -196,30 +196,7 @@ export function spawnPopulation(
       3 + randomInt(4), ORDINARY_GOODS);
   }
 
-  // A mission ship flies the roster row for its design, under the role its
-  // job wants. A hunt's target is a pirate, as the Constrictor always was. An
-  // escort's charge and a scan's subject are traders. An escort's charge
-  // arrives with the commander and flies for the slot, so she can see it in.
-  // A design the roster cannot fly in that role is skipped, and the skeleton
-  // lint is the place to catch that.
-  const spawned: NpcShip[] = [];
-  for (const tagged of missionShips) {
-    const role = jobRole(tagged.job);
-    const spec = specForDesign(role, tagged.ship);
-    if (!spec) continue;
-    const pos = playerPos.clone()
-      .add(randomDirection(new THREE.Vector3())
-        .multiplyScalar(MISSION_TARGET_RANGE + random() * MISSION_TARGET_RANGE_SPAN));
-    const ship = place(role, pos, 0, spec);
-    ship.state.missionTag = tagged.tag;
-    if (tagged.job === 'escort') ship.state.traderPhase = 'arriving';
-    // A scan's subject waits until it is scanned (docs/TODO/203 M2). A
-    // trader's clock starts at zero, so it left at once. Half docked without
-    // a word. Half jumped out and failed the job before the player could
-    // find it. The world step starts its clock when the scan is done.
-    if (tagged.job === 'scan') ship.state.tradeTimer = Number.POSITIVE_INFINITY;
-    spawned.push(ship);
-  }
+  const spawned = spawnTaggedShips(world, playerPos, missionShips, MISSION_TARGET_RANGE, MISSION_TARGET_RANGE_SPAN);
   // A mission's canister or pod drifts at the same reach as a mission ship,
   // so the scanner shows it in the same place.
   for (const item of missionItems) {
@@ -248,6 +225,42 @@ export function spawnPopulation(
  * @param forward where the commander is pointed. The cone is about that, so the
  * ship arrives where somebody can see it.
  */
+/**
+ * The tagged ships a mission asks for, `range` to `range + span` from `at`
+ * in a random direction each. The arrival calls it for the ships that wait
+ * at the jump-in. An ambush calls it for the ships that jump in on a scoop
+ * (docs/TODO/214 M2).
+ *
+ * A mission ship flies the roster row for its design, under the role its
+ * job wants. A hunt's target is a pirate, as the Constrictor always was. An
+ * escort's charge and a scan's subject are traders. An escort's charge
+ * arrives with the commander and flies for the slot, so she can see it in.
+ * A design the roster cannot fly in that role is skipped, and the skeleton
+ * lint is the place to catch that.
+ */
+export function spawnTaggedShips(
+  world: World, at: THREE.Vector3, ships: readonly TaggedShip[], range: number, span: number,
+): NpcShip[] {
+  const spawned: NpcShip[] = [];
+  for (const tagged of ships) {
+    const role = jobRole(tagged.job);
+    const spec = specForDesign(role, tagged.ship);
+    if (!spec) continue;
+    const pos = at.clone()
+      .add(randomDirection(new THREE.Vector3()).multiplyScalar(range + random() * span));
+    const ship = world.spawn(role, aboveGround(world, pos), 0, spec);
+    ship.state.missionTag = tagged.tag;
+    if (tagged.job === 'escort') ship.state.traderPhase = 'arriving';
+    // A scan's subject waits until it is scanned (docs/TODO/203 M2). A
+    // trader's clock starts at zero, so it left at once. Half docked without
+    // a word. Half jumped out and failed the job before the player could
+    // find it. The world step starts its clock when the scan is done.
+    if (tagged.job === 'scan') ship.state.tradeTimer = Number.POSITIVE_INFINITY;
+    spawned.push(ship);
+  }
+  return spawned;
+}
+
 export function spawnPassingTrader(
   world: World, playerPos: THREE.Vector3, forward: THREE.Vector3,
 ): NpcShip {

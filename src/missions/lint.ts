@@ -50,7 +50,7 @@ export function lintSkeleton(
     }
     // A spawned ship with no row for its role is skipped at the arrival, in
     // silence, and the surprise never comes (docs/TODO/214 M1).
-    for (const s of leg.spawn ?? []) {
+    for (const s of [...(leg.spawn ?? []), ...(leg.ambush?.ships ?? [])]) {
       if (!specForDesign(jobRole(s.job), s.ship)) out.push(`${at}: no ${jobRole(s.job)} row for the spawned ${s.ship}`);
     }
     if (!leg.next.some((b) => b.on === 'failed')) out.push(`${at}: no failed branch`);

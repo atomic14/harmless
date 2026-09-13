@@ -23,7 +23,7 @@ import { stepMissions } from '../missions/machine.ts';
 import { legOf } from '../missions/lookups.ts';
 import { liveLegs } from '../missions/queries.ts';
 import { jobRole, verbJob, verbNeedsShip } from '../missions/verbs/registry.ts';
-import type { CommanderFacts, LiveMission, MissionInput, Skeleton } from '../missions/model.ts';
+import type { CommanderFacts, LiveMission, MissionInput, Skeleton, TaggedShip } from '../missions/model.ts';
 import { skeletonById } from '../missions/skeletons/index.ts';
 import { FUGITIVE } from '../constants/law.ts';
 import type { Command } from './controls.ts';
@@ -49,22 +49,45 @@ export function missionFacts(c: CommanderData): CommanderFacts {
   };
 }
 
+/** What one input left for the caller: the lines to say, and the ships to spawn. */
+export interface MissionOutcome {
+  /** the lines to say, in order. A `say` takes the console; a `later` waits behind it (session.ts) */
+  messages: MissionMessage[];
+  /** ships an ambush asks for, around the commander now. Only a caller with the world can spawn them */
+  spawns: TaggedShip[];
+}
+
 /**
  * Run one input through the machine, install the record, apply the costs.
  *
- * @returns the lines to say, in order. A `say` takes the console; a `later`
- * waits behind it (session.ts).
+ * @returns the lines to say, in order. A caller that holds the world and can
+ * hear a spawn order calls `applyMissions` instead (docs/TODO/214 M2).
  */
 export function runMissions(
   c: CommanderData, input: MissionInput,
   systems: readonly StarSystem[] = galaxySystems(c.galaxy), rng: () => number = random,
   skeletons?: readonly Skeleton[],
 ): MissionMessage[] {
+  return applyMissions(c, input, systems, rng, skeletons).messages;
+}
+
+/**
+ * `runMissions`, with the spawn orders too. A spawn is a world change, and
+ * the bridge has no world, so the order goes back to the caller. A caller
+ * that cannot spawn drops it, and an ambush no caller can hear is a
+ * skeleton fault the flight probe would show.
+ */
+export function applyMissions(
+  c: CommanderData, input: MissionInput,
+  systems: readonly StarSystem[] = galaxySystems(c.galaxy), rng: () => number = random,
+  skeletons?: readonly Skeleton[],
+): MissionOutcome {
   const { state, effects } = stepMissions(c.missions, input, {
     commander: missionFacts(c), systems, rng, skeletons,
   });
   c.missions = state;
   const out: MissionMessage[] = [];
+  const spawns: TaggedShip[] = [];
   // A dossier's line replaces the skeleton's where one exists (docs/TODO/191
   // M3). The machine named the line and never read it. A word with no
   // dossier and no plain text is silence, as the skeleton meant it.
@@ -116,6 +139,7 @@ export function runMissions(
         });
         break;
       }
+      case 'spawn': spawns.push(...e.ships); break;
       // The goods delivered leave the hold, and no more than are aboard.
       case 'unload':
         c.cargo[e.commodity] = Math.max(0, c.cargo[e.commodity] - e.tonnes);
@@ -132,7 +156,7 @@ export function runMissions(
         break;
     }
   }
-  return out;
+  return { messages: out, spawns };
 }
 
 /**

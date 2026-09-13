@@ -116,6 +116,9 @@ const faults: [string, Skeleton, readonly Skeleton[], string][] = [
   ['a spawned ship with no row for its role',
     arc({ legs: [{ ...legs()[0], spawn: [{ ship: 'no-such-hull' as never, tag: 'x', job: 'hunt' }] }, legs()[1]] }),
     [b], 'no pirate row for the spawned'],
+  ['an ambush with no row for its role (docs/TODO/214 M2)',
+    arc({ legs: [{ ...legs()[0], ambush: { ships: [{ ship: 'no-such-hull' as never, tag: 'x', job: 'hunt' }], say: 'X' } }, legs()[1]] }),
+    [b], 'no pirate row for the spawned'],
   // Every trigger a verb can emit has a branch, or the leg says it ignores it
   // (docs/TODO/213 M5).
   ['a hunt that can escape with no branch for the escape',

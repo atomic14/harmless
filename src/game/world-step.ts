@@ -46,7 +46,7 @@ import { assignNpcTargets } from './npc-targeting.ts';
 import { shipArticle } from './targets.ts';
 import { closePassLines } from './close-pass.ts';
 import { stepEncounters } from './encounters.ts';
-import { spawnArrivingTrader, spawnPassingTrader } from './spawning.ts';
+import { spawnArrivingTrader, spawnPassingTrader, spawnTaggedShips } from './spawning.ts';
 import { STATION_TRUCE } from '../constants/law.ts';
 import {
   PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN, THARGON_DEPLOY_RANGE,
@@ -81,7 +81,7 @@ import { Ordnance, ordnanceMessage, type OrdnanceOutcome } from './ordnance.ts';
 import type { NpcShip, FireEvent, WorldView } from './npc.ts';
 import { nearestNpc } from './hostility.ts';
 import type { SoundEvent, SoundName } from './sounds.ts';
-import { runMissions } from './mission-bridge.ts';
+import { applyMissions, runMissions, type MissionOutcome } from './mission-bridge.ts';
 import { scanSecondsFor } from '../missions/queries.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
 import { ESCORT_ENEMY_ROLES, WATCH_CONE } from '../constants/missions.ts';
@@ -688,7 +688,7 @@ export class WorldStep {
           if (npc.state.observed >= wanted) {
             npc.state.missionReported = true;
             npc.state.tradeTimer = 0;   // watched; it may go about its business now (docs/TODO/203 M2)
-            out.push(...runMissions(commander, { kind: 'scanned', tag }));
+            out.push(...this.springAmbush(applyMissions(commander, { kind: 'scanned', tag })));
           }
           continue;
         }
@@ -701,6 +701,20 @@ export class WorldStep {
         out.push(...runMissions(commander, { kind: 'escortSafe', tag }));
       }
     }
+  }
+
+  /**
+   * The ships a mission's step asked for jump in around the commander, at a
+   * pirate wave's reach, and the console says so (docs/TODO/214 M2). The
+   * lines come back as they were, for the caller to say.
+   */
+  private springAmbush(outcome: MissionOutcome): StepEvent[] {
+    const { world, player } = this.state;
+    if (outcome.spawns.length > 0) {
+      spawnTaggedShips(world, player.position, outcome.spawns, PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN);
+      return [say('PIRATE SIGNATURES DETECTED', 4), ...outcome.messages];
+    }
+    return outcome.messages;
   }
 
   /** Cargo, missiles, and the things that are only ever seen. */
@@ -723,7 +737,7 @@ export class WorldStep {
         // A MISSION'S THING, and the machine says what it was. It is a
         // canister that never enters the hold, or a pod whose passenger rides
         // under the pod's own tag (docs/TODO/190 M4).
-        out.push(...runMissions(commander, { kind: 'scooped', tag: c.missionTag }));
+        out.push(...this.springAmbush(applyMissions(commander, { kind: 'scooped', tag: c.missionTag })));
         out.push(heard(c.kind === 'capsule' ? 'survivorScooped' : 'cargoScooped'));
       } else if (c.kind === 'capsule') {
         // A person, not stock. See CommanderData.survivors — a capsule is not

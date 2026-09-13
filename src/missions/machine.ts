@@ -172,6 +172,12 @@ function react(
       effects.push({ kind: 'say', text: fillSlots(reaction.say, lineSlots(ctx.systems, live.target, legPay(leg))) });
     }
     if (reaction.trigger !== undefined) fire(st, live, reaction.trigger, ctx, effects);
+    // The ambush springs after the branch settles, so its line queues behind
+    // the settlement's own (docs/TODO/214 M2).
+    if (reaction.sprung && leg.ambush) {
+      effects.push({ kind: 'spawn', ships: leg.ambush.ships });
+      effects.push({ kind: 'later', text: leg.ambush.say });
+    }
   }
   // A passenger answered for is off the ship, whichever mission owned them.
   if (input.kind === 'survivor') st.passengers = st.passengers.filter((p) => p.tag !== input.tag);

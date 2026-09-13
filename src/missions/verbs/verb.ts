@@ -24,6 +24,8 @@ export interface VerbReaction {
   passenger?: boolean;
   /** the leg's goods are delivered, and the machine asks the game to take them off */
   unload?: boolean;
+  /** the step that springs the leg's ambush, where the leg has one (docs/TODO/214 M2) */
+  sprung?: boolean;
   /**
    * What the console says about a step that takes no branch, with `{TARGET}`
    * for the leg's world (docs/TODO/203 M4). A branch speaks through its

@@ -16,7 +16,7 @@ import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../..
 import { SOURCE_DESIGN } from '../../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../../game/ship-identity.ts';
 import type { Skeleton } from '../../model.ts';
-import { wingmanOf } from '../lane.ts';
+import { PAIR, wingmanOf } from '../lane.ts';
 
 const COBRA = shipDesignIdOf(SOURCE_DESIGN.cobraMk3);
 
@@ -31,6 +31,7 @@ export const ARC_LAVE: Skeleton = {
   legs: [
     {
       id: 'ledger', verb: { kind: 'recover', item: 'grub-ledger' }, place: { kind: 'band', ...SIDE_JOB_RANGE },
+      ambush: { ships: [...PAIR], say: 'THE SMUGGLER\'S FRIENDS WERE WAITING FOR THE LEDGER.' },
       line: 'GOVERNOR: SCOOP THE LEDGER CANISTER ADRIFT AT {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: 'success', to: 'runner', settle: { pay: ARC_PAY.recover, say: 'LEDGER ABOARD — {PAY}. NOW THE SMUGGLER.' } },

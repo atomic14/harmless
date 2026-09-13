@@ -13,7 +13,7 @@
 
 import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../../../constants/missions.ts';
 import type { Skeleton } from '../../model.ts';
-import { LANE_PIRATES, PAIR } from '../lane.ts';
+import { LANE_PIRATES, LONE_KRAIT, PAIR } from '../lane.ts';
 
 export const ARC_VETITICE: Skeleton = {
   id: 'arc-vetitice',
@@ -34,6 +34,7 @@ export const ARC_VETITICE: Skeleton = {
     },
     {
       id: 'pod', verb: { kind: 'rescue' }, place: { kind: 'band', ...SIDE_JOB_RANGE },
+      ambush: { ships: [...LONE_KRAIT], say: 'SOMEBODY WANTED THE SURVEYOR.' },
       line: 'DIRECTOR: SCOOP THE SURVEYOR\'S POD AT {TARGET} AND DOCK', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: { survivor: 'landed' }, to: 'manifest', settle: { pay: ARC_PAY.rescue, say: 'SURVEYOR LANDED — {PAY}. THE MANIFEST GOES TO {TARGET}.' } },

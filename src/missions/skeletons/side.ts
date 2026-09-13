@@ -70,6 +70,7 @@ export const SIDE_RECOVER: Skeleton = {
   legs: [
     {
       id: 'find', verb: { kind: 'recover', item: 'station-canister' }, place: AWAY, spawn: [...LONE_KRAIT],
+      ambush: { ships: [...PAIR], say: 'THEY WERE WAITING FOR THE CANISTER.' },
       line: 'RECOVERY: SCOOP THE CANISTER ADRIFT AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
       next: [
         { on: 'success', to: 'home', settle: { pay: 0, say: 'THE CANISTER IS ABOARD. BRING IT BACK TO {TARGET}.' } },
@@ -97,6 +98,7 @@ export const SIDE_RESCUE: Skeleton = {
   legs: [
     {
       id: 'pod', verb: { kind: 'rescue' }, place: AWAY,
+      ambush: { ships: [...LONE_KRAIT], say: 'SOMEBODY WANTED THAT POD.' },
       line: 'RESCUE: SCOOP THE POD ADRIFT AT {TARGET} AND DOCK', deadlineDays: SIDE_JOB_DAYS,
       next: [
         { on: { survivor: 'landed' }, to: 'complete', settle: { pay: SIDE_JOB_PAY.rescue, say: 'THE PILOT IS LANDED SAFE. THE STATION PAYS {PAY}.' } },
@@ -177,6 +179,7 @@ export const SIDE_SCAN: Skeleton = {
   legs: [{
     id: 'watch', verb: { kind: 'scan', ship: shipDesignIdOf(SOURCE_DESIGN.anaconda), seconds: SCAN_SECONDS },
     place: AWAY, line: 'SCAN: HOLD THE ANACONDA AT {TARGET} ON YOUR SCANNER', deadlineDays: SIDE_JOB_DAYS,
+    ambush: { ships: [...PAIR], say: 'THE ANACONDA\'S ESCORT SAW THE SCAN.' },
     next: [
       { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.scan, say: 'THE SCAN IS COMPLETE. THE STATION PAYS {PAY}.' } },
       { on: 'targetDestroyed', to: 'fail', settle: { pay: 0, standing: -2 } },
