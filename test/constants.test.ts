@@ -120,6 +120,9 @@ const OUTSIDE: readonly Group[] = [
       ],
       // ...and the arcs in tour order, which is a list of ids (docs/TODO/192)
       'missions/skeletons/index.ts': ['SKELETONS', 'ARC_TOUR'],
+      // the Dark Wheel's trials (docs/TODO/219)
+      'missions/skeletons/wheel/mark.ts': ['WHEEL_MARK', 'AWAY'],
+      'missions/skeletons/wheel/index.ts': ['WHEEL'],
       // the pirates both lane legs name (docs/TODO/203 M2), and the company
       // a job keeps at the jump-in (docs/TODO/214 M1)
       'missions/skeletons/lane.ts': ['LANE_PIRATES', 'PAIR', 'LONE_KRAIT'],
@@ -131,7 +134,7 @@ const OUTSIDE: readonly Group[] = [
       'missions/story.ts': ['ENDINGS'],
       // the committed patron file given a name, the one patron with no world,
       // and the plain title a world with no record takes (docs/TODO/191 M1)
-      'missions/patrons.ts': ['FILES', 'NAVY_PATRON', 'PLAIN_ROLE'],
+      'missions/patrons.ts': ['FILES', 'NAVY_PATRON', 'PLAIN_ROLE', 'WHEEL_PATRON'],
       // the generated list of committed dossier files (docs/TODO/191 M2)
       'missions/dossiers/index.ts': ['DOSSIER_FILES'],
     },

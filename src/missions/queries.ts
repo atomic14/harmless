@@ -162,6 +162,7 @@ export function missionName(
 ): string {
   const s = skeletonById(live.skeleton, from);
   if (!s || s.patron.kind === 'navy') return 'NAVY MISSION';
+  if (s.patron.kind === 'wheel') return 'DARK WHEEL MISSION';
   const world = s.patron.kind === 'world' ? s.patron.seedSlot : acceptedAt(st, live.skeleton);
   return world === undefined ? 'MISSION' : `${systems[world].name.toUpperCase()} MISSION`;
 }

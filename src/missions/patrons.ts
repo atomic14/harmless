@@ -56,6 +56,16 @@ export const NAVY_PATRON: Patron = {
 };
 
 /**
+ * The other one (docs/TODO/219). A society of pilots that nobody admits
+ * exists. No world, no face, and a voice that gives nothing away.
+ */
+export const WHEEL_PATRON: Patron = {
+  id: 'wheel', world: 'wheel', name: 'THE DARK WHEEL', role: 'the Wheel', species: '',
+  voice: 'The Wheel writes in short lines, signs nothing, and names itself only at the end.',
+  portrait: '',
+};
+
+/**
  * The plain title a world's patron takes when no record exists, by
  * government index. It is the fallback's own rule, not a copy of the
  * generation variants in tools/patron-prompts.ts. Those are what a model is
@@ -79,6 +89,7 @@ export function patronFor(
   ref: PatronRef, facts: CommanderFacts, systems: readonly StarSystem[], origin?: number,
 ): Patron {
   if (ref.kind === 'navy') return NAVY_PATRON;
+  if (ref.kind === 'wheel') return WHEEL_PATRON;
   const world = ref.kind === 'world' ? ref.seedSlot : (origin ?? facts.systemIndex);
   const sys = systems[world];
   const base = {

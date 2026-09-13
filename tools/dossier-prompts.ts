@@ -148,6 +148,12 @@ function patronLine(s: Skeleton): { line: string; own: string } {
   }
   const facts = { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], scoops: false };
   const p = patronFor(s.patron, facts, generateGalaxy(1));
+  if (s.patron.kind === 'wheel') {
+    return {
+      line: `Patron: ${p.name}, a society of pilots that nobody admits exists. It has no world and no face. ${p.voice} Its note reaches the commander at a lawless world, {HERE}, which it never names. Write {PATRON} for it, and only in the closing line.`,
+      own: '',
+    };
+  }
   if (s.patron.kind === 'navy') {
     return { line: `Patron: ${p.name}, in service signals: rank, no courtesy, no name, no world. Use neither {PATRON} nor {HERE}.`, own: '' };
   }

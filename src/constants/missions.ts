@@ -153,6 +153,37 @@ export const GANG_HUNT_KILLS = RATINGS[1][0];
 export const LANE_JOB_KILLS = GANG_HUNT_KILLS / 2;
 
 /**
+ * The rung the Dark Wheel's first whisper waits for (docs/TODO/219 M1):
+ * Above Average, 128 kills. Chris chose it on 2026-09-13. The Wheel finds
+ * a commander worth finding, and a Harmless one is not yet.
+ *
+ * @rule missions.wheelWhisperRung
+ */
+export const WHEEL_WHISPER_RUNG = RATINGS.findIndex(([, name]) => name === 'Above Average');
+
+/**
+ * The governments whose boards carry the Wheel's word (docs/TODO/219 M1),
+ * by their 1984 names. The Wheel posts nothing where a government reads
+ * the boards. `galaxy.ts` owns the names, and the offers filter compares
+ * a world's own against this list. It is a narrower line than
+ * `LAWLESS_GOVERNMENT` in encounters.ts, which breeds pirate waves up to a
+ * dictatorship. A dictatorship reads its boards.
+ *
+ * @domain missions
+ * @rule missions.lawlessGovernments
+ */
+export const LAWLESS_GOVERNMENTS: readonly string[] = ['Anarchy', 'Feudal'];
+
+/**
+ * What a Wheel trial pays, in tenths of a credit (docs/TODO/219 M1). More
+ * than an arc leg of the same verb, because the Wheel asks more. The mark
+ * is a gang with two Asps. The door pays nothing: its reward is a fit.
+ *
+ * @rule missions.wheelPay
+ */
+export const WHEEL_PAY = { mark: 20_000, blockade: 20_000, pilot: 25_000 } as const;
+
+/**
  * The lower fee a rescue pays when the pod is lost and the data still
  * arrives, in tenths of a credit. The scientist example in docs/TODO/190:
  * a failure is a branch, and the branch pays less.

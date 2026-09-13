@@ -12,8 +12,8 @@
 // It is read by the machine on `accept` and on `docked`, by the desk that
 // lists the MISSIONS screen, and by the tests. It changes nothing.
 
-import { MISSION_LIVE_CAP, MISSION_REOFFER_DAYS } from '../constants/missions.ts';
-import type { StarSystem } from '../galaxy/galaxy.ts';
+import { MISSION_LIVE_CAP, MISSION_REOFFER_DAYS, LAWLESS_GOVERNMENTS } from '../constants/missions.ts';
+import { GOVERNMENT_NAMES, type StarSystem } from '../galaxy/galaxy.ts';
 import { routeEstimate } from '../galaxy/route.ts';
 import { ratingRung } from '../game/rating.ts';
 import type { CommanderFacts, Gate, MissionState, Skeleton } from './model.ts';
@@ -50,6 +50,15 @@ export function sideJobsAt(sys: StarSystem, jobs: readonly Skeleton[]): Skeleton
 function localJobHere(s: Skeleton, c: CommanderFacts, ctx: OfferContext): boolean {
   if (s.patron.kind !== 'local' || !ctx.systems) return true;
   return sideJobsAt(ctx.systems[c.systemIndex], ctx.skeletons ?? SKELETONS).some((j) => j.id === s.id);
+}
+
+/**
+ * The Wheel's word reaches the lawless worlds alone (docs/TODO/219 M1):
+ * every Anarchy and every Feudal. Without the galaxy, every world is.
+ */
+function lawlessHere(s: Skeleton, c: CommanderFacts, ctx: OfferContext): boolean {
+  if (s.patron.kind !== 'wheel' || !ctx.systems) return true;
+  return LAWLESS_GOVERNMENTS.includes(GOVERNMENT_NAMES[ctx.systems[c.systemIndex].government]);
 }
 
 /**
@@ -120,14 +129,19 @@ export function canAccept(st: MissionState, id: string, ctx: OfferContext): bool
   if (st.live.length >= MISSION_LIVE_CAP) return false;
   if (st.live.some((l) => l.skeleton === id)) return false;
   // An arc that ended never comes back. `done` says so even when the journal
-  // was not written, which a hand-built record can do.
-  if (s.kind !== 'side' && id in st.done) return false;
+  // was not written, which a hand-built record can do. The Wheel's trials
+  // come back after a failure, as many times as their `cap` allows, and
+  // never after a pass (docs/TODO/219 M1).
+  const again = s.kind === 'side' || s.patron.kind === 'wheel';
+  if (!again && id in st.done) return false;
+  if (s.patron.kind === 'wheel' && st.done[id] === 'complete') return false;
   const ended = endings(st, id);
-  if (ended.count >= (s.kind === 'side' ? (s.cap ?? Infinity) : 1)) return false;
+  if (ended.count >= (again ? (s.cap ?? Infinity) : 1)) return false;
   if (ended.count > 0 && ctx.commander.day < ended.lastDay + MISSION_REOFFER_DAYS) return false;
   if (excluded(st, id, from)) return false;
   if (leadHere(st, id, ctx.commander)) return true;
   if (!nearHome(s, ctx)) return false;
+  if (!lawlessHere(s, ctx.commander, ctx)) return false;
   return localJobHere(s, ctx.commander, ctx) && gateOpen(s.offer, st, ctx.commander);
 }
 

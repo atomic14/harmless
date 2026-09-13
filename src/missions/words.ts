@@ -9,7 +9,7 @@
 
 export interface Patron {
   id: string;
-  world: number | 'navy';
+  world: number | 'navy' | 'wheel';
   name: string;
   role: string;
   species: string;

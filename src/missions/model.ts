@@ -43,7 +43,13 @@ export type PatronRef =
   | { kind: 'navy' }
   | { kind: 'world'; seedSlot: number }
   /** whoever runs the station the commander stands at: a side job's patron, anywhere */
-  | { kind: 'local' };
+  | { kind: 'local' }
+  /**
+   * The Dark Wheel (docs/TODO/219): a society of pilots with no world and
+   * no face. Its jobs are on the board at every Anarchy and every Feudal
+   * world, once the commander's rating opens them.
+   */
+  | { kind: 'wheel' };
 
 /**
  * The facts about the commander that a rule can read. A projection of

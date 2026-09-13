@@ -25,6 +25,7 @@ export function legOf(skeleton: Skeleton, id: string): Leg {
 export function patronId(skeleton: Skeleton, commander: CommanderFacts, origin?: number): string {
   const p = skeleton.patron;
   if (p.kind === 'navy') return 'navy';
+  if (p.kind === 'wheel') return 'wheel';
   return `world-${p.kind === 'world' ? p.seedSlot : (origin ?? commander.systemIndex)}`;
 }
 
