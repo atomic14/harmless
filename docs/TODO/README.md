@@ -13,7 +13,13 @@ active context:
 
 ## Execution queue
 
-Nothing is queued.
+1. [219](219-the-dark-wheel-comes-for-a-commander.md) — the Dark Wheel comes for a commander.
+
+**219 CAME FROM CHRIS ON 2026-09-13**, after 217 measured the authored play
+at four to six hours. He asked for another layer at the higher ratings, a
+secret society. He chose the old names, a first whisper at Above Average,
+and a reward no shop sells. 219 is the Dark Wheel: a patron, four trials, a
+leg in witchspace, and the cloaking device.
 
 **218 CAME FROM CHRIS ON 2026-09-13.** The comments, the docs and the
 dossier prompt slipped into "she" for the commander, from the novella.
