@@ -194,6 +194,22 @@ console.log('\nthe station course goes round a planet in its way');
   eq('...and it still docks', g.mode, 'docked');
 }
 
+console.log('\na mission target below the clearance is refused');
+{
+  // docs/TODO/213 M1: a charge that ran flew through the planet, and the
+  // escort course followed it. The commander crashed with full shields.
+  const v = view(new THREE.Vector3(0, 0, -50_000));
+  const low = v.planetPos.clone().add(new THREE.Vector3(0, -(v.planetRadius + 100), 0));
+  const refused = new CoursePilot().step(
+    view(v.stationPos, { course: 'mission', mission: { at: low, speed: 100, how: 'escort' } }), 1 / 60);
+  check('a target 100 units above the planet ends the course', refused.done);
+  check('...with a reason for the console', typeof refused.why === 'string' && refused.why.length > 0);
+  const clear = v.planetPos.clone().add(new THREE.Vector3(0, -(v.planetRadius + COURSE_PLANET_CLEARANCE * 2), 0));
+  const flown = new CoursePilot().step(
+    view(v.stationPos, { course: 'mission', mission: { at: clear, speed: 100, how: 'escort' } }), 1 / 60);
+  check('...and one well above it is flown (the control)', !flown.done && flown.demand !== null);
+}
+
 console.log('\nnothing appears inside the planet');
 {
   // docs/TODO/205 M3 found a hermit 1,545 units inside the planet, and a

@@ -157,7 +157,7 @@ export class FlightCourse {
     if (step.torus !== s.torusEngaged && (!step.torus || !this.host.massLocked())) {
       this.host.toggleTorus();
     }
-    if (step.done) this.endCourse(s.course);
+    if (step.done) this.endCourse(s.course, step.why);
     return step.demand;
   }
 
@@ -275,15 +275,16 @@ export class FlightCourse {
    * A course finished its work. It leaves the ship, and it leaves the list
    * for the rest of the visit. The console says what the ship did.
    */
-  private endCourse(kind: CourseKind): void {
+  private endCourse(kind: CourseKind, why?: string): void {
     const s = this.state.session;
     s.course = null;
-    if (!s.coursesDone.includes(kind)) s.coursesDone.push(kind);
+    // A course that ended for a reason is not done: the list offers it again.
+    if (why === undefined && !s.coursesDone.includes(kind)) s.coursesDone.push(kind);
     this.coursePilot.reset();
     // The derelict's own words, read off the world's seed (docs/TODO/208 M5).
-    const said = kind === 'derelict'
+    const said = why ?? (kind === 'derelict'
       ? derelictReport(this.state.systems[this.state.commander.systemIndex] as StarSystem)
-      : COURSE_ENDS[kind];
+      : COURSE_ENDS[kind]);
     if (said) this.host.showMessage(said, 6);
   }
 }

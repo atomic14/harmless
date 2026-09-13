@@ -19,9 +19,8 @@
 // the side the line already passes, and half as far again.
 
 import * as THREE from 'three';
-import {
-  COURSE_OBSTACLE_CLEARANCE, COURSE_PLANET_CLEARANCE, COURSE_POLICE_CLEARANCE,
-} from '../constants/course.ts';
+import { COURSE_OBSTACLE_CLEARANCE, COURSE_PLANET_CLEARANCE } from '../constants/course.ts';
+import { COURSE_POLICE_CLEARANCE } from '../constants/mission-course.ts';
 
 /** Something solid a course must not fly through — see `clearOfObstacles`. */
 export interface Obstacle {

@@ -31,6 +31,7 @@ import * as THREE from 'three';
 import { defenceBrain } from './brains.ts';
 import { defenceBrainNameFor } from './brain-names.ts';
 import { TURN_AND_FIGHT_RANGE } from '../constants/player-interest.ts';
+import { TRADER_CALM_SECONDS } from '../constants/attack-run.ts';
 import { approach, velocityOf } from './flight-maths.ts';
 import { attack } from './npc-attack-run.ts';
 import { brainFly } from './npc-brain-pilot.ts';
@@ -54,6 +55,14 @@ class Trader implements NpcBehaviour {
     const distPlayer = tmpDir.copy(player.position)
       .sub(ship.object.position).length();
 
+    // THE RUN ENDS. A trader that took no hit for the calm, with nobody left
+    // hunting it, goes back to its working life (docs/TODO/213 M1). It used
+    // to run for the rest of its life, so an escort's charge that was grazed
+    // once never reached the station.
+    if (ship.state.fleeing && ship.state.calm >= TRADER_CALM_SECONDS
+      && ship.nearestAttacker(dt) === null) {
+      ship.state.fleeing = false;
+    }
     if (ship.state.fleeing) {
       // Armed traders turn and fight. WHICH pilot is brain-names.ts's answer.
       // The shipped answer is the hand-written three-phase attack run, pointed

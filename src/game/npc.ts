@@ -789,6 +789,7 @@ export class NpcShip {
     // funnels through, because damage-dealt.ts routes lasers, ordnance and rams
     // here. So the attack run answers all of them, and not gunfire alone.
     this.state.underFire = UNDER_FIRE_SECONDS;
+    this.state.calm = 0;
     if (byPlayer) this.state.provokedByPlayer = true;
     if (from && this.role === 'trader') {
       this.state.fleeFrom.copy(from);
@@ -819,6 +820,7 @@ export class NpcShip {
   tickClocks(dt: number): void {
     this.regenerate(dt);
     this.state.underFire = Math.max(0, this.state.underFire - dt);
+    this.state.calm += dt;
     this.state.missileReload = Math.max(0, this.state.missileReload - dt);
   }
 

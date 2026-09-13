@@ -54,9 +54,12 @@ import { SLOT_SPEED_LIMIT } from '../constants/docking.ts';
 import {
   COURSE_AIM_DEADZONE, COURSE_ROLL_GATE, COURSE_ARRIVE_BRAKE, COURSE_ARRIVE_TOLERANCE, COURSE_DERELICT_STANDOFF,
   COURSE_COLLECT_CAP, COURSE_COLLECT_LEAD, COURSE_HERMIT_SPEED, COURSE_HERMIT_STANDOFF,
-  COURSE_COLLECT_SPEED, COURSE_ESCORT_STANDOFF, COURSE_RUN_REACH, COURSE_SKIM_DISTANCE,
-  COURSE_TORUS_CONE, COURSE_TORUS_DROP, COURSE_WATCH_STANDOFF,
+  COURSE_COLLECT_SPEED, COURSE_PLANET_CLEARANCE, COURSE_RUN_REACH, COURSE_SKIM_DISTANCE,
+  COURSE_TORUS_CONE, COURSE_TORUS_DROP,
 } from '../constants/course.ts';
+import {
+  COURSE_ESCORT_CLOSING, COURSE_ESCORT_STANDOFF, COURSE_WATCH_STANDOFF,
+} from '../constants/mission-course.ts';
 import {
   clearOfObstacles, clearOfPlanet, clearOfPolice, type Obstacle,
 } from './course-clearance.ts';
@@ -129,6 +132,8 @@ export interface CourseStep {
   readonly handOver: boolean;
   /** the course is finished, and it leaves the ship */
   readonly done: boolean;
+  /** why it ended before its work was done, for the console; absent for an ordinary end */
+  readonly why?: string;
 }
 
 const IDLE: CourseStep = { demand: null, torus: false, handOver: false, done: false };
@@ -236,10 +241,24 @@ export class CoursePilot {
         // A slip is the station course on a line wide of the police
         // (docs/TODO/208 M4). It hands the ship over as that course does.
         if (m.how === 'slip') return this.toStation(v, dt, m.at);
+        // A TARGET BELOW THE CLEARANCE IS REFUSED (docs/TODO/213 M1). A ship
+        // does not crash, and a charge that ran flew through the planet with
+        // the course 600 units behind it. The commander crashed at 80 units
+        // with full shields. The line round the planet cannot help when the
+        // target itself is inside it.
+        if (m.at.distanceTo(v.planetPos) - v.planetRadius < COURSE_PLANET_CLEARANCE) {
+          return { ...ended(), why: 'THE TARGET IS TOO NEAR THE PLANET — COURSE OFF' };
+        }
         const standoff = m.how === 'hold' ? COURSE_WATCH_STANDOFF
           : m.how === 'escort' ? COURSE_ESCORT_STANDOFF : 0;
         const speed = m.how === 'scoop' ? COURSE_COLLECT_SPEED : m.speed;
-        return { ...this.arrive(v, { target: m.at, standoff, speed }, dt), done: false };
+        // An escort closes gently. Inside three standoffs its speed is the
+        // charge's plus `COURSE_ESCORT_CLOSING`, so the approach cannot ram
+        // the charge and set it to flight (docs/TODO/213 M1).
+        const near = m.how === 'escort'
+          && v.position.distanceTo(m.at) <= COURSE_ESCORT_STANDOFF * 3;
+        const cap = near ? m.speed + COURSE_ESCORT_CLOSING : undefined;
+        return { ...this.arrive(v, { target: m.at, standoff, speed, cap }, dt), done: false };
       }
       default: return IDLE;
     }

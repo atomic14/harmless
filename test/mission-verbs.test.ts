@@ -172,6 +172,10 @@ console.log('\nescort and scan, through the machine');
     stepMissions(st, { kind: 'escortLost', tag }, moved(ctx, target)).state.done[SIDE_ESCORT.id], 'fail');
   eq('...and so does one that jumps out',
     stepMissions(st, { kind: 'escaped', tag }, moved(ctx, target)).state.done[SIDE_ESCORT.id], 'fail');
+  // A charge that a pirate hit runs, and jumps out while it runs. The world
+  // sends `fled` for that, and the verb ignored it until docs/TODO/213 M1.
+  eq('...and so does one that ran from a hit',
+    stepMissions(st, { kind: 'fled', tag }, moved(ctx, target)).state.done[SIDE_ESCORT.id], 'fail');
 
   const sctx = boardFor(SIDE_SCAN);
   const sst = accept(SIDE_SCAN, sctx);
@@ -183,6 +187,10 @@ console.log('\nescort and scan, through the machine');
   eq('the scan pays', paid(scanned.effects), SIDE_JOB_PAY.scan);
   const killed = stepMissions(sst, { kind: 'destroyed', tag: stag }, sctx);
   eq('a subject destroyed fails it, and the patron minds', killed.state.standing[`world-${sctx.commander.systemIndex}`], -3);
+  const wrecked = stepMissions(sst, { kind: 'escortLost', tag: stag }, sctx);
+  eq('...and one wrecked by nobody is destroyed all the same', wrecked.state.standing[`world-${sctx.commander.systemIndex}`], -3);
+  eq('a subject that ran from a hit has escaped',
+    stepMissions(sst, { kind: 'fled', tag: stag }, sctx).state.done[SIDE_SCAN.id], 'fail');
 
   const hctx = boardFor(SIDE_HUNT);
   const hst = accept(SIDE_HUNT, hctx);

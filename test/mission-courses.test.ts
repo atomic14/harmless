@@ -18,7 +18,8 @@ import { runMissions } from '../src/game/mission-bridge.ts';
 import { missionCourse } from '../src/game/mission-course.ts';
 import { clearOfPolice } from '../src/game/course-clearance.ts';
 import { SCAN_RANGE } from '../src/constants/law.ts';
-import { COURSE_POLICE_CLEARANCE } from '../src/constants/course.ts';
+import { COURSE_ESCORT_STANDOFF, COURSE_POLICE_CLEARANCE } from '../src/constants/mission-course.ts';
+import { TRADER_CALM_SECONDS } from '../src/constants/attack-run.ts';
 import { COURSE_KEYS } from '../src/game/bindings.ts';
 import { keymap } from '../src/engine/keymap.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
@@ -122,6 +123,32 @@ const words = (g: Game): string | null => missionCourse(
   eq('a delivery needs no button of its own, because it ends at the station', words(g), null);
   check('...and the station is on the list',
     g.coursePanel()?.rows?.some((r) => r.kind === 'station') === true);
+}
+
+console.log('\nthe escort course does not ram its charge, and a grazed charge goes back to work');
+{
+  // docs/TODO/213 M1. The approach braked from full speed to the charge's
+  // own at the standoff and overshot into the hull. A ram is a hit from the
+  // commander, and a trader that is hit ran for the rest of its life.
+  const g = onTheJob('side-escort', 20_260_947);
+  const charge = g.state.world.npcs.find((n) => n.state.missionTag !== null);
+  if (!charge) throw new Error('the escort spawned no charge');
+  const shields = g.state.sys.foreShield;
+  let nearest = Infinity;
+  fly(g, 90, () => {
+    nearest = Math.min(nearest, g.state.player.position.distanceTo(charge.object.position));
+    return false;
+  });
+  check('ninety seconds beside the charge cost no shield', g.state.sys.foreShield === shields,
+    `${g.state.sys.foreShield} of ${shields}`);
+  check('...and the ship never came inside a quarter of the standoff',
+    nearest > COURSE_ESCORT_STANDOFF / 4, `${Math.round(nearest)} units at the nearest`);
+  check('...and the charge is not on the run', !charge.state.fleeing);
+  charge.takeLaserHit(1, g.state.player.position.clone(), false);
+  check('a graze sets the charge to flight', charge.state.fleeing);
+  fly(g, TRADER_CALM_SECONDS + 5, () => !charge.state.fleeing);
+  check('...and it goes back to work once the calm has passed', !charge.state.fleeing);
+  eq('...on its way to the station', charge.state.traderPhase, 'arriving');
 }
 
 console.log('\na hunted ship that runs has fled, not escaped');

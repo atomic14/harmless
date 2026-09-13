@@ -37,6 +37,22 @@ export const EXTEND_RANGE = (EXTEND_RANGE_MIN + EXTEND_RANGE_MAX) / 2;
 export const UNDER_FIRE_SECONDS = 1.2;
 
 /**
+ * How long a trader keeps to its run after the last hit it took: twenty
+ * seconds. After that, with no live attacker, it goes back to work.
+ *
+ * A trader that took a hit ran for the rest of its life until docs/TODO/213
+ * M1. An escort's charge that a pirate grazed then flew from the station
+ * for ever. So did one that the commander's own course bumped. The escort
+ * could not end. The clock is the same shape as `UNDER_FIRE_SECONDS`: a decay from
+ * the last hit, not a latch. It is much longer, because a trader that turns
+ * back into a fight it just fled is a trader that dies. Twenty seconds is a
+ * pirate wave's approach, so a wave that is still there keeps it running.
+ *
+ * @rule trader.calmSeconds
+ */
+export const TRADER_CALM_SECONDS = 20;
+
+/**
  * The slowest that an attacking ship throttles back to in order to turn. There
  * are two literals on purpose. This one sits just above `MIN_CRUISE_FRACTION`, so
  * the flying rule and the backstop never argue. An expression would drag one when

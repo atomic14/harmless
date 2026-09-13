@@ -7,7 +7,6 @@ import { HERMIT_DOCK_SPEED } from './hermit-market.ts';
 import { PLAYER_FLIGHT } from './player-flight.ts';
 import { MASS_LOCK_PLANET_ALTITUDE, TORUS_MULTIPLIER } from './torus.ts';
 import { GENERATION_CARGO_SCATTER } from './spawn-placement.ts';
-import { SCAN_WARN_RANGE } from './law.ts';
 
 /**
  * How far off the nose the target may sit, in radians, before the course
@@ -319,46 +318,6 @@ export const COURSE_COLLECT_CAP = COURSE_COLLECT_SPEED * 2;
  * @domain course
  */
 export const COURSE_DOCK_HANDOVER = 1500;
-
-/**
- * How far from a ship the scan course holds, in world units
- * (docs/TODO/208 M2).
- *
- * A scan counts seconds while the ship is inside `SCANNER_RANGE`, which is
- * 6,000, and within `WATCH_CONE` of the nose. So the hold sits well inside
- * the range, and near enough that the ship fills a useful part of the cone.
- * It is far enough out that a trader's own wandering does not shake it off.
- *
- * @rule course.watchStandoff
- * @domain course
- */
-export const COURSE_WATCH_STANDOFF = 1200;
-
-/**
- * How far from its charge the escort course flies, in world units
- * (docs/TODO/208 M2).
- *
- * The escort is safe when no hostile ship is within 3,500 units of the
- * charge. A pilot who flies this close is inside that ring, and the fight
- * comes to the pilot rather than to the charge.
- *
- * @rule course.escortStandoff
- * @domain course
- */
-export const COURSE_ESCORT_STANDOFF = 600;
-
-/**
- * How wide of a police ship the smuggling course flies, in world units
- * (docs/TODO/208 M4).
- *
- * A policeman reads a hold inside `SCAN_RANGE`, which is 2,600 units. This is
- * the warning band, `SCAN_WARN_RANGE`, so the course keeps a margin outside
- * the range that would end the job. It is the same rule from the other side,
- * so the two cannot drift apart.
- *
- * @domain course
- */
-export const COURSE_POLICE_CLEARANCE = SCAN_WARN_RANGE;
 
 /**
  * How far clear of a solid thing's HULL a course flies, in world units.

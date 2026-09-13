@@ -177,4 +177,26 @@ Evidence, one per fault:
 
 ## What the milestones found
 
-Written as each milestone lands.
+### M1
+
+- **The escort finishes eight of eight.** The flight probe ran again after
+  the milestone. Before it, four escorts of eight finished, three stalled
+  and one crashed. After it, all eight finish, in 488 to 525 seconds, and
+  the ship ends with shields 249 and 255.
+- **The calm is one clock on the ship**, `calm`, the seconds since the last
+  hit. `takeDamage` resets it and `tickClocks` runs it, beside
+  `underFire`. The snapshot walks `NpcState` generically, so a save carries
+  it and an old save reads it as 0. `TRADER_CALM_SECONDS` is twenty, and it
+  lives beside `UNDER_FIRE_SECONDS` under `@rule trader.calmSeconds`.
+- **A course that ends for a reason is not done.** `endCourse` used to add
+  every ended course to `coursesDone`, which takes it off the list for the
+  visit. A refusal now leaves it on the list, so the pilot can pick the job
+  again once the charge climbs out of the planet.
+- **Ninety seconds beside the charge cost no shield**, and the ship never
+  came inside a quarter of the standoff. The real-game test holds both.
+- **`constants/course.ts` crossed the size ceiling by three lines.** The
+  four numbers a mission's course spends left it for
+  `constants/mission-course.ts`: the scan standoff, the escort standoff,
+  the escort closing speed and the police clearance. Their rule ids stay
+  under `course.`, and each says `@domain mission-course`.
+- The suite gains 13 checks, to 5,984.

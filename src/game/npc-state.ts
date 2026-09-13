@@ -154,6 +154,12 @@ export interface NpcState {
   /** seconds of evasive flying left after the last hit taken — see break-off.ts */
   underFire: number;
   /**
+   * Seconds since the last hit this ship took. A trader that fled reads it
+   * against `TRADER_CALM_SECONDS` to go back to work (docs/TODO/213 M1). It
+   * is saved with the rest, and an old save reads it as 0.
+   */
+  calm: number;
+  /**
    * How far out THIS run goes before turning back, rolled from the band in
    * break-off.ts every time the ship starts extending. State for `hasEcm`'s
    * reason: a shake of the dice decides it, so it cannot be re-derived on
@@ -275,7 +281,7 @@ export function freshNpcState(maxEnergy: number): NpcState {
     tumbleAxis: randomDirection(new THREE.Vector3()),
     energy: maxEnergy, regenCarry: 0,
     alive: true, provoked: false, provokedByPlayer: false, missiles: 0,
-    missionTag: null, targeted: false, announcedClose: false, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
+    missionTag: null, targeted: false, announcedClose: false, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, calm: 0, flownBy: 'none',
     extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
     tactic: 'run', tacticClock: 0, dryFor: 0,
     tradeTimer: 0,
