@@ -266,7 +266,7 @@ console.log('\nthe README lists exactly what is bound');
       extra.length === 0, extra.join(', '));
   };
 
-  table('### Commands (identical in both layouts)',
+  table('### The keys',
     [...BINDINGS.flight, ...GLOBAL_BINDINGS]);
 
   // The station has rows, not keys (docs/TODO/202): the Docked section names
@@ -279,7 +279,7 @@ console.log('\nthe README lists exactly what is bound');
   // The control: the parser found a table, and the predicate says no when a
   // key is absent. A heading that stopped matching would leave two empty lists
   // and two passes, which is exactly how a vacuous guard reads.
-  const flight = advertised('### Commands (identical in both layouts)');
+  const flight = advertised('### The keys');
   check('...and the README parser is reading a real table',
     flight.length >= 20 && flight.includes('TAB') && flight.includes('⇧H')
     && !flight.includes('D'));

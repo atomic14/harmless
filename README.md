@@ -27,8 +27,8 @@ account. The galaxy is the original: the 1984 seeds make all 2,048 worlds,
 and Lave is system 7. The ships are wireframes from the released ship data.
 The suns and the planets are shaders. Two hand-written pilots fly the other
 ships: a pursuit dogfighter for the pirates, and a three-phase attack run for
-the traders that fight back. The combat computer you can buy flies the
-pursuit pilot on your side.
+the traders that fight back. The same pursuit pilot lines your ship up in
+a fight, and the trigger is yours.
 
 ![Approaching a Coriolis station with the docking aid live](docs/images/station-docking.jpg)
 
@@ -91,58 +91,10 @@ that fails the gate fails the deploy.
 
 ## Controls
 
-Two flight layouts ship. **CLASSIC**, the 1984 keys, is the default.
-**KEYBOARD LAYOUT** on the station menu switches to MODERN (WASD), and the
-browser remembers the choice. **?** shows the in-game guide for the active
-layout.
-
-### Flight
-
-| CLASSIC (default) | MODERN | Action |
-| --- | --- | --- |
-| S / X | W / S | dive / climb — pitch (in both: ↓ arrow pulls up) |
-| `,` / `.` | A / D | roll (arrows work in both) |
-| SPACE | SPACE | accelerate |
-| `/` | X or `/` | decelerate |
-| A (or F) | F | fire laser (watch the temperature) |
-
-The original's `<` `>` roll and `/` slow-down work in both layouts. The arrow
-keys always fly.
-
-**Mouse flight**: **V** in flight pointer-locks the mouse as a self-centring
-stick, and the left button fires. A flight key overrides it. ESC or V
-releases it.
-
-### Commands (identical in both layouts)
-
-| Key | Action |
-| --- | --- |
-| 1 2 3 4 | front / rear / left / right view |
-| T / M / U | arm missile (locks in your sights) / fire / unarm |
-| E / TAB | E.C.M. / energy bomb (if fitted) |
-| Z | cloaking device — nobody sees you while it runs (if you ever come by one; no shop sells it) |
-| J | torus jump drive (8×, stars streak; cuts out when mass-locked) |
-| C | docking computer — flies you in; press again or touch the controls to take over |
-| ⇧C | contracts — the work you have signed for; the board itself is a station's |
-| K | combat computer — a scripted co-pilot flies your ship onto your attacker's six (if fitted) |
-| N / G | short range chart / galactic chart |
-| H / ⇧H | hyperspace jump / galactic hyperdrive (if fitted) |
-| B | distress beacon — GalCop tows you out of witch-space, for your cargo |
-| Y / ⇧Y | jettison a tonne of cargo / five at once — pirates came for the goods, not for you |
-| O | jettison a tonne of the ILLEGAL cargo — the evidence, which is rarely the most valuable thing aboard |
-| L | offer the police ship in front of you money — he may refuse and report you; it never clears your record, and it always costs your name |
-| I | commander status |
-| R | missions — the ones on offer, the ones you hold, and the leads to the next |
-| ⇧R | commander's log — every mission you took, told as a story, with the route flown |
-| P | pause |
-| Q | escape pod — abandon ship; the pod lands you at the station, and the ship and the cargo are gone (if fitted) |
-| ⇧Q | **while paused only** — quit this flight; asks first, then puts you back at the station autosave you launched from |
-| F | **while paused only** — arm the drive to mis-jump; every jump lands in witch-space, Thargoids and all, until you pause and press it again (the Spectrum's cheat) |
-| V | mouse flight — pointer-locked analogue stick, left button fires |
-| ? | controls guide |
-
-Views are on 1-4 (the original used F0-F3) and screens on letters (F4-F9),
-because browsers claim the function keys.
+Every command is a button, on a desktop and on a phone. The ship flies a
+course to what you tap. In a fight the computer lines the ship up, and the
+trigger is yours. A keyboard carries every command too, and it can fly the
+ship by hand at any time. That is an option, and a phone never needs it.
 
 ### The ship flies a course
 
@@ -158,14 +110,37 @@ FLY TO THE STATION lines the ship up on the slot. A fitted docking computer
 then takes it in. Without one, the rails hold you on the slot's axis, and you
 match the slot's roll and the speed yourself.
 
+### A fight
+
+When a hostile comes near, the computer takes the stick and lines the ship
+up. Hold **FIRE LASER**, and keep the bursts short, because a laser
+overheats. **ARM MISSILE** arms one, and it locks when a ship crosses your
+sights. **FIRE MISSILE** fires it. **E.C.M.** destroys a missile coming at
+you. The **◎** icon with a count lists what is out there, and it reads red
+while a ship attacks you. A row sends the computer after that ship. **RUN
+FOR IT** is a course. A red arrow at the screen edge points at the nearest
+hostile you cannot see. The combat computer you can buy (K) pulls the
+trigger and fires the E.C.M. for you.
+
+### Docking
+
+FLY TO THE STATION flies the approach and stops the ship in front of the
+port. The last stretch is yours. The port is a letterbox that turns with
+the station, so you match its roll, by the DRAG TO ROLL strip or the roll
+keys. Then you hold **THRUST** or **BRAKE** to cross the mark on the speed
+bar. The port marker turns green and reads DOCKING PORT — LINED UP when you
+are on the axis and rolled to match. Get it wrong and you bounce off with
+shield damage. A docking computer (C) flies the slot for you.
+
+The console lights an **S** while the station is in scanner range, and an
+**E** when an E.C.M. broadcast is detected.
+
 ### On a phone
 
-Every command is a button. The gun row under the view is FIRE LASER, ARM
-MISSILE, FIRE MISSILE, E.C.M. and CLOAK. The **◎** icon with a count opens
-the target list, and it reads red while a ship on the scanner attacks you.
-The station menu is rows, and every screen has its buttons. Add the page to
-the home screen and it opens as an app with no address bar. A double tap or a
-pinch never zooms the cockpit.
+The gun row under the view is FIRE LASER, ARM MISSILE, FIRE MISSILE, E.C.M.
+and CLOAK. The station menu is rows, and every screen has its buttons. Add
+the page to the home screen and it opens as an app with no address bar. A
+double tap or a pinch never zooms the cockpit.
 
 ### Docked
 
@@ -226,16 +201,46 @@ A **red ring** marks a system where merchants report heavy pirate activity.
 The trade overlay draws the lanes with more than one convoy on them, and then
 the worlds whose prices sit well off the 1984 baseline.
 
-### Docking and the console
+### The keys
 
-Fly into the docking port with your wings matched to its rotation. An amber
-marker shows the port, with an arrow at the screen edge when it is behind
-you. It turns green and reads DOCKING PORT — LINED UP when you are on the
-axis and rolled to match. Get it wrong and you bounce off with shield damage.
+The steering keys fly the ship by hand, and the computer lets go the moment
+you touch one. CLASSIC, the 1984 keys, is the default: S and X pitch, `,`
+and `.` roll, SPACE and `/` set the speed, and A fires. **KEYBOARD LAYOUT**
+on the station menu switches to MODERN: W and S pitch, A and D roll, X
+slows, and F fires. The arrows fly in both. **V** makes the mouse a
+self-centring stick, and the left button fires. **?** shows the guide for
+the active layout.
 
-In a fight, a red arrow at the screen edge points at the nearest hostile you
-cannot see. The console lights an **S** while the station is in scanner
-range, and an **E** when an E.C.M. broadcast is detected.
+The command keys are the same in both layouts:
+
+| Key | Action |
+| --- | --- |
+| 1 2 3 4 | front / rear / left / right view |
+| T / M / U | arm missile (locks in your sights) / fire / unarm |
+| E / TAB | E.C.M. / energy bomb (if fitted) |
+| Z | cloaking device — nobody sees you while it runs (if you ever come by one; no shop sells it) |
+| J | torus jump drive (8×, stars streak; cuts out when mass-locked) |
+| C | docking computer — flies you in; press again or touch the controls to take over |
+| ⇧C | contracts — the work you have signed for; the board itself is a station's |
+| K | combat computer — the aim is free in every fight; the one you buy pulls the trigger and fires the E.C.M. for you (if fitted) |
+| N / G | short range chart / galactic chart |
+| H / ⇧H | hyperspace jump / galactic hyperdrive (if fitted) |
+| B | distress beacon — GalCop tows you out of witch-space, for your cargo |
+| Y / ⇧Y | jettison a tonne of cargo / five at once — pirates came for the goods, not for you |
+| O | jettison a tonne of the ILLEGAL cargo — the evidence, which is rarely the most valuable thing aboard |
+| L | offer the police ship in front of you money — he may refuse and report you; it never clears your record, and it always costs your name |
+| I | commander status |
+| R | missions — the ones on offer, the ones you hold, and the leads to the next |
+| ⇧R | commander's log — every mission you took, told as a story, with the route flown |
+| P | pause |
+| Q | escape pod — abandon ship; the pod lands you at the station, and the ship and the cargo are gone (if fitted) |
+| ⇧Q | **while paused only** — quit this flight; asks first, then puts you back at the station autosave you launched from |
+| F | **while paused only** — arm the drive to mis-jump; every jump lands in witch-space, Thargoids and all, until you pause and press it again (the Spectrum's cheat) |
+| V | mouse flight — pointer-locked analogue stick, left button fires |
+| ? | controls guide |
+
+Views are on 1-4 (the original used F0-F3) and screens on letters (F4-F9),
+because browsers claim the function keys.
 
 ## Game systems
 
