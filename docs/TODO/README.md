@@ -15,6 +15,12 @@ active context:
 
 Nothing is queued.
 
+**222 CAME FROM CHRIS ON 2026-09-14**, with a picture from his phone. The
+targets header stood on the console, every target read green, and the gun
+row took a third of the console. 222 measures the console again when it
+changes, makes the header an icon with the count, and reads a hostile red.
+**222 landed the same day**, and it is below.
+
 **221 CAME FROM CHRIS ON 2026-09-13**, from his phone. The fast forward
 button is a bar as wide as the course header. 221 makes it an icon. **221
 landed the same day**, and it is below.
