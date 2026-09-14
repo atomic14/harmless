@@ -100,9 +100,9 @@ search names, meanings and values with `npm run constants:find -- "<query>"`.
 | commander | <code>CHEAT_CREDIT_GRANT</code> | <code>100_000</code> | What test mode's GRANT CREDITS row hands over per press, in tenths: 10,000 Cr, which is a hundred grubstakes (`game/screens/test-mode.ts`). |  | [commander.ts:40](./commander.ts#L40) |
 | commander | <code>MAX_FUEL</code> | <code>70</code> | The tank, in tenths of a light year — the classic 7.0 LY range. |  | [commander.ts:49](./commander.ts#L49) |
 | commander | <code>MAX_MISSILES</code> | <code>4</code> | The missile rails: four, as the original's Cobra carried. | <code>commander.maxMissiles</code> | [commander.ts:56](./commander.ts#L56) |
-| commander | <code>BRIEFING_VERSION</code> | <code>1</code> | Which edition of the docked briefing a commander is up to date with. | <code>onboarding.briefingVersion</code> | [commander.ts:73](./commander.ts#L73) |
-| commander | <code>HOLD_TONNES</code> | <code>20</code> | What the hold carries, in tonnes, without and with the Large Cargo Bay. | <code>commander.holdTonnes</code> | [commander.ts:85](./commander.ts#L85) |
-| commander | <code>LARGE_BAY_TONNES</code> | <code>35</code> |  |  | [commander.ts:86](./commander.ts#L86) |
+| commander | <code>BRIEFING_VERSION</code> | <code>2</code> | Which edition of the docked briefing a commander is up to date with. | <code>onboarding.briefingVersion</code> | [commander.ts:74](./commander.ts#L74) |
+| commander | <code>HOLD_TONNES</code> | <code>20</code> | What the hold carries, in tonnes, without and with the Large Cargo Bay. | <code>commander.holdTonnes</code> | [commander.ts:86](./commander.ts#L86) |
+| commander | <code>LARGE_BAY_TONNES</code> | <code>35</code> |  |  | [commander.ts:87](./commander.ts#L87) |
 | commodities | <code>ORDINARY_GOODS</code> | <code>[0, 1, 4, 8, 9, 12]</code> | Ordinary goods: the unremarkable legal cargo that plain trade is made of — food, textiles, liquor, machinery, alloys, minerals. |  | [commodities.ts:19](./commodities.ts#L19) |
 | commodities | <code>ALIEN_ITEMS</code> | <code>16</code> | Alien Items: the row a dead Thargon is scooped as (docs/TODO/196). | <code>commodities.alienItems</code> | [commodities.ts:36](./commodities.ts#L36) |
 | commodities | <code>SLAVES</code> | <code>3</code> | Slaves: the row that a rescued survivor is sold on, and the only commodity index named on its own (docs/TODO/127). | <code>commodities.slaves</code> | [commodities.ts:55](./commodities.ts#L55) |

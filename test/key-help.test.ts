@@ -287,41 +287,29 @@ console.log('\nthe README lists exactly what is bound');
 
 console.log('\nthe briefing surfaces the whole first journey');
 {
-  // The newcomer journey — trade, launch, navigate, jump, fight, escape,
-  // dock — as the commands that carry it. Each must be quoted in the briefing
-  // with the key the table actually binds; the pages interpolate `boundKey`,
-  // so a REBOUND key rewrites its own prose, and what this holds is that the
-  // guidance is not REMOVED — docs/TODO/106 milestone 3.
-  //
-  // The jump and the trip in are buttons since docs/TODO/205: the launch list
-  // and the course buttons in flight. So the briefing names those buttons'
-  // words, and the two keys that used to carry the trip leave this list.
-  const journey: [ControlMode, Command][] = [
-    ['docked', 'toggleHelp'],
-    ['flight', 'jettison1'],
-    ['flight', 'toggleDockingComputer'],
-  ];
+  // The newcomer journey — trade, fuel, launch, jump, fight, dock — as the
+  // rows and the buttons that carry it. The briefing names a button by its
+  // words and a row off the menu's dictionary, and it names NO KEY, because
+  // a phone has none (docs/TODO/225). What this holds is that the guidance
+  // is not REMOVED — docs/TODO/106 milestone 3.
   const text = BRIEFING.map((p) => `${p.title} ${p.body}`).join(' ');
-  const unquoted = journey
-    .filter(([mode, c]) => !text.includes(`<b>${boundKey(mode, c)}</b>`))
-    .map(([, c]) => c);
-  // A station command is a row since docs/TODO/202, so the briefing names
-  // the row's words, off the same dictionary the menu paints from.
-  const rows: Command[] = ['openMarket', 'openContracts', 'openLocalChart', 'launch', 'openBriefing'];
+  const rows: Command[] = ['openMarket', 'openContracts', 'openMissions', 'openEquip',
+    'openLocalChart', 'launch', 'openBriefing'];
   const unnamed = rows.filter((c) => !text.includes(`<b>${COMMAND_HELP[c].menu}</b>`));
   check(`every station step of the journey names its menu row (${rows.length})`,
     unnamed.length === 0, unnamed.join(', '));
-  check(`every journey command is quoted with its bound key (${journey.length})`,
-    unquoted.length === 0, unquoted.join(', '));
-  // The fight is buttons too since docs/TODO/206, so the briefing names them
-  // rather than the missile keys and the E.C.M. key.
-  // The fast forward button is an icon since docs/TODO/221, so its glyph is
-  // what the briefing teaches.
-  const buttons = ['JUMP TO', 'FLY TO THE STATION', '\u25B6\u25B6',
-    'FIRE LASER', '\u25CE', 'ARM MISSILE', 'E.C.M.', 'RUN FOR IT'];
+  const buttons = ['JUMP TO', 'ACTIONS', 'FLY TO THE STATION', '\u25B6\u25B6',
+    'FIRE LASER', '\u25CE', 'ARM MISSILE', 'FIRE MISSILE', 'E.C.M.', 'RUN FOR IT',
+    'DRAG TO ROLL', 'THRUST', 'BRAKE', 'DOCKING COMPUTER'];
   const untaught = buttons.filter((b) => !text.includes(`<b>${b}</b>`));
   check(`...and every button of the trip is named (${buttons.length})`,
     untaught.length === 0, untaught.join(', '));
+  // No key at all: not one label of the flight table or the global table is
+  // quoted the way a button is.
+  const quotedKeys = [...BINDINGS.flight, ...GLOBAL_BINDINGS]
+    .map((b) => keyLabel(b.key, b.shift))
+    .filter((label) => text.includes(`<b>${label}</b>`));
+  check('...and the briefing quotes no key', quotedKeys.length === 0, quotedKeys.join(', '));
 
   // The control: a bound key the briefing deliberately does not teach.
   check('...and the check can fail — the briefing does not quote ⇧Y',

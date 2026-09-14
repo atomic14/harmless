@@ -65,12 +65,13 @@ export const MAX_MISSILES = 4;
  * briefing changes enough that a returning pilot should read it again. A bump
  * reopens it once for EVERY existing commander.
  *
- * It is an edition counter. That it currently equals other 1-valued constants is
- * a coincidence, not a shared rule.
+ * It is an edition counter. That it equals other constants of the same value
+ * is a coincidence, not a shared rule. Edition 2 is the five-page briefing of
+ * docs/TODO/225.
  *
  * @rule onboarding.briefingVersion
  */
-export const BRIEFING_VERSION = 1;
+export const BRIEFING_VERSION = 2;
 
 /**
  * What the hold carries, in tonnes, without and with the Large Cargo Bay.
