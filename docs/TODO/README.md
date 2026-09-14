@@ -13,13 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [223 — The pages say what the game is, and leave the history to the logs](223-the-pages-say-what-the-game-is-and-leave-the-history-to-the-logs.md)
+Nothing is queued.
 
 **223 CAME FROM CHRIS ON 2026-09-14**, after `docs/PAGES-REVIEW.md`. The
 README describes the missions of July, and the landing page says the game
-needs a keyboard and a mouse. Chris asked for a clean-up: the landing page
-is for a player, the README is for a reader of the project, and neither
+needs a keyboard and a mouse. Chris asked for a clean-up. The landing page
+is for a player, and the README is for a reader of the project. Neither
 carries the history. 223 rewrites both, and fixes two lines the pages reach.
+**223 landed the same day**, and it is below.
 
 **222 CAME FROM CHRIS ON 2026-09-14**, with a picture from his phone. The
 targets header stood on the console, every target read green, and the gun

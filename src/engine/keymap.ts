@@ -111,5 +111,6 @@ export function refreshHelpPanel(): void {
     set('help-decel', 'SPACE · X or /');
     set('help-fire', 'F');
   }
-  set('help-layout', `ACTIVE LAYOUT: ${active.toUpperCase()} — toggle with B when docked`);
+  // The switch is a station menu row since docs/TODO/202, and not a key.
+  set('help-layout', `ACTIVE LAYOUT: ${active.toUpperCase()} — KEYBOARD LAYOUT on the station menu switches it`);
 }

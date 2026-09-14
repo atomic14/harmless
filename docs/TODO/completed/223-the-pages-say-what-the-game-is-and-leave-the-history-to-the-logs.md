@@ -112,6 +112,20 @@ new part was checked against the code during the review. The Charts keys
 are a table now, as the Flight keys are. The four tests that read the
 README pass.
 
+**M3.** The missions page said the hunt was one Krait. It says a gang of
+four now, led by a Fer-de-Lance. Each side job on that page says what its
+board waits for: the hunt needs 8 kills, the lane and the escort need 4,
+the recovery and the rescue need fuel scoops, and the four open jobs say
+nothing. The words come from the skeleton's gate, so a changed gate changes
+the page. The `?` guide's layout line said "toggle with B when docked" in
+two places, and both name the KEYBOARD LAYOUT row now. Two tests hold
+each change.
+
 ## Outcome
 
-(filled when the plan lands)
+Landed on 2026-09-14, in three commits. The landing page speaks to a
+player: keyboard, mouse or touch, a course the ship flies, a phone, and a
+title that fits one. The README says what the project is in 370 lines,
+where it said it in 505, and the history stays in the logs. The missions
+page and the `?` guide say what the game does today. The zoom lock on the
+landing page and the July screenshots stay open, for Chris.

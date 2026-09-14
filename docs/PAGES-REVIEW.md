@@ -5,7 +5,7 @@ Review date: 14 September 2026. Source revision: `eb5a3b0`, branch
 [`index.html`](../index.html), the landing page at
 [harmless.atomic14.com](https://harmless.atomic14.com/).
 
-No page changed during this review. Both pages are Chris's. CLAUDE.md says the README opening is his own
+No page changed during this review. Plan 223 acted on it the same day. Both pages are Chris's. CLAUDE.md says the README opening is his own
 writing, and that the landing page is a player page.
 This document lists what the code contradicts, what the code has that the pages
 do not say, and what reads badly. A proposed plan is at the end, with the

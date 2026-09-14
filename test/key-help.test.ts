@@ -391,3 +391,9 @@ console.log('\nthe manual renders the combat ladder rather than restating it');
   check('the prose still names both ends',
     manual.includes('<b>Harmless</b>') && manual.includes('<b>E L I T E</b>'));
 }
+
+console.log('\nthe ? guide sends a pilot to the KEYBOARD LAYOUT row, not to a key (docs/TODO/223 M3)');
+for (const file of ['play.html', 'src/engine/keymap.ts']) {
+  const text = readFileSync(new URL(`../${file}`, import.meta.url), 'utf8');
+  check(`${file} names the row, and no key`, text.includes('KEYBOARD LAYOUT on the station menu') && !/toggle with [A-Z] when docked/.test(text));
+}
