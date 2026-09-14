@@ -74,6 +74,14 @@ edition 1 reads the new pages one time. The journey test asks for seven
 rows and fourteen buttons, and it holds that no key of the flight table or
 the global table is quoted. The onboarding test and the ladder test pass.
 
+**M2.** The keyline stood under the sticky button row on a phone, and a
+short page slid it behind the row. It stands above the buttons now. The
+tour link rendered in the browser's blue; a link in a screen takes the
+palette green. The manual link is `/manual`, as the site's links are.
+
 ## Outcome
 
-(filled when the plan lands)
+Landed on 2026-09-14, in two commits. The briefing is five pages in the
+buttons' own words, with no key and no position but the course list. It
+names fuel, CONTRACTS, MISSIONS and EQUIP SHIP. Every page fits a phone
+with the pager and the buttons in view.

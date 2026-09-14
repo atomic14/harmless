@@ -111,6 +111,11 @@ export const BRIEFING: { title: string; body: string }[] = [
 ];
 /** How many pages the briefing has, so the Game clamps and imports nothing. */
 export const BRIEFING_PAGES = BRIEFING.length;
+/**
+ * The keyline stands above the buttons (docs/TODO/225 M2). On a phone the
+ * button row is sticky at the foot of the box. A keyline under it slid
+ * behind the row on a short page.
+ */
 export function renderBriefing(page: number): void {
   const p = BRIEFING[Math.max(0, Math.min(BRIEFING.length - 1, page))];
   const n = BRIEFING.length;
@@ -121,13 +126,13 @@ export function renderBriefing(page: number): void {
     <div class="rule"></div>
     <div class="info brief">${p.body}</div>
     <div class="pager">${dots} &nbsp; ${page + 1} / ${n}</div>
+    <div class="keyline">
+      &larr; &rarr; TURN THE PAGE &middot; ESC CLOSE
+    </div>
     <div class="buttons">
       <button data-key="ArrowLeft">&larr; PREVIOUS</button>
       <button data-key="ArrowRight">NEXT &rarr;</button>
       <button data-key="Escape">CLOSE</button>
-    </div>
-    <div class="keyline">
-      &larr; &rarr; TURN THE PAGE &middot; ESC CLOSE
     </div>
   `);
 }

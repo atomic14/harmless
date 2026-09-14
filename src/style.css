@@ -967,6 +967,8 @@ body.screen-open #exercise { display: none; }
 
 /* new pilot's briefing */
 #screen .brief { max-width: 38em; margin: 6px auto 0; text-align: left; line-height: 1.95; }
+/* A link in a screen takes the palette, not the browser's blue (docs/TODO/225 M2). */
+#screen a { color: var(--hud-green); }
 #screen .pager { text-align: center; color: var(--hud-dim); font-size: 12px; margin-top: 14px; letter-spacing: 2px; }
 #screen .pager span.on { color: var(--hud-green); }
 

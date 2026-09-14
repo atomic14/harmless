@@ -13,13 +13,14 @@ active context:
 
 ## Execution queue
 
-1. [225 — The briefing tells a new pilot five things, in the cockpit's own words](225-the-briefing-tells-a-new-pilot-five-things-in-the-cockpits-own-words.md)
+Nothing is queued.
 
 **225 CAME FROM CHRIS ON 2026-09-14**, after 224: *"I think the new pilot
 briefing needs a rework?"* The seven pages describe an older cockpit, name
 keys a phone does not have, and never say the word fuel. The fight page
 scrolls on a phone. 225 makes it five pages, one action each, in the
 buttons' own words, and fits the screen to a phone.
+**225 landed the same day**, and it is below.
 
 **224 CAME FROM CHRIS ON 2026-09-14**, after 223. He asked whether the
 keyboard section is still needed, and whether a pilot ever takes manual
