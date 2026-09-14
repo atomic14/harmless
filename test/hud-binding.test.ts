@@ -143,6 +143,7 @@ console.log('\nhud binding');
       inFlight: false,
       witchspace: false,
       assist: false,
+      cloaked: false,
       ecmDetected: false,
       messageText: 'FRAME COMPLETE',
       messageTimer: 1.5,

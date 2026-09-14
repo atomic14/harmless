@@ -167,8 +167,8 @@ withoutSaving(() => {
     check(`pirate ${i + 1} went down`, !npc.state.alive);
     // PAST THE WRECK GRACE, and that is docs/TODO/173 rather than padding. The
     // commander sits inside `STATION_TRUCE`, where an unprovoked pirate is not
-    // hostile. So it is a bystander, and her beam registers nothing on it for
-    // `WRECK_BURST_GRACE` seconds after her own kill. The rule this block pins
+    // hostile. So it is a bystander, and their beam registers nothing on it for
+    // `WRECK_BURST_GRACE` seconds after their own kill. The rule this block pins
     // is that five kills take a rung. It is not the cadence they arrive at.
     const between = Math.ceil(WRECK_BURST_GRACE * 60) + 30;
     for (let f = 0; f < between; f++) g.step(1 / 60, at += 1 / 60);

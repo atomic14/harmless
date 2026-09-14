@@ -46,9 +46,9 @@ console.log('\nthe station line and the briefing, through a real Game');
     briefing?.includes('MISSIONS') === true);
   check('...naming the key off the binding table rather than a letter in prose',
     briefing?.includes(keyPointer('docked', 'openMissions')) === true);
-  eq('...and nothing starts until she accepts', c.missions.live.length, 0);
+  eq('...and nothing starts until they accept', c.missions.live.length, 0);
 
-  // She accepts on the MISSIONS screen, as she signs for a contract.
+  // They accept on the MISSIONS screen, as they sign for a contract.
   g.input.injectPress('VirtOpenMissions');   // the menu row, since docs/TODO/202
   g.step(1 / 60, 1);
   eq('the MISSIONS row opens the missions screen', g.mode, 'missions');
@@ -79,9 +79,9 @@ console.log('\nthe station line and the briefing, through a real Game');
   g.step(1 / 60, 9);
   const menu = captureById(() => { g.enterDocked('resumed'); }).get('screen') ?? '';
   const target = g.state.systems[c.missions.live[0].target as number].name.toUpperCase();
-  eq('the machine briefed her, so there is a mission order to hide', c.missions.live[0].leg, 'hunt');
+  eq('the machine briefed them, so there is a mission order to hide', c.missions.live[0].leg, 'hunt');
   check('the station menu names the mission, with two contracts held',
     menu.includes(target));
-  check('...and still names the work she signed for', menu.includes('SEALED DATA'));
+  check('...and still names the work they signed for', menu.includes('SEALED DATA'));
   check('...and the count of the job it did not print', menu.includes('(+1 MORE)'));
 }

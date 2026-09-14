@@ -224,3 +224,28 @@ const WITHIN_A_GUN_CONE = 0.05; // ~2.9 degrees
   check('a target dead abeam asks for no pitch at all',
     pitchOnto(level, right) === 0);
 }
+
+// THE ROLL GATE: no pitch until the bank arrives (docs/TODO/210).
+//
+// The soft gate is the cosine of the roll error, and it leaves a little pitch
+// at a wide bank. Near the nose that little is enough to hold a cone: the nose
+// circles the target for ever. The course pilot passes a hard gate. Every
+// combat caller passes none, and keeps the soft gate alone.
+console.log('\nthe roll gate holds the pitch until the bank arrives');
+{
+  const level = new THREE.Quaternion();
+  // A target a little off the nose, and off to the side, so the bank is wide.
+  const off = new THREE.Vector3(Math.sin(0.04), 0.0005, -Math.cos(0.04)).normalize();
+  const soft = bankToTurn(level, off, freshSteerMemory());
+  check(`with no gate, a wide bank still asks for pitch (${soft.pitch.toFixed(5)})`,
+    Math.abs(soft.pitch) > 0);
+  const hard = bankToTurn(level, off, freshSteerMemory(), 0, 0.05);
+  check('with the gate, it asks for none', hard.pitch === 0);
+  check('...and it still asks for the same roll', Math.abs(hard.roll - soft.roll) < 1e-12);
+
+  // Once the bank arrives, the gate lets go, and the pitch pulls the nose up.
+  const above = new THREE.Vector3(0, Math.sin(0.04), -Math.cos(0.04));
+  const pulled = bankToTurn(level, above, freshSteerMemory(), 0, 0.05);
+  check(`a target above the nose, with the bank made, pitches (${pulled.pitch.toFixed(4)})`,
+    pulled.pitch > 0);
+}

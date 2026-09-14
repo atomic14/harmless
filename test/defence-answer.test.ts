@@ -188,7 +188,7 @@ import { CombatComputer, freshAutopilot } from '../src/game/combat-computer.ts';
   // only in brainFromFile's defaults, asserted through the loader tests.)
 }
 
-// --- and now she can answer one ----------------------------------------------
+// --- and now the commander can answer one --------------------------------------
 //
 // docs/TODO/72. Missiles became real in training (62) and the target had no
 // counter: no E.C.M. fitted, no output that could press one, no observation
@@ -243,7 +243,7 @@ console.log('\nmissiles: the target answers one');
     without.pirates.reduce((s, p) => s + p.missilesFired, 0), 1);
   eq('...and the same one either way',
     withEcm.pirates.reduce((s, p) => s + p.missilesFired, 0), 1);
-  // A warhead is `IMPACT.warhead` in her own pool points, and the E.C.M. is the
+  // A warhead is `IMPACT.warhead` in their own pool points, and the E.C.M. is the
   // only thing in the game that stops one.
   eq('a target with an E.C.M. takes a warhead\'s worth less on the same seed',
     without.target.damageTaken - withEcm.target.damageTaken,

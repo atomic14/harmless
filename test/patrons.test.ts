@@ -23,7 +23,7 @@ import { check, eq } from './harness.ts';
 
 const LAVE = 7;
 const facts = (systemIndex: number, galaxy = 1): CommanderFacts => ({
-  galaxy, systemIndex, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [],
+  galaxy, systemIndex, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [],
 });
 
 console.log('\na patron has a name and a face, and the Navy has neither');
@@ -50,7 +50,7 @@ console.log('\na patron has a name and a face, and the Navy has neither');
     lave.name, record ? record.name : 'THE GOVERNOR OF LAVE');
 
   const local = patronFor({ kind: 'local' }, facts(LAVE), g1);
-  eq('a local patron is the world she stands at', local.world, LAVE);
+  eq('a local patron is the world they stand at', local.world, LAVE);
   eq('...or the world the job was taken at, when the caller knows it',
     patronFor({ kind: 'local' }, facts(LAVE), g1, 12).world, 12);
 
@@ -149,7 +149,7 @@ console.log('\n...and both screens show the patron');
   taken.missions.journal.push({ skeleton: SIDE_HUNT.id, leg: 'hunt', outcome: 'accepted', day: 1, world: LAVE });
   const log = captureById(() => { new LogScreen(() => ({ commander: taken, systems: g1 })).render(); })
     .get('screen') ?? '';
-  check('the LOG screen shows the face of the world the job was taken at, not where she reads it',
+  check('the LOG screen shows the face of the world the job was taken at, not where they read it',
     log.includes('species/007-lave.png'));
   check('...captioned with the patron\'s name', log.includes(`<figcaption>${local}</figcaption>`));
 }

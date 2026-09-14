@@ -35,32 +35,33 @@
 // across four retrains before anyone spotted it, and the physics was blamed
 // first. Any change here needs that scepticism, including this one.
 //
-//   attack, pack   the share of the target's pools TAKEN OFF HER
+//   attack, pack   the share of the target's pools TAKEN OFF THE COMMANDER
 //                  (`targetDamageShare`) — unchanged, and cumulative since
-//                  docs/TODO/63 gave her a recharge.
-//   evade          the share she KEPT, zero if she died. Getting away untouched
-//                  is the whole job of an evader, so there is deliberately no
-//                  fighting term here — see below.
-//   defend         the share she kept AND the share of the attacking force she
-//                  broke. Surviving is necessary and not sufficient: a commander
-//                  fits the combat computer to help her FIGHT, not to fly her
-//                  away, and a policy that survives by never being in the fight
+//                  docs/TODO/63 gave the commander a recharge.
+//   evade          the share the commander KEPT, zero if they died. Getting
+//                  away untouched is the whole job of an evader, so there is
+//                  deliberately no fighting term here — see below.
+//   defend         the share the commander kept AND the share of the attacking
+//                  force they broke. Surviving is necessary and not sufficient:
+//                  a commander fits the combat computer to help them FIGHT, not
+//                  to fly them away, and a policy that survives by never being
+//                  in the fight
 //                  must not be able to top the table.
 //
 // ## Why the defender's outcome is not terminal `hp`
 //
-// It was `ep.trader.hp` — her pools at the final frame — and that quantity has
+// It was `ep.trader.hp` — their pools at the final frame — and that quantity has
 // two defects, one of which arrived with docs/TODO/63:
 //
 //   - **Shooting was worth almost nothing.** At 1000x for the outcome and a
 //     shaping term worth 1.9% of the score, killing an entire pirate paid 3
-//     points where 1% of her pools paid 10. Killing was rational only if the
-//     engagement cost less than 0.30% of her pools, which it never does, so a
+//     points where 1% of their pools paid 10. Killing was rational only if the
+//     engagement cost less than 0.30% of their pools, which it never does, so a
 //     policy that flew away outranked every policy that fought. `jameson-defend-
 //     t62` fired ZERO shots across 240 held-out fights and still outranked the
 //     shipped brain on this metric.
 //   - **Finishing was worth less than dawdling.** With the pools recharging,
-//     terminal `hp` is close to "how long since she was last hit". A pilot that
+//     terminal `hp` is close to "how long since the commander was last hit". A pilot that
 //     CLEARS the fight ends the episode early and heals for less of the clock,
 //     so it reads lower however well it flew. Measured: a hand-built turret that
 //     kills 75.7% of its attackers and clears 15 of 24 fights takes the LEAST
@@ -68,7 +69,7 @@
 //     and ends with the LOWEST terminal `hp` of the five (86.9% against 89.7%).
 //
 // `1 - targetDamageShare()` is the same quantity with neither defect: cumulative
-// points taken off her, over her own pools, which is what `Episode` already
+// points taken off the commander, over their own pools, which is what `Episode` already
 // gives the attack and pack phases from the other side.
 //
 // ## The ratio, in the units docs/TODO/65 stated the defect in
@@ -78,14 +79,14 @@
 //
 //   | | worth at selection | was |
 //   |---|---|---|
-//   | 1% of her pools | 0.0045 | 10 points |
+//   | 1% of their pools | 0.0045 | 10 points |
 //   | destroying one of two attackers | 0.15, plus the shaping | 3 points |
 //
-// So destroying one of two attackers is worth about a THIRD of her pools, where
+// So destroying one of two attackers is worth about a THIRD of their pools, where
 // it used to be worth 0.3% of them. That is the deliberate statement, and it is
 // deliberate in this direction: a dead attacker stops shooting for the rest of
-// the fight, and her pools come back while it does not. Trading a third of her
-// shields to halve the incoming fire is a good trade and the rule should say so.
+// the fight, and their pools come back while it does not. Trading a third of
+// their shields to halve the incoming fire is a good trade and the rule should say so.
 //
 // Erasable-TypeScript only — runs in Node via --experimental-strip-types.
 
@@ -94,11 +95,11 @@ import type { Episode } from '../src/ai-training/scenario.ts';
 export type Phase = 'attack' | 'evade' | 'pack' | 'defend';
 
 /**
- * How the defender's outcome divides between keeping her ship and breaking
- * theirs. They sum to 1, so the outcome stays a 0..1 fraction.
+ * How the defender's outcome divides between keeping the commander's ship and
+ * breaking theirs. They sum to 1, so the outcome stays a 0..1 fraction.
  *
  * Not 50/50: keeping the ship is the larger half because a defender who trades
- * all her survival for kills has overcorrected, and this rule exists because the
+ * all their survival for kills has overcorrected, and this rule exists because the
  * previous one was an overcorrection in the other direction. At these weights a
  * policy cannot buy a kill with an arbitrary amount of damage — against two
  * attackers the kill is worth 0.20 of the outcome and the pools it would cost to
@@ -156,9 +157,9 @@ const clamp01 = (x: number): number => Math.max(0, Math.min(1, x));
 
 /** The two halves of a defender's outcome, for reporting as well as scoring. */
 export interface DefenceTerms {
-  /** share of her three pools never taken off her, cumulative */
+  /** share of their three pools never taken off them, cumulative */
   kept: number;
-  /** share of the attacking force's banks she took off them */
+  /** share of the attacking force's banks the commander took off them */
   broken: number;
 }
 
@@ -181,7 +182,7 @@ export function defenceTerms(ep: Episode): DefenceTerms {
  * DEATH IS ZERO on the two phases where the genome is the trader, rather than
  * being one more point off a share. It is the one outcome a defender cannot
  * trade for anything, and until docs/TODO/62 put missiles in the world nothing
- * could kill her inside 45 seconds, so the column was saturated and the
+ * could kill the commander inside 45 seconds, so the column was saturated and the
  * distinction cost nothing to make. It is 4 to 6 episodes in 240 now.
  */
 export function outcomeOf(phase: Phase, ep: Episode): number {

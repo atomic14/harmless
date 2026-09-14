@@ -124,8 +124,8 @@ console.log('\nthe docking waltz');
   // across the whole note. It must fail the check above, or the check is
   // measuring nothing.
   const asItWas: Tone = {
-    type: 'square', frequency: 440, pitches: [], detune: 0, duration: 0.313,
-    at: 0.05, periodic: false,
+    type: 'square', frequency: 440, pitches: [], rampTo: null, detune: 0,
+    duration: 0.313, at: 0.05, periodic: false,
     amp: { events: [[0.0001, 0.05], [0.05, 0.07], [0.0001, 0.363]] },
   };
   check('...and the envelope it replaced holds nothing', heldFor(asItWas) <= 0);

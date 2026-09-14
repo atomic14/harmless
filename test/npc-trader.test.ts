@@ -24,6 +24,7 @@ import type { BehaviourShip } from '../src/game/npc-behaviour.ts';
 import { freshNpcState } from '../src/game/npc-state.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { SHIPPED_BRAINS } from '../src/game/brain-names.ts';
+import { TRADER_CALM_SECONDS } from '../src/constants/attack-run.ts';
 import { check, eq } from './harness.ts';
 
 // --- it flies a BehaviourShip, and it calls the working life ----------------
@@ -134,5 +135,39 @@ console.log('a trader, flown off an object literal');
     check('a working trader picked a waypoint', it.state.waypoint.lengthSq() > 0);
     eq('...and it reports no flight model', it.state.flownBy, 'none');
     eq('...and it advanced too', it.advanced(), DT);
+  }
+
+  // 3. THE RUN ENDS (docs/TODO/213 M1). A trader that fled ran for the rest
+  //    of its life, so an escort's charge that was grazed once never reached
+  //    the station. The calm is seconds since the last hit, with nobody left
+  //    hunting it.
+  {
+    const it = ship(true);
+    it.state.calm = TRADER_CALM_SECONDS;
+    traderBehaviour().fly(it, DT, commander, view);
+    check('a trader calm for long enough goes back to work', !it.state.fleeing);
+    check('...and picks a waypoint at once', it.state.waypoint.lengthSq() > 0);
+    const still = ship(true);
+    still.state.calm = TRADER_CALM_SECONDS - 1;
+    traderBehaviour().fly(still, DT, commander, view);
+    check('one that was hit more recently still runs', still.state.fleeing);
+    const hunted = ship(true);
+    hunted.state.calm = TRADER_CALM_SECONDS * 2;
+    hunted.nearestAttacker = () => ({} as never);
+    traderBehaviour().fly(hunted, DT, commander, view);
+    check('...and so does one that is still hunted, however calm', hunted.state.fleeing);
+  }
+
+  // 4. A CHARGE THAT HOLDS FOR THE COMMANDER slows to a stop, and goes on
+  //    when they are back (docs/TODO/214 M3).
+  {
+    const held = ship(false);
+    held.state.traderPhase = 'arriving';
+    held.state.holding = true;
+    for (let f = 0; f < 60; f++) traderBehaviour().fly(held, DT, commander, view);
+    check('a holding trader slows to a stop', held.state.speed < 1, `${held.state.speed.toFixed(1)} u/s`);
+    held.state.holding = false;
+    for (let f = 0; f < 60; f++) traderBehaviour().fly(held, DT, commander, view);
+    check('...and moves again once the hold lifts', held.state.speed > 30, `${held.state.speed.toFixed(1)} u/s`);
   }
 }

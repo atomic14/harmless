@@ -23,7 +23,7 @@ import {
   ASTEROID_LANE_SCATTER, ASTEROID_SCATTER, CORRIDOR_SPAN, CORRIDOR_START, HERMIT_SCATTER,
   HUNTER_SCATTER, PIRATE_SCATTER, POLICE_PATROL_RANGE, POLICE_SCATTER, STATION_DEFENCE_JITTER,
   STATION_DEFENCE_MIN, STATION_DEFENCE_SPAN, STATION_DEFENCE_STACK, STATION_DEFENCE_STANDOFF,
-  TRADER_SCATTER,
+  TRADER_SCATTER, SPAWN_PLANET_ALTITUDE,
 } from '../src/constants/spawn-placement.ts';
 import { SCANNER_RANGE } from '../src/constants/console.ts';
 import { BANISHED } from '../src/constants/witchspace.ts';
@@ -85,6 +85,12 @@ console.log('\nwhere a system puts its traffic');
       spawnPopulation(world, PLAN, sys, player, [], situation);
       route.copy(home).sub(player).normalize();
       for (const npc of world.npcs) {
+        // A ship the scatter put inside the planet is lifted out to one set
+        // height (docs/TODO/205 M3). It is the lift's ship, not the scatter's,
+        // so it stays out of the band. It is counted, and nothing sits lower.
+        const alt = npc.object.position.distanceTo(world.planetPos) - world.planetRadius;
+        lowest = Math.min(lowest, alt);
+        if (Math.abs(alt - SPAWN_PLANET_ALTITUDE) < 1) { lifted += 1; continue; }
         const d = npc.object.position.distanceTo(home);
         const b = out.band[npc.role] ?? (out.band[npc.role] = { lo: Infinity, hi: -Infinity });
         b.lo = Math.min(b.lo, d); b.hi = Math.max(b.hi, d);
@@ -101,8 +107,12 @@ console.log('\nwhere a system puts its traffic');
     return out;
   };
 
+  let lowest = Infinity;
+  let lifted = 0;
   const arrival = sweep('arrival');
   const launch = sweep('launch');
+  check(`no ship of the traffic sits below the lift height (${lifted} lifted, lowest ${Math.round(lowest)})`,
+    lowest >= SPAWN_PLANET_ALTITUDE - 1);
   const { band, along, off } = arrival;
 
   /** the measured spread of a role, against the nominal it was spawned from. */

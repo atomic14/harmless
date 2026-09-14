@@ -30,6 +30,7 @@ import type { World } from '../game/world.ts';
 import type { Missile } from '../game/ordnance.ts';
 import type { Canister } from '../game/cargo.ts';
 import { MAX_FUEL } from '../constants/commander.ts';
+import { COMPUTER_ROLL_TOLERANCE, ROLL_TOLERANCE } from '../constants/docking.ts';
 import {
   SCANNER_RANGE, SUNSKIM_COMPASS_RANGE, STATION_COMPASS_RADII,
 } from '../constants/console.ts';
@@ -57,18 +58,26 @@ export interface HudSources {
   readonly inFlight: boolean;
   readonly witchspace: boolean;
   readonly assist: boolean;
+  /** the cloak runs (docs/TODO/219 M5) */
+  readonly cloaked: boolean;
+  /** a bought docking computer holds the stick, so the slot is kinder to it */
+  readonly dockingComputer: boolean;
+  /** the pilot flies the last stretch into the slot (docs/TODO/207) */
+  readonly trial: boolean;
+  readonly rails: boolean;
   readonly ecmDetected: boolean;
   readonly messageText: string;
   readonly messageTimer: number;
-  /**
-   * The key prompts, already rendered — see `HudState.prompts`.
-   *
-   * It arrives finished, for the same reason the exercise strip does. WHICH
-   * keys are worth an offer is `game/prompts.ts`. Which letter each is bound to
-   * is the binding table's answer, through `boundKey`. That function lives in
-   * `ui/`, so a rule module cannot reach it. The dashboard is handed the line.
-   */
-  readonly prompts: readonly string[];
+  /** the course buttons, finished — see `HudState.courses` */
+  readonly courses: HudState['courses'];
+  /** the course row, finished — see `HudState.courseRow` */
+  readonly courseRow: HudState['courseRow'];
+  /** the target header, finished — see `HudState.targetList` */
+  readonly targetList: HudState['targetList'];
+  /** the target row, finished — see `HudState.targetRow` */
+  readonly targetRow: HudState['targetRow'];
+  /** the guns, finished — see `HudState.guns` */
+  readonly guns: HudState['guns'];
   /**
    * The training exercise in progress, or null in career flight.
    *
@@ -142,7 +151,8 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
   if (s.inFlight && !s.witchspace) {
     ({ dockAid, slotMarker } = dockingAid(
       world.station, world.stationDockZ, playerPos, s.playerQuat, s.playerForward,
-      s.camera, { a: scratch.a, b: scratch.b, q: scratch.q }));
+      s.camera, { a: scratch.a, b: scratch.b, q: scratch.q },
+      s.dockingComputer ? COMPUTER_ROLL_TOLERANCE : ROLL_TOLERANCE));
   }
 
   // The tags of the things live missions sent the player for, so the scanner
@@ -176,7 +186,11 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
   return {
     messageText: s.messageText,
     messageTimer: s.messageTimer,
-    prompts: s.prompts,
+    courses: s.courses,
+    courseRow: s.courseRow,
+    targetList: s.targetList,
+    targetRow: s.targetRow,
+    guns: s.guns,
     playerPos: s.playerPos,
     playerQuat: s.playerQuat,
     contacts: scannerContacts(
@@ -222,6 +236,9 @@ export function buildHudFrame(s: HudSources, scratch: HudScratch): HudFrame {
     threatMarker,
     missionMarker,
     assist: s.assist,
+    cloaked: s.cloaked,
+    trial: s.trial,
+    rails: s.rails,
     armed: s.missileArmed,
     stationInRange: s.inFlight && !s.witchspace
       && playerPos.distanceTo(world.station.position) < SCANNER_RANGE,

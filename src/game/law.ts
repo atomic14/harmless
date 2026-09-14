@@ -283,10 +283,11 @@ export function recordVerdict(legalStatus: number): string {
 }
 
 /**
- * What the console says about a ship that is on the commander for a reason her
- * record cannot explain. It answers null where the sky and the record agree.
+ * What the console says about a ship that is on the commander for a reason
+ * their record cannot explain. It answers null where the sky and the record
+ * agree.
  *
- * A **grudge** is one ship's private quarrel with her, and
+ * A **grudge** is one ship's private quarrel with the commander, and
  * `hostility.ts`'s `grudgeRolesNear` decides which roles hold one. Only the
  * WORDS are this function's.
  *
@@ -305,8 +306,9 @@ export function recordVerdict(legalStatus: number): string {
  * a player nothing. Chris, 2026-08-17: *"this is just gibberish for a player -
  * they won't understand what you are talking about"*.
  *
- * SO THE CLAUSE STATES THE MOTIVE RATHER THAN THE MECHANIC. This ship is on her
- * because she shot it, and that is the whole difference from the line above.
+ * SO THE CLAUSE STATES THE MOTIVE RATHER THAN THE MECHANIC. This ship is on
+ * them because they shot it, and that is the whole difference from the line
+ * above.
  * A player needs no rule to read two words.
  *
  * IT NAMES NO REMEDY, AND TWO MEASUREMENTS SAY WHY. The bribe reaches
@@ -338,12 +340,12 @@ export function offenceFor(role: string, destroyed: boolean): number {
 
 /**
  * What the console says about a ship the commander's own laser just turned
- * against her — or null where the shot was nobody's business.
+ * against them — or null where the shot was nobody's business.
  *
  * The console never had a line for this deed. A commander read `LEGAL STATUS:
  * OFFENDER` at best, and nothing at all where the record did not move
- * (docs/TODO/173). So the sky changed who was shooting at her, and no line said
- * why.
+ * (docs/TODO/173). So the sky changed who was shooting at them, and no line
+ * said why.
  *
  * **The SET is `offenceFor`'s, and this restates none of it.** A role that the
  * law does not protect is a no-op here, exactly as it is at `raiseLegal`. Only

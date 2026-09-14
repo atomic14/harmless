@@ -124,7 +124,7 @@ export const HERMIT_BEACON_ON = 0.5;
 
 /**
  * A bright nav beacon that marks a rock as an inhabited hermit. It is the tell
- * that stops a commander from a shot at an outpost she took for a plain
+ * that stops a commander from a shot at an outpost they took for a plain
  * asteroid. A small
  * unlit mesh perched on the rock; `npc.ts` blinks it on the world step. Amber so
  * it reads against the grey rock and is not mistaken for a hostile's fire.

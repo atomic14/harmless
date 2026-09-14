@@ -56,7 +56,7 @@ import type { GameState } from './state.ts';
  * THE MODE IS READ TWICE AND THEY ARE DIFFERENT QUESTIONS, the same way they
  * are in `law-actions.ts`. `mode()` includes an open screen, so a death cannot
  * arrive while the game-over panel is up. `baseMode()` does not, because a
- * screen CAN be open over a dead commander: the panel offers her the file. A
+ * screen CAN be open over a dead commander: the panel offers them the file. A
  * save asked which mode to write would then find `'saves'`.
  */
 export interface CareerHost {
@@ -152,7 +152,7 @@ export class Career {
    *
    * ONE HOME, because two places draw it: the death itself, and Escape off the
    * screen the panel opened (`showBaseScreen` in game.ts). The panel is a
-   * commander plus what her checkpoint holds, and the two callers had that
+   * commander plus what their checkpoint holds, and the two callers had that
    * three-part expression written out each.
    *
    * @internal — driven by src/game/game.ts, whose base screen redraws it.

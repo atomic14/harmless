@@ -14,7 +14,8 @@
 //
 // Nothing here runs. The types are the contract between four places. Those
 // are the skeletons under `skeletons/`, the verb modules, the machine, and the
-// game code that sends inputs and applies effects.
+// game code that sends inputs and applies effects. The shape of the words a
+// model writes, a patron and a dossier, is `words.ts` (docs/TODO/213 M5).
 
 import type { BlueprintOverride } from '../game/blueprint-set.ts';
 import type { ShipDesignId } from '../game/ship-identity.ts';
@@ -22,7 +23,7 @@ import type { ShipDesignId } from '../game/ship-identity.ts';
 /** A mission ship names a catalogue design (`ship-identity.ts`). */
 export type ShipId = ShipDesignId;
 
-/** An item a recovery leg wants. The item table arrives with docs/TODO/190 M4. */
+/** An item a recovery leg wants, as a free name. No table of items exists. */
 export type ItemId = string;
 
 /**
@@ -41,8 +42,14 @@ export interface Deed { disrepute: number }
 export type PatronRef =
   | { kind: 'navy' }
   | { kind: 'world'; seedSlot: number }
-  /** whoever runs the station she stands at: a side job's patron, anywhere */
-  | { kind: 'local' };
+  /** whoever runs the station the commander stands at: a side job's patron, anywhere */
+  | { kind: 'local' }
+  /**
+   * The Dark Wheel (docs/TODO/219): a society of pilots with no world and
+   * no face. Its jobs are on the board at every Anarchy and every Feudal
+   * world, once the commander's rating opens them.
+   */
+  | { kind: 'wheel' };
 
 /**
  * The facts about the commander that a rule can read. A projection of
@@ -57,6 +64,8 @@ export interface CommanderFacts {
   day: number;
   /** tonnes per commodity index, read only: a smuggle leg asks what is aboard */
   cargo: readonly number[];
+  /** fuel scoops fitted: a scoop job asks before it is offered (docs/TODO/213 M2) */
+  scoops: boolean;
 }
 
 /** A temporary change to a world that a later mission asks for. */
@@ -66,15 +75,32 @@ export interface WorldChange { override: BlueprintOverride }
 export interface TaggedShip {
   ship: ShipId;
   tag: string;
-  /** what the leg wants of it, which picks the role it flies with */
-  job: 'hunt' | 'escort' | 'scan';
+  /**
+   * What the leg wants of it, which picks the role it flies with. A
+   * `police` job flies a Viper as the law (docs/TODO/219 M2): a blockade at
+   * a smuggle's far end.
+   */
+  job: 'hunt' | 'escort' | 'scan' | 'police' | 'thargoid';
 }
 
 /** A canister or a capsule the game must spawn, tagged for a leg. */
 export interface TaggedItem { tag: string; kind: 'cargo' | 'capsule' }
 
 export type Verb =
-  | { kind: 'hunt'; ship: ShipId; canEscape: boolean }
+  | {
+    kind: 'hunt'; ship: ShipId; canEscape: boolean;
+    /**
+     * The hulls that fly with the target (docs/TODO/217 M1). The machine
+     * mints a record for each under the leg's tag, so a dead member stays
+     * dead across an arrival. The leg ends when every ship is gone.
+     */
+    gang?: readonly ShipId[];
+    /**
+     * The role the target flies with, when it is not a pirate (docs/TODO/219
+     * M4). A Thargoid mothership is hunted under its own roster row.
+     */
+    job?: 'thargoid';
+  }
   | { kind: 'deliver'; cargo?: { commodity: number; tonnes: number } }
   | { kind: 'recover'; item: ItemId }
   | { kind: 'rescue' }
@@ -100,7 +126,13 @@ export type Placement =
   | { kind: 'band'; min: number; max: number }
   | { kind: 'world'; seedSlot: number }
   | { kind: 'entity'; tag: string }
-  | { kind: 'handover'; toward: string; min: number; max: number };
+  | { kind: 'handover'; toward: string; min: number; max: number }
+  /**
+   * Witchspace itself (docs/TODO/219 M3): the leg's target is
+   * `WITCHSPACE_TARGET`, not a system, and an armed mis-jump is the way
+   * there. The Thargoids wait there already.
+   */
+  | { kind: 'witchspace' };
 
 export type Trigger =
   | 'success' | 'failed' | 'targetEscaped' | 'targetDestroyed' | 'targetFled'
@@ -117,8 +149,14 @@ export interface Settlement {
   /** a change to the player's standing with this patron */
   standing?: number;
   /**
+   * A fit the game puts on the ship, which no shop sells (docs/TODO/219
+   * M4). The Wheel's door grants the cloaking device.
+   */
+  grant?: 'cloak';
+  /**
    * A blueprint set forced at the branch's world for `days` (docs/TODO/192
-   * M3). The world is the next leg's target, or where she stands at an end.
+   * M3). The world is the next leg's target, or where the commander stands
+   * at an end.
    */
   override?: { set: BlueprintOverride; days: number };
   /** ships that wait at the branch's world for `days`, spawned on every arrival */
@@ -165,8 +203,22 @@ export interface Leg {
    * kill among them moves nothing.
    */
   spawn?: TaggedShip[];
+  /**
+   * Ships that jump in when the leg makes progress, and what the console
+   * says of them (docs/TODO/214 M2). A scoop springs it for a recover and a
+   * rescue, and the scan's end for a scan. They are untracked, as `spawn`
+   * is, so a kill among them settles nothing. The words never tell it.
+   */
+  ambush?: { ships: TaggedShip[]; say: string };
   /** true raises the mis-jump chance, as the 1984 courier run did */
   carryingPlans?: boolean;
+  /**
+   * Triggers the verb can emit that this leg answers with nothing, on
+   * purpose. The lint refuses a leg that drops a trigger without saying so
+   * (docs/TODO/213 M5). A side hunt ignores `targetFled`, because a pirate
+   * cannot leave a system today, and 214 revisits that.
+   */
+  ignores?: Trigger[];
   /** the first branch whose trigger matches is the one taken */
   next: Branch[];
 }
@@ -180,8 +232,14 @@ export interface Gate {
   /** skeletons that must be finished first, by either outcome */
   done?: string[];
   withinJumps?: number;
-  /** the Navy briefs in galaxy 1 only; a world patron is already in one galaxy */
+  /**
+   * The galaxy the offer stands in. A world patron must name one, because a
+   * seed slot is an index and every galaxy has that index. The lint holds
+   * it (docs/TODO/213 M2). The Navy briefs in galaxy 1 only.
+   */
   galaxy?: number;
+  /** the job needs fuel scoops fitted, so the offer waits for them */
+  scoops?: boolean;
 }
 
 export interface Skeleton {
@@ -200,59 +258,8 @@ export interface Skeleton {
   fail: Outcome;
   /** skeletons this one shuts out, for good */
   excludes?: string[];
-  /** how many times a side job repeats; absent means once */
+  /** how many times a side job repeats; absent means without limit (failure rule 5) */
   cap?: number;
-}
-
-export interface Patron {
-  id: string;
-  world: number | 'navy';
-  name: string;
-  role: string;
-  species: string;
-  voice: string;
-  /** image path; '' uses the world's portrait */
-  portrait: string;
-}
-
-/**
- * A mission's generated words. Each field may carry the slots its comment
- * names and no other, and `tools/dossier-faults.ts` holds that (docs/TODO/191).
- */
-export interface Dossier {
-  skeleton: string;
-  /** the prompt hash it was written from, which covers the skeleton's shape */
-  hash: string;
-  /** a name for the mission, with no slot */
-  title: string;
-  /** pages the patron speaks, with {PATRON} {HERE} */
-  briefing: string[];
-  /** by leg: the console's word on the leg, with {TARGET} {PAY} */
-  legs: Record<string, { arrive: string; success: string; fail: string }>;
-  /** the LEADS row, with {PATRON} {WORLD} */
-  lead: string;
-  /** the board's rumour inside the rumour range, and the message one jump out, with {PATRON} {WORLD} */
-  rumour: { far: string; near: string };
-  /** the DATA ON line, with {PATRON} {WORLD} */
-  news: string;
-  /** paths under `public/`; an absent file degrades to no image */
-  images: { target?: string; place?: string };
-  story: {
-    /** with {WORLD} {DAY} */
-    opening: string;
-    closing: { complete: string; fail: string };
-    /** by leg, then by trigger label (`triggerLabel`, machine.ts), with {WORLD} {DAY} */
-    legs: Record<string, Record<string, string>>;
-  };
-}
-
-/** One committed dossier file, with what the run that wrote it cost. */
-export interface DossierFile {
-  promptVersion: number;
-  model: string;
-  generated: string;
-  usage: { requests: number; inputTokens: number; outputTokens: number };
-  dossier: Dossier;
 }
 
 export interface LiveMission {
@@ -276,6 +283,13 @@ export interface JournalEntry {
   outcome: string;
   day: number;
   world: number;
+  /**
+   * The galaxy `world` is an index in. Absent on a record written before
+   * docs/TODO/213 M4, and it reads as galaxy 1. The log named every world
+   * through the galaxy the commander stood in, so a jump renamed their whole
+   * past.
+   */
+  galaxy?: number;
 }
 
 export interface EntityState {
@@ -287,6 +301,12 @@ export interface EntityState {
   hull: number;
   lastWorld: number;
   alive: boolean;
+  /**
+   * It ran, or it jumped out, and a leg took the word (docs/TODO/217 M1).
+   * So it is gone from the record as a dead ship is, and the gang hunt can
+   * read its leader's fate at the end.
+   */
+  fled?: boolean;
 }
 
 /**
@@ -320,7 +340,7 @@ export interface MissionState {
   entities: Record<string, EntityState>;
   passengers: MissionPassenger[];
   journal: JournalEntry[];
-  /** docks since the journal last moved; the second patron message reads it */
+  /** docks since a dock last moved the journal; the second patron message reads it */
   idleDocks: number;
   /** what settlements changed about the worlds, each until a day */
   changes: WorldChangeRecord[];
@@ -357,21 +377,5 @@ export type DossierWord =
   | { skeleton: string; leg: string; kind: 'arrive' | 'success' | 'fail'; slots: Record<string, string> }
   | { skeleton: string; kind: 'near'; world: number };
 
-/**
- * A consequence the game applies. The machine never touches the commander.
- * A `say` or a `later` with an empty `text` and a `word` is a line only a
- * dossier can supply. The bridge drops it when none does.
- */
-export type MissionEffect =
-  | { kind: 'say'; text: string; command?: 'openMissions'; word?: DossierWord }
-  | { kind: 'later'; text: string; word?: DossierWord }
-  | { kind: 'pay'; tenths: number }
-  | { kind: 'deed'; deed: Deed }
-  | { kind: 'legal'; delta: number }
-  | { kind: 'lead'; skeleton: string; galaxy: number; world: number }
-  | { kind: 'worldOverride'; world: number; until: number; change: WorldChange }
-  | { kind: 'standingSpawn'; world: number; until: number; ships: TaggedShip[] }
-  /** the patron's goods go aboard: a smuggle leg starts with them */
-  | { kind: 'cargo'; commodity: number; tonnes: number }
-  /** passengers a finished mission leaves in the crew spaces, as survivors */
-  | { kind: 'survivors'; people: number };
+/** The consequences the game applies, in their own file (docs/TODO/219 M5). */
+export type { MissionEffect } from './effects.ts';

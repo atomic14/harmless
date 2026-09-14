@@ -142,7 +142,7 @@ export interface ArmedCommander {
  * one cooldown and one heat budget.
  *
  * It takes the COMMANDER now rather than the equipment, because the hull is
- * half the answer. Which of the 15 flyable ships she flies decides how hard the
+ * half the answer. Which of the 15 flyable ships they fly decides how hard the
  * fitted laser hits (`playerLaserHit`). Fitting behaviour is untouched.
  */
 export function laserForView(c: ArmedCommander, view: number): LaserSpec | null {
@@ -279,9 +279,9 @@ export function npcHitChance(dist: number): number {
 }
 
 /**
- * The MOST this build's gun can ever be worth against this hull, in her pool
- * points a second. It is point blank (`npcHitChance(0)`, the cap), never out of
- * the gate, and never short of a reload.
+ * The MOST this build's gun can ever be worth against this hull, in the
+ * commander's pool points a second. It is point blank (`npcHitChance(0)`, the
+ * cap), never out of the gate, and never short of a reload.
  *
  * A ceiling, and the only honest way to compare a gun with a shield. Nothing in
  * a fight reaches it, because `npm run aim-probe` measures 7-27% of it. So a

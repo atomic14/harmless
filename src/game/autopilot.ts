@@ -36,12 +36,14 @@ import type { FlightDemand } from '../player.ts';
 import type { Brain } from '../ai-training/policy.ts';
 import type { V3 } from '../ai-training/observation.ts';
 import { hostilesNear } from './hostility.ts';
+import { pickedTarget } from './targets.ts';
 import { defenceBrainNameFor } from './brain-names.ts';
 import type { CombatComputer } from './combat-computer.ts';
 import { ScriptedCoPilot } from './scripted-co-pilot.ts';
 import type { SoundEvent } from './sounds.ts';
 import type { GameState } from './state.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
+import { THREAT_RANGE } from '../constants/combat-computer.ts';
 
 /** What an autopilot reports for the orchestrator to say and play. */
 export type AutopilotEvent =
@@ -132,24 +134,72 @@ export class Autopilot {
   }
 
   /**
-   * The combat computer, on or off.
+   * Is there a fight for the computer to line the ship up in? A hostile ship
+   * inside the CO-PILOT's reach, or a target the pilot picked.
+   *
+   * IT USED TO ASK THE CONDITION LIGHT, which looks 9,000 units out. The
+   * co-pilot only looks `THREAT_RANGE`, which is 6,500. A pirate in that band
+   * engaged the computer, and the co-pilot refused it in the same frame. That
+   * happened on EVERY frame. Measured at a pirate 7,500 units off, it was 300
+   * engagements in 5 seconds. Each one carried its own sound and its own AREA
+   * CLEAR on the console (Chris, 2026-09-12: *"why does it go on for so long?
+   * Several long seconds?"*).
+   *
+   * A picked target has no range test, because the co-pilot has none for one
+   * either. The pilot's pick comes first, at any distance.
+   */
+  private fightOn(): boolean {
+    const s = this.state;
+    return pickedTarget(s.world.npcs) !== null || hostilesNear(
+      s.world.npcs, s.player.position, s.commander.legalStatus, this.playerToStation,
+      THREAT_RANGE, s.session.cloaked);
+  }
+
+  /**
+   * A fight starts, and the computer takes the stick to line the ship up
+   * (docs/TODO/206 M2). Every pilot gets the aim now. The bought combat
+   * computer adds the trigger and the E.C.M., and the Game applies those.
+   *
+   * It does nothing while the pilot flies by hand. A flight key set that, and
+   * a pick of a course or a target clears it. So a pilot who takes the stick
+   * keeps it (Chris, 2026-09-11: *"hitting the keyboard will take control
+   * during combat"*).
+   */
+  autoEngage(): AutopilotEvent[] {
+    const s = this.state;
+    if (s.session.ccEngaged || s.session.handFlown || !this.fightOn()) return [];
+    // A ship that runs does not turn to fight (docs/TODO/206 M5).
+    if (s.session.course === 'run') return [];
+    // The LIVE BRAINS row can set the co-pilot to NONE outright.
+    if (defenceBrainNameFor(s.brains) === 'scripted') return [];
+    s.session.ccEngaged = true;
+    s.session.view = 0; // it aims the front laser
+    // NO CONSOLE LINE. A fight starts at the very moment the lines that
+    // matter arrive, such as what a shot cost the commander. The label over
+    // the view says that the computer aims, and the sound marks the moment.
+    return [{ kind: 'sound', name: 'combatComputerEngaged' }];
+  }
+
+  /**
+   * The computer's aim, on or off, on its key.
+   *
+   * Every pilot has the aim since docs/TODO/206, so an unfitted ship no longer
+   * refuses. Off hands the controls to the pilot, and the computer then waits
+   * to be asked. On hands the stick back.
    *
    * It refuses to engage with nothing to fight, and that is not a limitation.
-   * The policy trained to fly a defence. In an empty sky it would merely hold
-   * the ship, while the player wondered why the controls felt odd.
+   * In an empty sky it would merely hold the ship, while the player wondered
+   * why the controls felt odd.
    */
   toggleCombat(): AutopilotEvent[] {
     const s = this.state;
-    if (!s.commander.equipment.combatComputer) {
-      return [say('NO COMBAT COMPUTER FITTED', 3), REFUSED];
-    }
     if (s.session.ccEngaged) {
       s.session.ccEngaged = false;
-      return [say('COMBAT COMPUTER OFF', 2)];
+      s.session.handFlown = true;
+      return [say('YOU HAVE THE CONTROLS', 2)];
     }
-    if (!hostilesNear(
-      s.world.npcs, s.player.position, s.commander.legalStatus, this.playerToStation)) {
-      return [say('NO HOSTILES — COMBAT COMPUTER IDLE', 3), REFUSED];
+    if (!this.fightOn()) {
+      return [say('NOTHING TO FIGHT', 3), REFUSED];
     }
     // The LIVE BRAINS row can set the co-pilot to NONE outright. A refusal
     // here, in the row's own words, beats a pilot that engages and hands back
@@ -158,9 +208,10 @@ export class Autopilot {
       return [say('COMBAT COMPUTER SET TO NONE — SEE THE COMBAT TRAINER', 4), REFUSED];
     }
     s.session.ccEngaged = true;
+    s.session.handFlown = false;
     s.session.view = 0; // it aims the front laser
     return [
-      say('COMBAT COMPUTER ENGAGED — ANY FLIGHT KEY OVERRIDES', 4),
+      say('THE COMPUTER IS LINING YOU UP — A FLIGHT KEY TAKES THE CONTROLS', 4),
       { kind: 'sound', name: 'combatComputerEngaged' },
     ];
   }
@@ -187,9 +238,12 @@ export class Autopilot {
       missilePos, this.playerToStation);
     if (step.kind === 'disengage') {
       s.session.ccEngaged = false;
+      if (handsOn) s.session.handFlown = true;
+      // THE E.C.M. IS THE STEP'S, EVEN HERE. A warhead still closing is not
+      // answered by a clear area (the review of 2026-09-12).
       return {
         demand: null,
-        ecm: false,
+        ecm: step.ecm,
         events: [say(step.reason, step.reason === 'MANUAL OVERRIDE' ? 2 : 3)],
       };
     }
@@ -212,12 +266,14 @@ export class Autopilot {
     const s = this.state;
     const step = this.scripted.step(
       dt, s.player, s.world.npcs, s.commander.legalStatus, handsOn, missilePos,
-      this.playerToStation);
+      this.playerToStation, pickedTarget(s.world.npcs));
     if (step.kind === 'disengage') {
       s.session.ccEngaged = false;
+      if (handsOn) s.session.handFlown = true;
+      // ...and the same here — see `combatDemand` above.
       return {
         demand: null,
-        ecm: false,
+        ecm: step.ecm,
         events: [say(step.reason, step.reason === 'MANUAL OVERRIDE' ? 2 : 3)],
       };
     }

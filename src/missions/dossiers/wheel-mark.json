@@ -1,0 +1,49 @@
+{
+  "promptVersion": 4,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-13",
+  "usage": {
+    "requests": 9,
+    "inputTokens": 75358,
+    "outputTokens": 107067
+  },
+  "dossier": {
+    "briefing": [
+      "Somebody watched your last fight, out past {HERE}, and did not look away.",
+      "A Fer-de-Lance works the lanes with two Asps at its side. Bring its pilot down, and we will talk again.",
+      "You will not find our name in any register. Call us {PATRON}."
+    ],
+    "lead": "A note without a name waits for the commander at {WORLD}",
+    "legs": {
+      "mark": {
+        "arrive": "Bring down the Fer-de-Lance and its two Asps near {TARGET}",
+        "success": "The Fer-de-Lance is wreckage near {TARGET}, gang and all",
+        "fail": "The Fer-de-Lance walked away, and so did our chance near {TARGET}"
+      }
+    },
+    "news": "Local traffic near {WORLD} carries talk that {PATRON} is paying for quiet work again",
+    "rumour": {
+      "far": "Traders near {WORLD} whisper that {PATRON} still watches every fight worth watching",
+      "near": "A short line reaches the commander at {WORLD}: {PATRON} has not forgotten the Fer-de-Lance"
+    },
+    "story": {
+      "opening": "On day {DAY}, the commander took on an unsigned job that pointed toward {WORLD}.",
+      "closing": {
+        "complete": "By day {DAY}, the Fer-de-Lance and its Asps lay dead near {WORLD}, and the note went unanswered.",
+        "fail": "By day {DAY}, the Fer-de-Lance escaped the guns near {WORLD}, and the silence never spoke again."
+      },
+      "legs": {
+        "mark": {
+          "targetDestroyed": "Near {WORLD} on day {DAY}, the Fer-de-Lance and both Asps went down together.",
+          "targetFled": "Near {WORLD} on day {DAY}, the wounded Fer-de-Lance fled the fight.",
+          "targetEscaped": "Near {WORLD} on day {DAY}, the Fer-de-Lance jumped clear before the kill.",
+          "failed": "By day {DAY}, the hunt near {WORLD} ran past its deadline."
+        }
+      }
+    },
+    "title": "A Note With No Name",
+    "skeleton": "wheel-mark",
+    "hash": "93f69ce8",
+    "images": {}
+  }
+}

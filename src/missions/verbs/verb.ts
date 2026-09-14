@@ -5,12 +5,14 @@
 // reports, and the machine resolves. A module never pays, never moves a leg,
 // and never reads the commander's purse.
 
-import type { CommanderFacts, Leg, LiveMission, MissionInput, Trigger } from '../model.ts';
+import type { CommanderFacts, Leg, LiveMission, MissionInput, Trigger, EntityState } from '../model.ts';
 
 export interface VerbContext {
   readonly live: LiveMission;
   readonly leg: Leg;
   readonly commander: CommanderFacts;
+  /** the tagged things on record, read only: a gang hunt reads its leader's fate */
+  readonly entities: Readonly<Record<string, EntityState>>;
 }
 
 /**
@@ -22,6 +24,10 @@ export interface VerbReaction {
   progress?: number;
   /** the scooped pod is this mission's passenger; the machine records it */
   passenger?: boolean;
+  /** the leg's goods are delivered, and the machine asks the game to take them off */
+  unload?: boolean;
+  /** the step that springs the leg's ambush, where the leg has one (docs/TODO/214 M2) */
+  sprung?: boolean;
   /**
    * What the console says about a step that takes no branch, with `{TARGET}`
    * for the leg's world (docs/TODO/203 M4). A branch speaks through its

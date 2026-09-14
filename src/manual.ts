@@ -61,8 +61,8 @@ for (const el of document.querySelectorAll<HTMLElement>('[data-bound-key]')) {
 }
 
 // The combat ladder, from the same table `rating()` reads. It was hand-written
-// here once, and it silently dropped BELOW AVERAGE. A commander could read her
-// own rating off the status screen, and not find it on the chart.
+// here once, and it silently dropped BELOW AVERAGE. A commander could read
+// their own rating off the status screen, and not find it on the chart.
 const ladder = document.getElementById('rating-ladder');
 if (ladder) {
   const ranks = ratingLadder();

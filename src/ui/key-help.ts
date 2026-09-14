@@ -76,6 +76,17 @@ export function keyIfBound(mode: ControlMode, command: Command): string | null {
 }
 
 /**
+ * The CODE bound to a command, for a button that presses it (docs/TODO/205
+ * M5). The course list's chart button sends the chart key's own code, so the
+ * button and the key cannot part company. It answers null for an unbound
+ * command, as `keyIfBound` does.
+ */
+export function keyCodeIfBound(mode: ControlMode, command: Command): string | null {
+  const b = [...BINDINGS[mode], ...GLOBAL_BINDINGS].find((x) => x.command === command);
+  return b && !b.shift ? b.key : null;
+}
+
+/**
  * A code no keyboard produces: a menu row's, or a button's (docs/TODO/202).
  *
  * It has no label, and prose cannot quote it. So `keyLabel` prints nothing

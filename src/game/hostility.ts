@@ -20,6 +20,7 @@
 // It came out of `game/npc.ts`, where it sat inside a class file of 1,676
 // lines (docs/TODO/169 M2).
 
+import { SCANNER_RANGE } from '../constants/console.ts';
 import type * as THREE from 'three';
 
 import type { NpcRole } from './ship-roles.ts';
@@ -98,16 +99,22 @@ export function isHostileToPlayer(
 /**
  * Is this ship both cross with you and close enough to act on it?
  *
- * The same range the ship itself engages at, from
- * `constants/player-interest.ts`. One home for it, because everything that
- * answers "who is in this fight" has to agree. Those are the condition light
- * below, and the bribe key, which may only buy off a ship that is on you.
+ * One home for it, because everything that answers "who is in this fight" has
+ * to agree. The condition light and the bribe key take the default range, which
+ * is the one the ship itself engages at (`constants/player-interest.ts`).
+ *
+ * THE RANGE IS THE CALLER'S, from 2026-09-12, and it had to become one. The
+ * combat computer looks a shorter way out than the light does, and the two
+ * disagreeing cost 60 engagements a second. See `Autopilot.fightOn`.
  */
-function engaging(
+export function engaging(
   npc: HostileShip, playerPos: THREE.Vector3, legalStatus: number, playerToStation: number,
+  range: number = PLAYER_INTEREST_RANGE, cloaked = false,
 ): boolean {
+  // A cloaked ship is nobody's business (docs/TODO/219 M5).
+  if (cloaked) return false;
   return isHostileToPlayer(npc, legalStatus, playerToStation)
-    && npc.object.position.distanceTo(playerPos) < PLAYER_INTEREST_RANGE;
+    && npc.object.position.distanceTo(playerPos) < range;
 }
 
 /**
@@ -118,9 +125,24 @@ function engaging(
  */
 export function hostilesNear(
   npcs: readonly HostileShip[], playerPos: THREE.Vector3, legalStatus: number,
-  playerToStation: number,
+  playerToStation: number, range?: number, cloaked = false,
 ): boolean {
-  return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation));
+  return npcs.some((npc) => engaging(npc, playerPos, legalStatus, playerToStation, range, cloaked));
+}
+
+/**
+ * Every ship that attacks the commander within scanner range (docs/TODO/206).
+ * The run course flies away from them, and its row weighs their speed. It is
+ * the same rule as `hostilesNear`, over the scanner's reach rather than the
+ * condition light's.
+ */
+export function hostilesOnScanner<T extends HostileShip>(
+  npcs: readonly T[], playerPos: THREE.Vector3, legalStatus: number,
+  playerToStation: number, cloaked = false,
+): T[] {
+  if (cloaked) return [];
+  return npcs.filter((npc) => isHostileToPlayer(npc, legalStatus, playerToStation)
+    && npc.object.position.distanceTo(playerPos) <= SCANNER_RANGE);
 }
 
 /**
@@ -128,12 +150,12 @@ export function hostilesNear(
  * explain.
  *
  * A **grudge** is one ship's private quarrel with the commander.
- * `NpcShip.takeDamage` sets `provokedByPlayer` for damage from her gun,
+ * `NpcShip.takeDamage` sets `provokedByPlayer` for damage from their gun,
  * whatever the role. The flag never comes down, and the legal record has
  * nothing to do with it.
  *
  * So the console can say `LEGAL STATUS: OFFENDER — BOUNTY HUNTERS WILL ATTACK
- * YOU` while the ship shooting at her is a police Viper she grazed. That is
+ * YOU` while the ship shooting at them is a police Viper they grazed. That is
  * docs/TODO/175, and GitHub #35 reported it in the player's own words.
  *
  * `recordVerdict` is right to read `lawTakesInterest` alone. It is the one home
@@ -146,7 +168,7 @@ export function hostilesNear(
  *
  * It then drops every role the record already accounts for. So the line it
  * feeds never repeats the line beside it, and a Fugitive hears nothing at all:
- * her record explains both roles already.
+ * their record explains both roles already.
  *
  * The roles come back in `LAW_ROLE_NAMES` order, so one sky gives one sentence.
  */

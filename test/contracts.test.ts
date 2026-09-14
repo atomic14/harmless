@@ -124,7 +124,7 @@ console.log('\ncontracts');
     c.cargo[8] = 3;              // two tonnes light at the door
     const ev = settleContracts(c);
     // EXACTLY the missing tonnes: billing the whole 5t consignment would be
-    // 2,340 tenths, more than she has, and would empty the account instead.
+    // 2,340 tenths, more than they have, and would empty the account instead.
     check('a short consignment is billed for the missing tonnes, not the whole job',
       ev[0]?.kind === 'billed' && ev[0].tonnes === 2 && ev[0].charged === 2 * 468);
     check('...and the money actually leaves the account', c.credits === 1000 - 936);
@@ -174,7 +174,7 @@ console.log('\ncontracts');
   {
     // Goods are fungible and the hold keeps no per-contract provenance, so a
     // commander who bought 10t of the same Food has covered the 5t consignment:
-    // the station takes its five and the ten she paid for stay hers.
+    // the station takes its five and the ten they paid for stay theirs.
     const c = cmdr();
     c.contracts = [cargoRun({ commodity: 0, qty: 5 })];
     c.cargo[0] = 15;
@@ -259,15 +259,15 @@ console.log('\ncontracts');
   {
     const c = cmdr({ day: 11 });
     c.contracts = [passengerJob()];
-    c.cargo[0] = 6;              // her own goods, nothing to do with the fares
+    c.cargo[0] = 6;              // their own goods, nothing to do with the fares
     const ev = settleContracts(c);
     check('late passengers expire, unpaid, like any other job',
       ev[0]?.kind === 'expired' && c.credits === 1000 && c.contracts.length === 0);
-    check('...and the berths go with them, leaving only her own 6t',
+    check('...and the berths go with them, leaving only their own 6t',
       cargoTonnes(c) === 6);
     // There is no consignment to hand back, and the HOLD IS NOT EMPTY: a job
-    // that reclaimed by `qty` regardless of kind would take 3t of the Food she
-    // bought for herself, and `commodity: 0` is Food.
+    // that reclaimed by `qty` regardless of kind would take 3t of the Food they
+    // bought for themselves, and `commodity: 0` is Food.
     check('...and a passenger job reclaims nothing, out of a hold with goods in it',
       ev[0]?.kind === 'expired' && ev[0].reclaimed === 0 && c.cargo[0] === 6);
   }

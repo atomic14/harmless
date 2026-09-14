@@ -8,50 +8,37 @@
 // Short and paged, rather than one long screen. Somebody here wants the next
 // action, not a manual. The manual is at /manual.html.
 //
-// EVERY KEY IT NAMES IS READ OFF THE BINDING TABLE (`boundKey`). So a rebound
-// command rewrites its own prose, and an unbound one fails the build. The chart's
-// cursor keys are the screen's own (`game/screens/chart.ts`), not bindings, so
-// those stay written out. A station command has no key since docs/TODO/202:
-// it is a row on the menu, and the prose names the row.
+// IT NAMES NO KEY (docs/TODO/225). A button is named by its words, and a
+// station command is a row on the menu since docs/TODO/202. The prose names
+// the row off the dictionary the menu paints from, so a renamed row renames
+// its own prose. The `?` guide and the manual hold the key map.
 
 import { MAX_FUEL, STARTING_CREDITS } from '../constants/commander.ts';
 import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 
 import { show } from './screen-shell.ts';
 import { TORUS_MULTIPLIER } from '../constants/torus.ts';
-import { boundKey } from './key-help.ts';
 import { COMMAND_HELP } from '../game/command-help.ts';
 
 /**
- * The confirmation before a fresh start. It spells out what is about to be
- * destroyed, and it points at the export key first. It is the only act that
- * throws a career away.
- */
-/**
- * The in-game briefing: what to actually DO, for a pilot new to the game.
+ * The pages. Five, one action each, in the cockpit's own words (docs/TODO/225).
  *
- * Short and paged, rather than one long screen. Somebody here is stuck and
- * wants the next action, not a manual. The manual is at /manual.html.
+ * A BUTTON IS NAMED BY ITS WORDS, AND NO KEY IS NAMED. A phone has no keys,
+ * and the `?` guide and the manual hold the key map for a desktop. A station
+ * command is a row since docs/TODO/202, and the prose names the row off the
+ * same dictionary the menu paints from. The chart's cursor keys are the
+ * screen's own, so the chart page says "tap".
+ *
+ * NO SENTENCE SAYS WHERE A BUTTON IS, with one exception. The course list at
+ * the top right is the one thing a first flight must find. Its place is the
+ * same since docs/TODO/205. Every other position the old pages gave moved by
+ * docs/TODO/222, and nothing could hold them.
  */
-// Every key the briefing names is read off the binding table (`boundKey`). So
-// a rebound command rewrites its own prose, and an unbound one fails the build.
-// The chart's cursor keys are the screen's own (screens/chart.ts), not
-// bindings, so those stay written out. The briefing explains goals and
-// consequences. The complete key map is the `?` guide and the manual.
-const KEY = {
-  help: boundKey('docked', 'toggleHelp'),
-  jump: boundKey('flight', 'startHyperspace'),
-  torus: boundKey('flight', 'toggleTorus'),
-  dockingComputer: boundKey('flight', 'toggleDockingComputer'),
-  jettison: boundKey('flight', 'jettison1'),
-  ecm: boundKey('flight', 'fireEcm'),
-  armMissile: boundKey('flight', 'armMissile'),
-  fireMissile: boundKey('flight', 'launchMissile'),
-};
-/** The station rows the briefing names, read off the same dictionary the menu paints from. */
 const ROW = {
   market: COMMAND_HELP.openMarket.menu,
   contracts: COMMAND_HELP.openContracts.menu,
+  missions: COMMAND_HELP.openMissions.menu,
+  equip: COMMAND_HELP.openEquip.menu,
   localChart: COMMAND_HELP.openLocalChart.menu,
   launch: COMMAND_HELP.launch.menu,
   briefing: COMMAND_HELP.openBriefing.menu,
@@ -60,92 +47,75 @@ export const BRIEFING: { title: string; body: string }[] = [
   {
     title: 'WHERE YOU ARE',
     body: `You are docked at a space station in your own Cobra Mk III, with
-      ${STARTING_CREDITS / 10} credits and a rating of Harmless.<br/><br/>
-      Nobody tells you where to go. You make money by hauling cargo between
-      worlds that want different things, and you spend it on a better ship,
-      and that is the whole game. The only score that matters is your combat
-      rating, which starts at <b>Harmless</b>. When you want work, the patrons
-      who have it wait on the MISSIONS screen, and
-      <a href="/missions" target="_blank">the mission tour</a> says who they
-      are.<br/><br/>
-      Tap a row on this menu, or move to it with <b>&uarr; &darr;</b> and
-      press <b>ENTER</b>. <b>${KEY.help}</b> shows every control, here and in
-      flight. <b>${ROW.briefing}</b> on the menu reopens this briefing
-      whenever you want it back.`,
+      ${STARTING_CREDITS / 10} credits and a rating of <b>Harmless</b>.<br/><br/>
+      Buy cargo cheap here, sell it dear somewhere else, and spend the profit
+      on a better ship. Every kill lifts your rating toward
+      <b>Elite</b>.<br/><br/>
+      Every command is a row on a menu or a button on the screen. Tap it, or
+      click it. <b>${ROW.briefing}</b> on the station menu brings this
+      briefing back whenever you want it.`,
   },
   {
-    title: 'MAKE SOME MONEY',
-    body: `Open <b>${ROW.market}</b> on the station menu.<br/><br/>
-      Worlds are short of what they do not make. <b>Agricultural</b> worlds sell
-      food, textiles, liquor and furs cheaply. <b>Industrial</b> worlds sell
-      machinery, computers and alloys cheaply — and each pays well for the
-      other's goods.<br/><br/>
-      So: buy a hold full of something cheap here, and sell it somewhere with
-      the opposite economy. <b>${ROW.contracts}</b>, on the same menu, pay
-      better than plain cargo for the same trip, but they have deadlines.`,
+    title: 'BUY, SELL, AND FUEL',
+    body: `Open <b>${ROW.market}</b>. <b>Agricultural</b> worlds sell food,
+      textiles, liquor and furs cheaply. <b>Industrial</b> worlds sell
+      machinery, computers and alloys cheaply. Each pays well for the other's
+      goods, so fill the hold with what is cheap here.<br/><br/>
+      <b>${ROW.contracts}</b> pays better for the same trip, with a deadline.
+      <b>${ROW.missions}</b> shows who has work for you, when somebody
+      does.<br/><br/>
+      Before you go, open <b>${ROW.equip}</b> and fill the tank. A jump burns
+      fuel, and an empty tank goes nowhere.`,
   },
   {
-    title: 'CHOOSE A DESTINATION',
-    body: `Open <b>${ROW.localChart}</b> on the station menu.<br/><br/>
-      The dashed circle is how far your fuel will take you — ${MAX_FUEL / 10} light years on a
-      full tank. Anything inside it you can reach.<br/><br/>
-      Move the cursor with the <b>arrow keys</b>, press <b>ENTER</b> to set your
-      target, <b>D</b> for a full report on a world, and <b>F</b> to search by
-      name. Look for an economy opposite to this one.`,
-  },
-  {
-    title: 'FLY THERE',
-    body: `<b>${ROW.launch}</b> from the station menu, then <b>${KEY.jump}</b>
-      to jump once you are clear of the station. The game saves on its own: a checkpoint at
-      every docking, and an autosave every ${AUTOSAVE_INTERVAL} seconds in
-      flight.<br/><br/>
-      You come out of hyperspace a long way from the planet. Point at it and
-      press <b>${KEY.torus}</b> for the torus drive — ${TORUS_MULTIPLIER} times speed. It cuts out near
-      anything with mass: a planet, a station, or somebody who has come to meet
-      you.<br/><br/>
-      Watch the scanner in the middle of the console. You are the centre. Red
-      contacts are hostile.`,
+    title: 'GO',
+    body: `Open <b>${ROW.localChart}</b>. The circle is how far a full tank
+      takes you: ${MAX_FUEL / 10} light years. Tap a world inside it with the
+      opposite economy to this one.<br/><br/>
+      Then <b>${ROW.launch}</b>, and choose <b>JUMP TO</b> your world. The
+      ship leaves, jumps and arrives by itself.<br/><br/>
+      You arrive a long way from the planet. Open <b>ACTIONS</b> at the top
+      right and choose <b>FLY TO THE STATION</b>. The ship flies there on the
+      torus drive, at ${TORUS_MULTIPLIER} times speed. <b>▶▶</b>
+      hurries the trip while nothing hostile is near. The game saves at every
+      dock, and every ${AUTOSAVE_INTERVAL} seconds in flight.`,
   },
   {
     title: 'A FIGHT',
-    body: `Sooner or later somebody opens fire. Your laser shoots straight
-      ahead: put them in the crosshair and hold the trigger — the stick and
-      trigger depend on your keyboard layout, and <b>${KEY.help}</b> shows
-      yours. Lasers overheat; short bursts.<br/><br/>
-      <b>${KEY.armMissile}</b> arms a missile, which locks when a target
-      crosses your sights; <b>${KEY.fireMissile}</b> fires it.<br/><br/>
-      Kills raise your rating toward <b>Elite</b>. If the fight goes badly, run
-      — and if the worst happens, death puts you back at the last station you
-      docked at, without the flight you were on.`,
+    body: `Sooner or later somebody opens fire. The computer takes the stick
+      and lines the ship up. The trigger is yours: hold <b>FIRE LASER</b> in
+      short bursts, because a laser overheats.<br/><br/>
+      <b>◎</b> lists what is out there, and a row sends the computer
+      after that ship. <b>ARM MISSILE</b> arms one. It locks when a ship
+      crosses your sights, and <b>FIRE MISSILE</b> sends it. <b>E.C.M.</b>
+      destroys a missile coming at you.<br/><br/>
+      If it goes badly, <b>RUN FOR IT</b> joins <b>ACTIONS</b>, and buttons offer
+      what fits: pay a patrol off, or throw cargo to a pirate. If the
+      worst happens, death puts you back at the last station you docked at,
+      without the flight you were on.`,
   },
   {
-    title: 'DOCKING',
-    body: `The hard part, and everybody finds it hard at first.<br/><br/>
-      The station <b>rotates</b>, and so does its docking port. An amber marker
-      shows where the port is, with an arrow at the edge of the screen when it
-      is behind you.<br/><br/>
-      Get onto the axis straight out from the port, then <b>roll until you match
-      its rotation</b> — the opening is a letterbox and you must be the same way
-      up as it. Then go in slowly. The marker turns green when you are lined
-      up.<br/><br/>
-      When you can afford one, buy a <b>docking computer</b> and press
-      <b>${KEY.dockingComputer}</b>.`,
-  },
-  {
-    title: 'STAYING ALIVE',
-    body: `Pirates want your cargo and they size you up first — a fat hold on a
-      soft ship draws a crowd. Anarchies are the worst.<br/><br/>
-      <b>${KEY.jettison}</b> jettisons cargo, and it genuinely works: a pirate
-      who gets paid loses interest. <b>${KEY.ecm}</b> fires the E.C.M., which
-      kills incoming missiles — equip one early. Your shields recharge, so
-      turning to put a fresh face towards an attacker buys real time.<br/><br/>
-      Police care about contraband and about who shot first.<br/><br/>
-      The full manual, with a first-run worked example and rather more besides,
-      is at <b>/manual.html</b>.`,
+    title: 'DOCK',
+    body: `The station turns, and its port turns with it. <b>FLY TO THE
+      STATION</b> flies the approach, stops in front of the port, and hands
+      you the last stretch.<br/><br/>
+      Two things are yours. The roll: the port is a letterbox, so drag the
+      <b>DRAG TO ROLL</b> strip until you are the same way up. The speed:
+      hold <b>THRUST</b> or <b>BRAKE</b> to cross the mark on the speed bar.
+      The marker turns green when you are lined up. Go in.<br/><br/>
+      Get it wrong and you bounce clear and try again. When you can afford
+      one, buy a docking computer, and the <b>DOCKING COMPUTER</b> button
+      flies the slot for you. The full manual, with a worked first run, is at
+      <a href="/manual" target="_blank">/manual</a>.`,
   },
 ];
 /** How many pages the briefing has, so the Game clamps and imports nothing. */
 export const BRIEFING_PAGES = BRIEFING.length;
+/**
+ * The keyline stands above the buttons (docs/TODO/225 M2). On a phone the
+ * button row is sticky at the foot of the box. A keyline under it slid
+ * behind the row on a short page.
+ */
 export function renderBriefing(page: number): void {
   const p = BRIEFING[Math.max(0, Math.min(BRIEFING.length - 1, page))];
   const n = BRIEFING.length;
@@ -156,13 +126,13 @@ export function renderBriefing(page: number): void {
     <div class="rule"></div>
     <div class="info brief">${p.body}</div>
     <div class="pager">${dots} &nbsp; ${page + 1} / ${n}</div>
+    <div class="keyline">
+      &larr; &rarr; TURN THE PAGE &middot; ESC CLOSE
+    </div>
     <div class="buttons">
       <button data-key="ArrowLeft">&larr; PREVIOUS</button>
       <button data-key="ArrowRight">NEXT &rarr;</button>
       <button data-key="Escape">CLOSE</button>
-    </div>
-    <div class="keyline">
-      &larr; &rarr; TURN THE PAGE &middot; ESC CLOSE &middot; FULL MANUAL AT /manual.html
     </div>
   `);
 }

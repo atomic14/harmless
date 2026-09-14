@@ -1,0 +1,346 @@
+// How a course flies the ship (docs/TODO/205 M3).
+//
+// A course is one thing the ship does next with no hand on the stick.
+// `game/course-pilot.ts` flies it, and it spends these values.
+
+import { HERMIT_DOCK_SPEED } from './hermit-market.ts';
+import { PLAYER_FLIGHT } from './player-flight.ts';
+import { MASS_LOCK_PLANET_ALTITUDE, TORUS_MULTIPLIER } from './torus.ts';
+import { GENERATION_CARGO_SCATTER } from './spawn-placement.ts';
+
+/**
+ * How far off the nose the target may sit, in radians, before the course
+ * pilot engages the torus drive.
+ *
+ * The drive multiplies travel by eight (`TORUS_MULTIPLIER`). A drive engaged
+ * with the target well off the nose carries the ship a long way off the line
+ * before the turn finishes. So the pilot turns first, and then engages. The
+ * pilot still steers while the drive runs, so a small error inside the cone
+ * closes on the way.
+ *
+ * It equals `DC_TURN_FADE_ANGLE`, and the two rules are independent. That one
+ * fades the docking computer's turn near its heading. This one gates a drive.
+ *
+ * It belongs here, and not with the spawn cones in `spawn-placement.ts`. Those
+ * place a ship when it appears. This one gates a drive while the commander's
+ * own ship flies, and only the course pilot reads it.
+ *
+ * @rule course.torusCone
+ * @domain course
+ */
+export const COURSE_TORUS_CONE = 0.1;
+
+/**
+ * How near the nose a course counts its target as straight ahead, in radians.
+ * Inside this cone the course pilot asks for no pitch and no roll.
+ *
+ * THE SHIP ROLLED ALL THE WAY TO THE STATION WITHOUT IT (Chris, 2026-09-12:
+ * *"we seem to be constantly rotating when heading towards something"*). The
+ * steering is `bankToTurn` (game/pitch-roll-steer.ts). Its roll ask is a
+ * BEARING: how far round the clock the target sits from the vertical. That
+ * bearing stays large for a target a hair off the nose, and the roll fade has
+ * a floor. So the course rolled for ever to chase the last fraction of a
+ * degree. A measurement of 2026-09-12 counted 41 full turns on a median trip
+ * to the station, with the roll moving in 92% of the samples.
+ *
+ * The combat computer never had the fault. It passes the gun's own hit cone,
+ * which is wide up close, and it holds the sticks still inside it.
+ *
+ * 0.02 radians is 1.1 degrees. At the hand-over range of 1,500 units it is 30
+ * units off the line, which the last of the approach closes. It is a fifth of
+ * `COURSE_TORUS_CONE`, so the drive stays engaged inside it.
+ *
+ * @domain course
+ */
+export const COURSE_AIM_DEADZONE = 0.02;
+
+/**
+ * How near its bank a course pilot must be before it pulls the nose, in
+ * radians. Above this angle the steering asks for no pitch at all.
+ *
+ * IT IS WHAT STOPS THE SHIP ROLLING ALL THE WAY THERE. `bankToTurn` gates the
+ * pitch by the cosine of the roll error, which still leaves a little pitch at
+ * a wide bank. Near the nose that little is enough to hold a cone: the nose
+ * circles the target, and the angle never closes. The comment on `bankToTurn`
+ * (game/pitch-roll-steer.ts) holds the measurement.
+ *
+ * 0.05 radians is 2.9 degrees. A sweep of 2026-09-12 over 6 trips to the
+ * station measured the median count of full turns on the way:
+ *
+ * | gate | full turns |
+ * | --- | --- |
+ * | none | 41 |
+ * | 0.2 | 5.5 |
+ * | 0.1 | 2.9 |
+ * | 0.05 | 1.3 |
+ *
+ * A tighter gate costs a little time in a big turn, because the roll must
+ * finish first. The roll is the faster axis, so the cost is small.
+ *
+ * @domain course
+ */
+export const COURSE_ROLL_GATE = 0.05;
+
+/**
+ * How far from its target the course pilot drops the torus drive, in world
+ * units, before an arrival.
+ *
+ * It is two and a half seconds of torus travel. The drive carries the ship
+ * 3,200 units a second, which is 53 units in one frame. The ship then brakes
+ * from its top speed of 400, which takes about 360 units at full thrust. So
+ * the margin covers both, with room to spare, and it grows with the drive.
+ *
+ * @domain course
+ */
+export const COURSE_TORUS_DROP = TORUS_MULTIPLIER * PLAYER_FLIGHT.maxSpeed * 2.5;
+
+/**
+ * The share of the ship's thrust that an arrival plans to brake with.
+ *
+ * The approach asks for the speed from which this share of thrust stops the
+ * ship at the standoff. The rest is a margin for the turn and for one frame
+ * of lag in the throttle.
+ *
+ * @rule course.arriveBrake
+ * @domain course
+ */
+export const COURSE_ARRIVE_BRAKE = 0.7;
+
+/**
+ * How near its standoff the ship must be to count as arrived, in world units.
+ * The brake plan leaves the ship within a few units of the standoff. This is
+ * room for the turn, and for a target that moves.
+ *
+ * @rule course.arriveTolerance
+ * @domain course
+ */
+export const COURSE_ARRIVE_TOLERANCE = 75;
+
+/**
+ * Where the derelict course stops, as a distance from the generation ship's
+ * centre, in world units.
+ *
+ * The hull is 340 units across the radius (`GENERATION_SHIP_RADIUS`). Its
+ * canisters drift within `GENERATION_CARGO_SCATTER` of the centre. So the ship
+ * stops 400 units outside the canisters, clear of the hull and of every
+ * canister, where the pilot can see them all.
+ *
+ * @domain course
+ */
+export const COURSE_DERELICT_STANDOFF = GENERATION_CARGO_SCATTER + 400;
+
+/**
+ * Where the hermit course stops, as a distance from the rock's centre, in
+ * world units.
+ *
+ * The trade opens inside `HERMIT_DOCK_RANGE`, which is 320. The rock is 120
+ * units across the radius. So the ship stops between the two, clear of the
+ * rock and inside the range.
+ *
+ * @rule course.hermitStandoff
+ * @domain course
+ */
+export const COURSE_HERMIT_STANDOFF = 240;
+
+/**
+ * The hold distance of the skim course, from the centre of the star, in world
+ * units.
+ *
+ * The scoops take fuel inside `SUN_SCOOP_RANGE`, which is 80,000. The cabin
+ * heads toward a temperature set by the distance. It is fatal at
+ * `CABIN_TEMP_FATAL`, which is reached near 26,800 units. At this distance
+ * the cabin settles near 0.54, well short of fatal. The margin inside the
+ * scoop range keeps an overshoot of the brake inside it too.
+ *
+ * @rule course.skimDistance
+ * @domain course
+ */
+export const COURSE_SKIM_DISTANCE = 65_000;
+
+/**
+ * How high above the planet's surface a course keeps its line, in world
+ * units.
+ *
+ * It is a quarter above `MASS_LOCK_PLANET_ALTITUDE`, so the detour does not
+ * hold the torus drive down. A line to the target that dips below it goes
+ * round the planet instead.
+ *
+ * @domain course
+ */
+export const COURSE_PLANET_CLEARANCE = MASS_LOCK_PLANET_ALTITUDE * 1.25;
+
+/**
+ * The speed at which the hermit course arrives, in world units a second.
+ *
+ * The trade opens only below `HERMIT_DOCK_SPEED`. Half of it arrives well
+ * inside that rule, and it is still a real approach.
+ *
+ * @domain course
+ */
+export const COURSE_HERMIT_SPEED = HERMIT_DOCK_SPEED / 2;
+
+/**
+ * How much faster the world runs under the fast forward button, as a count of
+ * fixed steps in one screen frame (docs/TODO/205 M7).
+ *
+ * Chris chose one fixed speed on 2026-09-11: *"Fixed speed - let's keep it
+ * simple."* Eight turns the median trip to the station, 148 s, into about
+ * 19 s of the player's time. The world step ran about 2,000 times faster than
+ * real time with no graphics, so eight costs little.
+ *
+ * It equals `TORUS_MULTIPLIER`, and the two rules are independent. That one is
+ * how far the drive carries the ship. This one is how fast time passes.
+ *
+ * @rule course.skipSpeed
+ */
+export const SKIP_SPEED = 8;
+
+/**
+ * Below this lead in top speed, in world units a second, the run row says the
+ * ship is only a little faster (docs/TODO/206 M5).
+ *
+ * The player's Cobra tops out at 400. The fastest pirate and the fastest
+ * bounty hunter reach 381. A run from one gains 19 u/s. The lasers of both
+ * reach 3,500 units. A lead under 50 u/s takes more than a minute to
+ * open that range, under fire. A police Viper, at 320, falls behind at 80.
+ *
+ * @rule course.runCloseMargin
+ * @domain course
+ */
+export const RUN_CLOSE_MARGIN = 50;
+
+/**
+ * How far ahead the run course aims, in world units, on the line away from
+ * the hostile ships (docs/TODO/206 M5). The point only gives the line a
+ * direction, so it sits far beyond scanner range.
+ *
+ * @rule course.runReach
+ * @domain course
+ */
+export const COURSE_RUN_REACH = 50_000;
+
+/**
+ * How fast the collect course flies onto a canister, in world units a second
+ * (docs/TODO/206 M6).
+ *
+ * The scoop takes a canister inside `SCOOP_RANGE`, which is 45 units. At this
+ * speed the ship covers that in more than half a second, so the scoop has
+ * frames to catch it. A canister drifts, and the course arrives at the speed
+ * the drift needs rather than at a stop.
+ *
+ * @rule course.collectSpeed
+ * @domain course
+ */
+export const COURSE_COLLECT_SPEED = 60;
+
+/**
+ * The furthest ahead of a drifting canister the collect course will aim, in
+ * seconds.
+ *
+ * Chris, 2026-09-12: *"Collecting cargo often seems to be difficult - we miss
+ * it quite a lot - especially when it is moving."* The course aimed at where
+ * the canister WAS. A canister drifts at up to 45 units a second, and the scoop
+ * reaches 45. So an aim at its old place arrives a whole scoop behind it.
+ *
+ * The lead itself is the time to cover the gap at `COURSE_COLLECT_SPEED`, which
+ * is an intercept rather than a guess. THE CAP IS WHAT IS FITTED. `arrive`
+ * flies faster than the collect speed while it is far out, so the raw time
+ * over-leads at range. An uncapped aim then chases a point the canister never
+ * reaches.
+ *
+ * Measured over 80 runs a row, five canisters a run, at four drifts and four
+ * scatter directions. The figure is how many of 240 were aboard inside two
+ * minutes, across the three moving drifts:
+ *
+ *   | cap | collected | mean time |
+ *   |   0 |   191/240 |     75.0s |
+ *   |   2 |   210/240 |     58.6s |
+ *   |   3 |   216/240 |     60.9s |
+ *   |   4 |   217/240 |     55.1s |
+ *   |   5 |   231/240 |     50.8s |
+ *   |   6 |   219/240 |     59.4s |
+ *
+ * Cargo at rest is untouched at every cap, because a still canister has no
+ * velocity to lead on. It was 80 of 80 in 21.6 seconds throughout.
+ *
+ * @rule course.collectLead
+ * @domain course
+ */
+export const COURSE_COLLECT_LEAD = 5;
+
+/**
+ * The fastest the collect course flies on its way to a canister, in world
+ * units a second.
+ *
+ * Chris, 2026-09-12: *"collecting cargo seems to be broken sometimes. I seem to
+ * run at maximum speed, then slow down and then miss it and then run at maximum
+ * speed."* That is the trace exactly. `arrive` picks a speed from the braking
+ * curve, which is right for a big target on a straight line. It reached 400
+ * with a canister 250 units off.
+ *
+ * A SHIP THAT FAST CANNOT CORRECT. Its tightest turn has a radius of 276 units,
+ * and the scoop reaches 45. So a lateral error the steering leaves at that
+ * point cannot be closed at all. The ship sails past, and comes round again.
+ * Held on one canister it loops for ever, which is what "broken" looked like.
+ *
+ * It is twice `COURSE_COLLECT_SPEED`, the speed the course settles at. That is
+ * a turn radius of 83 units, which is under twice the scoop's reach.
+ *
+ * Measured over 64 runs, five canisters a run, at four drifts and four scatter
+ * directions. The figure is how many runs left cargo behind after two minutes:
+ *
+ *   | cap | left behind | mean time |
+ *   | 400 |     4 of 64 |     43.5s |
+ *   | 180 |     4 of 64 |     35.9s |
+ *   | 150 |     0 of 64 |     32.0s |
+ *   | 120 |     0 of 64 |     29.8s |
+ *   |  90 |     0 of 64 |     32.6s |
+ *   |  60 |    36 of 64 |          |
+ *
+ * At 60 it is the collect speed itself, and the course can no longer catch a
+ * canister that drifts at 45.
+ *
+ * @rule course.collectCap
+ * @domain course
+ */
+export const COURSE_COLLECT_CAP = COURSE_COLLECT_SPEED * 2;
+
+/**
+ * How far from the station the station course hands the ship to the pilot,
+ * in world units (docs/TODO/207 M1).
+ *
+ * A ship with a docking computer is handed to that computer further out, at
+ * `DOCK_COMPUTER_RANGE`. A pilot flies the last stretch, and 1,500 units is
+ * about four seconds at the speed the approach arrives with. The concepts
+ * page of 2026-09-11 started its trial here, and Chris picked one of them.
+ *
+ * @rule course.dockHandover
+ * @domain course
+ */
+export const COURSE_DOCK_HANDOVER = 1500;
+
+/**
+ * How far clear of a solid thing's HULL a course flies, in world units.
+ *
+ * Chris, 2026-09-12: *"I visited a rock hermit and then when I left clicked fly
+ * to the station - the computer crashed me straight into the rock hermit - we
+ * need to have some avoidance of obstacles"*. The line went round the planet
+ * and round a policeman, and through everything else. Measured, it killed the
+ * commander outright at 399 units a second.
+ *
+ * IT IS THE SHIP'S OWN TURNING CIRCLE, not a number chosen by eye. At top
+ * speed the tightest circle the commander can fly has a radius of speed over
+ * turn rate. A quarter circle moves a ship one radius sideways. So a line that
+ * passes that far from a hull leaves exactly the room a quarter turn needs.
+ * `sidestep` then aims half as far again, which is the margin.
+ *
+ * It moves with the envelope rather than against it. A faster or less agile
+ * hull needs a wider berth, and this says so without being retuned.
+ *
+ * FROM THE HULL, as the docking standoff is (docs/TODO/211). A hermit is 120
+ * units across the radius, and the derelict is 340. A clearance from the CENTRE
+ * would be a different rule for each of them.
+ *
+ * @domain course
+ */
+export const COURSE_OBSTACLE_CLEARANCE = PLAYER_FLIGHT.maxSpeed / PLAYER_FLIGHT.maxPitch;

@@ -4,7 +4,7 @@
 // That makes ten rungs, not nine. The functions that read it (`rating`,
 // `ratingLadder`) are in game/rating.ts. The manual renders the chart from the
 // same table. That is the fix for the day the manual listed the nine ranks it
-// could remember. A commander could read her own rating off the status screen,
+// could remember. A commander could read their own rating off the status screen,
 // and then fail to find it on the chart.
 //
 // The score that climbs the ladder is `combatScore`: kills weighted by threat

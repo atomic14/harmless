@@ -13,7 +13,107 @@ active context:
 
 ## Execution queue
 
-The queue is empty.
+Nothing is queued.
+
+**225 CAME FROM CHRIS ON 2026-09-14**, after 224: *"I think the new pilot
+briefing needs a rework?"* The seven pages describe an older cockpit, name
+keys a phone does not have, and never say the word fuel. The fight page
+scrolls on a phone. 225 makes it five pages, one action each, in the
+buttons' own words, and fits the screen to a phone.
+**225 landed the same day**, and it is below.
+
+**224 CAME FROM CHRIS ON 2026-09-14**, after 223. He asked whether the
+keyboard section is still needed, and whether a pilot ever takes manual
+control. The code says the last stretch of a dock is the pilot's, and the
+trigger in a fight. Hand flying is a desktop option. Chris chose to keep
+the option and to shrink the section. 224 leads the README's Controls with
+the buttons, and makes the combat computer say what the purchase adds.
+**224 landed the same day**, and it is below.
+
+**223 CAME FROM CHRIS ON 2026-09-14**, after `docs/PAGES-REVIEW.md`. The
+README describes the missions of July, and the landing page says the game
+needs a keyboard and a mouse. Chris asked for a clean-up. The landing page
+is for a player, and the README is for a reader of the project. Neither
+carries the history. 223 rewrites both, and fixes two lines the pages reach.
+**223 landed the same day**, and it is below.
+
+**222 CAME FROM CHRIS ON 2026-09-14**, with a picture from his phone. The
+targets header stood on the console, every target read green, and the gun
+row took a third of the console. 222 measures the console again when it
+changes, makes the header an icon with the count, and reads a hostile red.
+**222 landed the same day**, and it is below.
+
+**221 CAME FROM CHRIS ON 2026-09-13**, from his phone. The fast forward
+button is a bar as wide as the course header. 221 makes it an icon. **221
+landed the same day**, and it is below.
+
+**220 CAME FROM CHRIS ON 2026-09-13**, from his phone. A double tap or a
+pinch zooms the page. The address bar takes the top of the view, and the
+short range chart's names are too small. 220 fixes the three, and it went
+first because it is small. **220 landed the same day**, and it is below.
+
+**219 CAME FROM CHRIS ON 2026-09-13**, after 217 measured the authored play
+at four to six hours. He asked for another layer at the higher ratings, a
+secret society. He chose the old names, a first whisper at Above Average,
+and a reward no shop sells. 219 is the Dark Wheel: a patron, four trials, a
+leg in witchspace, and the cloaking device. **219 landed the same day**,
+and it is below.
+
+**218 CAME FROM CHRIS ON 2026-09-13.** The comments, the docs and the
+dossier prompt slipped into "she" for the commander, from the novella.
+The player names the pilot, and the name can carry any gender. 218 sweeps
+the prose to "they" and "the commander", and the dossiers are written
+again. **218 landed the same day**, and it is below.
+
+**217 CAME FROM CHRIS ON 2026-09-13**, after 214 M4 measured the hunt. A
+lone Krait dies four seconds after the fight starts, whether it runs or
+not. He asked for a gang, a tough one, and for gates on the side jobs by
+kills. 217 makes the hunt count a gang, and it gates the hard jobs. **217
+landed the same day**, and it is below.
+
+**216 CAME FROM CHRIS ON 2026-09-13**, after 215 landed. He asked for a
+review of every docked screen, so that each key has a button on a phone.
+The review found six places with none. They are the three name screens,
+the charts' search and estimate, the test mode's step back, and the
+trainer's three panels. 216 adds a key grid, the chart buttons, and arrows on the rows.
+**216 landed the same day**, and it is below.
+
+**215 CAME FROM CHRIS ON 2026-09-13**, from his phone. The three columns of
+buttons over the flight view covered the fight. He drew the shape he wants.
+Two icons sit over the sky. The guns are a row at the bottom of the console,
+with the missile as two buttons and the missile squares gone. He then asked
+for the two lists to be closed by default, and to open as one row that
+scrolls sideways. **215 landed the same day**, and it is below. 214's last
+milestone landed the same day, once he wrote a dossier again.
+
+**213 AND 214 CAME FROM CHRIS ON 2026-09-13**, after two reviews of the
+missions. `docs/MISSIONS-REVIEW.md` read the machine and found five rules
+that do not hold. `docs/MISSIONS-FLIGHT-REVIEW.md` flew every kind of job
+and found the escort broken and the rest too easy. He said *"let's fix the
+broken parts"*, and then *"there should be surprises"*. 213 is the fixes.
+214 is the surprises: an ambush on a scoop, pirates at the jump-in, and an
+escort that needs the commander. **213 landed the same day**, and it is
+below. **214 M1 to M3 landed the same day too.** **M4 landed the same day
+too**, once Chris wrote the side hunt's dossier again, and 214 is below.
+
+**205 TO 208 CAME FROM CHRIS ON 2026-09-11, the day 204 landed.** He flew
+the touch controls of 204 on a phone, and he could not fly the ship. He
+wrote `MOBILE_CONVERSION.md` and set a new direction. The pilot picks a
+course, and the ship flies itself. In a fight, the computer aims, and the
+pilot fires the laser, the missiles and the E.C.M. The dock stays a
+challenge. The missions become part of the flight. 205 also takes out the
+touch controls of 204. He played four docking concepts the same day, and
+he picked Match the spin for 207. The plans are written, and the work waits
+on his word. **205, 206 and 207 landed the same day, and 208 the day after**.
+Each is below.
+
+**204 CAME FROM CHRIS ON 2026-09-10.** The docked screens and the cockpit fit
+a phone, and nothing on the flight screen takes a touch. The brainstorm set
+the shape. Drag anywhere to steer, and hold to fire. A throttle slider, a
+row of command buttons, tappable prompts, and a flight menu of rows. No
+tilt, no swipe and no pinch. **204 landed on 2026-09-11**, and it is below.
+**205 M1 retired it the same day**, because a phone still could not fly the
+ship.
 
 **203 CAME FROM CHRIS'S PLAYTEST ON 2026-09-10.** He played three side jobs
 and could not tell how to finish any of them. The review found two signals
@@ -274,6 +374,76 @@ headphones. **#24** closed on 2026-08-12 with
 [140](completed/140-the-day-is-the-one-cost-nothing-shows.md), after Chris flew
 it: *"display is good"*. **#23** closed with 134, as #22 did with 127, #18 with
 121, #20 with 122 and #21 with 123.
+
+## What landed on 2026-09-13
+
+**215 — the gun row lives in the console, and a list runs sideways.** Chris
+flew the game on his phone, and three columns of buttons covered the fight.
+He drew the shape. The guns are a row at the bottom of the console, always
+four buttons in the same places, with the missile as two. The missile
+squares are gone. The two lists over the sky are two headers, closed by
+default, and each opens as one row that scrolls sideways. A tap that opens
+one folds the other. The desktop has the same layout. 6,072 assertions,
+from 6,061.
+
+**213 — the mission rules hold, and a hit trader goes back to work.** A
+trader that took a hit ran for the rest of its life, so an escort's charge
+that a pirate grazed never reached the station. It goes back to work after
+twenty calm seconds, the escort course cannot ram it, and a course refuses
+a target below the planet. The escort finishes eight of eight in the flight
+probe, from four. A side job comes back a week after it ends. A smuggling
+run leaves its goods at the far end. Every arc is gated to galaxy 1, and a
+scoop job waits for the scoops. The gun warning speaks for the Constrictor
+alone. The loaders drop a ghost, the journal names its galaxy, and the lint
+holds every trigger a verb can emit. 6,029 assertions, from 5,972.
+
+## What landed on 2026-09-12
+
+**208 — every kind of mission has a way to fly it.** A live job is the first
+button over the view, in the job's own words, and the ship flies it. The rows
+read HUNT, SCAN, ESCORT, RECOVER, PICK UP and SLIP PAST THE POLICE. A delivery
+and an ambush end at the station. The work mended three faults. A scoop row
+trapped a pilot with no fuel scoops. A hunt stayed live when somebody else
+killed its ship. A `fled` branch in three arcs had no sender. A derelict now
+tells what the scan finds. 5,845 assertions, from 5,835.
+
+## What landed on 2026-09-11
+
+**207 — the pilot takes the ship into the slot by hand.** Chris played four
+docking concepts and picked Match the spin. The course flies the approach and
+hands over the last 1,500 units, at the speed the slot takes. The computer
+holds the ship on the axis. The pilot matches the station's spin with a roll
+strip, and the speed with THRUST and BRAKE. The slot now refuses a ship
+that arrives too fast, and a scrape bounces it clear to try again. A docking
+computer still flies the slot. 5,820 assertions, from 5,804.
+
+**206 — the computer flies the fight, and the pilot fires.** When a ship
+attacks, the computer lines you up, and the shooting stays yours. The buttons
+are FIRE LASER, ARM A MISSILE, E.C.M., and TARGETS to choose what to fight. The target list
+says what the law protects before you shoot it. The bought combat computer
+does the rest of the fight, but never spends a missile. RUN FOR IT, the bribe
+and the cargo dump are buttons now. Mining is a fight with a rock, and
+COLLECT EVERYTHING scoops what is adrift. 5,804 assertions, from 5,733.
+
+**205 — the pilot picks where the ship goes, and the ship flies itself.**
+The LAUNCH row asks where to go, and a ship with nowhere to go stays on the
+pad. In flight, buttons over the view show where the ship can go: the
+station, a derelict, the rock hermit and the star. A click or a tap sends the
+ship, and a flight key takes it back. FAST FORWARD runs the world eight times
+faster while nothing hostile is near. The work found a hermit that could
+appear inside the planet, and nothing does now. 5,733 assertions, from 5,624.
+
+**204 — the ship flies by touch.** Nothing on the flight screen took a
+touch. A drag anywhere on the view is the mouse stick now, and a held
+finger holds it. FIRE holds the trigger. A slider sets a wanted speed, and
+the throttle ramps toward it. Five buttons along the console's top edge
+press the flight keys for the missile, the E.C.M., the jump, the torus and
+the docking computer. The prompts are buttons. A MENU button opens the
+charts, the screens, the views, pause and the escape pod, which asks first.
+The first touch asks for the whole screen. Every button carries its key
+from the binding table, and the feel on a phone is Chris's to judge. 5,661
+assertions, from 5,619. **205 M1 took it out the same day**, because a phone still could not
+fly the ship. The plan is in `retired/` now.
 
 ## What landed on 2026-09-10
 

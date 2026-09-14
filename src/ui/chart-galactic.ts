@@ -34,6 +34,7 @@ export function renderChart(
     <div class="rule"></div>
     <canvas id="chart-canvas" width="${CHART_CANVAS_W}" height="${CHART_CANVAS_H}"></canvas>
     <div class="keyline" id="chart-info"></div>
+    <div id="chart-keys"></div>
     <div class="keyline">${chartKeyline(overlays.mode)}</div>
     ${chartButtons()}
   `);

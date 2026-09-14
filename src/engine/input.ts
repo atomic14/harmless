@@ -1,4 +1,6 @@
 import { CARRY_LIMIT } from '../constants/world-clock.ts';
+import { attachHoldButtons } from './hold-buttons.ts';
+import { attachStripControl } from './strip-control.ts';
 
 // Keyboard state with frame-oriented semantics:
 //  - held(codes): live keydown state — every continuous control, the trigger
@@ -67,6 +69,12 @@ export class Input {
   mouseX = 0;
   mouseY = 0;
   mouseFire = false;
+  /**
+   * The roll strip's stick, -1 to 1, or null when nothing holds it
+   * (docs/TODO/207 M2). A roll key held beats it, as a speed key beats a
+   * throttle slider.
+   */
+  rollStick: number | null = null;
   private readonly canvas: HTMLElement | null;
 
   constructor() {
@@ -79,6 +87,10 @@ export class Input {
       return;
     }
     this.canvas = document.getElementById('scene');
+    // The laser button holds its key as a finger holds it (docs/TODO/206 M3).
+    attachHoldButtons(this, document);
+    // ...and the roll strip of the last stretch of a docking (docs/TODO/207).
+    attachStripControl(this, document);
     document.addEventListener('pointerlockchange', () => {
       this.mouseFlight = document.pointerLockElement === this.canvas;
       if (!this.mouseFlight) {
@@ -135,6 +147,24 @@ export class Input {
   keyUp(code: string): void {
     this.down.delete(code);
     if (code === 'Slash') this.down.delete('Question');
+  }
+
+  /**
+   * Hold a key down, as a finger on a button does, until `release`. It is a
+   * held key and never a tap: `held` answers for it, `pressed` does not, and
+   * the carry rule never sees it. So a laser button holds the trigger exactly
+   * as the A key does.
+   *
+   * docs/TODO/204 M1 added this pair. 205 M1 took the rest of 204 out, and it
+   * kept the pair. 206 holds the laser with it, and 207 holds THRUST and BRAKE
+   * with it.
+   */
+  press(code: string): void {
+    this.down.add(code);
+  }
+
+  release(code: string): void {
+    this.down.delete(code);
   }
 
   /**

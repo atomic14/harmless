@@ -34,7 +34,7 @@ import { npcEnergyPolicy, playerLaserDamage } from '../src/game/npc-energy.ts';
 import { eliteADesignIds } from '../src/game/elite-a/catalogue.ts';
 import { roleCandidateVariants, roleCombatProfileId } from '../src/game/role-variants.ts';
 import { MAX_ENERGY, MAX_SHIELD } from '../src/constants/pools.ts';
-import { durability } from '../src/game/systems.ts';
+import { durability } from '../src/game/pools-left.ts';
 import { Episode } from '../src/ai-training/scenario.ts';
 import { brainFromFile, type Brain, type BrainFile } from '../src/ai-training/policy.ts';
 import { FIXED_DT } from '../src/constants/world-clock.ts';
@@ -182,7 +182,7 @@ export function printPlayerHullSweep(brainName: string): void {
       // the share TAKEN, not the share still missing at the end: the pools
       // recharge since docs/TODO/63, so `1 - healthFraction` here would have
       // been a different quantity from the `taken` beside it and would have
-      // measured how recently she was hit.
+      // measured how recently the commander was hit.
       share += ep.targetDamageShare();
       hits += r.pirates.reduce((a, p) => a + p.hits, 0);
     }

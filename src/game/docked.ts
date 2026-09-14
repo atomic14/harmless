@@ -1,4 +1,4 @@
-// What a commander does while she is docked.
+// What a commander does while they are docked.
 //
 // One half of the orchestrator. docs/TODO/155 M1 split it from the other, on
 // Chris's rule of 2026-08-14: *"It makes sense to split docked from flight -
@@ -9,10 +9,10 @@
 // ONE RESPONSIBILITY: what a commander does once the ship stops. That is:
 //
 //   - the arrival and the departure;
-//   - the menu she reads;
-//   - the market and the outfitters she trades at;
-//   - the board she takes work from;
-//   - the one question the station will not let her leave unanswered.
+//   - the menu they read;
+//   - the market and the outfitters they trade at;
+//   - the board they take work from;
+//   - the one question the station will not let them leave unanswered.
 //
 // "STOPPED" RATHER THAN "DOCKED", and one member is why. A hermit opens his
 // door to a ship that is still in flight, so `openHermitTrade` is not a dock by
@@ -193,6 +193,8 @@ export class Docked {
     // the permanent way back (docs/TODO/106).
     const brief = this.state.commander.briefingSeen < BRIEFING_VERSION;
     if (brief) this.state.commander.briefingSeen = BRIEFING_VERSION;
+    // A docked ship is seen. The cloak drops here (docs/TODO/219 M5).
+    this.state.session.cloaked = false;
     this.applyStation(this.station.dock(arrival));
     if (brief) this.host.openScreen('briefing');
     // ...and the question the station will not proceed without an answer to,
@@ -242,7 +244,7 @@ export class Docked {
     this.host.openScreen('market');
     // ...and the ship is still FLYING. The hermit is the one market a commander
     // reaches without a dock. So the base mode under the screen stays flight,
-    // and Escape puts her back in the cockpit.
+    // and Escape puts them back in the cockpit.
     this.host.setBaseMode('flight');
     this.state.player.speed = 0;
     sfx.dock();
@@ -366,7 +368,7 @@ export class Docked {
     if (!e) return;
     // The law and the region come first, so the SALE has the console after
     // them. `raiseLegal` QUEUES what the record now means (docs/TODO/130). So
-    // the line the player reads first is the one that explains what she did.
+    // the line the player reads first is the one that explains what they did.
     if (e.kind === 'sold') {
       this.state.living.addNotoriety(c.systemIndex, e.heat);
       this.host.raiseLegal(e.offence);

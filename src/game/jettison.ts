@@ -1,4 +1,4 @@
-// How a commander buys her way out of a fight.
+// How a commander buys their way out of a fight.
 //
 // Pirates came for cargo, not for you. Give them enough of it, and the
 // opportunists break off to go collect. That turns "I can't win this fight"

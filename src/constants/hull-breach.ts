@@ -15,6 +15,8 @@
  * one time per penetrating hit. It never rolls per point, and the damage never
  * scales it. Pool size therefore does not change how often equipment breaks.
  * `test/systems.test.ts` counts the rolls.
+ *
+ * @rule hullbreach.equipmentDamageChance
  */
 export const EQUIPMENT_DAMAGE_CHANCE = 0.25;
 

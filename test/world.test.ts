@@ -6,7 +6,7 @@
 
 import * as THREE from 'three';
 import { dockingOutcome } from '../src/game/docking.ts';
-import { ROLL_TOLERANCE } from '../src/constants/docking.ts';
+import { COMPUTER_ROLL_TOLERANCE, ROLL_TOLERANCE } from '../src/constants/docking.ts';
 import { freshTimers, stepEncounters } from '../src/game/encounters.ts';
 import { planPopulation, policeFor } from '../src/game/population.ts';
 import { World } from '../src/game/world.ts';
@@ -205,7 +205,7 @@ console.log('\ndocking');
   const rolledFrom = (off: number) => new THREE.Quaternion()
     .setFromAxisAngle(new THREE.Vector3(0, 0, 1), Math.PI / 2 + off);
   const at = (x: number, y: number, z: number, q = quarter) =>
-    dockingOutcome(new THREE.Vector3(x, y, z), q, station, DOCK_Z, scratch);
+    dockingOutcome(new THREE.Vector3(x, y, z), q, station, DOCK_Z, 0, scratch);
 
   check('far away is clear', at(0, 0, 5000) === 'clear');
   check('lined up in the slot, rolled with it, is docked',
@@ -226,6 +226,21 @@ console.log('\ndocking');
     check('...and the tolerance is unchanged either side of the quarter turn',
       at(0, 0, -(DOCK_Z - 20), rolledFrom(-(ROLL_TOLERANCE - 0.05))) === 'docked'
       && at(0, 0, -(DOCK_Z - 20), rolledFrom(-(ROLL_TOLERANCE + 0.05))) === 'slotMiss');
+  }
+  {
+    // A BOUGHT DOCKING COMPUTER GETS A WIDER SLOT, and that is the point of
+    // buying it (Chris, 2026-09-12: *"docking is supposed to be hard. But we
+    // can 'cheat' for the docking computer and give it more leeway"*). The
+    // caller says which tolerance to use, so the two cannot be confused.
+    const roll = (ROLL_TOLERANCE + COMPUTER_ROLL_TOLERANCE) / 2;
+    const byHand = dockingOutcome(new THREE.Vector3(0, 0, -(DOCK_Z - 20)),
+      rolledFrom(roll), station, DOCK_Z, 0, scratch, ROLL_TOLERANCE);
+    const byComputer = dockingOutcome(new THREE.Vector3(0, 0, -(DOCK_Z - 20)),
+      rolledFrom(roll), station, DOCK_Z, 0, scratch, COMPUTER_ROLL_TOLERANCE);
+    check('a roll between the two tolerances is a miss for a hand', byHand === 'slotMiss');
+    check('...and a dock for the bought computer', byComputer === 'docked');
+    check('...so the computer is the wider of the two',
+      COMPUTER_ROLL_TOLERANCE > ROLL_TOLERANCE);
   }
 }
 

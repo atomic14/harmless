@@ -40,17 +40,30 @@ export function browserShell(canvas: HTMLCanvasElement, scene: THREE.Scene): She
   return {
     view,
 
-    // was `window.addEventListener('resize', ...)` in the constructor
-    onResize: (fn) => { window.addEventListener('resize', () => fn()); },
+    // was `window.addEventListener('resize', ...)` in the constructor. The
+    // console is measured on the same path, and it changes size on its own
+    // when a font lands or a button wraps (docs/TODO/222). So the console is
+    // watched too, where the browser can watch an element.
+    onResize: (fn) => {
+      window.addEventListener('resize', () => fn());
+      const hud = document.getElementById('hud');
+      if (hud && typeof ResizeObserver !== 'undefined') new ResizeObserver(() => fn()).observe(hud);
+    },
 
     // was a listener on `#screen` in the constructor. The listener lives on the
     // persistent overlay container, since screen contents are re-rendered
     // wholesale, and it passes the closest element carrying data-key/data-row.
+    //
+    // Since docs/TODO/205 M5 it listens on the course buttons too. Each carries
+    // a data-key, as a menu row does, so a click takes the same path. The
+    // target list is its own column since 2026-09-13, so it is listed here.
     onScreenClick: (fn) => {
-      document.getElementById('screen')!.addEventListener('click', (e) => {
-        const el = (e.target as HTMLElement).closest('[data-key],[data-row]');
-        fn(el ?? e.target, e);
-      });
+      for (const id of ['screen', 'courses', 'course-row', 'targets', 'target-row', 'guns']) {
+        document.getElementById(id)?.addEventListener('click', (e) => {
+          const el = (e.target as HTMLElement).closest('[data-key],[data-row]');
+          fn(el ?? e.target, e);
+        });
+      }
     },
 
     // The pointer's twin of the above, on the same persistent container. No

@@ -1,4 +1,5 @@
-// What her gun is worth against the ship she is sent to kill, in two numbers.
+// What the commander's gun is worth against the ship they are sent to kill,
+// in two numbers.
 //
 // DERIVED, every time, through the same two functions a live shot goes
 // through. The first is the fitted laser's byte (`playerLaser`). The second is
@@ -19,6 +20,12 @@
 // The one thing a commander must not do is fly forty light years to find that
 // out. The beam laser is the trap: it is the upgrade, and it is worse here
 // than the gun it replaced.
+//
+// IT SPEAKS FOR A TARGET THAT HALVES A HIT, AND FOR NO OTHER (docs/TODO/213
+// M3). A military laser scores more than a pulse laser against every hull.
+// So the words TARGET ARMOUR HALVES LASER FIRE were said on every side hunt
+// and every arc hunt. Only the Constrictor's policy halves a player hit, and
+// the numbers are its signpost. A Krait needs no signpost.
 
 import type { CommanderData, LaserType } from './commander.ts';
 import { playerLaser } from './gunnery.ts';
@@ -51,11 +58,12 @@ export function huntGunCheck(commander: CommanderData, target: NpcSpec): GunChec
  * The patron's word on what the job needs, beyond where to go.
  *
  * It states two NUMBERS and lets the commander decide. It issues no
- * instruction. It returns '' when she already holds the best gun for the job.
+ * instruction. It returns '' when they already hold the best gun for the job.
  * So the line means something on the day it appears, rather than a line the
  * player learns to skip.
  */
 export function huntWarning(commander: CommanderData, target: NpcSpec, patron = 'NAVY'): string {
+  if (npcEnergyPolicy(target.profileId).playerLaserMultiplier >= 1) return '';
   const g = huntGunCheck(commander, target);
   if (g.fitted === g.best) return '';
   return `${patron}: TARGET ARMOUR HALVES LASER FIRE — YOUR ${g.fitted.toUpperCase()} LASER`

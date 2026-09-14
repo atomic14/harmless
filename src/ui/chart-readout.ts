@@ -142,13 +142,19 @@ export function contractTerm(
  */
 /**
  * The button row under either chart, for a finger (docs/TODO/198). A tap on a
- * system already targets it. These are the three keys a phone has no way to
- * press: D for the data screen, T for the overlay and Escape to leave.
+ * system already targets it. These are the five keys a phone has no way to
+ * press. D opens the data screen. M opens the market estimate. T cycles the
+ * overlay. F starts the search. Escape leaves. The search's letters are the
+ * key grid (`ui/key-grid.ts`). The screen paints the grid while the search
+ * runs, and it hides this row by its id for as long. The search reads every
+ * key as a letter, so a tap on DATA would type a D (docs/TODO/216 M2).
  */
 export const chartButtons = (): string => `
-    <div class="buttons">
+    <div class="buttons" id="chart-buttons">
       <button data-key="KeyD">DATA ON SYSTEM</button>
+      <button data-key="KeyM">MARKET ESTIMATE</button>
       <button data-key="KeyT">TRADE OVERLAY</button>
+      <button data-key="KeyF">FIND A SYSTEM</button>
       <button data-key="Escape">DONE</button>
     </div>`;
 export const chartKeyline = (mode: ChartOverlay): string =>

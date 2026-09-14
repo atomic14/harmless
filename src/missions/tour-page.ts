@@ -5,7 +5,7 @@
 // reaches no document and no window. The page's plugin (vite.config.ts)
 // turns it into markup. A test reads it as data.
 //
-// It shows what the game shows a commander before she accepts: each arc's
+// It shows what the game shows a commander before they accept: each arc's
 // title, patron, start world and briefing, and the shape of its legs. It
 // names which legs are recovery legs, because a failure that becomes a
 // branch is the tour's own point (docs/TODO/190). It does not show the
@@ -20,7 +20,8 @@
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { routeTable } from '../galaxy/route.ts';
 import { dossierFor } from './dossiers.ts';
-import type { CommanderFacts, Dossier, Patron, Skeleton, Verb } from './model.ts';
+import type { CommanderFacts, Skeleton, Verb, Gate } from './model.ts';
+import type { Dossier, Patron } from './words.ts';
 import { patronFor } from './patrons.ts';
 import { routeMapSvg } from './route-map.ts';
 import { ARC_TOUR, SKELETONS, skeletonById } from './skeletons/index.ts';
@@ -50,7 +51,7 @@ export const JOB_SUMMARIES: Readonly<Record<string, string>> = {
     + 'Watch it without firing, then find and destroy the ship that carries the false papers.',
   'arc-edle': 'A colonel at Edle has a manifest to move and a transporter to guard. '
     + 'After that, an Asp is marked for destruction.',
-  'side-hunt': 'A Krait is taking ships on the lane. Destroy it.',
+  'side-hunt': 'A gang of four holds the lane, led by a Fer-de-Lance. Destroy every one of them.',
   'side-deliver': 'Carry a sealed packet to a station one jump away. It takes no hold space.',
   'side-recover': 'A canister went adrift one jump away. Scoop it and bring it back.',
   'side-rescue': 'A survey pilot is adrift in a pod one jump away. Bring her in alive.',
@@ -81,6 +82,8 @@ export interface TourJob {
   title: string;
   /** what the job is, in the site's voice */
   summary: string;
+  /** what the board waits for before it offers the job, or null for none */
+  needs: string | null;
 }
 
 export interface TourModel {
@@ -99,6 +102,19 @@ export function verbWord(verb: Verb): string {
 /** The job's sentence for the site, or the board's own line where none is written. */
 function summaryOf(s: Skeleton): string {
   return JOB_SUMMARIES[s.id] ?? s.pitch;
+}
+
+/**
+ * What a side job's board waits for, in words (docs/TODO/223 M3). A side
+ * job is gated by kills or by fuel scoops (docs/TODO/217 M2). A visitor who
+ * reads the page at zero kills would otherwise wait for a hunt that the
+ * board never offers.
+ */
+function needsOf(gate: Gate): string | null {
+  const parts: string[] = [];
+  if (gate.minKills !== undefined && gate.minKills > 0) parts.push(`${gate.minKills} kills`);
+  if (gate.scoops) parts.push('fuel scoops');
+  return parts.length > 0 ? parts.join(' and ') : null;
 }
 
 /**
@@ -124,7 +140,7 @@ export function recoveryLegs(s: Skeleton): Set<string> {
 }
 
 const facts = (galaxy: number, systemIndex: number): CommanderFacts => ({
-  galaxy, systemIndex, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [],
+  galaxy, systemIndex, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], scoops: false,
 });
 
 function arcEntry(
@@ -170,7 +186,10 @@ export function tourModel(
     if (s.kind !== 'side') continue;
     const verb = verbWord(s.legs[0].verb);
     const d = dossiers(s.id);
-    const job: TourJob = { id: s.id, title: d?.title ?? s.id.replace(/-/g, ' ').toUpperCase(), summary: summaryOf(s) };
+    const job: TourJob = {
+      id: s.id, title: d?.title ?? s.id.replace(/-/g, ' ').toUpperCase(),
+      summary: summaryOf(s), needs: needsOf(s.offer),
+    };
     byVerb.set(verb, [...(byVerb.get(verb) ?? []), job]);
   }
   const sideJobs = [...byVerb.entries()].map(([verb, jobs]) => ({ verb, jobs }));

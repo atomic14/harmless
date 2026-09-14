@@ -60,7 +60,8 @@ export const THARGOID_AMBUSH_RANGE_SPAN = 2500;
 
 // Two constants used to end this file: STRANDED_HINT_FIRST and
 // STRANDED_HINT_REPEAT. They were the cadence of a console message that told
-// you to press B, and they went with that message (docs/TODO/128). To be stranded is a situation, not an event. The cockpit's
-// prompt line now carries the offer for as long as it is true. So there is no
+// you to press B, and they went with that message (docs/TODO/128). To be
+// stranded is a situation, not an event. The cockpit now offers the beacon as
+// a button for as long as it is true (docs/TODO/206 M5). So there is no
 // repeat to time, and no letter to hard-code. The condition itself
 // (`WITCHSPACE_ESCAPE_COST` in the tank) is `game/prompts.ts`.

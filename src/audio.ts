@@ -78,14 +78,14 @@ function ac(): AudioContext | null {
  * The skip also means a wreck beyond earshot costs no oscillator and no buffer.
  */
 function env(
-  a: AudioContext, gain: number, duration: number, place?: Place,
+  a: AudioContext, gain: number, duration: number, place?: Place, at = 0,
 ): GainNode | null {
   const floor = 0.001;
   const level = gain * (place ? distanceGain(place.distance) : 1);
   if (level <= floor) return null;
   const g = a.createGain();
-  g.gain.setValueAtTime(level, a.currentTime);
-  g.gain.exponentialRampToValueAtTime(floor, a.currentTime + duration);
+  g.gain.setValueAtTime(level, a.currentTime + at);
+  g.gain.exponentialRampToValueAtTime(floor, a.currentTime + at + duration);
   // Stereo width where the browser has a panner, straight through where it does
   // not. The same rule is already in music.ts for the waltz, and it holds for
   // the sky. An absent StereoPannerNode must cost the placement, not the sound.
@@ -99,26 +99,33 @@ function env(
   return g;
 }
 
+/**
+ * @param at seconds from now to start, for a cue made of more than one voice.
+ * It is SCHEDULED rather than left to a timer, so the whole sound exists the
+ * moment it is asked for. A `setTimeout` would put the second half outside the
+ * call, where `test/audio.test.ts` cannot see it, and where a paused tab can
+ * lose it.
+ */
 function sweep(
   type: OscillatorType, from: number, to: number, duration: number, gain: number,
-  place?: Place,
+  place?: Place, at = 0,
 ): void {
   const a = ac();
   if (!a) return;
-  const g = env(a, gain, duration, place);
+  const g = env(a, gain, duration, place, at);
   if (!g) return;
   const o = a.createOscillator();
   o.type = type;
-  o.frequency.setValueAtTime(from, a.currentTime);
-  o.frequency.exponentialRampToValueAtTime(Math.max(1, to), a.currentTime + duration);
+  o.frequency.setValueAtTime(from, a.currentTime + at);
+  o.frequency.exponentialRampToValueAtTime(Math.max(1, to), a.currentTime + at + duration);
   o.connect(g);
-  o.start();
-  o.stop(a.currentTime + duration);
+  o.start(a.currentTime + at);
+  o.stop(a.currentTime + at + duration);
 }
 
 /** The common square-wave voice used by the named interface sounds below. */
-function tone(frequency: number, duration = 0.08, gain = 0.08): void {
-  sweep('square', frequency, frequency, duration, gain);
+function tone(frequency: number, duration = 0.08, gain = 0.08, at = 0): void {
+  sweep('square', frequency, frequency, duration, gain, undefined, at);
 }
 
 function noiseBurst(duration: number, gain: number, lowpass = 4000, place?: Place): void {
@@ -197,7 +204,36 @@ export const sfx = {
   contractExpired(): void { tone(220, 0.2); },
   contractAccepted(): void { tone(900, 0.1); },
   dockingComputerEngaged(): void { tone(700, 0.12); },
-  combatComputerEngaged(): void { tone(1000, 0.12); },
+  /**
+   * A fight starts, and this is the only thing that says so. `autoEngage`
+   * prints no console line, because the lines that matter arrive at the same
+   * moment (autopilot.ts).
+   *
+   * WHOOP WHOOP (Chris, 2026-09-12: *"how about a whoop whoop - like a klaxon
+   * just two of them though"*). It took four goes to get here, and the three
+   * before it are worth the record. It was one 1000 Hz square beep. He called
+   * it too much and asked for pings, then for beeps, and the beeps came back
+   * square and were still horrible.
+   *
+   * THE VOICE AND THE SHAPE ARE DIFFERENT LEVERS, and only the second one
+   * makes a klaxon. A square wave carries every odd harmonic above its pitch,
+   * which is what made every earlier version grate. A GLIDE is what makes a
+   * whoop, and it needs no harshness at all. The pitch rises through the sound
+   * rather than sitting on one note.
+   *
+   * So each whoop is a sine rising from 320 to 880 Hz over 0.22 seconds, and
+   * there are two. A klaxon runs until somebody silences it. This one says its
+   * piece twice and stops. The fight it announces is already under way, so it
+   * has nothing left to warn about.
+   *
+   * It is the one named occasion that is not the house square `tone`. Every
+   * other one is a cockpit acknowledgement the pilot asked for. This one is the
+   * game interrupting the pilot, and it is the only sound that does.
+   */
+  combatComputerEngaged(): void {
+    sweep('sine', 320, 880, 0.22, 0.08);
+    sweep('sine', 320, 880, 0.22, 0.08, undefined, 0.28);
+  },
   stationDefenceLaunched(): void { tone(300, 0.18); },
   cargoLost(): void { tone(300, 0.12); },
   equipmentDestroyed(): void { tone(240, 0.2); },

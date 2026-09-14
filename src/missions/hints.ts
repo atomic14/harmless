@@ -6,7 +6,7 @@
 //
 //   - inside `LEAD_RUMOUR_JUMPS`, a rumour on the bulletin board and a line
 //     on the DATA ON page;
-//   - inside one jump, a message from the patron when she docks;
+//   - inside one jump, a message from the patron when they dock;
 //   - at the world, the offer itself, which `offers.ts` makes.
 //
 // NO MORE THAN ONE HINT PER DOCKING. A dock that makes an offer says nothing
@@ -25,7 +25,8 @@ import { LEAD_NAG_DOCKS, LEAD_RUMOUR_JUMPS } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { routeEstimate } from '../galaxy/route.ts';
 import { dossierFor, hintSlots } from './dossiers.ts';
-import type { CommanderFacts, Dossier, DossierWord, Lead, MissionState } from './model.ts';
+import type { CommanderFacts, DossierWord, Lead, MissionState } from './model.ts';
+import type { Dossier } from './words.ts';
 import { fillSlots } from './text.ts';
 
 type Dossiers = (id: string) => Dossier | null;

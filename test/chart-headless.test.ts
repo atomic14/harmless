@@ -85,7 +85,7 @@ console.log('\nboth charts find a system with no document');
     check(`...and F turns type-to-find on (${find || 'no error'})`, find === '');
 
     // One letter, then a second. Two calls rather than one, because
-    // `typeToFind` drains a whole frame of presses at once. Leleer answers L
+    // `ChartSearch.type` drains a whole frame of presses at once. Leleer answers L
     // and Lave answers LA, so the second letter is shown to NARROW the match
     // rather than merely to leave it alone.
     const first = named('Leleer');

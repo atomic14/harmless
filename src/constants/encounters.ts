@@ -19,7 +19,9 @@
  */
 export const TRADER_GAP = 100;
 
-/** ...and the jitter on top, drawn flat, so the lane never runs to a metronome. */
+/** ...and the jitter on top, drawn flat, so the lane never runs to a metronome.  *
+ * @rule encounters.traderGapJitter
+*/
 export const TRADER_GAP_JITTER = 60;
 
 /**
@@ -32,7 +34,9 @@ export const TRADER_GAP_JITTER = 60;
  * continuous trader stream, held back only by `MAX_TRADERS`. Live, a median
  * system runs its lane at about 90s plus jitter. The richest runs at about 53s
  * plus jitter.
- */
+  *
+ * @rule encounters.traderGapBusyMax
+*/
 export const TRADER_GAP_BUSY_MAX = 50;
 
 /**
@@ -43,7 +47,9 @@ export const TRADER_GAP_BUSY_MAX = 50;
  * This is therefore the exchange rate between the 1984 figure and a Harmless
  * clock. It is the only place the two scales meet, and that is why neither can be
  * re-based without the other.
- */
+  *
+ * @rule encounters.productivityPerSecond
+*/
 export const PRODUCTIVITY_PER_SECOND = 1200;
 
 /**
@@ -69,7 +75,9 @@ export const TRADER_GAP_FIRST_JITTER = 40;
  * them. It is also the first wave's countdown when you arrive. It is one number,
  * because the first wave is the ladder's bottom rung, with no government term and
  * no jitter.
- */
+  *
+ * @rule encounters.pirateWaveGap
+*/
 export const PIRATE_WAVE_GAP = 60;
 
 /**
@@ -125,10 +133,11 @@ export const ANARCHY_GOVERNMENT = 1;
  * IT WAS 4 UNTIL docs/TODO/188, AND CHRIS'S PLAYTEST IS WHY IT MOVED. He flew
  * the ambush and said it was too hard (GitHub #39). `npm run ambush-probe`
  * then measured the shipped defence over the real step, at two sizes. At 4 the
- * co-pilot died in 7% to 15% of ambushes, and she ended with 54% of her pools.
- * The drones dealt 70% of the damage. At 2 she survived every one, and she
- * ended with 76% to 79%. A slower redeploy alone did nearly as well, but it
- * left the peak count at 3.5, and the count was the complaint.
+ * co-pilot died in 7% to 15% of ambushes, and the commander ended with 54% of
+ * their pools. The drones dealt 70% of the damage. At 2 the commander
+ * survived every one, and ended with 76% to 79%. A slower redeploy alone did
+ * nearly as well, but it left the peak count at 3.5, and the count was the
+ * complaint.
  *
  * It has its own rule id. `THARGOID_AMBUSH_MIN` (witchspace.ts) is also 2,
  * and it is a different rule: that one is how many motherships wait.

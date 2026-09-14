@@ -32,10 +32,11 @@ import * as THREE from 'three';
 
 import {
   GATE_HALF_WIDTHS, LINED_UP_LATERAL, HULL_BOX_MARGIN,
-  SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE,
+  SLOT_HALF_ACROSS, SLOT_HALF_ALONG, SLOT_DEPTH, ROLL_TOLERANCE, SLOT_SPEED_LIMIT,
 } from '../constants/docking.ts';
 import { slotNormal } from '../world/slot.ts';
 import { dockPath, makeDockPath } from './dock-path.ts';
+import { freshSteerMemory, type SteerMemory } from './pitch-roll-steer.ts';
 
 export type DockPhase =
   /** still on the turn — the path decides where the ship goes */
@@ -56,11 +57,29 @@ export interface DockPlan {
   /** distance off the slot axis, for HUD and tests */
   lateral: number;
   /**
+   * How far along the slot axis the ship is, in front of the station. It is
+   * negative behind it. The rails read it (docs/TODO/212).
+   */
+  along: number;
+  /**
    * The plane this ship turns in, held across frames. `dock-path.ts` reads and
    * writes it. It is saved state, like the phase: a ship restored mid-approach
    * carries on the way round it already took.
    */
   swing: THREE.Vector3;
+  /**
+   * Which vertical the LAST turn onto the axis banks through
+   * (`pitch-roll-steer.ts`). It is held across frames for the reason `swing`
+   * above is, and it is saved in the same walk.
+   *
+   * `dockingSticks` does not read it. That law spends the roll on the letterbox
+   * and pitches onto the heading, so it cannot answer a sideways error at all.
+   * It never had to while the ship flew, because the motion sweeps the pitch
+   * plane round. The computer makes its last turn from a STOP, so nothing
+   * sweeps. `bankToTurn` is the law that points a yaw-less ship from there
+   * (world-step.ts, docs/TODO/212).
+   */
+  steer: SteerMemory;
 }
 
 const _rel = new THREE.Vector3();
@@ -91,6 +110,7 @@ export function planDocking(
   // perpendicular distance from the axis
   const lateral = _rel.addScaledVector(_slotN, -along).length();
   out.lateral = lateral;
+  out.along = along;
   // The station's local X, and not its Y. `lookAt(heading, up)` puts the ship's
   // RIGHT perpendicular to the up-hint. The wings must lie along the slot's
   // LONG axis, which is the station's local Y (see the header). The Y put every
@@ -172,9 +192,11 @@ export function planDocking(
 /** A fresh plan object to hand to `planDocking` each frame. */
 export function makeDockPlan(): DockPlan {
   return {
+    along: 0,
     heading: new THREE.Vector3(0, 0, -1),
     up: new THREE.Vector3(0, 1, 0),
     speed: 0,
+    steer: freshSteerMemory(),
     phase: 'gate',
     arrived: false,
     lateral: 0,
@@ -213,8 +235,10 @@ export function inSlotChannel(localX: number, localY: number): boolean {
  * the angle away from it. Both magnitudes are absolute: a ship upside down in
  * the slot still fits through it.
  */
-export function rollAlignedWithSlot(rightX: number, rightY: number): boolean {
-  return slotRollOffset(rightX, rightY) < ROLL_TOLERANCE;
+export function rollAlignedWithSlot(
+  rightX: number, rightY: number, tolerance: number = ROLL_TOLERANCE,
+): boolean {
+  return slotRollOffset(rightX, rightY) < tolerance;
 }
 
 /** How far off the slot's long axis the wings are, in radians. */
@@ -229,12 +253,19 @@ export type DockingOutcome =
   | 'docked'
   /** in the channel but rolled wrong */
   | 'slotMiss'
+  /** in the channel, lined up, and going too fast to be taken (docs/TODO/207) */
+  | 'tooFast'
   /** flew into the hull */
   | 'hull';
 
 /**
- * Where a ship is relative to the slot.
+ * Where a ship is relative to the slot, and whether the slot will take it.
  *
+ * The slot asks two things of a ship in the channel: the roll, and the speed
+ * (docs/TODO/207 M3). It is one answer, so the caller cannot hold half of the
+ * rule.
+ *
+ * @param speed how fast the ship is going, against `SLOT_SPEED_LIMIT`
  * @param scratch a Vector3 and a Quaternion to work in; this runs every frame.
  */
 export function dockingOutcome(
@@ -242,7 +273,16 @@ export function dockingOutcome(
   quat: THREE.Quaternion,
   station: THREE.Object3D,
   dockZ: number,
+  speed: number,
   scratch: { v: THREE.Vector3; q: THREE.Quaternion; r: THREE.Vector3 },
+  /**
+   * How far the wings may be off the slot's long axis, in radians. The CALLER
+   * says, because it depends on who holds the stick: `ROLL_TOLERANCE` for a
+   * hand, and the wider `COMPUTER_ROLL_TOLERANCE` for a bought docking
+   * computer. The default is the hard one, so a caller that forgets is strict
+   * rather than lax.
+   */
+  rollTolerance: number = ROLL_TOLERANCE,
 ): DockingOutcome {
   const box = dockZ + HULL_BOX_MARGIN;
   const local = scratch.v.copy(pos);
@@ -256,5 +296,6 @@ export function dockingOutcome(
 
   scratch.q.copy(station.quaternion).invert().multiply(quat);
   const right = scratch.r.set(1, 0, 0).applyQuaternion(scratch.q);
-  return rollAlignedWithSlot(right.x, right.y) ? 'docked' : 'slotMiss';
+  if (!rollAlignedWithSlot(right.x, right.y, rollTolerance)) return 'slotMiss';
+  return speed > SLOT_SPEED_LIMIT ? 'tooFast' : 'docked';
 }

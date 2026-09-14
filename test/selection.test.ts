@@ -20,8 +20,8 @@
 // The pair is also the cleanest measurement of the second defect docs/TODO/63
 // left behind. The turret kills 69% of its attackers, clears more than half its
 // fights, takes ~20% LESS cumulative damage than the pacifist — and ends with
-// LOWER terminal `hp`, because clearing a fight ends the episode early and she
-// heals for less of the clock. The rule this replaced read terminal `hp` and
+// LOWER terminal `hp`, because clearing a fight ends the episode early and they
+// heal for less of the clock. The rule this replaced read terminal `hp` and
 // therefore ranked the pacifist first, which is asserted below so that putting
 // it back fails here.
 
@@ -218,8 +218,8 @@ fought.taken / fought.seconds > fled.taken / fled.seconds
 // nearly BLIND to the difference between these two pilots. One destroys three
 // fifths of the attacking force and the other never fires, and they end the
 // episode within a point or two of each other, because under recovery terminal
-// hp answers "how long since she was last hit" (docs/TODO/63) and not "how much
-// was she hit".
+// hp answers "how long since they were last hit" (docs/TODO/63) and not "how much
+// were they hit".
 //
 // IT USED TO INVERT, and this line used to assert the inversion: the pilot that
 // cleared the fight healed for less of the clock and ended LOWER, which is the
@@ -265,7 +265,7 @@ check(`the rule this replaced could barely separate them`
   + ` ${oldScore(fought.hp, fought.shaped).toFixed(1)}, ${pct(oldGap)} apart)`,
 oldGap < 0.05);
 // ...where the rule that replaced it is decisive on the same pair, and for the
-// reason the old one could not see: she broke 80% of their banks and the
+// reason the old one could not see: they broke 80% of the pirates' banks and the
 // pacifist broke none.
 check(`...where this one is decisive on the same pair`
   + ` (${((scoreFought - scoreFled) / scoreFled * 100).toFixed(0)}% apart)`,
@@ -290,9 +290,9 @@ scoreFought > scoreFled * 1.25);
   // FORMULA rather than of this fixture because the fixture moved: the gap
   // between shooting and not shooting was 35.0% and docs/TODO/67 took it to
   // 30.5%, by taking contact damage out of the world. Both halves of the gap
-  // moved for the same reason — the pacifist keeps more of her pools when
-  // nothing rams her, and the turret breaks fewer attackers when they stop
-  // destroying themselves on her hull (71.9% killed -> 65.6%).
+  // moved for the same reason — the pacifist keeps more of their pools when
+  // nothing rams them, and the turret breaks fewer attackers when they stop
+  // destroying themselves on their hull (71.9% killed -> 65.6%).
   const unbuyable = SHAPED_SHARE / (1 - SHAPED_SHARE);
   check(`an outcome gap over ${pct(unbuyable)} cannot be bought back with shaped fitness`,
     championScore('defend', 0.5 + unbuyable * 1.01, -1e6)
@@ -337,20 +337,20 @@ scoreFought > scoreFled * 1.25);
 {
   const ep = fought.last;
   const terms = defenceTerms(ep);
-  eq('attack scores the share of her pools taken off her',
+  eq('attack scores the share of their pools taken off them',
     outcomeOf('attack', ep), ep.targetDamageShare());
   eq('...and pack the same quantity', outcomeOf('pack', ep), ep.targetDamageShare());
   // An evader's job is to be somewhere else, so its outcome has no fighting
   // term at all — the two phases share `outcomeOf` and no longer share a
   // definition of winning.
-  eq('evade scores the share she kept, and nothing about the fight',
+  eq('evade scores the share they kept, and nothing about the fight',
     outcomeOf('evade', ep), terms.kept);
   check('...so the same fight is worth more to a defender that broke the force',
     outcomeOf('defend', ep) > outcomeOf('evade', ep) && terms.broken > 0);
 
-  // Surviving is necessary. Four warheads is more than her three pools hold, and
-  // an episode she does not come out of is worth zero however well it went.
-  check('a defender that dies scores zero, whatever else she did',
+  // Surviving is necessary. Four warheads is more than their three pools hold, and
+  // an episode they do not come out of is worth zero however well it went.
+  check('a defender that dies scores zero, whatever else they did',
     outcomeOf('defend', ep) > 0 && (() => {
       for (let i = 0; i < 4; i++) ep.trader.takeDamage(playerImpactDamage(IMPACT.warhead));
       return !ep.trader.alive && outcomeOf('defend', ep) === 0

@@ -85,11 +85,11 @@ export interface ShipView {
    * The ENERGY BANK alone, over its own maximum — `observeDefend` slot 14.
    *
    * It is separate from `hp`, because the two say different things and the
-   * defender needs both. `hp` is how hurt she is. The bank is three other
-   * things. It is what she DIES at, because zero energy is destruction
+   * defender needs both. `hp` is how hurt the defender is. The bank is three other
+   * things. It is what the defender DIES at, because zero energy is destruction
    * (`systems.ts` `applyDamage`). It is what the shields will not recover until
    * it is out of its last quarter. It is also what loses a quarter every time
-   * she presses the E.C.M.
+   * the defender presses the E.C.M.
    *
    * A ship with one pool rather than three (any NPC) writes its own health
    * fraction here as well, which is what its bank IS.

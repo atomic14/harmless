@@ -101,7 +101,7 @@ export interface FireWorld {
 export type NpcShot =
   /** a round left the rail: the rack is spent and the warhead is in the sky */
   | { weapon: 'missile'; launch: OrdnanceOutcome }
-  /** a bolt at the hunted ship, and what it cost her pools */
+  /** a bolt at the hunted ship, and what it cost the target's pools */
   | { weapon: 'laser'; at: 'target'; range: number; hit: boolean; damage: number }
   /** a bolt at another ship, and what came off its bank */
   | { weapon: 'laser'; at: NpcShip; hit: boolean; damage: number; destroyed: boolean };

@@ -108,10 +108,15 @@ export function renderStatus(
     .map((qty, i) => (qty > 0 ? `${COMMODITIES[i].name}: ${qty}${COMMODITIES[i].unit}` : null))
     .filter(Boolean)
     .join(' &middot; ') || 'Empty';
-  const equipmentLines = EQUIPMENT_CATALOGUE
-    .filter((item) => item.id !== 'missile' && equipmentOwned(item.id, c))
-    .map((item) => item.name)
-    .join(' &middot; ') || 'Standard fit';
+  // The cloak is on no shop's list, so it is named here when it is fitted
+  // (docs/TODO/219 M4).
+  const cloak = c.equipment.cloak ? ['Cloaking Device'] : [];
+  const equipmentLines = [
+    ...EQUIPMENT_CATALOGUE
+      .filter((item) => item.id !== 'missile' && equipmentOwned(item.id, c))
+      .map((item) => item.name),
+    ...cloak,
+  ].join(' &middot; ') || 'Standard fit';
   show(`
     <h2>COMMANDER ${c.name}</h2>
     <div class="rule"></div>
@@ -129,6 +134,8 @@ export function renderStatus(
       ${c.trumbles > 0 ? `<span style="color:var(--hud-red)">Trumbles: ${c.trumbles}</span><br/>` : ''}
       Kills: ${c.kills}<br/>
       Rating: <span style="color:var(--hud-amber)">${rating(c.combatScore ?? c.kills).toUpperCase()}</span>
+      ${c.missions.flags.includes('wheel.member')
+        ? '<br/><span style="color:var(--hud-amber)">OF THE DARK WHEEL</span>' : ''}
       ${c.tested ?? false
         ? '<br/><span style="color:var(--hud-amber)">Test mode: used in this career</span>'
         : ''}
@@ -153,7 +160,7 @@ export interface OfferRow {
 /**
  * A held mission's order, with the name of who gave it, and the choices its
  * leg waits on. `title` and `pages` are the dossier's, as an offer's are, so
- * what she agreed to stays readable after she accepts (docs/TODO/201).
+ * what they agreed to stays readable after they accept (docs/TODO/201).
  * `pages` is empty without a dossier, and `title` is then the plain name.
  */
 export interface HeldRow extends MissionOrder {
@@ -189,8 +196,9 @@ export interface MissionsView {
  * line still names both, and that is a different rule: it is the one surface
  * where dropping a kind hides it completely.
  *
- * An offer is a row she can accept at a station. A held mission is a row she
- * can abandon anywhere. `game/orders.ts` decides what a held row says.
+ * An offer is a row the commander can accept at a station. A held mission is
+ * a row they can abandon anywhere. `game/orders.ts` decides what a held row
+ * says.
  */
 export function renderMissions(view: MissionsView): void {
   const { offers, held, leads, systems, selected, atStation } = view;
@@ -208,8 +216,8 @@ export function renderMissions(view: MissionsView): void {
       ${offerRows}
     </table>`;
 
-  // A held row reads as the offer did, and then the order: what she agreed
-  // to, then where she is in it (docs/TODO/201). The order is amber because
+  // A held row reads as the offer did, and then the order: what they agreed
+  // to, then where they are in it (docs/TODO/201). The order is amber because
   // it is the one line that changes as the legs go by.
   const heldRows = held.map((m, i) => `
     <tr class="${i + offers.length === selected ? 'sel' : ''} pick" data-row="${i + offers.length}">
@@ -219,7 +227,7 @@ export function renderMissions(view: MissionsView): void {
     // `huntWarning` is the one home of that sentence.
     ? `<br/><span style="color:var(--hud-amber)">${m.warning}</span>` : ''}${m.choices.length
     // A CHOICE PROMPT (docs/TODO/192 M3). A leg that waits on a choice lists
-    // it here, one key per option, and nothing moves until she presses one.
+    // it here, one key per option, and nothing moves until they press one.
     ? `<br/>${m.choices.map((id, k) => `<button data-key="Digit${k + 1}">${k + 1} ${escapeHtml(id.replace(/-/g, ' ').toUpperCase())}</button>`).join(' ')}` : ''}</td>
       <td class="num">${escapeHtml(m.patron.toUpperCase())}</td>
       <td class="num">${m.destination === null ? 'ANY STATION' : systems[m.destination].name}</td>
@@ -350,8 +358,8 @@ export function renderContracts(
 
   // A BOARD IS A STATION'S. In flight there is nothing to sign, and the offers
   // in `state.contractOffers` are the last station's — drawing them would show
-  // a pilot work she cannot take. The ACCEPTED half travels with her, because
-  // what she owes is true wherever she is (docs/TODO/145).
+  // a pilot work they cannot take. The ACCEPTED half travels with them,
+  // because what they owe is true wherever they are (docs/TODO/145).
   // A RUMOUR IS A STATION'S TOO. It is the bulletin board's word about a
   // lead a few jumps out (missions/hints.ts), in the amber a lead's mark
   // wears on the chart.

@@ -288,7 +288,7 @@ rules:
    changes the world they were trained in.
 4. **Save atomically.** The commander blob and the world blob are two keys
    (`storage.ts`). A purchase that wrote one and not the other would leave a
-   commander who flies a hull that her world does not agree about. Write the
+   commander who flies a hull that their world does not agree about. Write the
    commander first. Then let the ordinary dock-time save handle the rest.
 
 Three things do NOT change. `perHitShieldArmour` comes off the hull record, so

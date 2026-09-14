@@ -11,7 +11,7 @@
 // half takes the frame and the other is reached by keys alone.
 //
 // THE TWO HALVES ARE THE SHAPE (docs/TODO/155). `docked.ts` holds what a
-// commander does once the ship stops. `flight.ts` holds what she does in the
+// commander does once the ship stops. `flight.ts` holds what they do in the
 // sky, over `flight-weapons.ts` and `flight-instruments.ts`. Neither half
 // reaches into the other.
 //
@@ -55,7 +55,7 @@ import * as THREE from 'three';
 import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
 import { createStarfield, SpaceDust } from '../world/starfield.ts';
 import { Input } from '../engine/input.ts';
-import { layoutName, toggleLayout, refreshHelpPanel } from '../engine/keymap.ts';
+import { toggleLayout, refreshHelpPanel } from '../engine/keymap.ts';
 import { Hud } from '../hud/hud.ts';
 import { TunnelEffect } from '../hud/tunnel.ts';
 import { sfx, type Place } from '../audio.ts';
@@ -108,13 +108,17 @@ import { CombatSimScreen, type CombatSimContext } from './screens/combat-sim.ts'
 import { TestModeScreen, type TestModeContext } from './screens/test-mode.ts';
 import { QuitScreen, type QuitContext } from './screens/quit.ts';
 import { SurvivorsScreen, type SurvivorsContext } from './screens/survivors.ts';
+import { CoursesScreen, type CoursesContext } from './screens/courses.ts';
+import { CourseActions, type CourseHost, type CoursePanel } from './course-actions.ts';
+import { TargetActions, type TargetPanel } from './target-actions.ts';
+import { ListFold } from './list-fold.ts';
 import { ScreenHost } from '../ui/screen-host.ts';
 
 import { characterVerdict } from './character.ts';
 import { CHARACTER_LINE_SECONDS } from '../constants/character.ts';
 import { hideScreen } from '../ui/screens.ts';
 import { renderNewGameConfirm } from '../ui/screens-career.ts';
-import { boundKey, keyPointer, paintCommandGuide } from '../ui/key-help.ts';
+import { keyPointer, paintCommandGuide } from '../ui/key-help.ts';
 import { freshState, type GameState } from './state.ts';
 
 type Mode = 'docked' | 'flight' | 'market' | 'chart' | 'local' | 'equip' | 'status' | 'data' | 'contracts' | 'saves' | 'save-name' | 'naming' | 'briefing' | 'dead';
@@ -266,7 +270,7 @@ export class Game {
     this.state, this.ordnance, this.combatComputer, this.persistenceHost());
 
   /**
-   * What a commander does while she is docked (docs/TODO/155 M1).
+   * What a commander does while they are docked (docs/TODO/155 M1).
    *
    * Four collaborators and thirteen host methods. The width is the point rather
    * than a cost. This is half an ORCHESTRATOR, and not a rule module. So what
@@ -373,6 +377,26 @@ export class Game {
   } satisfies HyperspaceHost);
 
   /**
+   * The courses a pilot picks from, and the pick applied (docs/TODO/205 M4).
+   * The state is read through a function, because a respawn replaces it.
+   */
+  /** which of the two lists over the view is open (docs/TODO/215 M2) */
+  private readonly lists_ = new ListFold();
+
+  private readonly courses_ = new CourseActions(() => this.state, {
+    jumpCheck: () => this.jump_.jumpCheck(),
+    launch: () => this.docked_.launch(),
+    startHyperspace: () => this.startHyperspace(),
+    closeScreens: () => this.screens.exit(),
+    showMessage: (text, seconds) => this.showMessage(text, seconds),
+    refused: () => sfx.refused(),
+    stopCourse: () => this.flight_.switches.courses.stopCourse(),
+  } satisfies CourseHost, this.lists_);
+
+  /** The target list's buttons, and the pick applied (docs/TODO/206 M3). */
+  private readonly targets_ = new TargetActions(() => this.state, this.lists_);
+
+  /**
    * What a career keeps when a flight ends (docs/TODO/150 M5).
    *
    * Three collaborators and eight host methods. The collaborators are the three
@@ -435,7 +459,46 @@ export class Game {
       exerciseStrip: () => this.flight_.strip,
       setSightLit: (on) => this.shell.setSightLit(on),
       view: () => this.render,
+      // The course buttons, in career flight only. An exercise is a room at
+      // the station, and it has nowhere to go (docs/TODO/205 M5). During a
+      // tunnel the cockpit reads no button, so it shows none.
+      // It shows none while the pilot flies the slot either. The ship is in
+      // the station's mouth then. The only things to fly are the roll and the
+      // speed (docs/TODO/207 M2).
+      coursePanel: () => (this.flight_.inSimulator() || this.tunnel.active
+        || this.state.session.dockTrial ? null : this.courses_.panel()),
+      // The target buttons, in career flight and in an exercise alike: a
+      // training fight is a real fight (docs/TODO/206 M3).
+      targetPanel: () => (this.tunnel.active ? null : this.targets_.panel()),
     } satisfies CockpitHost);
+
+  /**
+   * What the course buttons show now (docs/TODO/205 M5).
+   *
+   * @internal — a delegate for test/course-buttons.test.ts, which reads the
+   * panel without a scrape of the painted buttons.
+   */
+  coursePanel(): CoursePanel | null {
+    return this.flight_.inSimulator() ? null : this.courses_.panel();
+  }
+
+  /**
+   * Both button columns as the HUD paints them (docs/TODO/206 M5).
+   *
+   * @internal — a delegate for test/run-and-offers.test.ts.
+   */
+  hudButtons(): ReturnType<CockpitView['buttons']> {
+    return this.cockpit_.buttons();
+  }
+
+  /**
+   * What the target buttons show now (docs/TODO/206 M3).
+   *
+   * @internal — a delegate for test/fight-buttons.test.ts.
+   */
+  targetPanel(): TargetPanel {
+    return this.targets_.panel();
+  }
 
   /**
    * What the cockpit is offering right now.
@@ -487,7 +550,7 @@ export class Game {
   }
 
   /**
-   * What a commander does while she is flying (docs/TODO/155 M2).
+   * What a commander does while they are flying (docs/TODO/155 M2).
    *
    * Six collaborators and seventeen host methods. The width is what a HALF
    * costs, rather than a fault.
@@ -691,6 +754,10 @@ export class Game {
         sell: () => this.docked_.answerForSurvivors('sold'),
         release: () => this.docked_.answerForSurvivors('released'),
       } satisfies SurvivorsContext)),
+      new CoursesScreen(() => ({
+        rows: () => this.courses_.list('launch'),
+        pick: (kind) => { this.courses_.pick(kind, 'launch'); },
+      } satisfies CoursesContext)),
     ]) this.screens.register(screen);
 
     // A boot enters a system too, so it chooses a roster like any arrival. A
@@ -705,14 +772,9 @@ export class Game {
     // same in both layouts, so the binding table paints them once.
     refreshHelpPanel();
     paintCommandGuide();
-    // ...and the key this line names comes from that same table rather than
-    // from the sentence (docs/TODO/128 M3). The guide is a global binding. The
-    // layout toggle is a row on the station menu, so the line points there
-    // (docs/TODO/202).
-    this.showMessage(
-      `PRESS ${boundKey('docked', 'toggleHelp')} FOR CONTROLS`
-      + ` — ${layoutName().toUpperCase()} LAYOUT`
-      + ' (SWITCH IT ON THE STATION MENU)', 8);
+    // No line at boot says PRESS ? FOR CONTROLS any more (Chris, 2026-09-13,
+    // docs/TODO/220). A phone has no ? key, and the station menu carries the
+    // guide and the layout toggle as rows.
 
     // all screens accept mouse input; the shell owns the listener and hands
     // back the element that carries data-key/data-row
@@ -760,16 +822,19 @@ export class Game {
     let accumulator = 0;
     let simTime = 0;
     this.shell.runLoop((now: number): void => {
-      accumulator += Math.min((now - last) / 1000, MAX_FRAME_TIME);
+      // Fast forward runs more steps in each frame, and changes no step
+      // (docs/TODO/205 M7). A device that cannot keep up runs slower.
+      const speed = this.courses_.speed;
+      accumulator += Math.min((now - last) / 1000, MAX_FRAME_TIME) * speed;
       last = now;
       let steps = 0;
-      while (accumulator >= FIXED_DT && steps < MAX_STEPS_PER_FRAME) {
+      while (accumulator >= FIXED_DT && steps < MAX_STEPS_PER_FRAME * speed) {
         simTime += FIXED_DT;
         this.step(FIXED_DT, simTime);
         accumulator -= FIXED_DT;
         steps += 1;
       }
-      if (steps === MAX_STEPS_PER_FRAME) accumulator = 0; // gave up catching up
+      if (steps === MAX_STEPS_PER_FRAME * speed) accumulator = 0; // gave up catching up
       this.draw(FIXED_DT);
     });
   }
@@ -991,7 +1056,9 @@ export class Game {
    * whatever the frame rate.
    */
   step(dt: number, elapsed: number): void {
-    tickMessage(this.state.session, dt);
+    // A console line keeps its time in the player's seconds under fast
+    // forward, so it can still be read (docs/TODO/205 M7).
+    tickMessage(this.state.session, dt / this.courses_.speed);
     // Flight is the only state that can be paused. While it is paused, route
     // input through the same command table as any other frame, but apply only
     // what a paused cockpit answers — controls.ts's WHILE_PAUSED.
@@ -1013,6 +1080,7 @@ export class Game {
     }
     this.tunnel.update(dt);
     if (this.mode === 'flight') this.flight_.update(dt, elapsed);
+    this.courses_.watchSkip();
     this.finishStep(dt);
   }
 
@@ -1074,6 +1142,12 @@ export class Game {
 
     const mode = this.controlMode();
     if (!mode) return;
+    // The course buttons in flight send codes that no key table holds
+    // (docs/TODO/205 M5). The course actions read them, as a screen reads its
+    // own. A paused cockpit and an exercise read none.
+    if (mode === 'flight' && !pausedOnly) this.courses_.read(i);
+    // ...and so do the target buttons, in an exercise too (docs/TODO/206 M3).
+    if ((mode === 'flight' || mode === 'simulator') && !pausedOnly) this.targets_.read(i);
     for (const c of commandsFor(mode, i)) {
       if (!pausedOnly || WHILE_PAUSED.includes(c)) this.runCommand(c);
     }
@@ -1118,7 +1192,9 @@ export class Game {
     // --- global -----------------------------------------------------------
     toggleHelp: () => { this.helpOpen = !this.helpOpen; this.shell.toggleHelp(); },
     // --- the station menu -------------------------------------------------
-    launch: () => this.docked_.launch(),
+    // The LAUNCH row asks where to go first (docs/TODO/205 M4). `launch()`
+    // below is still the transition itself, which the tests press by name.
+    launch: () => this.screens.open('courses'),
     openMarket: () => this.screens.open('market'),
     openEquip: () => this.screens.open('equip'),
     openBriefing: () => this.screens.open('briefing'),
@@ -1167,6 +1243,7 @@ export class Game {
     launchMissile: () => this.flight_.racks.launchMissile(),
     disarmMissile: () => this.flight_.racks.disarmMissile(),
     fireEcm: () => this.flight_.racks.triggerEcm(),
+    toggleCloak: () => this.flight_.switches.toggleCloak(),
     detonateEnergyBomb: () => this.flight_.racks.detonateEnergyBomb(),
     toggleCombatComputer: () => this.flight_.switches.toggleCombatComputer(),
     toggleDockingComputer: () => this.flight_.switches.dockingComputer(),

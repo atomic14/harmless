@@ -42,7 +42,7 @@ function arcHtml(a: TourArc, n: number): string {
 export function tourHtml(m: TourModel): string {
   const arcs = m.arcs.map((a, i) => arcHtml(a, i + 1)).join('\n');
   const jobs = m.sideJobs.flatMap((g) => g.jobs).map((j) => `
-          <li><b>${escapeHtml(j.title)}</b> &mdash; ${escapeHtml(j.summary)}</li>`).join('');
+          <li><b>${escapeHtml(j.title)}</b> &mdash; ${escapeHtml(j.summary)}${j.needs ? ` <i>(needs ${escapeHtml(j.needs)})</i>` : ''}</li>`).join('');
   return `
       <section id="route">
         <h2>The route</h2>

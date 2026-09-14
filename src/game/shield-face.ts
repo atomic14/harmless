@@ -13,8 +13,9 @@
 // a shot lands on decides which pool it spends, and the commander has two of
 // them (docs/TODO/64).
 //
-// HERS, and only hers. A ship carries one bank and has no facing at all
-// (npc.ts `takeDamage`), so there is nothing here for an NPC to ask.
+// THE COMMANDER'S, AND ONLY THE COMMANDER'S. A ship carries one bank and has
+// no facing at all (npc.ts `takeDamage`), so there is nothing here for an NPC
+// to ask.
 //
 // No allocation: the two scratch objects are the caller's, because this is on
 // the path every hit in the game takes.

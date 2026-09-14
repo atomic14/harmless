@@ -16,6 +16,7 @@ import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../..
 import { SOURCE_DESIGN } from '../../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../../game/ship-identity.ts';
 import type { Skeleton } from '../../model.ts';
+import { PAIR, wingmanOf } from '../lane.ts';
 
 const COBRA = shipDesignIdOf(SOURCE_DESIGN.cobraMk3);
 
@@ -26,10 +27,11 @@ export const ARC_LAVE: Skeleton = {
   patron: { kind: 'world', seedSlot: 7 },
   hail: 'THE GOVERNOR OF LAVE HAS A JOB FOR YOU',
   pitch: 'THE GRUB EXPORT LEDGER WENT ADRIFT WITH A SMUGGLER. THE GOVERNOR WANTS IT BACK, AND THE SMUGGLER CAUGHT.',
-  offer: {},
+  offer: { galaxy: 1, scoops: true },
   legs: [
     {
       id: 'ledger', verb: { kind: 'recover', item: 'grub-ledger' }, place: { kind: 'band', ...SIDE_JOB_RANGE },
+      ambush: { ships: [...PAIR], say: 'THE SMUGGLER\'S FRIENDS WERE WAITING FOR THE LEDGER.' },
       line: 'GOVERNOR: SCOOP THE LEDGER CANISTER ADRIFT AT {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: 'success', to: 'runner', settle: { pay: ARC_PAY.recover, say: 'LEDGER ABOARD — {PAY}. NOW THE SMUGGLER.' } },
@@ -48,7 +50,7 @@ export const ARC_LAVE: Skeleton = {
       ],
     },
     {
-      id: 'runner', verb: { kind: 'hunt', ship: COBRA, canEscape: true },
+      id: 'runner', verb: { kind: 'hunt', ship: COBRA, canEscape: true }, spawn: [...wingmanOf(COBRA, 'runner')],
       place: { kind: 'handover', toward: 'arc-rabedira', ...ARC_HANDOVER_JUMPS },
       line: 'GOVERNOR: DESTROY THE SMUGGLER\'S COBRA — LAST SEEN AT {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [

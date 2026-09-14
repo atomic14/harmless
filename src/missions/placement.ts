@@ -5,6 +5,7 @@
 // band has a candidate. A draw advances the shared world stream, so an extra
 // one changes every result after it.
 
+import { WITCHSPACE_TARGET } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { distanceTenths } from '../galaxy/navigation.ts';
 import { routeTable } from '../galaxy/route.ts';
@@ -77,6 +78,7 @@ export function placeLeg(
       return target === null ? { ok: false } : { ok: true, target };
     }
     case 'world': return { ok: true, target: place.seedSlot };
+    case 'witchspace': return { ok: true, target: WITCHSPACE_TARGET };
     case 'entity': {
       const e = state.entities[place.tag];
       return e ? { ok: true, target: e.lastWorld } : { ok: false };

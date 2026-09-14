@@ -13,7 +13,7 @@
 
 import { ARC_HANDOVER_JUMPS, ARC_LEG_DAYS, ARC_PAY, SIDE_JOB_RANGE } from '../../../constants/missions.ts';
 import type { Skeleton } from '../../model.ts';
-import { LANE_PIRATES } from '../lane.ts';
+import { LANE_PIRATES, LONE_KRAIT, PAIR } from '../lane.ts';
 
 export const ARC_VETITICE: Skeleton = {
   id: 'arc-vetitice',
@@ -22,7 +22,7 @@ export const ARC_VETITICE: Skeleton = {
   patron: { kind: 'world', seedSlot: 100 },
   hail: 'THE PLANNING DIRECTOR AT VETITICE HAS A QUOTA TO MEET',
   pitch: 'PIRATES HOLD THE LANE THE COLLECTIVE\'S SHIPMENT MUST CROSS. CLEAR IT, BRING IN THE SURVEYOR, AND CARRY THE MANIFEST.',
-  offer: { done: ['arc-rabedira'] },
+  offer: { galaxy: 1, done: ['arc-rabedira'] },
   legs: [
     {
       id: 'lane', verb: { kind: 'ambush' }, place: { kind: 'band', ...SIDE_JOB_RANGE }, spawn: [...LANE_PIRATES],
@@ -34,6 +34,7 @@ export const ARC_VETITICE: Skeleton = {
     },
     {
       id: 'pod', verb: { kind: 'rescue' }, place: { kind: 'band', ...SIDE_JOB_RANGE },
+      ambush: { ships: [...LONE_KRAIT], say: 'SOMEBODY WANTED THE SURVEYOR.' },
       line: 'DIRECTOR: SCOOP THE SURVEYOR\'S POD AT {TARGET} AND DOCK', deadlineDays: ARC_LEG_DAYS,
       next: [
         { on: { survivor: 'landed' }, to: 'manifest', settle: { pay: ARC_PAY.rescue, say: 'SURVEYOR LANDED — {PAY}. THE MANIFEST GOES TO {TARGET}.' } },
@@ -51,7 +52,7 @@ export const ARC_VETITICE: Skeleton = {
       ],
     },
     {
-      id: 'manifest', verb: { kind: 'deliver' },
+      id: 'manifest', verb: { kind: 'deliver' }, spawn: [...PAIR],
       place: { kind: 'handover', toward: 'arc-xeer', ...ARC_HANDOVER_JUMPS },
       line: 'DIRECTOR: DELIVER THE MANIFEST TO {TARGET}', deadlineDays: ARC_LEG_DAYS,
       next: [

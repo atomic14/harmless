@@ -17,7 +17,7 @@ import {
 import {
   observe, observePack, observeDefend, observeFor,
 } from '../ai-training/observation.ts';
-import { energyLeft, poolsLeft } from './systems.ts';
+import { energyLeft, poolsLeft } from './pools-left.ts';
 import {
   SHIPPED_BRAINS, type BrainName, type BrainSelection,
 } from './brain-names.ts';

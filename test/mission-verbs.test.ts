@@ -7,15 +7,14 @@
 
 import { stepMissions } from '../src/missions/machine.ts';
 import type { MissionContext } from '../src/missions/machine.ts';
-import { canAccept } from '../src/missions/offers.ts';
 import { missionItems, missionSpawns, scanSecondsFor } from '../src/missions/queries.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
-import type { CommanderFacts, MissionEffect, MissionState, Skeleton } from '../src/missions/model.ts';
+import type { MissionEffect, MissionState, Skeleton } from '../src/missions/model.ts';
 import {
-  SIDE_ESCORT, SIDE_HUNT, SIDE_RECOVER, SIDE_RESCUE, SIDE_SCAN, SIDE_SMUGGLE,
+  SIDE_DELIVER, SIDE_ESCORT, SIDE_HUNT, SIDE_RECOVER, SIDE_RESCUE, SIDE_SCAN, SIDE_SMUGGLE,
 } from '../src/missions/skeletons/side.ts';
 import {
-  RESCUE_SALVAGE_PAY, SCAN_SECONDS, SIDE_JOB_PAY, SMUGGLE_TONNES,
+  GANG_BOUNTY, GANG_BROKEN_BOUNTY, RESCUE_SALVAGE_PAY, SCAN_SECONDS, SIDE_JOB_PAY, SMUGGLE_TONNES,
 } from '../src/constants/missions.ts';
 import { NARCOTICS } from '../src/constants/commodities.ts';
 import { DOCK_COMPUTER_RANGE } from '../src/constants/docking-computer.ts';
@@ -26,25 +25,8 @@ import { seedWorld } from '../src/game/rng.ts';
 import { parseSnapshot } from '../src/game/snapshot-parse.ts';
 import { g1 } from './fixtures.ts';
 import { SIDE_AMBUSH } from '../src/missions/skeletons/side.ts';
-import { LANE_PIRATES } from '../src/missions/skeletons/lane.ts';
 import { check, dismissBriefing, eq } from './harness.ts';
-
-const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], ...over,
-});
-const paid = (effects: MissionEffect[]): number =>
-  effects.reduce((sum, e) => sum + (e.kind === 'pay' ? e.tenths : 0), 0);
-
-/** A world whose board carries `job`, and a context standing there. */
-function boardFor(job: Skeleton, over: Partial<CommanderFacts> = {}): MissionContext {
-  const world = g1.find((s) => canAccept(emptyMissionState(), job.id,
-    { commander: facts({ systemIndex: s.index }), skeletons: [job], systems: g1 }))!;
-  return { commander: facts({ systemIndex: world.index, ...over }), systems: g1, rng: () => 0.5, skeletons: [job] };
-}
-const moved = (ctx: MissionContext, systemIndex: number, over: Partial<CommanderFacts> = {}): MissionContext =>
-  ({ ...ctx, commander: { ...ctx.commander, systemIndex, ...over } });
-const accept = (job: Skeleton, ctx: MissionContext): MissionState =>
-  stepMissions(emptyMissionState(), { kind: 'accept', skeleton: job.id }, ctx).state;
+import { accept, boardFor, facts, moved, paid } from './fixtures.ts';
 
 console.log('\nrecover: a canister adrift, scooped and brought home');
 {
@@ -57,7 +39,9 @@ console.log('\nrecover: a canister adrift, scooped and brought home');
   eq('the job opens on the find leg', live.leg, 'find');
   eq('...with a tagged canister adrift at the target',
     JSON.stringify(missionItems(st, target)), JSON.stringify([{ tag, kind: 'cargo' }]));
-  eq('...and no ship', missionSpawns(st, target).length, 0);
+  // ...and one Krait circling it, which answers to nothing (docs/TODO/214 M1).
+  eq('...and one pirate beside it that is not the leg\'s',
+    missionSpawns(st, target).filter((s) => s.tag !== tag).length, 1);
   const wrong = stepMissions(st, { kind: 'scooped', tag: 'somebody-else' }, moved(ctx, target));
   eq('another canister scooped moves nothing', wrong.state.live[0].leg, 'find');
   const got = stepMissions(st, { kind: 'scooped', tag }, moved(ctx, target));
@@ -145,6 +129,8 @@ console.log('\nsmuggle: the goods go aboard, and the patrol is the risk');
   const hold = (tonnes: number): number[] => { const c = new Array(17).fill(0); c[NARCOTICS] = tonnes; return c; };
   const landed = stepMissions(r.state, { kind: 'docked' }, moved(ctx, target, { cargo: hold(SMUGGLE_TONNES) }));
   eq('a dock at the target with the goods aboard pays', paid(landed.effects), SIDE_JOB_PAY.smuggle);
+  check('...and the goods leave the hold (docs/TODO/213 M2)',
+    landed.effects.some((e) => e.kind === 'unload' && e.commodity === NARCOTICS && e.tonnes === SMUGGLE_TONNES));
   const light = stepMissions(r.state, { kind: 'docked' }, moved(ctx, target, { cargo: hold(SMUGGLE_TONNES - 1) }));
   eq('...and with a tonne sold on the way it fails', light.state.done[SIDE_SMUGGLE.id], 'fail');
   const elsewhere = stepMissions(r.state, { kind: 'docked' }, moved(ctx, 7, { cargo: hold(SMUGGLE_TONNES) }));
@@ -153,13 +139,27 @@ console.log('\nsmuggle: the goods go aboard, and the patrol is the risk');
   eq('a police scan on the way fails it', read.state.done[SIDE_SMUGGLE.id], 'fail');
 }
 
+console.log('\na local patron\'s standing is keyed by the world the job was taken at (docs/TODO/213 M4)');
+{
+  // A delivery accepted at one world and landed at another credited the far
+  // end's patron, because the key named the world where the branch settled.
+  const dctx = boardFor(SIDE_DELIVER);
+  const dst = accept(SIDE_DELIVER, dctx);
+  const origin = dctx.commander.systemIndex;
+  const target = dst.live[0].target as number;
+  check('the delivery goes to another world', target !== origin);
+  const done = stepMissions(dst, { kind: 'docked' }, moved(dctx, target));
+  eq('the standing lands on the patron who gave the job', done.state.standing[`world-${origin}`], 1);
+  eq('...and none on the world it was delivered to', done.state.standing[`world-${target}`], undefined);
+}
+
 console.log('\nescort and scan, through the machine');
 {
   const ctx = boardFor(SIDE_ESCORT);
   const st = accept(SIDE_ESCORT, ctx);
   const tag = st.live[0].tag as string;
   const target = st.live[0].target as number;
-  eq('the charge is spawned as an escort', missionSpawns(st, target)[0]?.job, 'escort');
+  eq('the charge is spawned as an escort', missionSpawns(st, target).find((s) => s.tag === tag)?.job, 'escort');
   const stranger = stepMissions(st, { kind: 'escortSafe', tag: 'somebody-else' }, moved(ctx, target));
   eq('another ship safe pays nothing', paid(stranger.effects), 0);
   const safe = stepMissions(st, { kind: 'escortSafe', tag }, moved(ctx, target));
@@ -172,6 +172,10 @@ console.log('\nescort and scan, through the machine');
     stepMissions(st, { kind: 'escortLost', tag }, moved(ctx, target)).state.done[SIDE_ESCORT.id], 'fail');
   eq('...and so does one that jumps out',
     stepMissions(st, { kind: 'escaped', tag }, moved(ctx, target)).state.done[SIDE_ESCORT.id], 'fail');
+  // A charge that a pirate hit runs, and jumps out while it runs. The world
+  // sends `fled` for that, and the verb ignored it until docs/TODO/213 M1.
+  eq('...and so does one that ran from a hit',
+    stepMissions(st, { kind: 'fled', tag }, moved(ctx, target)).state.done[SIDE_ESCORT.id], 'fail');
 
   const sctx = boardFor(SIDE_SCAN);
   const sst = accept(SIDE_SCAN, sctx);
@@ -183,13 +187,55 @@ console.log('\nescort and scan, through the machine');
   eq('the scan pays', paid(scanned.effects), SIDE_JOB_PAY.scan);
   const killed = stepMissions(sst, { kind: 'destroyed', tag: stag }, sctx);
   eq('a subject destroyed fails it, and the patron minds', killed.state.standing[`world-${sctx.commander.systemIndex}`], -3);
+  const wrecked = stepMissions(sst, { kind: 'escortLost', tag: stag }, sctx);
+  eq('...and one wrecked by nobody is destroyed all the same', wrecked.state.standing[`world-${sctx.commander.systemIndex}`], -3);
+  eq('a subject that ran from a hit has escaped',
+    stepMissions(sst, { kind: 'fled', tag: stag }, sctx).state.done[SIDE_SCAN.id], 'fail');
 
+  // The side hunt is a gang since docs/TODO/217 M1: a leader with three
+  // members, and the job ends when every one is gone.
   const hctx = boardFor(SIDE_HUNT);
   const hst = accept(SIDE_HUNT, hctx);
   const htag = hst.live[0].tag as string;
-  eq('the side hunt pays on the kill', paid(stepMissions(hst, { kind: 'destroyed', tag: htag }, hctx).effects), SIDE_JOB_PAY.hunt);
-  eq('...and a target that jumps out fails it',
-    stepMissions(hst, { kind: 'escaped', tag: htag }, hctx).state.done[SIDE_HUNT.id], 'fail');
+  const members = [1, 2, 3].map((i) => `${htag}#gang-${i}`);
+  const said = (r: { effects: MissionEffect[] }, text: RegExp): boolean =>
+    r.effects.some((e) => e.kind === 'say' && text.test(e.text));
+  check('a gang hunt mints a record for the leader and each member',
+    hst.entities[htag]?.alive === true && members.every((t) => hst.entities[t]?.alive === true));
+  const one = stepMissions(hst, { kind: 'destroyed', tag: members[1] }, hctx);
+  check('a member killed is one of the gang down, and the console counts the rest',
+    said(one, /^ONE OF THE GANG IS DOWN\. 3 LEFT\.$/) && paid(one.effects) === 0 && one.state.live.length === 1);
+  eq('...and the record says so', one.state.entities[members[1]]?.alive, false);
+  const two = stepMissions(one.state, { kind: 'destroyed', tag: htag }, hctx);
+  check('the leader killed with members left says so, and pays nothing yet',
+    said(two, /^THE LEADER IS DOWN\. 2 OF THE GANG LEFT\.$/) && paid(two.effects) === 0);
+  const three = stepMissions(two.state, { kind: 'escortLost', tag: members[0] }, hctx);
+  eq('a member wrecked by somebody else is down all the same', three.state.live[0].progress, 3);
+  const done = stepMissions(three.state, { kind: 'destroyed', tag: members[2] }, hctx);
+  eq('the last one gone pays the gang', paid(done.effects), GANG_BOUNTY);
+  eq('...and the job is complete', done.state.done[SIDE_HUNT.id], 'complete');
+  check('...with the gang\'s line', said(done, /THE GANG IS DESTROYED/));
+
+  // The leader runs (docs/TODO/214 M4). The gang goes on, and the pay halves.
+  const ran = stepMissions(hst, { kind: 'fled', tag: htag }, hctx);
+  check('a leader that ran is gone from the record, and the record says it ran',
+    ran.state.entities[htag]?.alive === false && ran.state.entities[htag]?.fled === true);
+  check('...and the console says the gang is still there', said(ran, /^THE LEADER RAN FOR IT\. 3 OF THE GANG LEFT\.$/));
+  const broken = members.reduce((r, t) => stepMissions(r.state, { kind: 'destroyed', tag: t }, hctx), ran);
+  eq('the gang gone after its leader ran pays half', paid(broken.effects), GANG_BROKEN_BOUNTY);
+  check('...and says the leader got away', said(broken, /BUT ITS LEADER RAN/));
+  eq('a member never runs, so the word is ignored',
+    stepMissions(hst, { kind: 'fled', tag: members[0] }, hctx).state.live[0].progress, 0);
+  const jumped = members.reduce((r, t) => stepMissions(r.state, { kind: 'destroyed', tag: t }, hctx),
+    stepMissions(hst, { kind: 'escaped', tag: htag }, hctx));
+  eq('a leader that jumped out pays half too', paid(jumped.effects), GANG_BROKEN_BOUNTY);
+  check('...and says the leader got away', said(jumped, /BUT ITS LEADER (RAN|JUMPED)/));
+  // The record holds one mark for a ship that left, so the words say how
+  // only when the leader is the last to go.
+  let rest = hst;
+  for (const t of members) rest = stepMissions(rest, { kind: 'destroyed', tag: t }, hctx).state;
+  const last = stepMissions(rest, { kind: 'escaped', tag: htag }, hctx);
+  check('...and a leader that jumps out last says it jumped', said(last, /BUT ITS LEADER JUMPED/) && paid(last.effects) === GANG_BROKEN_BOUNTY);
 }
 
 console.log('\nescort, through a real world step');
@@ -226,18 +272,25 @@ console.log('\nescort, through a real world step');
   step(g);
   eq('just outside station range nothing is paid', c.credits, before);
   charge.object.position.copy(station).add({ x: DOCK_COMPUTER_RANGE - 50, y: 0, z: 0 } as never);
-  const pirate = g.state.world.spawn('pirate', charge.object.position.clone().add({ x: 200, y: 0, z: 0 } as never), 1);
+  // The commander is at the witchpoint, far from their charge (docs/TODO/214
+  // M3). The fee needs them there, and the charge holds for them.
   step(g);
-  eq('...and inside it with a pirate beside her, still nothing', c.credits, before);
+  eq('...and inside it with the commander far away, still nothing', c.credits, before);
+  check('...and the charge holds for them', charge.state.holding);
+  const pirate = g.state.world.spawn('pirate', charge.object.position.clone().add({ x: 200, y: 0, z: 0 } as never), 1);
+  g.state.player.position.copy(charge.object.position).add({ x: 0, y: 300, z: 0 } as never);
+  step(g);
+  check('with the commander beside it, the charge moves again', !charge.state.holding);
+  eq('...and inside it with a pirate beside them, still nothing', c.credits, before);
   const trader = g.state.world.spawn('trader', charge.object.position.clone().add({ x: -200, y: 0, z: 0 } as never), 2);
   g.state.world.despawn(pirate);
   step(g);
-  eq('with the pirate gone and a trader beside her, the fee lands', c.credits - before, SIDE_JOB_PAY.escort);
+  eq('with the pirate gone and a trader beside them, the fee lands', c.credits - before, SIDE_JOB_PAY.escort);
   eq('...and the job is complete', c.missions.done[SIDE_ESCORT.id], 'complete');
   check('...and the charge is still in the sky to dock', g.state.world.npcs.includes(charge) && charge.state.alive);
   step(g);
   eq('a further frame pays nothing more', c.credits - before, SIDE_JOB_PAY.escort);
-  check('a trader beside her never blocked it', g.state.world.npcs.includes(trader));
+  check('a trader beside them never blocked it', g.state.world.npcs.includes(trader));
 }
 
 console.log('\nthe survivors prompt counts a passenger, and the loader keeps the tag');
@@ -272,30 +325,17 @@ console.log('\nthe survivors prompt counts a passenger, and the loader keeps the
     parseSnapshot(old as never).canisters.length === snap.canisters.length);
 }
 
-console.log('\nambush: the lane has pirates while the leg is live (docs/TODO/203 M2)');
-{
-  const ctx: MissionContext = { commander: facts(), systems: g1, rng: () => 0.5, skeletons: [SIDE_AMBUSH] };
-  const st = accept(SIDE_AMBUSH, ctx);
-  const target = st.live[0].target as number;
-  eq('the lane job spawns the lane pirates at its world',
-    JSON.stringify(missionSpawns(st, target, [SIDE_AMBUSH])), JSON.stringify(LANE_PIRATES));
-  check('...all flown as pirates', LANE_PIRATES.every((p) => p.job === 'hunt'));
-  eq('...and none anywhere else', missionSpawns(st, (target + 1) % g1.length, [SIDE_AMBUSH]).length, 0);
-  const done = stepMissions(stepMissions(st, { kind: 'arrived' }, { ...ctx, commander: facts({ systemIndex: target }) }).state,
-    { kind: 'docked' }, { ...ctx, commander: facts({ systemIndex: target }) }).state;
-  eq('...and they are gone once the lane is cleared', missionSpawns(done, target, [SIDE_AMBUSH]).length, 0);
-}
-
 console.log('\na step that takes no branch still speaks (docs/TODO/203 M4)');
 {
   const said = (effects: MissionEffect[]): string[] => effects.flatMap((e) => (e.kind === 'say' ? [e.text] : []));
-  const ctx: MissionContext = { commander: facts(), systems: g1, rng: () => 0.5, skeletons: [SIDE_RESCUE, SIDE_AMBUSH] };
+  // Sixteen kills, because the board gates the lane job (docs/TODO/217 M2).
+  const ctx: MissionContext = { commander: facts({ kills: 16 }), systems: g1, rng: () => 0.5, skeletons: [SIDE_RESCUE, SIDE_AMBUSH] };
   const st = accept(SIDE_RESCUE, ctx);
   const tag = st.live[0].tag as string;
   const target = st.live[0].target as number;
   const scooped = stepMissions(st, { kind: 'scooped', tag }, moved(ctx, target));
   eq('the pod scooped says the pilot is aboard and what to do next',
-    said(scooped.effects).join('|'), 'THE PILOT IS ABOARD. DOCK AT ANY STATION AND LAND HER.');
+    said(scooped.effects).join('|'), 'THE PILOT IS ABOARD. DOCK AT ANY STATION AND LAND THE PILOT.');
   const lane = accept(SIDE_AMBUSH, ctx);
   const world = g1[lane.live[0].target as number].name.toUpperCase();
   const arrived = stepMissions(lane, { kind: 'arrived' }, moved(ctx, lane.live[0].target as number));

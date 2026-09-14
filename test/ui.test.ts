@@ -337,8 +337,10 @@ console.log('\nautopilots');
     eq('an unfitted docking computer refuses',
       texts(auto.toggleDocking())[0], 'NO DOCKING COMPUTER FITTED');
     check('...and does not engage', !state.session.dcEngaged);
-    eq('an unfitted combat computer refuses',
-      texts(auto.toggleCombat())[0], 'NO COMBAT COMPUTER FITTED');
+    // Every ship has the computer's aim since docs/TODO/206, so an unfitted
+    // one no longer refuses. It still refuses an empty sky.
+    eq('with nothing to fight, the aim refuses',
+      texts(auto.toggleCombat())[0], 'NOTHING TO FIGHT');
     check('...and does not engage', !state.session.ccEngaged);
   }
 
@@ -367,7 +369,7 @@ console.log('\nautopilots');
     const { state, auto } = rig({ combatComputer: true });
     clearOfTruce(state);
     eq('the combat computer refuses an empty sky',
-      texts(auto.toggleCombat())[0], 'NO HOSTILES — COMBAT COMPUTER IDLE');
+      texts(auto.toggleCombat())[0], 'NOTHING TO FIGHT');
     check('...and stays off', !state.session.ccEngaged);
 
     state.world.spawn('pirate',
@@ -378,7 +380,7 @@ console.log('\nautopilots');
     check('...and swings to the front view, because it aims the front laser',
       state.session.view === 0);
     eq('pressing it again hands the ship back',
-      texts(auto.toggleCombat())[0], 'COMBAT COMPUTER OFF');
+      texts(auto.toggleCombat())[0], 'YOU HAVE THE CONTROLS');
     check('...and it is off', !state.session.ccEngaged);
   }
 

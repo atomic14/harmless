@@ -28,6 +28,7 @@ import { World } from '../src/game/world.ts';
 import {
   WorldStep,
   massLocked,
+  massLockCause,
   type StepEvent,
   type StepHost,
 } from '../src/game/world-step.ts';
@@ -285,7 +286,7 @@ console.log('\nheadless world step');
       .add(new THREE.Vector3(0, 0, MASS_LOCK_STATION * 0.6));   // inside the mass lock
     const events = fly(run, 1);
     check('a mass lock returns a message instead of calling a HUD',
-      events.some((e) => e.kind === 'message' && e.text.startsWith('MASS LOCK')));
+      events.some((e) => e.kind === 'message' && e.text.startsWith('TORUS DRIVE OFF')));
     // ...and the same for the noise it makes. The step reached straight into
     // the audio singleton for this one until sounds became events too.
     check('...and the named sound with it, rather than reaching for an AudioContext',
@@ -861,6 +862,28 @@ console.log('\nheadless world step');
     check(`...and the drive lets go ${MASS_LOCK_PLANET_ALTITUDE - PLANET_CRASH_ALTITUDE}`
       + ' units above the ground, not below it',
     MASS_LOCK_PLANET_ALTITUDE > PLANET_CRASH_ALTITUDE * 10);
+  }
+
+  // ...AND THE LOCK NAMES WHAT HOLDS THE DRIVE DOWN (docs/TODO/209).
+  //
+  // Chris flew a trip to the station and reported no mass lock on a neutral
+  // trader. The rule did fire. The message did not say which ship stopped the
+  // drive, so the stop looked like nothing at all.
+  {
+    const run = arrival(4251);
+    const DEEP = new THREE.Vector3(1e7, 1e7, 1e7);
+    run.state.player.position.copy(run.state.world.station.position);
+    check('the lock names the station', massLockCause(run.state) === 'THE STATION');
+    run.state.player.position.copy(run.state.world.planetPos)
+      .add(new THREE.Vector3(0, 0, run.state.world.planetRadius + 10));
+    check('...and the planet', massLockCause(run.state) === 'THE PLANET');
+    run.state.player.position.copy(DEEP);
+    check('...and a clear sky holds nothing', massLockCause(run.state) === null);
+    const trader = run.state.world.spawn('trader', DEEP.clone().add(new THREE.Vector3(0, 0, 10)), 0);
+    const name = massLockCause(run.state);
+    check(`...and a neutral trader by its own name (measured ${String(name)})`,
+      name === `A ${trader.object.name.toUpperCase()}` && trader.object.name !== '');
+    check('...and `massLocked` stays the same rule', massLocked(run.state));
   }
 
   // THE TORUS IS EIGHT TIMES ORDINARY FLIGHT, and the step adds seven of them

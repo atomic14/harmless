@@ -19,7 +19,9 @@
 
 import * as THREE from 'three';
 
-import { LINED_UP_LATERAL, SLOT_HALF_ACROSS, ROLL_TOLERANCE } from '../constants/docking.ts';
+import {
+  LINED_UP_LATERAL, SLOT_HALF_ACROSS, COMPUTER_ROLL_TOLERANCE,
+} from '../constants/docking.ts';
 import {
   DC_SLOT_MARGIN, DC_TURN_FADE_ANGLE, DC_ROLL_LEAD,
 } from '../constants/docking-computer.ts';
@@ -118,7 +120,7 @@ export function dockingSticks(
   // last correction and nothing else (docs/TODO/137, `DC_SLOT_MARGIN`).
   const onAxis = Math.max(0, Math.min(1,
     (LINED_UP_LATERAL - plan.lateral) / (LINED_UP_LATERAL - SLOT_HALF_ACROSS)));
-  const budget = Math.PI / 2 + (ROLL_TOLERANCE * DC_SLOT_MARGIN - Math.PI / 2) * onAxis;
+  const budget = Math.PI / 2 + (COMPUTER_ROLL_TOLERANCE * DC_SLOT_MARGIN - Math.PI / 2) * onAxis;
   // The attitude the SLOT asks for, but only once the approach COMMITS to the
   // letterbox. A slot 1,500 units away on a hull that turns has no opinion
   // worth the flight. To track it out there is a roll that never stops. A ship in a

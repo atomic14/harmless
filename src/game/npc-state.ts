@@ -112,10 +112,41 @@ export interface NpcState {
    * names.
    */
   missionTag: string | null;
+  /**
+   * The pilot picked this ship on the target list (docs/TODO/206 M1). One
+   * ship at most carries it. The computer then aims at this ship rather than
+   * at the threat it would choose. It is saved, because it decides what the
+   * computer flies at.
+   */
+  targeted: boolean;
+  /**
+   * This ship was already named as a close pass (docs/TODO/209). A neutral
+   * ship inside the mass lock radius is announced one time, so the pilot can
+   * pirate it. `close-pass.ts` owns the rule. It is saved, so a reload does
+   * not repeat the line.
+   */
+  announcedClose: boolean;
   /** seconds under the scanner lock so far: a scan leg's clock */
   observed: number;
   /** the escort or the scan verdict was sent once; it is never sent again */
   missionReported: boolean;
+  /**
+   * A mission's charge waits, because the commander is beyond the leash
+   * (docs/TODO/214 M3). The world step decides it each frame, and the
+   * working life reads it as a speed of zero.
+   */
+  holding: boolean;
+  /** the console said the charge is holding, once */
+  holdSaid: boolean;
+  /**
+   * This ship may run for the edge of the system when it is nearly dead
+   * (docs/TODO/214 M4). The world step stamps it each frame on the target
+   * of a hunt that `canEscape`, and on nothing else. `takeDamage` reads it
+   * against `HUNT_FLEE_FRACTION`.
+   */
+  canFlee: boolean;
+  /** the console said the target is on the run, once */
+  runSaid: boolean;
   fleeing: boolean;
   /** where this ship is in its attack run — see break-off.ts */
   attackPhase: AttackPhase;
@@ -139,6 +170,12 @@ export interface NpcState {
   flownBy: 'brain' | 'scripted' | 'pursuit' | 'fleeing' | 'none';
   /** seconds of evasive flying left after the last hit taken — see break-off.ts */
   underFire: number;
+  /**
+   * Seconds since the last hit this ship took. A trader that fled reads it
+   * against `TRADER_CALM_SECONDS` to go back to work (docs/TODO/213 M1). It
+   * is saved with the rest, and an old save reads it as 0.
+   */
+  calm: number;
   /**
    * How far out THIS run goes before turning back, rolled from the band in
    * break-off.ts every time the ship starts extending. State for `hasEcm`'s
@@ -261,7 +298,7 @@ export function freshNpcState(maxEnergy: number): NpcState {
     tumbleAxis: randomDirection(new THREE.Vector3()),
     energy: maxEnergy, regenCarry: 0,
     alive: true, provoked: false, provokedByPlayer: false, missiles: 0,
-    missionTag: null, observed: 0, missionReported: false, fleeing: false, attackPhase: 'closing', underFire: 0, flownBy: 'none',
+    missionTag: null, targeted: false, announcedClose: false, observed: 0, missionReported: false, holding: false, holdSaid: false, canFlee: false, runSaid: false, fleeing: false, attackPhase: 'closing', underFire: 0, calm: 0, flownBy: 'none',
     extendRange: EXTEND_RANGE_MAX, passSide: 1, passesMade: 0,
     tactic: 'run', tacticClock: 0, dryFor: 0,
     tradeTimer: 0,

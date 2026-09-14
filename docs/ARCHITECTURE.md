@@ -23,16 +23,40 @@ rules. This file is a map.
   on the GPU. The controls read an input interface, not the browser. Two pointer
   seams cross the platform seam. `onScreenClick` is input. `onScreenMove` reports
   only: a screen may repaint what it describes, but it must never select or
-  spend.
-- The HUD is a read-only painter, and it is three files. `hud/hud-model.ts`
+  spend. `engine/hold-buttons.ts` is the third: a button that holds a key down
+  while it is held, such as the laser (docs/TODO/206).
+- The HUD is a read-only painter, and it is four files. `hud/hud-model.ts`
   works out where a marker goes. `hud-binding.ts` turns the state into a
-  dashboard. `hud.ts` paints one. A screen lives behind `ui/screen-host.ts`, and
+  dashboard. `hud.ts` paints one. `hud-buttons.ts` paints the buttons over the
+  flight view, such as the course buttons, and a click on one sends its code
+  (docs/TODO/205). A screen lives behind `ui/screen-host.ts`, and
   it reaches the page through `ui/screen-shell.ts`. A screen owns its own
   rendering, its own input and its own local state.
 - `src/game/prompts.ts` decides what a key can do about the situation right now.
   It returns a `Command` and words. It never returns a letter. `cockpit-view.ts`
   looks the label up, through `ui/key-help.ts`. That is how invariant 9 reaches
   prose. A prompt is derived state, and the code saves nothing about it.
+- `src/game/courses.ts` decides what the ship can do next with no hand on the
+  stick (docs/TODO/205). A course is one such thing, such as a trip to the
+  station or a skim of the star. It follows the shape of `prompts.ts`: a flat
+  view in, a ranked list out, and no key. The list is derived state. The code
+  saves the course that the pilot picks, and never the list.
+  `course-pilot.ts` flies the picked course, one frame at a time, and it
+  reports a `FlightDemand`. `flight-instruments.ts` throws the switches that a
+  course asks for: the torus drive, the hand-over to the docking computer, and
+  the end of the course. A commander with no docking computer gets the docking
+  mini game (docs/TODO/212). EVERY commander gets the same line-up first. The
+  computer flies the ship to the right distance from the station, stops it, and
+  turns it to face the port. `world-step.ts` then asks the one question: a
+  fitted docking computer takes the ship in, and a commander with none gets the
+  rails and the game. `dock-rails.ts` holds the ship on the slot axis while the
+  pilot matches the slot and the speed. It is the one file that moves the
+  commander's ship other than by flying it, and it only ever takes up a residue.
+  The last turn is flown, with `bankToTurn` and both sticks. `course-actions.ts` joins the list to the Game: it
+  builds the flat view, and it applies a pick. At the station, the LAUNCH row
+  opens `screens/courses.ts`, and a pick leaves on the course. In flight, the
+  list is a set of buttons over the view, and not a screen, because the flight
+  world stops under a screen.
 - The console is one line, so `SessionState.queued` is the line that waits for it
   (`session.ts`). Some consequences make sense only after their cause: what a
   scan cost your legal record, or what a deed cost your reputation. The console
@@ -51,13 +75,16 @@ rules. This file is a map.
 
 **Two halves split what a commander does.** Neither half reaches into the other.
 
-- `docked.ts` — what she does once the ship stops. The arrival, the menu, the
+- `docked.ts` — what the commander does once the ship stops. The arrival, the menu, the
   market, the outfitters and the board are here.
-- `flight.ts` — what she does in the sky. That is one slice of time advanced,
+- `flight.ts` — what the commander does in the sky. That is one slice of time advanced,
   and who is at the controls for it. It has two children of its own:
   - `flight-weapons.ts` — what the ship spends, and what it takes. Laser fire is
     here.
   - `flight-instruments.ts` — the switches that change who flies the ship.
+  - `flight-course.ts` — the course at the controls. Three things end it. The
+    work is done, or the pilot taps the lit button, or a hostile ship turns up.
+    It left `flight-instruments.ts` on 2026-09-12.
 
 A step that ends in a dock, a jump, a tow or a death reports that end to
 `game.ts`. The orchestrator then decides what the game becomes.
@@ -68,7 +95,7 @@ spends:
 - `world-build.ts` — what is in the sky when you arrive.
 - `cockpit-view.ts` — what the cockpit shows about the world.
 - `law-actions.ts` — what the law does to a commander. It applies a record.
-- `hyperspace-actions.ts` — how a commander leaves a system, and how she arrives
+- `hyperspace-actions.ts` — how a commander leaves a system, and how they arrive
   in one. The jump is here.
 - `career.ts` — what a career keeps when a flight ends.
 - `persistence.ts` — the world written down, and put back.
@@ -156,6 +183,20 @@ Two quirks are deliberate:
   both callers agree. `combat.ts` takes each ingredient separately, so a test can
   drive it. `combat-player.ts` is the assembly step that builds the player's own
   trigger out of one `GameState`.
+- `src/game/targets.ts` lists what the ship can fight, and holds the pilot's
+  pick (docs/TODO/206). The pick is one flag on the picked ship's own state,
+  so a save carries it. It sits on top of `threat-lock.ts`, and never changes
+  that rule. `target-actions.ts` joins the list to its buttons, and gives each
+  ship a code that names it for as long as it lives. `close-pass.ts` names a
+  neutral trader that comes close, one time, so the pilot knows the chance is
+  there (docs/TODO/209). It never stops the ship.
+  `cockpit-buttons.ts` says what every button over the flight view reads, in
+  words, and it holds no world (docs/TODO/206 M5). `game/mission-course.ts`
+  says what a live mission asks the ship to do here (docs/TODO/208). There
+  are five shapes: a fight, a hold, an escort, a scoop, and a slip past the
+  police.
+  `game/derelict.ts` says what a scan of a derelict reports, read off the
+  world's own seed.
 - `src/game/threat.ts` computes the pirate count, the group tier and the
   organisation from the visible value and the reputation. `ship-specs.ts` maps a
   tier to a hull. The campaign simulator calls the same rules.
@@ -196,22 +237,27 @@ Two quirks are deliberate:
 - `src/game/mission-bridge.ts` is the game's side of the mission machine. It
   runs one input, installs the record on the commander, and applies the
   effects that are the commander's: credits, reputation and legal status. It
-  hands the words back, and the caller says them. `src/game/mission-desk.ts`
+  hands the words back, and the caller says them. It hands a spawn order
+  back too, and the world step spawns an ambush (docs/TODO/214). `src/game/mission-desk.ts`
   is the MISSIONS screen's two actions, acceptance and abandonment, and the
-  offers it lists. `src/game/hunt-warning.ts` prices her gun against the ship
+  offers it lists. `src/game/hunt-warning.ts` prices the commander's gun against the ship
   a hunt names, through the combat oracle.
 - `src/missions/` is the mission machine (docs/TODO/190). `model.ts` holds the
-  types. A skeleton under `skeletons/` is one mission's rules, written by a
+  types, `effects.ts` the consequences the game applies, and `words.ts` the
+  shape of a patron and a dossier. A skeleton under `skeletons/` is one mission's rules, written by a
   developer. A dossier is its generated words, and the machine never reads one.
   `machine.ts` is one pure step. It takes the record, one input and the facts
   it may read. It returns a new record with the effects the game applies.
+  `settlement.ts` applies a branch's settlement, and `leads.ts` saves a lead
+  (docs/TODO/217).
   A verb module under `verbs/` decides what an input means for one leg, and
   the machine takes the branch. `triggers.ts` says what a trigger is called,
   and which dossier line a branch may speak with. `lookups.ts` reads a
   skeleton: a leg by id, a patron's key, and where a skeleton is offered. `placement.ts` picks a leg's world with one
   draw. A band measures tenths on the chart. A handover measures jumps on
   the full-tank graph. `tour.ts` places the five arc starts from the seed,
-  and a galactic jump moves a lead by the same rule (docs/TODO/192). `queries.ts` answers the game's questions without a change. `lint.ts`
+  and an arc is offered in galaxy 1 alone. So a lead keeps its galaxy across
+  a galactic jump (docs/TODO/213). `queries.ts` answers the game's questions without a change. `lint.ts`
   holds the five failure rules as data checks, and
   `test/mission-skeletons.test.ts` runs it over every skeleton. `repair.ts`
   reads a saved record for both loaders, and drops the old stage number.

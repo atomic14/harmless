@@ -1,47 +1,47 @@
 {
-  "promptVersion": 3,
+  "promptVersion": 4,
   "model": "claude-sonnet-5 via claude -p",
-  "generated": "2026-09-07",
+  "generated": "2026-09-13",
   "usage": {
-    "requests": 21,
-    "inputTokens": 164690,
-    "outputTokens": 100025
+    "requests": 20,
+    "inputTokens": 175941,
+    "outputTokens": 98405
   },
   "dossier": {
     "briefing": [
-      "This is {PATRON}, and this station needs a lane cleared.",
-      "Pirates hold the way out of {HERE}, and every hull I send back limps home empty.",
-      "Fly it, fight through, and dock on the far side, and I will pay you well for it."
+      "This is {PATRON}, out of {HERE}. Pirates have the lane to our neighbour locked down tight, and it's bleeding this station dry.",
+      "Fly it. Fight through whatever's waiting. Dock on the far side, and you'll have proven the route's still open.",
+      "Do that, and you're paid in full. Fail, and the lane stays shut, and so does half our trade."
     ],
-    "lead": "{PATRON} wants a word about the lane out of {WORLD}.",
     "legs": {
       "lane": {
-        "arrive": "Fly to {TARGET} through the pirates on the lane, and dock for {PAY}",
-        "success": "You broke the lane and docked at {TARGET}, and earned {PAY}",
-        "fail": "The lane held, {TARGET} stayed out of reach, and the {PAY} was lost"
+        "arrive": "Fly to {TARGET} through the pirates, and dock, for {PAY}",
+        "success": "Docked at {TARGET} — the lane holds, and {PAY} is yours",
+        "fail": "Never reached {TARGET} — the lane stays shut, and {PAY} slips away"
       }
     },
+    "lead": "{PATRON} wants a word, once the commander returns to {WORLD}.",
     "rumour": {
-      "far": "They say {PATRON} at {WORLD} pays well for anyone who can break the pirate lane.",
-      "near": "{PATRON} sends word from {WORLD}: the lane still needs clearing, and the pay still stands."
+      "far": "Word on the boards says {PATRON} at {WORLD} still needs a pilot for the pirate lane.",
+      "near": "{PATRON} sends word from {WORLD}: the lane's still waiting for someone with nerve."
     },
-    "news": "Word around {WORLD} says {PATRON} still needs a pilot to break the pirate lane.",
+    "news": "Station traffic through {WORLD} stays thin, and {PATRON} is still hiring for the pirate lane.",
     "story": {
-      "opening": "On day {DAY}, she agreed to break the pirate lane out of {WORLD}.",
+      "opening": "On day {DAY}, the commander agreed to clear the pirate lane to {WORLD} for a station under siege.",
       "closing": {
-        "complete": "By day {DAY}, the lane out of {WORLD} was open again.",
-        "fail": "By day {DAY}, the lane out of {WORLD} was still shut."
+        "complete": "By day {DAY}, the commander had broken the blockade and opened the way to {WORLD}.",
+        "fail": "By day {DAY}, the lane to {WORLD} remained shut, and the commander's word carried no weight."
       },
       "legs": {
         "lane": {
-          "success": "On day {DAY}, she broke the lane and docked at {WORLD}.",
-          "failed": "On day {DAY}, the lane beat her before she reached {WORLD}."
+          "success": "On day {DAY}, the commander fought through to {WORLD} and proved the lane still open.",
+          "failed": "On day {DAY}, the commander failed to reach {WORLD}, and the lane stayed in pirate hands."
         }
       }
     },
-    "title": "Clear the Lane",
+    "title": "Run the Gauntlet",
     "skeleton": "side-ambush",
-    "hash": "9b23affa",
+    "hash": "2b349d54",
     "images": {}
   }
 }

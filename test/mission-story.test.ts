@@ -1,8 +1,8 @@
 // The commander's log: the journal told as a story, the route drawn, and
 // the LOG screen that shows both (docs/TODO/190 M5).
 //
-// The story is the path she took. A dossier carries a line for every branch
-// a leg can take, and the page carries the one she took. That is the whole
+// The story is the path they took. A dossier carries a line for every branch
+// a leg can take, and the page carries the one they took. That is the whole
 // assertion of the first block, on a dossier built here, because no dossier
 // ships until the pipeline plan (item 191) writes one.
 
@@ -10,7 +10,8 @@ import { dossierFor } from '../src/missions/dossiers.ts';
 import { storyPages } from '../src/missions/story.ts';
 import { routeMapSvg } from '../src/missions/route-map.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
-import type { Dossier, MissionState } from '../src/missions/model.ts';
+import type { MissionState } from '../src/missions/model.ts';
+import type { Dossier } from '../src/missions/words.ts';
 import { SIDE_RESCUE } from '../src/missions/skeletons/side.ts';
 import { renderLog } from '../src/ui/screens-log.ts';
 import { LogScreen } from '../src/game/screens/log.ts';
@@ -19,6 +20,7 @@ import { headlessShell } from '../src/engine/shell.ts';
 import { withoutSaving } from '../src/game/storage.ts';
 import { seedWorld } from '../src/game/rng.ts';
 import { newCommander } from '../src/game/commander.ts';
+import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { CHART_SPAN_X, CHART_SPAN_Y } from '../src/constants/chart-metric.ts';
 import { captureById } from './screen-capture.ts';
 import { constrictorAt, g1 } from './fixtures.ts';
@@ -26,7 +28,7 @@ import { check, cmds, dismissBriefing, eq, eqc } from './harness.ts';
 
 const LAVE = 7;
 
-console.log('\nthe story tells the branch she took, and not the other one');
+console.log('\nthe story tells the branch they took, and not the other one');
 {
   const dossier: Dossier = {
     skeleton: SIDE_RESCUE.id, hash: 'test', title: 'THE SURVEY PILOT',
@@ -59,8 +61,8 @@ console.log('\nthe story tells the branch she took, and not the other one');
   eq('...titled by the dossier', page.title, 'THE SURVEY PILOT');
   const text = page.lines.join(' ');
   check('the opening fills its slots', text.includes('ON DAY 3 THE STATION AT LAVE ASKED'));
-  check('the branch she took is told', text.includes('THE POD BROKE UP OVER ' + g1[12].name.toUpperCase()));
-  check('...and the branch she did not take is not', !text.includes('WALKED OFF THE PAD'));
+  check('the branch they took is told', text.includes('THE POD BROKE UP OVER ' + g1[12].name.toUpperCase()));
+  check('...and the branch they did not take is not', !text.includes('WALKED OFF THE PAD'));
   check('the recovery leg is told', text.includes('THE SURVEY DATA REACHED LAVE ON DAY 7'));
   check('...and the closing', text.includes('THE JOB WAS DONE ON DAY 7'));
   eq('the page ends complete', page.ending, 'complete');
@@ -146,4 +148,29 @@ console.log('\nthe LOG screen, painted and opened');
   g.input.injectPress('Escape');
   g.step(1 / 60, 1 + 1 / 60);
   eq('...and Escape closes it', g.screens.topId, null);
+}
+
+console.log('\nthe story names a world through the galaxy its entry was written in (docs/TODO/213 M4)');
+{
+  // The log named every world through the galaxy they stood in, so a galactic
+  // jump renamed their whole past. A journal entry carries its galaxy now, and
+  // one from before it was written reads as galaxy 1.
+  const g2 = generateGalaxy(2);
+  const inOne: MissionState = {
+    ...emptyMissionState(),
+    journal: [
+      { skeleton: SIDE_RESCUE.id, leg: 'pod', outcome: 'accepted', day: 3, world: LAVE, galaxy: 1 },
+      { skeleton: SIDE_RESCUE.id, leg: 'pod', outcome: 'fail', day: 9, world: 12, galaxy: 1 },
+      { skeleton: 'constrictor', leg: 'hunt', outcome: 'accepted', day: 21, world: LAVE },
+    ],
+  };
+  const none = (): null => null;
+  const readIn2 = storyPages(inOne, (g) => (g === 2 ? g2 : g1), undefined, none);
+  check('a galaxy-1 entry read in galaxy 2 still names the galaxy-1 world',
+    readIn2[0].lines[0].includes(g1[LAVE].name.toUpperCase()) && !readIn2[0].lines[0].includes(g2[LAVE].name.toUpperCase()));
+  eq('...and the page says which galaxy its worlds are in', readIn2[0].galaxy, 1);
+  check('an entry with no galaxy reads as galaxy 1', readIn2[1].lines[0].includes(g1[LAVE].name.toUpperCase()));
+  eq('...on a page in galaxy 1', readIn2[1].galaxy, 1);
+  eq('an array stands for galaxy 1, as every earlier caller meant',
+    storyPages(inOne, g1, undefined, none)[0].lines[1], readIn2[0].lines[1]);
 }

@@ -30,13 +30,14 @@ import type {
 } from './model.ts';
 import { canAccept } from './offers.ts';
 import { placeLeg } from './placement.ts';
-import { legOf, patronId, startWorld } from './lookups.ts';
-import { ARC_TOUR, SKELETONS, skeletonById } from './skeletons/index.ts';
+import { legOf } from './lookups.ts';
+import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, legPay, lineSlots } from './text.ts';
-import { leadWorldIn } from './tour.ts';
+import { applySettlement } from './settlement.ts';
+import { offerLead } from './leads.ts';
 import { sameTrigger, triggerLabel, wordKind } from './triggers.ts';
 import { verbItem, verbModule, verbNeedsShip } from './verbs/registry.ts';
-import { DEADLINE_WARNING_DAYS } from '../constants/missions.ts';
+import { DEADLINE_WARNING_DAYS, WITCHSPACE_TARGET } from '../constants/missions.ts';
 
 export interface MissionContext {
   commander: CommanderFacts;
@@ -63,7 +64,7 @@ export function stepMissions(
       // A world change holds through its last day, and is gone the day after.
       st.changes = st.changes.filter((ch) => ch.until >= ctx.commander.day);
       break;
-    case 'galaxyChanged': leaveGalaxy(st, input.to, ctx, effects); break;
+    case 'galaxyChanged': leaveGalaxy(st, ctx, effects); break;
     default: react(st, input, ctx, effects);
   }
   if (input.kind === 'docked') hail(st, ctx, effects, st.journal.length !== journalBefore);
@@ -91,7 +92,7 @@ function accept(
   const first = skeleton.legs[0];
   const placed = placeLeg(first.place, st, c, ctx.systems, ctx.rng, id, ctx.skeletons ?? SKELETONS);
   if (!placed.ok) return;
-  st.journal.push({ skeleton: id, leg: first.id, outcome: 'accepted', day: c.day, world: c.systemIndex });
+  st.journal.push({ skeleton: id, leg: first.id, outcome: 'accepted', day: c.day, world: c.systemIndex, galaxy: c.galaxy });
   const live: LiveMission = {
     skeleton: id, leg: first.id, target: null, tag: null, progress: 0, deadlineDay: null,
   };
@@ -116,29 +117,25 @@ function abandon(
   const live = st.live.find((l) => l.skeleton === id);
   if (!live) return;
   const c = ctx.commander;
-  st.journal.push({ skeleton: id, leg: live.leg, outcome: 'abandoned', day: c.day, world: c.systemIndex });
+  st.journal.push({ skeleton: id, leg: live.leg, outcome: 'abandoned', day: c.day, world: c.systemIndex, galaxy: c.galaxy });
   finish(st, live, 'fail', ctx, effects);
 }
 
 /**
  * The commander left the galaxy. Every live mission fails by its own final
- * outcome, with the departure as the reason. Every lead moves to the world
- * the tour of the new galaxy gives its arc (tour.ts), from the arrival
- * world. Its galaxy moves with it, so a lead never points at an index in a
- * galaxy she is not in. `ctx.systems` is the galaxy she arrives in.
+ * outcome, with the departure as the reason. A lead stays where it was
+ * saved. An arc is offered in its own galaxy (`Gate.galaxy`), so the LEADS
+ * row says IN ANOTHER GALAXY until the commander returns. The leads used to
+ * move to the tour of the new galaxy. The arc they opened there placed its legs by
+ * seed index, which is not the tour (docs/TODO/213 M2).
  */
 function leaveGalaxy(
-  st: MissionState, to: number, ctx: MissionContext, effects: MissionEffect[],
+  st: MissionState, ctx: MissionContext, effects: MissionEffect[],
 ): void {
   const c = ctx.commander;
   for (const live of [...st.live]) {
-    st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome: 'galaxyLeft', day: c.day, world: c.systemIndex });
+    st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome: 'galaxyLeft', day: c.day, world: c.systemIndex, galaxy: c.galaxy });
     finish(st, live, 'fail', ctx, effects);
-  }
-  for (const lead of st.leads) {
-    if (!skeletonById(lead.skeleton, ctx.skeletons ?? SKELETONS)) continue;
-    lead.galaxy = to;
-    lead.world = leadWorldIn(ctx.systems, c.systemIndex, ARC_TOUR.indexOf(lead.skeleton));
   }
 }
 
@@ -163,16 +160,34 @@ function react(
     const leg = legOf(skeleton, live.leg);
     const module = verbModule(leg.verb.kind);
     if (!module) continue;
-    const reaction = module({ live, leg, commander: ctx.commander }, input);
+    const reaction = module({ live, leg, commander: ctx.commander, entities: st.entities }, input);
     if (!reaction) continue;
+    // A ship that ran or jumped out is gone from the record too, once a leg
+    // took the word (docs/TODO/217 M1). The Constrictor cannot leave, and
+    // its verb takes no such word, so it stays and comes back on the next
+    // arrival. The mark says which, so a gang hunt can read its leader's
+    // fate at the end.
+    if ((input.kind === 'fled' || input.kind === 'escaped') && input.tag in st.entities) {
+      st.entities[input.tag].alive = false;
+      st.entities[input.tag].fled = true;
+    }
     if (reaction.progress !== undefined) live.progress = reaction.progress;
     if (reaction.passenger && input.kind === 'scooped') {
       st.passengers.push({ tag: input.tag, mission: live.skeleton });
+    }
+    if (reaction.unload && leg.verb.kind === 'smuggle') {
+      effects.push({ kind: 'unload', commodity: leg.verb.commodity, tonnes: leg.verb.tonnes });
     }
     if (reaction.say !== undefined) {
       effects.push({ kind: 'say', text: fillSlots(reaction.say, lineSlots(ctx.systems, live.target, legPay(leg))) });
     }
     if (reaction.trigger !== undefined) fire(st, live, reaction.trigger, ctx, effects);
+    // The ambush springs after the branch settles, so its line queues behind
+    // the settlement's own (docs/TODO/214 M2).
+    if (reaction.sprung && leg.ambush) {
+      effects.push({ kind: 'spawn', ships: leg.ambush.ships });
+      effects.push({ kind: 'later', text: leg.ambush.say });
+    }
   }
   // A passenger answered for is off the ship, whichever mission owned them.
   if (input.kind === 'survivor') st.passengers = st.passengers.filter((p) => p.tag !== input.tag);
@@ -188,7 +203,8 @@ function deadlines(st: MissionState, ctx: MissionContext, effects: MissionEffect
   for (const live of [...st.live]) {
     if (live.deadlineDay === null) continue;
     const left = live.deadlineDay - ctx.commander.day;
-    const where = live.target === null ? 'ANY STATION' : ctx.systems[live.target].name.toUpperCase();
+    const where = live.target === null ? 'ANY STATION'
+      : live.target === WITCHSPACE_TARGET ? 'WITCHSPACE' : ctx.systems[live.target].name.toUpperCase();
     if (left < 0) {
       effects.push({ kind: 'say', text: `THE JOB AT ${where} RAN OUT OF TIME, AND IT IS LOST.` });
       fire(st, live, 'deadlinePassed', ctx, effects);
@@ -224,16 +240,16 @@ function takeBranch(
 ): void {
   const skeleton = skeletonOf(live.skeleton, ctx);
   const c = ctx.commander;
-  const entry = { skeleton: live.skeleton, leg: live.leg, outcome: triggerLabel(branch.on), day: c.day, world: c.systemIndex };
+  const entry = { skeleton: live.skeleton, leg: live.leg, outcome: triggerLabel(branch.on), day: c.day, world: c.systemIndex, galaxy: c.galaxy };
   const leg = legOf(skeleton, live.leg);
   const kind = wordKind(leg, branch);
   const word = (target: number | null): DossierWord | undefined => (kind
     ? { skeleton: skeleton.id, leg: leg.id, kind, slots: lineSlots(ctx.systems, target, branch.settle?.pay) }
     : undefined);
   if (branch.to === 'complete' || branch.to === 'fail') {
-    // The world a change lands on is where she stands, so the target is
-    // null. The words still name the leg's own world, or a patron's line
-    // read "at ANY STATION" at the end of every job (docs/TODO/203 M5).
+    // The world a change lands on is where the commander stands, so the
+    // target is null. The words still name the leg's own world, or a
+    // patron's line read "at ANY STATION" at the end of every job (docs/TODO/203 M5).
     settle(st, skeleton, branch.settle, null, ctx, effects, word(live.target), live.target);
     st.journal.push(entry);
     finish(st, live, branch.to, ctx, effects);
@@ -241,10 +257,15 @@ function takeBranch(
   }
   const next = legOf(skeleton, branch.to);
   const placed = placeLeg(next.place, st, c, ctx.systems, ctx.rng, live.skeleton, ctx.skeletons ?? SKELETONS);
-  if (!placed.ok) return;
-  settle(st, skeleton, branch.settle, placed.target, ctx, effects, word(placed.target));
+  // A LEG THAT CANNOT BE PLACED STARTS AT ANY STATION. The branch used to
+  // return here, before the settlement and the journal, with the target
+  // already dead. The kill paid nothing and the mission held its slot for
+  // good (docs/TODO/213 M4). The lint measures every band and every
+  // handover from every world, so the path is a guard rather than a rule.
+  const target = placed.ok ? placed.target : null;
+  settle(st, skeleton, branch.settle, target, ctx, effects, word(target));
   st.journal.push(entry);
-  startLeg(st, live, skeleton, next, placed.target, ctx, effects);
+  startLeg(st, live, skeleton, next, target, ctx, effects);
 }
 
 /**
@@ -290,6 +311,14 @@ function startLeg(
   if (verbNeedsShip(leg.verb)) {
     st.entities[tag] = { kind: 'ship', ship: leg.verb.ship, hull: 1, lastWorld: target ?? c.systemIndex, alive: true };
     live.tag = tag;
+    // The gang flies with the leader, and each member is a record of its
+    // own under the leg's tag (docs/TODO/217 M1). So a dead member stays
+    // dead across an arrival, and the clean-up at the end finds it.
+    if (leg.verb.kind === 'hunt') {
+      (leg.verb.gang ?? []).forEach((ship, i) => {
+        st.entities[`${tag}#gang-${i + 1}`] = { kind: 'ship', ship, hull: 1, lastWorld: target ?? c.systemIndex, alive: true };
+      });
+    }
   } else if (item !== null) {
     st.entities[tag] = { kind: item, ship: '', hull: 1, lastWorld: target ?? c.systemIndex, alive: true };
     live.tag = tag;
@@ -301,9 +330,8 @@ function startLeg(
 }
 
 /**
- * Apply a settlement, and say its word. A silent settlement with a dossier
- * word still says an empty line. The bridge puts the dossier's line in its
- * place, or drops it.
+ * Apply a settlement, and say its word (`settlement.ts`). The flags it newly
+ * set then fire on every live leg that names one.
  */
 function settle(
   st: MissionState, skeleton: Skeleton, s: Settlement | undefined,
@@ -311,30 +339,7 @@ function settle(
   /** the world the words name, when it is not the world a change lands on */
   sayTarget: number | null = target,
 ): void {
-  const added: string[] = [];
-  if (s) {
-    if (s.pay > 0) effects.push({ kind: 'pay', tenths: s.pay });
-    if (s.deed) effects.push({ kind: 'deed', deed: s.deed });
-    if (s.legal) effects.push({ kind: 'legal', delta: s.legal });
-    for (const f of s.setFlags ?? []) {
-      if (!st.flags.includes(f)) { st.flags.push(f); added.push(f); }
-    }
-    if (s.standing) {
-      const id = patronId(skeleton, ctx.commander);
-      st.standing[id] = (st.standing[id] ?? 0) + s.standing;
-    }
-    // A change to a world is the game's to keep (mission-bridge.ts), at the
-    // branch's world, through its last day.
-    const world = target ?? ctx.commander.systemIndex;
-    if (s.override) {
-      effects.push({ kind: 'worldOverride', world, until: ctx.commander.day + s.override.days, change: { override: s.override.set } });
-    }
-    if (s.spawn) {
-      effects.push({ kind: 'standingSpawn', world, until: ctx.commander.day + s.spawn.days, ships: s.spawn.ships });
-    }
-  }
-  const text = s?.say ? fillSlots(s.say, lineSlots(ctx.systems, sayTarget, s.pay)) : '';
-  if (text || word) effects.push({ kind: 'say', text, word });
+  const added = applySettlement(st, skeleton, s, target, ctx, effects, word, sayTarget);
   fireFlags(st, added, ctx, effects);
 }
 
@@ -352,7 +357,7 @@ function finish(
   const o = skeleton[outcome];
   settle(st, skeleton, o, null, ctx, effects);
   st.done[live.skeleton] = outcome;
-  st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome, day: c.day, world: c.systemIndex });
+  st.journal.push({ skeleton: live.skeleton, leg: live.leg, outcome, day: c.day, world: c.systemIndex, galaxy: c.galaxy });
   st.live = st.live.filter((l) => l !== live);
   for (const tag of Object.keys(st.entities)) {
     if (tag.startsWith(`${live.skeleton}#`)) delete st.entities[tag];
@@ -364,21 +369,4 @@ function finish(
     effects.push({ kind: 'survivors', people: left });
   }
   if (o.lead) offerLead(st, o.lead, ctx, effects);
-}
-
-/**
- * Save a lead, once. A lead to an arc she holds or finished is dropped, as
- * failure rule 3 asks. The effect tells the game to announce it.
- */
-function offerLead(
-  st: MissionState, id: string, ctx: MissionContext, effects: MissionEffect[],
-): void {
-  const target = skeletonById(id, ctx.skeletons ?? SKELETONS);
-  if (!target) return;
-  if (id in st.done || st.live.some((l) => l.skeleton === id)) return;
-  if (st.leads.some((l) => l.skeleton === id)) return;
-  const c = ctx.commander;
-  const world = startWorld(target, c);
-  st.leads.push({ skeleton: id, galaxy: c.galaxy, world, sinceDay: c.day });
-  effects.push({ kind: 'lead', skeleton: id, galaxy: c.galaxy, world });
 }

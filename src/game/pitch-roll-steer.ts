@@ -87,6 +87,32 @@ function wrap(a: number): number {
  * target. It is the caller's gun cone, which is WIDE up close, because a near
  * target subtends a wide angle. Inside it the controller asks for NOTHING.
  *
+ * `rollGate` is the angle inside which the BANK counts as finished. Above it
+ * this asks for no pitch at all. Zero keeps the soft gate alone, which is the
+ * `cos` of the roll error. The course pilot passes `COURSE_ROLL_GATE`, and the
+ * combat co-pilot passes `COMBAT_ROLL_GATE`. The docking computer does not come
+ * through here at all.
+ *
+ * THE SOFT GATE ALONE CAN CONE (Chris, 2026-09-12: *"we seem to be constantly
+ * rotating when heading towards something"*). A target a hair off the nose
+ * makes the bearing very sensitive to pitch, because the bearing turns by
+ * `pitch / theta`. The ship then finds an equilibrium. It rolls at a steady
+ * rate. The small pitch that the soft gate still allows turns the bearing back
+ * at the same rate. The nose circles the target for ever, and
+ * `theta` never closes. A trace of 2026-09-12 caught it: 0.25 radians a second
+ * of roll held against 0.0087 of pitch, at a fixed 0.035 off the nose.
+ *
+ * A hard gate breaks the equilibrium. With no pitch, the roll alone turns the
+ * bearing, the bank arrives, and the pitch then closes the angle. On a course
+ * to the station it took a median trip from 41 full turns to 1.3.
+ *
+ * THE COMBAT COMPUTER TAKES IT TOO, and this comment said the opposite until
+ * 2026-09-12. It held that a target which manoeuvres cannot afford a pitch held
+ * still, and that the wide gun cone hid the fault anyway. A review measured
+ * both claims false. The co-pilot circled a horizontal orbit at 17% time on the
+ * gun, and the gate took the same grid to 98%. `COMBAT_ROLL_GATE` is its value,
+ * and the whole measurement is beside it.
+ *
  * That is the seasickness fix. A target that already fills the gun still has a
  * bearing, and that bearing swings as it drifts a hair off centre. A bank to
  * chase the last degree chatters the roll axis for a correction the gun does
@@ -101,6 +127,7 @@ function wrap(a: number): number {
  */
 export function bankToTurn(
   quat: THREE.Quaternion, dir: THREE.Vector3, mem: SteerMemory, nullBand = 0,
+  rollGate = 0,
 ): StickCommand {
   if (dir.lengthSq() < 1e-12) return { pitch: 0, roll: 0 };
   dirNorm.copy(dir).normalize();
@@ -173,7 +200,10 @@ export function bankToTurn(
   const pitchSat = localZ > 0
     ? STEER_PITCH_SATURATION + (STEER_SATURATION - STEER_PITCH_SATURATION) * (1 - localZ)
     : STEER_SATURATION;
-  const pitch = Math.max(-1, Math.min(1, theta / pitchSat))
+  // `rollGate` HOLDS THE PITCH STILL UNTIL THE BANK ARRIVES. It is 0 for the
+  // combat computer, which keeps the soft `cos` gate alone. See the parameter.
+  const pitch = rollGate > 0 && Math.abs(rollErr) > rollGate ? 0
+    : Math.max(-1, Math.min(1, theta / pitchSat))
     * mem.side * Math.max(0, Math.cos(rollErr));
 
   return { pitch, roll };

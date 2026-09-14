@@ -6,7 +6,7 @@
 //
 //   - `NO FUEL TO JUMP — PRESS B FOR THE DISTRESS BEACON` (world-step.ts)
 //   - `ALREADY LOCKED — U TO UNARM` (ordnance.ts)
-//   - `PRESS ? FOR CONTROLS — QWERTY LAYOUT (B TO SWITCH)` (game.ts)
+//   - `PRESS ? FOR CONTROLS — QWERTY LAYOUT (B TO SWITCH)` (game.ts, until docs/TODO/220)
 //
 // Each was a sixth help surface, free to disagree with the table the moment
 // anything was rebound, and nothing could see any of them. docs/TODO/128 deleted

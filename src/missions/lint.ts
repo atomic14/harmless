@@ -13,6 +13,12 @@
 // docs/TODO/192 adds two. An arc's final leg ends two to four jumps from
 // the lead's start world, measured on the full-tank graph. Two legs that
 // force two different blueprint sets at one world are a conflict.
+//
+// docs/TODO/213 M2 adds one. A world patron's skeleton names the galaxy it
+// is offered in, because a seed slot is an index that every galaxy has.
+//
+// docs/TODO/213 M5 adds one more. Every trigger a verb can emit has a
+// branch on the leg, or the leg lists it under `ignores`.
 
 import { ARC_HANDOVER_JUMPS } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
@@ -20,7 +26,9 @@ import { distanceTenths } from '../galaxy/navigation.ts';
 import { routeTable } from '../galaxy/route.ts';
 import type { Leg, Skeleton } from './model.ts';
 import { specForDesign } from '../game/ship-specs.ts';
-import { verbJob, verbModule, verbNeedsShip } from './verbs/registry.ts';
+import { jobRole, verbJob, verbModule, verbNeedsShip, verbTriggers } from './verbs/registry.ts';
+import { sameTrigger, triggerLabel } from './triggers.ts';
+import { pickByJumps } from './placement.ts';
 
 export function lintSkeleton(
   s: Skeleton, all: readonly Skeleton[], systems: readonly StarSystem[],
@@ -29,22 +37,55 @@ export function lintSkeleton(
   const ids = new Set(s.legs.map((l) => l.id));
   if (s.legs.length === 0) out.push(`${s.id}: no legs`);
   if (ids.size !== s.legs.length) out.push(`${s.id}: a leg id repeats`);
+  if (s.patron.kind === 'world' && s.offer.galaxy === undefined) {
+    out.push(`${s.id}: a world patron needs a galaxy gate`);
+  }
 
   for (const leg of s.legs) {
     const at = `${s.id}/${leg.id}`;
     if (!verbModule(leg.verb.kind)) out.push(`${at}: no module for verb ${leg.verb.kind}`);
     if (verbNeedsShip(leg.verb)) {
-      const role = verbJob(leg.verb) === 'hunt' ? 'pirate' : 'trader';
+      const role = jobRole(verbJob(leg.verb));
       if (!specForDesign(role, leg.verb.ship)) out.push(`${at}: no ${role} row for ${leg.verb.ship}`);
     }
+    // A gang's member with no pirate row would be skipped at the arrival,
+    // and the leg could never end (docs/TODO/217 M1).
+    if (leg.verb.kind === 'hunt') {
+      for (const hull of leg.verb.gang ?? []) {
+        if (!specForDesign('pirate', hull)) out.push(`${at}: no pirate row for the gang's ${hull}`);
+      }
+    }
+    // A spawned ship with no row for its role is skipped at the arrival, in
+    // silence, and the surprise never comes (docs/TODO/214 M1).
+    for (const s of [...(leg.spawn ?? []), ...(leg.ambush?.ships ?? [])]) {
+      if (!specForDesign(jobRole(s.job), s.ship)) out.push(`${at}: no ${jobRole(s.job)} row for the spawned ${s.ship}`);
+    }
+    // A leg in witchspace has no station, so its verb must end in the sky
+    // (docs/TODO/219 M3).
+    if (leg.place.kind === 'witchspace' && !['hunt', 'recover', 'rescue', 'scan'].includes(leg.verb.kind)) {
+      out.push(`${at}: a ${leg.verb.kind} leg cannot end in witchspace`);
+    }
     if (!leg.next.some((b) => b.on === 'failed')) out.push(`${at}: no failed branch`);
+    for (const t of verbModule(leg.verb.kind) ? verbTriggers(leg.verb) : []) {
+      const answered = leg.next.some((b) => sameTrigger(b.on, t))
+        || (leg.ignores ?? []).some((i) => sameTrigger(i, t));
+      if (!answered) out.push(`${at}: no branch for ${triggerLabel(t)}, and it is not ignored`);
+    }
     for (const b of leg.next) {
       if (b.to !== 'complete' && b.to !== 'fail' && !ids.has(b.to)) {
         out.push(`${at}: branch to unknown leg ${b.to}`);
       }
     }
-    if (leg.place.kind === 'handover' && !all.some((t) => t.id === (leg.place as { toward: string }).toward)) {
-      out.push(`${at}: handover toward unknown skeleton ${leg.place.toward}`);
+    if (leg.place.kind === 'handover') {
+      const toward = all.find((t) => t.id === (leg.place as { toward: string }).toward);
+      if (!toward) out.push(`${at}: handover toward unknown skeleton ${leg.place.toward}`);
+      // Measured from every world, as a band is (docs/TODO/213 M4). A leg
+      // that cannot be placed starts at any station, and that is a guard.
+      const goal = toward ? startOf(toward) : null;
+      const band = leg.place;
+      const dry = goal === null ? null
+        : systems.find((from) => pickByJumps(systems, from.index, goal, band, () => 0) === null);
+      if (dry) out.push(`${at}: handover ${band.min}-${band.max} has no candidate from ${dry.name}`);
     }
     if (leg.place.kind === 'band') {
       const band = leg.place;

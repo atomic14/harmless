@@ -1,8 +1,8 @@
 // The Navy's gun warning, and the thing breeding in your cabin.
 //
 // Two things that change between docks without the commander deciding
-// anything. The first is what her gun is worth against the ship the Navy sent
-// her after, which the briefing states in two numbers. The second is a
+// anything. The first is what their gun is worth against the ship the Navy sent
+// them after, which the briefing states in two numbers. The second is a
 // stowaway that eats the hold. They were the back half of
 // test/contracts.test.ts, which carried three subjects and crossed the size
 // ceiling when passenger work landed (docs/TODO/109). The Navy's five-stage
@@ -16,7 +16,9 @@ import { newCommander } from '../src/game/commander.ts';
 import type { CommanderData } from '../src/game/commander.ts';
 import { stepTrumbles, trumbleMessage } from '../src/game/trumbles.ts';
 import { BREED_INTERVAL, MAX_TRUMBLES } from '../src/constants/trumbles.ts';
-import { constrictorGunCheck, constrictorWarning } from '../src/game/hunt-warning.ts';
+import { constrictorGunCheck, constrictorWarning, huntWarning } from '../src/game/hunt-warning.ts';
+import { SOURCE_DESIGN, specForDesign } from '../src/game/ship-specs.ts';
+import { shipDesignIdOf } from '../src/game/ship-identity.ts';
 import { check, eq } from './harness.ts';
 
 // --- the Navy's gun warning --------------------------------------------------
@@ -27,7 +29,7 @@ console.log('\nthe Navy gun warning');
   //
   // TODO 29's ruling on the Constrictor: the source-exact halving stays, and
   // what was missing was the signposting. A commander must not fly forty light
-  // years to discover that the upgrade she bought does nothing.
+  // years to discover that the upgrade they bought does nothing.
   {
     const withLaser = (laser: string) => {
       const c = newCommander();
@@ -43,6 +45,12 @@ console.log('\nthe Navy gun warning');
       && constrictorWarning(withLaser('beam')).includes('MILITARY'));
     eq('a commander already carrying the right gun is told nothing',
       constrictorWarning(withLaser('military')), '');
+    // A military laser scores more against every hull, so the warning was
+    // said on every hunt. Only a target that halves a hit needs the signpost
+    // (docs/TODO/213 M3).
+    const krait = specForDesign('pirate', shipDesignIdOf(SOURCE_DESIGN.krait))!;
+    eq('...and a Krait, which halves nothing, earns no warning at all',
+      huntWarning(withLaser('pulse'), krait, 'PATRON'), '');
   }
 }
 

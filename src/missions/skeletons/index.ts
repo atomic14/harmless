@@ -8,8 +8,9 @@ import type { Skeleton } from '../model.ts';
 import { ARCS } from './arcs/index.ts';
 import { CONSTRICTOR } from './constrictor.ts';
 import { SIDE_JOBS } from './side.ts';
+import { WHEEL } from './wheel/index.ts';
 
-export const SKELETONS: readonly Skeleton[] = [CONSTRICTOR, ...ARCS, ...SIDE_JOBS];
+export const SKELETONS: readonly Skeleton[] = [CONSTRICTOR, ...ARCS, ...WHEEL, ...SIDE_JOBS];
 
 /**
  * The arcs of the tour, in order. The arc at index k starts at the k-th

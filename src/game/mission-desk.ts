@@ -1,10 +1,10 @@
-// The mission desk: what is on offer where she stands, and the two things
-// she can do about a mission from the MISSIONS screen.
+// The mission desk: what is on offer where the commander stands, and the two
+// things they can do about a mission from the MISSIONS screen.
 //
 // A mission STARTS here, and nowhere else, since docs/TODO/190. Acceptance is
-// the station's, as a contract's is. Abandonment is hers anywhere. Both go
-// through the bridge (`mission-bridge.ts`), which installs the record and
-// applies what the machine paid, and the checkpoint follows.
+// the station's, as a contract's is. Abandonment is the commander's anywhere.
+// Both go through the bridge (`mission-bridge.ts`), which installs the record
+// and applies what the machine paid, and the checkpoint follows.
 //
 // It is a child of the Game rather than a part of `docked.ts`. Docked work is
 // the station's business, and this desk opens in flight too, because that is
@@ -33,7 +33,10 @@ export class MissionDesk {
     this.host = host;
   }
 
-  /** The skeletons on offer where she stands. Empty in flight, as the board is. */
+  /**
+   * The skeletons on offer where the commander stands. Empty in flight, as
+   * the board is.
+   */
   offers(): Skeleton[] {
     if (this.host.baseMode() !== 'docked') return [];
     const c = this.state.commander;

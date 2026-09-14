@@ -21,6 +21,13 @@ investigation records; do not load this directory wholesale.
   rather than archived. One number carried two plans, and the other one is
   `81-live-picker-cannot-name-attack-run.md`.
 
+## Superseded by a different way to fly
+
+- 204 — [The ship flies by touch](204-the-ship-flies-by-touch.md) — it landed
+  on 2026-09-11, and 205 M1 took it out the same day. Chris could not fly the
+  ship on a phone by a drag and a FIRE button. 205 to 208 replace the stick
+  with a course that the pilot picks. `Input.press` and `Input.release` stay.
+
 ## Rejected product direction
 
 - 95 — [Save only at stations](95-save-only-at-stations.md) — conflicts with the

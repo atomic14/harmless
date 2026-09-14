@@ -31,7 +31,7 @@ console.log('\nQ is the pod, and ⇧Q gives up the flight');
 
 // --- what a press costs ------------------------------------------------------
 
-/** A commander in flight past the launch tunnel, with a store behind her. */
+/** A commander in flight past the launch tunnel, with a store behind them. */
 function flying(seed: number): { g: Game; step: () => void } {
   seedWorld(seed);
   const g = new Game(() => headlessShell());

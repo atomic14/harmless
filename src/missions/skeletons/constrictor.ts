@@ -14,7 +14,7 @@
 // leg it belongs to.
 //
 // The report leg has a standing order of its own. Stage 2 printed nothing,
-// and a commander who took a job before she reported had no row to say so.
+// and a commander who took a job before they reported had no row to say so.
 // Invariant 16 wants every order on a screen.
 
 import {

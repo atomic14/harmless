@@ -1,9 +1,12 @@
 // The Navy mission, as numbers: what earns the briefing, how far away each leg
 // is laid, and what the Navy pays.
 //
-// The five-stage machine that spends these is game/missions.ts. Money is in
-// tenths of a credit (invariant 8), and distances are in tenths of a light year,
-// as everywhere else.
+// The skeletons under src/missions/skeletons/ spend these, and the machine
+// in src/missions/machine.ts runs them (docs/TODO/190). Money is in tenths
+// of a credit (invariant 8), and distances are in tenths of a light year, as
+// everywhere else.
+
+import { RATINGS } from './rating.ts';
 
 /**
  * Kills before the Navy considers you worth a word: 16, as the original demanded.
@@ -27,7 +30,11 @@ export const MISSION_COURIER_RANGE = { min: 50, max: 90 } as const;
 /** What a kill of the Constrictor pays — 2,500 Cr, in tenths of a credit. */
 export const CONSTRICTOR_BOUNTY = 25_000;
 
-/** ...and what a delivery of the plans pays: 1,500 Cr. */
+/**
+ * ...and what a delivery of the plans pays: 1,500 Cr.
+ *
+ * @rule missions.courierPayment
+ */
 export const COURIER_PAYMENT = 15_000;
 
 /**
@@ -103,6 +110,98 @@ export const SIDE_JOB_PAY = {
   hunt: 8_000, deliver: 3_000, recover: 4_000, rescue: 5_000,
   ambush: 6_000, smuggle: 7_000, escort: 6_000, scan: 2_500,
 } as const;
+
+/**
+ * What the station pays for the whole gang on the side hunt, in tenths of
+ * a credit: 1,500 Cr (docs/TODO/217 M1). The gang is a Fer-de-Lance with
+ * an Asp, a Krait and a Mamba. That is four hulls, two missiles and two
+ * E.C.M. fits, against the lone Krait that paid `SIDE_JOB_PAY.hunt`.
+ * Each kill pays its own bounty on top, as any kill does.
+ *
+ * @rule missions.gangBounty
+ */
+export const GANG_BOUNTY = 15_000;
+
+/**
+ * ...and half of it when the gang is gone but its leader ran (docs/TODO/217
+ * M1). The leader keeps its head, and the commander keeps three kills.
+ *
+ * @rule missions.gangBrokenBounty
+ */
+export const GANG_BROKEN_BOUNTY = GANG_BOUNTY / 2;
+
+/**
+ * Kills before the board offers the gang hunt (docs/TODO/217 M2). Chris
+ * asked for gates by kills on 2026-09-13. It is the kills of the second
+ * rung, Mostly Harmless. So a commander who reads that word on the status
+ * screen finds the job on the board. A gang of four kills a Harmless one.
+ * The Navy asks for twice as many (`MISSION_KILL_THRESHOLD`).
+ *
+ * @rule missions.gangHuntKills
+ */
+export const GANG_HUNT_KILLS = RATINGS[1][0];
+
+/**
+ * Kills before the board offers a lane to clear or a trader to cover: half
+ * the gang hunt's (docs/TODO/217 M2). Both jobs meet a pack of three on
+ * the way, and both let a commander choose the range. The delivery, the
+ * scan and the smuggle stay open, and the two scoop jobs ask for scoops.
+ *
+ * @domain missions
+ * @rule missions.laneJobKills
+ */
+export const LANE_JOB_KILLS = GANG_HUNT_KILLS / 2;
+
+/**
+ * The rung the Dark Wheel's first whisper waits for (docs/TODO/219 M1):
+ * Above Average, 128 kills. Chris chose it on 2026-09-13. The Wheel finds
+ * a commander worth finding, and a Harmless one is not yet.
+ *
+ * @rule missions.wheelWhisperRung
+ */
+export const WHEEL_WHISPER_RUNG = RATINGS.findIndex(([, name]) => name === 'Above Average');
+
+/**
+ * The rung the Wheel's door waits for (docs/TODO/219 M4): Competent, 512
+ * kills. Dangerous is 2,560, which is fifty hours of hunting, and the layer
+ * should be reached.
+ *
+ * @rule missions.wheelDoorRung
+ */
+export const WHEEL_DOOR_RUNG = RATINGS.findIndex(([, name]) => name === 'Competent');
+
+/**
+ * The governments whose boards carry the Wheel's word (docs/TODO/219 M1),
+ * by their 1984 names. The Wheel posts nothing where a government reads
+ * the boards. `galaxy.ts` owns the names, and the offers filter compares
+ * a world's own against this list. It is a narrower line than
+ * `LAWLESS_GOVERNMENT` in encounters.ts, which breeds pirate waves up to a
+ * dictatorship. A dictatorship reads its boards.
+ *
+ * @domain missions
+ * @rule missions.lawlessGovernments
+ */
+export const LAWLESS_GOVERNMENTS: readonly string[] = ['Anarchy', 'Feudal'];
+
+/**
+ * What a Wheel trial pays, in tenths of a credit (docs/TODO/219 M1). More
+ * than an arc leg of the same verb, because the Wheel asks more. The mark
+ * is a gang with two Asps. The door pays nothing: its reward is a fit.
+ *
+ * @rule missions.wheelPay
+ */
+export const WHEEL_PAY = { mark: 20_000, blockade: 20_000, pilot: 25_000 } as const;
+
+/**
+ * The target a leg placed in witchspace carries (docs/TODO/219 M3). A
+ * system is an index from 0 to 255, and witchspace is none of them. So the
+ * record holds this, and every reader of a target knows the word. A save
+ * carries it as any target.
+ *
+ * @domain missions
+ * @rule missions.witchspaceTarget
+ */
+export const WITCHSPACE_TARGET = -1;
 
 /**
  * The lower fee a rescue pays when the pod is lost and the data still
@@ -223,8 +322,8 @@ export const ARC_HANDOVER_JUMPS = { min: 2, max: 4 } as const;
  *
  * One table, as `SIDE_JOB_PAY` is, and a separate rule. An arc pays more
  * than a side job of the same verb. An arc sends the commander across the
- * galaxy, and a side job sends her one jump out and back. The
- * same order holds inside the table, for the same reasons. The arcs under
+ * galaxy, and a side job sends them one jump out and back. The same order
+ * holds inside the table, for the same reasons. The arcs under
  * `missions/skeletons/arcs/` spend it (docs/TODO/192 M2).
  *
  * @rule missions.arcPay
@@ -237,8 +336,8 @@ export const ARC_PAY = {
 /**
  * Days an arc leg allows before its deadline passes: a month, twice a side
  * job's fortnight, because an arc leg may be four jumps out. A deadline is
- * what makes `failed` reachable on a delivery. So an arc she cannot finish
- * fails on its own rather than holding a slot for good.
+ * what makes `failed` reachable on a delivery. So an arc the commander cannot
+ * finish fails on its own rather than holding a slot for good.
  *
  * @rule missions.arcLegDays
  */

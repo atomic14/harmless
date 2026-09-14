@@ -1,37 +1,56 @@
 // The eight side jobs, one per verb, so every verb the machine knows is a
 // job a player can take (docs/TODO/190 M4).
 //
-// Each is a LOCAL job. The patron is whoever runs the station she stands at.
+// Each is a LOCAL job. The patron is whoever runs the station the commander
+// stands at.
 // About a third of the jobs are on any one world's board (offers.ts). Each
-// has a `failed` branch, a deadline, and a fee from `SIDE_JOB_PAY`. The
+// has a `failed` branch, a deadline, and a fee from `SIDE_JOB_PAY`. None
+// has a cap, so each comes back a week after it ends (failure rule 5). The
+// two scoops wait for fuel scoops, because a canister breaks on a hull
+// without them (docs/TODO/213 M2). The
 // rescue is the scientist of docs/TODO/190: a pod shot before the scoop
 // turns the leg into a delivery at a lower fee. The words are plain, and a
 // dossier (item 191) replaces them on screen when one exists.
 
 import { NARCOTICS } from '../../constants/commodities.ts';
 import {
-  RESCUE_SALVAGE_PAY, SCAN_SECONDS, SIDE_JOB_DAYS, SIDE_JOB_PAY, SIDE_JOB_RANGE,
-  SMUGGLE_TONNES,
+  GANG_BOUNTY, GANG_BROKEN_BOUNTY, GANG_HUNT_KILLS, LANE_JOB_KILLS, RESCUE_SALVAGE_PAY, SCAN_SECONDS,
+  SIDE_JOB_DAYS, SIDE_JOB_PAY, SIDE_JOB_RANGE, SMUGGLE_TONNES,
 } from '../../constants/missions.ts';
 import { SOURCE_DESIGN } from '../../game/ship-specs.ts';
 import { shipDesignIdOf } from '../../game/ship-identity.ts';
 import type { Branch, Skeleton } from '../model.ts';
-import { LANE_PIRATES } from './lane.ts';
+import { LANE_PIRATES, LONE_KRAIT, PAIR } from './lane.ts';
 
 const FAIL: Branch = { on: 'failed', to: 'fail' };
 const LOCAL = { kind: 'side', anchor: 'local', patron: { kind: 'local' } } as const;
 const AWAY = { kind: 'band', ...SIDE_JOB_RANGE } as const;
 
+/**
+ * The side hunt is a gang (docs/TODO/217 M1). Chris, 2026-09-13: *"rather
+ * than a single ship - it should be a gang of pirates"*, and *"a tough
+ * gang"*. A Fer-de-Lance leads it, with an Asp, a Krait and a Mamba. The
+ * probe chose the three (docs/TODO/217 M3). An Asp with a Cobra Mk III
+ * killed a stock Cobra six times in eight. This gang killed it three.
+ * The job ends when the lane is clear. The leader runs when it is nearly
+ * dead (docs/TODO/214 M4), and a gang whose leader got away pays half.
+ */
 export const SIDE_HUNT: Skeleton = {
   ...LOCAL, id: 'side-hunt', hail: 'THE STATION HAS A BOUNTY POSTED',
-  pitch: 'A KRAIT HAS BEEN TAKING SHIPS ON THE LANE. THE STATION WANTS IT GONE.',
-  offer: {},
+  pitch: 'A GANG HAS BEEN TAKING SHIPS ON THE LANE. THE STATION WANTS EVERY ONE OF THEM GONE.',
+  // The board waits for a Mostly Harmless commander (docs/TODO/217 M2).
+  offer: { minKills: GANG_HUNT_KILLS },
   legs: [{
-    id: 'hunt', verb: { kind: 'hunt', ship: shipDesignIdOf(SOURCE_DESIGN.krait), canEscape: true },
-    place: AWAY, line: 'BOUNTY: DESTROY THE KRAIT — LAST SEEN AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
+    id: 'hunt',
+    verb: {
+      kind: 'hunt', ship: shipDesignIdOf(SOURCE_DESIGN.ferDeLance), canEscape: true,
+      gang: [shipDesignIdOf(SOURCE_DESIGN.asp), shipDesignIdOf(SOURCE_DESIGN.krait), shipDesignIdOf(SOURCE_DESIGN.mamba)],
+    },
+    place: AWAY, line: 'BOUNTY: CLEAR THE GANG — LAST SEEN AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
-      { on: 'targetDestroyed', to: 'complete', settle: { pay: SIDE_JOB_PAY.hunt, say: 'THE KRAIT IS DESTROYED. THE STATION PAYS {PAY}.' } },
-      { on: 'targetEscaped', to: 'fail' },
+      { on: 'targetDestroyed', to: 'complete', settle: { pay: GANG_BOUNTY, say: 'THE GANG IS DESTROYED. THE STATION PAYS {PAY}.' } },
+      { on: 'targetFled', to: 'complete', settle: { pay: GANG_BROKEN_BOUNTY, say: 'THE GANG IS BROKEN, BUT ITS LEADER RAN. THE STATION PAYS {PAY}.' } },
+      { on: 'targetEscaped', to: 'complete', settle: { pay: GANG_BROKEN_BOUNTY, say: 'THE GANG IS BROKEN, BUT ITS LEADER JUMPED. THE STATION PAYS {PAY}.' } },
       FAIL,
     ],
   }],
@@ -44,7 +63,7 @@ export const SIDE_DELIVER: Skeleton = {
   pitch: 'A SEALED PACKET FOR A STATION ONE JUMP OUT. NO QUESTIONS, NO HOLD SPACE.',
   offer: {},
   legs: [{
-    id: 'run', verb: { kind: 'deliver' }, place: AWAY,
+    id: 'run', verb: { kind: 'deliver' }, place: AWAY, spawn: [...PAIR],
     line: 'DELIVERY: TAKE THE PACKET TO {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
       { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.deliver, say: 'THE PACKET IS DELIVERED. THE STATION PAYS {PAY}.' } },
@@ -58,10 +77,11 @@ export const SIDE_DELIVER: Skeleton = {
 export const SIDE_RECOVER: Skeleton = {
   ...LOCAL, id: 'side-recover', hail: 'THE STATION LOST SOMETHING',
   pitch: 'A CANISTER WENT ADRIFT ONE JUMP OUT. SCOOP IT AND BRING IT BACK.',
-  offer: {},
+  offer: { scoops: true },
   legs: [
     {
-      id: 'find', verb: { kind: 'recover', item: 'station-canister' }, place: AWAY,
+      id: 'find', verb: { kind: 'recover', item: 'station-canister' }, place: AWAY, spawn: [...LONE_KRAIT],
+      ambush: { ships: [...PAIR], say: 'THEY WERE WAITING FOR THE CANISTER.' },
       line: 'RECOVERY: SCOOP THE CANISTER ADRIFT AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
       next: [
         { on: 'success', to: 'home', settle: { pay: 0, say: 'THE CANISTER IS ABOARD. BRING IT BACK TO {TARGET}.' } },
@@ -85,10 +105,11 @@ export const SIDE_RECOVER: Skeleton = {
 export const SIDE_RESCUE: Skeleton = {
   ...LOCAL, id: 'side-rescue', hail: 'THE STATION HAS A PILOT ADRIFT',
   pitch: 'A SURVEY PILOT IS IN A POD ONE JUMP OUT. BRING HER IN ALIVE.',
-  offer: {},
+  offer: { scoops: true },
   legs: [
     {
       id: 'pod', verb: { kind: 'rescue' }, place: AWAY,
+      ambush: { ships: [...LONE_KRAIT], say: 'SOMEBODY WANTED THAT POD.' },
       line: 'RESCUE: SCOOP THE POD ADRIFT AT {TARGET} AND DOCK', deadlineDays: SIDE_JOB_DAYS,
       next: [
         { on: { survivor: 'landed' }, to: 'complete', settle: { pay: SIDE_JOB_PAY.rescue, say: 'THE PILOT IS LANDED SAFE. THE STATION PAYS {PAY}.' } },
@@ -115,7 +136,9 @@ export const SIDE_RESCUE: Skeleton = {
 export const SIDE_AMBUSH: Skeleton = {
   ...LOCAL, id: 'side-ambush', hail: 'THE STATION NEEDS A LANE CLEARED',
   pitch: 'PIRATES HOLD THE LANE TO A NEIGHBOUR. FLY IT, FIGHT THROUGH, AND DOCK THERE.',
-  offer: {},
+  // A pack of three on the way, so the board waits for four kills
+  // (docs/TODO/217 M2).
+  offer: { minKills: LANE_JOB_KILLS },
   legs: [{
     id: 'lane', verb: { kind: 'ambush' }, place: AWAY, spawn: [...LANE_PIRATES],
     line: 'LANE: FLY TO {TARGET} THROUGH WHATEVER WAITS, AND DOCK', deadlineDays: SIDE_JOB_DAYS,
@@ -147,9 +170,11 @@ export const SIDE_SMUGGLE: Skeleton = {
 export const SIDE_ESCORT: Skeleton = {
   ...LOCAL, id: 'side-escort', hail: 'A TRADER AT THE STATION WANTS COVER',
   pitch: 'A PYTHON IS LEAVING FOR A NEIGHBOUR AND WANTS A GUN BESIDE HER. SEE HER INTO STATION RANGE.',
-  offer: {},
+  // A pack of three on the way, so the board waits for four kills
+  // (docs/TODO/217 M2).
+  offer: { minKills: LANE_JOB_KILLS },
   legs: [{
-    id: 'cover', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.python) }, place: AWAY,
+    id: 'cover', verb: { kind: 'escort', ship: shipDesignIdOf(SOURCE_DESIGN.python) }, place: AWAY, spawn: [...PAIR],
     line: 'ESCORT: SEE THE PYTHON INTO STATION RANGE AT {TARGET}', deadlineDays: SIDE_JOB_DAYS,
     next: [
       { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.escort, say: 'THE PYTHON IS SAFE IN STATION RANGE. THE STATION PAYS {PAY}.' } },
@@ -169,6 +194,7 @@ export const SIDE_SCAN: Skeleton = {
   legs: [{
     id: 'watch', verb: { kind: 'scan', ship: shipDesignIdOf(SOURCE_DESIGN.anaconda), seconds: SCAN_SECONDS },
     place: AWAY, line: 'SCAN: HOLD THE ANACONDA AT {TARGET} ON YOUR SCANNER', deadlineDays: SIDE_JOB_DAYS,
+    ambush: { ships: [...PAIR], say: 'THE ANACONDA\'S ESCORT SAW THE SCAN.' },
     next: [
       { on: 'success', to: 'complete', settle: { pay: SIDE_JOB_PAY.scan, say: 'THE SCAN IS COMPLETE. THE STATION PAYS {PAY}.' } },
       { on: 'targetDestroyed', to: 'fail', settle: { pay: 0, standing: -2 } },

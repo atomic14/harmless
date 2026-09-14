@@ -11,7 +11,8 @@
 // ONE OPERATION. The record and its effects land together, before any save,
 // so a reload cannot find the credits paid and the leg still owed.
 
-import { COMMODITIES, generateGalaxy, type StarSystem } from '../galaxy/galaxy.ts';
+import { COMMODITIES, type StarSystem } from '../galaxy/galaxy.ts';
+import { galaxySystems } from '../galaxy/galaxies.ts';
 import { afterDeed } from './character.ts';
 import { cargoCapacity, cargoTonnes, type CommanderData } from './commander.ts';
 import { random } from './rng.ts';
@@ -20,7 +21,9 @@ import { huntWarning } from './hunt-warning.ts';
 import { dossierWord } from '../missions/dossiers.ts';
 import { stepMissions } from '../missions/machine.ts';
 import { legOf } from '../missions/lookups.ts';
-import type { CommanderFacts, LiveMission, MissionInput, Skeleton } from '../missions/model.ts';
+import { liveLegs } from '../missions/queries.ts';
+import { jobRole, verbJob, verbNeedsShip } from '../missions/verbs/registry.ts';
+import type { CommanderFacts, LiveMission, MissionInput, Skeleton, TaggedShip } from '../missions/model.ts';
 import { skeletonById } from '../missions/skeletons/index.ts';
 import { FUGITIVE } from '../constants/law.ts';
 import type { Command } from './controls.ts';
@@ -42,39 +45,49 @@ export function missionFacts(c: CommanderData): CommanderFacts {
   return {
     galaxy: c.galaxy, systemIndex: c.systemIndex, kills: c.kills,
     combatScore: c.combatScore, legalStatus: c.legalStatus, day: c.day,
-    cargo: c.cargo,
+    cargo: c.cargo, scoops: c.equipment.scoops,
   };
 }
 
-/**
- * The systems of a galaxy, for a caller that holds only the commander.
- *
- * The wreck resolver and the world step have no `GameState.systems` in reach.
- * The galaxy is a pure function of its number, and a memo of one galaxy at a
- * time keeps the generator off the hot path.
- */
-let memo: { galaxy: number; systems: StarSystem[] } | null = null;
-function systemsOf(galaxy: number): readonly StarSystem[] {
-  if (!memo || memo.galaxy !== galaxy) memo = { galaxy, systems: generateGalaxy(galaxy) };
-  return memo.systems;
+/** What one input left for the caller: the lines to say, and the ships to spawn. */
+export interface MissionOutcome {
+  /** the lines to say, in order. A `say` takes the console; a `later` waits behind it (session.ts) */
+  messages: MissionMessage[];
+  /** ships an ambush asks for, around the commander now. Only a caller with the world can spawn them */
+  spawns: TaggedShip[];
 }
 
 /**
  * Run one input through the machine, install the record, apply the costs.
  *
- * @returns the lines to say, in order. A `say` takes the console; a `later`
- * waits behind it (session.ts).
+ * @returns the lines to say, in order. A caller that holds the world and can
+ * hear a spawn order calls `applyMissions` instead (docs/TODO/214 M2).
  */
 export function runMissions(
   c: CommanderData, input: MissionInput,
-  systems: readonly StarSystem[] = systemsOf(c.galaxy), rng: () => number = random,
+  systems: readonly StarSystem[] = galaxySystems(c.galaxy), rng: () => number = random,
   skeletons?: readonly Skeleton[],
 ): MissionMessage[] {
+  return applyMissions(c, input, systems, rng, skeletons).messages;
+}
+
+/**
+ * `runMissions`, with the spawn orders too. A spawn is a world change, and
+ * the bridge has no world, so the order goes back to the caller. A caller
+ * that cannot spawn drops it, and an ambush no caller can hear is a
+ * skeleton fault the flight probe would show.
+ */
+export function applyMissions(
+  c: CommanderData, input: MissionInput,
+  systems: readonly StarSystem[] = galaxySystems(c.galaxy), rng: () => number = random,
+  skeletons?: readonly Skeleton[],
+): MissionOutcome {
   const { state, effects } = stepMissions(c.missions, input, {
     commander: missionFacts(c), systems, rng, skeletons,
   });
   c.missions = state;
   const out: MissionMessage[] = [];
+  const spawns: TaggedShip[] = [];
   // A dossier's line replaces the skeleton's where one exists (docs/TODO/191
   // M3). The machine named the line and never read it. A word with no
   // dossier and no plain text is silence, as the skeleton meant it.
@@ -83,6 +96,8 @@ export function runMissions(
   for (const e of effects) {
     switch (e.kind) {
       case 'pay': c.credits += e.tenths; break;
+      // A fit no shop sells goes on the ship (docs/TODO/219 M4).
+      case 'grant': c.equipment.cloak = true; break;
       case 'deed': c.disrepute = afterDeed(c.disrepute ?? 0, e.deed.disrepute); break;
       case 'legal':
         c.legalStatus = Math.max(0, Math.min(FUGITIVE, c.legalStatus + e.delta));
@@ -97,12 +112,16 @@ export function runMissions(
         if (text) out.push({ kind: 'message', text, seconds: 6, queued: true });
         break;
       }
-      case 'lead':
+      // The lead's own galaxy names the world. An arc that fails on a galactic
+      // jump leaves its lead in the galaxy it came from (docs/TODO/213 M2).
+      case 'lead': {
+        const named = e.galaxy === c.galaxy ? systems : galaxySystems(e.galaxy);
         out.push({
           kind: 'message', queued: true, seconds: 6,
-          text: `THERE IS A LEAD. ASK AT ${systems[e.world].name.toUpperCase()}.`,
+          text: `THERE IS A LEAD. ASK AT ${named[e.world].name.toUpperCase()}.`,
         });
         break;
+      }
       // The patron's goods go aboard, as far as the hold allows. A hold too
       // full for all of them is a leg that starts short. The smuggle verb then
       // fails a dock with fewer tonnes than it wants.
@@ -122,6 +141,11 @@ export function runMissions(
         });
         break;
       }
+      case 'spawn': spawns.push(...e.ships); break;
+      // The goods delivered leave the hold, and no more than are aboard.
+      case 'unload':
+        c.cargo[e.commodity] = Math.max(0, c.cargo[e.commodity] - e.tonnes);
+        break;
       // Passengers a finished mission left aboard are survivors now, once.
       case 'survivors': c.survivors += e.people; break;
       // A change to a world is kept on the record until its day, and the
@@ -134,24 +158,31 @@ export function runMissions(
         break;
     }
   }
-  return out;
-}
-
-/** The roster row for a mission ship, by the design its entity names. */
-export function missionShipSpec(c: CommanderData, tag: string): NpcSpec | undefined {
-  const e = c.missions.entities[tag];
-  return e ? specForDesign('pirate', e.ship) : undefined;
+  return { messages: out, spawns };
 }
 
 /**
- * What her gun is worth against a live hunt's target, or '' when it will do
- * or the leg is not a hunt.
+ * The roster row for a mission ship, by the design its entity names and the
+ * role its leg flies it under. Every tagged ship was looked up as a pirate
+ * until docs/TODO/213 M4, so a restored Python escort took a pirate's guns.
+ */
+export function missionShipSpec(c: CommanderData, tag: string): NpcSpec | undefined {
+  const e = c.missions.entities[tag];
+  if (!e) return undefined;
+  const leg = liveLegs(c.missions).find(({ live }) => live.tag === tag)?.leg;
+  const role = leg && verbNeedsShip(leg.verb) ? jobRole(verbJob(leg.verb)) : 'pirate';
+  return specForDesign(role, e.ship);
+}
+
+/**
+ * What the commander's gun is worth against a live hunt's target, or '' when
+ * it will do or the leg is not a hunt.
  */
 export function missionWarning(c: CommanderData, live: LiveMission): string {
   const s = skeletonById(live.skeleton);
   if (!s) return '';
   const verb = legOf(s, live.leg).verb;
   if (verb.kind !== 'hunt') return '';
-  const spec = specForDesign('pirate', verb.ship);
+  const spec = specForDesign(jobRole(verbJob(verb)), verb.ship);
   return spec ? huntWarning(c, spec, s.patron.kind === 'navy' ? 'NAVY' : 'PATRON') : '';
 }

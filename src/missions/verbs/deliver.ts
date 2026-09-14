@@ -1,8 +1,9 @@
 // Deliver: dock at the leg's world. A null target means any station.
 //
 // The Constrictor's report leg and its courier leg are both this verb. The
-// first has no target, and the second has one. A cargo delivery checks the
-// hold too, and that arrives with docs/TODO/190 M4.
+// first has no target, and the second has one. The verb carries a `cargo`
+// field for a delivery that checks the hold. No shipped leg sets it, and
+// this module reads none (docs/TODO/213 M5).
 
 import type { VerbModule } from './verb.ts';
 

@@ -1,0 +1,47 @@
+{
+  "promptVersion": 4,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-13",
+  "usage": {
+    "requests": 9,
+    "inputTokens": 75358,
+    "outputTokens": 107067
+  },
+  "dossier": {
+    "briefing": [
+      "You have done enough to be asked. There is a door where no chart reaches, and something guards it.",
+      "Arm the mis-jump, and clear the guard. Some call what lies behind it Raxxla.",
+      "Ask no one who sent this word. When the door falls, you will know who asked: {PATRON}."
+    ],
+    "legs": {
+      "door": {
+        "arrive": "Clear the guard at {TARGET} to open the door beyond",
+        "success": "The guard falls at {TARGET}; the door opens at last",
+        "fail": "The deadline passes over {TARGET}; the door stays sealed"
+      }
+    },
+    "lead": "An unsigned note asks for a word, and gives no world to find it.",
+    "rumour": {
+      "far": "Pilots trade rumours of a wheel that has no face and no name.",
+      "near": "An unsigned line reaches the commander, and asks for a word."
+    },
+    "news": "Word passes through the underworld that unseen hands are hiring again.",
+    "story": {
+      "opening": "On day {DAY}, the commander accepted a note that named no sender.",
+      "closing": {
+        "complete": "By day {DAY}, the guard fell, and the door stood open at last.",
+        "fail": "By day {DAY}, the trail went cold, and the door stayed sealed."
+      },
+      "legs": {
+        "door": {
+          "targetDestroyed": "On day {DAY}, the guard died in {WORLD}, and the door stood open.",
+          "failed": "By day {DAY}, the hunt in {WORLD} failed, and the door stayed shut."
+        }
+      }
+    },
+    "title": "The Door Beyond Charts",
+    "skeleton": "wheel-door",
+    "hash": "b7561976",
+    "images": {}
+  }
+}

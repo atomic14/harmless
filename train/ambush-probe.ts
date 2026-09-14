@@ -49,7 +49,7 @@ import { ScriptedCoPilot } from '../src/game/scripted-co-pilot.ts';
 import { specsForSet } from '../src/game/set-roster.ts';
 import { blueprintSetFor } from '../src/game/blueprint-set.ts';
 import { random, randomDirection, seedWorld } from '../src/game/rng.ts';
-import { poolsLeft } from '../src/game/systems.ts';
+import { poolsLeft } from '../src/game/pools-left.ts';
 import { mean, quantile } from '../src/game/combat-sim-report.ts';
 import type { PlayerPoolPoints } from '../src/game/damage-units.ts';
 import type { FlightDemand } from '../src/player.ts';
@@ -72,7 +72,7 @@ const COAST: FlightDemand = { rollRate: 0, pitchRate: 0, throttle: 0, fire: fals
 
 export interface AmbushEpisode {
   seed: number;
-  /** null when she reached the time limit alive */
+  /** null when the commander reached the time limit alive */
   diedAt: number | null;
   poolsLeft: number;
   mothersAtStart: number;
@@ -85,7 +85,7 @@ export interface AmbushEpisode {
 }
 
 /**
- * One episode: the ambush, flown until she dies or `seconds` pass.
+ * One episode: the ambush, flown until the commander dies or `seconds` pass.
  *
  * Staged as `enterWitchspace` (world-build.ts) stages it, in the same order,
  * so the same seed gives the same sky. The commander's system is the one a

@@ -13,7 +13,7 @@ import { escapeHtml } from '../src/engine/escape-html.ts';
 import config, { FOOTER_MARKER } from '../vite.config.ts';
 import { LogScreen } from '../src/game/screens/log.ts';
 import { newCommander, type CommanderData } from '../src/game/commander.ts';
-import type { Dossier } from '../src/missions/model.ts';
+import type { Dossier } from '../src/missions/words.ts';
 import { patronFor } from '../src/missions/patrons.ts';
 import { routeMapSvg } from '../src/missions/route-map.ts';
 import { ARC_TOUR, SKELETONS } from '../src/missions/skeletons/index.ts';
@@ -33,7 +33,7 @@ console.log('\nthe tour as data: five arcs in order, each with a patron and a fa
   eq('the arcs are in tour order', m.arcs.map((a) => a.id).join(), ARC_TOUR.join());
   eq('...on the tour\'s worlds', m.arcs.map((a) => a.world.name).join(' > '), 'Lave > Rabedira > Vetitice > Xeer > Edle');
   check('each arc\'s patron is the world patron of its world, with a face',
-    m.arcs.every((a) => a.patron.name === patronFor({ kind: 'world', seedSlot: a.world.index }, { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [] }, g1).name
+    m.arcs.every((a) => a.patron.name === patronFor({ kind: 'world', seedSlot: a.world.index }, { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [] }, g1).name
       && a.patron.portrait.startsWith('species/')));
   const jumps = m.arcs.slice(0, -1).map((a) => a.jumpsToNext);
   check(`each arc's world is ${TOUR_STEP_JUMPS.min} to ${TOUR_STEP_JUMPS.max} jumps from the next (${jumps.join(', ')})`,
@@ -81,7 +81,7 @@ console.log('\n...and the game\'s LOG and the page share one builder');
   c.missions.journal.push({ skeleton: 'side-rescue', leg: 'pod', outcome: 'accepted', day: 3, world: 7 });
   const html = captureById(() => { new LogScreen(() => ({ commander: c, systems: g1 })).render(); }).get('screen') ?? '';
   const pages = storyPages(c.missions, g1);
-  const patron = patronFor({ kind: 'local' }, { galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [] }, g1, 7);
+  const patron = patronFor({ kind: 'local' }, { galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [] }, g1, 7);
   const built = logHtml({ pages, route: routeMapSvg(g1, [7]), portrait: patron.portrait, patron: patron.name });
   check('the screen contains the builder\'s markup verbatim', html.includes(built.trim()));
   check('...with the title and the BACK key around it', html.includes("COMMANDER'S LOG") && html.includes('data-key="Escape"'));
@@ -116,6 +116,17 @@ console.log('\n...and the page has its four homes, and a clean link to each');
     m.arcs.every((a) => html.includes(escapeHtml(a.summary)) && html.includes(escapeHtml(a.briefing[0])))
     && (html.match(/<blockquote class="briefing">/g) ?? []).length === 5);
   check('...and nothing that repeats under every job', !/steps?:|jumps on/.test(html));
+  // A gated job says what the board waits for (docs/TODO/223 M3), and an
+  // open job says nothing, so the words are the gate's and not a label.
+  const jobs = m.sideJobs.flatMap((g) => g.jobs);
+  check('a gated side job says what it waits for',
+    jobs.find((j) => j.id === 'side-hunt')?.needs === '8 kills'
+    && jobs.find((j) => j.id === 'side-recover')?.needs === 'fuel scoops'
+    && html.includes('<i>(needs 8 kills)</i>') && html.includes('<i>(needs fuel scoops)</i>'));
+  check('...and an open job says nothing', jobs.find((j) => j.id === 'side-deliver')?.needs === null
+    && !/side-deliver[\s\S]{0,200}\(needs/.test(html));
+  check('...and the hunt is a gang, not a Krait', !JOB_SUMMARIES['side-hunt'].includes('Krait')
+    && JOB_SUMMARIES['side-hunt'].includes('gang'));
   check('...and no shouted order line, and no name from the code',
     !/AT THE TARGET/.test(html) && !/recovery leg|by verb|branch/i.test(html));
   const hostile = tourModel(g1, 1, () => ({

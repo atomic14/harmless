@@ -24,7 +24,7 @@
 import { readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import { fileURLToPath } from 'node:url';
 import { dirname, join } from 'node:path';
-import type { Dossier, DossierFile } from '../src/missions/model.ts';
+import type { Dossier, DossierFile } from '../src/missions/words.ts';
 import { SKELETONS, skeletonById } from '../src/missions/skeletons/index.ts';
 import { newClient, reportCost, runBatches, runLocal, type BatchJob } from './batch.ts';
 import { dossierFaults } from './dossier-faults.ts';

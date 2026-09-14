@@ -3,8 +3,8 @@
 // A STANDING ORDER is an obligation that outlives the moment it is announced.
 // The game has two kinds: a signed contract, and a live mission. Until
 // docs/TODO/144 they shared one line under the station header, and the
-// contract won it. So a commander who took any job before the Navy briefed her
-// was never told where the Constrictor was (GitHub #27).
+// contract won it. So a commander who took any job before the Navy briefed
+// them was never told where the Constrictor was (GitHub #27).
 //
 // The two kinds were never comparable before, because nothing had ever asked
 // them the same question. This is that question, asked once, so that the menu
@@ -44,7 +44,7 @@ export interface MissionOrder {
   readonly destination: number | null;
   /** what the leg pays when it goes right, in tenths of a credit */
   readonly reward: number;
-  /** what her gun is worth against the target, or '' when it will do */
+  /** what the commander's gun is worth against the target, or '' when it will do */
   readonly warning: string;
   /** the mission this leg belongs to */
   readonly live: LiveMission;
@@ -85,8 +85,8 @@ export type StandingOrder = MissionOrder | ContractOrder;
  *
  * A mission sorts above the contracts, and the reason is not taste. A board
  * re-offers work every day. A patron briefs a commander one time. The
- * contracts then sort by deadline, so the row that decides when she must leave
- * is the row at the top of them.
+ * contracts then sort by deadline, so the row that decides when they must
+ * leave is the row at the top of them.
  */
 export function standingOrders(
   c: CommanderData, systems: StarSystem[],
@@ -126,8 +126,8 @@ export function standingOrders(
  * half of GitHub #27 that bites in FLIGHT. The chart is where a pilot picks a
  * destination, and the Constrictor's system looked like any other world.
  *
- * A SET, because two jobs to one world are one diamond. The Navy can send her
- * to a world she already owes a delivery to.
+ * A SET, because two jobs to one world are one diamond. The Navy can send the
+ * commander to a world they already owe a delivery to.
  */
 export function orderDestinations(c: CommanderData): ReadonlySet<number> {
   const marks = new Set(contractDestinations(c));
@@ -136,10 +136,10 @@ export function orderDestinations(c: CommanderData): ReadonlySet<number> {
 }
 
 /**
- * Every world a saved lead points to, in the galaxy she is in.
+ * Every world a saved lead points to, in the galaxy the commander is in.
  *
  * A DIFFERENT MARK from an order's (docs/TODO/190 M3). A lead is not an
- * obligation. Nobody briefed her, and nothing is owed. It is where the next
+ * obligation. Nobody briefed them, and nothing is owed. It is where the next
  * arc starts, and the chart says so with a pointer rather than a diamond.
  */
 export function leadDestinations(c: CommanderData): ReadonlySet<number> {
@@ -150,11 +150,11 @@ export function leadDestinations(c: CommanderData): ReadonlySet<number> {
 
 /**
  * What the chart says about the system under the cursor, or null when nothing
- * sends her there.
+ * sends the commander there.
  *
  * A CONTRACT ANSWERS FIRST where one system carries both, and that is not
  * arbitrary. A contract has a deadline and the Navy mission does not. So the
- * contract is the line that tells her when she must leave.
+ * contract is the line that tells them when they must leave.
  *
  * `daysAway` is the journey the painter measured. It has the same three
  * meanings that `contractVerdict` gives it:
@@ -181,7 +181,7 @@ export function orderVerdict(
   const name = missionName(c.missions, live, systems);
 
   // No deadline, so nothing here can be late. `NO ROUTE` is red all the same:
-  // it is not a deadline she will miss, it is a world she cannot reach.
+  // it is not a deadline they will miss, it is a world they cannot reach.
   if (daysAway === null) return { text: `${name} · NO ROUTE`, late: true };
   if (daysAway === 0) return { text: `${name} · YOU ARE HERE`, late: false };
   return { text: `${name} · ${dayWord(daysAway)} AWAY`, late: false };
@@ -205,7 +205,8 @@ export function orderVerdict(
  * to keep it one line"* (2026-08-13). A joined line still WRAPPED at that
  * width — it broke wherever the column ran out, which was usually mid-order.
  *
- * Empty when she is under no orders at all. The menu then draws nothing.
+ * Empty when the commander is under no orders at all. The menu then draws
+ * nothing.
  */
 export function ordersSummary(orders: readonly StandingOrder[]): string[] {
   const lines: string[] = [];

@@ -12,9 +12,14 @@ import { withoutSaving, readSave, writeSave, makeRecord } from '../src/game/stor
 import { seedWorld } from '../src/game/rng.ts';
 import { newCommander, type CommanderData } from '../src/game/commander.ts';
 import { destroyShip } from '../src/game/combat-wreck.ts';
-import { runMissions } from '../src/game/mission-bridge.ts';
+import { missionShipSpec, runMissions } from '../src/game/mission-bridge.ts';
+import { repairMissionState } from '../src/missions/repair.ts';
+import { SOURCE_DESIGN, specForDesign } from '../src/game/ship-specs.ts';
+import { shipDesignIdOf } from '../src/game/ship-identity.ts';
 import { parseSnapshot } from '../src/game/snapshot-parse.ts';
 import { CONSTRICTOR_BLUEPRINT_SET } from '../src/constants/blueprint-set.ts';
+import { NARCOTICS } from '../src/constants/commodities.ts';
+import { SIDE_JOB_PAY, SMUGGLE_TONNES } from '../src/constants/missions.ts';
 import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { routeEstimate } from '../src/galaxy/route.ts';
 import { stepMissions } from '../src/missions/machine.ts';
@@ -200,13 +205,13 @@ console.log('\nthe galactic drive asks before it fails a held mission');
   eq('...and no tagged entity is left behind', Object.keys(c.missions.entities).length, 0);
 }
 
-console.log('\na lead crosses the galaxy with her, to a world she can reach');
+console.log('\na lead stays in the galaxy it was saved in (docs/TODO/213 M2)');
 {
   // No shipped arc leaves a lead yet, so the pair is built here, as
   // test/mission-machine.test.ts builds its own.
   const first: Skeleton = {
     id: 'first', kind: 'arc', anchor: 'local', patron: { kind: 'world', seedSlot: LAVE },
-    hail: 'HAIL', pitch: 'GO', offer: {},
+    hail: 'HAIL', pitch: 'GO', offer: { galaxy: 1 },
     legs: [{
       id: 'go', verb: { kind: 'deliver' }, place: { kind: 'anywhere' }, line: 'GO',
       next: [{ on: 'success', to: 'complete' }, { on: 'failed', to: 'fail' }],
@@ -221,28 +226,35 @@ console.log('\na lead crosses the galaxy with her, to a world she can reach');
   const state: MissionState = {
     ...emptyMissionState(),
     live: [{ skeleton: 'first', leg: 'go', target: null, tag: null, progress: 0, deadlineDay: null }],
-    leads: [{ skeleton: 'second', galaxy: 1, world: 12, sinceDay: 0 }],
   };
   const r = stepMissions(state, { kind: 'galaxyChanged', from: 1, to: 2 }, {
-    commander: { galaxy: 2, systemIndex: arrival, kills: 0, combatScore: 0, legalStatus: 0, day: 5, cargo: [] },
+    commander: { galaxy: 2, systemIndex: arrival, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 5, cargo: [] },
     systems: g2, rng: () => 0.5, skeletons: pair,
   });
   eq('the held arc failed', r.state.done.first, 'fail');
   eq('...and the lead it leaves is saved once', r.state.leads.length, 1);
   const lead = r.state.leads[0];
-  eq('the earlier lead now names the new galaxy', lead.galaxy, 2);
-  check('...and a world a chain of full-tank jumps reaches from the arrival',
-    lead.world === arrival || routeEstimate(g2, g2[arrival], g2[lead.world]) !== null);
+  // The arc is offered in galaxy 1, so the lead points there, and not at
+  // index 12 of the galaxy they arrived in.
+  eq('the lead is in the galaxy the next arc is offered in', lead.galaxy, 1);
+  eq('...at that arc\'s own world', lead.world, 12);
+  eq('...and the announcement carries the same galaxy',
+    (r.effects.find((e) => e.kind === 'lead') as { galaxy: number } | undefined)?.galaxy, 1);
+  check('...and the arrival world of galaxy 2 was not made a lead', arrival !== lead.world || lead.galaxy === 1);
+  check('the pair is well formed (the control)', routeEstimate(g2, g2[arrival], g2[12]) !== undefined);
 
   // A save carries the pair together. An index alone names nothing across
   // galaxies.
+  // The loader drops a lead to a skeleton the game does not ship (213 M4),
+  // so the saved lead names a shipped arc with the same galaxy and world.
   seedWorld(1904);
   const g = withoutSaving(() => new Game(() => headlessShell())).value;
   dismissBriefing(g);
-  g.state.commander.missions = r.state;
+  const shipped = { ...r.state, leads: [{ ...r.state.leads[0], skeleton: 'arc-rabedira' }] };
+  g.state.commander.missions = shipped;
   const snap = parseSnapshot(structuredClone(g.captureSnapshot()));
   eq('a save keeps the lead\'s galaxy and world together',
-    JSON.stringify(snap.commander.missions.leads), JSON.stringify(r.state.leads));
+    JSON.stringify(snap.commander.missions.leads), JSON.stringify(shipped.leads));
 }
 
 console.log('\na jump reaches the machine as a day and an arrival, and the lane completes (docs/TODO/203 M1)');
@@ -287,4 +299,77 @@ console.log('\na jump reaches the machine as a day and an arrival, and the lane 
   withoutSaving(() => g.enterDocked('arrived'));
   check('...and the next dock completes the lane job through the game',
     c.missions.live.length === 0 && c.missions.done['side-ambush'] === 'complete');
+}
+
+console.log('\na smuggling run leaves the goods at the far end (docs/TODO/213 M2)');
+{
+  // The run paid its fee and left the narcotics aboard to sell. Through the
+  // real bridge: the goods go aboard at the acceptance, and off at the dock.
+  seedWorld(1913);
+  const g = withoutSaving(() => new Game(() => headlessShell())).value;
+  dismissBriefing(g);
+  const c = g.state.commander;
+  for (let world = 0; world < 256 && c.missions.live.length === 0; world++) {
+    c.systemIndex = world;
+    withoutSaving(() => runMissions(c, { kind: 'accept', skeleton: 'side-smuggle' }, g.state.systems, () => 0.5));
+  }
+  eq('the patron\'s goods went aboard', c.cargo[NARCOTICS], SMUGGLE_TONNES);
+  const before = c.credits;
+  c.systemIndex = c.missions.live[0].target as number;
+  withoutSaving(() => runMissions(c, { kind: 'docked' }, g.state.systems));
+  eq('the dock at the far end pays', c.credits - before, SIDE_JOB_PAY.smuggle);
+  eq('...and the goods are off the ship', c.cargo[NARCOTICS], 0);
+  eq('...and the job is complete', c.missions.done['side-smuggle'], 'complete');
+}
+
+console.log('\na save that names a ghost loads without it (docs/TODO/213 M4)');
+{
+  // A live mission on a skeleton or a leg the code no longer ships threw on
+  // the next dock, and on the abandon that could have freed the slot.
+  const st: MissionState = {
+    ...emptyMissionState(),
+    live: [
+      { skeleton: 'arc-ghost', leg: 'x', target: null, tag: null, progress: 0, deadlineDay: null },
+      { skeleton: 'arc-lave', leg: 'old', target: null, tag: null, progress: 0, deadlineDay: null },
+      { skeleton: 'arc-lave', leg: 'ledger', target: 12, tag: null, progress: 0, deadlineDay: null },
+    ],
+    leads: [
+      { skeleton: 'arc-ghost', galaxy: 1, world: 6, sinceDay: 0 },
+      { skeleton: 'arc-rabedira', galaxy: 1, world: 6, sinceDay: 0 },
+    ],
+    passengers: [{ tag: 'arc-ghost#1#x', mission: 'arc-ghost' }],
+  };
+  const kept = repairMissionState(st);
+  eq('the two ghosts among the live missions are dropped', kept.live.map((l) => l.leg).join(), 'ledger');
+  eq('...and the ghost lead', kept.leads.map((l) => l.skeleton).join(), 'arc-rabedira');
+  eq('...and the ghost passenger', kept.passengers.length, 0);
+  seedWorld(1914);
+  const g = withoutSaving(() => new Game(() => headlessShell())).value;
+  dismissBriefing(g);
+  g.state.commander.missions = st;
+  const parsed = parseSnapshot(structuredClone(g.captureSnapshot()));
+  eq('the world loader drops them too', parsed.commander.missions.live.length, 1);
+  const stepped = stepMissions(parsed.commander.missions, { kind: 'docked' }, {
+    commander: { galaxy: 1, systemIndex: 7, kills: 0, combatScore: 0, legalStatus: 0, scoops: true, day: 0, cargo: [] },
+    systems: generateGalaxy(1), rng: () => 0.5,
+  });
+  check('...and the machine takes the record it leaves', stepped.state.live.length === 1);
+}
+
+console.log('\na restored mission ship takes the role its leg flies it under (docs/TODO/213 M4)');
+{
+  seedWorld(1915);
+  const g = withoutSaving(() => new Game(() => headlessShell())).value;
+  dismissBriefing(g);
+  const c = g.state.commander;
+  c.kills = 16;   // the board gates the escort by kills since docs/TODO/217 M2
+  for (let world = 0; world < 256 && c.missions.live.length === 0; world++) {
+    c.systemIndex = world;
+    withoutSaving(() => runMissions(c, { kind: 'accept', skeleton: 'side-escort' }, g.state.systems, () => 0.5));
+  }
+  const tag = c.missions.live[0].tag as string;
+  const python = shipDesignIdOf(SOURCE_DESIGN.python);
+  eq('the Python escort restores from the trader row', missionShipSpec(c, tag), specForDesign('trader', python));
+  check('...which is not the pirate row', specForDesign('pirate', python) !== specForDesign('trader', python));
+  eq('a tag no entity names restores nothing', missionShipSpec(c, 'nobody'), undefined);
 }

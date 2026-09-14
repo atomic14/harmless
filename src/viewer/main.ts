@@ -113,7 +113,7 @@ const tracerDir = new THREE.Vector3();
  *
  * It exists because a pirate in an episode LAUNCHES now (docs/TODO/62). A
  * warhead is 250 of the commander's 765 pool points. Without this, the page
- * would show a target down a third of herself to nothing at all. That is
+ * would show a target down a third of themselves to nothing at all. That is
  * exactly the kind of lie the viewer exists to stop.
  */
 const drawnMissiles = new Set<THREE.Object3D>();

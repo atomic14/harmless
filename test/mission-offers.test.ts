@@ -1,20 +1,21 @@
 // Offers, leads and hints: what a station offers, what it says about the
 // next arc, and how far the word travels (docs/TODO/190 M3).
 //
-// `offers.ts` decides what she can accept. `hints.ts` decides the one line a
+// `offers.ts` decides what the commander can accept. `hints.ts` decides the one line a
 // dock may say about a lead, and what the board and the DATA ON page carry.
 // Both are pure, and the machine asks them on `docked`. The fixture pair here
 // is the same shape test/mission-machine.test.ts builds, because no shipped
 // arc leaves a lead yet.
 
 import { canAccept, offersFor, sideJobsAt } from '../src/missions/offers.ts';
+import { generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { stepMissions } from '../src/missions/machine.ts';
 import { boardRumour, leadJumps, leadLine, worldNews } from '../src/missions/hints.ts';
 import { emptyMissionState } from '../src/missions/state.ts';
 import { SIDE_JOBS } from '../src/missions/skeletons/side.ts';
 import { SKELETONS } from '../src/missions/skeletons/index.ts';
 import type { CommanderFacts, MissionEffect, MissionState, Skeleton } from '../src/missions/model.ts';
-import { LEAD_NAG_DOCKS, LEAD_RUMOUR_JUMPS, MISSION_REOFFER_DAYS } from '../src/constants/missions.ts';
+import { GANG_HUNT_KILLS, LANE_JOB_KILLS, LEAD_NAG_DOCKS, LEAD_RUMOUR_JUMPS, MISSION_REOFFER_DAYS } from '../src/constants/missions.ts';
 import { routeEstimate } from '../src/galaxy/route.ts';
 import { newCommander, type CommanderData } from '../src/game/commander.ts';
 import { leadDestinations, orderVerdict, ordersSummary, standingOrders } from '../src/game/orders.ts';
@@ -31,7 +32,7 @@ import { check, eq } from './harness.ts';
 
 const LAVE = 7;
 const facts = (over: Partial<CommanderFacts> = {}): CommanderFacts => ({
-  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], ...over,
+  galaxy: 1, systemIndex: LAVE, kills: 0, combatScore: 0, legalStatus: 0, scoops: false, day: 0, cargo: [], ...over,
 });
 
 /** An arc at Lave that leads to a second arc at `world`. */
@@ -118,8 +119,10 @@ console.log('\nhints: the word travels by distance, one line per dock');
   const lead = (world: number): MissionState => ({
     ...emptyMissionState(), leads: [{ skeleton: 'second', galaxy: 1, world, sinceDay: 0 }],
   });
+  // A blooded commander with scoops, so the board's side jobs are open to
+  // them whatever the roster holds (docs/TODO/217 M2).
   const dock = (st: MissionState, world: number, skeletons: Skeleton[]) =>
-    stepMissions(st, { kind: 'docked' }, { commander: facts({ systemIndex: world }), systems: g1, rng: () => 0.5, skeletons });
+    stepMissions(st, { kind: 'docked' }, { commander: facts({ systemIndex: world, kills: 16, scoops: true }), systems: g1, rng: () => 0.5, skeletons });
   // The first arc at Lave would hail on every dock; a held one keeps it quiet.
   const quiet = (st: MissionState): MissionState => ({ ...st, done: { first: 'complete' } });
 
@@ -139,7 +142,7 @@ console.log('\nhints: the word travels by distance, one line per dock');
   eq('...and a dock two jumps out still says nothing', said(dock(quiet(lead(near.index)), LAVE, arcs(near.index)).effects).length, 0);
 
   const r = dock(quiet(lead(next.index)), LAVE, arcs(next.index));
-  check('one jump out, the patron writes when she docks',
+  check('one jump out, the patron writes when they dock',
     said(r.effects).some((t) => t.includes('MESSAGE FROM') && t.includes(next.name.toUpperCase())));
   eq('...and once only', said(r.effects).length, 1);
   check('...queued, so it never takes the console from an order',
@@ -149,6 +152,14 @@ console.log('\nhints: the word travels by distance, one line per dock');
   const both = dock(lead(next.index), LAVE, arcs(next.index));
   eq('a dock that makes an offer says nothing about a lead',
     said(both.effects).join('|'), 'A WORD FROM THE GOVERNOR');
+  // ...but a board of side jobs is not an offer of that kind. Most worlds
+  // carry one, and it silenced the message on almost every dock
+  // (docs/TODO/213 M3).
+  const board = dock(quiet(lead(next.index)), LAVE, [...arcs(next.index), ...SIDE_JOBS]);
+  check('a dock with side jobs on the board still passes the message on',
+    said(board.effects).some((t) => t.includes('SIDE JOB'))
+    && said(board.effects).some((t) => t.includes('MESSAGE FROM') && t.includes(next.name.toUpperCase())),
+    said(board.effects).join('|'));
 
   // The second message, after docks with no progress.
   let st = quiet(lead(near.index));
@@ -228,9 +239,71 @@ console.log('\nevery world has a roster of side jobs from the seed');
   const st = emptyMissionState();
   const off = SIDE_JOBS.find((s) => !boards[LAVE].includes(s.id))!;
   const where = g1.findIndex((_, i) => boards[i].includes(off.id));
+  // A blooded commander with scoops, so no other gate shuts the job
+  // (docs/TODO/217 M2).
+  const able = { kills: 16, scoops: true };
   check(`${off.id} is shut at Lave and open at ${g1[where].name}`,
-    !canAccept(st, off.id, { commander: facts({ systemIndex: LAVE }), systems: g1 })
-    && canAccept(st, off.id, { commander: facts({ systemIndex: where }), systems: g1 }));
+    !canAccept(st, off.id, { commander: facts({ systemIndex: LAVE, ...able }), systems: g1 })
+    && canAccept(st, off.id, { commander: facts({ systemIndex: where, ...able }), systems: g1 }));
   check('...and open everywhere with no galaxy to read a roster from',
-    canAccept(st, off.id, { commander: facts({ systemIndex: LAVE }) }));
+    canAccept(st, off.id, { commander: facts({ systemIndex: LAVE, ...able }) }));
+}
+
+console.log('\nthe shipped side jobs come back, and an arc stays in its galaxy (docs/TODO/213 M2)');
+{
+  // No side job has a cap, and absent read as once. Each was offered one
+  // time per career, and the boards emptied in a few sessions.
+  const g2 = generateGalaxy(2);
+  const escort = sideJobsAt(g1[LAVE], SKELETONS).find((s) => !s.offer.scoops)!;
+  // Sixteen kills, because the board gates some jobs by kills (docs/TODO/217 M2).
+  const ctxAt = (day: number) => ({ commander: facts({ day, kills: 16 }), systems: g1, rng: () => 0.5 });
+  const held = stepMissions(emptyMissionState(), { kind: 'accept', skeleton: escort.id }, ctxAt(10)).state;
+  const ended = stepMissions(held, { kind: 'abandon', skeleton: escort.id }, ctxAt(10)).state;
+  eq(`${escort.id} ended on day 10`, ended.done[escort.id], 'fail');
+  check('...and it is shut the next day', !canAccept(ended, escort.id, ctxAt(11)));
+  check(`...and open ${MISSION_REOFFER_DAYS} days on, with no cap to spend`,
+    canAccept(ended, escort.id, ctxAt(10 + MISSION_REOFFER_DAYS)));
+  check('...and open again a year on', canAccept(ended, escort.id, ctxAt(400)));
+
+  // Galaxy 2's index 7 is Esrilees, and it offered the governor of Lave's job.
+  check('the Lave arc is offered at Lave, with scoops fitted',
+    canAccept(emptyMissionState(), 'arc-lave', { commander: facts({ scoops: true }), systems: g1 }));
+  check('...and not at index 7 of galaxy 2',
+    !canAccept(emptyMissionState(), 'arc-lave', { commander: facts({ galaxy: 2, scoops: true }), systems: g2 }));
+  eq('...where no arc is offered at all',
+    offersFor(emptyMissionState(), { commander: facts({ galaxy: 2, scoops: true }), systems: g2 })
+      .filter((s) => s.kind === 'arc').length, 0);
+
+  // A scoop breaks on a hull without fuel scoops, so the offer waits for them.
+  check('the Lave arc waits for the scoops',
+    !canAccept(emptyMissionState(), 'arc-lave', { commander: facts(), systems: g1 }));
+  const scoop = sideJobsAt(g1[LAVE], SKELETONS).find((s) => s.offer.scoops)!;
+  check(`...and so does ${scoop.id}`,
+    !canAccept(emptyMissionState(), scoop.id, { commander: facts(), systems: g1 })
+    && canAccept(emptyMissionState(), scoop.id, { commander: facts({ scoops: true }), systems: g1 }));
+}
+
+// --- the board gates the hard jobs (docs/TODO/217 M2) -----------------------
+//
+// Chris, 2026-09-13: "should we start gating side quests by equipment/number
+// of kills?" The gang hunt asks for eight, the lane job and the escort for
+// four. The rest stay open, and the two scoop jobs ask for scoops as before.
+
+console.log('\nthe board gates the hard jobs by kills');
+{
+  /** A world whose board carries the job, and what it offers a commander with these kills there. */
+  const offered = (id: string, kills: number): boolean => {
+    const world = g1.find((s) => sideJobsAt(s, SKELETONS).some((j) => j.id === id))!;
+    return offersFor(emptyMissionState(), { commander: facts({ systemIndex: world.index, kills, scoops: true }), systems: g1 })
+      .some((s) => s.id === id);
+  };
+  check('a Harmless commander is not offered the gang hunt', !offered('side-hunt', 0));
+  check(`...nor at ${GANG_HUNT_KILLS - 1} kills`, !offered('side-hunt', GANG_HUNT_KILLS - 1));
+  check(`...and is offered it at ${GANG_HUNT_KILLS}, Mostly Harmless`, offered('side-hunt', GANG_HUNT_KILLS));
+  check('the lane job waits for four kills', !offered('side-ambush', LANE_JOB_KILLS - 1) && offered('side-ambush', LANE_JOB_KILLS));
+  check('...and so does the escort', !offered('side-escort', LANE_JOB_KILLS - 1) && offered('side-escort', LANE_JOB_KILLS));
+  check('the delivery, the scan and the smuggle are open to a fresh commander',
+    ['side-deliver', 'side-scan', 'side-smuggle'].every((id) => offered(id, 0)));
+  check('...and so are the two scoop jobs, with scoops', ['side-recover', 'side-rescue'].every((id) => offered(id, 0)));
+  eq('the gang hunt\'s gate is the second rung', GANG_HUNT_KILLS, 8);
 }

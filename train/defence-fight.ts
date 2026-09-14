@@ -37,10 +37,10 @@ export interface DefenceFight {
   count: number;
   /** which of the flyable envelopes the commander is in */
   hull: TargetHullId;
-  /** which gun she answers with */
+  /** which gun the commander answers with */
   laser: LaserType;
   /**
-   * ...and whether she has the extra energy unit, which DOUBLES how fast the
+   * ...and whether the commander has the extra energy unit, which DOUBLES how fast the
    * bank comes back (systems.ts `ENERGY_UNIT_MULTIPLIER`).
    *
    * It is in the rotation for the same reason the laser is — the same commander
@@ -53,7 +53,7 @@ export interface DefenceFight {
    */
   energyUnit: boolean;
   /**
-   * ...and her E.C.M., which is FITTED IN EVERY DEFENCE FIGHT rather than
+   * ...and the commander's E.C.M., which is FITTED IN EVERY DEFENCE FIGHT rather than
    * rotated, and that is a decision (docs/TODO/72).
    *
    * The argument is the one that keeps pulse out of `LASERS` above, only

@@ -20,7 +20,7 @@
 // consequences.
 //
 // ONE THING HERE DECIDES WHETHER A HIT COUNTS AT ALL. For `WRECK_BURST_GRACE`
-// seconds after the commander's own shot destroys a ship, her beam registers
+// seconds after the commander's own shot destroys a ship, their beam registers
 // nothing on a bystander. `inTheFireball` is the whole of that rule, and
 // `hostility.ts` says who counts as a bystander (docs/TODO/173).
 //
@@ -149,7 +149,8 @@ export class Combat {
     // ONLY A BYSTANDER IS COVERED, and `isHostileToPlayer` is the one home of
     // that question (hostility.ts). A pirate out in the lane is hostile by its
     // role, so a queue of pirates costs the commander nothing there. A Viper
-    // she already provoked stays shootable, because she is in a fight with it.
+    // they already provoked stays shootable, because they are in a fight with
+    // it.
     // Inside the station's truce an unprovoked pirate is a bystander too, and
     // that follows the truce rather than widening this rule.
     const shot = this.inTheFireball(sys, traced, commander, playerPos, witchspace)

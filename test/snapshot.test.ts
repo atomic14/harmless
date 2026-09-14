@@ -391,6 +391,9 @@ console.log('\nsnapshot round trip');
       // waiting their turn (docs/TODO/129). A save taken between the deed and
       // the line that explains it must still say it on the other side.
       else if (Array.isArray(v)) session[k] = [{ text: `dirty-${k}`, seconds: (n += 1) }];
+      // ...and a field that starts empty, such as the picked course
+      // (docs/TODO/205 M3). A null left as it was would round-trip for free.
+      else if (v === null) session[k] = `dirty-${k}`;
     }
     const dirty = structuredClone(session);
     const wireSession = JSON.stringify(serialiseState(session));

@@ -1,47 +1,49 @@
 {
-  "promptVersion": 3,
+  "promptVersion": 4,
   "model": "claude-sonnet-5 via claude -p",
-  "generated": "2026-09-07",
+  "generated": "2026-09-13",
   "usage": {
-    "requests": 21,
-    "inputTokens": 164690,
-    "outputTokens": 100025
+    "requests": 20,
+    "inputTokens": 175941,
+    "outputTokens": 98405
   },
   "dossier": {
     "briefing": [
-      "This is {PATRON}. I run the docks at {HERE}, and a Krait has been picking off ships on our lane.",
-      "Find it, burn it, and the fee is yours the day you dock here again."
+      "A gang has been taking ships on the lane out of {HERE}, and this station has had enough of it.",
+      "My name is {PATRON}, and I run this station. Four raiders hunt together: a Fer-de-Lance leads an Asp, a Krait and a Mamba.",
+      "Find them near the lane and finish every one. The leader may run once it takes damage, so don't let up."
     ],
-    "lead": "Word comes in that {PATRON} at {WORLD} wants a word with you.",
     "legs": {
       "hunt": {
-        "arrive": "Destroy the Krait last seen at {TARGET} and claim {PAY}",
-        "success": "The Krait burns, and {PAY} is now yours",
-        "fail": "The Krait slipped away, and {PAY} stays on the board"
+        "arrive": "Hunt down the gang near {TARGET} and collect {PAY} for the kill",
+        "success": "The gang is finished near {TARGET} and {PAY} lands in your account",
+        "fail": "The trail near {TARGET} went cold and {PAY} stays unpaid"
       }
     },
-    "news": "{PATRON} at {WORLD} still wants the lane Krait destroyed.",
+    "lead": "{PATRON} has a word for the commander at {WORLD}.",
     "rumour": {
-      "far": "Traders say {PATRON} at {WORLD} is paying well for a dead Krait.",
-      "near": "{PATRON} sends word from {WORLD} that the Krait bounty still stands."
+      "far": "Word on the board says {PATRON} at {WORLD} pays well to clear raiders off the lane.",
+      "near": "{PATRON} sends word from {WORLD}: the gang is still out there, and the bounty still stands."
     },
+    "news": "{PATRON} at {WORLD} is offering a bounty on the gang working the lane.",
     "story": {
-      "opening": "She signed on to hunt a Krait at {WORLD} on day {DAY}.",
+      "opening": "The commander took the bounty on day {DAY}, with a gang loose near {WORLD}.",
       "closing": {
-        "complete": "By day {DAY}, the Krait bounty out of {WORLD} was closed for good.",
-        "fail": "By day {DAY}, the Krait bounty out of {WORLD} had gone unpaid."
+        "complete": "The commander closed the case by day {DAY}, and the lane near {WORLD} was safe again.",
+        "fail": "The commander lost the trail by day {DAY}, and the gang stayed loose near {WORLD}."
       },
       "legs": {
         "hunt": {
-          "targetDestroyed": "At {WORLD} on day {DAY}, the Krait was destroyed and the bounty paid.",
-          "targetEscaped": "At {WORLD} on day {DAY}, the Krait jumped clear and the trail went cold.",
-          "failed": "By day {DAY}, the hunt near {WORLD} had run past its deadline."
+          "targetDestroyed": "By day {DAY}, the gang near {WORLD} was destroyed to the last ship.",
+          "targetFled": "By day {DAY}, the leader fled the fight near {WORLD}, and the bounty was paid.",
+          "targetEscaped": "By day {DAY}, the leader jumped clear of {WORLD} before the kill was made.",
+          "failed": "By day {DAY}, the gang near {WORLD} was still out there, and the bounty lapsed."
         }
       }
     },
-    "title": "Krait on the Lane",
+    "title": "Bounty on the Lane",
     "skeleton": "side-hunt",
-    "hash": "cebda7e6",
+    "hash": "276bdfa5",
     "images": {}
   }
 }

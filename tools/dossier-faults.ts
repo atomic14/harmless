@@ -13,7 +13,8 @@
 // names a system other than the patron's own world. No field breaks the
 // ladder-word rule.
 
-import type { Dossier, Skeleton } from '../src/missions/model.ts';
+import type { Skeleton } from '../src/missions/model.ts';
+import type { Dossier } from '../src/missions/words.ts';
 import { shapeOf } from './dossier-prompts.ts';
 import { proseLadderOffences } from './ladder-rules.ts';
 import { faults, foreignSystemNames, type FaultOptions } from './system-prompts.ts';

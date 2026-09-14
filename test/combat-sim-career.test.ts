@@ -25,7 +25,7 @@ import { commanderOf, dockId, flightIds, type SaveRecord } from '../src/game/sav
 import { Combat } from '../src/game/combat.ts';
 import { firePlayerLaser, damagePlayer } from '../src/game/combat-player.ts';
 import { MAX_ENERGY } from '../src/constants/pools.ts';
-import { durability } from '../src/game/systems.ts';
+import { durability } from '../src/game/pools-left.ts';
 import { CONTRABAND, CLEAN, FUGITIVE } from '../src/constants/law.ts';
 import { MAX_FUEL } from '../src/constants/commander.ts';
 import type { CommanderData } from '../src/game/commander.ts';

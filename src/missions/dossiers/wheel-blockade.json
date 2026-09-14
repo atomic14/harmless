@@ -1,0 +1,47 @@
+{
+  "promptVersion": 4,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-13",
+  "usage": {
+    "requests": 1,
+    "inputTokens": 8194,
+    "outputTokens": 16936
+  },
+  "dossier": {
+    "briefing": [
+      "A parcel waits one jump out. A patrol sits on that route. It reads every hold it stops.",
+      "Keep the parcel aboard. Stay clean the whole way there. Land it clean. You become one of us.",
+      "This note carries no name until the end. {PATRON}."
+    ],
+    "legs": {
+      "run": {
+        "arrive": "Land the parcel at {TARGET} without a scan",
+        "success": "The parcel landed at {TARGET} clean, and {PAY} was paid without question",
+        "fail": "The parcel never reached {TARGET}, and {PAY} goes unpaid"
+      }
+    },
+    "lead": "Someone who signs nothing wants a word again.",
+    "rumour": {
+      "far": "Pilots swap a name at the bar, then swear they never said it.",
+      "near": "A note finds you again, unsigned, and it waits at the next dock."
+    },
+    "news": "Quiet channels still move parcels for pilots who ask no questions.",
+    "story": {
+      "opening": "On day {DAY}, the commander accepted a note that named no one.",
+      "closing": {
+        "complete": "By day {DAY}, the commander delivered the parcel to {WORLD}, and no scanner saw it.",
+        "fail": "By day {DAY}, the parcel never reached {WORLD}, and the note went silent."
+      },
+      "legs": {
+        "run": {
+          "success": "The commander landed the parcel at {WORLD} on day {DAY}, unseen and unquestioned.",
+          "failed": "The parcel never reached {WORLD}, and the deadline closed the job by day {DAY}."
+        }
+      }
+    },
+    "title": "One Of Us",
+    "skeleton": "wheel-blockade",
+    "hash": "aa1ed076",
+    "images": {}
+  }
+}

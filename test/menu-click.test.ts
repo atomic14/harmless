@@ -19,8 +19,8 @@
 
 import { Input } from '../src/engine/input.ts';
 import { commandsFor } from '../src/game/controls.ts';
-import { ScreenHost } from '../src/ui/screen-host.ts';
-import { check, eqc } from './harness.ts';
+import { ScreenHost, type Screen } from '../src/ui/screen-host.ts';
+import { check, eq, eqc } from './harness.ts';
 
 /** An element as `ScreenHost` reads one: a `dataset` and nothing else. */
 const row = (key: string, shift?: boolean): unknown =>
@@ -42,10 +42,10 @@ console.log('\na click on a row sends the modifier the row prints');
 
   // The false fire, through the click path this time. One shifted click must
   // not arm a DIFFERENT shifted binding in the same frame.
-  // `KeyZ` is bound to nothing in the cockpit, so the scan runs past it and
+  // `KeyX` is bound to nothing in the cockpit, so the scan runs past it and
   // reaches the Y pair. `KeyT` would arm a missile and stop the scan first.
   const both = new Input();
-  host.click(row('KeyZ', true), both);
+  host.click(row('KeyX', true), both);
   host.click(row('KeyY'), both);
   const asked = commandsFor('flight', both);
   check('a shifted click leaves another key unshifted',
@@ -88,4 +88,34 @@ console.log('\nEnter on a row sends it too, which is the same path');
     if (had) globals.document = before;
     else delete globals.document;
   }
+}
+
+// --- a button on a row selects the row, and then sends its key -------------
+//
+// The test mode and the trainer's setup carry an arrow on each row
+// (docs/TODO/216 M3). The arrow must act on ITS row. So the host selects the
+// row before it injects the key, and a plain row or a plain key takes the
+// path it always took.
+
+console.log('\na click on a row\'s arrow selects that row first');
+{
+  const picked: number[] = [];
+  const host = new ScreenHost(() => {});
+  const list: Screen = {
+    id: 'test-mode', open: () => {}, render: () => {}, input: () => 'stay',
+    select: (row) => { picked.push(row); },
+  };
+  host.register(list);
+  host.open('test-mode');
+
+  const i = new Input();
+  check('the click is consumed', host.click({ dataset: { row: '2', key: 'ArrowLeft' } }, i) === true);
+  eq('...it selected the row the arrow sits on', picked.join(), '2');
+  check('...and then sent the arrow', i.pressed('ArrowLeft'));
+
+  host.click({ dataset: { row: '1' } }, i);
+  eq('a plain row still selects', picked.join(), '2,1');
+  host.click({ dataset: { key: 'ArrowRight' } }, i);
+  eq('...and a plain key selects nothing', picked.join(), '2,1');
+  check('...while it still sends its key', i.pressed('ArrowRight'));
 }

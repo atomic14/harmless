@@ -36,7 +36,10 @@ export function hail(
     if (arcs.length === 0) effects.push({ kind: 'say', text, command: 'openMissions' });
     else effects.push({ kind: 'later', text });
   }
-  const hint = dockHint(st, ctx.commander, ctx.systems, offers.length > 0, st.idleDocks);
+  // ONLY AN ARC'S HAIL IS A HAIL. Most worlds carry side jobs, so a count
+  // that counted as one silenced the patron's message on almost every dock
+  // (docs/TODO/213 M3). The message queues behind the count.
+  const hint = dockHint(st, ctx.commander, ctx.systems, arcs.length > 0, st.idleDocks);
   if (hint) effects.push({ kind: 'later', ...hint });
 }
 

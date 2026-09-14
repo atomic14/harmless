@@ -78,7 +78,7 @@ console.log('\ncombat arena');
 
       if (massLocked(state)) locked += 1;
       if (dockingOutcome(centre, state.player.quaternion, world.station,
-        world.stationDockZ, scratch) !== 'clear') notClear += 1;
+        world.stationDockZ, 0, scratch) !== 'clear') notClear += 1;
     }
   }
 
@@ -146,7 +146,7 @@ console.log('\ncombat arena');
       ships.every((n) => n.object.position.distanceTo(world.station.position) > 20_000));
     check('...none of them inside the docking box',
       ships.every((n) => dockingOutcome(n.object.position, n.object.quaternion,
-        world.station, world.stationDockZ, scratch) === 'clear'));
+        world.station, world.stationDockZ, 0, scratch) === 'clear'));
     // and near enough that the fight starts: `PLAYER_INTEREST_RANGE` is where
     // an NPC begins to care about the player at all (npc.ts update()). It was
     // 9,000 written out, in a file that can import the rule.

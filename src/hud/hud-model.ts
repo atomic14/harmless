@@ -191,6 +191,8 @@ export function dockingAid(
   playerForward: THREE.Vector3,
   camera: THREE.Camera,
   scratch: { a: THREE.Vector3; b: THREE.Vector3; q: THREE.Quaternion },
+  /** the slot's roll tolerance for whoever holds the stick — see `dockingOutcome` */
+  rollTolerance: number,
 ): { dockAid: HudState['dockAid']; slotMarker: HudState['slotMarker'] } {
   const none = { dockAid: null, slotMarker: null };
   const dist = playerPos.distanceTo(station.position);
@@ -215,7 +217,7 @@ export function dockingAid(
   // channel and the roll tolerance. So the aid and the dock test could
   // disagree, and once the letterbox turned upright they did.
   const inSlot = inSlotChannel(local.x, local.y);
-  const rollOk = rollAlignedWithSlot(right.x, right.y);
+  const rollOk = rollAlignedWithSlot(right.x, right.y, rollTolerance);
   return {
     slotMarker,
     dockAid: {

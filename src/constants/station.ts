@@ -50,7 +50,11 @@ export const BOUNCE_STANDOFF = 420;
 /** How far off the slot you sit when the bay spits you out, in world units. */
 export const LAUNCH_STANDOFF = 450;
 
-/** ...and how fast, in world units a second — a firm push, not a cruise. */
+/**
+ * ...and how fast, in world units a second — a firm push, not a cruise.
+ *
+ * @rule station.launchSpeed
+ */
 export const LAUNCH_SPEED = 120;
 
 /**

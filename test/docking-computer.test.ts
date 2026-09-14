@@ -28,7 +28,7 @@ import { PLAYER_FLIGHT } from '../src/constants/player-flight.ts';
 import {
   DC_TURN_FADE_ANGLE, DC_SLOT_MARGIN, DC_ROLL_LEAD,
 } from '../src/constants/docking-computer.ts';
-import { ROLL_TOLERANCE } from '../src/constants/docking.ts';
+import { COMPUTER_ROLL_TOLERANCE } from '../src/constants/docking.ts';
 import { STEER_SATURATION } from '../src/constants/combat-computer.ts';
 import { rollErrorTo } from '../src/game/pitch-roll-steer.ts';
 import { check } from './harness.ts';
@@ -128,7 +128,7 @@ console.log('\nthe docking computer near its own heading');
     // the fade is the only thing holding it back and not some other clamp.
     check(`...and outside it spends the budget DC_SLOT_MARGIN allows (${
       outside.toFixed(4)})`,
-    near(Math.abs(outside), ROLL_TOLERANCE * DC_SLOT_MARGIN / STEER_SATURATION, 1e-6));
+    near(Math.abs(outside), COMPUTER_ROLL_TOLERANCE * DC_SLOT_MARGIN / STEER_SATURATION, 1e-6));
   }
 
   // The GATE phase hands the whole axis to the turn: a slot on a spinning hull
@@ -145,10 +145,10 @@ console.log('\nthe docking computer near its own heading');
     const q = new THREE.Quaternion().setFromRotationMatrix(
       new THREE.Matrix4().lookAt(new THREE.Vector3(), plan.heading, plan.up));
     q.multiply(new THREE.Quaternion()
-      .setFromAxisAngle(new THREE.Vector3(0, 0, 1), ROLL_TOLERANCE * 2));
+      .setFromAxisAngle(new THREE.Vector3(0, 0, 1), COMPUTER_ROLL_TOLERANCE * 2));
     const s = dockingSticks(q, plan, AT_REST);
     check(`...so with the nose on the gate heading it holds the wings still (${
-      s.roll.toFixed(6)}), rolled ${(ROLL_TOLERANCE * 2).toFixed(2)} off the slot`,
+      s.roll.toFixed(6)}), rolled ${(COMPUTER_ROLL_TOLERANCE * 2).toFixed(2)} off the slot`,
     Math.abs(s.roll) < 1e-6);
   }
 }

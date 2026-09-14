@@ -6,6 +6,7 @@
 // answer reads the skeleton through the live leg, so a stage number lives
 // nowhere (docs/TODO/190).
 
+import { WITCHSPACE_TARGET } from '../constants/missions.ts';
 import type { BlueprintOverride } from '../game/blueprint-set.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
 import { legOf } from './lookups.ts';
@@ -14,8 +15,12 @@ import { verbJob, verbNeedsShip } from './verbs/registry.ts';
 import { SKELETONS, skeletonById } from './skeletons/index.ts';
 import { fillSlots, legPay, lineSlots } from './text.ts';
 
-function liveLegs(
-  st: MissionState, from: readonly Skeleton[],
+/**
+ * Every live mission with the leg it is on. The game asks it too, to know
+ * what a commander is here to do (docs/TODO/208 M1).
+ */
+export function liveLegs(
+  st: MissionState, from: readonly Skeleton[] = SKELETONS,
 ): { live: LiveMission; leg: Leg }[] {
   const out: { live: LiveMission; leg: Leg }[] = [];
   for (const live of st.live) {
@@ -28,9 +33,9 @@ function liveLegs(
 /**
  * The override a live leg puts in force at `here`, or null.
  *
- * The first live mission that names one wins. Two live legs with two
- * overrides at one world is a conflict the skeleton lint does not see yet.
- * The arc plan, item 192 of docs/TODO/190, decides it when a second arc exists.
+ * The first live mission that names one wins. Two legs of two skeletons
+ * that force two sets at one world are a conflict, and `lint.ts` refuses
+ * the pair before it ships (docs/TODO/192).
  */
 export function missionOverride(
   st: MissionState, here: number, from: readonly Skeleton[] = SKELETONS,
@@ -62,6 +67,12 @@ export function missionSpawns(
     if (live.tag === null || !verbNeedsShip(leg.verb)) continue;
     const e = st.entities[live.tag];
     if (e && e.alive && e.kind === 'ship') out.push({ ship: e.ship, tag: live.tag, job: verbJob(leg.verb) });
+    // A gang's members come from the record (docs/TODO/217 M1). So a dead
+    // one does not come back on the next arrival, as the untracked company
+    // above does.
+    for (const [tag, m] of Object.entries(st.entities)) {
+      if (tag.startsWith(`${live.tag}#gang-`) && m.alive) out.push({ ship: m.ship, tag, job: 'hunt' });
+    }
   }
   // A standing spawn a settlement left here, on every arrival while it holds.
   for (const ch of st.changes) if (ch.world === here && ch.ships) out.push(...ch.ships);
@@ -96,6 +107,20 @@ export function scanSecondsFor(
     if (live.tag === tag && leg.verb.kind === 'scan') return leg.verb.seconds;
   }
   return null;
+}
+
+/**
+ * Whether the ship with `tag` is the target of a hunt it may run from
+ * (docs/TODO/214 M4). The world step stamps `canFlee` on it each frame, so
+ * a restored ship carries it again on its first frame.
+ */
+export function huntCanFlee(
+  st: MissionState, tag: string, from: readonly Skeleton[] = SKELETONS,
+): boolean {
+  for (const { live, leg } of liveLegs(st, from)) {
+    if (live.tag === tag && leg.verb.kind === 'hunt') return leg.verb.canEscape;
+  }
+  return false;
 }
 
 /** The standing order for one live mission, in the game's voice. */
@@ -138,6 +163,7 @@ export function missionName(
 ): string {
   const s = skeletonById(live.skeleton, from);
   if (!s || s.patron.kind === 'navy') return 'NAVY MISSION';
+  if (s.patron.kind === 'wheel') return 'DARK WHEEL MISSION';
   const world = s.patron.kind === 'world' ? s.patron.seedSlot : acceptedAt(st, live.skeleton);
   return world === undefined ? 'MISSION' : `${systems[world].name.toUpperCase()} MISSION`;
 }
@@ -145,6 +171,7 @@ export function missionName(
 /** Every world a live leg sends the commander to. */
 export function missionDestinations(st: MissionState): ReadonlySet<number> {
   const out = new Set<number>();
-  for (const l of st.live) if (l.target !== null) out.add(l.target);
+  // Witchspace is on no chart (docs/TODO/219 M3).
+  for (const l of st.live) if (l.target !== null && l.target !== WITCHSPACE_TARGET) out.add(l.target);
   return out;
 }

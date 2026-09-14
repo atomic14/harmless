@@ -151,6 +151,19 @@ const readPerFrame = (i: Input, code: string, frames: number): number => {
   eq('...and drains the carry with it', i.drainPresses().length, 0);
 }
 
+// --- a button holds a key, and is never a tap (docs/TODO/204 M1, kept by 205 M1)
+{
+  const i = new Input();
+  i.press('KeyA');
+  check('a pressed key is held', i.held('KeyA'));
+  check('...and it is not a tap', !i.pressed('KeyA'));
+  i.endFrame();
+  check('...and the frame boundary does not let go of it', i.held('KeyA'));
+  i.release('KeyA');
+  check('a released key is let go', !i.held('KeyA'));
+  check('...and left no tap behind', !i.pressed('KeyA'));
+}
+
 // --- a real key carries its own modifier (docs/TODO/202 M1) -----------------
 //
 // The keydown that says shiftKey is the whole evidence. A Shift keydown the
@@ -289,10 +302,10 @@ console.log('\none shifted tap does not arm every shifted binding in the frame')
   // "shift is down" set by one click would make a plain Y satisfy ⇧Y — five
   // tonnes over the side instead of one, from a click on a menu row.
   //
-  // `KeyZ` is bound to nothing in the cockpit, so the scan runs past it and
+  // `KeyX` is bound to nothing in the cockpit, so the scan runs past it and
   // reaches the Y pair. It stands for whatever row was actually clicked.
   const i = new Input();
-  i.injectPress('KeyZ', true);          // a shifted tap on some other control
+  i.injectPress('KeyX', true);          // a shifted tap on some other control
   i.injectPress('KeyY');                // ...and a plain Y in the same frame
   const asked = commandsFor('flight', i);
   eq('a plain Y still jettisons ONE tonne', asked.join('|'), 'jettison1');

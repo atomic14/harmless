@@ -7,20 +7,27 @@
 //
 // ONE RESPONSIBILITY: the instruments a pilot switches on. Five of them:
 //
-//   - the two computers that fly the ship for her;
+//   - the two computers that fly the ship for them;
 //   - the drive that crosses the system;
-//   - the mouse she flies with;
-//   - the view she flies by.
+//   - the mouse they fly with;
+//   - the view they fly by.
 //
 // Every one is a switch that changes who or what is at the controls. Not one of
 // them decides anything about the world.
+//
+// THE COURSE LEFT ON 2026-09-12, to `flight-course.ts`, and it took the file
+// back under the 400-line ceiling. The course has a machine of its own: a frame
+// of flight, three ways to end, and two hand-overs. `courses` below holds it,
+// and it reaches the DRIVE switch back through a host.
 //
 // `autopilot.ts` owns what a computer does with the stick. `world-step.ts` owns
 // what a mass lock IS. This file holds the switch, and says what happened.
 
 import { sfx } from '../audio.ts';
 import { Autopilot, type AutopilotEvent } from './autopilot.ts';
-import { massLocked } from './world-step.ts';
+import { FlightCourse } from './flight-course.ts';
+
+import { massLocked, massLockCause } from './world-step.ts';
 import { boundKey } from '../ui/key-help.ts';
 import { defenceBrain } from './brains.ts';
 import { defenceBrainNameFor } from './brain-names.ts';
@@ -68,6 +75,13 @@ export class Instruments {
    * seat.
    */
   private readonly autopilot: Autopilot;
+  /** the seat that flies a picked course (docs/TODO/205 M3) */
+  /**
+   * The course at the controls, split out on 2026-09-12 — see
+   * `flight-course.ts`. It is public because `flight.ts` flies it and
+   * `game.ts` stops it, exactly as they reach these switches.
+   */
+  readonly courses: FlightCourse;
   private readonly host: InstrumentHost;
 
   constructor(
@@ -79,6 +93,14 @@ export class Instruments {
     this.ordnance = ordnance;
     this.host = host;
     this.autopilot = new Autopilot(state, combatComputer);
+    // The course reaches the DRIVE switch through here, rather than holding a
+    // second copy of the mass-lock rule (`flight-course.ts`).
+    this.courses = new FlightCourse(state, {
+      showMessage: (text, seconds) => host.showMessage(text, seconds),
+      sayEvent: (e) => host.sayEvent(e),
+      massLocked: () => this.massLocked(),
+      toggleTorus: () => this.toggleTorus(),
+    });
   }
 
   /**
@@ -102,6 +124,30 @@ export class Instruments {
     return { demand: auto.demand ?? null, ecm: auto.ecm };
   }
 
+  /**
+   * A fight starts, and the computer takes the stick, unless the pilot flies
+   * by hand (docs/TODO/206 M2). `autopilot.ts` decides.
+   *
+   * A COURSE UNDER WAY IS DROPPED WITH IT (Chris, 2026-09-12: *"it should also
+   * be disengaged by combat or other events"*). Dropping it is the consequence,
+   * and a consequence is the orchestrator's (invariant 15). The whole of the
+   * reasoning is `flight-course.ts`'s `dropForFight`.
+   *
+   * Three things the shape of it turns on:
+   *
+   *   - A HOSTILE SHIP is the test, not the computer's own. A picked rock also
+   *     takes the stick, and to drop on that would end every mine run at the
+   *     first rock.
+   *   - EVERY FRAME, not the frame the fight starts. A pilot can pick a course
+   *     mid-fight, and an edge test would miss it.
+   *   - With no co-pilot, `ccEngaged` stays false and the course flies on. The
+   *     LIVE BRAINS row set to NONE leaves the course the only pilot there is.
+   */
+  autoEngage(): void {
+    this.applyAutopilot(this.autopilot.autoEngage());
+    this.courses.dropForFight();
+  }
+
   /** A hit worth a break: the co-pilot keeps its own record
    *  (scripted-co-pilot.ts). */
   noteUnderFire(): void { this.autopilot.noteUnderFire(); }
@@ -115,8 +161,20 @@ export class Instruments {
    */
   massLocked(): boolean { return massLocked(this.state); }
 
+  /**
+   * The docking computer, on or off, from the key or from the button.
+   *
+   * IT ENDS THE TRIAL, because the two cannot both fly the ship. The button is
+   * offered for the whole of the pilot's stretch (`cockpit-buttons.ts`), so a
+   * commander who fumbles the slot can still hand it over. `watchDockTrial`
+   * would clear the flag eventually, on range alone, and the buttons would
+   * read LINING UP while the computer flew.
+   */
   dockingComputer(): void {
+    const s = this.state.session;
+    const was = s.dcEngaged;
     this.applyAutopilot(this.autopilot.toggleDocking());
+    if (!was && s.dcEngaged) { s.dockTrial = false; s.dockRails = false; }
   }
 
   /**
@@ -127,6 +185,22 @@ export class Instruments {
    */
   toggleCombatComputer(): void {
     this.applyAutopilot(this.autopilot.toggleCombat());
+  }
+
+  /**
+   * The cloak, on or off, on its key or its button (docs/TODO/219 M5). A
+   * ship without the fit is told so. The drain and the drop are the world
+   * step's, because they run on time and on the shot.
+   */
+  toggleCloak(): void {
+    const s = this.state;
+    if (!s.commander.equipment.cloak) {
+      this.host.showMessage('NO CLOAKING DEVICE FITTED', 3);
+      return;
+    }
+    s.session.cloaked = !s.session.cloaked;
+    this.host.showMessage(s.session.cloaked
+      ? 'CLOAKED — NOBODY OUT THERE SEES YOU' : 'UNCLOAKED', 3);
   }
 
   toggleMouseFlight(): void {
@@ -143,8 +217,12 @@ export class Instruments {
   }
 
   toggleTorus(): void {
-    if (this.massLocked()) {
-      this.host.showMessage('MASS LOCKED', 2);
+    // The refusal names what holds the drive down, as the drop does
+    // (docs/TODO/209). The message said "MASS LOCKED" before. A pilot cannot
+    // tell from those two words that a trader stopped the drive.
+    const cause = massLockCause(this.state);
+    if (cause !== null) {
+      this.host.showMessage(`${cause} IS TOO CLOSE FOR THE TORUS DRIVE`, 2);
       sfx.refused();
       return;
     }

@@ -15,13 +15,18 @@
 import { COMMODITIES, generateGalaxy } from '../src/galaxy/galaxy.ts';
 import { shipDesign } from '../src/game/ship-identity.ts';
 import { triggerLabel } from '../src/missions/triggers.ts';
-import type { DossierFile, Leg, Placement, Skeleton, Trigger, Verb } from '../src/missions/model.ts';
+import type { Leg, Placement, Skeleton, Trigger, Verb } from '../src/missions/model.ts';
+import type { DossierFile } from '../src/missions/words.ts';
 import { patronFor } from '../src/missions/patrons.ts';
 import { SKELETONS, skeletonById } from '../src/missions/skeletons/index.ts';
 import { fnv1a } from './system-prompts.ts';
 
-/** Bumped by hand when the rules below change. It is part of every hash. */
-export const DOSSIER_PROMPT_VERSION = 3;
+/**
+ * Bumped by hand when the rules below change. It is part of every hash.
+ * Version 4 took the commander's pronoun out (docs/TODO/218): the player
+ * names the pilot, and the name can carry any gender.
+ */
+export const DOSSIER_PROMPT_VERSION = 4;
 
 /**
  * The rules, shared by every request.
@@ -31,7 +36,7 @@ export const DOSSIER_PROMPT_VERSION = 3;
  * that carries another. `{TARGET}` is the one the machine fills from the
  * rule, so a briefing that names a world of its own cannot ship.
  */
-export const DOSSIER_SYSTEM_PROMPT = `You write the words of one mission in a space trading game. A commander reads them on a green terminal aboard her ship. The rules of the mission are code, and nothing you write can change them: you write how the mission is offered, announced and remembered.
+export const DOSSIER_SYSTEM_PROMPT = `You write the words of one mission in a space trading game. A commander reads them on a green terminal aboard their ship. The commander is the player, of any gender: write "they" and "the commander", never "she" or "he". The rules of the mission are code, and nothing you write can change them: you write how the mission is offered, announced and remembered.
 
 You will be given the mission's facts: who offers it, what it asks, leg by leg, and how each leg can end. Every fact is fixed and true. A leg's world is picked by the game when the leg starts, so speak of "the target" and never invent a world of your own.
 
@@ -42,10 +47,10 @@ Write these fields:
 TITLE — a name for the mission, two to five words, no full stop, no slot. A title a reader would remember, never the mission's id or the verb alone.
 BRIEFING — one to three short paragraphs in the patron's own voice, spoken to the commander. Second person is right here. Slots: {PATRON} {HERE}. For a job offered at any station, {PATRON} and {HERE} are the only way to name the patron or the world. The Navy has no world and no name: a Navy briefing is a signal, and it uses neither slot.
 LEGS — for each leg, three console lines, one sentence each, in the game's terse voice, with no full stop needed. "arrive" is the standing order as the patron would put it. "success" is said when the leg goes right; "fail" when it goes wrong. Slots: {TARGET} {PAY}.
-LEAD — one sentence for the commander's mission screen, on how she hears that the patron wants a word. Slots: {PATRON} {WORLD}.
-RUMOUR — "far" is a bulletin-board rumour the commander reads a few jumps from the patron's world; "near" is the patron's own message, reaching the commander when she docks one jump from that world. The patron stays at home in both. One sentence each. Slots: {PATRON} {WORLD}.
+LEAD — one sentence for the commander's mission screen, on how the commander hears that the patron wants a word. Slots: {PATRON} {WORLD}.
+RUMOUR — "far" is a bulletin-board rumour the commander reads a few jumps from the patron's world; "near" is the patron's own message, reaching the commander when they dock one jump from that world. The patron stays at home in both. One sentence each. Slots: {PATRON} {WORLD}.
 NEWS — one sentence of local news about the patron's world, saying that work waits there. It is read on that world's data page, and it never mentions a page or a screen. Slots: {PATRON} {WORLD}.
-STORY — the commander's log, told in the third person and the past tense, one sentence per entry. "opening" is the day she took the job. "closing" has one line for each ending. "legs" has one line per leg per outcome listed, saying what that outcome meant. Slots: {WORLD} {DAY}.
+STORY — the commander's log, told in the third person and the past tense, one sentence per entry. "opening" is the day the commander took the job. "closing" has one line for each ending. "legs" has one line per leg per outcome listed, saying what that outcome meant. Slots: {WORLD} {DAY}.
 
 Absolute rules:
 
@@ -53,7 +58,7 @@ Absolute rules:
 2. Do not name any star system. Speak of "the target", "the neighbour", "this station". The one exception is the patron's own world, when the facts give it.
 3. Do not invent names for people, ships, companies or wars. The patron has a name already, and it is {PATRON} or the one the facts give.
 4. Never use these words: bustling, vibrant, nestled, boasts, testament, tapestry, myriad, denizens, teeming, sprawling, hub, gem, jewel.
-5. The commander's standing is her reputation. Her combat rank is her rating, never a reputation. Her criminal standing is her legal status. Never write "character", "disrepute" or "record" for any of them.
+5. The commander's standing is their reputation. Their combat rank is their rating, never a reputation. Their criminal standing is their legal status. Never write "character", "disrepute" or "record" for any of them.
 6. Plain sentences. No lists, no headings, no markdown, no quotation marks, no line breaks inside a field.
 7. Every console line is short: one sentence, under fifteen words.`;
 
@@ -66,8 +71,17 @@ export function shipNameOf(id: string): string {
 /** What a leg asks, in plain English. */
 export function verbLine(verb: Verb): string {
   switch (verb.kind) {
-    case 'hunt':
+    case 'hunt': {
+      // A gang's line names every hull (docs/TODO/217 M1). A lone hunt's line
+      // is as it was, so no other dossier drifts.
+      if (verb.gang && verb.gang.length > 0) {
+        const names = verb.gang.map(shipNameOf);
+        const list = `${names.slice(0, -1).join(', ')} and ${names[names.length - 1]}`;
+        return `find and destroy the ${shipNameOf(verb.ship)} and its gang, ${list}, near the target; `
+          + `the job ends when every one of them is dead${verb.canEscape ? ', and the leader may run when it is hurt' : ''}`;
+      }
       return `find and destroy the ${shipNameOf(verb.ship)} near the target${verb.canEscape ? '; it may jump away' : ''}`;
+    }
     case 'deliver': return verb.cargo
       ? `carry ${verb.cargo.tonnes} tonnes of ${COMMODITIES[verb.cargo.commodity].name} to the target and dock`
       : 'dock at the target';
@@ -114,6 +128,7 @@ export function placeLine(place: Placement): string {
     case 'world': return 'one fixed world, named on screen by the rule';
     case 'entity': return 'wherever the tagged ship was last seen';
     case 'handover': return 'a world on the way toward the next patron';
+    case 'witchspace': return 'witchspace itself, reached by an armed mis-jump, where the Thargoids wait';
   }
 }
 
@@ -132,8 +147,14 @@ function patronLine(s: Skeleton): { line: string; own: string } {
       own: '',
     };
   }
-  const facts = { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [] };
+  const facts = { galaxy: 1, systemIndex: 0, kills: 0, combatScore: 0, legalStatus: 0, day: 0, cargo: [], scoops: false };
   const p = patronFor(s.patron, facts, generateGalaxy(1));
+  if (s.patron.kind === 'wheel') {
+    return {
+      line: `Patron: ${p.name}, a society of pilots that nobody admits exists. It has no world and no face. ${p.voice} Its note reaches the commander at a lawless world, {HERE}, which it never names. Write {PATRON} for it, and only in the closing line.`,
+      own: '',
+    };
+  }
   if (s.patron.kind === 'navy') {
     return { line: `Patron: ${p.name}, in service signals: rank, no courtesy, no name, no world. Use neither {PATRON} nor {HERE}.`, own: '' };
   }
@@ -221,7 +242,7 @@ export function indexSource(names: readonly string[]): string {
     '// own to fall out of step with this directory. `--check` fails when a file',
     '// here is missing from this list.',
     '',
-    "import type { DossierFile } from '../model.ts';",
+    "import type { DossierFile } from '../words.ts';",
     ...ids.map((n) => `import ${ident(n)} from './${n}.json' with { type: 'json' };`),
     '',
     ids.length

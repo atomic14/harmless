@@ -43,18 +43,27 @@ import { CHARACTER_LINE_SECONDS, DISREPUTE_CAUGHT } from '../constants/character
 import { queueMessage } from './session.ts';
 import { playerVsNpcs, npcVsNpcs, npcsVsStation } from './collisions.ts';
 import { assignNpcTargets } from './npc-targeting.ts';
+import { shipArticle } from './targets.ts';
+import { closePassLines } from './close-pass.ts';
 import { stepEncounters } from './encounters.ts';
-import { spawnArrivingTrader, spawnPassingTrader } from './spawning.ts';
+import { spawnArrivingTrader, spawnPassingTrader, spawnTaggedShips } from './spawning.ts';
 import { STATION_TRUCE } from '../constants/law.ts';
 import {
   PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN, THARGON_DEPLOY_RANGE,
   TRADER_ARRIVAL_RANGE,
 } from '../constants/spawn-placement.ts';
-import { planDocking, dockingOutcome } from './docking.ts';
+import {
+  planDocking, dockingOutcome, type DockPlan, type DockingOutcome,
+} from './docking.ts';
+import { holdOnRails, railsAligned, railsReached, stopped } from './dock-rails.ts';
+import { bankToTurn } from './pitch-roll-steer.ts';
+import { slotNormal } from '../world/slot.ts';
 import { dockingSticks } from './docking-sticks.ts';
-import { NPC_HULL_BOX_MARGIN } from '../constants/docking.ts';
+import {
+  NPC_HULL_BOX_MARGIN, COMPUTER_ROLL_TOLERANCE, ROLL_TOLERANCE,
+} from '../constants/docking.ts';
 import { BOUNCE_STANDOFF } from '../constants/station.ts';
-import { regenerate, updateCabinTemp, scoopFuel, energyLow } from './systems.ts';
+import { regenerate, updateCabinTemp, scoopFuel, energyLow, spendCloakEnergy } from './systems.ts';
 import { SUN_KILL_DIST } from '../constants/sun.ts';
 import { PLANET_CRASH_ALTITUDE } from '../constants/planet.ts';
 import {
@@ -72,10 +81,11 @@ import { Ordnance, ordnanceMessage, type OrdnanceOutcome } from './ordnance.ts';
 import type { NpcShip, FireEvent, WorldView } from './npc.ts';
 import { nearestNpc } from './hostility.ts';
 import type { SoundEvent, SoundName } from './sounds.ts';
-import { runMissions } from './mission-bridge.ts';
-import { scanSecondsFor } from '../missions/queries.ts';
+import { applyMissions, runMissions, type MissionOutcome } from './mission-bridge.ts';
+import { huntCanFlee, scanSecondsFor } from '../missions/queries.ts';
 import { DOCK_COMPUTER_RANGE } from '../constants/docking-computer.ts';
 import { ESCORT_ENEMY_ROLES, WATCH_CONE } from '../constants/missions.ts';
+import { ESCORT_LEASH } from '../constants/mission-course.ts';
 import { SCANNER_RANGE } from '../constants/console.ts';
 import { random, randomInt, randomDirection } from './rng.ts';
 import type { GameState } from './state.ts';
@@ -96,22 +106,36 @@ import { AUTOSAVE_INTERVAL } from '../constants/saves.ts';
 const WARHEAD_FLASH = rgb24(HUD.amber);
 
 /**
- * Anything close enough to hold the torus drive down.
+ * WHAT is close enough to hold the torus drive down, in the player's words,
+ * or null for a clear sky (docs/TODO/209).
+ *
+ * The lock said only that it happened. Chris flew the trip in. He could not tell
+ * that a neutral trader stopped the drive. So the lock names what
+ * stopped it, and the console line carries the name.
  *
  * A free function over the state, so the flight keys and the step share one
  * rule and `window.__game.massLocked()` keeps working for the harnesses. The
  * three radii live together in constants/torus.ts, beside the drive they cut.
  */
-export function massLocked(state: GameState): boolean {
+export function massLockCause(state: GameState): string | null {
   const { player, world } = state;
-  if (player.position.distanceTo(world.station.position) < MASS_LOCK_STATION) return true;
+  if (player.position.distanceTo(world.station.position) < MASS_LOCK_STATION) return 'THE STATION';
   if (player.position.distanceTo(world.planetPos) - world.planetRadius
-      < MASS_LOCK_PLANET_ALTITUDE) return true;
+      < MASS_LOCK_PLANET_ALTITUDE) return 'THE PLANET';
+  // A ship comes with its article, because the message reads as a sentence.
+  let nearest: { name: string; range: number } | null = null;
   for (const npc of world.npcs) {
-    if (npc.state.alive && npc.role !== 'asteroid' &&
-        npc.object.position.distanceTo(player.position) < MASS_LOCK_SHIP) return true;
+    if (!npc.state.alive || npc.role === 'asteroid') continue;
+    const range = npc.object.position.distanceTo(player.position);
+    if (range >= MASS_LOCK_SHIP) continue;
+    if (nearest === null || range < nearest.range) nearest = { name: shipArticle(npc), range };
   }
-  return false;
+  return nearest?.name ?? null;
+}
+
+/** Is anything close enough to hold the torus drive down? */
+export function massLocked(state: GameState): boolean {
+  return massLockCause(state) !== null;
 }
 
 /**
@@ -230,6 +254,13 @@ export interface PilotInput {
  * Holds the state, the missiles and the host — and its own scratch vectors, so
  * stepping at 60Hz allocates nothing.
  */
+/** What the console says about a dock that did not take (docs/TODO/207 M3). */
+const SCRAPE_SAID: Partial<Record<DockingOutcome, string>> = {
+  slotMiss: 'DOCKING FAILURE — MATCH THE SLOT ROTATION',
+  tooFast: 'TOO FAST FOR THE SLOT — SLOW DOWN AND TRY AGAIN',
+  hull: 'COLLISION',
+};
+
 export class WorldStep {
   private readonly state: GameState;
   private readonly ordnance: Ordnance;
@@ -244,6 +275,8 @@ export class WorldStep {
   private readonly fire: FireWorld;
 
   private readonly tmp = new THREE.Vector3();
+  /** the slot axis the computer's last turn points down — see `dockTrialStep` */
+  private readonly dockAxis = new THREE.Vector3();
   private readonly tmp2 = new THREE.Vector3();
   private readonly tmpQ = new THREE.Quaternion();
   /** scratch for collisions.ts, so a per-frame call allocates nothing */
@@ -298,14 +331,18 @@ export class WorldStep {
     // used to write the quaternion after the fact. So the demand is decided
     // before the ship flies, rather than applied on top of it. Where it hands
     // the ship back mid-frame, the pilot's own demand stands, as before.
-    const dc = session.dcEngaged ? this.dockingComputerStep(dt, pilot, out) : null;
+    const dc = session.dcEngaged ? this.dockingComputerStep(dt, pilot, out)
+      : session.dockTrial ? this.dockTrialStep(dt, pilot, out) : null;
     player.update(dt, dc ?? pilot.demand);
+    // The rails correct the frame the ship just flew (docs/TODO/212).
+    if (session.dockRails) holdOnRails(player, world.station, dt);
 
     // torus drive
     if (session.torusEngaged) {
-      if (this.massLocked()) {
+      const cause = massLockCause(this.state);
+      if (cause !== null) {
         session.torusEngaged = false;
-        out.push(say('MASS LOCK — TORUS DISENGAGED', 3));
+        out.push(say(`TORUS DRIVE OFF — ${cause} IS TOO CLOSE`, 3));
         out.push(heard('torusDropped'));
       } else {
         // ONE LESS THAN THE MULTIPLIER. `player.update()` above already flew
@@ -342,15 +379,32 @@ export class WorldStep {
   private dockingComputerStep(
     dt: number, pilot: PilotInput, out: StepEvent[],
   ): FlightDemand | null {
-    const { player, session, world } = this.state;
+    const { session } = this.state;
     if (pilot.handsOn) {
       session.dcEngaged = false;
       out.push({ kind: 'dockingMusic', on: false });
       out.push(say('MANUAL OVERRIDE', 2));
       return null;
     }
-    const plan = planDocking(player.position, world.station, world.stationDockZ,
-      player.maxSpeed, this.state.dockPlan);
+    return this.dockingDemand(dt, pilot, this.dockingPlan());
+  }
+
+  /** The approach the computer is flying this frame. */
+  private dockingPlan(): DockPlan {
+    const s = this.state;
+    return planDocking(s.player.position, s.world.station, s.world.stationDockZ,
+      s.player.maxSpeed, s.dockPlan);
+  }
+
+  /**
+   * What the docking computer asks of the ship this frame: both sticks, and
+   * the plan's own speed.
+   *
+   * The pilot's stretch shares it (docs/TODO/212). The computer lines the ship
+   * up there too, and it hands over only when the ship is ON the axis.
+   */
+  private dockingDemand(dt: number, pilot: PilotInput, plan: DockPlan): FlightDemand {
+    const { player } = this.state;
     const sticks = dockingSticks(player.quaternion, plan, player.rollRate);
     // Bang-bang on the throttle, with a deadband of one frame's thrust. A
     // demand can only ask for full ahead, full astern or coast, because that is
@@ -372,6 +426,77 @@ export class WorldStep {
     };
   }
 
+  /**
+   * One frame of the pilot's own stretch of the approach (docs/TODO/207, and
+   * docs/TODO/212 for its shape).
+   *
+   * IT IS TWO STAGES. The computer lines the ship up first, with both sticks,
+   * exactly as the docking computer does. Then the rails take the ship, and
+   * the pilot plays the mini game: match the slot, and go in slowly.
+   *
+   * Chris asked for that on 2026-09-12: *"I'm wondering if we actually get
+   * lined up by the computer and then hand off to a 'mini' docking game.
+   * Something that is completely on rails."* One stick cannot hold a line and
+   * match a spin at the same time. The rails hold the line, so the stick is
+   * free for the spin.
+   */
+  private dockTrialStep(dt: number, pilot: PilotInput, out: StepEvent[]): FlightDemand {
+    const { player, session, world } = this.state;
+    const plan = this.dockingPlan();
+    if (!session.dockRails) {
+      if (!railsReached(plan)) return this.dockingDemand(dt, pilot, plan);
+      // On the axis, and the computer stops the ship there. The pilot then
+      // flies the whole run in (docs/TODO/212).
+      if (!stopped(player.speed)) {
+        return { ...this.dockingDemand(dt, pilot, plan), throttle: -1 };
+      }
+      // STOPPED IS NOT LINED UP. The brake used to end the line-up, and the
+      // ship was still up to 69.7 degrees off the axis (Chris, 2026-09-12:
+      // *"we jump to the on rails version before it's actually lined up"*).
+      //
+      // THE COMPUTER FLIES THIS LAST TURN, with both sticks, through the
+      // commander's own envelope. The nose comes round at the rate the hull
+      // turns. The HUD needles read it. Nothing moves the ship other than by
+      // flying it.
+      //
+      // `bankToTurn` is the law, rather than `dockingSticks`. That one spends
+      // the roll on the letterbox, and it pitches onto the heading. A pitch
+      // alone cannot answer a sideways error from a stop. The slot has no claim
+      // on the roll yet, because the pilot does not hold the ship.
+      if (!railsAligned(player, world.station)) {
+        const axis = slotNormal(world.station, this.dockAxis).multiplyScalar(-1);
+        const cmd = bankToTurn(player.quaternion, axis, this.state.dockPlan.steer);
+        return {
+          pitchRate: rampFlightRate(
+            player.pitchRate, cmd.pitch * PLAYER_FLIGHT.maxPitch, cmd.pitch !== 0, dt),
+          rollRate: rampFlightRate(
+            player.rollRate, cmd.roll * PLAYER_FLIGHT.maxRoll, cmd.roll !== 0, dt),
+          throttle: 0,
+          fire: pilot.demand.fire,
+        };
+      }
+      // LINED UP, AND THE SLOT IS THE PILOT'S. It used to ask here whether a
+      // docking computer was fitted, and hand the ship to it. Chris,
+      // 2026-09-12: *"I have a docking computer - but instead of it being
+      // activated I still get the lining and only once that is done does the
+      // computer activate."* A fitting the commander paid for should not wait
+      // on a line-up they did not ask for. It is a BUTTON now, offered for the
+      // whole of the trial (`cockpit-buttons.ts`). The line-up is what they get
+      // if they do not press it.
+      session.dockRails = true;
+      out.push(say('THE SLOT IS YOURS — THRUST IN, AND MATCH ITS SPIN', 5));
+    }
+    // ON THE RAILS. The pitch is nobody's: `holdOnRails` owns the line. The
+    // roll and the throttle are the pilot's, and they are the whole game.
+    return {
+      pitchRate: rampFlightRate(player.pitchRate, 0, false, dt),
+      rollRate: pilot.demand.rollRate,
+      throttle: pilot.demand.throttle,
+      fire: pilot.demand.fire,
+    };
+  }
+
+
   /** Everyone else: decisions, despawns, collisions, and who else turns up. */
   private stepNpcs(dt: number, out: StepEvent[]): void {
     const s = this.state;
@@ -382,6 +507,15 @@ export class WorldStep {
     // wave is worth a warp-in. Measured twice, the two could disagree about
     // the same frame.
     const playerToStation = player.position.distanceTo(world.station.position);
+
+    // A neutral ship that comes close says so, one time (docs/TODO/209). The
+    // mass lock only spoke with the torus drive running, and the drive is off
+    // for most of a trip. The rule is `close-pass.ts`, and this pushes what it
+    // decided (invariant 15).
+    for (const line of closePassLines({
+      npcs: world.npcs, playerPos: player.position,
+      legalStatus: s.commander.legalStatus, playerToStation,
+    })) out.push(say(line, 4));
 
     // periodic NPC-vs-NPC targeting: pirates prey on traders, the law hunts pirates
     session.npcTargetTimer -= dt;
@@ -403,6 +537,7 @@ export class WorldStep {
       dockZ: world.stationDockZ,
       fleet: world.npcs,
       playerLegal: s.commander.legalStatus,
+      playerCloaked: s.session.cloaked,
       brains: s.brains,
       missileInbound: this.ordnance.missileInbound,
       sunPos: world.sunPos,
@@ -421,10 +556,15 @@ export class WorldStep {
             { count: 10, speed: 120, duration: 0.7 });
         }
         world.despawn(npc);
-        // A tagged ship that jumped out escaped its hunt. The machine decides
-        // whether the leg minds (`canEscape`), and says so in this stream.
+        // A tagged ship that leaves is gone from its leg, and HOW it left
+        // decides what the leg makes of it (docs/TODO/208 M3). A ship that
+        // ran from the commander FLED. Any other one jumped out, and escaped.
+        // Three arcs have a branch for a ship that flees, and nothing sent
+        // that word until now. The machine says what each costs.
         if (npc.state.missionTag !== null && !npc.state.docked) {
-          out.push(...runMissions(s.commander, { kind: 'escaped', tag: npc.state.missionTag }));
+          out.push(...runMissions(s.commander, {
+            kind: npc.state.fleeing ? 'fled' : 'escaped', tag: npc.state.missionTag,
+          }));
         }
         continue;
       }
@@ -512,9 +652,13 @@ export class WorldStep {
    * The two verdicts only the world can give (docs/TODO/190 M4).
    *
    * An ESCORT is safe when its ship is alive, inside `DOCK_COMPUTER_RANGE` of
-   * the station, and no enemy is inside that same radius of it. All three at
-   * once, and it is sent ONCE. `missionReported` latches, so a fight after
-   * the fee cannot undo it. The ship goes on to dock as any trader does.
+   * the station. The commander must be inside that radius of it, and no
+   * enemy may be. All four at once, and it is sent ONCE.
+   * `missionReported` latches, so a fight after the fee cannot undo it. The
+   * ship goes on to dock as any trader does. The commander's own place was
+   * not measured until docs/TODO/214 M3, and the escort was a job they
+   * watched. The charge also HOLDS for them beyond `ESCORT_LEASH`, and the
+   * console says so once.
    *
    * A SCAN counts the seconds a tagged ship spends under the scanner lock,
    * and sends `scanned` when the leg's seconds are up, once.
@@ -535,6 +679,17 @@ export class WorldStep {
     for (const npc of world.npcs) {
       const tag = npc.state.missionTag;
       if (tag === null || npc.state.missionReported || !npc.state.alive) continue;
+      if (npc.role !== 'trader') {
+        // A hunt's target may run for the edge when it is nearly dead
+        // (docs/TODO/214 M4). The stamp is here, each frame, so a restored
+        // ship carries it again at once. The console says the run once.
+        npc.state.canFlee = huntCanFlee(commander.missions, tag);
+        if (npc.state.fleeing && !npc.state.runSaid) {
+          npc.state.runSaid = true;
+          out.push(say(`THE ${npc.object.name.toUpperCase()} IS RUNNING FOR IT. CHASE IT.`, 4));
+        }
+        continue;
+      }
       if (npc.role === 'trader') {
         const wanted = scanSecondsFor(commander.missions, tag);
         if (wanted !== null) {
@@ -550,12 +705,19 @@ export class WorldStep {
           if (npc.state.observed >= wanted) {
             npc.state.missionReported = true;
             npc.state.tradeTimer = 0;   // watched; it may go about its business now (docs/TODO/203 M2)
-            out.push(...runMissions(commander, { kind: 'scanned', tag }));
+            out.push(...this.springAmbush(applyMissions(commander, { kind: 'scanned', tag })));
           }
           continue;
         }
         const at = npc.object.position;
+        const away = player.position.distanceTo(at);
+        npc.state.holding = away > ESCORT_LEASH;
+        if (npc.state.holding && !npc.state.holdSaid) {
+          npc.state.holdSaid = true;
+          out.push(say(`THE ${npc.object.name.toUpperCase()} IS HOLDING FOR YOU. STAY WITH IT.`, 4));
+        }
         if (at.distanceTo(world.station.position) > DOCK_COMPUTER_RANGE) continue;
+        if (away > DOCK_COMPUTER_RANGE) continue;
         const threatened = world.npcs.some((other) => other !== npc && other.state.alive
           && ESCORT_ENEMY_ROLES.includes(other.role) && other.object.position.distanceTo(at) <= DOCK_COMPUTER_RANGE);
         if (threatened) continue;
@@ -563,6 +725,20 @@ export class WorldStep {
         out.push(...runMissions(commander, { kind: 'escortSafe', tag }));
       }
     }
+  }
+
+  /**
+   * The ships a mission's step asked for jump in around the commander, at a
+   * pirate wave's reach, and the console says so (docs/TODO/214 M2). The
+   * lines come back as they were, for the caller to say.
+   */
+  private springAmbush(outcome: MissionOutcome): StepEvent[] {
+    const { world, player } = this.state;
+    if (outcome.spawns.length > 0) {
+      spawnTaggedShips(world, player.position, outcome.spawns, PIRATE_WAVE_RANGE, PIRATE_WAVE_RANGE_SPAN);
+      return [say('PIRATE SIGNATURES DETECTED', 4), ...outcome.messages];
+    }
+    return outcome.messages;
   }
 
   /** Cargo, missiles, and the things that are only ever seen. */
@@ -585,7 +761,7 @@ export class WorldStep {
         // A MISSION'S THING, and the machine says what it was. It is a
         // canister that never enters the hold, or a pod whose passenger rides
         // under the pod's own tag (docs/TODO/190 M4).
-        out.push(...runMissions(commander, { kind: 'scooped', tag: c.missionTag }));
+        out.push(...this.springAmbush(applyMissions(commander, { kind: 'scooped', tag: c.missionTag })));
         out.push(heard(c.kind === 'capsule' ? 'survivorScooped' : 'cargoScooped'));
       } else if (c.kind === 'capsule') {
         // A person, not stock. See CommanderData.survivors — a capsule is not
@@ -659,6 +835,17 @@ export class WorldStep {
     if (demand.fire) this.host.fireLaser();
     regenerate(sys, dt,
       { shipId: commander.shipId, energyUnit: commander.equipment.energyUnit });
+    // THE CLOAK (docs/TODO/219 M5). A shot is a flare, so the trigger drops
+    // it. The bank pays for the rest, and the last bank is never spent on it.
+    if (session.cloaked) {
+      if (demand.fire) {
+        session.cloaked = false;
+        out.push(say('UNCLOAKED — A SHOT IS A FLARE', 3));
+      } else if (spendCloakEnergy(sys, dt)) {
+        session.cloaked = false;
+        out.push(say('THE CLOAK FAILED — ENERGY LOW', 3));
+      }
+    }
 
     const sunDist = player.position.distanceTo(world.sunPos);
     if (updateCabinTemp(sys, dt, sunDist)) {
@@ -815,28 +1002,33 @@ export class WorldStep {
   }
 
   /**
-   * Are we down, bounced, or clear? The geometry is docking.ts's; what it
-   * costs is ours.
+   * Are we down, bounced, or clear? The rule is docking.ts's; what it costs is
+   * ours.
    */
   private checkStation(out: StepEvent[]): void {
-    const { player, world } = this.state;
+    const { player, world, session } = this.state;
     const station = world.station;
+    // WHICH TOLERANCE depends on who holds the stick. A bought docking computer
+    // gets the wider one, and that is the point of buying it
+    // (`COMPUTER_ROLL_TOLERANCE`). A hand gets the hard one.
     const outcome = dockingOutcome(
-      player.position, player.quaternion, station, world.stationDockZ,
-      { v: this.tmp, q: this.tmpQ, r: this.tmp2 });
+      player.position, player.quaternion, station, world.stationDockZ, player.speed,
+      { v: this.tmp, q: this.tmpQ, r: this.tmp2 },
+      session.dcEngaged ? COMPUTER_ROLL_TOLERANCE : ROLL_TOLERANCE);
     if (outcome === 'clear') return;
     if (outcome === 'docked') {
       this.host.dock();
       return;
     }
-    // hit the hull, or fluffed the slot
+    // hit the hull, or fluffed the slot. The rails let go, so the computer
+    // lines the ship up again for another go (docs/TODO/212).
+    this.state.session.dockRails = false;
     const away = this.tmp2.copy(player.position).sub(station.position).normalize();
     player.position.copy(station.position).addScaledVector(away, BOUNCE_STANDOFF);
     player.speed = 0;
     this.host.applyPlayerDamage(
       playerImpactDamage(IMPACT.stationScrape), station.position, 'station');
-    out.push(say(
-      outcome === 'slotMiss' ? 'DOCKING FAILURE — MATCH SLOT ROTATION' : 'COLLISION', 3));
+    out.push(say(SCRAPE_SAID[outcome] ?? 'COLLISION', 3));
   }
 
   /** While armed, lock onto whatever enters the sight. Ordnance reports; we say it. */

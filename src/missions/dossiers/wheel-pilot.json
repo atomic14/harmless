@@ -1,0 +1,49 @@
+{
+  "promptVersion": 4,
+  "model": "claude-sonnet-5 via claude -p",
+  "generated": "2026-09-13",
+  "usage": {
+    "requests": 9,
+    "inputTokens": 75358,
+    "outputTokens": 107067
+  },
+  "dossier": {
+    "briefing": [
+      "This makes three notes, and still no name on any of them.",
+      "One of ours mis-jumped clean into the dark past the last chart, where the Thargoids wait and no lane runs. Arm for the same jump, find the pod before its air runs out, and get the pilot down alive at any station. Do not sell what you find. Do not let this end in a wreck.",
+      "Thirty days is what the air allows. Bring them home, and you will have done something the rest of us remember, whether we ever say so. This is the last note that goes out without a name on it. — {PATRON}"
+    ],
+    "legs": {
+      "pod": {
+        "arrive": "Scoop the pod adrift in {TARGET}, land the pilot alive, and earn {PAY}",
+        "success": "The pilot came home alive, and {PAY} lands in the account",
+        "fail": "The pod is gone, and {PAY} stays uncollected"
+      }
+    },
+    "lead": "A third note waits at {WORLD}, unsigned, asking the commander for a private word.",
+    "rumour": {
+      "far": "A rumour drifts a few jumps out that quiet work still waits at {WORLD}, for a pilot who asks no questions.",
+      "near": "One jump from {WORLD}, an unsigned line finds the commander again, short and certain: they are waiting."
+    },
+    "news": "The word around {WORLD} denies any such group exists, yet unnamed work still finds a pilot willing enough.",
+    "story": {
+      "opening": "On day {DAY}, at {WORLD}, the commander took a third unsigned note, and swore to bring a stranger home.",
+      "closing": {
+        "complete": "By day {DAY}, the pilot stood alive on {WORLD}, and an old debt closed clean.",
+        "fail": "By day {DAY}, no pilot came back through {WORLD}, and the debt stayed open."
+      },
+      "legs": {
+        "pod": {
+          "survivor:landed": "On day {DAY}, the commander landed the pod's pilot alive on {WORLD}.",
+          "survivor:sold": "On day {DAY}, the commander sold the survivor at {WORLD}, and broke the one rule asked of them.",
+          "targetDestroyed": "On day {DAY}, the pod was destroyed near {WORLD} before the commander reached it.",
+          "failed": "By day {DAY}, the trail from {WORLD} went cold, and the pod was never found."
+        }
+      }
+    },
+    "title": "One of Our Own",
+    "skeleton": "wheel-pilot",
+    "hash": "2efcf4a0",
+    "images": {}
+  }
+}

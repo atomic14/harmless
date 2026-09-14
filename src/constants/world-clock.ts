@@ -19,6 +19,8 @@ export const FIXED_DT = 1 / 60;
  * The longest real interval the loop will simulate before it drops the backlog. A
  * backgrounded tab, a breakpoint or a slow first paint can hand the loop seconds.
  * To simulate them lands the ship somewhere it was never flown to.
+ *
+ * @rule clock.maxFrameTime
  */
 export const MAX_FRAME_TIME = 0.25;
 

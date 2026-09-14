@@ -2,7 +2,13 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <!-- A phone opens the page as an app from its home screen, with no address bar (docs/TODO/220). -->
+    <link rel="manifest" href="/manifest.webmanifest" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="theme-color" content="#000000" />
     <title>HARMLESS — play</title>
     <link rel="stylesheet" href="/src/style.css" />
   </head>
@@ -29,13 +35,26 @@
       </div>
       <div id="message"></div>
       <!--
-        What a key can do about what is happening right now — see
-        game/prompts.ts, which decides WHICH commands, and game.ts, which puts
-        the bound key in front of each. A line of its own rather than the
-        message line, because a prompt is true while the situation is and the
-        console is deliberately one line.
+        The course buttons (docs/TODO/205 M5): where the ship goes next. A
+        click or a tap sends the button's data-key, as a menu row does, and
+        hud/hud-buttons.ts paints them. They sit outside the console, which is
+        read and never touched.
       -->
-      <div id="prompts"></div>
+      <div id="courses"></div>
+      <!--
+        The course row (docs/TODO/215 M2): the list, open under its header as
+        one row that scrolls sideways. Empty while the header is closed.
+      -->
+      <div id="course-row"></div>
+      <!--
+        The target list (docs/TODO/206 M3): what the ship can fight, one row
+        each. Bottom left, above the console, where a thumb rests. It sat on
+        the right with the guns until 2026-09-13, and it opened upward over
+        the action. The guns are a row in the console now (docs/TODO/215).
+      -->
+      <div id="targets"></div>
+      <!-- The target row (docs/TODO/215 M2): the ships, open above the header as one row. -->
+      <div id="target-row"></div>
       <!--
         The exercise strip: shown for as long as a training exercise is being
         flown, and never in career flight. Painted by hud/hud.ts from the
@@ -54,8 +73,18 @@
       </div>
       <div id="damage-flash"></div>
       <div id="hud">
+        <!--
+          The three panels are one row, and the guns are the row under them
+          (docs/TODO/215 M1). On a phone the wrapper gives up its box, as the
+          panels do, and the grid places every gauge itself.
+        -->
+        <div class="hud-row">
         <div class="hud-panel hud-left">
-          <div class="gauge"><label>FWD SPEED</label><div class="bar"><div id="g-speed" class="fill"></div></div></div>
+          <!--
+            The mark on the speed bar is the fastest the slot will take
+            (docs/TODO/207 M3). hud/hud.ts places it from the rule itself.
+          -->
+          <div class="gauge"><label>FWD SPEED</label><div class="bar"><div id="g-speed" class="fill"></div><div id="g-speed-limit" class="limit"></div></div></div>
           <div class="gauge"><label>ROLL</label><div class="bar centered"><div id="g-roll" class="marker"></div></div></div>
           <div class="gauge"><label>PITCH</label><div class="bar centered"><div id="g-pitch" class="marker"></div></div></div>
           <div class="gauge"><label>FORE SHLD</label><div class="bar"><div id="g-fore" class="fill"></div></div></div>
@@ -77,10 +106,19 @@
               <span id="ind-s" title="space station in range">S</span>
               <span id="ind-e" title="E.C.M. broadcast detected">E</span>
             </div>
-            <div class="missiles" id="missiles"><span></span><span></span><span></span><span></span></div>
             <canvas id="compass" width="60" height="60"></canvas>
           </div>
         </div>
+        </div>
+        <!--
+          The guns (docs/TODO/215 M1): the laser, the missile as two buttons,
+          and the E.C.M., in a row at the bottom of the console. Chris drew it
+          there on 2026-09-13, so the sky is the sky. The laser button holds
+          its key while it is held (engine/hold-buttons.ts). The rest send
+          their data-key on a click. The missile squares that sat beside the
+          compass went with it: the count is on the arm button.
+        -->
+        <div id="guns"></div>
       </div>
       <div id="screen" class="hidden"></div>
       <div id="help" class="hidden">
@@ -162,7 +200,7 @@
             </table>
           </div>
         </div>
-        <p><span id="help-layout">ACTIVE LAYOUT: CLASSIC — toggle with B when docked</span><br/>
+        <p><span id="help-layout">ACTIVE LAYOUT: CLASSIC — KEYBOARD LAYOUT on the station menu switches it</span><br/>
         VIEWS ON 1-4 (WERE F0-F3) AND SCREENS ON LETTERS (WERE F4-F9) IN BOTH LAYOUTS</p>
         <!-- The guide is reachable from anywhere in flight and when docked, so
              the shared build/issues footer (vite.config.ts fills the marker)

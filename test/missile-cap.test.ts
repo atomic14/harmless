@@ -1,7 +1,7 @@
 // ONE WARHEAD IN THE AIR AT A TIME — the fairness cap, and nothing else.
 //
 // `test/missiles.test.ts` covers a missile LEAVING the rail: that both worlds
-// resolve one launch identically, what it costs her, and that a pirate in a real
+// resolve one launch identically, what it costs them, and that a pirate in a real
 // fight actually reaches for one. This file covers the rule that says it may
 // NOT: `WorldView.missileInbound`, read once per frame by the orchestrator and
 // applied by `NpcShip.chooseWeapon`.
@@ -19,7 +19,7 @@
 // own: moving the `missileInbound` read inside the NPC loop fails 2 here, and
 // arming the reload before refusing — the guard behind `npcMissileEmergency`
 // rather than in front of it — fails 6. Two of those show up outside this file:
-// the loop mutation reddens `missiles.test.ts`'s "it kills her", which reports
+// the loop mutation reddens `missiles.test.ts`'s "it kills them", which reports
 // the lethality and not the rule, and the arming one reddens a selection
 // comparison in `selection.test.ts` that turns on 0.3 points of shaped score.
 //

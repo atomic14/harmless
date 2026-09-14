@@ -1,4 +1,4 @@
-// How a commander leaves a system, and how she arrives in one.
+// How a commander leaves a system, and how they arrive in one.
 //
 // The ORCHESTRATION half of the jump, split out of `game.ts` by docs/TODO/150
 // M4. `hyperspace.ts` next door owns the RULES, and states them at the head of
@@ -38,6 +38,7 @@ import { runMissions } from './mission-bridge.ts';
 import { arrivalLines, type Sighting } from './mission-arrival.ts';
 import type { WorldBuild } from './world-build.ts';
 import type { GameState } from './state.ts';
+import { endVisit } from './session.ts';
 import { COUNTDOWN, WITCHSPACE_ESCAPE_COST } from '../constants/jump.ts';
 import { WITCHPOINT_RADII } from '../constants/planet.ts';
 
@@ -91,6 +92,18 @@ export class HyperspaceActions {
     this.host = host;
   }
 
+  /**
+   * May the drive spin up now, for the chart's target? The jump key asks it,
+   * and so does the course list (docs/TODO/205 M4), so the two cannot differ.
+   */
+  jumpCheck(): ReturnType<typeof checkJump> {
+    return checkJump(this.state.commander, this.state.systems, this.state.chart.targetIndex,
+      this.state.session.witchspace, this.state.session.hyperCountdown >= 0,
+      // JUMP ANYWHERE (docs/TODO/121): the flag goes IN, and the refusal stays
+      // where it was decided. Nothing here reads the tank.
+      this.state.cheat);
+  }
+
   /** @internal — driven by src/game/game.ts, which delegates to it. */
   startHyperspace(): void {
     // The simulator is a room at the station, not a place you can leave. The
@@ -101,11 +114,7 @@ export class HyperspaceActions {
       this.host.refused();
       return;
     }
-    const check = checkJump(this.state.commander, this.state.systems, this.state.chart.targetIndex,
-      this.state.session.witchspace, this.state.session.hyperCountdown >= 0,
-      // JUMP ANYWHERE (docs/TODO/121): the flag goes IN, and the refusal stays
-      // where it was decided. Nothing here reads the tank.
-      this.state.cheat);
+    const check = this.jumpCheck();
     if (!check.ok) {
       if (check.reason === 'alreadyJumping') return;
       this.host.showMessage(refusalMessage(check.reason, this.state.session.witchspace), 4);
@@ -174,6 +183,7 @@ export class HyperspaceActions {
     seedWorld(this.state.commander.galaxy * 0x9e3779b1
       ^ (this.state.commander.systemIndex << 8) ^ this.state.commander.day);
     this.state.session.witchspace = false; // any arrival leaves witch-space (incl. galactic jump)
+    endVisit(this.state.session);   // The course and the finished work were the last system's.
     // Before the world is built, because the roster it is built with is this.
     this.world.chooseBlueprintSet();
     this.world.buildWorld();
@@ -279,9 +289,9 @@ export class HyperspaceActions {
     const from = this.state.commander.galaxy;
     const jump = resolveGalacticJump(this.state.commander, this.host.system());
     this.state.systems = jump.systems;
-    // EVERY HELD MISSION FAILS, and every lead moves with her (docs/TODO/190).
+    // EVERY HELD MISSION FAILS, and every lead moves with them (docs/TODO/190).
     // The machine decides both. It is told the new galaxy's systems, so the
-    // lead it relocates is a world she can reach from where she arrives.
+    // lead it relocates is a world they can reach from where they arrive.
     for (const m of runMissions(this.state.commander,
       { kind: 'galaxyChanged', from, to: jump.galaxy }, jump.systems)) {
       this.host.sayEvent(m);
@@ -308,8 +318,8 @@ export class HyperspaceActions {
    * null when nothing is held and the jump needs no answer.
    *
    * It names the keys off the binding table (invariant 9). A refusal the
-   * drive would give anyway is not asked about. The jump is refused when she
-   * confirms, as it was refused on the one key before.
+   * drive would give anyway is not asked about. The jump is refused when they
+   * confirm, as it was refused on the one key before.
    */
   galacticJumpWarning(): string | null {
     const held = this.state.commander.missions.live.length;

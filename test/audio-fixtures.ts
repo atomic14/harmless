@@ -32,6 +32,14 @@ export interface Tone {
   frequency: number;
   /** every scheduled pitch, as `[hz, at]` — one entry unless the voice vibratos */
   pitches: [number, number][];
+  /**
+   * Where a GLIDE was aimed, or null for a voice that holds its pitch.
+   *
+   * Recorded from 2026-09-12, when the fight cue became a whoop. The glide IS
+   * that sound, and a fixture that dropped the ramp target would have passed on
+   * two flat tones (`test/audio.test.ts`).
+   */
+  rampTo: number | null;
   /** cents away from `frequency`, as the layer asked for */
   detune: number;
   duration: number;
@@ -148,8 +156,8 @@ class FakeAudioContext {
 
   createOscillator() {
     const recorded: Tone = {
-      type: 'sine', frequency: 0, pitches: [], detune: 0, duration: 0, at: 0,
-      periodic: false, amp: null,
+      type: 'sine', frequency: 0, pitches: [], rampTo: null, detune: 0,
+      duration: 0, at: 0, periodic: false, amp: null,
     };
     tones.push(recorded);
     const node = {
@@ -159,7 +167,7 @@ class FakeAudioContext {
           if (!recorded.pitches.length) recorded.frequency = value;
           recorded.pitches.push([value, at - 10]);
         },
-        exponentialRampToValueAtTime() {},
+        exponentialRampToValueAtTime(value: number) { recorded.rampTo = value; },
       },
       /**
        * A pulse wave. The fake keeps no spectrum — what a test can ask is

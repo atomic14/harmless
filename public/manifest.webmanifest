@@ -1,0 +1,9 @@
+{
+  "name": "HARMLESS",
+  "short_name": "HARMLESS",
+  "description": "An unofficial, non-commercial browser tribute to Elite (1984).",
+  "start_url": "/play.html",
+  "display": "standalone",
+  "background_color": "#000000",
+  "theme_color": "#000000"
+}

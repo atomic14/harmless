@@ -1,70 +1,70 @@
 {
-  "promptVersion": 3,
+  "promptVersion": 4,
   "model": "claude-sonnet-5 via claude -p",
-  "generated": "2026-09-07",
+  "generated": "2026-09-13",
   "usage": {
-    "requests": 21,
-    "inputTokens": 164690,
-    "outputTokens": 100025
+    "requests": 20,
+    "inputTokens": 175941,
+    "outputTokens": 98405
   },
   "dossier": {
     "briefing": [
-      "{PATRON} counts every sack of tree grub that leaves {HERE}, and the count does not lie.",
-      "The export ledger went missing off a courier's hull, adrift somewhere out past the routes, and a smuggler has it now.",
-      "Recover the canister, mark the smuggler for destruction, and {PATRON} settles the fee to the credit."
+      "The tree grub yield off {HERE} holds at full quota, but one export ledger canister never arrived. A smuggler has it, and the account will not close without it.",
+      "I am {PATRON}, governor of {HERE}. Recover the canister, confirm the Cobra that took it, then finish that Cobra.",
+      "Pay clears leg by leg, on delivery only. Treat this as a contract, not a favour."
     ],
     "legs": {
       "ledger": {
-        "arrive": "Scoop the ledger canister adrift near {TARGET}, and earn {PAY}",
-        "success": "The canister is recovered near {TARGET}, and {PAY} is credited",
-        "fail": "The canister is gone from {TARGET}, and {PAY} stays unearned"
+        "arrive": "Scoop the ledger canister adrift at {TARGET}.",
+        "success": "The canister is aboard, and {PAY} is logged for {TARGET}.",
+        "fail": "The ledger canister at {TARGET} is lost, and {PAY} is void."
       },
       "witness": {
-        "arrive": "Hold the smuggler's Cobra on your scanner at {TARGET}, unarmed, for {PAY}",
-        "success": "The Cobra stayed in view near {TARGET}, and {PAY} is credited",
-        "fail": "The Cobra slipped the scan at {TARGET}, and {PAY} stays unearned"
+        "arrive": "Hold the partner's Cobra at {TARGET} on your scanner.",
+        "success": "Twenty seconds held at {TARGET}, and {PAY} stands confirmed.",
+        "fail": "The Cobra slipped the scan at {TARGET}, and {PAY} is void."
       },
       "runner": {
-        "arrive": "Find the smuggler's Cobra near {TARGET}, and finish the contract for {PAY}",
-        "success": "The Cobra is finished near {TARGET}, and {PAY} is paid in full",
-        "fail": "The Cobra is gone from {TARGET}, and {PAY} stays unpaid"
+        "arrive": "Destroy the smuggler's Cobra, last seen at {TARGET}.",
+        "success": "The Cobra is down near {TARGET}, and {PAY} is paid in full.",
+        "fail": "The trail at {TARGET} went cold, and {PAY} is void."
       }
     },
-    "lead": "The commander hears that {PATRON} wants a word, waiting on {WORLD}.",
+    "lead": "{PATRON} left word at {WORLD}, asking the commander to check in.",
     "rumour": {
-      "far": "Word on the boards says {PATRON} lost a ledger to a smuggler out past {WORLD}.",
-      "near": "{PATRON} sends word from {WORLD}, wanting the ledger back and the smuggler downed."
+      "far": "Word from {WORLD} says {PATRON} is short one grub ledger, and none too patient about it.",
+      "near": "{PATRON} sends word from {WORLD}: the ledger is late, and the clock is running."
     },
-    "news": "{PATRON} still needs a pilot to settle the missing ledger at {WORLD}.",
-    "title": "The Governor's Missing Ledger",
+    "news": "{WORLD} reports that {PATRON} is signing pilots for ledger recovery work.",
     "story": {
-      "opening": "On day {DAY} the commander took the governor's contract at {WORLD}, to chase down a stolen ledger.",
+      "opening": "On day {DAY}, the commander took a governor's contract to find a missing grub ledger.",
       "closing": {
-        "complete": "By day {DAY} the smuggler's Cobra was finished, and the commander's business at {WORLD} was done.",
-        "fail": "By day {DAY} the contract lapsed, and the commander left {WORLD} with nothing to show for it."
+        "complete": "By day {DAY}, near {WORLD}, the smuggler's trail ended, and the ledger case closed.",
+        "fail": "By day {DAY}, near {WORLD}, the ledger case went cold, and the smuggler got away clean."
       },
       "legs": {
         "ledger": {
-          "success": "At {WORLD} on day {DAY}, the commander scooped the ledger canister clean.",
-          "targetDestroyed": "At {WORLD} on day {DAY}, the ledger canister was destroyed before it could be recovered.",
-          "failed": "At {WORLD} on day {DAY}, the deadline passed and the ledger was lost for good."
+          "success": "At {WORLD} on day {DAY}, the commander scooped the ledger canister intact.",
+          "targetDestroyed": "At {WORLD} on day {DAY}, the ledger canister broke apart before the commander could reach it.",
+          "failed": "By day {DAY}, near {WORLD}, the ledger recovery ran past its deadline."
         },
         "witness": {
-          "success": "At {WORLD} on day {DAY}, the commander held the smuggler's Cobra on the scanner, unarmed.",
-          "targetDestroyed": "At {WORLD} on day {DAY}, the watched Cobra was destroyed before the watch ended.",
-          "targetEscaped": "At {WORLD} on day {DAY}, the watched Cobra jumped clear before the watch ended.",
-          "failed": "At {WORLD} on day {DAY}, the watch lapsed and the Cobra slipped away."
+          "success": "At {WORLD} on day {DAY}, the commander held the smuggler's Cobra on the scanner for the full count.",
+          "targetDestroyed": "At {WORLD} on day {DAY}, another gun destroyed the watched Cobra before the count ran out.",
+          "targetEscaped": "At {WORLD} on day {DAY}, the watched Cobra jumped clear before the count ran out.",
+          "failed": "By day {DAY}, near {WORLD}, the watch on the Cobra lapsed past its deadline."
         },
         "runner": {
           "targetDestroyed": "At {WORLD} on day {DAY}, the commander destroyed the smuggler's Cobra.",
           "targetEscaped": "At {WORLD} on day {DAY}, the smuggler's Cobra jumped clear of the commander.",
           "targetFled": "At {WORLD} on day {DAY}, the smuggler's Cobra fled the commander's guns.",
-          "failed": "At {WORLD} on day {DAY}, the deadline passed and the smuggler's Cobra was never found."
+          "failed": "By day {DAY}, near {WORLD}, the hunt for the smuggler's Cobra ran past its deadline."
         }
       }
     },
+    "title": "The Grub Ledger",
     "skeleton": "arc-lave",
-    "hash": "b45b8131",
+    "hash": "6e604caf",
     "images": {}
   }
 }

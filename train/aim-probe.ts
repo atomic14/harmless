@@ -15,15 +15,17 @@
 // anywhere at all. This tool measures the gap between the two.
 //
 // THE FIGHT IT FLIES IS `train/aim-fight.ts`, and every question about what a
-// column means is answered there: the two ways she flies, the two pilots they
-// fly, which numbers are the game recorder's and which are the fight's own, and
+// column means is answered there: the two ways the commander flies, the two
+// pilots they fly, which numbers are the game recorder's and which are the
+// fight's own, and
 // what is NOT in the laser columns. This file is the grid and the tables.
 //
 // ## The four tables
 //
-// IS IT AIMED AT HER — the aim half, per pilot, per gang, per behaviour: how
-// much of the fight it spent inside its own gate and in range, how far off her
-// its nose sat, how many merges it completed and how many shots it got away
+// IS IT AIMED AT THE COMMANDER — the aim half, per pilot, per gang, per
+// behaviour: how much of the fight it spent inside its own gate and in range,
+// how far off the commander its nose sat, how many merges it completed and
+// how many shots it got away
 // against the cadence's own ceiling.
 //
 // WHAT LEG WAS IT FLYING WHEN IT WAS NOT AIMED — that table's aim column taken
@@ -35,9 +37,9 @@
 // BEST CASE: this build's own tabulated damage against this hull, at
 // `npcHitChance(0)` over the mean reload, derived from the pack and the
 // constants rather than restated, so a retune moves the column with it. Beside
-// it, the three causes she can be billed by, because the laser is not what a
-// fight costs her — and survivability's two outcome columns, so a row here and
-// a row there can be read against each other.
+// it, the three causes the commander can be billed by, because the laser is
+// not what a fight costs them — and survivability's two outcome columns, so a
+// row here and a row there can be read against each other.
 //
 // BY BUILD — the same comparison for each of the seventeen builds the roster
 // can send, which is the table docs/TODO/139 argues from, re-derived rather
@@ -97,9 +99,10 @@ type Cell = Omit<Attacker, 'hull' | 'damagePerHit'> & {
    */
   medians: number[];
   /**
-   * Every point she lost, by every cause — laser, warhead and contact — because
-   * the laser columns beside it are not what a fight costs her. It is the
-   * quantity docs/TODO/139 M2 has to move; the split is under the table.
+   * Every point the commander lost, by every cause — laser, warhead and
+   * contact — because the laser columns beside it are not what a fight costs
+   * them. It is the quantity docs/TODO/139 M2 has to move; the split is
+   * under the table.
    */
   allDamage: number;
   warheads: number;
@@ -205,8 +208,8 @@ function main(episodes: number, base: number, tier: number | null): void {
           warheads += fight.warheads;
           for (const a of fight.attackers) {
             add(cell, a);
-            // The by-build table is the SHIPPED pilot's, in the fight she can be
-            // caught in: mixing a chase in would average two flights into one row.
+            // The by-build table is the SHIPPED pilot's, in the fight the commander
+            // can be caught in: mixing a chase in would average two flights into one row.
             if (pilot !== 'pursuit' || target.label !== 'knife-fights') continue;
             const b = builds.get(a.hull)
               ?? { ...blank(), damagePerHit: a.damagePerHit };
@@ -227,11 +230,11 @@ function main(episodes: number, base: number, tier: number | null): void {
 
   console.log(`\n${episodes} episodes per row · ${MAX_TIME}s · seed base ${base}`
     + (tier === null ? ' · every threat tier' : ` · tier-${tier} gangs only`));
-  console.log('a fitted commander in her own Cobra, flying back —'
+  console.log('a fitted commander in their own Cobra, flying back —'
     + ' train/aim-fight.ts is the fight\n');
 
-  console.log('## is it aimed at her?\n');
-  console.log('| she | pilot | gang | median range | lined up | in range | aim error |'
+  console.log('## is it aimed at the commander?\n');
+  console.log('| commander | pilot | gang | median range | lined up | in range | aim error |'
     + ' passes/ship | shots/pass | shots/min/ship |');
   console.log('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |');
   for (const [t, pilot, gang, c] of grid) {
@@ -254,7 +257,7 @@ function main(episodes: number, base: number, tier: number | null): void {
   console.log('and a fight nobody closes in scores none — which is a reading, not a blank.');
 
   console.log('\n## what leg was it flying when it was not aimed?\n');
-  console.log('| she | leg | share of the fight | mean aim error |');
+  console.log('| commander | leg | share of the fight | mean aim error |');
   console.log('| --- | --- | --- | --- |');
   for (const t of TARGETS) {
     // Pooled over the four gang sizes, because "what is the nose doing" is not a
@@ -271,15 +274,15 @@ function main(episodes: number, base: number, tier: number | null): void {
   console.log('\nthe aim error above is one column of the table before it, taken apart:');
   console.log('the same frames, grouped by the leg the ship was flying (train/aim-fight.ts');
   console.log('states what a leg is and why it is not the strip\'s own phrase). the shipped');
-  console.log('pilot is two flights, not one — it holds the six while it is astern of her,');
-  console.log('and it slashes past on the attack run once her nose comes round. the legs');
-  console.log('point the nose for opposite reasons: `closing` and `on your six` want it ON');
-  console.log('her, and `passing` and `extending` carry it past and away BY DESIGN. so a');
+  console.log('pilot is two flights, not one — it holds the six while it is astern of the');
+  console.log('commander, and it slashes past on the attack run once their nose comes round.');
+  console.log('the legs point the nose for opposite reasons: `closing` and `on your six` want');
+  console.log('it ON them, and `passing` and `extending` carry it past and away BY DESIGN. so a');
   console.log('mean over the whole fight answers no question, which is what docs/TODO/139');
   console.log('M3 is the decision about.');
 
   console.log('\n## what the gun is worth\n');
-  console.log('| she | pilot | gang | hit rate | best case | effective | of best |'
+  console.log('| commander | pilot | gang | hit rate | best case | effective | of best |'
     + ' gang laser | warheads | contact | all causes | a face down |'
     + ' ENERGY LOW | destroyed | they lost |');
   console.log('| --- | --- | --- | --- | --- | --- | --- | --- | --- | --- | --- |'
@@ -287,7 +290,7 @@ function main(episodes: number, base: number, tier: number | null): void {
   for (const [t, pilot, gang, c] of grid) {
     const best = c.aliveSeconds ? c.bestSeconds / c.aliveSeconds : 0;
     const effective = c.aliveSeconds ? c.damage / c.aliveSeconds : 0;
-    // The three causes the world can bill her, and nothing else can: the laser
+    // The three causes the world can bill the commander, and nothing else can: the laser
     // is tallied, the warheads are counted, and what is left is contact.
     const warheadPoints = c.warheads * IMPACT.warhead.commander;
     const contact = c.allDamage - c.damage - warheadPoints;
@@ -306,8 +309,8 @@ function main(episodes: number, base: number, tier: number | null): void {
   console.log(`SHIELD_REGEN of ${SHIELD_REGEN.toFixed(3)} points a second PER FACE: that`
     + ' comparison is what');
   console.log('docs/TODO/139 is about, and it is the last four columns that have to move.');
-  console.log('\nthe three causes are every way the world can bill her: the laser is tallied'
-    + ' shot');
+  console.log('\nthe three causes are every way the world can bill the commander: the laser'
+    + ' is tallied shot');
   console.log(`by shot, a warhead is ${IMPACT.warhead.commander} points`
     + ` (${warheads} landed across the run), and contact is what`);
   console.log('is left. the aim columns above describe the FIRST of the three only — which');
@@ -319,7 +322,7 @@ function main(episodes: number, base: number, tier: number | null): void {
   console.log('shield stops recovering at all and a player is meant to break off. it is');
   console.log('the term docs/TODO/139 M2 states its gate in, and today it is unreachable.');
 
-  console.log('\n## by build — the shipped pilot, in the fight she can be caught in\n');
+  console.log('\n## by build — the shipped pilot, in the fight the commander can be caught in\n');
   console.log('| build | points/hit | lined up | shots/min | hit rate | best case |'
     + ' effective | of best |');
   console.log('| --- | --- | --- | --- | --- | --- | --- | --- |');

@@ -8,11 +8,13 @@
 // world's random stream, so the tour is the same in every career. Lave's
 // tour is Lave's tour.
 //
-// A galactic jump runs the same rule on the new galaxy from the arrival
-// world (machine.ts). Galaxies 3, 4, 6, 7 and 8 each strand a group of
-// worlds. A commander who arrives on an island gets a tour of the island.
-// The bands widen when a band is empty, and a start is never a world no
-// chain of jumps reaches.
+// The tour is galaxy 1's. An arc is offered in the galaxy its gate names,
+// and a lead keeps its galaxy across a galactic jump (docs/TODO/213 M2). A
+// galactic jump used to run this rule on the new galaxy. The arc the moved
+// lead opened then placed its legs by seed index, which is not a tour. The
+// bands widen when a band is empty. A start is never a world no chain of
+// jumps reaches. So a tour from any world of any galaxy is still well
+// formed.
 
 import { TOUR_ARCS, TOUR_STEP_JUMPS } from '../constants/missions.ts';
 import type { StarSystem } from '../galaxy/galaxy.ts';
@@ -48,13 +50,4 @@ export function arcStarts(systems: readonly StarSystem[], first: number, count =
     starts.push(chosen);
   }
   return starts;
-}
-
-/**
- * Where a lead to the arc at `tourIndex` points in a galaxy entered at
- * `arrival`. A skeleton outside the tour waits at the arrival world.
- */
-export function leadWorldIn(systems: readonly StarSystem[], arrival: number, tourIndex: number): number {
-  if (tourIndex < 0) return arrival;
-  return arcStarts(systems, arrival)[tourIndex] ?? arrival;
 }

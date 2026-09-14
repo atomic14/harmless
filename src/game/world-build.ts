@@ -30,7 +30,9 @@ import { specsForSet } from './set-roster.ts';
 import { missionItems, missionOverride, missionSpawns } from '../missions/queries.ts';
 import { planPopulation } from './population.ts';
 import { markOf, pirateThreat } from './threat.ts';
-import { spawnPopulation } from './spawning.ts';
+import { spawnPopulation, spawnTaggedShips } from './spawning.ts';
+import { WITCHSPACE_TARGET } from '../constants/missions.ts';
+import { MISSION_TARGET_RANGE, MISSION_TARGET_RANGE_SPAN } from '../constants/spawn-placement.ts';
 import { random, randomDirection } from './rng.ts';
 import type { NpcShip } from './npc.ts';
 import type { NpcRole } from './ship-roles.ts';
@@ -147,6 +149,16 @@ export class WorldBuild {
           .multiplyScalar(THARGOID_AMBUSH_RANGE + random() * THARGOID_AMBUSH_RANGE_SPAN), i);
     }
     this.state.encounterTimers.thargon = THARGON_REDEPLOY;
+    // A leg placed in witchspace spawns its ships and its things here, at a
+    // mission target's reach, beside the trap (docs/TODO/219 M3).
+    const missions = this.state.commander.missions;
+    spawnTaggedShips(this.state.world, this.state.player.position,
+      missionSpawns(missions, WITCHSPACE_TARGET), MISSION_TARGET_RANGE, MISSION_TARGET_RANGE_SPAN);
+    for (const item of missionItems(missions, WITCHSPACE_TARGET)) {
+      const pos = randomDirection(new THREE.Vector3())
+        .multiplyScalar(MISSION_TARGET_RANGE + random() * MISSION_TARGET_RANGE_SPAN);
+      this.state.world.cargo.spawnMission(pos, item.kind, item.tag);
+    }
     this.host.hyperspaceSound();
     this.host.startTunnel(1.1);
     this.host.showMessage('WITCH-SPACE — THARGOID AMBUSH', 6);

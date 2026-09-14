@@ -16,12 +16,17 @@ export function legOf(skeleton: Skeleton, id: string): Leg {
 
 /**
  * The key that `MissionState.standing` and a dossier file use for a patron.
- * A local patron is the world she stands at, so the key names that world.
+ * A local patron is whoever runs the station the job was taken at, so the
+ * key names `origin` where the caller knows it. Without one it names the
+ * world the commander stands at, which is right on the board. It named
+ * that world at every settlement until docs/TODO/213 M4, so a delivery credited the
+ * far end's patron.
  */
-export function patronId(skeleton: Skeleton, commander: CommanderFacts): string {
+export function patronId(skeleton: Skeleton, commander: CommanderFacts, origin?: number): string {
   const p = skeleton.patron;
   if (p.kind === 'navy') return 'navy';
-  return `world-${p.kind === 'world' ? p.seedSlot : commander.systemIndex}`;
+  if (p.kind === 'wheel') return 'wheel';
+  return `world-${p.kind === 'world' ? p.seedSlot : (origin ?? commander.systemIndex)}`;
 }
 
 /**

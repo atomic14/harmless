@@ -6,7 +6,9 @@
  * Vertical field of view, in degrees. It is load-bearing beyond the looks. The
  * trainer's `IN_VIEW_DEG` arc is argued from this, so a change moves what "the
  * pilot can see it" means.
- */
+  *
+ * @rule camera.fov
+*/
 export const CAMERA_FOV = 60;
 
 /**

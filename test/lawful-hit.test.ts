@@ -39,7 +39,7 @@ const SETTLE = 60 * 14;
  * A commander in flight with an empty sky, out of the launch tunnel and at
  * rest, and a way to watch the console.
  *
- * @param atWitchpoint put her out where no fleet can launch. The station's
+ * @param atWitchpoint put the commander out where no fleet can launch. The station's
  * Vipers are a second voice, and three of the blocks below are about one voice.
  */
 function flying(seed: number, atWitchpoint = false): { g: Game; fly: (steps: number) => string[] } {
@@ -166,7 +166,7 @@ console.log('\nthe fireball takes the rest of the burst');
 {
   // THE DEFECT, flown. A pirate 500 units off the nose and a Viper 1,400 units
   // directly behind it. The commander holds the trigger. Before docs/TODO/173
-  // the shot 0.25 seconds after the kill reached the Viper, and it hunted her
+  // the shot 0.25 seconds after the kill reached the Viper, and it hunted them
   // for the rest of the flight.
   //
   // Out at the witchpoint, so no station fleet launches into the measurement.

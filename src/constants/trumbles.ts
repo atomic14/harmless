@@ -25,7 +25,11 @@ export const BREED_RATE = 1.6;
 /** No more than this many, or the hold report becomes a novel. */
 export const MAX_TRUMBLES = 999;
 
-/** One tonne eaten per this many trumbles, per brood. */
+/**
+ * One tonne eaten per this many trumbles, per brood.
+ *
+ * @rule trumbles.appetiteDivisor
+ */
 export const APPETITE_DIVISOR = 8;
 
 /**

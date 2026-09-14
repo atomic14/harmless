@@ -5,8 +5,8 @@
 // exercise runs (docs/TODO/completed/33-exercise-hud.md).
 //
 // Without it, a pilot could not tell an exercise nearly up from one just begun.
-// She could not tell an exercise from real space either, once the launch banner
-// faded.
+// They could not tell an exercise from real space either, once the launch
+// banner faded.
 //
 // It counts nothing. Every figure comes from the round's own recorder, as a
 // `SimProgress`. That is the same accumulation `CombatSimRecorder.report()`
@@ -26,7 +26,7 @@ import {
  * One frame of the exercise strip.
  *
  * Deliberately small. The cockpit is crowded, and the fight is what the pilot
- * watches. Everything she cannot read at a glance mid-dogfight belongs in the
+ * watches. Everything they cannot read at a glance mid-dogfight belongs in the
  * report, which is two seconds away at the end of the exercise.
  */
 export type { LiveContact };
@@ -54,7 +54,7 @@ export interface ExerciseStrip {
    *
    * The banner names a step on the wave that adds it, and then it is gone. For
    * the rest of the run, a pilot needs to know that everything out there
-   * carries a missile. The cockpit is where she looks.
+   * carries a missile. The cockpit is where they look.
    */
   escalation: readonly string[] | null;
   shots: number;

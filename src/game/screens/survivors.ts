@@ -65,7 +65,7 @@ export class SurvivorsScreen implements Screen {
     }
     // Everything else, Escape included, is refused and asked again. The
     // station will not forget the person in your ship. The noise is how a
-    // player learns that this is not a screen she can leave.
+    // player learns that this is not a screen they can leave.
     if (i.pressed('Escape')) {
       sfx.refused();
       this.render();

@@ -26,9 +26,8 @@ import {
 import type { NpcShip } from './npc.ts';
 import { isHostileToPlayer } from './hostility.ts';
 import { autopilotEcm } from './ordnance.ts';
-import {
-  aftShieldLeft, energyLeft, foreShieldLeft, poolsLeft, type ShipSystems,
-} from './systems.ts';
+import { type ShipSystems } from './systems.ts';
+import { aftShieldLeft, energyLeft, foreShieldLeft, poolsLeft } from './pools-left.ts';
 import {
   BRAIN_RATE_DECAY, BRAIN_RATE_RAMP, DECISION_INTERVAL,
 } from '../constants/brain-flight.ts';
@@ -38,8 +37,13 @@ import {
 import { ThreatLock } from './threat-lock.ts';
 
 export type AutopilotStep =
-  /** hands off — the reason is for the player */
-  | { kind: 'disengage'; reason: string }
+  /**
+   * Hands off — the reason is for the player.
+   *
+   * `ecm` rides along for the reason `CoPilotStep`'s does. A warhead in the air
+   * is a threat with or without a ship to steer at (the review of 2026-09-12).
+   */
+  | { kind: 'disengage'; reason: string; ecm: boolean }
   /**
    * What it wants — and, separately, whether it reaches for the E.C.M.
    *
@@ -57,6 +61,17 @@ export interface AutopilotShip {
   position: THREE.Vector3;
   quaternion: THREE.Quaternion;
   speed: number;
+  /**
+   * The rates the ship is ACTUALLY turning at.
+   *
+   * The scripted co-pilot ramps from these rather than from a copy of its own
+   * last ask (`scripted-co-pilot.ts`). `PlayerShip.update` writes them from the
+   * demand it flew, so in ordinary flight the two are the same number. They
+   * differ exactly where the review of 2026-09-12 found a defect: after a
+   * manual override, and after a restore.
+   */
+  pitchRate: number;
+  rollRate: number;
 }
 
 /**
@@ -157,7 +172,7 @@ export class CombatComputer {
     missilePos: V3 | null = null,
     playerToStation = Infinity,
   ): AutopilotStep {
-    if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE' };
+    if (manualInput) return { kind: 'disengage', reason: 'MANUAL OVERRIDE', ecm: false };
 
     // COMMITTED, not merely nearest. A fresh-every-frame pick flipped the
     // fought ship up to 26.8 times a minute, and the brain's bearing slots
@@ -175,7 +190,11 @@ export class CombatComputer {
     );
     if (!threat || !brain) {
       this.threatLock.clear();
-      return { kind: 'disengage', reason: 'AREA CLEAR — COMBAT COMPUTER OFF' };
+      return {
+        kind: 'disengage',
+        reason: 'AREA CLEAR — COMBAT COMPUTER OFF',
+        ecm: autopilotEcm(true, missilePos !== null),
+      };
     }
 
     this.state.timer -= dt;
@@ -185,11 +204,11 @@ export class CombatComputer {
       this.me.speed = player.speed;
       this.me.laserTemp = sys.laserTemp;
       this.me.laserCooldown = sys.laserCooldown;
-      // HOW HURT SHE IS, and whether a warhead is on its way. Those are the two
-      // things docs/TODO/71 and /72 found absent. They come from `systems.ts`'s
-      // own expressions, so the game and the trainer cannot come to compute
-      // them differently. A 14-input brain never reads them; `observeFor`
-      // decides.
+      // HOW HURT THE COMMANDER IS, and whether a warhead is on its way. Those
+      // are the two things docs/TODO/71 and /72 found absent. They come from
+      // `systems.ts`'s own expressions, so the game and the trainer cannot
+      // come to compute them differently. A 14-input brain never reads them;
+      // `observeFor` decides.
       this.me.hp = poolsLeft(sys);
       this.me.energy = energyLeft(sys);
       this.me.missileInbound = missilePos !== null;
