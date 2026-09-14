@@ -102,6 +102,16 @@ the viewport. The desktop size is unchanged: 11vw and 3vw reach the same
 ceilings at 1512 pixels that 13vw and 4vw did. The five tests that read the
 page pass.
 
+**M2.** The README went from 505 lines to 370, and Chris's opening did not
+change. The part after the rule is new. It keeps the three tables the tests
+read, in the same words, and the seven phrases four tests pin. The trainer
+essay, the two playtest harnesses, the portrait pipeline and four of the
+five passages on the retired neural pilots left the README. The training
+log and the trainer document hold them. Every number and every name in the
+new part was checked against the code during the review. The Charts keys
+are a table now, as the Flight keys are. The four tests that read the
+README pass.
+
 ## Outcome
 
 (filled when the plan lands)

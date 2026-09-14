@@ -19,18 +19,16 @@ And now I'll hand you over to the AI.
 # HARMLESS
 
 *An unofficial browser tribute to **Elite** (1984) by David Braben and Ian
-Bell. Harmless is the combat rating you start at; the ladder ends at
+Bell. Harmless is the combat rating you start at. The ladder ends at
 E L I T E.*
 
-Authentic wireframe ships, the
-original byte-accurate procedural galaxy (Lave is system 7, as it should
-be), modern shader-driven suns and planets — and two hand-written ship-AI
-pilots: a pursuit dogfighter flown by the pirates that chase onto your six
-and by the combat computer you can buy (on your side of the fight), and a
-three-phase attack run for the traders that fight back. Nothing neural
-ships; the neuroevolution trainer still
-lives in `train/`, but its trained policies were retired (see the
-[training log](docs/TRAINING-LOG.md)).
+It runs in a browser, on a desktop or a phone, with no install and no
+account. The galaxy is the original: the 1984 seeds make all 2,048 worlds,
+and Lave is system 7. The ships are wireframes from the released ship data.
+The suns and the planets are shaders. Two hand-written pilots fly the other
+ships: a pursuit dogfighter for the pirates, and a three-phase attack run for
+the traders that fight back. The combat computer you can buy flies the
+pursuit pilot on your side.
 
 ![Approaching a Coriolis station with the docking aid live](docs/images/station-docking.jpg)
 
@@ -38,49 +36,52 @@ lives in `train/`, but its trained policies were retired (see the
 | --- | --- |
 | ![A seeded shader planet](docs/images/planet.jpg) | ![The Short Range Chart](docs/images/short-range-chart.jpg) |
 
-*Every planet is generated from the 1984 seeds — Diso's violet coastlines
-above, "Population: 4.1 Billion (Black Furry Felines)", exactly as the
-original's data tables intend. Below: three pirates converging in
-the [combat viewer](docs/TRAINING-LOG.md).*
+*Every planet comes from the 1984 seeds. Diso's violet coastlines above, and
+"Population: 4.1 Billion (Black Furry Felines)", as the original's data
+tables intend.*
 
-![Three pirates converging on a trader in the combat viewer](docs/images/combat-viewer.jpg)
+## Play
 
-**Docs index:**
-[Development log](docs/DEVLOG.md) ·
-[Architecture tour](docs/ARCHITECTURE.md) ·
-[AI design](docs/AI-TRAINING.md) ·
-[Training runs & results](docs/TRAINING-LOG.md) ·
-[Reproducing the training](train/README.md) ·
-[The reference ship catalogue](docs/ELITE-A.md) ·
-[Every damage path](docs/DAMAGE-PATHS.md) ·
-[The combat trainer](docs/COMBAT-SIM.md) ·
-[Browser play trials](docs/BROWSER-TRIALS.md) ·
-[The Jameson Trials](docs/JAMESON-TRIALS.md)
+Play it at https://harmless.atomic14.com/. You start docked at Lave Station
+with 100.0 Cr, a full tank and 3 missiles.
+
+**Saving.** COMMANDER FILE on the station menu names a save. The same name
+again replaces it, and it asks first. The game also keeps its own saves. A
+station autosave is written at every dock and every launch. The last three
+flight autosaves are kept, one every 20 seconds. Close the tab mid-fight and you resume where
+you were. Die, and the station autosave puts you back where you launched
+from.
+
+## New to Elite?
+
+- The **[Flight Training Manual](https://harmless.atomic14.com/manual)**: how
+  to trade, jump, dock and survive, with a first run worked against the
+  game's own market.
+- **[The Long Way Out](https://harmless.atomic14.com/novella)**: an original
+  novella, with papers from the eight galaxies.
+- The **[missions page](https://harmless.atomic14.com/missions)**: who has
+  work for you, and what each job is.
+- The **[encyclopaedia](https://harmless.atomic14.com/encyclopaedia)**: the
+  256 worlds of the first galaxy, each with a portrait of its inhabitants.
+
+In-game, the new pilot's briefing opens by itself the first time a commander
+docks. **NEW PILOT'S BRIEFING** on the station menu reopens it, and **?**
+shows the controls at any time.
 
 ## Run
 
 ```sh
 npm install
-npm run dev     # http://localhost:5173         (landing page)
-                # http://localhost:5173/play    (the game)
-                # http://localhost:5173/viewer   (AI combat viewer)
-                # http://localhost:5173/gallery  (all 38 released hulls)
-                # /manual · /novella             (manual and story)
-npm run build   # lint + tests (via prebuild), then production build to dist/
-npm run train -- attack --gens 400   # breed a pirate policy for research — nothing trained ships; see train/README.md (Node ≥ 22.6)
-npm run evaluate                     # held-out tournament for the current brains
-npm test                             # invariant + simulation tests (no framework)
-npm run elite-a                      # the reference-catalogue alignment gate (<1s)
-npm run campaign                     # headless balance playtest: 40 careers × 60 legs
-npm run campaign -- 4 45000 all      # three career strategies, all the way to E L I T E
-
-# inhabitant portraits (offline; images are committed, nothing runs in the browser)
-node --experimental-strip-types tools/species-prompts.ts 1 --style crt --json > /tmp/g1.json
-                                     # styles: crt, lit, ink, plain — the model does the look
-uv run tools/generate-species.py /tmp/g1.json --repo ../ultra-fast-image-gen --only Lave,Diso
-                                     # ^ starts that repo's server.py and keeps the model resident
-uv run tools/posterise.py --size 256 --tones 6        # re-crush, no GPU needed
+npm run dev     # http://localhost:5173            the landing page
+                # /play · /manual · /novella · /missions · /encyclopaedia
+                # /viewer  the combat viewer   ·   /gallery  all 38 hulls
+npm test        # the tests alone (no framework)
+npm run check   # the whole gate: lint, tests, sizes, constants, prose, generators
+npm run build   # runs the gate first (prebuild), then builds to dist/
 ```
+
+The live site deploys from Cloudflare Pages with `npm run build`, so a commit
+that fails the gate fails the deploy.
 
 > **Editor and agent setup.** This project uses TypeScript 7. That version is
 > a native compiler. It ships no `tsserver.js`. An editor or a coding agent
@@ -88,73 +89,12 @@ uv run tools/posterise.py --size 256 --tones 6        # re-crush, no GPU needed
 > find a valid TypeScript installation". Point the tool at the TypeScript 7
 > language server instead. The command is `npx tsc --lsp --stdio`.
 
-Two playtest harnesses back this up. `npm run campaign` plays hundreds of
-full commander careers headlessly — real galaxy, market, living-galaxy and
-contract code, with only flight abstracted — and reports whether the economy
-actually works (wealth curve, bankruptcy rate, time to first upgrade,
-equipment progression, piracy losses), failing the build if it doesn't. It
-can also play a commander all the way to **E L I T E** (25,600 kills) in
-about 20 seconds, under three different strategies — `trader`, `hunter`,
-`privateer` — which is how the combat ladder below was measured.
-
-The docked **combat trainer** (COMBAT TRAINING on any station menu) replaced three console
-harnesses. It logs a fight you actually flew — your accuracy and theirs,
-damage by source, the geometry that decides whether an NPC can shoot at all,
-and how you fly — and exports it as JSON. Scenarios are repeatable from a
-seed, so the same fight can be flown against two different brains and
-compared.
-
-It exists because every bot-flown measurement in this project turned out to be
-shaped by the bot: flying straight flatters one kind of AI, flying the defence
-policy flatters another. `npm run survivability` is still the bot answer to
-"can I survive a gang?" — a floor measured in the training world, stand-in
-pilots on both sides, so the live game sits above its rows; the trainer's
-**waves** mode is the human one.
-
-There's also an **autonomous playtest agent** (`test/playtest.js`): paste it
-into the browser console with the game open and `await __playtest.run({
-legs: 8 })` sends a commander off to take contracts, trade, fight, jump and
-dock on its own, asserting invariants as it goes and printing a report of
-everything it exercised. It's how gameplay changes get regression-tested.
-
-CI lints, tests, builds and runs the balance playtest on every push. The
-live site deploys from Cloudflare Pages (build `npm run build`, output
-`dist`) — and since npm runs `prebuild` before `build`, a commit that fails
-lint or tests fails the deploy build rather than shipping.
-
-> `src/ai-training/brains/` ships empty (only a `.gitkeep`, no weight files),
-> and the game imports none — it flies hand-written code pilots. Retraining
-> writes candidate weights there for research; nothing loads them.
-
-You start docked at Lave Station with 100.0 Cr, a full tank and 3 missiles.
-
-**Saving** is a deliberate act and an automatic safety net, and the two can
-never overwrite each other. **COMMANDER FILE** on the station menu opens it: name a
-save and it is yours to keep — the same name again replaces it, and it asks
-first. Alongside it the game keeps its own: a **station autosave** written every
-time you dock and every time you launch, and the last three **flight
-autosaves**, taken every 20 seconds. Close the tab mid-fight and you resume
-where you left off; die, and the station autosave puts you back where you
-launched from. Loading over the run you are in says so before it happens, names
-what it is about to cost, and can be backed out of.
-
-## New to Elite?
-
-There is a **[Space Trader's Flight Training Manual](https://harmless.atomic14.com/manual)** — how to
-trade, jump, dock and survive, with a first run worked out against the game's
-own market model — and **[The Long Way Out](https://harmless.atomic14.com/novella)**, an original
-novella with papers from the eight galaxies.
-
-In-game, the new pilot's briefing opens by itself the first time a commander
-docks; **NEW PILOT'S BRIEFING** on the station menu reopens it whenever you
-want it back, and **?** shows the controls at any time.
-
 ## Controls
 
-Two flight layouts ship. **CLASSIC — the authentic 1984 keys — is the
-default**; **KEYBOARD LAYOUT** on the station menu switches to MODERN (WASD),
-which is remembered per browser. Press **?** any time for the in-game guide, which
-always shows the active layout.
+Two flight layouts ship. **CLASSIC**, the 1984 keys, is the default.
+**KEYBOARD LAYOUT** on the station menu switches to MODERN (WASD), and the
+browser remembers the choice. **?** shows the in-game guide for the active
+layout.
 
 ### Flight
 
@@ -166,13 +106,12 @@ always shows the active layout.
 | `/` | X or `/` | decelerate |
 | A (or F) | F | fire laser (watch the temperature) |
 
-The original's `<` `>` roll and `/` slow-down are live in both layouts, so
-muscle memory from 1984 mostly survives either choice. Arrow keys always fly.
+The original's `<` `>` roll and `/` slow-down work in both layouts. The arrow
+keys always fly.
 
-**Mouse flight**: press **V** in flight to pointer-lock the mouse into a
-self-centring analogue stick (left button fires). Touching the keyboard
-overrides it; ESC or V releases. This is the closest thing to the
-joystick the original supported.
+**Mouse flight**: **V** in flight pointer-locks the mouse as a self-centring
+stick, and the left button fires. A flight key overrides it. ESC or V
+releases it.
 
 ### Commands (identical in both layouts)
 
@@ -202,8 +141,31 @@ joystick the original supported.
 | V | mouse flight — pointer-locked analogue stick, left button fires |
 | ? | controls guide |
 
-Views on 1-4 (the original used F0-F3) and screens on letters (were F4-F9),
+Views are on 1-4 (the original used F0-F3) and screens on letters (F4-F9),
 because browsers claim the function keys.
+
+### The ship flies a course
+
+A course is one thing the ship does next by itself. LAUNCH offers the jump,
+the rocks and the star. In flight, the buttons over the view offer what is in
+the sky. FLY TO THE STATION is always there. The mission target, a derelict,
+the rock hermit and a canister to collect show when they exist. RUN FOR IT
+shows when ships attack you. Tap one and a computer flies it. A header names what the ship is doing, and **▶▶** runs
+time forward while nothing hostile is near. A flight key takes the stick
+back.
+
+FLY TO THE STATION lines the ship up on the slot. A fitted docking computer
+then takes it in. Without one, the rails hold you on the slot's axis, and you
+match the slot's roll and the speed yourself.
+
+### On a phone
+
+Every command is a button. The gun row under the view is FIRE LASER, ARM
+MISSILE, FIRE MISSILE, E.C.M. and CLOAK. The **◎** icon with a count opens
+the target list, and it reads red while a ship on the scanner attacks you.
+The station menu is rows, and every screen has its buttons. Add the page to
+the home screen and it opens as an app with no address bar. A double tap or a
+pinch never zooms the cockpit.
 
 ### Docked
 
@@ -230,56 +192,19 @@ in order:
 
 ### Combat training simulator
 
-Free, at every station, from the menu. Pick a mode (one scored fight · endless
-sparring against one hull · escalating waves), a scenario, a threat tier, an
-optional seed, and optionally build the opposition yourself — hull, count,
-tier, how they fly and fit, per group — plus a fit-out override for your own
-ship. ENTER launches; **L** re-opens the last report; **ESC** or **Q** ends the
-exercise. The panel is grouped — the fight, who flies what, your ship — with
-**LIVE BRAINS (COMMANDER)** fenced off at the foot, because that one is still set
-when you undock. A brain is picked by how it flies — `FIGHTS BACK`,
-`MAKES ATTACK RUNS`, `GETS ON YOUR SIX` — with the pilot behind the name for
-anyone reading the training log.
+Free, at every station, from the menu. Pick a mode: one scored fight, endless
+sparring against one hull, or escalating waves. Then pick a scenario, a
+threat tier and an optional seed, or build the opposition yourself. ENTER launches.
+**L** re-opens the last report. **ESC** or **Q** ends the exercise.
+**HOME/END** go to either end of a list.
 
-**Waves** escalates twice. First the numbers — one ship becomes six, an
-opportunist becomes an organised gang — and at wave 11 they stop, deliberately,
-because a ramp that keeps adding ships makes the score a fact about arithmetic
-rather than about flying. Then the *fight* keeps changing: they carry missiles
-at 12, E.C.M. at 14, one of them is a bounty hunter at 16, and at 18 two of the
-pirates stand down for a Thargoid and its Thargon — the toughest hull in the
-game, whose drone goes inert the moment it dies. From 18 on every wave is the
-same, so surviving three of them is a fact about flying. The cockpit strip
-carries what is out there, the banner names each new thing as it arrives, and
-the report quotes both with the reason. The furthest wave you ever reach is
-kept with the commander and shown on the panel; it is the one number a run
-leaves behind, and nothing in the career reads it.
-
-A row over a list says where in it you are (`5/12`) and **HOME/END** go to
-either end without walking there. Selecting a brain row prints what that brain
-does in a fight, with the measured number that shows it — the attack-run pilot
-lands 58% of its shots at ~5 runs a minute and sits 31.8s on a hauler's six —
-so choosing one is a choice about behaviour rather than a filename. The shipped
-`pursuit` pirate post-dates the evaluation tournament, so it is unprobed there.
-The figures that exist come from `train/flight-probe.ts` or the evaluation
-tournament, both archived under `train/logs/`.
-
-It is the real game: real flight model, real brains, real guns. But
-**nothing that happens in it leaves it** — no kills, no combat rating, no
-credits, no legal status, no save write, and death ends the exercise rather
-than the career. The single exception is stated as one: the furthest wave a
-waves run reached, which is saved with the commander and read by nothing else. Afterwards you get a report (accuracy both ways, damage by
-source, engagement ranges, time on each other's six, your own flight
-envelope) which exports as JSON to the clipboard or a file, and lands on
-`window.__simLog` for a console session or an agent to read.
-
-**←→** walks the recent records and **ENTER** holds two of them side by side —
-this, that, and the difference — because the method is an A/B: same seed, same
-scenario, two brains. It only subtracts them when they really are one fight
-flown twice. Two records on different seeds, scenarios, modes, waves, hulls or
-fit-outs are not an A/B, so it names exactly which fields differ and shows no
-difference column at all; different **brains** is the point, different anything
-else is a confound. **C** and **X** then take the pair, since the pair is the
-finding.
+It is the real game: real flight model, real pilots, real guns. But
+**nothing that happens in it leaves it**: no kills, no rating, no credits, no
+legal status, no save. The one exception is the furthest wave you reached,
+kept with the commander and read by nothing else. Afterwards you get a
+report, and it exports as JSON. **←→** walks the recent records.
+**ENTER** holds two of them side by side when they are one fight flown twice.
+[docs/COMBAT-SIM.md](docs/COMBAT-SIM.md) is the full description.
 
 ### Market
 
@@ -287,184 +212,144 @@ finding.
 
 ### Charts
 
-**Click a system to target it** · arrows move the cursor · ENTER set
-hyperspace target · **D data on system** (the full statistics page with the
-original's procedurally generated planet description) · M market estimate ·
-F find a system by name · ESC exit
+| Key | Action |
+| --- | --- |
+| click, or the arrows | move the cursor to a system |
+| ENTER | set the hyperspace target |
+| D | data on system |
+| M | market estimate |
+| F | find a system by name |
+| T | cycle the trade overlay |
+| ESC | exit |
 
-A **red ring** marks a system merchants are reporting heavy pirate activity
-in — the living galaxy's own losses, on the same threshold that world's data
-screen reports in words, so the map and the news can never disagree.
-
-**T** cycles the trade overlay: **routes in flight** draws the lanes with more
-than one convoy on them (~45 of the ~175 pairs trading at any moment), and
-**prices** arrows the worlds trading well off the 1984 baseline — up amber for
-dear, down green for cheap. Both charts share the mode, and the rings stay
-under all of it.
-
-Lanes fade with how much freight is on them. Point at one — mouse or cursor —
-and the chart names both worlds, the convoys on it, their tonnage, their cargo
-and when the next load lands.
+A **red ring** marks a system where merchants report heavy pirate activity.
+The trade overlay draws the lanes with more than one convoy on them, and then
+the worlds whose prices sit well off the 1984 baseline.
 
 ### Docking and the console
 
-Fly into the station's docking port with your wings matched to its rotation.
-An amber marker shows where the port is, with an arrow at the screen edge
-when it's behind you; it turns green and reads DOCKING PORT — LINED UP when
-you're on the axis and rolled to match. Get it wrong and you'll bounce off
-with shield damage — or buy the docking computer.
+Fly into the docking port with your wings matched to its rotation. An amber
+marker shows the port, with an arrow at the screen edge when it is behind
+you. It turns green and reads DOCKING PORT — LINED UP when you are on the
+axis and rolled to match. Get it wrong and you bounce off with shield damage.
 
 In a fight, a red arrow at the screen edge points at the nearest hostile you
-can't currently see.
-
-The console lights an **S** while the station is in scanner range (its
-defences cover you there) and an **E** when an E.C.M. broadcast is
-detected — as on the original's dashboard.
+cannot see. The console lights an **S** while the station is in scanner
+range, and an **E** when an E.C.M. broadcast is detected.
 
 ## Game systems
 
-- **Trading** — 17 commodities with the original price/quantity model;
-  economies matter (buy food cheap at agriculturals, sell computers dear).
-  20t hold; precious metals/gems don't take hold space.
-- **Combat** — pulse/beam/military lasers with heat, four mounts, homing
-  missiles you arm and then lock by putting the target in your sights,
-  on-screen target brackets with a lead marker, hull hits that cost you
-  cargo and fittings, bounties, kill ratings from Harmless to E L I T E.
-  Damage is the released game's own arithmetic: what a laser is worth is
-  decoded from its byte, what it costs a target is that target's own defence,
-  and your fore shield, aft shield and energy bank are three 255-point pools —
-  see [docs/ELITE-A.md](docs/ELITE-A.md) and
-  [docs/DAMAGE-PATHS.md](docs/DAMAGE-PATHS.md). Pirate numbers scale with the
-  government type; shoot police or traders and you become a fugitive (police
-  attack; fine on docking).
-- **Hyperspace** — 7.0 LY fuel range, per-jump fuel cost by real chart
-  distance, 5-second countdown.
-- **Death** — ship destroyed → ENTER takes you back to the station autosave
-  you launched from, with what you left with (unless an escape pod saves you,
-  at the cost of your cargo), or S opens the commander file to pick a save of
-  your own. The in-flight autosaves are dropped: dying costs you the run.
-- **Legal system** — CLEAN → OFFENDER → FUGITIVE; police scan for contraband
-  (slaves, narcotics, firearms), bounty hunters stalk offenders, fines on
-  docking.
-- **A living system** — traders warp in, do business at the station and jump
-  out; pirates hunt them for cargo you can scoop; police hunt the pirates.
-- **Witch-space** — mis-jumps drop you among Thargoids and their Thargon
-  drones. High bounties, if you live. Out of fuel out there? Broadcast a
-  distress beacon and GalCop will tow you clear — they'll take your cargo
-  as the salvage fee.
-- **Mining & scooping** — blast asteroids (mining laser drops ore canisters)
-  and scoop drifting cargo with fuel scoops; sun-skim to refuel, watching the
-  cabin temperature.
-- **A living galaxy** — trade runs between all 256 systems while you play.
-  Convoys depart from productive worlds, get taken by pirates in lawless
-  space, and arrive in your system as real ships. Prices drift with supply,
-  pirate hotspots emerge along dangerous routes, and the system data screen
-  reports the news. The 1984 economy stays the baseline underneath — this
-  layer only ever nudges it ±25%.
-- **Pirates as businesses** — what waits for you on the way in depends on
-  what you're visibly worth. An empty Cobra draws a couple of opportunists in
-  Sidewinders; a full hold draws professionals; a fat, notorious one draws an
-  organised gang. A gang isn't five
-  Fer-de-Lances, though — it's two ringleaders plus hangers-on in whatever
-  they could afford, which is why they can be common without being hopeless. Only
-  what a pirate can *see* counts — cargo, hold size, fitted laser, your
-  reputation — never your bank balance, so banking the money and flying clean
-  is a real strategy. Threat grows far slower than your ship does, so upgrades
-  are felt rather than cancelled out. And since they came for the cargo,
-  **jettisoning it (Y) buys them off** — proportionally: opportunists want a
-  little, a gang that organised for you wants about a third of the prize.
-  Selling big or dirty loads raises your profile here and in neighbouring
-  systems, and it fades if you lie low. Your **reputation cuts both ways**:
-  it scares off thieves after easy cargo, but once you're Dangerous roughly a
-  third of the ships waiting for you came for the name rather than the hold.
-  Ratings count difficulty too — a gang's Fer-de-Lance is worth five
-  Sidewinders — so the ladder rewards the fights worth having.
-- **Contracts** — every station runs a bulletin board with cargo runs,
-  courier jobs and pirate-clearing bounties, available from your very first
-  landing. Deadlines are measured in days, which pass as you jump. (The
-  original made you earn your first mission with 16 kills; a new commander
-  deserves somewhere to be.)
-- **Navy missions** — prove yourself (16+ kills, galaxy 1) for the
-  Constrictor hunt and the classified courier run.
-- **Don't shoot the station.** Its hull shrugs off a laser, but GalCop
-  notices: you're marked an offender and the station scrambles Vipers from
-  the slot. Shooting *those* is how you become a fugitive.
-- **Encounters** — destroyed ships eject escape capsules (scoop one and the
-  survivor becomes, regrettably, cargo); stations scramble Vipers if you
-  misbehave in their sight; rock hermits hide among the asteroids, dealing
-  ore and asking no questions; derelict generation ships drift between the
-  stars; and someone will sell you a Trumble for 2 credits, which is one of
-  the worst decisions available to you.
-- **Two hand-written ship AIs** — pirates fly `pursuit`, the dogfighter that
-  chases onto your six and holds there, breaking into a slashing attack run the
-  moment you turn your nose onto it; armed traders turn and fight with
-  `attack-run`, the three-phase run (close, fire through the pass, swing out
-  and come round again); and the combat computer you can buy flies the pursuit
-  dogfighter on your own ship, onto your attacker's six. All of it is code, not
-  neural nets: the policies
-  self-play kept finding were turrets that hung in space and sniped, so the
-  trained line was retired in 2026-08 (docs/TRAINING-LOG.md keeps every figure).
-  Watch either fight in the combat viewer.
+- **Trading**: 17 commodities with the original price and quantity model. A
+  20-tonne hold. Precious metals and gems take no hold space.
+- **Combat**: pulse, beam and military lasers with heat, on four mounts.
+  Homing missiles lock on what is in your sights, and an E.C.M. answers
+  theirs. Kill ratings run from Harmless to E L I T E. Damage is the released game's own arithmetic
+  ([docs/ELITE-A.md](docs/ELITE-A.md), [docs/DAMAGE-PATHS.md](docs/DAMAGE-PATHS.md)).
+- **Hyperspace**: a 7.0 LY tank, fuel by chart distance, a 5-second countdown.
+- **Death**: ENTER takes you back to the station autosave you launched from.
+  An escape pod saves you, at the cost of the ship and the cargo. S opens the
+  commander file instead.
+- **The law**: CLEAN, OFFENDER, FUGITIVE. Police scan for slaves, narcotics
+  and firearms. Bounty hunters stalk offenders. Fines on docking. Shoot the
+  station and it scrambles Vipers.
+- **A living galaxy**: traders, pirates and police work every system while
+  you are in it. Convoys run between all 256 worlds while you are not. Prices
+  drift up to 25% from the 1984 baseline, pirate hotspots emerge on dangerous
+  routes, and the system data screen reports the news.
+- **Pirates as businesses**: what waits for you depends on what you are
+  visibly worth: cargo, hold, laser, reputation, and never your bank balance.
+  An empty Cobra draws opportunists. A full hold draws professionals. They
+  came for the cargo, so **jettisoning it (Y) buys them off**.
+- **Witch-space**: a mis-jump drops you among Thargoids and their drones. Out
+  of fuel out there, a distress beacon (B) brings GalCop, for your cargo.
+- **Mining, scooping and survivors**: a mining laser breaks asteroids into
+  ore. Fuel scoops take drifting cargo, and a sun skim refuels the tank. A
+  scooped escape capsule holds a person, not cargo, and the dock asks what
+  becomes of them.
+- **Contracts**: every station board has cargo runs, courier jobs and
+  bounties from your first landing, with deadlines in days.
+- **Missions**: the Navy's Constrictor hunt after 16 kills in galaxy 1, as in
+  1984. Five people on five worlds across the first galaxy each give you a
+  chain of jobs, and each chain leads to the next. Every station board holds
+  two or three side jobs of eight: hunt a gang, deliver, recover, rescue,
+  clear a lane, smuggle, escort, scan. A gang hunt waits for eight kills, a
+  lane or an escort for four, a recovery or a rescue for fuel scoops. At the
+  higher ratings a secret organisation sends for you, with a reward no shop
+  sells. **R** lists your missions and the offers, and **⇧R** tells each one
+  as a story.
+- **Encounters**: rock hermits deal ore among the asteroids, derelict
+  generation ships drift between the stars, and someone sells a Trumble for
+  2 credits. Buy it and see.
+- **Two ship pilots**: pirates fly `pursuit`, which chases onto your six and
+  breaks into an attack run when you turn on it. Armed traders fly
+  `attack-run`, in three phases: close, fire through the pass, come round.
+  Both are code. The neural pilots the project once trained were retired,
+  and [docs/TRAINING-LOG.md](docs/TRAINING-LOG.md) keeps that history.
 
 ## Architecture
 
-- `src/galaxy/` — the genuine Elite galaxy algorithm: three twisted 16-bit
-  seed words generate all 256 systems per galaxy (names, economy, government,
-  tech level, market). Galaxy 1 is byte-identical to the original — system 7
-  is Lave.
-- `src/ships/` — all 38 released hulls as explicit vertex/edge/face tables in
-  the style of the original BBC data, generated from the vendored reference
-  pack and exact to the source rather than drawn by eye. Thirty-one of them
-  turn up in play (Cobra Mk III and Mk I, Sidewinder, Viper, Adder, Krait,
-  Mamba, Fer-de-Lance, Python, Anaconda, Boa, Gecko, Moray, Worm, Shuttle and
-  Shuttle Mk II, Transporter, Dragon, Monitor, Ophidian, Ghavial, Bushmaster,
-  Rattler, Iguana, Chameleon, Thargoid, Thargon, Constrictor, missile,
-  canister, escape capsule); the Coriolis and Dodo stations are the same
-  tables at a larger presentation scale. All drawn as wireframe edges over a
-  black occluding hull (classic hidden-line look), and all 38 browsable at
-  `/gallery`.
-- `src/world/` — shader sun (animated fbm surface, limb darkening, corona),
-  shader planet (coastline contours, graticule, terminator, atmosphere rim —
-  seeded per system), starfield, space dust, per-system scene assembly.
-- `src/game/` — game orchestrator (modes, docking, hyperspace, combat),
-  NPC AI (traders/pirates/police), commander state + saves.
-- `src/hud/`, `src/ui/` — scanner/compass/gauges console and the full-page
-  screens (station menu, market, chart, status).
-- `src/audio.ts` — WebAudio synth in the spirit of the BBC sound chip. The
-  docking waltz is `src/music.ts`, a three-voice SID player, and
-  `src/music-danube.ts`, the arrangement it plays. The Commodore 64 Elite
-  played *An der schönen blauen Donau* while you docked, and what plays here is
-  that performance: Julie Dunn's 1985 arrangement for three SID voices, decoded
-  from the C64 release's music data and re-synthesised through Web Audio. No
-  audio is shipped, but the arrangement is not ours and is not public domain —
-  the 1866 waltz underneath it is. See
-  [reference/danube/README.md](reference/danube/README.md).
-- `src/ai-training/` + `train/` — render-free combat simulator, tiny MLP policies
-  (1.9k params, keyboard-style discrete actions) and a neuroevolution
-  self-play trainer. `src/ai-training/brains/` ships empty (only a `.gitkeep`):
-  the game flies three hand-written code pilots — `pursuit` (the dogfighter
-  every pirate uses, and the purchasable combat computer's own flight, turned
-  to your defence), `attack-run` (the defence name: the three-phase run an
-  armed trader turns and fights with, and the name the co-pilot is selected
-  under) and `scripted` (an A/B control that reverts the pirates to the attack
-  run and switches the defence off). The trained line — two pirate policies and
-  the `jameson-defend` defence policy — was deleted 2026-08-05 after three
-  retrains optimised their way out of fighting; `docs/TRAINING-LOG.md` keeps
-  every figure, and `train/evolve.ts` can still breed a candidate for research.
-  A test asserts the weights directory matches what `brains.ts` imports, which
-  today is nothing. The combat viewer (`/viewer`) replays matchups with the real
-  wireframe ships, and every row in it flies one of those code pilots or a
-  stated control. See `docs/AI-TRAINING.md` and `docs/TRAINING-LOG.md`.
-- Rendering: three.js + UnrealBloom for the phosphor glow.
+One world state exists. A fixed, seeded step advances it, and the renderer
+only reads it. A module decides and returns an event, and the orchestrator
+applies it. The platform stays behind `src/engine/shell.ts`, so the whole
+game runs headlessly under Node for the tests.
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md) is the map. The directories:
+
+- `src/galaxy/`: the 1984 galaxy algorithm, and the trade that runs between
+  its worlds while you play.
+- `src/ships/`: all 38 released hulls as vertex, edge and face tables,
+  generated from the vendored reference pack ([docs/ELITE-A.md](docs/ELITE-A.md)).
+- `src/world/`: the shader sun and planet, the starfield, the scene.
+- `src/game/`: the orchestrator, the world, the flight loop, the NPC pilots,
+  the courses, the law, the market, the commander and the saves.
+  `src/game/screens/` is one module per full-page screen.
+- `src/missions/`: the mission machine. A skeleton is one mission's rules. A
+  dossier is its generated words. One pure step reads an event and returns
+  the effects the game applies.
+- `src/hud/`, `src/ui/`: the console, the buttons over the view, and the
+  screens' markup.
+- `src/engine/`: the platform seam: the shell, the render stack, the key map,
+  the phone chrome.
+- `src/constants/`: every tunable, each with its rule beside it.
+  `CATALOG.md` there is generated from them.
+- `src/encyclopaedia/`, `src/viewer/`: the encyclopaedia page and the combat
+  viewer.
+- `src/ai-training/` and `train/`: the render-free combat simulator and the
+  trainer that once bred neural pilots. The game loads no weights.
+- `src/audio.ts`: a WebAudio synth in the spirit of the BBC sound chip.
+  `src/music.ts` and `src/music-danube.ts` play the docking waltz.
+- Rendering: three.js with UnrealBloom for the phosphor glow.
+
+## Documents
+
+Read first: [docs/INVARIANTS.md](docs/INVARIANTS.md) (the rules that must
+not break), [docs/PROCESS.md](docs/PROCESS.md) (how work is delivered) and
+[docs/ARCHITECTURE.md](docs/ARCHITECTURE.md).
+[docs/TODO/README.md](docs/TODO/README.md) indexes the active plans.
+
+Reference: [the ship catalogue](docs/ELITE-A.md) ·
+[every damage path](docs/DAMAGE-PATHS.md) ·
+[the combat trainer](docs/COMBAT-SIM.md) ·
+[browser play trials](docs/BROWSER-TRIALS.md) ·
+[the Jameson trials](docs/JAMESON-TRIALS.md) ·
+[the constants catalogue](src/constants/CATALOG.md)
+
+History: [the development log](docs/DEVLOG.md) ·
+[the AI design](docs/AI-TRAINING.md) ·
+[the training log](docs/TRAINING-LOG.md) ·
+[reproducing the training](train/README.md)
+
+Reviews: [the combat computer](docs/COMBAT-COMPUTER-REVIEW.md) ·
+[the missions](docs/MISSIONS-REVIEW.md) ·
+[the missions in flight](docs/MISSIONS-FLIGHT-REVIEW.md) ·
+[the README and the landing page](docs/PAGES-REVIEW.md)
 
 ## Acknowledgements & legal
 
 This is a non-commercial fan homage, released under the MIT license (see
 LICENSE). Elite (1984) was created by Ian Bell and David Braben and published
-by Acornsoft; the "Elite" trademark belongs to Frontier Developments plc.
-This project is affiliated with none of them. The galaxy generator and the
-ship tables both follow long-published descriptions of the original data —
-the hulls were hand-made approximations until 2026-08, and are now generated
+by Acornsoft. The "Elite" trademark belongs to Frontier Developments plc.
+This project is affiliated with none of them. The galaxy generator follows
+long-published descriptions of the original data. The hulls are generated
 from a vendored analysis pack of the released ship files
 ([docs/ELITE-A.md](docs/ELITE-A.md)).
 
@@ -477,29 +362,9 @@ separate work and is not. It is included as a deliberate decision, and
 [reference/danube/README.md](reference/danube/README.md) sets out what it is
 and where it came from.
 
-## Roadmap
+## What remains
 
-Feature-by-feature parity with the original manual is essentially done —
-including the things this section used to list as outstanding: side laser
-mounts, mouse flight, the two-level living galaxy, and the purchasable combat
-computer. Where this game deliberately differs from 1984, the reasoning is
-recorded beside the constant that makes the difference.
-
-Remaining: gamepad support, and a player shipyard (all 15 flyable hulls are
-imported and resolve; nothing can yet change which one you fly — see the
-deferred list in [docs/ELITE-A.md](docs/ELITE-A.md)). Pirates already fly the
-`pursuit` dogfighter by default, solo and in a gang alike; the trained pack
-brain that once flew the gangs was retired with the rest of the neural line.
-
-Combat balance is **not settled**, and this file quotes no figure for it on
-purpose: the damage model moved to the released game's own arithmetic in
-2026-08, so every number measured before that describes a different game.
-Measure it, don't cite it — `npm run campaign`, `npm run survivability`, and
-the docked combat trainer's JSON export.
-
-One finding worth reading before touching combat AI, from
-[docs/TRAINING-LOG.md](docs/TRAINING-LOG.md): in a recorded human fight,
-pirates lined up on the player only a small fraction of the time and landed
-most of the shots they did take, so the balance rests on pursuit being
-imperfect — "better" pursuit is not automatically better. That is a shape, and
-it survives the change of units; the percentages in the log entry do not.
+Gamepad support, and a shipyard: all 15 flyable hulls are in, and nothing
+yet changes which one you fly. Combat balance is measured, not cited. The
+damage model is the released game's own since 2026-08, and `npm run campaign`,
+`npm run survivability` and the trainer's report are how to measure it.
