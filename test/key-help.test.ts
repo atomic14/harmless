@@ -318,7 +318,7 @@ console.log('\nthe briefing surfaces the whole first journey');
   // The fast forward button is an icon since docs/TODO/221, so its glyph is
   // what the briefing teaches.
   const buttons = ['JUMP TO', 'FLY TO THE STATION', '\u25B6\u25B6',
-    'FIRE LASER', 'TARGETS', 'ARM A MISSILE', 'E.C.M.', 'RUN FOR IT'];
+    'FIRE LASER', '\u25CE', 'ARM MISSILE', 'E.C.M.', 'RUN FOR IT'];
   const untaught = buttons.filter((b) => !text.includes(`<b>${b}</b>`));
   check(`...and every button of the trip is named (${buttons.length})`,
     untaught.length === 0, untaught.join(', '));

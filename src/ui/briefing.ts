@@ -114,9 +114,9 @@ export const BRIEFING: { title: string; body: string }[] = [
     body: `Sooner or later somebody opens fire. The computer takes the stick
       and lines the ship up. The shooting is yours: hold
       <b>FIRE LASER</b> at the bottom right, and keep the bursts short,
-      because lasers overheat. <b>TARGETS</b> above it lists what is out
+      because lasers overheat. The <b>\u25CE</b> button above it lists what is out
       there, and a row sends the computer after that one.<br/><br/>
-      <b>ARM A MISSILE</b> arms one, and it locks when a ship crosses your
+      <b>ARM MISSILE</b> arms one, and it locks when a ship crosses your
       sights. Press it again to fire. A missile costs money, so the computer
       never spends one for you. <b>E.C.M.</b> destroys a missile coming at
       you.<br/><br/>

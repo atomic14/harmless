@@ -122,12 +122,17 @@ export function targetButtonsFor(a: ActionSource): HudButton[] {
   if (a.trial) return [];
   const t = a.targets;
   if (!t || (t.rows.length === 0 && !t.open)) return [];
-  const count = `${t.rows.length} ON THE SCANNER`;
+  // An icon with the count (Chris, 2026-09-14, docs/TODO/222): a bullseye
+  // and how many are on the scanner. It reads red while any of them attacks
+  // the commander, so the icon is the threat tell too. Lit while it is open.
   return [{
-    code: TARGETS_KEY, label: t.open ? 'TARGETS ▴' : 'TARGETS ▾', lit: t.open,
-    hint: t.open ? 'TAP TO FOLD' : t.picked ? `AIMING AT THE ${t.picked.name}` : count,
+    code: TARGETS_KEY, label: `${targetsIcon} ${t.rows.length}`, icon: true, lit: t.open,
+    hostile: t.rows.some((r) => r.row.hostile),
   }];
 }
+
+/** A bullseye: the mark for a target on every scanner since the arcade. */
+const targetsIcon = '\u25CE';
 
 /**
  * The target row (docs/TODO/215 M2): a button per ship with the range and
@@ -140,7 +145,7 @@ export function targetRowFor(a: ActionSource): HudButton[] {
   const out: HudButton[] = t.rows.map(({ code, row }) => {
     const reach = row.range <= LASER_RANGE ? 'IN LASER RANGE' : 'OUT OF LASER RANGE';
     return {
-      code, label: row.name, lit: row.picked,
+      code, label: row.name, lit: row.picked, hostile: row.hostile,
       // A rock's name IS its standing, so the hint says the range alone.
       hint: row.name === row.standing ? reach : `${row.standing} · ${reach}`,
       ...(row.cost ? { note: row.cost } : {}),
@@ -192,19 +197,19 @@ export function gunButtonsFor(a: ActionSource): HudButton[] {
   // The missile as two buttons (Chris, 2026-09-13): arm or disarm, and fire.
   const left = `${a.missiles} LEFT`;
   if (a.missiles === 0 || !a.armKey || !a.disarmKey) {
-    out.push({ code: a.armKey ?? 'missile-none', label: 'ARM A MISSILE', note: 'NONE LEFT' });
+    out.push({ code: a.armKey ?? 'missile-none', label: 'ARM MISSILE', note: 'NONE LEFT' });
   } else if (a.armed) {
     out.push({ code: a.disarmKey, label: 'DISARM', lit: true, hint: left });
   } else {
-    out.push({ code: a.armKey, label: 'ARM A MISSILE', hint: left });
+    out.push({ code: a.armKey, label: 'ARM MISSILE', hint: left });
   }
   if (a.armed && a.launchKey) {
     out.push({
-      code: a.launchKey, label: 'FIRE THE MISSILE', lit: a.locked,
+      code: a.launchKey, label: 'FIRE MISSILE', lit: a.locked,
       hint: a.locked ? 'LOCKED ON' : 'IT LOCKS ON A SHIP IN YOUR SIGHTS',
     });
   } else {
-    out.push({ code: a.launchKey ?? 'missile-none', label: 'FIRE THE MISSILE', note: 'NOT ARMED' });
+    out.push({ code: a.launchKey ?? 'missile-none', label: 'FIRE MISSILE', note: 'NOT ARMED' });
   }
   if (a.ecmKey) {
     out.push(a.missileInbound

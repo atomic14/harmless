@@ -63,7 +63,7 @@ export function closePassLines(v: CloseView): string[] {
     // The pilot made the choice. The line would be an answer to nobody.
     if (npc.state.targeted || npc.state.provokedByPlayer) continue;
     npc.state.announcedClose = true;
-    out.push(`${shipArticle(npc)} IS CLOSE — OPEN TARGETS TO ATTACK IT`);
+    out.push(`${shipArticle(npc)} IS CLOSE — TAP \u25CE TO ATTACK IT`);
   }
   return out;
 }

@@ -30,6 +30,8 @@ export interface HudButton {
   readonly icon?: boolean;
   /** the button refuses now, and says why on the console when it is pressed */
   readonly dim?: boolean;
+  /** the ship it names attacks the commander, so it reads red (docs/TODO/222) */
+  readonly hostile?: boolean;
   /**
    * The button holds its code down while it is held, as the laser button
    * does, rather than sending it once (`engine/hold-buttons.ts`).
@@ -62,7 +64,7 @@ export class ButtonStrip {
         + `<span class="label">${text(b.label)}</span></div>`
       :
       `<div ${b.hold ? 'data-hold' : 'data-key'}="${text(b.code)}"`
-      + ` class="hud-button${b.note || b.dim ? ' dim' : ''}${b.lit ? ' lit' : ''}${b.icon ? ' icon' : ''}">`
+      + ` class="hud-button${b.note || b.dim ? ' dim' : ''}${b.lit ? ' lit' : ''}${b.icon ? ' icon' : ''}${b.hostile ? ' hostile' : ''}">`
       + `${text(b.label)}${b.note ? `<span class="note">${text(b.note)}</span>` : ''}`
       + `${b.hint ? `<span class="hint">${text(b.hint)}</span>` : ''}</div>`)).join('');
     if (html === this.shown) return;

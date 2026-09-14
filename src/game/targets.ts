@@ -31,6 +31,8 @@ export interface TargetRow {
   readonly range: number;
   /** what the ship is to the pilot, in the player's words */
   readonly standing: string;
+  /** it attacks the commander, so its button reads red (docs/TODO/222) */
+  readonly hostile: boolean;
   /** what an attack costs, where it costs something beyond the fight */
   readonly cost: string | null;
   readonly picked: boolean;
@@ -76,6 +78,7 @@ export function targetList(v: TargetView): TargetRow[] {
           name: shipName(ship),
           range: ship.object.position.distanceTo(v.playerPos),
           standing,
+          hostile,
           cost: costOf(ship.role),
           picked: ship.state.targeted,
         },

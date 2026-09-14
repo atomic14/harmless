@@ -35,7 +35,7 @@ const lines = (toStation = 60_000): string[] => closePassLines({
 const first = lines();
 eq('one line, for the one trader inside the lock radius', first.length, 1);
 check('...and it names the ship', first[0].includes(trader.object.name.toUpperCase()));
-check('...and it says what to do with it', first[0].includes('TARGETS'));
+check('...and it says what to do with it', first[0].includes('TAP \u25CE'));
 check('the pirate gets no line, because it announces itself, and it is not a trader',
   world.npcs.some((n) => n.role === 'pirate') && first.length === 1);
 check('...the rock gets none either', rock.role === 'asteroid' && first.length === 1);

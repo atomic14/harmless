@@ -27,9 +27,9 @@ const base = {
   const b = gunButtonsFor(base);
   // Five since docs/TODO/219 M5: the cloak, which no shop sells, keeps its place
   // so a thumb learns the row.
-  eq('the row is five buttons, left to right', b.map((x) => x.label).join('|'), 'FIRE LASER|ARM A MISSILE|FIRE THE MISSILE|E.C.M.|CLOAK');
+  eq('the row is five buttons, left to right', b.map((x) => x.label).join('|'), 'FIRE LASER|ARM MISSILE|FIRE MISSILE|E.C.M.|CLOAK');
   check('the laser button is the first, and it holds the fire key rather than tapping it', b[0].hold === true && b[0].code === 'KeyA');
-  eq('an unarmed missile button arms one', b.find((x) => x.code === 'KeyT')?.label, 'ARM A MISSILE');
+  eq('an unarmed missile button arms one', b.find((x) => x.code === 'KeyT')?.label, 'ARM MISSILE');
   eq('...and says how many are left', b.find((x) => x.code === 'KeyT')?.hint, '3 LEFT');
   eq('...and the fire button waits, dim', b[2].note, 'NOT ARMED');
   const armed = gunButtonsFor({ ...base, armed: true, locked: true });
@@ -46,15 +46,22 @@ const base = {
   check('...and with one it is live', gunButtonsFor({ ...base, ecmKey: 'KeyE' })[3].code === 'KeyE');
   check('...and lit while a missile is inbound', gunButtonsFor({ ...base, ecmKey: 'KeyE', cloakKey: null, cloaked: false, missileInbound: true })[3].lit === true);
   // The target list is its own column, on the left (Chris, 2026-09-13).
-  const row = { code: 'VirtTarget1', row: { ship: {} as never, name: 'KRAIT', range: 1000, standing: 'HOSTILE', picked: false, cost: '' } };
-  const listed = { ...base, targets: { open: false, rows: [row], picked: null } };
-  check('the TARGETS button is in its own column, and not among the guns',
+  const row = { code: 'VirtTarget1', row: { ship: {} as never, name: 'KRAIT', range: 1000, standing: 'HOSTILE', hostile: true, picked: false, cost: '' } };
+  const trader = { code: 'VirtTarget2', row: { ship: {} as never, name: 'PYTHON', range: 2000, standing: 'TRADER', hostile: false, picked: false, cost: '' } };
+  const listed = { ...base, targets: { open: false, rows: [row, trader], picked: null } };
+  check('the targets button is in its own column, and not among the guns',
     targetButtonsFor(listed).some((x) => x.code === TARGETS_KEY) && !gunButtonsFor(listed).some((x) => x.code === TARGETS_KEY));
-  eq('closed, the header says how many are on the scanner', targetButtonsFor(listed)[0]?.hint, '1 ON THE SCANNER');
+  // An icon with the count (docs/TODO/222), red while a hostile is on the scanner.
+  const header = targetButtonsFor(listed)[0];
+  check('closed, the header is an icon with the count', header?.icon === true && header.label === '\u25CE 2' && header.hint === undefined);
+  check('...red, because the Krait attacks', header?.hostile === true);
+  check('...and green with the trader alone', targetButtonsFor({ ...base, targets: { open: false, rows: [trader], picked: null } })[0]?.hostile === false);
   eq('...and the row is empty', targetRowFor(listed).length, 0);
-  const open = { ...base, targets: { open: true, rows: [row], picked: null } };
-  eq('open, the header folds, and the row lists the ship (docs/TODO/215 M2)',
-    targetButtonsFor(open)[0]?.label + ' / ' + targetRowFor(open).map((x) => x.label).join('|'), 'TARGETS ▴ / KRAIT');
+  const open = { ...base, targets: { open: true, rows: [row, trader], picked: null } };
+  eq('open, the header is lit, and the row lists the ships (docs/TODO/215 M2)',
+    String(targetButtonsFor(open)[0]?.lit) + ' / ' + targetRowFor(open).map((x) => x.label).join('|'), 'true / KRAIT|PYTHON');
+  check('...and the hostile row reads red, and the trader\'s does not',
+    targetRowFor(open)[0].hostile === true && targetRowFor(open)[1].hostile === false);
   eq('...and while the pilot flies the slot, both are empty',
     targetButtonsFor({ ...open, trial: true }).length + targetRowFor({ ...open, trial: true }).length, 0);
 }

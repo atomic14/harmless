@@ -474,7 +474,7 @@ body.screen-open #courses { visibility: hidden; }
 }
 #course-row::-webkit-scrollbar, #target-row::-webkit-scrollbar { display: none; }
 #course-row { top: 100px; }
-#target-row { bottom: calc(var(--console-h, 180px) + 14px + 58px); }
+#target-row { bottom: calc(var(--console-h, 180px) + 14px + 36px); }
 #course-row .hud-button, #target-row .hud-button {
   flex: 0 0 auto;
   min-width: 150px; max-width: 70vw;
@@ -506,9 +506,16 @@ body.screen-open #course-row, body.screen-open #target-row { visibility: hidden;
   position: absolute;
   left: 12px; bottom: calc(var(--console-h, 180px) + 14px);
   z-index: 21;
-  display: flex; flex-direction: column; align-items: stretch; gap: 6px;
+  display: flex; flex-direction: column; align-items: flex-start; gap: 6px;
   width: min(46vw, 260px);
 }
+/* The header is an icon with the count, small (docs/TODO/222). */
+#targets .hud-button.icon { min-height: 30px; padding: 2px 12px; font-size: 16px; letter-spacing: 2px; }
+/* A ship that attacks the commander reads red, in the row and on the icon. */
+#targets .hud-button.hostile, #target-row .hud-button.hostile {
+  color: var(--hud-red); border-color: rgba(var(--hud-red-rgb), 0.6);
+}
+#targets .hud-button.hostile.lit, #target-row .hud-button.hostile.lit { color: var(--hud-amber); }
 /*
  * The guns (docs/TODO/215 M1): a row at the bottom of the console. Chris
  * drew it there on 2026-09-13, so the sky is the sky. The laser is the wide
@@ -1056,7 +1063,7 @@ body.screen-open #exercise { display: none; }
    * writes `--console-h` at each resize. The desktop keeps its own numbers,
    * which were placed by eye against a console of a fixed height.
    */
-  #message { font-size: 13px; letter-spacing: 2px; bottom: calc(var(--console-h, 0px) + 6dvh); }
+  #message { font-size: 13px; letter-spacing: 2px; bottom: calc(var(--console-h, 0px) + 56px); }
   /*
    * The button row of a long table sticks to the bottom of the panel. The
    * market has 17 rows, and on a phone BUY and SELL sat below the fold. The
@@ -1118,6 +1125,9 @@ body.screen-open #exercise { display: none; }
   .hud-left .gauge:nth-child(6) { grid-column: 2; grid-row: 8; }
   #guns { grid-column: 1 / -1; grid-row: 9; margin-top: 4px; }
   #guns .hud-button { font-size: 12px; padding: 4px 4px; }
+  /* A phone's gun row keeps its notes and drops its hints, or the row is a
+     third of the screen (docs/TODO/222). The manual carries the hints. */
+  #guns .hud-button .hint { display: none; }
   /* 64 pixels holds LASER TEMP on one line at this size. 62 broke it in two. */
   .gauge label { width: 64px; font-size: 9px; letter-spacing: 0.5px; }
   /* Four items in one row do not fit. They wrap by item, never inside one. */

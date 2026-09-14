@@ -40,8 +40,15 @@ export function browserShell(canvas: HTMLCanvasElement, scene: THREE.Scene): She
   return {
     view,
 
-    // was `window.addEventListener('resize', ...)` in the constructor
-    onResize: (fn) => { window.addEventListener('resize', () => fn()); },
+    // was `window.addEventListener('resize', ...)` in the constructor. The
+    // console is measured on the same path, and it changes size on its own
+    // when a font lands or a button wraps (docs/TODO/222). So the console is
+    // watched too, where the browser can watch an element.
+    onResize: (fn) => {
+      window.addEventListener('resize', () => fn());
+      const hud = document.getElementById('hud');
+      if (hud && typeof ResizeObserver !== 'undefined') new ResizeObserver(() => fn()).observe(hud);
+    },
 
     // was a listener on `#screen` in the constructor. The listener lives on the
     // persistent overlay container, since screen contents are re-rendered
