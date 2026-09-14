@@ -71,8 +71,8 @@ None.
 the 390-pixel frame every page fits its box with no scroll, and the pager
 and the buttons are in view. The edition is 2, and a commander who read
 edition 1 reads the new pages one time. The journey test asks for seven
-rows and fourteen buttons, and it holds that no key of the flight table or
-the global table is quoted. The onboarding test and the ladder test pass.
+rows and fourteen buttons. It holds that no key of the flight table or the
+global table is quoted. The onboarding test and the ladder test pass.
 
 **M2.** The keyline stood under the sticky button row on a phone, and a
 short page slid it behind the row. It stands above the buttons now. The
