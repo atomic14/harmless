@@ -13,7 +13,7 @@ active context:
 
 ## Execution queue
 
-1. [224 — The README leads with the buttons, and the combat computer says what it adds](224-the-readme-leads-with-the-buttons-and-the-combat-computer-says-what-it-adds.md)
+Nothing is queued.
 
 **224 CAME FROM CHRIS ON 2026-09-14**, after 223. He asked whether the
 keyboard section is still needed, and whether a pilot ever takes manual
@@ -21,6 +21,7 @@ control. The code says the last stretch of a dock is the pilot's, and the
 trigger in a fight. Hand flying is a desktop option. Chris chose to keep
 the option and to shrink the section. 224 leads the README's Controls with
 the buttons, and makes the combat computer say what the purchase adds.
+**224 landed the same day**, and it is below.
 
 **223 CAME FROM CHRIS ON 2026-09-14**, after `docs/PAGES-REVIEW.md`. The
 README describes the missions of July, and the landing page says the game

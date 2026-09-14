@@ -102,13 +102,9 @@ A course is one thing the ship does next by itself. LAUNCH offers the jump,
 the rocks and the star. In flight, the buttons over the view offer what is in
 the sky. FLY TO THE STATION is always there. The mission target, a derelict,
 the rock hermit and a canister to collect show when they exist. RUN FOR IT
-shows when ships attack you. Tap one and a computer flies it. A header names what the ship is doing, and **▶▶** runs
-time forward while nothing hostile is near. A flight key takes the stick
-back.
-
-FLY TO THE STATION lines the ship up on the slot. A fitted docking computer
-then takes it in. Without one, the rails hold you on the slot's axis, and you
-match the slot's roll and the speed yourself.
+shows when ships attack you. Tap one and a computer flies it. A header
+names what the ship is doing, and **▶▶** runs time forward while nothing
+hostile is near. A flight key takes the stick back.
 
 ### A fight
 

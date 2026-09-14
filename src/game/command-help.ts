@@ -143,7 +143,9 @@ export const COMMAND_HELP: Record<Command, CommandHelp> = {
     section: 'combat',
   },
   toggleCombatComputer: {
-    what: 'combat computer — the trained defence AI flies your ship (if fitted)',
+    // The aim is free since docs/TODO/206. The purchase adds the trigger and
+    // the E.C.M. (docs/TODO/224 M2).
+    what: 'combat computer — pulls the trigger and fires the E.C.M. for you; the aim is free (if fitted)',
     section: 'combat',
   },
   toggleDockingComputer: {

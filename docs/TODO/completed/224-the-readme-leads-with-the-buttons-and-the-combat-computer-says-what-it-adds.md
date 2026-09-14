@@ -81,6 +81,16 @@ opening and the K row say the bought combat computer pulls the trigger and
 fires the E.C.M., and that the aim is free. The README is 375 lines. The
 four tests that read it pass, and the key-help test reads the new heading.
 
+**M2.** The `?` guide's K line said "the trained defence AI flies your
+ship". It says the computer pulls the trigger and fires the E.C.M. for
+you, and that the aim is free. The manual renders the same line from the
+same dictionary. No test pinned the old words. The README's course
+section repeated the dock's last stretch, and the Docking section is its
+one home now.
+
 ## Outcome
 
-(filled when the plan lands)
+Landed on 2026-09-14, in two commits. The README's Controls section leads
+with the buttons, and the keys are its last subsection with the Commands
+table. Hand flying stays as a desktop option. The combat computer says
+what the purchase adds, in the README and in the `?` guide.
